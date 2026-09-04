@@ -438,9 +438,10 @@
 	// ---------------------------------------------------------------------
 
 	function runLoaderMode(token) {
-		function collectDocs() {
-			const anchors = Array.prototype.slice.call(document.querySelectorAll("a.link"));
-			const seen = Object.create(null);
+		const EXPAND_ICON_SELECTOR = 'a[id^="linkArquivos"] img, img[onclick*="showDetail"], img[id^="icon"]';
+
+		function collectDocsFrom(scope) {
+			const anchors = Array.prototype.slice.call(scope.querySelectorAll("a.link"));
 			const docs = [];
 
 			anchors.forEach(function (a) {
@@ -453,8 +454,6 @@
 				} catch (e) {
 					absolute = href;
 				}
-				if (seen[absolute]) return;
-				seen[absolute] = true;
 
 				docs.push({ href: absolute, text: (a.textContent || "Documento").trim() });
 			});
@@ -462,11 +461,19 @@
 			return docs;
 		}
 
-		function finish() {
-			const docs = collectDocs();
+		function dedupe(docs) {
+			const seen = Object.create(null);
+			return docs.filter(function (doc) {
+				if (seen[doc.href]) return false;
+				seen[doc.href] = true;
+				return true;
+			});
+		}
+
+		function finish(docs) {
 			try {
 				window.parent.postMessage(
-					{ source: MESSAGE_SOURCE, type: "pendencia-docs", token: token, docs: docs },
+					{ source: MESSAGE_SOURCE, type: "pendencia-docs", token: token, docs: dedupe(docs) },
 					window.location.origin
 				);
 			} catch (e) {
@@ -474,17 +481,73 @@
 			}
 		}
 
+		// A partir do ícone "+" (ex.: id="icon0"), localiza o contêiner que o
+		// Projudi preenche com o resultado da expansão (ex.: id="row0"/"div0"),
+		// para restringir a coleta de documentos só ao que essa linha trouxe.
+		function findContainerForIcon(icon, row) {
+			const id = icon.id || "";
+			const match = id.match(/(\d+)$/);
+			if (match) {
+				const suffix = match[1];
+				const byRow = document.getElementById("row" + suffix);
+				if (byRow) return byRow;
+				const byDiv = document.getElementById("div" + suffix);
+				if (byDiv) return byDiv;
+			}
+			const next = row && row.nextElementSibling;
+			if (next && next.tagName === "TR") return next;
+			return row;
+		}
+
 		function run() {
-			// Ícones "+" que expandem cada linha (juntada/conclusão pendente) e
-			// disparam a listagem (AJAX) dos documentos daquela linha — a mesma
-			// ação que o usuário faria manualmente ao clicar para conferir os
-			// detalhes. Nenhuma ação de aceitar/rejeitar é simulada aqui.
-			const expandIcons = Array.prototype.slice.call(
-				document.querySelectorAll('a[id^="linkArquivos"] img, img[onclick*="showDetail"], img[id^="icon"]')
-			);
+			// A tela de análise (analisarJuntada.do e afins) normalmente lista o
+			// HISTÓRICO completo de juntadas/conclusões do processo, não só as
+			// pendentes — só as linhas com checkbox de seleção são as realmente
+			// pendentes de análise (as demais aparecem apenas para contexto).
+			// Por isso, restringimos a expansão/coleta às linhas com checkbox;
+			// se a tela não seguir esse padrão, caímos de volta no comportamento
+			// de expandir e coletar a página inteira.
+			const checkboxes = Array.prototype.slice.call(document.querySelectorAll('input[type="checkbox"]'));
+
+			const items = [];
+			checkboxes.forEach(function (checkbox) {
+				const row = checkbox.closest("tr");
+				if (!row) return;
+				const icon = row.querySelector(EXPAND_ICON_SELECTOR);
+				items.push({
+					row: row,
+					icon: icon,
+					container: icon ? findContainerForIcon(icon, row) : row,
+				});
+			});
+
+			if (items.length) {
+				items.forEach(function (item) {
+					if (item.icon) {
+						try {
+							item.icon.click();
+						} catch (e) {
+							/* ignore */
+						}
+					}
+				});
+
+				setTimeout(function () {
+					let docs = [];
+					items.forEach(function (item) {
+						docs = docs.concat(collectDocsFrom(item.container));
+					});
+					finish(docs);
+				}, 1500);
+				return;
+			}
+
+			// Sem checkboxes de pendência: mantém o comportamento anterior
+			// (expande tudo que houver na página e coleta o resultado inteiro).
+			const expandIcons = Array.prototype.slice.call(document.querySelectorAll(EXPAND_ICON_SELECTOR));
 
 			if (!expandIcons.length) {
-				finish();
+				finish(collectDocsFrom(document));
 				return;
 			}
 
@@ -496,8 +559,9 @@
 				}
 			});
 
-			// dá tempo para os requests AJAX preencherem os detalhes antes de coletar
-			setTimeout(finish, 1500);
+			setTimeout(function () {
+				finish(collectDocsFrom(document));
+			}, 1500);
 		}
 
 		if (document.readyState === "complete" || document.readyState === "interactive") {

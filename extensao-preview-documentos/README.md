@@ -58,14 +58,21 @@ Por isso, ao passar o mouse sobre o link da pendência, a extensão:
 1. Carrega a tela de análise dentro de um `<iframe>` oculto (mesma
    sessão/cookies do usuário, sem abrir nada visível para quem está
    usando o Projudi).
-2. Dentro desse iframe oculto, clica programaticamente nos mesmos ícones
-   "+" que o usuário clicaria manualmente para expandir cada linha —
-   disparando a mesma listagem (somente leitura) já oferecida pelo
-   Projudi. Nenhuma ação de aceitar/rejeitar/decidir a juntada é simulada.
-3. Espera o resultado ser inserido no DOM pelo próprio JavaScript do
-   Projudi e recolhe os links de documento (`a.link` com `href` contendo
-   `/arquivo.do`) que apareceram.
-4. Descarta o iframe oculto e abre um painel de pré-visualização para
+2. Como essa tela normalmente lista o **histórico completo** de
+   juntadas/conclusões do processo (não só as pendentes), a extensão
+   identifica as linhas realmente pendentes pelo checkbox de seleção que
+   só existe nelas, e restringe a expansão a essas linhas.
+3. Dentro desse iframe oculto, clica programaticamente no ícone "+" de
+   cada linha pendente — o mesmo que o usuário clicaria manualmente para
+   expandir aquela linha — disparando a mesma listagem (somente leitura)
+   já oferecida pelo Projudi. Nenhuma ação de aceitar/rejeitar/decidir a
+   juntada é simulada, e linhas já analisadas (sem checkbox) não são
+   tocadas.
+4. Espera o resultado ser inserido no DOM pelo próprio JavaScript do
+   Projudi e recolhe, **apenas dentro de cada linha expandida**, os links
+   de documento (`a.link` com `href` contendo `/arquivo.do`) que
+   apareceram.
+5. Descarta o iframe oculto e abre um painel de pré-visualização para
    cada documento encontrado. Se houver **mais de uma** juntada ou
    conclusão pendente, é aberta uma janela de pré-visualização para
    **cada uma delas**, lado a lado (em cascata), permitindo revisar todos
