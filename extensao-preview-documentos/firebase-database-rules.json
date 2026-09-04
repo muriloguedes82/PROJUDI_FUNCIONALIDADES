@@ -1,0 +1,33 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "lembretes": {
+      "$processoKey": {
+        ".read": true,
+        ".write": true,
+        "$lembreteId": {
+          ".validate": "newData.hasChildren(['texto', 'cor', 'criadoEm', 'atualizadoEm'])",
+          "texto": {
+            ".validate": "newData.isString() && newData.val().length <= 4000"
+          },
+          "cor": {
+            ".validate": "newData.isString() && newData.val().matches(/^#[0-9a-fA-F]{6}$/)"
+          },
+          "autor": {
+            ".validate": "newData.isString() && newData.val().length <= 120"
+          },
+          "criadoEm": {
+            ".validate": "newData.isNumber()"
+          },
+          "atualizadoEm": {
+            ".validate": "newData.isNumber()"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      }
+    }
+  }
+}

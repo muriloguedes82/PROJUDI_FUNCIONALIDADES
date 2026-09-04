@@ -1,0 +1,192 @@
+#pdpLembretesToggle {
+	position: fixed;
+	right: 16px;
+	bottom: 16px;
+	z-index: 2147482900;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 10px 14px;
+	background: #6b7f3a;
+	color: #fff;
+	border: none;
+	border-radius: 999px;
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 13px;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+#pdpLembretesToggle:hover {
+	background: #5a6b30;
+}
+
+#pdpLembretesToggle #pdpLembretesContador {
+	background: rgba(255, 255, 255, 0.25);
+	border-radius: 999px;
+	padding: 1px 7px;
+	font-size: 11px;
+}
+
+#pdpLembretesToggle.pdp-lembretes-tem-notas #pdpLembretesContador {
+	background: #fff59d;
+	color: #4d3d00;
+}
+
+#pdpLembretesPainel {
+	position: fixed;
+	top: 0;
+	right: -340px;
+	width: 320px;
+	height: 100%;
+	z-index: 2147482950;
+	background: #f4f1e8;
+	border-left: 1px solid #b7b09a;
+	box-shadow: -6px 0 20px rgba(0, 0, 0, 0.25);
+	display: flex;
+	flex-direction: column;
+	font-family: Arial, Helvetica, sans-serif;
+	transition: right 0.2s ease-out;
+}
+
+#pdpLembretesPainel.pdp-lembretes-visivel {
+	right: 0;
+}
+
+.pdp-lembretes-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px 12px;
+	background: #6b7f3a;
+	color: #fff;
+}
+
+.pdp-lembretes-header strong {
+	font-size: 13px;
+}
+
+.pdp-lembretes-fechar {
+	background: transparent;
+	border: none;
+	color: #fff;
+	font-size: 14px;
+	cursor: pointer;
+}
+
+.pdp-lembretes-subheader {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 6px 12px;
+	font-size: 11px;
+	color: #555;
+	border-bottom: 1px solid #ddd6c2;
+}
+
+.pdp-lembretes-subheader button {
+	border: none;
+	background: none;
+	color: #3a5da0;
+	text-decoration: underline;
+	font-size: 11px;
+	cursor: pointer;
+	padding: 0;
+}
+
+.pdp-lembretes-lista {
+	flex: 1 1 auto;
+	overflow-y: auto;
+	padding: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.pdp-lembretes-vazio {
+	color: #777;
+	font-size: 12px;
+	text-align: center;
+	margin-top: 20px;
+}
+
+.pdp-lembretes-novo {
+	flex: 0 0 auto;
+	margin: 0 12px 12px;
+	padding: 8px;
+	background: #fff;
+	border: 1px dashed #9aa06b;
+	border-radius: 6px;
+	color: #4a5a2a;
+	font-size: 12px;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+.pdp-lembretes-novo:hover {
+	background: #eef3e2;
+}
+
+.pdp-postit {
+	border-radius: 3px;
+	box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+	padding: 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.pdp-postit-cores {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.pdp-postit-swatch {
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	border: 1px solid rgba(0, 0, 0, 0.25);
+	cursor: pointer;
+	padding: 0;
+}
+
+.pdp-postit-swatch-ativo {
+	outline: 2px solid #333;
+	outline-offset: 1px;
+}
+
+.pdp-postit-excluir {
+	margin-left: auto;
+	background: transparent;
+	border: none;
+	cursor: pointer;
+	font-size: 12px;
+	opacity: 0.6;
+}
+
+.pdp-postit-excluir:hover {
+	opacity: 1;
+}
+
+.pdp-postit-texto {
+	width: 100%;
+	min-height: 70px;
+	resize: vertical;
+	border: none;
+	background: transparent;
+	font-family: "Comic Sans MS", "Segoe Print", cursive, Arial, sans-serif;
+	font-size: 13px;
+	color: #333;
+}
+
+.pdp-postit-texto:focus {
+	outline: 1px dashed rgba(0, 0, 0, 0.3);
+}
+
+.pdp-postit-rodape {
+	font-size: 10px;
+	color: rgba(0, 0, 0, 0.55);
+	text-align: right;
+}
