@@ -47,15 +47,34 @@ O mesmo painel de pré-visualização também é oferecido no quadro
 
 Diferente do link de movimentação, esse link não aponta direto para um
 documento — ele leva à tela de análise (`analisarJuntada.do`,
-`conclusao.do`, etc.), que pode listar uma ou mais juntadas/conclusões
-pendentes. Ao passar o mouse sobre o link da pendência, a extensão busca
-essa tela em segundo plano (reaproveitando a sessão do usuário) e procura
-os links de documento nela contidos. Se houver **mais de uma** juntada ou
-conclusão pendente, é aberta uma janela de pré-visualização para **cada
-uma delas**, lado a lado (em cascata), permitindo revisar todos os
-documentos pendentes sem sair da tela do processo. Se nenhum documento for
-encontrado na tela de análise, um aviso é exibido com um atalho para abrir
-a análise completa em nova aba.
+`conclusao.do`, etc.), que lista uma ou mais juntadas/conclusões
+pendentes. Nessa tela, porém, o link de cada documento só existe no HTML
+**depois** que o próprio JavaScript da página expande a linha (o ícone
+"+", que dispara uma listagem via AJAX) — ele não está presente na página
+carregada "crua".
+
+Por isso, ao passar o mouse sobre o link da pendência, a extensão:
+
+1. Carrega a tela de análise dentro de um `<iframe>` oculto (mesma
+   sessão/cookies do usuário, sem abrir nada visível para quem está
+   usando o Projudi).
+2. Dentro desse iframe oculto, clica programaticamente nos mesmos ícones
+   "+" que o usuário clicaria manualmente para expandir cada linha —
+   disparando a mesma listagem (somente leitura) já oferecida pelo
+   Projudi. Nenhuma ação de aceitar/rejeitar/decidir a juntada é simulada.
+3. Espera o resultado ser inserido no DOM pelo próprio JavaScript do
+   Projudi e recolhe os links de documento (`a.link` com `href` contendo
+   `/arquivo.do`) que apareceram.
+4. Descarta o iframe oculto e abre um painel de pré-visualização para
+   cada documento encontrado. Se houver **mais de uma** juntada ou
+   conclusão pendente, é aberta uma janela de pré-visualização para
+   **cada uma delas**, lado a lado (em cascata), permitindo revisar todos
+   os documentos pendentes sem sair da tela do processo.
+
+Se nenhum documento for encontrado (ou a tela demorar demais para
+responder), um aviso é exibido com um atalho para abrir a análise
+completa em nova aba — o comportamento original do link nunca é
+removido.
 
 ## Instalação (modo desenvolvedor)
 
@@ -79,9 +98,11 @@ a análise completa em nova aba.
 - Não há armazenamento, envio ou cache de nenhum dado do processo pela
   extensão: o documento é sempre buscado diretamente do Projudi no momento
   do hover.
-- A pré-visualização das pendências depende de a tela de análise
-  (`analisarJuntada.do` e afins) listar os documentos usando o mesmo
-  padrão de link (`a.link` com `href` contendo `/arquivo.do`) já usado na
-  aba Movimentações. Se o Tribunal usar um padrão diferente nessa tela, a
-  extensão mostra o aviso de "nenhum documento encontrado" e o link
-  original continua funcionando normalmente.
+- A pré-visualização das pendências depende de a tela de análise expor os
+  ícones de expandir com o mesmo padrão observado (`<a id="linkArquivosN">`
+  contendo uma `<img>`, ou `onclick="showDetail(...)"`) e de o resultado
+  expandido usar o mesmo padrão de link (`a.link` com `href` contendo
+  `/arquivo.do`) já usado na aba Movimentações. Se algum Tribunal usar uma
+  tela de análise com estrutura diferente, a extensão mostra o aviso de
+  "nenhum documento encontrado" (ou expira após alguns segundos) e o link
+  original continua funcionando normalmente, sem nenhum efeito colateral.

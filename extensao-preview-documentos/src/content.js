@@ -9,15 +9,38 @@
 // O mesmo painel flutuante é oferecido para os itens do quadro
 // "Pendências" (ex.: "Análise de Juntadas: Há 1 pendência(s) de análise de
 // juntada", "Análise de Conclusões: ..."). Nesse caso o link da pendência
-// não aponta diretamente para um documento, e sim para a tela de análise
-// (ex.: analisarJuntada.do) que pode listar uma ou mais juntadas/conclusões
-// pendentes. Ao passar o mouse, buscamos essa tela em segundo plano e
-// abrimos um painel de pré-visualização para cada documento encontrado —
-// se houver mais de uma juntada/conclusão pendente, abrimos uma janela de
+// não aponta direto para um documento, e sim para uma tela de análise
+// (ex.: analisarJuntada.do) que lista uma ou mais juntadas/conclusões
+// pendentes; o link do documento de cada uma só existe no DOM depois que o
+// próprio JS da página expande a linha (ícone "+") e carrega o resultado
+// via AJAX. Por isso, ao passar o mouse sobre a pendência, carregamos essa
+// tela dentro de um <iframe> oculto (mesma sessão/cookies do usuário),
+// clicamos programaticamente nos mesmos ícones "+" que o usuário clicaria
+// manualmente — disparando a mesma listagem, somente leitura, sem aceitar
+// ou rejeitar nada — esperamos o resultado ser inserido no DOM e então
+// abrimos um painel de pré-visualização para cada documento encontrado. Se
+// houver mais de uma juntada/conclusão pendente, abrimos uma janela de
 // pré-visualização para cada uma delas.
 
 (function () {
 	"use strict";
+
+	const LOADER_ATTR = "data-pdp-loader";
+	const MESSAGE_SOURCE = "projudi-preview";
+	const DOC_LINK_HREF_MARKER = "/arquivo.do";
+
+	const loaderToken = (function () {
+		try {
+			return window.frameElement && window.frameElement.getAttribute(LOADER_ATTR);
+		} catch (e) {
+			return null;
+		}
+	})();
+
+	if (loaderToken) {
+		runLoaderMode(loaderToken);
+		return;
+	}
 
 	console.log("[Projudi Preview] content script carregado em", window.location.href);
 
@@ -27,8 +50,8 @@
 	const PANEL_HEIGHT_RATIO = 0.85;
 	const MARGIN = 12;
 	const CASCADE_OFFSET = 28;
+	const PENDENCIA_TIMEOUT_MS = 8000;
 
-	const DOC_LINK_HREF_MARKER = "/arquivo.do";
 	const PENDENCIA_FIELDSET_SELECTOR = "#quadroPendencias";
 
 	let openTimer = null;
@@ -43,7 +66,7 @@
 	// pode abrir mais de um painel, um para cada juntada/conclusão pendente
 	let pendenciaPanels = [];
 	let activePendenciaLink = null;
-	let pendenciaRequestToken = 0;
+	let pendenciaLoader = null; // { iframe, token, cleanup }
 
 	function isDocumentLink(el) {
 		if (!(el instanceof HTMLAnchorElement)) return false;
@@ -189,32 +212,6 @@
 	// Pré-visualização das pendências (Análise de Juntadas / Conclusões)
 	// ---------------------------------------------------------------------
 
-	function extractDocumentLinks(html, baseHref) {
-		const parser = new DOMParser();
-		const parsed = parser.parseFromString(html, "text/html");
-		const anchors = Array.prototype.slice.call(parsed.querySelectorAll("a.link"));
-		const seen = Object.create(null);
-		const result = [];
-
-		anchors.forEach(function (a) {
-			const href = a.getAttribute("href") || "";
-			if (href.indexOf(DOC_LINK_HREF_MARKER) === -1) return;
-
-			let absolute;
-			try {
-				absolute = new URL(href, baseHref).href;
-			} catch (e) {
-				absolute = href;
-			}
-			if (seen[absolute]) return;
-			seen[absolute] = true;
-
-			result.push({ href: absolute, text: (a.textContent || "Documento").trim() });
-		});
-
-		return result;
-	}
-
 	function closeAllPendenciaPanels() {
 		pendenciaPanels.forEach(function (panel) {
 			panel.frame.src = "about:blank";
@@ -262,64 +259,100 @@
 		activePendenciaLink = link;
 	}
 
+	function showPendenciaDocs(link, docs) {
+		closeAllPendenciaPanels();
+		activePendenciaLink = link;
+
+		docs.forEach(function (doc, index) {
+			const panel = buildPanel();
+			attachPendenciaPanelBehavior(panel);
+			panel.onClose = function () {
+				panel.frame.src = "about:blank";
+				panel.wrap.remove();
+				pendenciaPanels = pendenciaPanels.filter(function (p) {
+					return p !== panel;
+				});
+			};
+
+			panel.title.textContent = docs.length > 1 ? doc.text + " (" + (index + 1) + "/" + docs.length + ")" : doc.text;
+			panel.openTab.href = doc.href;
+			panel.frame.src = doc.href;
+
+			positionPanel(panel, link, index);
+			panel.wrap.classList.add("pdp-visible");
+
+			pendenciaPanels.push(panel);
+		});
+	}
+
+	function cleanupPendenciaLoader() {
+		if (!pendenciaLoader) return;
+		window.removeEventListener("message", pendenciaLoader.onMessage);
+		clearTimeout(pendenciaLoader.timeoutId);
+		if (pendenciaLoader.iframe.parentNode) {
+			pendenciaLoader.iframe.parentNode.removeChild(pendenciaLoader.iframe);
+		}
+		pendenciaLoader = null;
+	}
+
 	function openPendenciaGroup(link) {
-		if (activePendenciaLink === link && pendenciaPanels.length) return;
+		if (activePendenciaLink === link && (pendenciaPanels.length || (pendenciaLoader && pendenciaLoader.link === link))) {
+			return;
+		}
 
 		const href = link.getAttribute("href");
 		if (!href) return;
 
-		const token = ++pendenciaRequestToken;
+		cleanupPendenciaLoader();
 		activePendenciaLink = link;
 
-		fetch(href, { credentials: "same-origin" })
-			.then(function (resp) {
-				if (!resp.ok) throw new Error("HTTP " + resp.status);
-				return resp.text();
-			})
-			.then(function (html) {
-				if (token !== pendenciaRequestToken) return;
+		const token = "pdp-" + Date.now() + "-" + Math.random().toString(36).slice(2);
 
-				const docs = extractDocumentLinks(html, href);
-				if (!docs.length) {
-					showPendenciaMessage(
-						link,
-						"Nenhum documento encontrado para pré-visualização. Clique no link para abrir a análise completa."
-					);
-					return;
-				}
+		const iframe = document.createElement("iframe");
+		iframe.setAttribute(LOADER_ATTR, token);
+		iframe.style.position = "fixed";
+		iframe.style.top = "0";
+		iframe.style.left = "-9999px";
+		iframe.style.width = "1px";
+		iframe.style.height = "1px";
+		iframe.style.opacity = "0";
+		iframe.style.pointerEvents = "none";
+		iframe.setAttribute("aria-hidden", "true");
 
-				closeAllPendenciaPanels();
-				activePendenciaLink = link;
+		function onMessage(e) {
+			if (e.origin !== window.location.origin) return;
+			const data = e.data;
+			if (!data || data.source !== MESSAGE_SOURCE || data.type !== "pendencia-docs" || data.token !== token) return;
 
-				docs.forEach(function (doc, index) {
-					const panel = buildPanel();
-					attachPendenciaPanelBehavior(panel);
-					panel.onClose = function () {
-						panel.frame.src = "about:blank";
-						panel.wrap.remove();
-						pendenciaPanels = pendenciaPanels.filter(function (p) {
-							return p !== panel;
-						});
-					};
+			cleanupPendenciaLoader();
+			if (activePendenciaLink !== link) return;
 
-					panel.title.textContent = docs.length > 1 ? doc.text + " (" + (index + 1) + "/" + docs.length + ")" : doc.text;
-					panel.openTab.href = doc.href;
-					panel.frame.src = doc.href;
-
-					positionPanel(panel, link, index);
-					panel.wrap.classList.add("pdp-visible");
-
-					pendenciaPanels.push(panel);
-				});
-			})
-			.catch(function (err) {
-				if (token !== pendenciaRequestToken) return;
-				console.warn("[Projudi Preview] Falha ao carregar pré-visualização das pendências:", err);
+			const docs = Array.isArray(data.docs) ? data.docs : [];
+			if (!docs.length) {
 				showPendenciaMessage(
 					link,
-					"Não foi possível carregar a pré-visualização. Clique no link para abrir a análise completa."
+					"Nenhum documento encontrado para pré-visualização. Clique no link para abrir a análise completa."
 				);
-			});
+				return;
+			}
+			showPendenciaDocs(link, docs);
+		}
+
+		const timeoutId = setTimeout(function () {
+			cleanupPendenciaLoader();
+			if (activePendenciaLink === link && !pendenciaPanels.length) {
+				showPendenciaMessage(
+					link,
+					"Não foi possível carregar a pré-visualização a tempo. Clique no link para abrir a análise completa."
+				);
+			}
+		}, PENDENCIA_TIMEOUT_MS);
+
+		pendenciaLoader = { iframe: iframe, link: link, onMessage: onMessage, timeoutId: timeoutId };
+
+		window.addEventListener("message", onMessage);
+		document.body.appendChild(iframe);
+		iframe.src = href;
 	}
 
 	function cancelOpen() {
@@ -380,6 +413,7 @@
 	document.addEventListener("keydown", function (e) {
 		if (e.key === "Escape") {
 			closeDocNow();
+			cleanupPendenciaLoader();
 			closeAllPendenciaPanels();
 		}
 	});
@@ -398,4 +432,78 @@
 		},
 		true
 	);
+
+	// ---------------------------------------------------------------------
+	// Modo "loader": executado dentro do <iframe> oculto criado acima.
+	// ---------------------------------------------------------------------
+
+	function runLoaderMode(token) {
+		function collectDocs() {
+			const anchors = Array.prototype.slice.call(document.querySelectorAll("a.link"));
+			const seen = Object.create(null);
+			const docs = [];
+
+			anchors.forEach(function (a) {
+				const href = a.getAttribute("href") || "";
+				if (href.indexOf(DOC_LINK_HREF_MARKER) === -1) return;
+
+				let absolute;
+				try {
+					absolute = new URL(href, document.baseURI).href;
+				} catch (e) {
+					absolute = href;
+				}
+				if (seen[absolute]) return;
+				seen[absolute] = true;
+
+				docs.push({ href: absolute, text: (a.textContent || "Documento").trim() });
+			});
+
+			return docs;
+		}
+
+		function finish() {
+			const docs = collectDocs();
+			try {
+				window.parent.postMessage(
+					{ source: MESSAGE_SOURCE, type: "pendencia-docs", token: token, docs: docs },
+					window.location.origin
+				);
+			} catch (e) {
+				/* ignore */
+			}
+		}
+
+		function run() {
+			// Ícones "+" que expandem cada linha (juntada/conclusão pendente) e
+			// disparam a listagem (AJAX) dos documentos daquela linha — a mesma
+			// ação que o usuário faria manualmente ao clicar para conferir os
+			// detalhes. Nenhuma ação de aceitar/rejeitar é simulada aqui.
+			const expandIcons = Array.prototype.slice.call(
+				document.querySelectorAll('a[id^="linkArquivos"] img, img[onclick*="showDetail"], img[id^="icon"]')
+			);
+
+			if (!expandIcons.length) {
+				finish();
+				return;
+			}
+
+			expandIcons.forEach(function (icon) {
+				try {
+					icon.click();
+				} catch (e) {
+					/* ignore */
+				}
+			});
+
+			// dá tempo para os requests AJAX preencherem os detalhes antes de coletar
+			setTimeout(finish, 1500);
+		}
+
+		if (document.readyState === "complete" || document.readyState === "interactive") {
+			run();
+		} else {
+			document.addEventListener("DOMContentLoaded", run, { once: true });
+		}
+	}
 })();
