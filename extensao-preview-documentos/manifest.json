@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Projudi - Pré-visualização de Documentos",
+  "version": "1.0.0",
+  "description": "Ao passar o mouse sobre um documento na tela de Movimentações do Projudi, exibe a íntegra do arquivo em uma janela sobreposta, sem precisar abri-lo em outra aba.",
+  "host_permissions": [
+    "*://*.tjpr.jus.br/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.tjpr.jus.br/projudi/processo.do*",
+        "*://*.tjpr.jus.br/projudi/*processo*"
+      ],
+      "js": ["src/content.js"],
+      "css": ["src/content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

@@ -1,0 +1,115 @@
+/* Realce sutil nos links de documento para indicar a pré-visualização */
+a.link[href*="/arquivo.do"]:hover {
+	background-color: #fff6cc;
+	outline: 1px dashed #b59a1f;
+	cursor: pointer;
+}
+
+#pdp-overlay {
+	position: fixed;
+	z-index: 2147483000;
+	display: none;
+	opacity: 0;
+	transform: translateY(4px);
+	transition: opacity 0.12s ease-out, transform 0.12s ease-out;
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+#pdp-overlay.pdp-visible {
+	display: block;
+	opacity: 1;
+	transform: translateY(0);
+}
+
+#pdp-overlay .pdp-panel {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	background: #fff;
+	border: 1px solid #8c8c8c;
+	border-radius: 6px;
+	box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+	overflow: hidden;
+}
+
+#pdp-overlay .pdp-header {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 8px 10px;
+	background: #6b7f3a;
+	color: #fff;
+	border-bottom: 1px solid #55642e;
+}
+
+#pdp-overlay .pdp-title {
+	font-size: 12px;
+	font-weight: bold;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+#pdp-overlay .pdp-actions {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+#pdp-overlay .pdp-open-tab {
+	color: #fff;
+	font-size: 11px;
+	text-decoration: none;
+	white-space: nowrap;
+	opacity: 0.9;
+}
+
+#pdp-overlay .pdp-open-tab:hover {
+	text-decoration: underline;
+	opacity: 1;
+}
+
+#pdp-overlay .pdp-close {
+	background: transparent;
+	border: none;
+	color: #fff;
+	font-size: 14px;
+	line-height: 1;
+	cursor: pointer;
+	padding: 2px 4px;
+}
+
+#pdp-overlay .pdp-close:hover {
+	color: #ffd0d0;
+}
+
+#pdp-overlay .pdp-body {
+	position: relative;
+	flex: 1 1 auto;
+	background: #525659;
+}
+
+#pdp-overlay .pdp-loading {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #eaeaea;
+	font-size: 13px;
+}
+
+#pdp-overlay.pdp-loaded .pdp-loading {
+	display: none;
+}
+
+#pdp-overlay .pdp-frame {
+	width: 100%;
+	height: 100%;
+	border: 0;
+	background: #fff;
+}
