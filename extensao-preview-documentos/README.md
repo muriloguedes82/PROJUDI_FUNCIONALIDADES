@@ -31,6 +31,32 @@ AzFlow.
    ele), ou pode ser fechado com o botão "✕" ou a tecla `Esc`. Também há um
    atalho "Abrir em nova aba" para o fluxo tradicional, quando necessário.
 
+## Pendências (Análise de Juntadas / Conclusões)
+
+O mesmo painel de pré-visualização também é oferecido no quadro
+**Pendências** da capa do processo, para itens como:
+
+```html
+<td class="labelRadio"><label>Análise de Juntadas:</label></td>
+<td>
+  <a href=".../processo/analisarJuntada.do?_tj=..." class="link">
+    Há 1 pendência(s) de análise de juntada
+  </a>
+</td>
+```
+
+Diferente do link de movimentação, esse link não aponta direto para um
+documento — ele leva à tela de análise (`analisarJuntada.do`,
+`conclusao.do`, etc.), que pode listar uma ou mais juntadas/conclusões
+pendentes. Ao passar o mouse sobre o link da pendência, a extensão busca
+essa tela em segundo plano (reaproveitando a sessão do usuário) e procura
+os links de documento nela contidos. Se houver **mais de uma** juntada ou
+conclusão pendente, é aberta uma janela de pré-visualização para **cada
+uma delas**, lado a lado (em cascata), permitindo revisar todos os
+documentos pendentes sem sair da tela do processo. Se nenhum documento for
+encontrado na tela de análise, um aviso é exibido com um atalho para abrir
+a análise completa em nova aba.
+
 ## Instalação (modo desenvolvedor)
 
 1. Acesse `chrome://extensions` (ou `edge://extensions`).
@@ -53,3 +79,9 @@ AzFlow.
 - Não há armazenamento, envio ou cache de nenhum dado do processo pela
   extensão: o documento é sempre buscado diretamente do Projudi no momento
   do hover.
+- A pré-visualização das pendências depende de a tela de análise
+  (`analisarJuntada.do` e afins) listar os documentos usando o mesmo
+  padrão de link (`a.link` com `href` contendo `/arquivo.do`) já usado na
+  aba Movimentações. Se o Tribunal usar um padrão diferente nessa tela, a
+  extensão mostra o aviso de "nenhum documento encontrado" e o link
+  original continua funcionando normalmente.
