@@ -9,6 +9,8 @@
 (function () {
 	"use strict";
 
+	console.log("[Projudi Preview] content script carregado em", window.location.href);
+
 	const OPEN_DELAY_MS = 350;
 	const CLOSE_DELAY_MS = 250;
 	const PANEL_WIDTH = 780;
