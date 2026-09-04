@@ -27,7 +27,7 @@
       "js": ["src/firebase-config.js", "src/lembretes.js"],
       "css": ["src/lembretes.css"],
       "run_at": "document_idle",
-      "all_frames": false
+      "all_frames": true
     }
   ]
 }
