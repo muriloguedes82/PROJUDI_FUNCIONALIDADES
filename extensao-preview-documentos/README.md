@@ -21,30 +21,50 @@ AzFlow.
 
 Ao lado de cada arquivo listado numa movimentação (os mesmos links de
 `arquivo.do`, que aparecem ao expandir o "+" da movimentação), a extensão
-insere uma checkbox. Assim que pelo menos um arquivo é marcado, surge um
-botão flutuante **"Enviar por e-mail (N)"** no canto inferior direito da
-tela, logo acima de um segundo botão, **"👥 Destinatários"**, sempre visível.
+insere uma checkbox. Dois botões flutuantes ficam **sempre visíveis** no
+canto inferior direito da tela: **"👥 Destinatários"** e **"Enviar por
+e-mail"** — este último funciona com ou sem nenhum arquivo marcado, para
+enviar um e-mail sem anexar documentos dos autos quando for o caso (nesse
+caso mostra só "Enviar por e-mail"; com arquivos marcados, mostra a
+contagem, ex.: "Enviar por e-mail (2)").
 
-Ao clicar no botão:
+Ao clicar em "Enviar por e-mail":
 
 1. Se houver destinatários salvos como preferência (veja "Destinatários
    favoritos" abaixo), é exibido um seletor para escolher um ou mais antes
    de prosseguir (ou pular a etapa, se preferir preencher na hora).
-2. Os arquivos marcados são baixados pela extensão reaproveitando a sessão
-   já autenticada do Projudi (mesmo mecanismo usado na pré-visualização).
+2. Os arquivos marcados (se houver) são baixados pela extensão
+   reaproveitando a sessão já autenticada do Projudi (mesmo mecanismo
+   usado na pré-visualização).
 3. A extensão autentica o usuário no Outlook institucional (Microsoft
    Entra ID / Azure AD, via Microsoft Graph) e cria um **rascunho de
-   e-mail** já com os arquivos selecionados anexados e, se algum
-   destinatário foi escolhido, com o campo "Para" já preenchido.
+   e-mail** já com os arquivos selecionados anexados (se houver), o campo
+   "Para" preenchido (se algum destinatário foi escolhido) e um texto
+   padrão no início do corpo (veja "Texto padrão do e-mail" abaixo).
 4. Esse rascunho é aberto numa **janela pop-up menor**, sobreposta à janela
    do Projudi (não uma aba nova), no próprio Outlook Web — bastando
    preencher o que faltar (destinatário, se não escolhido antes, assunto e
-   mensagem) e clicar em Enviar.
+   o restante da mensagem) e clicar em Enviar.
+
+### Texto padrão do e-mail
+
+Todo e-mail já sai com estas duas linhas no início do corpo, extraídas
+diretamente da tela do processo aberta no Projudi:
+
+```
+REF. AUTOS Nº (0004608-81.2024.8.16.0033)
+JUÍZO: (Vara Criminal de Pinhais)
+```
+
+O número dos autos vem do elemento `<em class="attention">` e o juízo do
+elemento `#areaatuacao` da própria página — os mesmos usados pelo Projudi
+para exibi-los no cabeçalho do processo. Se algum desses elementos não for
+encontrado na página (ex.: layout diferente), a linha correspondente
+simplesmente não é incluída.
 
 ### Destinatários favoritos
 
-O botão **"👥 Destinatários"** (sempre visível, independente de haver
-arquivos selecionados) abre uma tela para gerenciar até **200**
+O botão **"👥 Destinatários"** abre uma tela para gerenciar até **200**
 destinatários salvos como preferência:
 
 - **Adicionar**: informe Nome e E-mail e clique em "+ Adicionar".

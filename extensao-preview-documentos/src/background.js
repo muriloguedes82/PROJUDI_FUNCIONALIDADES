@@ -175,17 +175,21 @@ async function graphFetch(token, path, options) {
 	return resp;
 }
 
-async function createDraft(token, subject, recipients) {
+async function createDraft(token, subject, recipients, bodyText) {
 	const toRecipients = (recipients || []).map(function (email) {
 		return { emailAddress: { address: email } };
 	});
+	// O texto padrão (REF. AUTOS / JUÍZO) vem como texto simples; convertido
+	// para HTML só trocando quebras de linha por <br>, para preservar o
+	// espaçamento no corpo HTML do rascunho.
+	const bodyHtml = (bodyText || "").replace(/\n/g, "<br>");
 	const resp = await graphFetch(token, "/me/messages", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
 			subject: subject || "",
 			toRecipients: toRecipients,
-			body: { contentType: "HTML", content: "" },
+			body: { contentType: "HTML", content: bodyHtml },
 		}),
 	});
 	const data = await resp.json();
@@ -271,7 +275,7 @@ async function openComposeWindow(webLink) {
 
 async function handleSendEmailGraph(message) {
 	const token = await acquireAccessToken();
-	const draft = await createDraft(token, message.subject, message.recipients);
+	const draft = await createDraft(token, message.subject, message.recipients, message.body);
 
 	for (const file of message.attachments) {
 		const bytes = base64ToBytes(file.base64);
@@ -328,6 +332,9 @@ async function handleSendEmailFallback(message) {
 	const composeParams = { subject: message.subject || "" };
 	if (message.recipients && message.recipients.length) {
 		composeParams.to = message.recipients.join(";");
+	}
+	if (message.body) {
+		composeParams.body = message.body;
 	}
 	const composeUrl = "https://outlook.office.com/mail/deeplink/compose?" + new URLSearchParams(composeParams).toString();
 

@@ -2,18 +2,21 @@
 //
 // Injeta uma checkbox ao lado de cada link de arquivo da tela de
 // Movimentações (mesmo padrão usado por content.js: <a class="link"
-// href=".../arquivo.do?...">). Dois botões flutuantes aparecem sobre a
-// tela: "Destinatários" (sempre visível, para cadastrar/remover/priorizar
-// destinatários favoritos) e "Enviar por e-mail (N)" (visível quando pelo
-// menos um arquivo é marcado).
+// href=".../arquivo.do?...">). Dois botões flutuantes ficam sempre visíveis
+// sobre a tela: "Destinatários" (cadastrar/remover/priorizar destinatários
+// favoritos) e "Enviar por e-mail" — este último funciona com ou sem
+// nenhum arquivo marcado, para permitir enviar um e-mail sem anexar
+// documentos dos autos quando o usuário quiser.
 //
 // Ao clicar em "Enviar por e-mail": se houver destinatários salvos,
 // primeiro é exibido um seletor para escolher um ou mais (com busca e os
 // marcados como prioritários no topo); em seguida, os arquivos selecionados
-// são baixados (reaproveitando a sessão do Projudi) e enviados ao
-// background script, que cria um rascunho no Outlook (via Microsoft Graph)
-// ou, no modo sem Azure AD, baixa os arquivos e abre o Outlook Web — em
-// ambos os casos já com o(s) destinatário(s) escolhido(s) preenchido(s).
+// (se houver) são baixados (reaproveitando a sessão do Projudi) e enviados
+// ao background script, que cria um rascunho no Outlook (via Microsoft
+// Graph) ou, no modo sem Azure AD, baixa os arquivos e abre o Outlook Web —
+// em ambos os casos já com o(s) destinatário(s) escolhido(s) e um texto
+// padrão no corpo (REF. AUTOS / JUÍZO, extraídos da própria tela do
+// processo) preenchidos.
 
 (function () {
 	"use strict";
@@ -179,15 +182,14 @@
 		}
 	}
 
+	// O botão de enviar fica sempre visível (mesmo sem nenhum arquivo
+	// marcado), para permitir enviar um e-mail sem anexar documentos dos
+	// autos quando o usuário quiser.
 	function updateSendButton() {
 		ensureButtons();
 		if (!sendButton) return;
 		const count = selected.size;
-		if (count === 0) {
-			sendButton.classList.remove("pdp-email-visible");
-			return;
-		}
-		sendButton.textContent = "Enviar por e-mail (" + count + ")";
+		sendButton.textContent = count > 0 ? "Enviar por e-mail (" + count + ")" : "Enviar por e-mail";
 		sendButton.classList.add("pdp-email-visible");
 		repositionButtons();
 	}
@@ -451,9 +453,24 @@
 		return match ? "Documentos do processo " + match[1] : "Documentos do Projudi";
 	}
 
-	async function onSendClick() {
-		if (selected.size === 0) return;
+	// Monta o texto padrão inserido no início de todo e-mail, com o número
+	// dos autos e o juízo, extraídos da própria tela do Projudi (mesmos
+	// elementos usados pelo próprio sistema para exibi-los no cabeçalho do
+	// processo).
+	function defaultBodyText() {
+		const numberEl = document.querySelector("em.attention");
+		const judgeEl = document.querySelector("#areaatuacao");
+		const number = numberEl ? numberEl.textContent.trim() : "";
+		const judge = judgeEl ? judgeEl.textContent.trim() : "";
 
+		const lines = [];
+		if (number) lines.push("REF. AUTOS Nº (" + number + ")");
+		if (judge) lines.push("JUÍZO: (" + judge + ")");
+		if (lines.length === 0) return "";
+		return lines.join("\n") + "\n\n";
+	}
+
+	async function onSendClick() {
 		const recipients = await loadRecipients();
 		if (recipients.length > 0) {
 			openRecipientsDialog({
@@ -471,7 +488,7 @@
 	async function proceedSend(recipientEmails) {
 		const entries = Array.from(selected.values());
 		sendButton.disabled = true;
-		sendButton.textContent = "Preparando anexos…";
+		sendButton.textContent = entries.length > 0 ? "Preparando anexos…" : "Preparando e-mail…";
 
 		try {
 			const attachments = [];
@@ -488,6 +505,7 @@
 			const response = await chrome.runtime.sendMessage({
 				type: "SEND_EMAIL",
 				subject: subjectFromPage(),
+				body: defaultBodyText(),
 				recipients: recipientEmails,
 				attachments: attachments,
 			});
@@ -511,8 +529,7 @@
 
 	// ---------------------------------------------------------------------
 
-	ensureButtons();
-	if (recipientsButton) repositionButtons();
+	updateSendButton();
 	scan(document);
 
 	const observer = new MutationObserver(function (mutations) {

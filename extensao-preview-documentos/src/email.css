@@ -64,6 +64,15 @@
 	font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Uma regra com display:flex/inline-block em elemento específico teria a
+   mesma especificidade do seletor [hidden] da folha de estilos do
+   navegador, e no empate o CSS do autor vence — ou seja, sem esta regra
+   elementos com o atributo "hidden" (rodapé Pular/Prosseguir, mensagem de
+   erro) continuariam visíveis mesmo escondidos via JS. */
+#pdp-recipients-overlay [hidden] {
+	display: none !important;
+}
+
 #pdp-recipients-overlay .pdp-recipients-panel {
 	width: 420px;
 	max-width: calc(100vw - 32px);
@@ -184,30 +193,26 @@
 #pdp-recipients-overlay .pdp-recipients-add {
 	flex: 0 0 auto;
 	display: flex;
+	flex-wrap: wrap;
 	gap: 6px;
 	padding: 10px 14px;
 	border-top: 1px solid #e0e0e0;
 }
 
-#pdp-recipients-overlay .pdp-recipients-add-name {
-	flex: 1 1 40%;
-	padding: 6px 8px;
-	font-size: 13px;
-	border: 1px solid #ccc;
-	border-radius: 4px;
-}
-
+#pdp-recipients-overlay .pdp-recipients-add-name,
 #pdp-recipients-overlay .pdp-recipients-add-email {
-	flex: 1 1 60%;
+	flex: 1 1 140px;
+	min-width: 0;
 	padding: 6px 8px;
 	font-size: 13px;
 	border: 1px solid #ccc;
 	border-radius: 4px;
+	box-sizing: border-box;
 }
 
 #pdp-recipients-overlay .pdp-recipients-add-save {
-	flex: 0 0 auto;
-	padding: 6px 10px;
+	flex: 1 1 100%;
+	padding: 8px 10px;
 	font-size: 13px;
 	font-weight: bold;
 	color: #fff;
