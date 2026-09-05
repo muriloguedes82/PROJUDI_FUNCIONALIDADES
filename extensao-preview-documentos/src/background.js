@@ -280,31 +280,23 @@ async function handleSendEmailGraph(message) {
 	await openComposeWindow(draft.webLink);
 }
 
-// Baixa cada anexo para a pasta padrão de Downloads do usuário (a partir de
-// um Blob criado em memória, sem precisar reabrir o Projudi) e devolve os
-// nomes salvos, para exibirmos o aviso na tela do Outlook.
+// Baixa cada anexo para a pasta padrão de Downloads do usuário e devolve os
+// nomes salvos, para exibirmos o aviso na tela do Outlook. Usa uma data:
+// URL construída direto do base64 (em vez de Blob + URL.createObjectURL),
+// porque service workers de extensão (Manifest V3) não têm
+// URL.createObjectURL disponível.
 async function downloadAttachments(attachments) {
 	const fileNames = [];
 	for (const file of attachments) {
-		const bytes = base64ToBytes(file.base64);
-		const blob = new Blob([bytes], { type: file.contentType || "application/octet-stream" });
-		const blobUrl = URL.createObjectURL(blob);
+		const contentType = file.contentType || "application/octet-stream";
+		const dataUrl = "data:" + contentType + ";base64," + file.base64;
 
-		const downloadId = await chrome.downloads.download({
-			url: blobUrl,
+		await chrome.downloads.download({
+			url: dataUrl,
 			filename: file.name,
 			saveAs: false,
 			conflictAction: "uniquify",
 		});
-
-		function onChanged(delta) {
-			if (delta.id !== downloadId) return;
-			if (delta.state && delta.state.current !== "in_progress") {
-				URL.revokeObjectURL(blobUrl);
-				chrome.downloads.onChanged.removeListener(onChanged);
-			}
-		}
-		chrome.downloads.onChanged.addListener(onChanged);
 
 		fileNames.push(file.name);
 	}
