@@ -336,7 +336,17 @@ async function handleSendEmailFallback(message) {
 	if (message.body) {
 		composeParams.body = message.body;
 	}
-	const composeUrl = "https://outlook.office.com/mail/deeplink/compose?" + new URLSearchParams(composeParams).toString();
+	// Não usamos URLSearchParams aqui: ele codifica espaços como "+"
+	// (application/x-www-form-urlencoded), mas o deep link do Outlook Web
+	// não converte "+" de volta em espaço ao interpretar o parâmetro "body"
+	// — mostra o "+" literalmente. encodeURIComponent codifica espaço como
+	// %20, que é interpretado corretamente.
+	const queryString = Object.keys(composeParams)
+		.map(function (key) {
+			return key + "=" + encodeURIComponent(composeParams[key]);
+		})
+		.join("&");
+	const composeUrl = "https://outlook.office.com/mail/deeplink/compose?" + queryString;
 
 	await openComposeWindow(composeUrl);
 }
