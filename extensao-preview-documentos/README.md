@@ -73,42 +73,44 @@ Se o cadastro no Azure AD não for viável, é possível usar o modo
 envio"). Nesse modo:
 
 1. A extensão baixa os documentos selecionados para a pasta **Downloads**
-   do computador do usuário (como alternativa manual).
+   do computador do usuário.
 2. Em seguida, abre o **outlook.office.com de verdade** num pop-up, já com
    um link direto para a tela de novo e-mail (com o assunto preenchido).
 3. O usuário faz **login normalmente** com usuário e senha da conta
    institucional, exatamente como abriria o Outlook Web manualmente — não
    há nenhum aplicativo Azure AD envolvido.
-4. Um aviso aparece no topo da tela do Outlook (`src/owa-attach.js`) com um
-   **"chip" arrastável para cada arquivo** selecionado; o usuário arrasta
-   cada chip para dentro do corpo do e-mail para anexar — sem precisar
-   procurar o arquivo em nenhuma pasta.
+4. Um aviso aparece no topo da tela do Outlook (`src/owa-attach.js`) com os
+   nomes dos arquivos baixados, orientando a anexá-los pelo próprio botão
+   **"Anexar arquivo" → "Navegar neste computador"**, escolhendo o(s)
+   arquivo(s) na pasta Downloads.
 5. O modo **"Automático"** (padrão) usa o Graph quando o Client ID estiver
    configurado e cai automaticamente neste modo quando não estiver — ou
    seja, a extensão funciona "out of the box" sem precisar de nenhum
    cadastro, mesmo que com um passo manual a mais (veja abaixo por que o
    anexo não é 100% automático nesse modo).
 
-**Por que não anexar automaticamente também aqui?** Chegamos a implementar
-isso (preenchendo o campo de anexo do Outlook Web via script), e o arquivo
-aparecia corretamente na tela — mas o Outlook Web trata anexos vindos de um
-evento disparado por script como "não confiável" (`isTrusted: false`) de
-forma diferente de um anexo real: ele força um fluxo de upload para o
-OneDrive que falha para um arquivo montado em memória (erro "Não foi
-possível anexar... Tente novamente mais tarde"), enquanto o mesmo arquivo
-anexado manualmente funciona sem problemas. Não existe forma de um content
-script disparar um evento "confiável" via `dispatchEvent` — é uma
-restrição de segurança do próprio navegador, não uma falha de
-implementação.
+**Por que o anexo não é automático aqui?** Foram testadas três formas de
+anexar sozinho, e nenhuma funcionou:
 
-A solução foi inverter a lógica: em vez de o script simular o arraste
-inteiro, o "chip" de cada arquivo é um elemento `draggable="true"` de
-verdade — quando o **usuário** arrasta com o mouse, o navegador dispara um
-evento `dragstart` genuíno (confiável), e é dentro desse evento que o
-arquivo é anexado ao `dataTransfer`. Como o gesto (mousedown/mousemove) foi
-realmente feito pelo usuário, o `drop` na área de composição do Outlook
-também é confiável, e o anexo funciona normalmente — sem cair no mesmo
-bloqueio do OneDrive.
+1. Preencher o campo de anexo (`<input type="file">`) via script: o
+   Outlook Web trata esse anexo como vindo de um evento "não confiável"
+   (`isTrusted: false`) e força um fluxo de upload para o OneDrive que
+   falha para um arquivo montado em memória (erro "Não foi possível
+   anexar... Tente novamente mais tarde").
+2. Simular o "drop" inteiro via `dispatchEvent`: o Outlook nem chega a
+   reconhecer a operação como um arraste de arquivo válido.
+3. Um elemento arrastável de verdade (`draggable="true"`), para que o
+   `dragstart` fosse disparado por um gesto real do usuário (mousedown/
+   mousemove genuínos): mesmo assim o Outlook Web não mostrou a interface
+   de destino do arraste que aparece normalmente ao arrastar um arquivo
+   real — indicando alguma verificação adicional da origem do arraste que
+   não foi possível replicar de dentro de um content script.
+
+Em todos os três casos, o **mesmo arquivo anexado manualmente** pelo botão
+"Anexar arquivo" → "Navegar neste computador" funciona sem problemas — por
+isso este modo ficou semiautomático (baixa os arquivos e orienta esse
+caminho manual comprovado), em vez de insistir em mais automação de DOM
+sem garantia de funcionar.
 
 Esse modo **não depende de nenhuma configuração de TI**, mas é o modo Graph
 que deve ser preferido sempre que o cadastro no Azure AD for possível, já
@@ -171,13 +173,13 @@ que é o único caminho 100% automático.
   segue as regras do Outlook/Exchange da organização (normalmente 25MB).
 - **Modo Outlook Web (fallback):** o anexo não é 100% automático (veja o
   porquê na seção "Modo alternativo sem Azure AD" acima) — o usuário
-  precisa arrastar cada "chip" exibido no aviso para dentro do e-mail. O
-  conteúdo dos arquivos fica guardado temporariamente por até 10 minutos
-  (`chrome.storage.local`, com a permissão `unlimitedStorage` para
-  documentos maiores) esperando o pop-up do Outlook carregar; depois disso,
-  expira (some silenciosamente) e é preciso selecionar os arquivos
-  novamente no Projudi — mas os arquivos já baixados continuam na pasta
-  Downloads normalmente, como alternativa.
+  precisa anexar manualmente pelo botão "Anexar arquivo" → "Navegar neste
+  computador", escolhendo o(s) arquivo(s) já baixados. Os nomes dos
+  arquivos ficam guardados temporariamente por até 10 minutos
+  (`chrome.storage.local`) esperando o pop-up do Outlook carregar; depois
+  disso, expiram (o aviso simplesmente não aparece) e é preciso selecionar
+  os arquivos novamente no Projudi — mas os arquivos já baixados continuam
+  na pasta Downloads normalmente.
 - Os downloads usam a permissão `downloads` da extensão; se o navegador
   estiver configurado para **perguntar onde salvar cada arquivo**
   (em vez de salvar direto na pasta Downloads), o usuário verá um diálogo
