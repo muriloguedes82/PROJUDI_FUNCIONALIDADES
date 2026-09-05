@@ -25,6 +25,8 @@
 	if (window.__pdpOwaAttachInjected) return;
 	window.__pdpOwaAttachInjected = true;
 
+	console.log("[Projudi->Outlook] content script carregado em", window.location.href);
+
 	const FILE_INPUT_SELECTOR = 'input[type="file"]';
 	const WAIT_TIMEOUT_MS = 20000;
 	const ATTACH_DELAY_MS = 400;
@@ -34,24 +36,43 @@
 	}
 
 	function findFileInput() {
-		return document.querySelector(FILE_INPUT_SELECTOR);
+		// O Outlook Web pode ter mais de um <input type="file"> na página (ex.:
+		// upload de foto de perfil, outras áreas da interface). Pega o ÚLTIMO
+		// da ordem do DOM como heurística: como a janela abre direto na tela de
+		// composição (deep link), o input de anexo da composição tende a ser
+		// montado depois de qualquer input "de fundo" já presente no shell do
+		// Outlook. Não há garantia disso — é uma aposta razoável, não uma
+		// certeza, dado que não temos acesso à estrutura real da página.
+		const inputs = document.querySelectorAll(FILE_INPUT_SELECTOR);
+		return inputs.length ? inputs[inputs.length - 1] : null;
 	}
 
 	function waitForFileInput(timeoutMs) {
+		// Em vez de resolver assim que o primeiro <input type="file"> aparece,
+		// espera o DOM "assentar" (sem novas mutações por SETTLE_MS) antes de
+		// escolher o último input encontrado — a tela de composição do Outlook
+		// Web é uma SPA que segue re-renderizando por um tempo depois do
+		// carregamento inicial, e queremos evitar pegar um input "de fundo" que
+		// já existia antes da composição terminar de montar.
+		const SETTLE_MS = 500;
 		return new Promise((resolve) => {
-			const existing = findFileInput();
-			if (existing) return resolve(existing);
+			let settleTimer = null;
 
-			const observer = new MutationObserver(function () {
-				const el = findFileInput();
-				if (el) {
+			function scheduleResolve() {
+				clearTimeout(settleTimer);
+				settleTimer = setTimeout(function () {
 					observer.disconnect();
-					resolve(el);
-				}
-			});
+					resolve(findFileInput());
+				}, SETTLE_MS);
+			}
+
+			const observer = new MutationObserver(scheduleResolve);
 			observer.observe(document.documentElement, { childList: true, subtree: true });
 
+			if (findFileInput()) scheduleResolve();
+
 			setTimeout(function () {
+				clearTimeout(settleTimer);
 				observer.disconnect();
 				resolve(findFileInput());
 			}, timeoutMs);
@@ -85,10 +106,14 @@
 		try {
 			pending = await chrome.runtime.sendMessage({ type: "PEEK_PENDING_EMAIL" });
 		} catch (err) {
-			return; // extensão indisponível/recarregada; nada a fazer
+			console.warn("[Projudi->Outlook] Não consegui falar com a extensão:", err);
+			return;
 		}
+
+		console.log("[Projudi->Outlook] anexo pendente encontrado?", pending);
 		if (!pending) return;
 
+		console.log("[Projudi->Outlook] aguardando campo de anexo aparecer na tela…");
 		const input = await waitForFileInput(WAIT_TIMEOUT_MS);
 		if (!input) {
 			console.warn(
@@ -97,15 +122,20 @@
 			);
 			return;
 		}
+		console.log("[Projudi->Outlook] campo de anexo encontrado:", input);
 
 		const consumed = await chrome.runtime.sendMessage({ type: "CONSUME_PENDING_EMAIL", id: pending.id });
-		if (!consumed || !consumed.attachments || !consumed.attachments.length) return;
+		if (!consumed || !consumed.attachments || !consumed.attachments.length) {
+			console.warn("[Projudi->Outlook] anexo pendente já havia sido consumido ou expirou.");
+			return;
+		}
 
 		try {
 			const files = consumed.attachments.map(function (a) {
 				return base64ToFile(a.base64, a.name, a.contentType);
 			});
 			await attachFilesSequentially(files);
+			console.log("[Projudi->Outlook] anexos inseridos com sucesso:", files.map((f) => f.name));
 		} catch (err) {
 			console.error("[Projudi->Outlook] Falha ao anexar automaticamente:", err);
 			alert(
