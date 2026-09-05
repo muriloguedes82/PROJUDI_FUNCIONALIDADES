@@ -9,23 +9,31 @@
 //    anexos, e abre esse rascunho pronto num pop-up. Requer um aplicativo
 //    cadastrado no Azure AD pelo TI (ver README).
 //
-// B) MODO OWA/fallback (sem Azure AD, experimental): abre o Outlook Web
+// B) MODO OWA/fallback (sem Azure AD, semiautomático): abre o Outlook Web
 //    (outlook.office.com) de verdade num pop-up, com um deep link que já
-//    abre a tela de "Novo e-mail" com o assunto preenchido. O usuário faz
-//    login normalmente (usuário/senha da conta institucional). O content
-//    script src/owa-attach.js, injetado na própria página do Outlook Web,
-//    busca os anexos pendentes (armazenados temporariamente por este
-//    service worker) e os anexa automaticamente assim que o campo de
-//    anexo aparece na tela, simulando uma seleção de arquivos pelo
-//    usuário. Por depender da estrutura interna (não documentada) do
-//    Outlook Web, esse modo é frágil e pode parar de funcionar se a
-//    Microsoft alterar a interface — ver README para como ajustar.
+//    abre a tela de "Novo e-mail" com o assunto preenchido, e baixa os
+//    documentos selecionados para a pasta Downloads do usuário. O
+//    content script src/owa-attach.js, injetado na própria página do
+//    Outlook Web, mostra um aviso indicando os arquivos baixados para o
+//    usuário arrastá-los até o e-mail.
+//
+//    Este modo já tentou anexar os arquivos automaticamente simulando um
+//    evento de seleção de arquivo, mas o Outlook Web trata anexos vindos
+//    de eventos disparados por script (não confiáveis, "isTrusted:
+//    false") de forma diferente de um anexo real — ele força um fluxo de
+//    upload para o OneDrive que falha para um arquivo montado em
+//    memória. Testado e confirmado: o mesmo arquivo anexado manualmente
+//    funciona sem problemas. Não há como um content script disparar um
+//    evento "confiável" — é uma restrição de segurança do próprio
+//    navegador, não algo que dê para contornar com mais JavaScript. Por
+//    isso o modo B ficou semiautomático (baixa os arquivos e pede para o
+//    usuário arrastá-los), em vez de tentar anexar sozinho.
 
 const GRAPH_BASE = "https://graph.microsoft.com/v1.0";
 const GRAPH_SCOPES = "openid profile offline_access Mail.ReadWrite";
 const INLINE_ATTACHMENT_LIMIT = 3 * 1024 * 1024; // limite recomendado pela Graph para anexos "inline"
 const UPLOAD_CHUNK_SIZE = 320 * 1024 * 10; // ~3.1MB, múltiplo de 320KiB exigido pela Graph
-const PENDING_EMAIL_TTL_MS = 10 * 60 * 1000; // tempo máximo para o pop-up do Outlook consumir os anexos pendentes
+const DOWNLOAD_INFO_TTL_MS = 10 * 60 * 1000; // tempo máximo para o pop-up do Outlook mostrar o aviso de arquivos baixados
 
 async function getAzureConfig() {
 	const { azureClientId, azureTenantId } = await chrome.storage.sync.get(["azureClientId", "azureTenantId"]);
@@ -272,16 +280,48 @@ async function handleSendEmailGraph(message) {
 	await openComposeWindow(draft.webLink);
 }
 
-// Modo B (fallback): guarda os anexos temporariamente e abre o Outlook Web
-// de verdade num pop-up; src/owa-attach.js (rodando dentro do Outlook Web)
-// consome esses anexos assim que a tela de novo e-mail estiver pronta.
+// Baixa cada anexo para a pasta padrão de Downloads do usuário (a partir de
+// um Blob criado em memória, sem precisar reabrir o Projudi) e devolve os
+// nomes salvos, para exibirmos o aviso na tela do Outlook.
+async function downloadAttachments(attachments) {
+	const fileNames = [];
+	for (const file of attachments) {
+		const bytes = base64ToBytes(file.base64);
+		const blob = new Blob([bytes], { type: file.contentType || "application/octet-stream" });
+		const blobUrl = URL.createObjectURL(blob);
+
+		const downloadId = await chrome.downloads.download({
+			url: blobUrl,
+			filename: file.name,
+			saveAs: false,
+			conflictAction: "uniquify",
+		});
+
+		function onChanged(delta) {
+			if (delta.id !== downloadId) return;
+			if (delta.state && delta.state.current !== "in_progress") {
+				URL.revokeObjectURL(blobUrl);
+				chrome.downloads.onChanged.removeListener(onChanged);
+			}
+		}
+		chrome.downloads.onChanged.addListener(onChanged);
+
+		fileNames.push(file.name);
+	}
+	return fileNames;
+}
+
+// Modo B (fallback semiautomático): baixa os anexos para o computador do
+// usuário e abre o Outlook Web de verdade num pop-up; src/owa-attach.js
+// (rodando dentro do Outlook Web) mostra um aviso com os nomes dos
+// arquivos baixados, para o usuário arrastá-los até o e-mail.
 async function handleSendEmailFallback(message) {
-	const id = crypto.randomUUID();
+	const fileNames = await downloadAttachments(message.attachments);
+
 	await chrome.storage.local.set({
-		pendingEmail: {
-			id: id,
-			subject: message.subject,
-			attachments: message.attachments,
+		pendingDownloadInfo: {
+			id: crypto.randomUUID(),
+			fileNames: fileNames,
 			createdAt: Date.now(),
 		},
 	});
@@ -293,22 +333,22 @@ async function handleSendEmailFallback(message) {
 	await openComposeWindow(composeUrl);
 }
 
-async function peekPendingEmail() {
-	const { pendingEmail } = await chrome.storage.local.get(["pendingEmail"]);
-	if (!pendingEmail) return null;
-	if (Date.now() - pendingEmail.createdAt > PENDING_EMAIL_TTL_MS) {
-		await chrome.storage.local.remove("pendingEmail");
+async function peekDownloadInfo() {
+	const { pendingDownloadInfo } = await chrome.storage.local.get(["pendingDownloadInfo"]);
+	if (!pendingDownloadInfo) return null;
+	if (Date.now() - pendingDownloadInfo.createdAt > DOWNLOAD_INFO_TTL_MS) {
+		await chrome.storage.local.remove("pendingDownloadInfo");
 		return null;
 	}
-	return { id: pendingEmail.id, subject: pendingEmail.subject };
+	return pendingDownloadInfo;
 }
 
-async function consumePendingEmail(id) {
-	const { pendingEmail } = await chrome.storage.local.get(["pendingEmail"]);
-	if (!pendingEmail || pendingEmail.id !== id) return null;
-	await chrome.storage.local.remove("pendingEmail");
-	if (Date.now() - pendingEmail.createdAt > PENDING_EMAIL_TTL_MS) return null;
-	return pendingEmail;
+async function consumeDownloadInfo(id) {
+	const { pendingDownloadInfo } = await chrome.storage.local.get(["pendingDownloadInfo"]);
+	if (!pendingDownloadInfo || pendingDownloadInfo.id !== id) return null;
+	await chrome.storage.local.remove("pendingDownloadInfo");
+	if (Date.now() - pendingDownloadInfo.createdAt > DOWNLOAD_INFO_TTL_MS) return null;
+	return pendingDownloadInfo;
 }
 
 async function resolveSendMode() {
@@ -339,13 +379,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 		return true; // resposta assíncrona
 	}
 
-	if (message.type === "PEEK_PENDING_EMAIL") {
-		peekPendingEmail().then(sendResponse);
+	if (message.type === "PEEK_DOWNLOAD_INFO") {
+		peekDownloadInfo().then(sendResponse);
 		return true;
 	}
 
-	if (message.type === "CONSUME_PENDING_EMAIL") {
-		consumePendingEmail(message.id).then(sendResponse);
+	if (message.type === "CONSUME_DOWNLOAD_INFO") {
+		consumeDownloadInfo(message.id).then(sendResponse);
 		return true;
 	}
 });
