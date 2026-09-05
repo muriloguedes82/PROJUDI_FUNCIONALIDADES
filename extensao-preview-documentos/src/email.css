@@ -1,0 +1,36 @@
+.pdp-email-checkbox {
+	margin-right: 4px;
+	vertical-align: middle;
+	cursor: pointer;
+}
+
+#pdp-email-button {
+	position: fixed;
+	right: 16px;
+	bottom: 16px;
+	z-index: 2147483000;
+	display: none;
+	padding: 10px 16px;
+	background: #6b7f3a;
+	color: #fff;
+	border: none;
+	border-radius: 999px;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 13px;
+	font-weight: bold;
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+	cursor: pointer;
+}
+
+#pdp-email-button.pdp-email-visible {
+	display: inline-block;
+}
+
+#pdp-email-button:hover {
+	background: #55642e;
+}
+
+#pdp-email-button:disabled {
+	opacity: 0.7;
+	cursor: wait;
+}

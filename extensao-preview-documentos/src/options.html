@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>Envio de Documentos por E-mail - Configuração</title>
+<style>
+	body { font-family: Arial, Helvetica, sans-serif; padding: 16px; max-width: 480px; }
+	h3 { margin-top: 0; }
+	label { display: block; margin-top: 12px; font-weight: bold; }
+	input { width: 100%; padding: 6px; margin-top: 4px; box-sizing: border-box; }
+	button { margin-top: 16px; padding: 8px 14px; }
+	p.help { font-size: 12px; color: #555; }
+	#status { margin-top: 10px; font-size: 12px; color: #2b6b2b; }
+</style>
+</head>
+<body>
+	<h3>Envio de documentos por e-mail (Outlook)</h3>
+	<p class="help">
+		Informe os dados do aplicativo cadastrado no Azure AD / Microsoft Entra
+		ID pelo setor de TI para autorizar o envio de e-mails via Outlook
+		(Microsoft Graph). Consulte o README da extensão para o passo a passo
+		do cadastro.
+	</p>
+	<label for="clientId">Client ID (Application ID)
+		<input id="clientId" type="text" placeholder="00000000-0000-0000-0000-000000000000" />
+	</label>
+	<label for="tenantId">Tenant ID (opcional, padrão "common")
+		<input id="tenantId" type="text" placeholder="common" />
+	</label>
+	<button id="save" type="button">Salvar</button>
+	<div id="status"></div>
+	<script src="options.js"></script>
+</body>
+</html>

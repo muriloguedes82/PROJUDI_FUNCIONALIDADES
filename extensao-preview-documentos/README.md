@@ -1,14 +1,69 @@
-# Projudi - Pré-visualização de Documentos
+# Projudi - Documentos: Pré-visualização e Envio por E-mail
 
-Extensão de navegador (Chrome/Edge, Manifest V3) que resolve o seguinte
-problema: na tela **Movimentações** do Projudi, para ler a íntegra de um
-documento anexado é preciso clicar no link e abri-lo em outra aba.
+Extensão de navegador (Chrome/Edge, Manifest V3) que resolve dois problemas
+na tela **Movimentações** do Projudi:
+
+1. Para ler a íntegra de um documento anexado é preciso clicar no link e
+   abri-lo em outra aba (veja "Pré-visualização" abaixo).
+2. Para enviar um ou mais documentos do processo por e-mail, é preciso
+   baixar cada arquivo manualmente e anexá-los um a um no Outlook (veja
+   "Envio por e-mail" abaixo).
+
+## Pré-visualização de Documentos
 
 Com a extensão instalada, basta **passar o mouse sobre o nome do arquivo**
 (ex.: `Certidao de Baixa.pdf`) para que a íntegra do documento apareça em um
 painel flutuante sobreposto à própria tela de movimentações — sem precisar
 trocar de aba. A ideia é a mesma já oferecida pelo eproc e pela extensão
 AzFlow.
+
+## Envio por E-mail (Outlook)
+
+Ao lado de cada arquivo listado numa movimentação (os mesmos links de
+`arquivo.do`, que aparecem ao expandir o "+" da movimentação), a extensão
+insere uma checkbox. Assim que pelo menos um arquivo é marcado, surge um
+botão flutuante **"Enviar por e-mail (N)"** no canto inferior direito da
+tela.
+
+Ao clicar no botão:
+
+1. Os arquivos marcados são baixados pela extensão reaproveitando a sessão
+   já autenticada do Projudi (mesmo mecanismo usado na pré-visualização).
+2. A extensão autentica o usuário no Outlook institucional (Microsoft
+   Entra ID / Azure AD, via Microsoft Graph) e cria um **rascunho de
+   e-mail** já com os arquivos selecionados anexados.
+3. Esse rascunho é aberto numa **janela pop-up menor**, sobreposta à janela
+   do Projudi (não uma aba nova), no próprio Outlook Web — bastando
+   preencher destinatário, assunto e mensagem, e clicar em Enviar.
+
+### Configuração necessária (feita uma única vez pelo TI)
+
+O envio usa a Microsoft Graph API, então é preciso um aplicativo cadastrado
+no Azure AD / Microsoft Entra ID do Tribunal:
+
+1. No [Portal do Azure](https://portal.azure.com) → **Microsoft Entra ID**
+   → **Registros de aplicativo** → **Novo registro**.
+2. Tipo de conta: apenas o diretório da organização (single-tenant) é
+   suficiente.
+3. Em **Autenticação** → **Adicionar uma plataforma** → **Aplicativos
+   móveis e de desktop**, cadastre como Redirect URI o valor retornado por
+   `chrome.identity.getRedirectURL()` para a extensão instalada — algo como
+   `https://<ID-DA-EXTENSAO>.chromiumapp.org/`. Esse ID varia por instalação
+   e pode ser lido abrindo o console da extensão (`chrome://extensions` →
+   "Detalhes" → "Inspecionar visualizações" → console → digite
+   `chrome.identity.getRedirectURL()`), ou é fixo se a extensão for
+   publicada/fixada com uma chave.
+4. Em **Permissões de API**, adicione a permissão **delegada**
+   `Mail.ReadWrite` (Microsoft Graph) e conceda **consentimento do
+   administrador**.
+5. Copie o **Client ID (Application ID)** gerado.
+6. Na extensão, acesse `chrome://extensions` → "Detalhes" → "Opções da
+   extensão" e informe o Client ID (e o Tenant ID, se a organização exigir
+   restringir a um tenant específico em vez de "common").
+
+No primeiro envio, o navegador abrirá a tela de login padrão da
+Microsoft para o usuário autorizar o acesso à própria caixa de Outlook; nas
+próximas vezes o token é reaproveitado/renovado automaticamente.
 
 ## Como funciona
 
@@ -53,3 +108,15 @@ AzFlow.
 - Não há armazenamento, envio ou cache de nenhum dado do processo pela
   extensão: o documento é sempre buscado diretamente do Projudi no momento
   do hover.
+- O envio por e-mail depende do cadastro prévio de um aplicativo no Azure
+  AD pelo TI (Client ID com permissão `Mail.ReadWrite`) — veja a seção
+  "Envio por E-mail" acima. Sem essa configuração, o botão exibirá um erro
+  pedindo para configurar as opções da extensão.
+- A janela do Outlook é aberta como um pop-up separado (não um `<iframe>`),
+  pois o Outlook Web bloqueia ser exibido dentro de outra página
+  (cabeçalhos `X-Frame-Options`/CSP). O pop-up é posicionado e dimensionado
+  para ficar menor e sobreposto à janela do Projudi, mas ainda é uma janela
+  própria do sistema operacional, não uma camada dentro da aba.
+- Documentos de até 3MB são anexados diretamente; arquivos maiores usam o
+  upload em partes da Microsoft Graph. O limite total de anexos por e-mail
+  segue as regras do Outlook/Exchange da organização (normalmente 25MB).
