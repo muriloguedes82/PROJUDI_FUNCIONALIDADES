@@ -23,18 +23,48 @@ Ao lado de cada arquivo listado numa movimentação (os mesmos links de
 `arquivo.do`, que aparecem ao expandir o "+" da movimentação), a extensão
 insere uma checkbox. Assim que pelo menos um arquivo é marcado, surge um
 botão flutuante **"Enviar por e-mail (N)"** no canto inferior direito da
-tela.
+tela, logo acima de um segundo botão, **"👥 Destinatários"**, sempre visível.
 
 Ao clicar no botão:
 
-1. Os arquivos marcados são baixados pela extensão reaproveitando a sessão
+1. Se houver destinatários salvos como preferência (veja "Destinatários
+   favoritos" abaixo), é exibido um seletor para escolher um ou mais antes
+   de prosseguir (ou pular a etapa, se preferir preencher na hora).
+2. Os arquivos marcados são baixados pela extensão reaproveitando a sessão
    já autenticada do Projudi (mesmo mecanismo usado na pré-visualização).
-2. A extensão autentica o usuário no Outlook institucional (Microsoft
+3. A extensão autentica o usuário no Outlook institucional (Microsoft
    Entra ID / Azure AD, via Microsoft Graph) e cria um **rascunho de
-   e-mail** já com os arquivos selecionados anexados.
-3. Esse rascunho é aberto numa **janela pop-up menor**, sobreposta à janela
+   e-mail** já com os arquivos selecionados anexados e, se algum
+   destinatário foi escolhido, com o campo "Para" já preenchido.
+4. Esse rascunho é aberto numa **janela pop-up menor**, sobreposta à janela
    do Projudi (não uma aba nova), no próprio Outlook Web — bastando
-   preencher destinatário, assunto e mensagem, e clicar em Enviar.
+   preencher o que faltar (destinatário, se não escolhido antes, assunto e
+   mensagem) e clicar em Enviar.
+
+### Destinatários favoritos
+
+O botão **"👥 Destinatários"** (sempre visível, independente de haver
+arquivos selecionados) abre uma tela para gerenciar até **200**
+destinatários salvos como preferência:
+
+- **Adicionar**: informe Nome e E-mail e clique em "+ Adicionar".
+- **Remover**: clique no ícone 🗑 ao lado do destinatário.
+- **Priorizar**: clique na estrela (☆ → ★) para marcar um destinatário
+  como prioritário — destinatários prioritários aparecem primeiro na
+  lista, e dentro de cada grupo (prioritários / demais) a ordem é
+  alfabética pelo nome.
+- **Buscar**: o campo com a lupa 🔍 filtra a lista por nome ou e-mail.
+
+Ao clicar em **"Enviar por e-mail"** com pelo menos um destinatário salvo,
+essa mesma lista aparece antes de prosseguir, com uma checkbox por
+destinatário (permite marcar mais de um) e dois botões no rodapé:
+**"Pular"** (segue sem pré-selecionar destinatário) ou **"Prosseguir"**
+(usa os marcados e continua o fluxo normal — download dos anexos, abertura
+do Outlook, etc.).
+
+Os destinatários salvos ficam em `chrome.storage.local`, portanto são
+locais ao navegador/perfil onde a extensão está instalada (não são
+sincronizados entre computadores nem enviados a nenhum servidor).
 
 ### Configuração necessária (feita uma única vez pelo TI)
 
@@ -75,7 +105,8 @@ envio"). Nesse modo:
 1. A extensão baixa os documentos selecionados para a pasta **Downloads**
    do computador do usuário.
 2. Em seguida, abre o **outlook.office.com de verdade** num pop-up, já com
-   um link direto para a tela de novo e-mail (com o assunto preenchido).
+   um link direto para a tela de novo e-mail (com o assunto e, se algum
+   destinatário foi escolhido no seletor, o campo "Para" preenchidos).
 3. O usuário faz **login normalmente** com usuário e senha da conta
    institucional, exatamente como abriria o Outlook Web manualmente — não
    há nenhum aplicativo Azure AD envolvido.

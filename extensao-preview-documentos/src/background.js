@@ -175,13 +175,16 @@ async function graphFetch(token, path, options) {
 	return resp;
 }
 
-async function createDraft(token, subject) {
+async function createDraft(token, subject, recipients) {
+	const toRecipients = (recipients || []).map(function (email) {
+		return { emailAddress: { address: email } };
+	});
 	const resp = await graphFetch(token, "/me/messages", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
 			subject: subject || "",
-			toRecipients: [],
+			toRecipients: toRecipients,
 			body: { contentType: "HTML", content: "" },
 		}),
 	});
@@ -268,7 +271,7 @@ async function openComposeWindow(webLink) {
 
 async function handleSendEmailGraph(message) {
 	const token = await acquireAccessToken();
-	const draft = await createDraft(token, message.subject);
+	const draft = await createDraft(token, message.subject, message.recipients);
 
 	for (const file of message.attachments) {
 		const bytes = base64ToBytes(file.base64);
@@ -322,9 +325,11 @@ async function handleSendEmailFallback(message) {
 		},
 	});
 
-	const composeUrl =
-		"https://outlook.office.com/mail/deeplink/compose?" +
-		new URLSearchParams({ subject: message.subject || "" }).toString();
+	const composeParams = { subject: message.subject || "" };
+	if (message.recipients && message.recipients.length) {
+		composeParams.to = message.recipients.join(";");
+	}
+	const composeUrl = "https://outlook.office.com/mail/deeplink/compose?" + new URLSearchParams(composeParams).toString();
 
 	await openComposeWindow(composeUrl);
 }

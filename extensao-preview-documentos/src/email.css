@@ -4,17 +4,15 @@
 	cursor: pointer;
 }
 
-#pdp-email-button {
+#pdp-email-button,
+#pdp-recipients-button {
 	position: fixed;
 	right: 16px;
 	/* "bottom" é recalculado em tempo real pelo email.js para ficar sempre
 	   logo acima da barra de ações (Peticionar, Juntar Documento, etc.). */
 	bottom: 16px;
 	z-index: 2147483000;
-	display: none;
 	padding: 10px 16px;
-	background: #6b7f3a;
-	color: #fff;
 	border: none;
 	border-radius: 999px;
 	font-family: Arial, Helvetica, sans-serif;
@@ -22,6 +20,12 @@
 	font-weight: bold;
 	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
 	cursor: pointer;
+}
+
+#pdp-email-button {
+	display: none;
+	background: #6b7f3a;
+	color: #fff;
 }
 
 #pdp-email-button.pdp-email-visible {
@@ -35,4 +39,224 @@
 #pdp-email-button:disabled {
 	opacity: 0.7;
 	cursor: wait;
+}
+
+#pdp-recipients-button {
+	background: #fff;
+	color: #4a5a2a;
+	border: 1px solid #6b7f3a;
+}
+
+#pdp-recipients-button:hover {
+	background: #f2f5ea;
+}
+
+/* Diálogo de destinatários (gerenciar / escolher antes de enviar) */
+
+#pdp-recipients-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 2147483001;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0, 0, 0, 0.4);
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+#pdp-recipients-overlay .pdp-recipients-panel {
+	width: 420px;
+	max-width: calc(100vw - 32px);
+	max-height: calc(100vh - 64px);
+	display: flex;
+	flex-direction: column;
+	background: #fff;
+	border-radius: 8px;
+	box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+	overflow: hidden;
+}
+
+#pdp-recipients-overlay .pdp-recipients-header {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 14px;
+	background: #6b7f3a;
+	color: #fff;
+	font-size: 14px;
+}
+
+#pdp-recipients-overlay .pdp-recipients-close {
+	background: transparent;
+	border: none;
+	color: #fff;
+	font-size: 15px;
+	cursor: pointer;
+	padding: 2px 4px;
+}
+
+#pdp-recipients-overlay .pdp-recipients-search {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 10px 14px;
+	border-bottom: 1px solid #e0e0e0;
+}
+
+#pdp-recipients-overlay .pdp-recipients-search-icon {
+	font-size: 13px;
+	opacity: 0.6;
+}
+
+#pdp-recipients-overlay .pdp-recipients-search-input {
+	flex: 1 1 auto;
+	padding: 6px 8px;
+	font-size: 13px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+
+#pdp-recipients-overlay .pdp-recipients-list {
+	flex: 1 1 auto;
+	overflow-y: auto;
+	min-height: 80px;
+	padding: 4px 0;
+}
+
+#pdp-recipients-overlay .pdp-recipients-empty {
+	padding: 16px 14px;
+	font-size: 13px;
+	color: #777;
+	text-align: center;
+}
+
+#pdp-recipients-overlay .pdp-recipients-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 14px;
+	border-bottom: 1px solid #f0f0f0;
+}
+
+#pdp-recipients-overlay .pdp-recipients-row-info {
+	flex: 1 1 auto;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+#pdp-recipients-overlay .pdp-recipients-row-name {
+	font-size: 13px;
+	font-weight: bold;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+#pdp-recipients-overlay .pdp-recipients-row-email {
+	font-size: 12px;
+	color: #666;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+#pdp-recipients-overlay .pdp-recipients-row-pin,
+#pdp-recipients-overlay .pdp-recipients-row-remove {
+	flex: 0 0 auto;
+	background: transparent;
+	border: none;
+	font-size: 14px;
+	cursor: pointer;
+	padding: 2px 4px;
+}
+
+#pdp-recipients-overlay .pdp-recipients-row-pin {
+	color: #c9a227;
+}
+
+#pdp-recipients-overlay .pdp-recipients-row-remove {
+	color: #a33;
+}
+
+#pdp-recipients-overlay .pdp-recipients-add {
+	flex: 0 0 auto;
+	display: flex;
+	gap: 6px;
+	padding: 10px 14px;
+	border-top: 1px solid #e0e0e0;
+}
+
+#pdp-recipients-overlay .pdp-recipients-add-name {
+	flex: 1 1 40%;
+	padding: 6px 8px;
+	font-size: 13px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+
+#pdp-recipients-overlay .pdp-recipients-add-email {
+	flex: 1 1 60%;
+	padding: 6px 8px;
+	font-size: 13px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+
+#pdp-recipients-overlay .pdp-recipients-add-save {
+	flex: 0 0 auto;
+	padding: 6px 10px;
+	font-size: 13px;
+	font-weight: bold;
+	color: #fff;
+	background: #6b7f3a;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+#pdp-recipients-overlay .pdp-recipients-add-save:hover {
+	background: #55642e;
+}
+
+#pdp-recipients-overlay .pdp-recipients-error {
+	padding: 0 14px 10px;
+	font-size: 12px;
+	color: #a33;
+}
+
+#pdp-recipients-overlay .pdp-recipients-footer {
+	flex: 0 0 auto;
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	padding: 10px 14px;
+	border-top: 1px solid #e0e0e0;
+}
+
+#pdp-recipients-overlay .pdp-recipients-skip {
+	padding: 8px 14px;
+	font-size: 13px;
+	background: transparent;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+#pdp-recipients-overlay .pdp-recipients-proceed {
+	padding: 8px 14px;
+	font-size: 13px;
+	font-weight: bold;
+	color: #fff;
+	background: #6b7f3a;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+#pdp-recipients-overlay .pdp-recipients-proceed:hover {
+	background: #55642e;
 }
