@@ -9,15 +9,19 @@
 // encontra o campo de anexo da tela de composição, como se o usuário
 // tivesse selecionado os arquivos manualmente.
 //
-// ATENÇÃO - abordagem não-oficial e frágil: depende de o Outlook Web usar
-// um <input type="file"> "clássico" por trás do botão de anexar. Se a
-// Microsoft trocar esse mecanismo (por exemplo, para o seletor nativo via
-// File System Access API), este script deixa de conseguir anexar
-// automaticamente, e o usuário precisará anexar manualmente. Não há como
-// testar isso a partir deste repositório (o ambiente de desenvolvimento não
-// tem acesso a uma conta real do Outlook Web); se algo não funcionar,
-// inspecione o botão de anexar no navegador (clique com o botão direito →
-// Inspecionar) para localizar o input real e ajuste o seletor abaixo.
+// ATENÇÃO - abordagem não-oficial e frágil: tenta duas técnicas, nessa
+// ordem, e nenhuma delas é garantida pela Microsoft:
+// 1) Clica no botão "Anexar arquivo" (para o caso de o Outlook Web só criar
+//    o <input type="file"> no DOM depois desse clique) e então preenche
+//    esse input via DataTransfer, disparando um evento "change".
+// 2) Se nenhum input for encontrado, tenta simular um arrastar-e-soltar dos
+//    arquivos na área de composição (dragenter/dragover/drop).
+// Se o Outlook Web mudar a interface de anexo (ex.: passar a exigir a File
+// System Access API sem nenhuma zona de drop), nenhuma das duas funciona, e
+// o usuário precisa anexar manualmente. Não há como testar isso a partir
+// deste repositório (sem acesso a uma conta real do Outlook Web); se algo
+// não funcionar, inspecione o botão de anexar (clique com o botão direito →
+// Inspecionar) e ajuste os seletores/rótulos abaixo.
 
 (function () {
 	"use strict";
@@ -28,11 +32,26 @@
 	console.log("[Projudi->Outlook] content script carregado em", window.location.href);
 
 	const FILE_INPUT_SELECTOR = 'input[type="file"]';
+	// Rótulo visto no botão de anexar do Outlook Web atual (Fluent UI). Se a
+	// Microsoft mudar o texto (ex.: outro idioma/versão), ajuste esta lista.
+	const ATTACH_BUTTON_LABELS = ["anexar arquivo", "attach file"];
 	const WAIT_TIMEOUT_MS = 20000;
 	const ATTACH_DELAY_MS = 400;
+	const AFTER_CLICK_DELAY_MS = 600;
 
 	function sleep(ms) {
 		return new Promise((resolve) => setTimeout(resolve, ms));
+	}
+
+	function findAttachButton() {
+		const spans = document.querySelectorAll("span, button, [role=\"menuitem\"], [role=\"button\"]");
+		for (const el of spans) {
+			const text = (el.textContent || "").trim().toLowerCase();
+			if (ATTACH_BUTTON_LABELS.indexOf(text) !== -1) {
+				return el.closest('button, [role="button"], [role="menuitem"]') || el;
+			}
+		}
+		return null;
 	}
 
 	function findFileInput() {
@@ -101,6 +120,42 @@
 		}
 	}
 
+	function findDropTarget() {
+		// Área onde o Outlook Web normalmente aceita arrastar-e-soltar
+		// anexos: o corpo do e-mail (editor de texto). Se não achar, usa a
+		// página inteira como alvo — a maioria dos apps de e-mail trata a
+		// tela de composição inteira como zona de soltar arquivos.
+		return document.querySelector('[contenteditable="true"]') || document.querySelector('[role="textbox"]') || document.body;
+	}
+
+	function buildDataTransfer(files) {
+		const dataTransfer = new DataTransfer();
+		files.forEach(function (file) {
+			dataTransfer.items.add(file);
+		});
+		return dataTransfer;
+	}
+
+	function dispatchDropSequence(target, dataTransfer) {
+		const opts = { bubbles: true, cancelable: true, dataTransfer: dataTransfer };
+		target.dispatchEvent(new DragEvent("dragenter", opts));
+		target.dispatchEvent(new DragEvent("dragover", opts));
+		target.dispatchEvent(new DragEvent("drop", opts));
+	}
+
+	// Alternativa ao <input type="file">: simula um arrastar-e-soltar dos
+	// arquivos direto na área de composição. Funciona independentemente de
+	// como o botão "Anexar arquivo" está implementado por baixo dos panos
+	// (inclusive se usar a File System Access API, que não pode ser
+	// automatizada por script), desde que a tela de composição tenha uma
+	// área de soltar arquivos — o que é comum, mas não garantido.
+	function attachFilesViaDragAndDrop(files) {
+		const target = findDropTarget();
+		if (!target) return false;
+		dispatchDropSequence(target, buildDataTransfer(files));
+		return true;
+	}
+
 	async function run() {
 		let pending;
 		try {
@@ -113,16 +168,26 @@
 		console.log("[Projudi->Outlook] anexo pendente encontrado?", pending);
 		if (!pending) return;
 
+		// Em algumas versões do Outlook Web o <input type="file"> só é
+		// inserido no DOM depois que o botão "Anexar arquivo" é clicado (ele
+		// não existe desde o carregamento da página). Por isso, tentamos
+		// clicar nesse botão antes de procurar o campo — isso não abre
+		// nenhuma janela de seleção de arquivo do sistema operacional (o
+		// navegador bloqueia isso para cliques disparados por script, sem
+		// gesto real do usuário), mas pode ser suficiente para o input ser
+		// montado no DOM, que é tudo que precisamos.
+		const attachButton = findAttachButton();
+		if (attachButton) {
+			console.log("[Projudi->Outlook] clicando no botão 'Anexar arquivo' para revelar o campo…", attachButton);
+			attachButton.click();
+			await sleep(AFTER_CLICK_DELAY_MS);
+		} else {
+			console.warn("[Projudi->Outlook] Botão 'Anexar arquivo' não encontrado; tentando localizar o campo mesmo assim.");
+		}
+
 		console.log("[Projudi->Outlook] aguardando campo de anexo aparecer na tela…");
 		const input = await waitForFileInput(WAIT_TIMEOUT_MS);
-		if (!input) {
-			console.warn(
-				"[Projudi->Outlook] Não encontrei o campo de anexo automaticamente. " +
-					"Anexe os documentos manualmente a partir do processo no Projudi."
-			);
-			return;
-		}
-		console.log("[Projudi->Outlook] campo de anexo encontrado:", input);
+		console.log("[Projudi->Outlook] campo de anexo encontrado?", input);
 
 		const consumed = await chrome.runtime.sendMessage({ type: "CONSUME_PENDING_EMAIL", id: pending.id });
 		if (!consumed || !consumed.attachments || !consumed.attachments.length) {
@@ -130,12 +195,28 @@
 			return;
 		}
 
+		const files = consumed.attachments.map(function (a) {
+			return base64ToFile(a.base64, a.name, a.contentType);
+		});
+
 		try {
-			const files = consumed.attachments.map(function (a) {
-				return base64ToFile(a.base64, a.name, a.contentType);
-			});
-			await attachFilesSequentially(files);
-			console.log("[Projudi->Outlook] anexos inseridos com sucesso:", files.map((f) => f.name));
+			if (input) {
+				await attachFilesSequentially(files);
+				console.log(
+					"[Projudi->Outlook] anexos inseridos via input[type=file]:",
+					files.map((f) => f.name)
+				);
+			} else {
+				console.warn(
+					"[Projudi->Outlook] Nenhum campo de anexo encontrado; tentando arrastar-e-soltar os arquivos na tela."
+				);
+				const dropped = attachFilesViaDragAndDrop(files);
+				if (!dropped) throw new Error("Não encontrei onde soltar os arquivos na tela do Outlook.");
+				console.log(
+					"[Projudi->Outlook] simulação de arrastar-e-soltar disparada para:",
+					files.map((f) => f.name)
+				);
+			}
 		} catch (err) {
 			console.error("[Projudi->Outlook] Falha ao anexar automaticamente:", err);
 			alert(
