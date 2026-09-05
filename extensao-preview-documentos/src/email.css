@@ -7,6 +7,8 @@
 #pdp-email-button {
 	position: fixed;
 	right: 16px;
+	/* "bottom" é recalculado em tempo real pelo email.js para ficar sempre
+	   logo acima da barra de ações (Peticionar, Juntar Documento, etc.). */
 	bottom: 16px;
 	z-index: 2147483000;
 	display: none;

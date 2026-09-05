@@ -18,6 +18,22 @@
 
 	const FILE_LINK_SELECTOR = 'a.link[href*="/arquivo.do"]';
 
+	// Rótulos da barra de ações inferior do Projudi (Pedido Incidental,
+	// Juntar Documento, Peticionar, Patronato, Navegar, Exportar Processo,
+	// Voltar). Usados apenas para localizar a barra e posicionar o botão
+	// de e-mail logo acima dela, sem depender de classes/IDs internos do
+	// Projudi que podem mudar.
+	const TOOLBAR_LABELS = [
+		"Peticionar",
+		"Juntar Documento",
+		"Patronato",
+		"Exportar Processo",
+		"Pedido Incidental",
+		"Navegar",
+		"Voltar",
+	];
+	const BUTTON_MARGIN = 12;
+
 	const selected = new Map(); // href -> { href, name }
 	let button = null;
 
@@ -65,6 +81,41 @@
 		return button;
 	}
 
+	function findActionToolbarElement() {
+		const candidates = document.querySelectorAll('button, a, input[type="button"], input[type="submit"]');
+		for (const el of candidates) {
+			const text = (el.textContent || el.value || "").trim();
+			if (TOOLBAR_LABELS.indexOf(text) !== -1) return el;
+		}
+		return null;
+	}
+
+	let repositionScheduled = false;
+	function scheduleReposition() {
+		if (repositionScheduled) return;
+		repositionScheduled = true;
+		requestAnimationFrame(function () {
+			repositionScheduled = false;
+			repositionButton();
+		});
+	}
+
+	function repositionButton() {
+		if (!button) return;
+		const toolbarButton = findActionToolbarElement();
+		if (!toolbarButton) {
+			button.style.bottom = BUTTON_MARGIN + "px";
+			return;
+		}
+		// Sobe até um ancestral que representa a linha/barra inteira (tr, div
+		// ou td), para medir o topo da barra como um todo, não só do botão
+		// individual encontrado.
+		const row = toolbarButton.closest("tr, div, td") || toolbarButton.parentElement || toolbarButton;
+		const rect = row.getBoundingClientRect();
+		const bottomOffset = Math.max(BUTTON_MARGIN, Math.round(window.innerHeight - rect.top + BUTTON_MARGIN));
+		button.style.bottom = bottomOffset + "px";
+	}
+
 	function updateButton() {
 		const count = selected.size;
 		if (count === 0) {
@@ -74,6 +125,7 @@
 		ensureButton();
 		button.textContent = "Enviar por e-mail (" + count + ")";
 		button.classList.add("pdp-email-visible");
+		repositionButton();
 	}
 
 	function fileToAttachment(href) {
@@ -154,6 +206,10 @@
 				scan(node);
 			});
 		});
+		scheduleReposition();
 	});
 	observer.observe(document.documentElement, { childList: true, subtree: true });
+
+	window.addEventListener("resize", scheduleReposition);
+	window.addEventListener("scroll", scheduleReposition, true);
 })();
