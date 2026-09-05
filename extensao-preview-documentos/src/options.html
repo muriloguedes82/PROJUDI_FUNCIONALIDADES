@@ -7,26 +7,47 @@
 	body { font-family: Arial, Helvetica, sans-serif; padding: 16px; max-width: 480px; }
 	h3 { margin-top: 0; }
 	label { display: block; margin-top: 12px; font-weight: bold; }
-	input { width: 100%; padding: 6px; margin-top: 4px; box-sizing: border-box; }
+	input, select { width: 100%; padding: 6px; margin-top: 4px; box-sizing: border-box; }
 	button { margin-top: 16px; padding: 8px 14px; }
 	p.help { font-size: 12px; color: #555; }
+	fieldset { margin-top: 20px; }
 	#status { margin-top: 10px; font-size: 12px; color: #2b6b2b; }
 </style>
 </head>
 <body>
 	<h3>Envio de documentos por e-mail (Outlook)</h3>
+
+	<label for="sendMode">Modo de envio
+		<select id="sendMode">
+			<option value="auto">Automático (Graph se configurado, senão Outlook Web)</option>
+			<option value="graph">Sempre via Microsoft Graph (recomendado)</option>
+			<option value="owa">Sempre via Outlook Web (sem Azure AD, experimental)</option>
+		</select>
+	</label>
 	<p class="help">
-		Informe os dados do aplicativo cadastrado no Azure AD / Microsoft Entra
-		ID pelo setor de TI para autorizar o envio de e-mails via Outlook
-		(Microsoft Graph). Consulte o README da extensão para o passo a passo
-		do cadastro.
+		"Outlook Web (sem Azure AD)" abre o outlook.office.com de verdade num
+		pop-up, o usuário faz login normalmente, e a extensão tenta anexar os
+		documentos automaticamente assim que a tela de novo e-mail aparece.
+		É mais simples de configurar, mas é uma automação não-oficial que pode
+		parar de funcionar se a Microsoft mudar a interface do Outlook Web —
+		nesse caso, anexe os documentos manualmente.
 	</p>
-	<label for="clientId">Client ID (Application ID)
-		<input id="clientId" type="text" placeholder="00000000-0000-0000-0000-000000000000" />
-	</label>
-	<label for="tenantId">Tenant ID (opcional, padrão "common")
-		<input id="tenantId" type="text" placeholder="common" />
-	</label>
+
+	<fieldset>
+		<legend>Microsoft Graph (opcional, necessário só para o modo Graph)</legend>
+		<p class="help">
+			Informe os dados do aplicativo cadastrado no Azure AD / Microsoft
+			Entra ID pelo setor de TI. Consulte o README da extensão para o
+			passo a passo do cadastro.
+		</p>
+		<label for="clientId">Client ID (Application ID)
+			<input id="clientId" type="text" placeholder="00000000-0000-0000-0000-000000000000" />
+		</label>
+		<label for="tenantId">Tenant ID (opcional, padrão "common")
+			<input id="tenantId" type="text" placeholder="common" />
+		</label>
+	</fieldset>
+
 	<button id="save" type="button">Salvar</button>
 	<div id="status"></div>
 	<script src="options.js"></script>

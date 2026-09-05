@@ -1,23 +1,31 @@
 // Projudi - Envio de Documentos por E-mail (Outlook)
 //
-// Service worker (Manifest V3) responsável por:
-// 1) Autenticar o usuário no Microsoft Entra ID (Azure AD) via OAuth2 +
-//    PKCE, usando chrome.identity.launchWebAuthFlow (sem client secret,
-//    aplicativo público).
-// 2) Criar um rascunho de e-mail via Microsoft Graph e anexar os
-//    documentos recebidos do content script (email.js).
-// 3) Abrir esse rascunho em uma janela pop-up menor, sobreposta à janela
-//    do Projudi, para o usuário preencher destinatário/assunto/mensagem
-//    e enviar pelo próprio Outlook Web.
+// Service worker (Manifest V3) com dois modos de envio, escolhidos em
+// options.html (chrome.storage.sync: "sendMode" = "auto" | "graph" | "owa"):
 //
-// Pré-requisito: um aplicativo cadastrado no Azure AD (Client ID) com a
-// permissão delegada "Mail.ReadWrite" e o redirect URI informado pelo
-// chrome.identity.getRedirectURL() (ver README para o passo a passo).
+// A) MODO GRAPH (recomendado, oficial): autentica no Microsoft Entra ID
+//    (Azure AD) via OAuth2 + PKCE (chrome.identity.launchWebAuthFlow, sem
+//    client secret), cria um rascunho via Microsoft Graph já com os
+//    anexos, e abre esse rascunho pronto num pop-up. Requer um aplicativo
+//    cadastrado no Azure AD pelo TI (ver README).
+//
+// B) MODO OWA/fallback (sem Azure AD, experimental): abre o Outlook Web
+//    (outlook.office.com) de verdade num pop-up, com um deep link que já
+//    abre a tela de "Novo e-mail" com o assunto preenchido. O usuário faz
+//    login normalmente (usuário/senha da conta institucional). O content
+//    script src/owa-attach.js, injetado na própria página do Outlook Web,
+//    busca os anexos pendentes (armazenados temporariamente por este
+//    service worker) e os anexa automaticamente assim que o campo de
+//    anexo aparece na tela, simulando uma seleção de arquivos pelo
+//    usuário. Por depender da estrutura interna (não documentada) do
+//    Outlook Web, esse modo é frágil e pode parar de funcionar se a
+//    Microsoft alterar a interface — ver README para como ajustar.
 
 const GRAPH_BASE = "https://graph.microsoft.com/v1.0";
 const GRAPH_SCOPES = "openid profile offline_access Mail.ReadWrite";
 const INLINE_ATTACHMENT_LIMIT = 3 * 1024 * 1024; // limite recomendado pela Graph para anexos "inline"
 const UPLOAD_CHUNK_SIZE = 320 * 1024 * 10; // ~3.1MB, múltiplo de 320KiB exigido pela Graph
+const PENDING_EMAIL_TTL_MS = 10 * 60 * 1000; // tempo máximo para o pop-up do Outlook consumir os anexos pendentes
 
 async function getAzureConfig() {
 	const { azureClientId, azureTenantId } = await chrome.storage.sync.get(["azureClientId", "azureTenantId"]);
@@ -248,7 +256,7 @@ async function openComposeWindow(webLink) {
 	await chrome.windows.create({ url: webLink, type: "popup", width, height, left, top });
 }
 
-async function handleSendEmail(message) {
+async function handleSendEmailGraph(message) {
 	const token = await acquireAccessToken();
 	const draft = await createDraft(token, message.subject);
 
@@ -264,12 +272,80 @@ async function handleSendEmail(message) {
 	await openComposeWindow(draft.webLink);
 }
 
+// Modo B (fallback): guarda os anexos temporariamente e abre o Outlook Web
+// de verdade num pop-up; src/owa-attach.js (rodando dentro do Outlook Web)
+// consome esses anexos assim que a tela de novo e-mail estiver pronta.
+async function handleSendEmailFallback(message) {
+	const id = crypto.randomUUID();
+	await chrome.storage.local.set({
+		pendingEmail: {
+			id: id,
+			subject: message.subject,
+			attachments: message.attachments,
+			createdAt: Date.now(),
+		},
+	});
+
+	const composeUrl =
+		"https://outlook.office.com/mail/deeplink/compose?" +
+		new URLSearchParams({ subject: message.subject || "" }).toString();
+
+	await openComposeWindow(composeUrl);
+}
+
+async function peekPendingEmail() {
+	const { pendingEmail } = await chrome.storage.local.get(["pendingEmail"]);
+	if (!pendingEmail) return null;
+	if (Date.now() - pendingEmail.createdAt > PENDING_EMAIL_TTL_MS) {
+		await chrome.storage.local.remove("pendingEmail");
+		return null;
+	}
+	return { id: pendingEmail.id, subject: pendingEmail.subject };
+}
+
+async function consumePendingEmail(id) {
+	const { pendingEmail } = await chrome.storage.local.get(["pendingEmail"]);
+	if (!pendingEmail || pendingEmail.id !== id) return null;
+	await chrome.storage.local.remove("pendingEmail");
+	if (Date.now() - pendingEmail.createdAt > PENDING_EMAIL_TTL_MS) return null;
+	return pendingEmail;
+}
+
+async function resolveSendMode() {
+	const { azureClientId, sendMode } = await chrome.storage.sync.get(["azureClientId", "sendMode"]);
+	const mode = sendMode || "auto";
+	if (mode === "owa") return "owa";
+	if (mode === "graph") return "graph";
+	// "auto": usa Graph se já houver Client ID configurado, senão cai no
+	// fallback do Outlook Web, sem exigir nenhum cadastro no Azure AD.
+	return azureClientId ? "graph" : "owa";
+}
+
+async function handleSendEmail(message) {
+	const mode = await resolveSendMode();
+	if (mode === "graph") {
+		return handleSendEmailGraph(message);
+	}
+	return handleSendEmailFallback(message);
+}
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-	if (!message || message.type !== "SEND_EMAIL") return;
+	if (!message) return;
 
-	handleSendEmail(message)
-		.then(() => sendResponse({ ok: true }))
-		.catch((err) => sendResponse({ ok: false, error: err.message }));
+	if (message.type === "SEND_EMAIL") {
+		handleSendEmail(message)
+			.then(() => sendResponse({ ok: true }))
+			.catch((err) => sendResponse({ ok: false, error: err.message }));
+		return true; // resposta assíncrona
+	}
 
-	return true; // resposta assíncrona
+	if (message.type === "PEEK_PENDING_EMAIL") {
+		peekPendingEmail().then(sendResponse);
+		return true;
+	}
+
+	if (message.type === "CONSUME_PENDING_EMAIL") {
+		consumePendingEmail(message.id).then(sendResponse);
+		return true;
+	}
 });

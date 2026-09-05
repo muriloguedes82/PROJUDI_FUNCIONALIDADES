@@ -1,13 +1,15 @@
 {
   "manifest_version": 3,
   "name": "Projudi - Documentos: Pré-visualização e Envio por E-mail",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Na tela de Movimentações do Projudi, exibe a íntegra de um documento em janela sobreposta ao passar o mouse, e permite selecionar arquivos e enviá-los por e-mail via Outlook.",
   "permissions": ["identity", "storage", "windows"],
   "host_permissions": [
     "*://*.tjpr.jus.br/*",
     "https://login.microsoftonline.com/*",
-    "https://graph.microsoft.com/*"
+    "https://graph.microsoft.com/*",
+    "https://outlook.office.com/*",
+    "https://outlook.office365.com/*"
   ],
   "background": {
     "service_worker": "src/background.js"
@@ -23,6 +25,14 @@
       "css": ["src/content.css", "src/email.css"],
       "run_at": "document_idle",
       "all_frames": true
+    },
+    {
+      "matches": [
+        "https://outlook.office.com/mail/*",
+        "https://outlook.office365.com/mail/*"
+      ],
+      "js": ["src/owa-attach.js"],
+      "run_at": "document_idle"
     }
   ]
 }

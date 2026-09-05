@@ -65,6 +65,32 @@ No primeiro envio, o navegador abrirá a tela de login padrão da
 Microsoft para o usuário autorizar o acesso à própria caixa de Outlook; nas
 próximas vezes o token é reaproveitado/renovado automaticamente.
 
+### Modo alternativo sem Azure AD (fallback, experimental)
+
+Se o cadastro no Azure AD não for viável, é possível usar o modo
+**"Outlook Web (sem Azure AD)"**, selecionável nas opções da extensão
+(`chrome://extensions` → "Detalhes" → "Opções da extensão" → "Modo de
+envio"). Nesse modo:
+
+1. A extensão abre o **outlook.office.com de verdade** num pop-up, já com
+   um link direto para a tela de novo e-mail (com o assunto preenchido).
+2. O usuário faz **login normalmente** com usuário e senha da conta
+   institucional, exatamente como abriria o Outlook Web manualmente — não
+   há nenhum aplicativo Azure AD envolvido.
+3. Assim que a tela de novo e-mail termina de carregar, o content script
+   `src/owa-attach.js` (injetado apenas nas páginas do próprio Outlook Web)
+   anexa automaticamente os documentos selecionados, simulando uma seleção
+   de arquivos feita pelo usuário no campo de anexo.
+4. O modo **"Automático"** (padrão) usa o Graph quando o Client ID estiver
+   configurado e cai automaticamente neste modo quando não estiver — ou
+   seja, a extensão funciona "out of the box" sem precisar de nenhum
+   cadastro, só com uma robustez menor (veja limitações abaixo).
+
+Esse modo **não depende de nenhuma configuração de TI**, mas é uma
+automação não-oficial da interface do Outlook Web (não existe API pública
+da Microsoft para isso), então é o modo Graph que deve ser preferido sempre
+que o cadastro no Azure AD for possível.
+
 ## Como funciona
 
 1. Um content script (`src/content.js`) é injetado nas páginas
@@ -120,3 +146,15 @@ próximas vezes o token é reaproveitado/renovado automaticamente.
 - Documentos de até 3MB são anexados diretamente; arquivos maiores usam o
   upload em partes da Microsoft Graph. O limite total de anexos por e-mail
   segue as regras do Outlook/Exchange da organização (normalmente 25MB).
+- **Modo Outlook Web (fallback):** depende de o Outlook Web expor um
+  `<input type="file">` "clássico" por trás do botão de anexar — isso não é
+  documentado nem garantido pela Microsoft e pode mudar a qualquer
+  atualização da interface, quebrando o anexo automático (nesse caso, o
+  usuário verá um aviso e precisará anexar os arquivos manualmente, já que
+  eles já foram baixados). Este repositório não tem acesso a uma conta real
+  do Outlook Web para testar/validar esse comportamento; se parar de
+  funcionar, inspecione o botão "Anexar" no navegador (botão direito →
+  Inspecionar) para localizar o campo real e ajustar o seletor em
+  `src/owa-attach.js`. Os anexos pendentes ficam guardados por até 10
+  minutos (`chrome.storage.local`) esperando o pop-up carregar; depois
+  disso, expiram e é preciso selecionar os arquivos novamente no Projudi.
