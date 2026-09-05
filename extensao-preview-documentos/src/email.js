@@ -112,8 +112,22 @@
 		// individual encontrado.
 		const row = toolbarButton.closest("tr, div, td") || toolbarButton.parentElement || toolbarButton;
 		const rect = row.getBoundingClientRect();
+
+		// A barra de ações normalmente rola junto com o conteúdo (não é fixa).
+		// Se ela estiver fora da área visível no momento (usuário rolou para
+		// além dela, pra cima ou pra baixo), "rect.top" pode ficar negativo ou
+		// muito grande, o que jogaria o botão para fora da tela caso apenas
+		// subtraíssemos os valores. Nesse caso, mantemos o botão simplesmente
+		// ancorado ao rodapé da janela — o comportamento normal de um elemento
+		// fixo — em vez de perseguir uma barra que não está à vista.
+		const toolbarVisible = rect.bottom > 0 && rect.top < window.innerHeight;
+		if (!toolbarVisible) {
+			button.style.bottom = BUTTON_MARGIN + "px";
+			return;
+		}
+
 		const bottomOffset = Math.max(BUTTON_MARGIN, Math.round(window.innerHeight - rect.top + BUTTON_MARGIN));
-		button.style.bottom = bottomOffset + "px";
+		button.style.bottom = Math.min(bottomOffset, window.innerHeight - BUTTON_MARGIN) + "px";
 	}
 
 	function updateButton() {
