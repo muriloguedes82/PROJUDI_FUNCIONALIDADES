@@ -73,17 +73,16 @@ Se o cadastro no Azure AD não for viável, é possível usar o modo
 envio"). Nesse modo:
 
 1. A extensão baixa os documentos selecionados para a pasta **Downloads**
-   do computador do usuário.
+   do computador do usuário (como alternativa manual).
 2. Em seguida, abre o **outlook.office.com de verdade** num pop-up, já com
    um link direto para a tela de novo e-mail (com o assunto preenchido).
 3. O usuário faz **login normalmente** com usuário e senha da conta
    institucional, exatamente como abriria o Outlook Web manualmente — não
    há nenhum aplicativo Azure AD envolvido.
-4. Um aviso aparece no topo da tela do Outlook (`src/owa-attach.js`)
-   listando os arquivos baixados; o usuário só precisa **arrastá-los** (da
-   pasta Downloads ou da barra de downloads do navegador) para dentro do
-   e-mail — um passo manual rápido em vez de baixar cada arquivo do zero e
-   procurá-lo na pasta certa.
+4. Um aviso aparece no topo da tela do Outlook (`src/owa-attach.js`) com um
+   **"chip" arrastável para cada arquivo** selecionado; o usuário arrasta
+   cada chip para dentro do corpo do e-mail para anexar — sem precisar
+   procurar o arquivo em nenhuma pasta.
 5. O modo **"Automático"** (padrão) usa o Graph quando o Client ID estiver
    configurado e cai automaticamente neste modo quando não estiver — ou
    seja, a extensão funciona "out of the box" sem precisar de nenhum
@@ -98,10 +97,18 @@ forma diferente de um anexo real: ele força um fluxo de upload para o
 OneDrive que falha para um arquivo montado em memória (erro "Não foi
 possível anexar... Tente novamente mais tarde"), enquanto o mesmo arquivo
 anexado manualmente funciona sem problemas. Não existe forma de um content
-script disparar um evento "confiável" — é uma restrição de segurança do
-próprio navegador, não uma falha de implementação. Por isso este modo ficou
-semiautomático (baixa os arquivos e pede 1 arraste manual), em vez de
-tentar anexar sozinho.
+script disparar um evento "confiável" via `dispatchEvent` — é uma
+restrição de segurança do próprio navegador, não uma falha de
+implementação.
+
+A solução foi inverter a lógica: em vez de o script simular o arraste
+inteiro, o "chip" de cada arquivo é um elemento `draggable="true"` de
+verdade — quando o **usuário** arrasta com o mouse, o navegador dispara um
+evento `dragstart` genuíno (confiável), e é dentro desse evento que o
+arquivo é anexado ao `dataTransfer`. Como o gesto (mousedown/mousemove) foi
+realmente feito pelo usuário, o `drop` na área de composição do Outlook
+também é confiável, e o anexo funciona normalmente — sem cair no mesmo
+bloqueio do OneDrive.
 
 Esse modo **não depende de nenhuma configuração de TI**, mas é o modo Graph
 que deve ser preferido sempre que o cadastro no Azure AD for possível, já
@@ -162,14 +169,15 @@ que é o único caminho 100% automático.
 - Documentos de até 3MB são anexados diretamente; arquivos maiores usam o
   upload em partes da Microsoft Graph. O limite total de anexos por e-mail
   segue as regras do Outlook/Exchange da organização (normalmente 25MB).
-- **Modo Outlook Web (fallback):** o anexo não é automático (veja o porquê
-  na seção "Modo alternativo sem Azure AD" acima) — o usuário precisa
-  arrastar manualmente os arquivos baixados para dentro do e-mail. O aviso
-  com os nomes dos arquivos baixados fica disponível por até 10 minutos
-  (`chrome.storage.local`) esperando o pop-up do Outlook carregar; depois
-  disso, expira (some silenciosamente) e é preciso selecionar os arquivos
+- **Modo Outlook Web (fallback):** o anexo não é 100% automático (veja o
+  porquê na seção "Modo alternativo sem Azure AD" acima) — o usuário
+  precisa arrastar cada "chip" exibido no aviso para dentro do e-mail. O
+  conteúdo dos arquivos fica guardado temporariamente por até 10 minutos
+  (`chrome.storage.local`, com a permissão `unlimitedStorage` para
+  documentos maiores) esperando o pop-up do Outlook carregar; depois disso,
+  expira (some silenciosamente) e é preciso selecionar os arquivos
   novamente no Projudi — mas os arquivos já baixados continuam na pasta
-  Downloads normalmente.
+  Downloads normalmente, como alternativa.
 - Os downloads usam a permissão `downloads` da extensão; se o navegador
   estiver configurado para **perguntar onde salvar cada arquivo**
   (em vez de salvar direto na pasta Downloads), o usuário verá um diálogo

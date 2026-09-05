@@ -12,22 +12,25 @@
 // B) MODO OWA/fallback (sem Azure AD, semiautomático): abre o Outlook Web
 //    (outlook.office.com) de verdade num pop-up, com um deep link que já
 //    abre a tela de "Novo e-mail" com o assunto preenchido, e baixa os
-//    documentos selecionados para a pasta Downloads do usuário. O
-//    content script src/owa-attach.js, injetado na própria página do
-//    Outlook Web, mostra um aviso indicando os arquivos baixados para o
-//    usuário arrastá-los até o e-mail.
+//    documentos selecionados para a pasta Downloads do usuário (como
+//    alternativa manual). O content script src/owa-attach.js, injetado na
+//    própria página do Outlook Web, desenha um "chip" arrastável para cada
+//    arquivo; o usuário arrasta o chip até a área de composição para
+//    anexar.
 //
-//    Este modo já tentou anexar os arquivos automaticamente simulando um
-//    evento de seleção de arquivo, mas o Outlook Web trata anexos vindos
-//    de eventos disparados por script (não confiáveis, "isTrusted:
-//    false") de forma diferente de um anexo real — ele força um fluxo de
-//    upload para o OneDrive que falha para um arquivo montado em
-//    memória. Testado e confirmado: o mesmo arquivo anexado manualmente
-//    funciona sem problemas. Não há como um content script disparar um
-//    evento "confiável" — é uma restrição de segurança do próprio
-//    navegador, não algo que dê para contornar com mais JavaScript. Por
-//    isso o modo B ficou semiautomático (baixa os arquivos e pede para o
-//    usuário arrastá-los), em vez de tentar anexar sozinho.
+//    Este modo já tentou anexar os arquivos automaticamente preenchendo o
+//    campo de anexo via script, mas o Outlook Web trata anexos vindos de
+//    eventos disparados por script (não confiáveis, "isTrusted: false")
+//    de forma diferente de um anexo real — ele força um fluxo de upload
+//    para o OneDrive que falha para um arquivo montado em memória.
+//    Testado e confirmado: o mesmo arquivo anexado manualmente funciona
+//    sem problemas. Como não há como um content script disparar um
+//    evento "confiável" via dispatchEvent, a solução foi inverter a
+//    abordagem: o chip arrastável faz o USUÁRIO iniciar o gesto de
+//    arrastar (mousedown/mousemove reais), então o "dragstart" que o
+//    navegador dispara É confiável, e é dentro desse evento confiável que
+//    o arquivo é anexado ao dataTransfer — o "drop" resultante na área de
+//    composição do Outlook também é confiável, e o anexo funciona.
 
 const GRAPH_BASE = "https://graph.microsoft.com/v1.0";
 const GRAPH_SCOPES = "openid profile offline_access Mail.ReadWrite";
@@ -304,16 +307,20 @@ async function downloadAttachments(attachments) {
 }
 
 // Modo B (fallback semiautomático): baixa os anexos para o computador do
-// usuário e abre o Outlook Web de verdade num pop-up; src/owa-attach.js
-// (rodando dentro do Outlook Web) mostra um aviso com os nomes dos
-// arquivos baixados, para o usuário arrastá-los até o e-mail.
+// usuário (como alternativa manual) e abre o Outlook Web de verdade num
+// pop-up; src/owa-attach.js (rodando dentro do Outlook Web) desenha, para
+// cada arquivo, um "chip" arrastável na própria página. Como o arraste é
+// iniciado por um gesto real do usuário (mousedown/mousemove dentro da
+// página do Outlook), o navegador considera a operação de arrastar-e-soltar
+// confiável (diferente de disparar um evento via script), então o Outlook
+// aceita o anexo normalmente quando o chip é solto na área de composição.
 async function handleSendEmailFallback(message) {
-	const fileNames = await downloadAttachments(message.attachments);
+	await downloadAttachments(message.attachments);
 
 	await chrome.storage.local.set({
 		pendingDownloadInfo: {
 			id: crypto.randomUUID(),
-			fileNames: fileNames,
+			attachments: message.attachments,
 			createdAt: Date.now(),
 		},
 	});

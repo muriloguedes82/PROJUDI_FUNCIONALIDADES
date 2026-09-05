@@ -5,8 +5,8 @@
 	transform: translateX(-50%);
 	z-index: 2147483000;
 	display: flex;
-	align-items: center;
-	gap: 12px;
+	flex-direction: column;
+	gap: 8px;
 	max-width: 640px;
 	padding: 10px 14px;
 	background: #fff6cc;
@@ -18,8 +18,11 @@
 	color: #4a3d00;
 }
 
-#pdp-owa-banner .pdp-owa-banner-text {
-	flex: 1 1 auto;
+#pdp-owa-banner .pdp-owa-banner-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
 }
 
 #pdp-owa-banner .pdp-owa-banner-close {
@@ -35,4 +38,30 @@
 
 #pdp-owa-banner .pdp-owa-banner-close:hover {
 	opacity: 0.7;
+}
+
+#pdp-owa-banner .pdp-owa-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+#pdp-owa-banner .pdp-owa-chip {
+	display: inline-flex;
+	align-items: center;
+	padding: 6px 10px;
+	background: #fff;
+	border: 1px solid #b59a1f;
+	border-radius: 999px;
+	cursor: grab;
+	user-select: none;
+	white-space: nowrap;
+}
+
+#pdp-owa-banner .pdp-owa-chip:active {
+	cursor: grabbing;
+}
+
+#pdp-owa-banner .pdp-owa-chip-dragging {
+	opacity: 0.5;
 }
