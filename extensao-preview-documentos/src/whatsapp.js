@@ -17,6 +17,11 @@
 	const PENDING_MAX_AGE_MS = 3 * 60 * 1000;
 	const POLL_INTERVAL_MS = 700;
 	const POLL_TIMEOUT_MS = 60000;
+	const LOG_PREFIX = "[Projudi WhatsApp]";
+
+	function log() {
+		console.info.apply(console, [LOG_PREFIX].concat(Array.prototype.slice.call(arguments)));
+	}
 
 	function dataUrlToFile(dataUrl, name, type) {
 		const commaIndex = dataUrl.indexOf(",");
@@ -29,6 +34,10 @@
 		return new File([bytes], name, { type: type || "application/octet-stream" });
 	}
 
+	// A caixa de mensagem (contenteditable) só existe no DOM quando uma
+	// conversa está realmente aberta (não na tela de espera do QR Code, nem
+	// na tela de conflito de sessão "usado em outra janela/aba"). Usamos ela
+	// como sinal de que dá pra soltar os arquivos.
 	function findDropTarget() {
 		const main = document.querySelector("#main");
 		if (!main) return null;
@@ -37,20 +46,39 @@
 		return main;
 	}
 
-	function dispatchFileDrop(target, files) {
+	function fireDragEvent(target, type, dataTransfer) {
+		const event = new DragEvent(type, {
+			bubbles: true,
+			cancelable: true,
+			composed: true,
+			dataTransfer: dataTransfer,
+		});
+		target.dispatchEvent(event);
+	}
+
+	function wait(ms) {
+		return new Promise(function (resolve) {
+			setTimeout(resolve, ms);
+		});
+	}
+
+	// O WhatsApp Web só revela a área de "soltar para anexar" depois de
+	// detectar um dragenter no documento (o `body`, tipicamente) — o drop em
+	// si precisa então acontecer no painel da conversa (#main). Por isso
+	// disparamos os eventos em duas etapas, com uma pequena pausa entre elas
+	// para o próprio app atualizar a interface.
+	async function dispatchFileDrop(target, files) {
 		const dataTransfer = new DataTransfer();
 		files.forEach(function (file) {
 			dataTransfer.items.add(file);
 		});
 
-		["dragenter", "dragover", "drop"].forEach(function (type) {
-			const event = new DragEvent(type, {
-				bubbles: true,
-				cancelable: true,
-				dataTransfer: dataTransfer,
-			});
-			target.dispatchEvent(event);
-		});
+		fireDragEvent(document.body, "dragenter", dataTransfer);
+		fireDragEvent(target, "dragenter", dataTransfer);
+		await wait(150);
+		fireDragEvent(target, "dragover", dataTransfer);
+		await wait(50);
+		fireDragEvent(target, "drop", dataTransfer);
 	}
 
 	function waitFor(predicate, timeoutMs, intervalMs) {
@@ -76,19 +104,29 @@
 	function processPending(pending) {
 		if (!pending) return;
 		if (Date.now() - pending.createdAt > PENDING_MAX_AGE_MS) {
+			log("envio pendente expirado, ignorando.");
 			clearPending();
 			return;
 		}
 
+		log("envio pendente encontrado, aguardando a conversa carregar…", pending.files.map((f) => f.name));
+
 		waitFor(findDropTarget, POLL_TIMEOUT_MS, POLL_INTERVAL_MS)
 			.then(function (target) {
+				log("conversa pronta, anexando arquivo(s)…");
 				const files = pending.files.map(function (f) {
 					return dataUrlToFile(f.dataUrl, f.name, f.type);
 				});
-				dispatchFileDrop(target, files);
+				return dispatchFileDrop(target, files);
 			})
-			.catch(function () {
-				/* conversa não carregou a tempo (ex.: sessão não conectada) */
+			.then(function () {
+				log("arquivo(s) anexado(s) — revise e clique em enviar no WhatsApp.");
+			})
+			.catch(function (err) {
+				// Causas comuns: sessão do WhatsApp Web não conectada (QR Code
+				// pendente), ou a conversa não carregou a tempo (ex.: tela de
+				// conflito de sessão porque havia mais de uma aba aberta).
+				console.warn(LOG_PREFIX, "não foi possível anexar automaticamente:", err);
 			})
 			.then(clearPending);
 	}

@@ -105,24 +105,32 @@ Fluxo de uso:
 2. Clique em "Enviar por WhatsApp" e informe o número de destino (com DDD;
    se nenhum DDI for digitado, assume-se `55`/Brasil).
 3. Ao confirmar, a extensão baixa os arquivos selecionados (reaproveitando a
-   sessão do Projudi, do mesmo jeito que a pré-visualização) e abre uma nova
-   aba do WhatsApp Web já com a conversa do número informado —
-   reaproveitando a sessão do WhatsApp Web já aberta/conectada no
-   navegador, se houver.
+   sessão do Projudi, do mesmo jeito que a pré-visualização) e abre a
+   conversa do número informado no WhatsApp Web — reaproveitando a sessão
+   já aberta/conectada no navegador, se houver.
 4. Assim que a conversa termina de carregar, os arquivos são anexados
    automaticamente (via simulação de arrastar-e-soltar, o mesmo mecanismo
    que o próprio WhatsApp Web usa). O envio da mensagem continua sendo uma
    ação manual do usuário, que pode revisar os anexos e adicionar uma
    legenda antes de enviar.
 
+Importante: o WhatsApp Web não permite duas abas logadas ao mesmo tempo (a
+segunda cai numa tela de conflito de sessão). Por isso a extensão sempre
+reaproveita uma aba de `web.whatsapp.com` já aberta — se você já tinha uma
+aberta em outra aba, ela é reaproveitada e navegada para a nova conversa;
+só é aberta uma aba nova se nenhuma estiver aberta ainda.
+
 Essa parte depende de dois componentes adicionais:
 
 - `src/background.js`: service worker que guarda temporariamente os
   arquivos selecionados (em `chrome.storage.local`, apenas até serem
-  anexados ou expirarem após alguns minutos) e abre a aba do WhatsApp Web.
+  anexados ou expirarem após alguns minutos) e abre/reaproveita a aba do
+  WhatsApp Web.
 - `src/whatsapp.js`: content script injetado em `web.whatsapp.com` que
   busca esse conteúdo pendente e simula o arrastar-e-soltar dos arquivos na
-  conversa aberta.
+  conversa aberta. Ele registra o andamento no console do DevTools da aba
+  do WhatsApp Web (mensagens com o prefixo `[Projudi WhatsApp]`), útil para
+  diagnosticar se o anexo automático não funcionar.
 
 Limitações:
 

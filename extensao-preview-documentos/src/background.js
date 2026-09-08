@@ -5,9 +5,16 @@
 // WhatsApp Web (src/whatsapp.js). Os dois rodam em abas/origens diferentes e
 // não podem se comunicar diretamente, então os arquivos selecionados pelo
 // usuário no Projudi são guardados temporariamente em chrome.storage.local;
-// uma nova aba do WhatsApp Web é aberta (reaproveitando a sessão já
-// autenticada do navegador, se houver) e, assim que o chat estiver pronto,
-// o content script de lá busca esse conteúdo pendente e o anexa à conversa.
+// a aba do WhatsApp Web é aberta (ou reaproveitada, se já houver uma) e,
+// assim que o chat estiver pronto, o content script de lá busca esse
+// conteúdo pendente e o anexa à conversa.
+//
+// Importante: o WhatsApp Web não permite duas abas logadas ao mesmo tempo —
+// abrir uma segunda aba força a primeira (ou a nova) a cair numa tela de
+// conflito ("usado em outra janela"), sem carregar a conversa. Por isso
+// SEMPRE reaproveitamos uma aba de web.whatsapp.com já aberta (navegando
+// para o novo número dentro dela) em vez de criar uma aba nova a cada
+// envio.
 
 "use strict";
 
@@ -59,5 +66,23 @@ async function handleShare(message) {
 	await chrome.storage.local.set({ [PENDING_KEY]: payload });
 
 	const url = "https://web.whatsapp.com/send?phone=" + encodeURIComponent(message.phone);
-	await chrome.tabs.create({ url: url, active: true });
+	await openOrReuseWhatsappTab(url);
+}
+
+async function openOrReuseWhatsappTab(url) {
+	const existingTabs = await chrome.tabs.query({ url: "https://web.whatsapp.com/*" });
+
+	if (existingTabs.length) {
+		// Reaproveita a primeira aba encontrada, navegando-a para a conversa
+		// do número informado — em vez de abrir uma aba nova, o que faria o
+		// WhatsApp Web entrar em conflito de sessão entre as duas abas.
+		const tab = existingTabs[0];
+		await chrome.tabs.update(tab.id, { url: url, active: true });
+		if (tab.windowId != null) {
+			await chrome.windows.update(tab.windowId, { focused: true });
+		}
+		return tab;
+	}
+
+	return chrome.tabs.create({ url: url, active: true });
 }
