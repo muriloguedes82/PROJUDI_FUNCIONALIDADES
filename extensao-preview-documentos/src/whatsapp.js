@@ -205,10 +205,43 @@
 		return side.querySelectorAll(SEARCH_RESULT_SELECTOR).length;
 	}
 
+	// O elemento que bate no SEARCH_RESULT_SELECTOR pode ser só um contêiner
+	// (ex.: a "célula" da linha, sem handler de clique nenhum) — o alvo
+	// realmente clicável costuma ser ele mesmo, um ancestral próximo com
+	// role="button"/tabindex, ou um descendente assim. Tentamos achar esse
+	// alvo mais específico; se não achar nenhum, clicamos no próprio item
+	// (o clique ainda bubbleia, então às vezes funciona mesmo assim).
+	function findClickTarget(item) {
+		if (!item) return null;
+		return (
+			item.closest('[role="button"], [role="link"], button, a') ||
+			item.querySelector('[role="button"], [role="link"], button, a, [tabindex]') ||
+			item
+		);
+	}
+
 	function findFirstSearchResult() {
 		const side = document.querySelector("#side");
 		if (!side) return null;
 		return side.querySelector(SEARCH_RESULT_SELECTOR);
+	}
+
+	// Descreve um elemento de forma resumida (tag, role, data-testid e um
+	// pedaço do texto) para aparecer no console e ajudar a diagnosticar qual
+	// seletor está pegando o elemento errado. Pode conter nome/telefone de
+	// contato — some com essa parte do log antes de compartilhar, se quiser.
+	function describeElement(el) {
+		if (!el) return "(nenhum)";
+		const text = (el.textContent || "").trim().slice(0, 60);
+		return (
+			"<" +
+			el.tagName.toLowerCase() +
+			(el.getAttribute("role") ? ' role="' + el.getAttribute("role") + '"' : "") +
+			(el.getAttribute("data-testid") ? ' data-testid="' + el.getAttribute("data-testid") + '"' : "") +
+			'> "' +
+			text +
+			'"'
+		);
 	}
 
 	// Preenche um campo de busca controlado por React (o WhatsApp Web inteiro
@@ -289,8 +322,9 @@
 		}
 
 		const result = await waitFor(findFirstSearchResult, 5000, 300);
-		log("clicando no resultado da busca…");
-		result.click();
+		const target = findClickTarget(result);
+		log("clicando no resultado da busca:", describeElement(result), "→ alvo do clique:", describeElement(target));
+		target.click();
 	}
 
 	// ---------------------------------------------------------------------
