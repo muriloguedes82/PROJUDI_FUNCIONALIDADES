@@ -1,11 +1,12 @@
-/* Realce sutil nos links de documento para indicar a pré-visualização */
-a.link[href*="/arquivo.do"]:hover {
+/* Realce sutil nos links de documento e de pendências para indicar a pré-visualização */
+a.link[href*="/arquivo.do"]:hover,
+#quadroPendencias a.link:hover {
 	background-color: #fff6cc;
 	outline: 1px dashed #b59a1f;
 	cursor: pointer;
 }
 
-#pdp-overlay {
+.pdp-overlay {
 	position: fixed;
 	z-index: 2147483000;
 	display: none;
@@ -15,13 +16,13 @@ a.link[href*="/arquivo.do"]:hover {
 	font-family: Arial, Helvetica, sans-serif;
 }
 
-#pdp-overlay.pdp-visible {
+.pdp-overlay.pdp-visible {
 	display: block;
 	opacity: 1;
 	transform: translateY(0);
 }
 
-#pdp-overlay .pdp-panel {
+.pdp-overlay .pdp-panel {
 	width: 100%;
 	height: 100%;
 	display: flex;
@@ -33,7 +34,7 @@ a.link[href*="/arquivo.do"]:hover {
 	overflow: hidden;
 }
 
-#pdp-overlay .pdp-header {
+.pdp-overlay .pdp-header {
 	flex: 0 0 auto;
 	display: flex;
 	align-items: center;
@@ -45,7 +46,7 @@ a.link[href*="/arquivo.do"]:hover {
 	border-bottom: 1px solid #55642e;
 }
 
-#pdp-overlay .pdp-title {
+.pdp-overlay .pdp-title {
 	font-size: 12px;
 	font-weight: bold;
 	white-space: nowrap;
@@ -53,14 +54,14 @@ a.link[href*="/arquivo.do"]:hover {
 	text-overflow: ellipsis;
 }
 
-#pdp-overlay .pdp-actions {
+.pdp-overlay .pdp-actions {
 	flex: 0 0 auto;
 	display: flex;
 	align-items: center;
 	gap: 10px;
 }
 
-#pdp-overlay .pdp-open-tab {
+.pdp-overlay .pdp-open-tab {
 	color: #fff;
 	font-size: 11px;
 	text-decoration: none;
@@ -68,12 +69,12 @@ a.link[href*="/arquivo.do"]:hover {
 	opacity: 0.9;
 }
 
-#pdp-overlay .pdp-open-tab:hover {
+.pdp-overlay .pdp-open-tab:hover {
 	text-decoration: underline;
 	opacity: 1;
 }
 
-#pdp-overlay .pdp-close {
+.pdp-overlay .pdp-close {
 	background: transparent;
 	border: none;
 	color: #fff;
@@ -83,17 +84,17 @@ a.link[href*="/arquivo.do"]:hover {
 	padding: 2px 4px;
 }
 
-#pdp-overlay .pdp-close:hover {
+.pdp-overlay .pdp-close:hover {
 	color: #ffd0d0;
 }
 
-#pdp-overlay .pdp-body {
+.pdp-overlay .pdp-body {
 	position: relative;
 	flex: 1 1 auto;
 	background: #525659;
 }
 
-#pdp-overlay .pdp-loading {
+.pdp-overlay .pdp-loading {
 	position: absolute;
 	inset: 0;
 	display: flex;
@@ -103,13 +104,26 @@ a.link[href*="/arquivo.do"]:hover {
 	font-size: 13px;
 }
 
-#pdp-overlay.pdp-loaded .pdp-loading {
+.pdp-overlay.pdp-loaded .pdp-loading {
 	display: none;
 }
 
-#pdp-overlay .pdp-frame {
+.pdp-overlay .pdp-frame {
 	width: 100%;
 	height: 100%;
 	border: 0;
 	background: #fff;
+}
+
+.pdp-overlay .pdp-message {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+	text-align: center;
+	color: #eaeaea;
+	font-size: 13px;
+	background: #525659;
 }
