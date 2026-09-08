@@ -109,20 +109,28 @@ Fluxo de uso:
    conversa do número informado no WhatsApp Web — reaproveitando a sessão
    já aberta/conectada no navegador, se houver.
 4. Assim que a conversa termina de carregar, os arquivos são anexados
-   automaticamente — a extensão tenta primeiro simular "colar" (Ctrl+V) os
-   arquivos na caixa de mensagem e, se isso não parecer ter funcionado,
-   tenta simular arrastar-e-soltar; são os dois mecanismos que o próprio
-   WhatsApp Web já suporta manualmente. O envio da mensagem continua sendo
-   uma ação manual do usuário, que pode revisar os anexos e adicionar uma
-   legenda antes de enviar. Um aviso aparece no canto inferior esquerdo da
-   tela do WhatsApp Web mostrando o andamento ("aguardando a conversa
-   carregar…", "anexando arquivo(s)…", "arquivo(s) anexado(s)" ou um erro).
+   automaticamente — a extensão simula "colar" (Ctrl+V) os arquivos na
+   caixa de mensagem, o mesmo mecanismo que o próprio WhatsApp Web já
+   suporta manualmente (se isso falhar, tenta arrastar-e-soltar como
+   alternativa). O envio da mensagem continua sendo uma ação manual do
+   usuário, que pode revisar os anexos e adicionar uma legenda antes de
+   enviar. Um aviso aparece no canto inferior esquerdo da tela do WhatsApp
+   Web mostrando o andamento ("aguardando a conversa carregar…", "anexando
+   arquivo(s)…", "arquivo(s) anexado(s)" ou um erro).
 
 Importante: o WhatsApp Web não permite duas abas logadas ao mesmo tempo (a
 segunda cai numa tela de conflito de sessão). Por isso a extensão sempre
-reaproveita uma aba de `web.whatsapp.com` já aberta — se você já tinha uma
-aberta em outra aba, ela é reaproveitada e navegada para a nova conversa;
-só é aberta uma aba nova se nenhuma estiver aberta ainda.
+reaproveita uma aba de `web.whatsapp.com` já aberta, em vez de abrir uma
+aba nova a cada envio:
+
+- se o número de destino já é o da conversa aberta nessa aba, ela nem é
+  recarregada — a extensão só avisa o content script já injetado para
+  anexar o novo arquivo, sem reiniciar a sessão;
+- se o número é diferente, a aba é navegada para a nova conversa (isso
+  recarrega a página do WhatsApp Web — é inevitável para trocar de
+  conversa através do link `web.whatsapp.com/send?phone=...`, mas não é
+  um logout: a sessão/login do WhatsApp Web continua a mesma);
+- só é aberta uma aba nova se nenhuma estiver aberta ainda.
 
 Essa parte depende de dois componentes adicionais:
 

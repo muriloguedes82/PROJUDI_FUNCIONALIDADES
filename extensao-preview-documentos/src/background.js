@@ -67,19 +67,48 @@ async function handleShare(message) {
 	await chrome.storage.local.set({ [PENDING_KEY]: payload });
 
 	const url = "https://web.whatsapp.com/send?phone=" + encodeURIComponent(message.phone);
-	await openOrReuseWhatsappTab(url);
+	await openOrReuseWhatsappTab(message.phone, url);
 }
 
-async function openOrReuseWhatsappTab(url) {
+function extractPhoneFromUrl(url) {
+	try {
+		return new URL(url).searchParams.get("phone");
+	} catch (e) {
+		return null;
+	}
+}
+
+async function openOrReuseWhatsappTab(phone, url) {
 	const existingTabs = await chrome.tabs.query({ url: "https://web.whatsapp.com/*" });
 	console.info(LOG_PREFIX, "abas do WhatsApp Web encontradas:", existingTabs.length, existingTabs.map((t) => t.id));
 
 	if (existingTabs.length) {
+		const tab = existingTabs[0];
+
+		if (extractPhoneFromUrl(tab.url) === phone) {
+			// A aba já está na conversa certa: não há necessidade de navegar
+			// (o que recarregaria a página inteira do WhatsApp Web). Só
+			// avisamos o content script já injetado nela para buscar o novo
+			// envio pendente e anexar os arquivos.
+			console.info(LOG_PREFIX, "aba", tab.id, "já está na conversa certa, sem recarregar.");
+			await chrome.tabs.update(tab.id, { active: true });
+			if (tab.windowId != null) {
+				await chrome.windows.update(tab.windowId, { focused: true });
+			}
+			try {
+				await chrome.tabs.sendMessage(tab.id, { source: MESSAGE_SOURCE, type: "whatsapp-check-pending" });
+			} catch (err) {
+				console.warn(LOG_PREFIX, "não consegui avisar a aba diretamente:", err);
+			}
+			return tab;
+		}
+
 		// Reaproveita a primeira aba encontrada, navegando-a para a conversa
 		// do número informado — em vez de abrir uma aba nova, o que faria o
-		// WhatsApp Web entrar em conflito de sessão entre as duas abas.
-		const tab = existingTabs[0];
-		console.info(LOG_PREFIX, "reaproveitando a aba", tab.id);
+		// WhatsApp Web entrar em conflito de sessão entre as duas abas. Como
+		// isso é uma navegação de verdade (troca de conversa), a página é
+		// recarregada — mas a sessão/login do WhatsApp Web continua a mesma.
+		console.info(LOG_PREFIX, "reaproveitando a aba", tab.id, "para a nova conversa.");
 		await chrome.tabs.update(tab.id, { url: url, active: true });
 		if (tab.windowId != null) {
 			await chrome.windows.update(tab.windowId, { focused: true });

@@ -24,7 +24,6 @@
 	const PENDING_MAX_AGE_MS = 3 * 60 * 1000;
 	const POLL_INTERVAL_MS = 700;
 	const POLL_TIMEOUT_MS = 60000;
-	const ATTACH_CHECK_DELAY_MS = 1200;
 	const LOG_PREFIX = "[Projudi WhatsApp]";
 
 	function log() {
@@ -115,15 +114,6 @@
 		return main.querySelector('[contenteditable="true"][data-tab]');
 	}
 
-	function hasAttachmentPreview() {
-		return !!(
-			document.querySelector('[data-testid="media-canvas"]') ||
-			document.querySelector('[data-testid="attach-media-preview"]') ||
-			document.querySelector('span[data-testid="document-thumb"]') ||
-			document.querySelector('div[role="dialog"]')
-		);
-	}
-
 	// ---------------------------------------------------------------------
 	// Mecanismos de anexo: colar (paste) e arrastar-e-soltar (drag & drop)
 	// ---------------------------------------------------------------------
@@ -169,31 +159,25 @@
 		fireDragEvent(main, "drop", dataTransfer);
 	}
 
+	// Não há como confirmar com certeza, a partir de fora, que o WhatsApp Web
+	// realmente processou o "colar" (os elementos da pré-visualização do
+	// anexo mudam de nome/estrutura entre versões). Por isso o critério de
+	// sucesso aqui é apenas conseguir disparar o evento na caixa de mensagem
+	// certa — se isso falhar (ex.: a caixa não existe mais), tentamos
+	// arrastar-e-soltar como alternativa antes de desistir.
 	async function attachFiles(files) {
 		const composer = findComposer();
 		const main = document.querySelector("#main");
 		if (!composer || !main) throw new Error("caixa de mensagem não encontrada");
 
-		log("tentando anexar via colar (paste)…");
-		showBanner("anexando arquivo(s)…");
-		dispatchPaste(composer, files);
-		await wait(ATTACH_CHECK_DELAY_MS);
-		if (hasAttachmentPreview()) {
-			log("anexo detectado após colar.");
-			return;
+		try {
+			log("anexando via colar (paste)…");
+			showBanner("anexando arquivo(s)…");
+			dispatchPaste(composer, files);
+		} catch (err) {
+			warn("colar falhou, tentando arrastar-e-soltar…", err);
+			await dispatchFileDrop(main, files);
 		}
-
-		log("colar não pareceu funcionar, tentando arrastar-e-soltar…");
-		await dispatchFileDrop(main, files);
-		await wait(ATTACH_CHECK_DELAY_MS);
-		if (hasAttachmentPreview()) {
-			log("anexo detectado após arrastar-e-soltar.");
-			return;
-		}
-
-		throw new Error(
-			"nenhuma pré-visualização de anexo apareceu (o WhatsApp Web pode ter mudado a tela; anexe manualmente)"
-		);
 	}
 
 	// ---------------------------------------------------------------------
@@ -231,23 +215,35 @@
 				return attachFiles(files);
 			})
 			.then(function () {
-				log("arquivo(s) anexado(s) — revise e clique em enviar no WhatsApp.");
+				log("arquivo(s) enviado(s) para a caixa de mensagem — revise e clique em enviar no WhatsApp.");
 				showBanner("arquivo(s) anexado(s) — revise e envie.");
 				hideBannerLater(6000);
 			})
 			.catch(function (err) {
 				// Causas comuns: sessão do WhatsApp Web não conectada (QR Code
-				// pendente), a conversa não carregou a tempo (ex.: tela de
-				// conflito de sessão porque havia mais de uma aba aberta), ou o
-				// WhatsApp Web mudou a estrutura da tela.
+				// pendente), ou a conversa não carregou a tempo (ex.: tela de
+				// conflito de sessão porque havia mais de uma aba aberta).
 				warn("não foi possível anexar automaticamente:", err);
 				showBanner("não anexou automaticamente — anexe manualmente (veja o console).", true);
 			})
 			.then(clearPending);
 	}
 
-	chrome.runtime.sendMessage({ source: MESSAGE_SOURCE, type: "whatsapp-fetch-pending" }, function (response) {
-		if (chrome.runtime.lastError) return;
-		if (response && response.pending) processPending(response.pending);
+	function checkPendingNow() {
+		chrome.runtime.sendMessage({ source: MESSAGE_SOURCE, type: "whatsapp-fetch-pending" }, function (response) {
+			if (chrome.runtime.lastError) return;
+			if (response && response.pending) processPending(response.pending);
+		});
+	}
+
+	// Quando a extensão reaproveita esta mesma aba sem navegar (o número de
+	// destino já era o da conversa aberta), não há recarregamento de página
+	// para reinjetar este content script — o background nos avisa
+	// diretamente por mensagem.
+	chrome.runtime.onMessage.addListener(function (message) {
+		if (!message || message.source !== MESSAGE_SOURCE) return;
+		if (message.type === "whatsapp-check-pending") checkPendingNow();
 	});
+
+	checkPendingNow();
 })();
