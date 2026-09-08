@@ -119,6 +119,14 @@ Fluxo de uso:
    Web mostrando o andamento ("abrindo conversa…", "aguardando a conversa
    carregar…", "anexando arquivo(s)…", "arquivo(s) anexado(s)" ou um erro).
 
+**Importante — confira sempre o destinatário antes de clicar em enviar.**
+Abrir a conversa certa depende de simular a busca do WhatsApp Web, que
+filtra a lista de forma assíncrona; a extensão espera a lista "assentar"
+antes de clicar no resultado, mas nenhuma automação desse tipo é
+infalível. Antes de enviar, olhe o nome/número no topo da conversa aberta
+e confirme que é o destinatário certo — documentos de processo são
+sensíveis, então esse segundo antes de clicar em "Enviar" vale a pena.
+
 Importante: o WhatsApp Web não permite duas abas logadas ao mesmo tempo (a
 segunda cai numa tela de conflito de sessão), e trocar a URL de uma aba
 (mesmo reaproveitando-a) sempre recarrega a página inteira — o que parece

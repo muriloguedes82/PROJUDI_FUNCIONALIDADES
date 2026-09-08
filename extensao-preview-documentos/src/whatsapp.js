@@ -62,6 +62,39 @@
 		});
 	}
 
+	// Espera até que `getCount()` pare de mudar por `settleMs` seguidos,
+	// depois de já ter passado pelo menos `minWaitMs` no total (ou até
+	// `timeoutMs`, o que vier primeiro). Usado depois de digitar na busca: o
+	// WhatsApp Web filtra a lista de forma assíncrona/com debounce, então
+	// ler a contagem logo após digitar corre o risco de pegar a lista
+	// ANTIGA (ainda não filtrada, ex.: a lista de conversas inteira) — e
+	// clicar no primeiro item dela seria abrir a conversa errada. O
+	// `minWaitMs` garante que o debounce do WhatsApp já teve tempo de
+	// disparar pelo menos uma vez antes de aceitarmos a contagem como final.
+	function waitForStableCount(getCount, settleMs, minWaitMs, timeoutMs, intervalMs) {
+		return new Promise(function (resolve) {
+			const start = Date.now();
+			let lastCount = getCount();
+			let lastChangeAt = Date.now();
+
+			(function tick() {
+				const count = getCount();
+				if (count !== lastCount) {
+					lastCount = count;
+					lastChangeAt = Date.now();
+				}
+
+				const stableFor = Date.now() - lastChangeAt;
+				const elapsed = Date.now() - start;
+				const settled = count > 0 && stableFor >= settleMs && elapsed >= minWaitMs;
+				if (settled || elapsed >= timeoutMs) {
+					return resolve(count);
+				}
+				setTimeout(tick, intervalMs);
+			})();
+		});
+	}
+
 	// ---------------------------------------------------------------------
 	// Aviso visual (canto da tela), para não depender de abrir o DevTools
 	// ---------------------------------------------------------------------
@@ -281,9 +314,7 @@
 
 		log("campo de busca padrão encontrado, digitando o número…");
 		setContentEditableText(input, "+" + phone);
-		await wait(900);
-
-		const count = countSearchResults();
+		const count = await waitForStableCount(countSearchResults, 500, 600, 6000, 150);
 		log(count > 0 ? count + " resultado(s) encontrado(s) na busca padrão." : "nenhum resultado na busca padrão.");
 		return count > 0;
 	}
@@ -306,8 +337,9 @@
 		log("campo de busca do painel 'Nova conversa' encontrado, digitando o número…");
 		setContentEditableText(searchInput, "+" + phone);
 
-		await wait(900);
-		if (countSearchResults() === 0) {
+		const count = await waitForStableCount(countSearchResults, 500, 600, 6000, 150);
+		log(count > 0 ? count + " resultado(s) encontrado(s) no painel 'Nova conversa'." : "nenhum resultado no painel 'Nova conversa'.");
+		if (count === 0) {
 			throw new Error("nenhum resultado apareceu na busca do painel 'Nova conversa'");
 		}
 	}
@@ -324,6 +356,22 @@
 		const result = await waitFor(findFirstSearchResult, 5000, 300);
 		const target = findClickTarget(result);
 		log("clicando no resultado da busca:", describeElement(result), "→ alvo do clique:", describeElement(target));
+
+		// Checagem best-effort: se o número buscado aparecer no texto do
+		// resultado, é um bom sinal de que é o item certo. Não bloqueia o
+		// clique se não bater — um contato já salvo aparece pelo NOME, não
+		// pelo número, então a ausência do número aqui não significa erro.
+		// Mas se não bater, avisa bem alto no console para o usuário
+		// desconfiar e conferir o destinatário antes de enviar.
+		const resultDigits = (result.textContent || "").replace(/\D/g, "");
+		if (resultDigits.indexOf(phone.slice(-8)) === -1) {
+			warn(
+				"O resultado clicado não parece conter o número buscado (" +
+					phone +
+					") — pode ser um contato salvo por nome, mas CONFIRA o destinatário antes de enviar."
+			);
+		}
+
 		target.click();
 	}
 
@@ -477,9 +525,9 @@
 				return attachFiles(files);
 			})
 			.then(function () {
-				log("arquivo(s) enviado(s) para a caixa de mensagem — revise e clique em enviar no WhatsApp.");
-				showBanner("arquivo(s) anexado(s) — revise e envie.");
-				hideBannerLater(6000);
+				log("arquivo(s) enviado(s) para a caixa de mensagem — CONFIRA o destinatário antes de enviar.");
+				showBanner("arquivo(s) anexado(s) — confira o destinatário antes de enviar!");
+				hideBannerLater(8000);
 				clearPending();
 			})
 			.catch(function (err) {
