@@ -124,6 +124,14 @@
 		return main.querySelector('[contenteditable="true"][data-tab]');
 	}
 
+	function currentUrlPhone() {
+		try {
+			return new URL(window.location.href).searchParams.get("phone");
+		} catch (e) {
+			return null;
+		}
+	}
+
 	// ---------------------------------------------------------------------
 	// Abrir a conversa certa sem recarregar a página (evita "reiniciar" a
 	// sessão do WhatsApp Web) — simula o fluxo manual: clicar em "Nova
@@ -151,14 +159,17 @@
 	}
 
 	// O campo de busca da lista de conversas (sempre visível, sem precisar
-	// clicar em nada) e o campo de busca do painel "Nova conversa" são,
-	// ambos, um <div contenteditable="true"> dentro de #side. Pegamos o
-	// ÚLTIMO encontrado porque, quando o painel de nova conversa está
-	// aberto, ele é inserido por cima/depois do de busca padrão no DOM.
+	// clicar em nada) e o campo de busca do painel "Nova conversa" costumam
+	// ser um <div contenteditable="true"> dentro de #side — mas versões mais
+	// recentes do WhatsApp Web podem usar um <input> de verdade. Pegamos o
+	// ÚLTIMO campo editável encontrado (o painel de nova conversa, quando
+	// aberto, é inserido por cima/depois do de busca padrão no DOM).
 	function findChatSearchInput() {
 		const side = document.querySelector("#side");
 		if (!side) return null;
-		const candidates = side.querySelectorAll('[contenteditable="true"]');
+		const candidates = side.querySelectorAll(
+			'[contenteditable="true"], input[type="text"], input[type="search"], input:not([type])'
+		);
 		return candidates.length ? candidates[candidates.length - 1] : null;
 	}
 
@@ -174,14 +185,28 @@
 		return side.querySelector('[data-testid="cell-frame-container"]') || side.querySelector('[role="listitem"]');
 	}
 
-	// execCommand é deprecated, mas continua sendo a forma mais confiável de
-	// preencher um campo contenteditable controlado por React/Draft-like
-	// frameworks (como a busca do WhatsApp Web) disparando os eventos que o
-	// próprio app espera — atribuir textContent diretamente não funciona.
+	// Preenche um campo de busca controlado por React (o WhatsApp Web inteiro
+	// é React) disparando os eventos que o próprio app espera — atribuir
+	// textContent/value diretamente não funciona nesses casos.
 	function setContentEditableText(el, text) {
 		el.focus();
-		document.execCommand("selectAll", false, null);
-		document.execCommand("insertText", false, text);
+
+		if (el.isContentEditable) {
+			// execCommand é deprecated, mas continua sendo a forma mais
+			// confiável de preencher um contenteditable e disparar o "input"
+			// que frameworks tipo Draft.js escutam.
+			document.execCommand("selectAll", false, null);
+			document.execCommand("insertText", false, text);
+			return;
+		}
+
+		// <input>/<textarea> controlado por React: usar o setter nativo do
+		// protótipo para o valor "pegar" mesmo com o value tracker do React
+		// (setar `el.value = text` diretamente é ignorado pelo componente).
+		const proto = el.tagName === "TEXTAREA" ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;
+		const nativeSetter = Object.getOwnPropertyDescriptor(proto, "value").set;
+		nativeSetter.call(el, text);
+		el.dispatchEvent(new Event("input", { bubbles: true }));
 	}
 
 	// Tenta digitar o número direto na busca que já está visível (a barra de
@@ -339,6 +364,15 @@
 	// pendente aqui.
 	const FALLING_BACK = {};
 
+	// Só existe uma janela em que dá pra confiar que a URL já reflete a
+	// conversa certa: a primeira checagem deste carregamento de página, se
+	// ela foi carregada via .../send?phone=<mesmo número> (isso só acontece
+	// hoje no fallback de último recurso, quando a busca falhou e caímos
+	// para navegação). Qualquer checagem seguinte (avisada por mensagem, sem
+	// reload) tem que sempre abrir a conversa de novo por busca — a URL não
+	// muda mais depois disso, então não dá pra confiar nela de novo.
+	let firstCheckDone = false;
+
 	function processPending(pending) {
 		if (!pending) return;
 		if (Date.now() - pending.createdAt > PENDING_MAX_AGE_MS) {
@@ -352,7 +386,18 @@
 		});
 		log("envio pendente encontrado…", fileNames);
 
-		openChatBySearch(pending.phone)
+		const trustUrl = !firstCheckDone && currentUrlPhone() === pending.phone;
+		firstCheckDone = true;
+
+		let openStep;
+		if (trustUrl) {
+			log("página já carregada na conversa certa, não precisa abrir por busca.");
+			openStep = Promise.resolve();
+		} else {
+			openStep = openChatBySearch(pending.phone);
+		}
+
+		openStep
 			.catch(function (err) {
 				warn("não consegui abrir a conversa sem recarregar, caindo para navegação:", err);
 				showBanner("abrindo conversa (recarregando)…");
