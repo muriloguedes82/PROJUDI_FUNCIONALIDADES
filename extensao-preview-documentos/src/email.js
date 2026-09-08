@@ -330,23 +330,8 @@
 		if (existing) existing.remove();
 	}
 
-	// No modo "Outlook Web (sem Azure AD)" já confirmamos por teste que o
-	// deep link de composição ignora o parâmetro "from" — o e-mail sempre
-	// abre na conta padrão. Só o modo Microsoft Graph consegue de fato
-	// definir o remetente. Detectamos o modo ativo (mesma lógica usada pelo
-	// background) para avisar o usuário na hora, em vez de deixar parecer
-	// que o recurso está quebrado.
-	async function isGraphModeActive() {
-		const { azureClientId, sendMode } = await chrome.storage.sync.get(["azureClientId", "sendMode"]);
-		const mode = sendMode || "auto";
-		if (mode === "owa") return false;
-		if (mode === "graph") return true;
-		return !!azureClientId;
-	}
-
 	async function openFromAccountsDialog() {
 		closeFromAccountsDialog();
-		const graphActive = await isGraphModeActive();
 
 		const overlay = document.createElement("div");
 		overlay.id = "pdp-from-overlay";
@@ -360,12 +345,6 @@
 			'  <div class="pdp-from-hint">Escolha de qual conta os e-mails devem sair por padrão (ex.: seu e-mail ' +
 			"pessoal ou o de um grupo/secretaria). Requer que sua conta já tenha permissão de \"Enviar como\" " +
 			'nessa caixa, concedida pelo TI — sem isso, o envio será recusado pelo Outlook.</div>' +
-			(graphActive
-				? ""
-				: '  <div class="pdp-from-warning">⚠️ No modo "Outlook Web (sem Azure AD)" (o que está ativo agora), ' +
-					"testamos e confirmamos que o Outlook ignora essa escolha — o e-mail sempre abre na conta padrão. " +
-					'Troque manualmente pelo seletor "De" da tela de composição, ou configure o modo Microsoft Graph ' +
-					"nas opções da extensão para este recurso funcionar automaticamente.</div>") +
 			'  <div class="pdp-recipients-list"></div>' +
 			'  <div class="pdp-recipients-add">' +
 			'    <input type="text" class="pdp-from-add-label" placeholder="Nome (ex.: Secretaria)" />' +
