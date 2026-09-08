@@ -127,3 +127,234 @@ a.link[href*="/arquivo.do"]:hover,
 	font-size: 13px;
 	background: #525659;
 }
+
+/* --- Envio de documentos por WhatsApp --- */
+
+.pdp-wa-checkbox {
+	margin: 0 4px 0 0;
+	vertical-align: middle;
+	cursor: pointer;
+}
+
+#pdp-wa-anchor {
+	display: block;
+	min-height: 1px;
+	text-align: right;
+	margin: 0 0 6px;
+}
+
+.pdp-wa-launcher {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	position: relative;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	font-weight: bold;
+	color: #fff;
+	background: #25d366;
+	border: 1px solid #1da851;
+	border-radius: 18px;
+	padding: 7px 14px;
+	cursor: pointer;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+	z-index: 2147483000;
+}
+
+.pdp-wa-launcher:hover {
+	background: #21bd5c;
+}
+
+.pdp-wa-launcher.pdp-wa-floating {
+	position: fixed;
+	top: 50%;
+	right: 14px;
+	transform: translateY(-50%);
+}
+
+.pdp-wa-icon {
+	font-size: 14px;
+	line-height: 1;
+}
+
+.pdp-wa-count {
+	background: #fff;
+	color: #1da851;
+	border-radius: 999px;
+	min-width: 16px;
+	height: 16px;
+	line-height: 16px;
+	font-size: 10px;
+	text-align: center;
+	padding: 0 4px;
+}
+
+.pdp-wa-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 2147483001;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0, 0, 0, 0.45);
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+.pdp-wa-overlay.pdp-wa-visible {
+	display: flex;
+}
+
+.pdp-wa-modal {
+	width: 360px;
+	max-width: calc(100vw - 24px);
+	max-height: calc(100vh - 24px);
+	display: flex;
+	flex-direction: column;
+	background: #fff;
+	border-radius: 8px;
+	box-shadow: 0 10px 32px rgba(0, 0, 0, 0.4);
+	overflow: hidden;
+}
+
+.pdp-wa-modal-header {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px 12px;
+	background: #25d366;
+	color: #fff;
+	font-size: 13px;
+	font-weight: bold;
+}
+
+.pdp-wa-modal-close {
+	background: transparent;
+	border: none;
+	color: #fff;
+	font-size: 14px;
+	cursor: pointer;
+	padding: 2px 4px;
+}
+
+.pdp-wa-modal-close:hover {
+	color: #ffe0e0;
+}
+
+.pdp-wa-modal-body {
+	flex: 1 1 auto;
+	padding: 12px;
+	overflow-y: auto;
+}
+
+.pdp-wa-field-label {
+	display: block;
+	font-size: 12px;
+	color: #333;
+	margin-bottom: 4px;
+}
+
+.pdp-wa-phone-input {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 7px 8px;
+	font-size: 13px;
+	border: 1px solid #bbb;
+	border-radius: 4px;
+	margin-bottom: 12px;
+}
+
+.pdp-wa-files-label {
+	font-size: 12px;
+	font-weight: bold;
+	color: #333;
+	margin-bottom: 4px;
+}
+
+.pdp-wa-files-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	max-height: 160px;
+	overflow-y: auto;
+}
+
+.pdp-wa-files-list li {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 5px 6px;
+	font-size: 12px;
+	border-bottom: 1px solid #eee;
+}
+
+.pdp-wa-remove {
+	flex: 0 0 auto;
+	background: transparent;
+	border: none;
+	color: #a33;
+	cursor: pointer;
+	font-size: 12px;
+	padding: 2px 4px;
+}
+
+.pdp-wa-remove:hover {
+	color: #e00;
+}
+
+.pdp-wa-empty-hint {
+	font-size: 12px;
+	color: #777;
+	font-style: italic;
+}
+
+.pdp-wa-modal-footer {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 8px;
+	padding: 10px 12px;
+	border-top: 1px solid #eee;
+}
+
+.pdp-wa-status {
+	flex: 1 1 auto;
+	font-size: 11px;
+	color: #a33;
+}
+
+.pdp-wa-cancel,
+.pdp-wa-send {
+	font-size: 12px;
+	padding: 7px 14px;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.pdp-wa-cancel {
+	background: #eee;
+	border: 1px solid #ccc;
+	color: #333;
+}
+
+.pdp-wa-cancel:hover {
+	background: #e2e2e2;
+}
+
+.pdp-wa-send {
+	background: #25d366;
+	border: 1px solid #1da851;
+	color: #fff;
+	font-weight: bold;
+}
+
+.pdp-wa-send:hover {
+	background: #21bd5c;
+}
+
+.pdp-wa-send:disabled {
+	opacity: 0.6;
+	cursor: default;
+}

@@ -415,6 +415,7 @@
 			closeDocNow();
 			cleanupPendenciaLoader();
 			closeAllPendenciaPanels();
+			closeWaPanel();
 		}
 	});
 
@@ -432,6 +433,311 @@
 		},
 		true
 	);
+
+	// ---------------------------------------------------------------------
+	// Envio de documentos selecionados por WhatsApp Web
+	// ---------------------------------------------------------------------
+	//
+	// Adiciona uma caixinha de seleção ao lado de cada link de documento
+	// (mesmo padrão a.link[href*="/arquivo.do"] usado na pré-visualização) e
+	// um botão flutuante, acima da barra de botões da tela (Pedido
+	// Incidental, Juntar Documento, ..., Voltar), que abre um pequeno painel
+	// para informar o número de WhatsApp e confirmar o envio.
+	//
+	// Ao confirmar, os arquivos selecionados são baixados (reaproveitando a
+	// sessão do Projudi, igual à pré-visualização) e passados para
+	// src/background.js, que abre uma nova aba do WhatsApp Web já com a
+	// conversa do número informado; src/whatsapp.js, injetado nessa aba,
+	// anexa os arquivos à conversa assim que ela estiver pronta. O envio da
+	// mensagem em si continua sendo manual, para o usuário revisar antes.
+
+	const WA_DOC_ATTR = "data-pdp-wa";
+	const selectedDocs = new Map();
+	let waPanel = null;
+
+	function decorateDocLinkForWhatsapp(link) {
+		if (link.hasAttribute(WA_DOC_ATTR)) return;
+		link.setAttribute(WA_DOC_ATTR, "1");
+
+		const href = link.getAttribute("href");
+		let absolute;
+		try {
+			absolute = new URL(href, document.baseURI).href;
+		} catch (e) {
+			absolute = href;
+		}
+		const name = (link.textContent || "documento").trim();
+
+		const checkbox = document.createElement("input");
+		checkbox.type = "checkbox";
+		checkbox.className = "pdp-wa-checkbox";
+		checkbox.title = "Selecionar para enviar por WhatsApp";
+		checkbox.addEventListener("click", function (e) {
+			e.stopPropagation();
+		});
+		checkbox.addEventListener("change", function () {
+			if (checkbox.checked) {
+				selectedDocs.set(absolute, { href: absolute, name: name });
+			} else {
+				selectedDocs.delete(absolute);
+			}
+			updateWaLauncherCount();
+			refreshWaPanelList();
+		});
+
+		link.parentNode.insertBefore(checkbox, link);
+	}
+
+	function scanDocLinksForWhatsapp(root) {
+		if (!root || !root.querySelectorAll) return;
+		const anchors = root.querySelectorAll("a.link");
+		Array.prototype.forEach.call(anchors, function (a) {
+			if (isDocumentLink(a)) decorateDocLinkForWhatsapp(a);
+		});
+		if (root.matches && root.matches("a.link") && isDocumentLink(root)) {
+			decorateDocLinkForWhatsapp(root);
+		}
+	}
+
+	function findCheckboxForHref(href) {
+		const links = document.querySelectorAll("a.link[" + WA_DOC_ATTR + "]");
+		for (let i = 0; i < links.length; i++) {
+			const a = links[i];
+			let absolute;
+			try {
+				absolute = new URL(a.getAttribute("href"), document.baseURI).href;
+			} catch (e) {
+				absolute = a.getAttribute("href");
+			}
+			if (absolute === href) return a.previousElementSibling;
+		}
+		return null;
+	}
+
+	function updateWaLauncherCount() {
+		const launcher = document.getElementById("pdp-wa-launcher");
+		if (!launcher) return;
+		const countEl = launcher.querySelector(".pdp-wa-count");
+		const n = selectedDocs.size;
+		countEl.hidden = n === 0;
+		countEl.textContent = String(n);
+	}
+
+	function ensureWaPanel() {
+		if (waPanel) return waPanel;
+
+		const wrap = document.createElement("div");
+		wrap.className = "pdp-wa-overlay";
+		wrap.innerHTML =
+			'<div class="pdp-wa-modal" role="dialog" aria-label="Enviar arquivos por WhatsApp">' +
+			'  <div class="pdp-wa-modal-header">' +
+			"    <span>Enviar por WhatsApp</span>" +
+			'    <button type="button" class="pdp-wa-modal-close" title="Fechar (Esc)">✕</button>' +
+			"  </div>" +
+			'  <div class="pdp-wa-modal-body">' +
+			'    <label class="pdp-wa-field-label" for="pdp-wa-phone">Número do WhatsApp (com DDD)</label>' +
+			'    <input type="tel" id="pdp-wa-phone" class="pdp-wa-phone-input" placeholder="Ex.: 41 99999-8888" autocomplete="off">' +
+			'    <div class="pdp-wa-files-label">Arquivos selecionados:</div>' +
+			'    <ul class="pdp-wa-files-list"></ul>' +
+			'    <div class="pdp-wa-empty-hint">Marque a caixinha ao lado de um documento na tela para selecioná-lo.</div>' +
+			"  </div>" +
+			'  <div class="pdp-wa-modal-footer">' +
+			'    <span class="pdp-wa-status"></span>' +
+			'    <button type="button" class="pdp-wa-cancel">Cancelar</button>' +
+			'    <button type="button" class="pdp-wa-send">Enviar</button>' +
+			"  </div>" +
+			"</div>";
+		document.body.appendChild(wrap);
+
+		waPanel = {
+			wrap: wrap,
+			phoneInput: wrap.querySelector("#pdp-wa-phone"),
+			list: wrap.querySelector(".pdp-wa-files-list"),
+			emptyHint: wrap.querySelector(".pdp-wa-empty-hint"),
+			status: wrap.querySelector(".pdp-wa-status"),
+			sendBtn: wrap.querySelector(".pdp-wa-send"),
+		};
+
+		wrap.querySelector(".pdp-wa-modal-close").addEventListener("click", closeWaPanel);
+		wrap.querySelector(".pdp-wa-cancel").addEventListener("click", closeWaPanel);
+		wrap.addEventListener("click", function (e) {
+			if (e.target === wrap) closeWaPanel();
+		});
+		waPanel.sendBtn.addEventListener("click", sendSelectedDocsViaWhatsapp);
+
+		return waPanel;
+	}
+
+	function openWaPanel() {
+		const panel = ensureWaPanel();
+		refreshWaPanelList();
+		panel.wrap.classList.add("pdp-wa-visible");
+		panel.status.textContent = "";
+		panel.phoneInput.focus();
+	}
+
+	function closeWaPanel() {
+		if (!waPanel) return;
+		waPanel.wrap.classList.remove("pdp-wa-visible");
+	}
+
+	function refreshWaPanelList() {
+		if (!waPanel) return;
+		waPanel.list.innerHTML = "";
+		const docs = Array.from(selectedDocs.values());
+		waPanel.emptyHint.style.display = docs.length ? "none" : "block";
+		docs.forEach(function (doc) {
+			const li = document.createElement("li");
+			li.textContent = doc.name;
+
+			const removeBtn = document.createElement("button");
+			removeBtn.type = "button";
+			removeBtn.className = "pdp-wa-remove";
+			removeBtn.title = "Remover da seleção";
+			removeBtn.textContent = "✕";
+			removeBtn.addEventListener("click", function () {
+				selectedDocs.delete(doc.href);
+				const checkbox = findCheckboxForHref(doc.href);
+				if (checkbox) checkbox.checked = false;
+				updateWaLauncherCount();
+				refreshWaPanelList();
+			});
+
+			li.appendChild(removeBtn);
+			waPanel.list.appendChild(li);
+		});
+	}
+
+	function normalizePhone(raw) {
+		const digits = (raw || "").replace(/\D/g, "");
+		if (!digits) return "";
+		if (digits.length <= 11) return "55" + digits; // sem DDI: assume Brasil
+		return digits;
+	}
+
+	function ensureFileName(name, mime) {
+		if (/\.[a-z0-9]{2,5}$/i.test(name)) return name;
+		const ext = (mime && mime.split("/")[1]) || "pdf";
+		return name + "." + ext;
+	}
+
+	function fetchDocAsPayload(doc) {
+		return fetch(doc.href, { credentials: "same-origin" })
+			.then(function (resp) {
+				if (!resp.ok) throw new Error("Não foi possível baixar " + doc.name);
+				return resp.blob();
+			})
+			.then(function (blob) {
+				return new Promise(function (resolve, reject) {
+					const reader = new FileReader();
+					reader.onload = function () {
+						resolve({ name: ensureFileName(doc.name, blob.type), type: blob.type, dataUrl: reader.result });
+					};
+					reader.onerror = function () {
+						reject(new Error("Falha ao ler " + doc.name));
+					};
+					reader.readAsDataURL(blob);
+				});
+			});
+	}
+
+	function sendSelectedDocsViaWhatsapp() {
+		if (!waPanel) return;
+		const docs = Array.from(selectedDocs.values());
+		if (!docs.length) {
+			waPanel.status.textContent = "Selecione ao menos um arquivo.";
+			return;
+		}
+
+		const phone = normalizePhone(waPanel.phoneInput.value);
+		if (phone.length < 12 || phone.length > 15) {
+			waPanel.status.textContent = "Informe um número de WhatsApp válido (com DDD).";
+			return;
+		}
+
+		waPanel.sendBtn.disabled = true;
+		waPanel.status.textContent = "Baixando arquivo(s)…";
+
+		Promise.all(docs.map(fetchDocAsPayload))
+			.then(function (files) {
+				waPanel.status.textContent = "Abrindo WhatsApp Web…";
+				return new Promise(function (resolve, reject) {
+					chrome.runtime.sendMessage(
+						{ source: MESSAGE_SOURCE, type: "whatsapp-share", phone: phone, files: files },
+						function (response) {
+							if (chrome.runtime.lastError) return reject(new Error(chrome.runtime.lastError.message));
+							if (!response || !response.ok) {
+								return reject(new Error((response && response.error) || "Falha ao abrir o WhatsApp Web."));
+							}
+							resolve();
+						}
+					);
+				});
+			})
+			.then(function () {
+				selectedDocs.clear();
+				Array.prototype.forEach.call(document.querySelectorAll(".pdp-wa-checkbox:checked"), function (cb) {
+					cb.checked = false;
+				});
+				updateWaLauncherCount();
+				closeWaPanel();
+			})
+			.catch(function (err) {
+				waPanel.status.textContent = "Erro: " + ((err && err.message) || String(err));
+			})
+			.then(function () {
+				if (waPanel) waPanel.sendBtn.disabled = false;
+			});
+	}
+
+	function initWhatsappLauncher() {
+		const buttonBar = document.querySelector("table.buttonBar");
+		if (!buttonBar || document.getElementById("pdp-wa-launcher")) return;
+
+		const anchor = document.createElement("div");
+		anchor.id = "pdp-wa-anchor";
+		buttonBar.parentNode.insertBefore(anchor, buttonBar);
+
+		const launcher = document.createElement("button");
+		launcher.type = "button";
+		launcher.id = "pdp-wa-launcher";
+		launcher.className = "pdp-wa-launcher";
+		launcher.innerHTML =
+			'<span class="pdp-wa-icon">\u{1F4F1}</span>' +
+			'<span class="pdp-wa-label">Enviar por WhatsApp</span>' +
+			'<span class="pdp-wa-count" hidden>0</span>';
+		anchor.appendChild(launcher);
+
+		launcher.addEventListener("click", openWaPanel);
+
+		const observer = new IntersectionObserver(
+			function (entries) {
+				entries.forEach(function (entry) {
+					launcher.classList.toggle("pdp-wa-floating", !entry.isIntersecting);
+				});
+			},
+			{ threshold: 0 }
+		);
+		observer.observe(anchor);
+	}
+
+	function initWhatsappFeature() {
+		initWhatsappLauncher();
+		scanDocLinksForWhatsapp(document);
+
+		const observer = new MutationObserver(function (mutations) {
+			mutations.forEach(function (m) {
+				m.addedNodes.forEach(function (node) {
+					if (node.nodeType !== 1) return;
+					scanDocLinksForWhatsapp(node);
+					if (!document.getElementById("pdp-wa-launcher")) initWhatsappLauncher();
+				});
+			});
+		});
+		observer.observe(document.body, { childList: true, subtree: true });
+	}
+
+	initWhatsappFeature();
 
 	// ---------------------------------------------------------------------
 	// Modo "loader": executado dentro do <iframe> oculto criado acima.

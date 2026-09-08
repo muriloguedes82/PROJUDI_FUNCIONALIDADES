@@ -1,8 +1,13 @@
 # Projudi - Pré-visualização de Documentos
 
-Extensão de navegador (Chrome/Edge, Manifest V3) que resolve o seguinte
-problema: na tela **Movimentações** do Projudi, para ler a íntegra de um
-documento anexado é preciso clicar no link e abri-lo em outra aba.
+Extensão de navegador (Chrome/Edge, Manifest V3) que resolve dois problemas
+do dia a dia no Projudi:
+
+1. na tela **Movimentações**, para ler a íntegra de um documento anexado é
+   preciso clicar no link e abri-lo em outra aba;
+2. não há como enviar rapidamente um ou mais documentos do processo por
+   WhatsApp — é preciso baixar cada arquivo e depois anexá-lo manualmente
+   numa conversa do WhatsApp Web.
 
 Com a extensão instalada, basta **passar o mouse sobre o nome do arquivo**
 (ex.: `Certidao de Baixa.pdf`) para que a íntegra do documento apareça em um
@@ -82,6 +87,56 @@ Se nenhum documento for encontrado (ou a tela demorar demais para
 responder), um aviso é exibido com um atalho para abrir a análise
 completa em nova aba — o comportamento original do link nunca é
 removido.
+
+## Envio de documentos por WhatsApp Web
+
+A extensão adiciona uma caixinha de seleção ao lado de cada documento
+(mesmo link `a.link` com `href` contendo `/arquivo.do` usado na
+pré-visualização) e um botão **"Enviar por WhatsApp"**, posicionado acima da
+barra de botões da tela do processo (Pedido Incidental, Juntar Documento,
+Peticionar, Patronato, Navegar, Exportar Processo, Voltar). Ao rolar a
+página para cima ou para baixo, o botão acompanha o usuário, "flutuando"
+fixo do lado direito da tela, para continuar acessível mesmo com a barra de
+botões fora da área visível.
+
+Fluxo de uso:
+
+1. Marque a caixinha ao lado de um ou mais documentos do processo.
+2. Clique em "Enviar por WhatsApp" e informe o número de destino (com DDD;
+   se nenhum DDI for digitado, assume-se `55`/Brasil).
+3. Ao confirmar, a extensão baixa os arquivos selecionados (reaproveitando a
+   sessão do Projudi, do mesmo jeito que a pré-visualização) e abre uma nova
+   aba do WhatsApp Web já com a conversa do número informado —
+   reaproveitando a sessão do WhatsApp Web já aberta/conectada no
+   navegador, se houver.
+4. Assim que a conversa termina de carregar, os arquivos são anexados
+   automaticamente (via simulação de arrastar-e-soltar, o mesmo mecanismo
+   que o próprio WhatsApp Web usa). O envio da mensagem continua sendo uma
+   ação manual do usuário, que pode revisar os anexos e adicionar uma
+   legenda antes de enviar.
+
+Essa parte depende de dois componentes adicionais:
+
+- `src/background.js`: service worker que guarda temporariamente os
+  arquivos selecionados (em `chrome.storage.local`, apenas até serem
+  anexados ou expirarem após alguns minutos) e abre a aba do WhatsApp Web.
+- `src/whatsapp.js`: content script injetado em `web.whatsapp.com` que
+  busca esse conteúdo pendente e simula o arrastar-e-soltar dos arquivos na
+  conversa aberta.
+
+Limitações:
+
+- É necessário que o WhatsApp Web já esteja conectado (QR Code lido) no
+  navegador; caso contrário, a aba abre normalmente, mas os arquivos não
+  são anexados (a extensão espera até 60s pela conversa carregar e depois
+  desiste silenciosamente).
+- A simulação de anexar arquivos depende da estrutura de tela atual do
+  WhatsApp Web (área principal `#main` com uma caixa de mensagem editável);
+  se o WhatsApp alterar esse layout, o anexo automático pode parar de
+  funcionar — a conversa ainda abre normalmente e os arquivos podem ser
+  anexados manualmente.
+- Nenhum arquivo, número de telefone ou mensagem é armazenado além do
+  tempo necessário para abrir a conversa e anexar os documentos.
 
 ## Instalação (modo desenvolvedor)
 
