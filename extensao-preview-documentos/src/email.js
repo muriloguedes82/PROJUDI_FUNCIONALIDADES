@@ -27,9 +27,6 @@
 	const FILE_LINK_SELECTOR = 'a.link[href*="/arquivo.do"]';
 	const RECIPIENTS_KEY = "pdpEmailRecipients";
 	const MAX_RECIPIENTS = 200;
-	const FROM_ACCOUNTS_KEY = "pdpEmailFromAccounts";
-	const SELECTED_FROM_KEY = "pdpEmailSelectedFrom";
-	const MAX_FROM_ACCOUNTS = 20;
 
 	// Rótulos da barra de ações inferior do Projudi (Pedido Incidental,
 	// Juntar Documento, Peticionar, Patronato, Navegar, Exportar Processo,
@@ -51,7 +48,6 @@
 	const selected = new Map(); // href -> { href, name }
 	let sendButton = null;
 	let recipientsButton = null;
-	let fromButton = null;
 	let frameEligible = false;
 
 	// ---------------------------------------------------------------------
@@ -122,18 +118,6 @@
 			});
 			document.body.appendChild(recipientsButton);
 		}
-		if (!fromButton) {
-			fromButton = document.createElement("button");
-			fromButton.type = "button";
-			fromButton.id = "pdp-from-button";
-			fromButton.className = "pdp-email-visible";
-			fromButton.title = "Escolher de qual conta enviar (ex.: pessoal ou de um grupo/secretaria)";
-			fromButton.addEventListener("click", function () {
-				openFromAccountsDialog();
-			});
-			document.body.appendChild(fromButton);
-			updateFromButtonLabel();
-		}
 		if (!sendButton) {
 			sendButton = document.createElement("button");
 			sendButton.type = "button";
@@ -191,17 +175,10 @@
 			}
 		}
 
-		let cursor = baseBottom;
-		recipientsButton.style.bottom = cursor + "px";
-		cursor += (recipientsButton.offsetHeight || 36) + BUTTON_GAP;
-
-		if (fromButton) {
-			fromButton.style.bottom = cursor + "px";
-			cursor += (fromButton.offsetHeight || 36) + BUTTON_GAP;
-		}
-
+		recipientsButton.style.bottom = baseBottom + "px";
 		if (sendButton) {
-			sendButton.style.bottom = cursor + "px";
+			const recipientsHeight = recipientsButton.offsetHeight || 36;
+			sendButton.style.bottom = baseBottom + recipientsHeight + BUTTON_GAP + "px";
 		}
 	}
 
@@ -274,188 +251,6 @@
 	}
 
 	// ---------------------------------------------------------------------
-	// Contas de envio salvas ("Enviar como") — EXPERIMENTAL: depende de o
-	// usuário já ter permissão de "Enviar como"/"Enviar em nome de" (Exchange)
-	// na conta escolhida; sem isso, o Outlook recusa o envio com esse
-	// remetente, não importa o que a extensão configure aqui.
-	// ---------------------------------------------------------------------
-
-	function loadFromAccounts() {
-		return chrome.storage.local.get([FROM_ACCOUNTS_KEY, SELECTED_FROM_KEY]).then(function (data) {
-			return { accounts: data[FROM_ACCOUNTS_KEY] || [], selectedId: data[SELECTED_FROM_KEY] || null };
-		});
-	}
-
-	function saveFromAccounts(accounts) {
-		return chrome.storage.local.set({ [FROM_ACCOUNTS_KEY]: accounts });
-	}
-
-	function setSelectedFromId(id) {
-		return chrome.storage.local.set({ [SELECTED_FROM_KEY]: id || null });
-	}
-
-	async function addFromAccount(label, email) {
-		label = label.trim();
-		email = email.trim();
-		if (!label) throw new Error("Informe um nome para identificar a conta.");
-		if (!isValidEmail(email)) throw new Error("Informe um e-mail válido.");
-
-		const { accounts } = await loadFromAccounts();
-		if (accounts.length >= MAX_FROM_ACCOUNTS) {
-			throw new Error("Limite de " + MAX_FROM_ACCOUNTS + " contas salvas atingido.");
-		}
-		if (accounts.some((a) => a.email.toLowerCase() === email.toLowerCase())) {
-			throw new Error("Já existe uma conta salva com esse e-mail.");
-		}
-		accounts.push({ id: crypto.randomUUID(), label: label, email: email });
-		await saveFromAccounts(accounts);
-		return accounts;
-	}
-
-	async function removeFromAccount(id) {
-		const { accounts, selectedId } = await loadFromAccounts();
-		await saveFromAccounts(accounts.filter((a) => a.id !== id));
-		if (selectedId === id) await setSelectedFromId(null);
-	}
-
-	async function updateFromButtonLabel() {
-		if (!fromButton) return;
-		const { accounts, selectedId } = await loadFromAccounts();
-		const selected = accounts.find((a) => a.id === selectedId);
-		fromButton.textContent = selected ? "✉️ Enviar como: " + selected.label : "✉️ Enviar como";
-	}
-
-	function closeFromAccountsDialog() {
-		const existing = document.getElementById("pdp-from-overlay");
-		if (existing) existing.remove();
-	}
-
-	async function openFromAccountsDialog() {
-		closeFromAccountsDialog();
-
-		const overlay = document.createElement("div");
-		overlay.id = "pdp-from-overlay";
-		overlay.className = "pdp-dialog-overlay";
-		overlay.innerHTML =
-			'<div class="pdp-recipients-panel" role="dialog" aria-label="Enviar como">' +
-			'  <div class="pdp-recipients-header">' +
-			"    <strong>Enviar como</strong>" +
-			'    <button type="button" class="pdp-recipients-close" title="Fechar">✕</button>' +
-			"  </div>" +
-			'  <div class="pdp-from-hint">Escolha de qual conta os e-mails devem sair por padrão (ex.: seu e-mail ' +
-			"pessoal ou o de um grupo/secretaria). Requer que sua conta já tenha permissão de \"Enviar como\" " +
-			'nessa caixa, concedida pelo TI — sem isso, o envio será recusado pelo Outlook.</div>' +
-			'  <div class="pdp-recipients-list"></div>' +
-			'  <div class="pdp-recipients-add">' +
-			'    <input type="text" class="pdp-from-add-label" placeholder="Nome (ex.: Secretaria)" />' +
-			'    <input type="email" class="pdp-from-add-email" placeholder="E-mail" />' +
-			'    <button type="button" class="pdp-from-add-save">+ Adicionar</button>' +
-			"  </div>" +
-			'  <div class="pdp-recipients-error" hidden></div>' +
-			"</div>";
-		document.body.appendChild(overlay);
-
-		const listEl = overlay.querySelector(".pdp-recipients-list");
-		const errorEl = overlay.querySelector(".pdp-recipients-error");
-
-		function showError(msg) {
-			errorEl.textContent = msg;
-			errorEl.hidden = !msg;
-		}
-
-		async function render() {
-			const { accounts, selectedId } = await loadFromAccounts();
-
-			listEl.innerHTML = "";
-
-			const defaultRow = document.createElement("div");
-			defaultRow.className = "pdp-recipients-row";
-			const defaultRadio = document.createElement("input");
-			defaultRadio.type = "radio";
-			defaultRadio.name = "pdp-from-radio";
-			defaultRadio.checked = !selectedId;
-			defaultRadio.addEventListener("change", async function () {
-				await setSelectedFromId(null);
-				await updateFromButtonLabel();
-			});
-			defaultRow.appendChild(defaultRadio);
-			const defaultInfo = document.createElement("div");
-			defaultInfo.className = "pdp-recipients-row-info";
-			defaultInfo.innerHTML = '<span class="pdp-recipients-row-name">Padrão da conta</span>' +
-				'<span class="pdp-recipients-row-email">Não define remetente (usa a conta normal do Outlook)</span>';
-			defaultRow.appendChild(defaultInfo);
-			listEl.appendChild(defaultRow);
-
-			if (accounts.length === 0) {
-				const empty = document.createElement("div");
-				empty.className = "pdp-recipients-empty";
-				empty.textContent = "Nenhuma conta salva ainda.";
-				listEl.appendChild(empty);
-			}
-
-			accounts.forEach(function (a) {
-				const row = document.createElement("div");
-				row.className = "pdp-recipients-row";
-
-				const radio = document.createElement("input");
-				radio.type = "radio";
-				radio.name = "pdp-from-radio";
-				radio.checked = a.id === selectedId;
-				radio.addEventListener("change", async function () {
-					await setSelectedFromId(a.id);
-					await updateFromButtonLabel();
-				});
-				row.appendChild(radio);
-
-				const info = document.createElement("div");
-				info.className = "pdp-recipients-row-info";
-				info.innerHTML =
-					"<span class=\"pdp-recipients-row-name\">" +
-					escapeHtml(a.label) +
-					"</span><span class=\"pdp-recipients-row-email\">" +
-					escapeHtml(a.email) +
-					"</span>";
-				row.appendChild(info);
-
-				const removeBtn = document.createElement("button");
-				removeBtn.type = "button";
-				removeBtn.className = "pdp-recipients-row-remove";
-				removeBtn.title = "Remover conta salva";
-				removeBtn.textContent = "🗑";
-				removeBtn.addEventListener("click", async function () {
-					await removeFromAccount(a.id);
-					await updateFromButtonLabel();
-					render();
-				});
-				row.appendChild(removeBtn);
-
-				listEl.appendChild(row);
-			});
-		}
-
-		overlay.querySelector(".pdp-recipients-close").addEventListener("click", closeFromAccountsDialog);
-		overlay.addEventListener("click", function (e) {
-			if (e.target === overlay) closeFromAccountsDialog();
-		});
-
-		overlay.querySelector(".pdp-from-add-save").addEventListener("click", async function () {
-			const labelInput = overlay.querySelector(".pdp-from-add-label");
-			const emailInput = overlay.querySelector(".pdp-from-add-email");
-			try {
-				showError("");
-				await addFromAccount(labelInput.value, emailInput.value);
-				labelInput.value = "";
-				emailInput.value = "";
-				render();
-			} catch (err) {
-				showError(err.message);
-			}
-		});
-
-		await render();
-	}
-
-	// ---------------------------------------------------------------------
 	// Diálogo de destinatários (gerenciar / escolher antes de enviar)
 	// ---------------------------------------------------------------------
 
@@ -475,7 +270,6 @@
 
 		const overlay = document.createElement("div");
 		overlay.id = "pdp-recipients-overlay";
-		overlay.className = "pdp-dialog-overlay";
 		overlay.innerHTML =
 			'<div class="pdp-recipients-panel" role="dialog" aria-label="Destinatários salvos">' +
 			'  <div class="pdp-recipients-header">' +
@@ -707,16 +501,12 @@
 				});
 			}
 
-			const { accounts, selectedId } = await loadFromAccounts();
-			const fromAccount = accounts.find((a) => a.id === selectedId);
-
 			sendButton.textContent = "Enviando para o Outlook…";
 			const response = await chrome.runtime.sendMessage({
 				type: "SEND_EMAIL",
 				subject: subjectFromPage(),
 				body: defaultBodyText(),
 				recipients: recipientEmails,
-				fromEmail: fromAccount ? fromAccount.email : null,
 				attachments: attachments,
 			});
 

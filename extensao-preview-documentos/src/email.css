@@ -5,8 +5,7 @@
 }
 
 #pdp-email-button,
-#pdp-recipients-button,
-#pdp-from-button {
+#pdp-recipients-button {
 	position: fixed;
 	right: 16px;
 	/* "bottom" é recalculado em tempo real pelo email.js para ficar sempre
@@ -42,23 +41,19 @@
 	cursor: wait;
 }
 
-#pdp-recipients-button,
-#pdp-from-button {
+#pdp-recipients-button {
 	background: #fff;
 	color: #4a5a2a;
 	border: 1px solid #6b7f3a;
 }
 
-#pdp-recipients-button:hover,
-#pdp-from-button:hover {
+#pdp-recipients-button:hover {
 	background: #f2f5ea;
 }
 
-/* Diálogo de destinatários (gerenciar / escolher antes de enviar) e
-   diálogo "Enviar como" (mesma aparência, reaproveitando as classes
-   .pdp-recipients-*) */
+/* Diálogo de destinatários (gerenciar / escolher antes de enviar) */
 
-.pdp-dialog-overlay {
+#pdp-recipients-overlay {
 	position: fixed;
 	inset: 0;
 	z-index: 2147483001;
@@ -74,11 +69,11 @@
    navegador, e no empate o CSS do autor vence — ou seja, sem esta regra
    elementos com o atributo "hidden" (rodapé Pular/Prosseguir, mensagem de
    erro) continuariam visíveis mesmo escondidos via JS. */
-.pdp-dialog-overlay [hidden] {
+#pdp-recipients-overlay [hidden] {
 	display: none !important;
 }
 
-.pdp-dialog-overlay .pdp-recipients-panel {
+#pdp-recipients-overlay .pdp-recipients-panel {
 	width: 420px;
 	max-width: calc(100vw - 32px);
 	max-height: calc(100vh - 64px);
@@ -90,7 +85,7 @@
 	overflow: hidden;
 }
 
-.pdp-dialog-overlay .pdp-recipients-header {
+#pdp-recipients-overlay .pdp-recipients-header {
 	flex: 0 0 auto;
 	display: flex;
 	align-items: center;
@@ -101,7 +96,7 @@
 	font-size: 14px;
 }
 
-.pdp-dialog-overlay .pdp-recipients-close {
+#pdp-recipients-overlay .pdp-recipients-close {
 	background: transparent;
 	border: none;
 	color: #fff;
@@ -110,7 +105,7 @@
 	padding: 2px 4px;
 }
 
-.pdp-dialog-overlay .pdp-recipients-search {
+#pdp-recipients-overlay .pdp-recipients-search {
 	flex: 0 0 auto;
 	display: flex;
 	align-items: center;
@@ -119,12 +114,12 @@
 	border-bottom: 1px solid #e0e0e0;
 }
 
-.pdp-dialog-overlay .pdp-recipients-search-icon {
+#pdp-recipients-overlay .pdp-recipients-search-icon {
 	font-size: 13px;
 	opacity: 0.6;
 }
 
-.pdp-dialog-overlay .pdp-recipients-search-input {
+#pdp-recipients-overlay .pdp-recipients-search-input {
 	flex: 1 1 auto;
 	padding: 6px 8px;
 	font-size: 13px;
@@ -132,21 +127,21 @@
 	border-radius: 4px;
 }
 
-.pdp-dialog-overlay .pdp-recipients-list {
+#pdp-recipients-overlay .pdp-recipients-list {
 	flex: 1 1 auto;
 	overflow-y: auto;
 	min-height: 80px;
 	padding: 4px 0;
 }
 
-.pdp-dialog-overlay .pdp-recipients-empty {
+#pdp-recipients-overlay .pdp-recipients-empty {
 	padding: 16px 14px;
 	font-size: 13px;
 	color: #777;
 	text-align: center;
 }
 
-.pdp-dialog-overlay .pdp-recipients-row {
+#pdp-recipients-overlay .pdp-recipients-row {
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -154,14 +149,14 @@
 	border-bottom: 1px solid #f0f0f0;
 }
 
-.pdp-dialog-overlay .pdp-recipients-row-info {
+#pdp-recipients-overlay .pdp-recipients-row-info {
 	flex: 1 1 auto;
 	display: flex;
 	flex-direction: column;
 	min-width: 0;
 }
 
-.pdp-dialog-overlay .pdp-recipients-row-name {
+#pdp-recipients-overlay .pdp-recipients-row-name {
 	font-size: 13px;
 	font-weight: bold;
 	white-space: nowrap;
@@ -169,7 +164,7 @@
 	text-overflow: ellipsis;
 }
 
-.pdp-dialog-overlay .pdp-recipients-row-email {
+#pdp-recipients-overlay .pdp-recipients-row-email {
 	font-size: 12px;
 	color: #666;
 	white-space: nowrap;
@@ -177,8 +172,8 @@
 	text-overflow: ellipsis;
 }
 
-.pdp-dialog-overlay .pdp-recipients-row-pin,
-.pdp-dialog-overlay .pdp-recipients-row-remove {
+#pdp-recipients-overlay .pdp-recipients-row-pin,
+#pdp-recipients-overlay .pdp-recipients-row-remove {
 	flex: 0 0 auto;
 	background: transparent;
 	border: none;
@@ -187,15 +182,15 @@
 	padding: 2px 4px;
 }
 
-.pdp-dialog-overlay .pdp-recipients-row-pin {
+#pdp-recipients-overlay .pdp-recipients-row-pin {
 	color: #c9a227;
 }
 
-.pdp-dialog-overlay .pdp-recipients-row-remove {
+#pdp-recipients-overlay .pdp-recipients-row-remove {
 	color: #a33;
 }
 
-.pdp-dialog-overlay .pdp-recipients-add {
+#pdp-recipients-overlay .pdp-recipients-add {
 	flex: 0 0 auto;
 	display: flex;
 	flex-wrap: wrap;
@@ -204,10 +199,8 @@
 	border-top: 1px solid #e0e0e0;
 }
 
-.pdp-dialog-overlay .pdp-recipients-add-name,
-.pdp-dialog-overlay .pdp-recipients-add-email,
-.pdp-dialog-overlay .pdp-from-add-label,
-.pdp-dialog-overlay .pdp-from-add-email {
+#pdp-recipients-overlay .pdp-recipients-add-name,
+#pdp-recipients-overlay .pdp-recipients-add-email {
 	flex: 1 1 140px;
 	min-width: 0;
 	padding: 6px 8px;
@@ -217,15 +210,7 @@
 	box-sizing: border-box;
 }
 
-.pdp-dialog-overlay .pdp-from-hint {
-	flex: 0 0 auto;
-	padding: 10px 14px 0;
-	font-size: 12px;
-	color: #666;
-}
-
-.pdp-dialog-overlay .pdp-recipients-add-save,
-.pdp-dialog-overlay .pdp-from-add-save {
+#pdp-recipients-overlay .pdp-recipients-add-save {
 	flex: 1 1 100%;
 	padding: 8px 10px;
 	font-size: 13px;
@@ -238,18 +223,17 @@
 	white-space: nowrap;
 }
 
-.pdp-dialog-overlay .pdp-recipients-add-save:hover,
-.pdp-dialog-overlay .pdp-from-add-save:hover {
+#pdp-recipients-overlay .pdp-recipients-add-save:hover {
 	background: #55642e;
 }
 
-.pdp-dialog-overlay .pdp-recipients-error {
+#pdp-recipients-overlay .pdp-recipients-error {
 	padding: 0 14px 10px;
 	font-size: 12px;
 	color: #a33;
 }
 
-.pdp-dialog-overlay .pdp-recipients-footer {
+#pdp-recipients-overlay .pdp-recipients-footer {
 	flex: 0 0 auto;
 	display: flex;
 	justify-content: flex-end;
@@ -258,7 +242,7 @@
 	border-top: 1px solid #e0e0e0;
 }
 
-.pdp-dialog-overlay .pdp-recipients-skip {
+#pdp-recipients-overlay .pdp-recipients-skip {
 	padding: 8px 14px;
 	font-size: 13px;
 	background: transparent;
@@ -267,7 +251,7 @@
 	cursor: pointer;
 }
 
-.pdp-dialog-overlay .pdp-recipients-proceed {
+#pdp-recipients-overlay .pdp-recipients-proceed {
 	padding: 8px 14px;
 	font-size: 13px;
 	font-weight: bold;
@@ -278,6 +262,6 @@
 	cursor: pointer;
 }
 
-.pdp-dialog-overlay .pdp-recipients-proceed:hover {
+#pdp-recipients-overlay .pdp-recipients-proceed:hover {
 	background: #55642e;
 }
