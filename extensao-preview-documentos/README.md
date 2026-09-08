@@ -105,9 +105,10 @@ Fluxo de uso:
 2. Clique em "Enviar por WhatsApp" e informe o número de destino (com DDD;
    se nenhum DDI for digitado, assume-se `55`/Brasil).
 3. Ao confirmar, a extensão baixa os arquivos selecionados (reaproveitando a
-   sessão do Projudi, do mesmo jeito que a pré-visualização) e abre a
-   conversa do número informado no WhatsApp Web — reaproveitando a sessão
-   já aberta/conectada no navegador, se houver.
+   sessão do Projudi, do mesmo jeito que a pré-visualização) e abre (ou
+   reaproveita) uma aba do WhatsApp Web — sem nunca recarregá-la — na
+   conversa do número informado, reaproveitando a sessão já
+   aberta/conectada no navegador, se houver.
 4. Assim que a conversa termina de carregar, os arquivos são anexados
    automaticamente — a extensão simula "colar" (Ctrl+V) os arquivos na
    caixa de mensagem, o mesmo mecanismo que o próprio WhatsApp Web já
@@ -115,28 +116,33 @@ Fluxo de uso:
    alternativa). O envio da mensagem continua sendo uma ação manual do
    usuário, que pode revisar os anexos e adicionar uma legenda antes de
    enviar. Um aviso aparece no canto inferior esquerdo da tela do WhatsApp
-   Web mostrando o andamento ("aguardando a conversa carregar…", "anexando
-   arquivo(s)…", "arquivo(s) anexado(s)" ou um erro).
+   Web mostrando o andamento ("abrindo conversa…", "aguardando a conversa
+   carregar…", "anexando arquivo(s)…", "arquivo(s) anexado(s)" ou um erro).
 
 Importante: o WhatsApp Web não permite duas abas logadas ao mesmo tempo (a
-segunda cai numa tela de conflito de sessão). Por isso a extensão sempre
-reaproveita uma aba de `web.whatsapp.com` já aberta, em vez de abrir uma
-aba nova a cada envio:
+segunda cai numa tela de conflito de sessão), e trocar a URL de uma aba
+(mesmo reaproveitando-a) sempre recarrega a página inteira — o que parece
+um "reinício de sessão" a cada envio. Por isso a extensão nunca navega uma
+aba do WhatsApp Web já aberta:
 
-- se já existe uma aba aberta, ela **nunca é navegada/recarregada** — a
-  extensão só foca nela e abre a conversa do número informado simulando o
-  fluxo manual (clicar em "Nova conversa", digitar o número na busca e
-  clicar no resultado), do mesmo jeito que você faria com o mouse. Isso
-  evita por completo a sensação de "reiniciar a sessão" a cada envio,
-  mesmo trocando de número de destino;
-- só é aberta (e navegada direto para a conversa via
-  `web.whatsapp.com/send?phone=...`) uma aba **nova**, quando nenhuma
-  estava aberta ainda — nesse caso não existe nenhuma sessão em uso para
-  "reiniciar";
+- se já existe uma aba de `web.whatsapp.com` aberta, ela só é focada — a
+  extensão então abre a conversa do número informado simulando o fluxo
+  manual (clicar em "Nova conversa", digitar o número na busca e clicar no
+  resultado), do mesmo jeito que você faria com o mouse, inteiramente por
+  manipulação da página, sem nenhuma navegação/reload;
+- essa mesma simulação é usada mesmo numa aba **nova** (criada quando
+  nenhuma estava aberta ainda) — a aba é criada em branco
+  (`web.whatsapp.com/`, sem número na URL) e a conversa é aberta do mesmo
+  jeito assim que a página carrega;
+- ela é sempre repetida a cada envio, mesmo que a conversa "pareça" já ser
+  a certa — não há como saber com certeza, de fora, qual conversa está
+  aberta no momento (você pode ter trocado de chat manualmente), e anexar
+  no chat errado enviaria o documento para a pessoa errada;
 - se, por algum motivo, não for possível abrir a conversa simulando esse
   fluxo (ex.: o WhatsApp Web mudou a tela de "Nova conversa"), a extensão
-  cai de volta para navegar a aba existente para a URL da conversa — o que
-  nesse caso específico *recarrega* a página (mas ainda sem logout).
+  cai de volta para navegar a aba para a URL `send?phone=...` como último
+  recurso — o que nesse caso específico *recarrega* a página (mas ainda
+  sem logout).
 
 Essa parte depende de dois componentes adicionais:
 

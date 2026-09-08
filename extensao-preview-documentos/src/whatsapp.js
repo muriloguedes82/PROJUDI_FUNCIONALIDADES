@@ -5,12 +5,15 @@
 // verifica se há um envio pendente (arquivos selecionados no Projudi,
 // guardados em chrome.storage.local). Se houver:
 //
-// 1. Abre a conversa do número informado. Se a página já foi carregada
-//    apontando pra esse número (aba nova, via .../send?phone=...), o
-//    próprio WhatsApp Web já cuida disso. Caso contrário (aba já aberta
-//    sendo reaproveitada), a conversa é aberta sem recarregar a página,
-//    simulando o fluxo manual: clicar em "Nova conversa", digitar o número
-//    na busca e clicar no resultado.
+// 1. Abre a conversa do número informado, simulando o fluxo manual: clicar
+//    em "Nova conversa", digitar o número na busca e clicar no resultado.
+//    Isso é feito SEMPRE, mesmo se a conversa "parecer" já ser a certa —
+//    não há como saber com certeza, de fora, qual conversa está aberta no
+//    momento (o usuário pode ter trocado de chat manualmente, ou a aba pode
+//    ter sido reaproveitada de um envio anterior para outro número), e
+//    anexar no chat errado enviaria o documento para a pessoa errada. Re-
+//    selecionar a mesma conversa não tem efeito colateral, então o custo de
+//    sempre fazer essa checagem é só um pouco de tempo a mais.
 // 2. Anexa os arquivos à conversa, tentando dois mecanismos que o próprio
 //    WhatsApp Web já suporta manualmente: "colar" (paste, como quando se
 //    copia um arquivo e aperta Ctrl+V no chat) e, se isso falhar, "arrastar
@@ -121,14 +124,6 @@
 		return main.querySelector('[contenteditable="true"][data-tab]');
 	}
 
-	function currentUrlPhone() {
-		try {
-			return new URL(window.location.href).searchParams.get("phone");
-		} catch (e) {
-			return null;
-		}
-	}
-
 	// ---------------------------------------------------------------------
 	// Abrir a conversa certa sem recarregar a página (evita "reiniciar" a
 	// sessão do WhatsApp Web) — simula o fluxo manual: clicar em "Nova
@@ -179,10 +174,13 @@
 	}
 
 	async function openChatBySearch(phone) {
-		log("abrindo conversa sem recarregar a página…");
+		log("abrindo a conversa de", phone, "…");
 		showBanner("abrindo conversa…");
 
-		const newChatBtn = await waitFor(findNewChatButton, 8000, 300);
+		// Timeout maior aqui: numa aba recém-criada, o WhatsApp Web ainda pode
+		// estar carregando a lista de conversas (ou esperando a leitura do QR
+		// Code) quando chegamos a este ponto.
+		const newChatBtn = await waitFor(findNewChatButton, 30000, 300);
 		newChatBtn.click();
 
 		const searchInput = await waitFor(findChatSearchInput, 8000, 300);
@@ -303,10 +301,7 @@
 		});
 		log("envio pendente encontrado…", fileNames);
 
-		const needsOpen = currentUrlPhone() !== pending.phone;
-		const openStep = needsOpen ? openChatBySearch(pending.phone) : Promise.resolve();
-
-		openStep
+		openChatBySearch(pending.phone)
 			.catch(function (err) {
 				warn("não consegui abrir a conversa sem recarregar, caindo para navegação:", err);
 				showBanner("abrindo conversa (recarregando)…");

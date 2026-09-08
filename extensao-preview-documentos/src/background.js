@@ -15,14 +15,17 @@
 // SEMPRE reaproveitamos uma aba de web.whatsapp.com já aberta em vez de
 // criar uma aba nova a cada envio.
 //
-// Além disso, navegar a aba reaproveitada para "send?phone=..." (trocar de
-// URL) força o Chrome a recarregar a página inteira do WhatsApp Web — o que
-// parece um "reinício de sessão" mesmo não sendo logout. Por isso, quando já
-// existe uma aba aberta, NUNCA navegamos: apenas focamos nela e avisamos
+// Além disso, navegar a aba reaproveitada para uma URL diferente (trocar de
+// conversa) força o Chrome a recarregar a página inteira do WhatsApp Web —
+// o que parece um "reinício de sessão" mesmo não sendo logout. Por isso
+// NUNCA navegamos uma aba já aberta: apenas focamos nela e avisamos
 // src/whatsapp.js, que abre a conversa certa simulando o fluxo manual
 // ("Nova conversa" → digitar o número → clicar no resultado) sem recarregar
-// nada. A navegação via URL só é usada para abrir uma aba nova do zero,
-// quando ainda não existe nenhuma sessão para "reiniciar".
+// nada — inclusive numa aba recém-criada por este arquivo (não é preciso
+// abrir direto em "send?phone=..."; o próprio content script cuida de abrir
+// a conversa assim que a página carregar). A navegação via
+// "send?phone=..." só é usada como último recurso, se essa simulação
+// falhar (ver "whatsapp-navigate-fallback" abaixo).
 
 "use strict";
 
@@ -73,10 +76,10 @@ async function handleShare(message) {
 	};
 
 	await chrome.storage.local.set({ [PENDING_KEY]: payload });
-	await openOrReuseWhatsappTab(message.phone);
+	await openOrReuseWhatsappTab();
 }
 
-async function openOrReuseWhatsappTab(phone) {
+async function openOrReuseWhatsappTab() {
 	const existingTabs = await chrome.tabs.query({ url: "https://web.whatsapp.com/*" });
 	console.info(LOG_PREFIX, "abas do WhatsApp Web encontradas:", existingTabs.length, existingTabs.map((t) => t.id));
 
@@ -98,11 +101,11 @@ async function openOrReuseWhatsappTab(phone) {
 		return tab;
 	}
 
-	// Nenhuma aba aberta ainda: não há sessão em uso para "reiniciar", então
-	// pode abrir direto na conversa certa via URL.
+	// Nenhuma aba aberta ainda: cria uma aba normal (sem número na URL) — o
+	// content script, ao carregar, busca o envio pendente e abre a conversa
+	// certa sozinho, do mesmo jeito que faria numa aba reaproveitada.
 	console.info(LOG_PREFIX, "nenhuma aba do WhatsApp Web aberta, criando uma nova.");
-	const url = "https://web.whatsapp.com/send?phone=" + encodeURIComponent(phone);
-	return chrome.tabs.create({ url: url, active: true });
+	return chrome.tabs.create({ url: "https://web.whatsapp.com/", active: true });
 }
 
 // Usado por src/whatsapp.js como último recurso, apenas se não conseguir
