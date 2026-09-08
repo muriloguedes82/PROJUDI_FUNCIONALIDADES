@@ -134,8 +134,12 @@
 		'span[data-icon="new-chat-outline"]',
 		'span[data-icon="chat"]',
 		'span[data-icon="new-chat"]',
+		'span[data-icon="chat-refreshed"]',
+		'span[data-icon="lab-chat-refreshed"]',
 		'[aria-label="Nova conversa"]',
 		'[aria-label="New chat"]',
+		'[title="Nova conversa"]',
+		'[title="New chat"]',
 	];
 
 	function findNewChatButton() {
@@ -146,15 +150,22 @@
 		return null;
 	}
 
-	// Busca o campo de pesquisa do painel "Nova conversa". A barra de busca
-	// padrão da lista de conversas também é um contenteditable dentro de
-	// #side, então pegamos o ÚLTIMO campo editável encontrado (o painel de
-	// nova conversa é inserido por cima/depois dela no DOM).
+	// O campo de busca da lista de conversas (sempre visível, sem precisar
+	// clicar em nada) e o campo de busca do painel "Nova conversa" são,
+	// ambos, um <div contenteditable="true"> dentro de #side. Pegamos o
+	// ÚLTIMO encontrado porque, quando o painel de nova conversa está
+	// aberto, ele é inserido por cima/depois do de busca padrão no DOM.
 	function findChatSearchInput() {
 		const side = document.querySelector("#side");
 		if (!side) return null;
 		const candidates = side.querySelectorAll('[contenteditable="true"]');
 		return candidates.length ? candidates[candidates.length - 1] : null;
+	}
+
+	function countSearchResults() {
+		const side = document.querySelector("#side");
+		if (!side) return 0;
+		return side.querySelectorAll('[data-testid="cell-frame-container"], [role="listitem"]').length;
 	}
 
 	function findFirstSearchResult() {
@@ -173,21 +184,61 @@
 		document.execCommand("insertText", false, text);
 	}
 
+	// Tenta digitar o número direto na busca que já está visível (a barra de
+	// busca padrão da lista de conversas, sem precisar clicar em nada) e
+	// aguarda um resultado aparecer. Não lança erro se não achar nada — só
+	// devolve `false`, para o chamador decidir se tenta outra estratégia.
+	async function trySearchDirectly(phone) {
+		const input = findChatSearchInput();
+		if (!input) {
+			log("busca padrão não encontrada.");
+			return false;
+		}
+
+		log("campo de busca padrão encontrado, digitando o número…");
+		setContentEditableText(input, "+" + phone);
+		await wait(900);
+
+		const found = countSearchResults() > 0;
+		log(found ? "resultado encontrado na busca padrão." : "nenhum resultado na busca padrão.");
+		return found;
+	}
+
+	// Estratégia alternativa: clicar explicitamente em "Nova conversa" antes
+	// de buscar — em algumas versões do WhatsApp Web a busca padrão só
+	// filtra conversas já existentes, e é só dentro desse painel que
+	// aparece a opção de "conversar" com um número novo.
+	async function openViaNewChatButton(phone) {
+		log("tentando pelo botão 'Nova conversa'…");
+		// Timeout maior aqui: numa aba recém-criada, o WhatsApp Web ainda pode
+		// estar carregando a lista de conversas (ou esperando a leitura do QR
+		// Code) quando chegamos a este ponto.
+		const newChatBtn = await waitFor(findNewChatButton, 25000, 300);
+		log("botão 'Nova conversa' encontrado, clicando…");
+		newChatBtn.click();
+
+		await wait(400);
+		const searchInput = await waitFor(findChatSearchInput, 8000, 300);
+		log("campo de busca do painel 'Nova conversa' encontrado, digitando o número…");
+		setContentEditableText(searchInput, "+" + phone);
+
+		await wait(900);
+		if (countSearchResults() === 0) {
+			throw new Error("nenhum resultado apareceu na busca do painel 'Nova conversa'");
+		}
+	}
+
 	async function openChatBySearch(phone) {
 		log("abrindo a conversa de", phone, "…");
 		showBanner("abrindo conversa…");
 
-		// Timeout maior aqui: numa aba recém-criada, o WhatsApp Web ainda pode
-		// estar carregando a lista de conversas (ou esperando a leitura do QR
-		// Code) quando chegamos a este ponto.
-		const newChatBtn = await waitFor(findNewChatButton, 30000, 300);
-		newChatBtn.click();
+		const foundDirectly = await trySearchDirectly(phone);
+		if (!foundDirectly) {
+			await openViaNewChatButton(phone);
+		}
 
-		const searchInput = await waitFor(findChatSearchInput, 8000, 300);
-		setContentEditableText(searchInput, "+" + phone);
-
-		await wait(900);
-		const result = await waitFor(findFirstSearchResult, 8000, 300);
+		const result = await waitFor(findFirstSearchResult, 5000, 300);
+		log("clicando no resultado da busca…");
 		result.click();
 	}
 
