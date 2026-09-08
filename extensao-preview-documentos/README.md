@@ -109,10 +109,14 @@ Fluxo de uso:
    conversa do número informado no WhatsApp Web — reaproveitando a sessão
    já aberta/conectada no navegador, se houver.
 4. Assim que a conversa termina de carregar, os arquivos são anexados
-   automaticamente (via simulação de arrastar-e-soltar, o mesmo mecanismo
-   que o próprio WhatsApp Web usa). O envio da mensagem continua sendo uma
-   ação manual do usuário, que pode revisar os anexos e adicionar uma
-   legenda antes de enviar.
+   automaticamente — a extensão tenta primeiro simular "colar" (Ctrl+V) os
+   arquivos na caixa de mensagem e, se isso não parecer ter funcionado,
+   tenta simular arrastar-e-soltar; são os dois mecanismos que o próprio
+   WhatsApp Web já suporta manualmente. O envio da mensagem continua sendo
+   uma ação manual do usuário, que pode revisar os anexos e adicionar uma
+   legenda antes de enviar. Um aviso aparece no canto inferior esquerdo da
+   tela do WhatsApp Web mostrando o andamento ("aguardando a conversa
+   carregar…", "anexando arquivo(s)…", "arquivo(s) anexado(s)" ou um erro).
 
 Importante: o WhatsApp Web não permite duas abas logadas ao mesmo tempo (a
 segunda cai numa tela de conflito de sessão). Por isso a extensão sempre
@@ -127,10 +131,32 @@ Essa parte depende de dois componentes adicionais:
   anexados ou expirarem após alguns minutos) e abre/reaproveita a aba do
   WhatsApp Web.
 - `src/whatsapp.js`: content script injetado em `web.whatsapp.com` que
-  busca esse conteúdo pendente e simula o arrastar-e-soltar dos arquivos na
-  conversa aberta. Ele registra o andamento no console do DevTools da aba
-  do WhatsApp Web (mensagens com o prefixo `[Projudi WhatsApp]`), útil para
-  diagnosticar se o anexo automático não funcionar.
+  busca esse conteúdo pendente e tenta anexá-lo à conversa aberta. Ele
+  mostra o andamento na própria tela e também registra tudo no console do
+  DevTools da aba do WhatsApp Web (mensagens com o prefixo
+  `[Projudi WhatsApp]`), útil para diagnosticar se o anexo automático não
+  funcionar.
+
+### Se o anexo automático não funcionar
+
+1. Depois de atualizar os arquivos da extensão, sempre recarregue-a em
+   `chrome://extensions` (ícone de recarregar no card da extensão) — só
+   atualizar a página do Projudi ou do WhatsApp Web não é suficiente.
+2. Confira se a aba do WhatsApp Web está mesmo reaproveitando a sessão
+   (não deveria abrir uma aba nova a cada envio, só na primeira vez). Se
+   continuar abrindo aba nova, abra `chrome://extensions`, clique em
+   "Inspecionar visualizações: service worker" da extensão e veja se
+   aparecem as mensagens `[Projudi WhatsApp] abas do WhatsApp Web
+   encontradas: ...` — se aparecer `0` mesmo com uma aba do WhatsApp Web já
+   aberta, feche todas as abas de `web.whatsapp.com`, deixe só uma aberta e
+   logada, e tente de novo.
+3. Se a aba abre na conversa certa mas o arquivo não aparece anexado,
+   abra o DevTools (F12) **na aba do WhatsApp Web** e veja as mensagens
+   `[Projudi WhatsApp]` no console — elas indicam em qual etapa parou
+   (conversa não carregou, colar não funcionou, arrastar-e-soltar não
+   funcionou). Isso normalmente indica que o WhatsApp Web mudou a
+   estrutura da tela e os seletores usados por `src/whatsapp.js` precisam
+   de ajuste.
 
 Limitações:
 

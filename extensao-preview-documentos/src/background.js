@@ -20,6 +20,7 @@
 
 const MESSAGE_SOURCE = "projudi-preview";
 const PENDING_KEY = "pdpWhatsappPending";
+const LOG_PREFIX = "[Projudi WhatsApp]";
 
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 	if (!message || message.source !== MESSAGE_SOURCE) return false;
@@ -71,12 +72,14 @@ async function handleShare(message) {
 
 async function openOrReuseWhatsappTab(url) {
 	const existingTabs = await chrome.tabs.query({ url: "https://web.whatsapp.com/*" });
+	console.info(LOG_PREFIX, "abas do WhatsApp Web encontradas:", existingTabs.length, existingTabs.map((t) => t.id));
 
 	if (existingTabs.length) {
 		// Reaproveita a primeira aba encontrada, navegando-a para a conversa
 		// do número informado — em vez de abrir uma aba nova, o que faria o
 		// WhatsApp Web entrar em conflito de sessão entre as duas abas.
 		const tab = existingTabs[0];
+		console.info(LOG_PREFIX, "reaproveitando a aba", tab.id);
 		await chrome.tabs.update(tab.id, { url: url, active: true });
 		if (tab.windowId != null) {
 			await chrome.windows.update(tab.windowId, { focused: true });
@@ -84,5 +87,6 @@ async function openOrReuseWhatsappTab(url) {
 		return tab;
 	}
 
+	console.info(LOG_PREFIX, "nenhuma aba do WhatsApp Web aberta, criando uma nova.");
 	return chrome.tabs.create({ url: url, active: true });
 }
