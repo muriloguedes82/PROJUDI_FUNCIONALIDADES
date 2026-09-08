@@ -123,14 +123,20 @@ segunda cai numa tela de conflito de sessão). Por isso a extensão sempre
 reaproveita uma aba de `web.whatsapp.com` já aberta, em vez de abrir uma
 aba nova a cada envio:
 
-- se o número de destino já é o da conversa aberta nessa aba, ela nem é
-  recarregada — a extensão só avisa o content script já injetado para
-  anexar o novo arquivo, sem reiniciar a sessão;
-- se o número é diferente, a aba é navegada para a nova conversa (isso
-  recarrega a página do WhatsApp Web — é inevitável para trocar de
-  conversa através do link `web.whatsapp.com/send?phone=...`, mas não é
-  um logout: a sessão/login do WhatsApp Web continua a mesma);
-- só é aberta uma aba nova se nenhuma estiver aberta ainda.
+- se já existe uma aba aberta, ela **nunca é navegada/recarregada** — a
+  extensão só foca nela e abre a conversa do número informado simulando o
+  fluxo manual (clicar em "Nova conversa", digitar o número na busca e
+  clicar no resultado), do mesmo jeito que você faria com o mouse. Isso
+  evita por completo a sensação de "reiniciar a sessão" a cada envio,
+  mesmo trocando de número de destino;
+- só é aberta (e navegada direto para a conversa via
+  `web.whatsapp.com/send?phone=...`) uma aba **nova**, quando nenhuma
+  estava aberta ainda — nesse caso não existe nenhuma sessão em uso para
+  "reiniciar";
+- se, por algum motivo, não for possível abrir a conversa simulando esse
+  fluxo (ex.: o WhatsApp Web mudou a tela de "Nova conversa"), a extensão
+  cai de volta para navegar a aba existente para a URL da conversa — o que
+  nesse caso específico *recarrega* a página (mas ainda sem logout).
 
 Essa parte depende de dois componentes adicionais:
 
@@ -158,13 +164,14 @@ Essa parte depende de dois componentes adicionais:
    encontradas: ...` — se aparecer `0` mesmo com uma aba do WhatsApp Web já
    aberta, feche todas as abas de `web.whatsapp.com`, deixe só uma aberta e
    logada, e tente de novo.
-3. Se a aba abre na conversa certa mas o arquivo não aparece anexado,
-   abra o DevTools (F12) **na aba do WhatsApp Web** e veja as mensagens
-   `[Projudi WhatsApp]` no console — elas indicam em qual etapa parou
-   (conversa não carregou, colar não funcionou, arrastar-e-soltar não
-   funcionou). Isso normalmente indica que o WhatsApp Web mudou a
-   estrutura da tela e os seletores usados por `src/whatsapp.js` precisam
-   de ajuste.
+3. Se a aba abre na conversa certa mas o arquivo não aparece anexado, ou
+   se a conversa não abre e a aba acaba recarregando mesmo já estando
+   aberta, abra o DevTools (F12) **na aba do WhatsApp Web** e veja as
+   mensagens `[Projudi WhatsApp]` no console — elas indicam em qual etapa
+   parou (abrir a conversa sem recarregar, colar, arrastar-e-soltar).
+   Isso normalmente indica que o WhatsApp Web mudou a estrutura da tela
+   (botão de "Nova conversa", campo de busca, caixa de mensagem, etc.) e
+   os seletores usados por `src/whatsapp.js` precisam de ajuste.
 
 Limitações:
 
