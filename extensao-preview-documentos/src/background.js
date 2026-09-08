@@ -15,6 +15,17 @@
 // SEMPRE reaproveitamos uma aba de web.whatsapp.com já aberta em vez de
 // criar uma aba nova a cada envio.
 //
+// Um detalhe chato de content scripts declarados no manifest: eles só são
+// injetados quando a página carrega/navega. Uma aba do WhatsApp Web que já
+// estava aberta ANTES desta extensão existir (ou antes de uma atualização
+// dela) nunca teria o content script novo, e como propositalmente nunca
+// recarregamos essa aba (ver comentário abaixo), ela ficaria travada para
+// sempre sem o script certo — precisando de um F5 manual do usuário toda
+// vez que a extensão for atualizada. Por isso, sempre que avisar a aba por
+// mensagem falha (script ausente/desatualizado), reinjetamos
+// src/whatsapp.js nela por conta própria com chrome.scripting, sem precisar
+// recarregar a página.
+//
 // Além disso, navegar a aba reaproveitada para uma URL diferente (trocar de
 // conversa) força o Chrome a recarregar a página inteira do WhatsApp Web —
 // o que parece um "reinício de sessão" mesmo não sendo logout. Por isso
@@ -93,11 +104,7 @@ async function openOrReuseWhatsappTab() {
 		if (tab.windowId != null) {
 			await chrome.windows.update(tab.windowId, { focused: true });
 		}
-		try {
-			await chrome.tabs.sendMessage(tab.id, { source: MESSAGE_SOURCE, type: "whatsapp-check-pending" });
-		} catch (err) {
-			console.warn(LOG_PREFIX, "não consegui avisar a aba diretamente:", err);
-		}
+		await notifyOrInjectContentScript(tab.id);
 		return tab;
 	}
 
@@ -106,6 +113,29 @@ async function openOrReuseWhatsappTab() {
 	// certa sozinho, do mesmo jeito que faria numa aba reaproveitada.
 	console.info(LOG_PREFIX, "nenhuma aba do WhatsApp Web aberta, criando uma nova.");
 	return chrome.tabs.create({ url: "https://web.whatsapp.com/", active: true });
+}
+
+// Tenta avisar o content script já injetado na aba; se isso falhar (script
+// nunca injetado, ou órfão de uma versão anterior da extensão — o canal com
+// chrome.runtime fica cortado depois de a extensão recarregar), injeta
+// src/whatsapp.js de novo diretamente. O próprio arquivo já busca o envio
+// pendente sozinho assim que carrega, então não precisa reenviar a
+// mensagem depois de injetar.
+async function notifyOrInjectContentScript(tabId) {
+	try {
+		await chrome.tabs.sendMessage(tabId, { source: MESSAGE_SOURCE, type: "whatsapp-check-pending" });
+		console.info(LOG_PREFIX, "aba", tabId, "avisada diretamente (content script já estava ativo).");
+		return;
+	} catch (err) {
+		console.warn(LOG_PREFIX, "content script não respondeu (ausente ou desatualizado), reinjetando:", err);
+	}
+
+	try {
+		await chrome.scripting.executeScript({ target: { tabId: tabId }, files: ["src/whatsapp.js"] });
+		console.info(LOG_PREFIX, "content script reinjetado na aba", tabId, "com sucesso.");
+	} catch (err) {
+		console.error(LOG_PREFIX, "falha ao reinjetar o content script na aba", tabId, ":", err);
+	}
 }
 
 // Usado por src/whatsapp.js como último recurso, apenas se não conseguir

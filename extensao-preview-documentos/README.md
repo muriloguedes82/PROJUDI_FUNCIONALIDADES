@@ -157,6 +157,15 @@ Essa parte depende de dois componentes adicionais:
   `[Projudi WhatsApp]`), útil para diagnosticar se o anexo automático não
   funcionar.
 
+Detalhe técnico: como a aba do WhatsApp Web reaproveitada nunca é
+recarregada (ver acima), uma aba que já estava aberta antes de a extensão
+ser instalada/atualizada não teria `src/whatsapp.js` rodando nela — content
+scripts declarados no manifest só são injetados quando a página
+carrega/navega. Por isso `src/background.js` sempre tenta avisar a aba por
+mensagem primeiro e, se isso falhar (script ausente ou órfão de uma versão
+anterior), reinjeta `src/whatsapp.js` nela por conta própria (via
+`chrome.scripting`), sem precisar de nenhum F5 manual.
+
 ### Se o anexo automático não funcionar
 
 1. Depois de atualizar os arquivos da extensão, sempre recarregue-a em
@@ -170,6 +179,12 @@ Essa parte depende de dois componentes adicionais:
    encontradas: ...` — se aparecer `0` mesmo com uma aba do WhatsApp Web já
    aberta, feche todas as abas de `web.whatsapp.com`, deixe só uma aberta e
    logada, e tente de novo.
+3. Ao abrir o DevTools para ver os logs de `src/whatsapp.js`, confirme que
+   ele está inspecionando mesmo a aba do **WhatsApp Web** — se o DevTools
+   estiver "solto" (janela separada), ele fica preso à aba que estava em
+   foco quando foi aberto, e trocar de aba clicando nela não muda isso;
+   feche e abra o DevTools de novo com a aba do WhatsApp Web em foco, e
+   confira que a URL mostrada no painel é `web.whatsapp.com`.
 3. Se a aba abre na conversa certa mas o arquivo não aparece anexado, ou
    se a conversa não abre e a aba acaba recarregando mesmo já estando
    aberta, abra o DevTools (F12) **na aba do WhatsApp Web** e veja as
