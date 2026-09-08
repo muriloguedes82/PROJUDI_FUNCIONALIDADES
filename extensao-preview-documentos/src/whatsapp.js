@@ -158,31 +158,57 @@
 		return null;
 	}
 
-	// O campo de busca da lista de conversas (sempre visível, sem precisar
-	// clicar em nada) e o campo de busca do painel "Nova conversa" costumam
-	// ser um <div contenteditable="true"> dentro de #side — mas versões mais
-	// recentes do WhatsApp Web podem usar um <input> de verdade. Pegamos o
-	// ÚLTIMO campo editável encontrado (o painel de nova conversa, quando
-	// aberto, é inserido por cima/depois do de busca padrão no DOM).
+	// Confirmado (via DevTools numa instalação real): a busca padrão da
+	// lista de conversas é um <input type="text"> de verdade, com
+	// aria-label "Pesquisar ou começar uma nova conversa" (ou "Pesquisar
+	// nome, número ou @nomedeusuário" dentro do painel de nova conversa) —
+	// versões mais antigas usavam um <div contenteditable="true"> em vez de
+	// <input>, então aceitamos os dois. Damos preferência ao aria-label
+	// (mais estável entre versões que os nomes de classe, que no WhatsApp
+	// Web atual são gerados/ilegíveis, ex.: "xdj266r x14z9mp ...").
 	function findChatSearchInput() {
 		const side = document.querySelector("#side");
 		if (!side) return null;
+
+		const byLabel = side.querySelector(
+			'input[aria-label*="Pesquisar" i], input[aria-label*="Search" i], ' +
+				'[contenteditable="true"][aria-label*="Pesquisar" i], [contenteditable="true"][aria-label*="Search" i]'
+		);
+		if (byLabel) return byLabel;
+
 		const candidates = side.querySelectorAll(
 			'[contenteditable="true"], input[type="text"], input[type="search"], input:not([type])'
 		);
 		return candidates.length ? candidates[candidates.length - 1] : null;
 	}
 
+	// Seletores para os itens de resultado da busca (uma conversa/contato
+	// listado depois de digitar um nome/número). Ainda não confirmados numa
+	// instalação com a versão mais nova do WhatsApp Web (a que reescreveu a
+	// interface com classes CSS geradas, tipo "x1c1uobl") — por isso a lista
+	// é propositalmente ampla, cobrindo tanto o WhatsApp Web "clássico"
+	// quanto suposições razoáveis sobre o novo. Ver LOG_PREFIX no console se
+	// nenhum desses bater: a extensão avisa quantos resultados encontrou.
+	const SEARCH_RESULT_SELECTOR = [
+		'[data-testid="cell-frame-container"]',
+		'[data-testid*="cell" i]',
+		'[data-testid*="chat" i]',
+		'[role="listitem"]',
+		'[role="row"]',
+		'[role="option"]',
+		'[role="gridcell"]',
+	].join(", ");
+
 	function countSearchResults() {
 		const side = document.querySelector("#side");
 		if (!side) return 0;
-		return side.querySelectorAll('[data-testid="cell-frame-container"], [role="listitem"]').length;
+		return side.querySelectorAll(SEARCH_RESULT_SELECTOR).length;
 	}
 
 	function findFirstSearchResult() {
 		const side = document.querySelector("#side");
 		if (!side) return null;
-		return side.querySelector('[data-testid="cell-frame-container"]') || side.querySelector('[role="listitem"]');
+		return side.querySelector(SEARCH_RESULT_SELECTOR);
 	}
 
 	// Preenche um campo de busca controlado por React (o WhatsApp Web inteiro
@@ -224,9 +250,9 @@
 		setContentEditableText(input, "+" + phone);
 		await wait(900);
 
-		const found = countSearchResults() > 0;
-		log(found ? "resultado encontrado na busca padrão." : "nenhum resultado na busca padrão.");
-		return found;
+		const count = countSearchResults();
+		log(count > 0 ? count + " resultado(s) encontrado(s) na busca padrão." : "nenhum resultado na busca padrão.");
+		return count > 0;
 	}
 
 	// Estratégia alternativa: clicar explicitamente em "Nova conversa" antes
