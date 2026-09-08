@@ -106,14 +106,18 @@ a extensão configure aqui.
 
 - **Modo Graph**: definir o remetente (`from`) na criação do rascunho é um
   recurso documentado da Microsoft Graph — deve funcionar de forma
-  confiável, desde que a permissão acima esteja concedida.
-- **Modo Outlook Web (fallback)**: o parâmetro `from` é incluído no link de
-  composição a título de teste, mas **não há documentação oficial da
-  Microsoft confirmando que o deep link aceita esse parâmetro** (diferente
-  de `to`/`subject`/`body`, que são suportados). Se o Outlook ignorá-lo, o
-  e-mail abre normalmente com a conta padrão, e o usuário pode trocar
-  manualmente pelo seletor "De" da própria tela de composição (visível
-  quando já se tem permissão de "Enviar como" em outra caixa).
+  confiável, desde que a permissão acima esteja concedida (não foi testado
+  ainda em produção, já que o ambiente de testes até agora só usou o modo
+  Outlook Web).
+- **Modo Outlook Web (fallback)**: **testado e confirmado que não
+  funciona** — o parâmetro `from` do link de composição é ignorado pelo
+  Outlook Web, o e-mail sempre abre com a conta padrão. O diálogo "Enviar
+  como" mostra um aviso amarelo quando detecta que este é o modo ativo,
+  explicando isso. Nesse modo, a única forma de trocar o remetente é
+  manualmente, pelo seletor "De" da própria tela de composição do Outlook
+  (só aparece se a conta já tiver permissão de "Enviar como" em outra
+  caixa) — o recurso "Enviar como" da extensão, nesse modo, serve só para
+  guardar a lista de contas para referência, não para pré-selecionar nada.
 
 ### Configuração necessária (feita uma única vez pelo TI)
 
