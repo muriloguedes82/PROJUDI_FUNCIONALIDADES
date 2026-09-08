@@ -86,6 +86,35 @@ Os destinatários salvos ficam em `chrome.storage.local`, portanto são
 locais ao navegador/perfil onde a extensão está instalada (não são
 sincronizados entre computadores nem enviados a nenhum servidor).
 
+### Enviar como (EXPERIMENTAL)
+
+O botão **"✉️ Enviar como"** permite escolher, antes de enviar, de qual
+conta o e-mail deve sair — por exemplo, o e-mail pessoal (`murc@tjpr.jus.br`)
+ou o de um grupo/secretaria (`pin-2vj-e@tjpr.jus.br`). Funciona como o
+diálogo de destinatários: "+ Adicionar" salva uma conta (Nome + E-mail),
+🗑 remove, e um botão de opção (rádio) ao lado de cada conta marca qual usar
+— "Padrão da conta" (a opção inicial) não define remetente, mantendo o
+comportamento normal do Outlook.
+
+**Pré-requisito obrigatório, fora do controle da extensão:** o usuário
+autenticado precisa já ter a permissão **"Enviar como"** (ou "Enviar em
+nome de") concedida pelo Exchange/TI na caixa escolhida. Sem essa
+permissão, o Outlook recusa o envio com esse remetente, não importa o que
+a extensão configure aqui.
+
+**Nível de suporte por modo:**
+
+- **Modo Graph**: definir o remetente (`from`) na criação do rascunho é um
+  recurso documentado da Microsoft Graph — deve funcionar de forma
+  confiável, desde que a permissão acima esteja concedida.
+- **Modo Outlook Web (fallback)**: o parâmetro `from` é incluído no link de
+  composição a título de teste, mas **não há documentação oficial da
+  Microsoft confirmando que o deep link aceita esse parâmetro** (diferente
+  de `to`/`subject`/`body`, que são suportados). Se o Outlook ignorá-lo, o
+  e-mail abre normalmente com a conta padrão, e o usuário pode trocar
+  manualmente pelo seletor "De" da própria tela de composição (visível
+  quando já se tem permissão de "Enviar como" em outra caixa).
+
 ### Configuração necessária (feita uma única vez pelo TI)
 
 O envio usa a Microsoft Graph API, então é preciso um aplicativo cadastrado

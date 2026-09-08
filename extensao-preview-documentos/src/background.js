@@ -175,7 +175,7 @@ async function graphFetch(token, path, options) {
 	return resp;
 }
 
-async function createDraft(token, subject, recipients, bodyText) {
+async function createDraft(token, subject, recipients, bodyText, fromEmail) {
 	const toRecipients = (recipients || []).map(function (email) {
 		return { emailAddress: { address: email } };
 	});
@@ -183,14 +183,23 @@ async function createDraft(token, subject, recipients, bodyText) {
 	// para HTML só trocando quebras de linha por <br>, para preservar o
 	// espaçamento no corpo HTML do rascunho.
 	const bodyHtml = (bodyText || "").replace(/\n/g, "<br>");
+
+	const draftFields = {
+		subject: subject || "",
+		toRecipients: toRecipients,
+		body: { contentType: "HTML", content: bodyHtml },
+	};
+	// EXPERIMENTAL: definir "from" só funciona se o usuário autenticado já
+	// tiver permissão de "Enviar como" na caixa informada (concedida pelo
+	// Exchange/TI); sem isso, o Outlook recusa o envio com esse remetente.
+	if (fromEmail) {
+		draftFields.from = { emailAddress: { address: fromEmail } };
+	}
+
 	const resp = await graphFetch(token, "/me/messages", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({
-			subject: subject || "",
-			toRecipients: toRecipients,
-			body: { contentType: "HTML", content: bodyHtml },
-		}),
+		body: JSON.stringify(draftFields),
 	});
 	const data = await resp.json();
 	if (!resp.ok) {
@@ -275,7 +284,7 @@ async function openComposeWindow(webLink) {
 
 async function handleSendEmailGraph(message) {
 	const token = await acquireAccessToken();
-	const draft = await createDraft(token, message.subject, message.recipients, message.body);
+	const draft = await createDraft(token, message.subject, message.recipients, message.body, message.fromEmail);
 
 	for (const file of message.attachments) {
 		const bytes = base64ToBytes(file.base64);
@@ -335,6 +344,16 @@ async function handleSendEmailFallback(message) {
 	}
 	if (message.body) {
 		composeParams.body = message.body;
+	}
+	// EXPERIMENTAL: não há documentação oficial confirmando que o deep link
+	// de composição do Outlook Web aceita "from" para pré-selecionar o
+	// remetente (diferente de "to"/"subject"/"body", que são suportados).
+	// Incluímos aqui para testar; se o Outlook ignorar o parâmetro, o
+	// usuário ainda pode trocar a conta manualmente pelo seletor "De" da
+	// própria tela de composição (quando tiver permissão de "Enviar como"
+	// na caixa desejada).
+	if (message.fromEmail) {
+		composeParams.from = message.fromEmail;
 	}
 	// Não usamos URLSearchParams aqui: ele codifica espaços como "+"
 	// (application/x-www-form-urlencoded), mas o deep link do Outlook Web
