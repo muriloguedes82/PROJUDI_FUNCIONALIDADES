@@ -202,17 +202,28 @@
 
 	function findFromOption(email) {
 		const emailLower = email.toLowerCase();
-		// Cobre os padrões mais comuns de item de lista/menu em componentes
-		// Fluent UI (role="option"/"menuitem"), mas também botões soltos
-		// dentro de um menu/listbox aberto, caso o Outlook não use esses
-		// papéis ARIA para cada item.
-		const candidates = document.querySelectorAll(
-			'[role="option"], [role="menuitem"], [role="listbox"] button, [role="listbox"] li, [role="menu"] button, [role="menu"] li'
+
+		// 1) Papéis ARIA de item de menu/lista, incluindo variantes de
+		// seleção única com marca de escolhido (role="menuitemradio"),
+		// comuns nesse tipo de lista de contas com um "✓" ao lado da atual.
+		const roleCandidates = document.querySelectorAll(
+			'[role="option"], [role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"]'
 		);
-		for (const el of candidates) {
-			const text = (el.getAttribute("aria-label") || el.textContent || "").toLowerCase();
+		for (const el of roleCandidates) {
+			const text = (el.getAttribute("aria-label") || el.textContent || "").trim().toLowerCase();
 			if (text.indexOf(emailLower) !== -1) return el;
 		}
+
+		// 2) Reserva: procura qualquer elemento "folha" (sem filhos) cujo
+		// texto contenha o e-mail, sem depender de nenhum papel ARIA
+		// específico — cobre o caso de o Outlook não usar esses papéis.
+		const allElements = document.querySelectorAll("body *");
+		for (const el of allElements) {
+			if (el.children.length > 0) continue;
+			const text = (el.textContent || "").trim().toLowerCase();
+			if (text && text.indexOf(emailLower) !== -1) return el;
+		}
+
 		return null;
 	}
 
@@ -269,7 +280,7 @@
 					defaultAccount.email +
 					"' na lista de remetentes — confira se a permissão de 'Enviar como' está configurada para essa conta."
 			);
-			logNearbyTexts('[role="option"], [role="menuitem"], [role="listbox"] button, [role="listbox"] li, [role="menu"] button, [role="menu"] li');
+			logNearbyTexts('[role="option"], [role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"]');
 			return;
 		}
 		option.click();
