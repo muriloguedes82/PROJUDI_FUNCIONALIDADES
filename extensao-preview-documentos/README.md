@@ -112,7 +112,8 @@ Fluxo de uso:
 
 1. Marque a caixinha ao lado de um ou mais documentos do processo.
 2. Clique em "Enviar por WhatsApp" e informe o número de destino (com DDD;
-   se nenhum DDI for digitado, assume-se `55`/Brasil).
+   se nenhum DDI for digitado, assume-se `55`/Brasil) — ou escolha um
+   destinatário já salvo (ver "Destinatários salvos" abaixo).
 3. Ao confirmar, a extensão baixa os arquivos selecionados (reaproveitando a
    sessão do Projudi/SEEU, do mesmo jeito que a pré-visualização — o
    download em si é feito pelo `src/background.js`, não pela página, porque
@@ -130,6 +131,27 @@ Fluxo de uso:
    enviar. Um aviso aparece no canto inferior esquerdo da tela do WhatsApp
    Web mostrando o andamento ("aguardando a conversa carregar…", "anexando
    arquivo(s)…", "arquivo(s) anexado(s)" ou um erro).
+
+### Destinatários salvos
+
+O painel de envio tem uma lista de destinatários salvos (nome + número),
+parecida com um catálogo de contatos de e-mail:
+
+- **Salvar**: clique em "+ Novo" (dentro do painel de envio), preencha nome
+  e número e confirme. Se já houver um número digitado no campo principal,
+  ele já vem preenchido no formulário.
+- **Usar**: clique em qualquer destinatário da lista para preencher o campo
+  de número com ele.
+- **Pesquisar**: digite no campo de busca para filtrar a lista pelo nome.
+- **Favoritar**: clique na estrela (☆/★) ao lado do nome — favoritos sempre
+  aparecem no topo da lista, antes dos demais (ordenados por ordem
+  alfabética dentro de cada grupo).
+- **Remover**: clique no "✕" ao lado do destinatário (pede confirmação
+  antes de remover).
+
+A lista é guardada em `chrome.storage.local` (armazenamento da própria
+extensão, não do site), então é a mesma lista tanto no Projudi quanto no
+SEEU, e continua disponível depois de fechar e reabrir o navegador.
 
 **Importante — confira sempre o destinatário antes de clicar em enviar.**
 Documentos de processo são sensíveis; esse segundo antes de clicar em

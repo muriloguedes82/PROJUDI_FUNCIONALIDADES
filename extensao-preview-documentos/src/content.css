@@ -264,7 +264,176 @@ a.link[href*="/arquivo.do"]:hover,
 	font-size: 13px;
 	border: 1px solid #bbb;
 	border-radius: 4px;
-	margin-bottom: 12px;
+	margin-bottom: 10px;
+}
+
+/* --- Destinatários salvos --- */
+
+.pdp-wa-contacts {
+	margin-bottom: 14px;
+	border: 1px solid #e2e2e2;
+	border-radius: 6px;
+	padding: 8px;
+	background: #fafafa;
+}
+
+.pdp-wa-contacts-toolbar {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 6px;
+}
+
+.pdp-wa-contacts-search {
+	flex: 1 1 auto;
+	box-sizing: border-box;
+	padding: 6px 8px;
+	font-size: 12px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+
+.pdp-wa-contact-add {
+	flex: 0 0 auto;
+	font-size: 11px;
+	font-weight: bold;
+	padding: 6px 10px;
+	border-radius: 4px;
+	border: 1px solid #1da851;
+	background: #fff;
+	color: #1da851;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.pdp-wa-contact-add:hover {
+	background: #eafbf1;
+}
+
+.pdp-wa-contact-form {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin-bottom: 8px;
+	padding: 8px;
+	background: #fff;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+}
+
+.pdp-wa-contact-form-name,
+.pdp-wa-contact-form-phone {
+	box-sizing: border-box;
+	width: 100%;
+	padding: 6px 8px;
+	font-size: 12px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+
+.pdp-wa-contact-form-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 6px;
+}
+
+.pdp-wa-contact-form-cancel,
+.pdp-wa-contact-form-save {
+	font-size: 11px;
+	padding: 5px 10px;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.pdp-wa-contact-form-cancel {
+	background: #eee;
+	border: 1px solid #ccc;
+	color: #333;
+}
+
+.pdp-wa-contact-form-save {
+	background: #25d366;
+	border: 1px solid #1da851;
+	color: #fff;
+	font-weight: bold;
+}
+
+.pdp-wa-contacts-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	max-height: 130px;
+	overflow-y: auto;
+}
+
+.pdp-wa-contact-item {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 5px 4px;
+	font-size: 12px;
+	border-bottom: 1px solid #eee;
+	cursor: pointer;
+}
+
+.pdp-wa-contact-item:last-child {
+	border-bottom: none;
+}
+
+.pdp-wa-contact-item:hover {
+	background: #eef7f0;
+}
+
+.pdp-wa-contact-fav {
+	flex: 0 0 auto;
+	background: transparent;
+	border: none;
+	color: #d9a400;
+	font-size: 14px;
+	line-height: 1;
+	cursor: pointer;
+	padding: 2px;
+}
+
+.pdp-wa-contact-info {
+	flex: 1 1 auto;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.pdp-wa-contact-name {
+	font-weight: bold;
+	color: #222;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.pdp-wa-contact-phone {
+	color: #777;
+	font-size: 11px;
+}
+
+.pdp-wa-contact-delete {
+	flex: 0 0 auto;
+	background: transparent;
+	border: none;
+	color: #a33;
+	cursor: pointer;
+	font-size: 11px;
+	padding: 2px 4px;
+}
+
+.pdp-wa-contact-delete:hover {
+	color: #e00;
+}
+
+.pdp-wa-contacts-empty {
+	font-size: 11px;
+	color: #888;
+	font-style: italic;
+	padding: 6px 4px;
 }
 
 .pdp-wa-files-label {

@@ -573,6 +573,177 @@
 		countEl.textContent = String(n);
 	}
 
+	// ---------------------------------------------------------------------
+	// Destinatários salvos (nome + número), com busca e favoritos
+	// ---------------------------------------------------------------------
+	//
+	// Guardados em chrome.storage.local (compartilhado pela extensão, não
+	// por site), então a mesma lista aparece tanto no Projudi quanto no
+	// SEEU — igual a uma lista de contatos de e-mail.
+
+	const CONTACTS_STORAGE_KEY = "pdpWhatsappContacts";
+	let contactsCache = [];
+
+	function loadContacts() {
+		return new Promise(function (resolve) {
+			try {
+				chrome.storage.local.get(CONTACTS_STORAGE_KEY, function (data) {
+					resolve((data && data[CONTACTS_STORAGE_KEY]) || []);
+				});
+			} catch (e) {
+				resolve([]);
+			}
+		});
+	}
+
+	function saveContacts(list) {
+		return new Promise(function (resolve) {
+			try {
+				chrome.storage.local.set({ [CONTACTS_STORAGE_KEY]: list }, resolve);
+			} catch (e) {
+				resolve();
+			}
+		});
+	}
+
+	function sortContacts(list) {
+		return list.slice().sort(function (a, b) {
+			if (!!a.favorite !== !!b.favorite) return a.favorite ? -1 : 1;
+			return a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" });
+		});
+	}
+
+	function openContactForm() {
+		if (!waPanel) return;
+		waPanel.contactForm.hidden = false;
+		waPanel.contactFormName.value = "";
+		waPanel.contactFormPhone.value = waPanel.phoneInput.value || "";
+		waPanel.contactFormName.focus();
+	}
+
+	function closeContactForm() {
+		if (!waPanel) return;
+		waPanel.contactForm.hidden = true;
+		waPanel.contactFormName.value = "";
+		waPanel.contactFormPhone.value = "";
+	}
+
+	function saveContactFromForm() {
+		if (!waPanel) return;
+		const name = waPanel.contactFormName.value.trim();
+		const phone = normalizePhone(waPanel.contactFormPhone.value);
+
+		if (!name) {
+			waPanel.status.textContent = "Informe um nome para o destinatário.";
+			waPanel.contactFormName.focus();
+			return;
+		}
+		if (phone.length < 12 || phone.length > 15) {
+			waPanel.status.textContent = "Informe um número de WhatsApp válido (com DDD).";
+			waPanel.contactFormPhone.focus();
+			return;
+		}
+
+		waPanel.status.textContent = "";
+		const contact = {
+			id: "c-" + Date.now() + "-" + Math.random().toString(36).slice(2),
+			name: name,
+			phone: phone,
+			favorite: false,
+		};
+		contactsCache.push(contact);
+		saveContacts(contactsCache).then(function () {
+			closeContactForm();
+			refreshContactsList();
+		});
+	}
+
+	function toggleContactFavorite(id) {
+		const contact = contactsCache.find(function (c) {
+			return c.id === id;
+		});
+		if (!contact) return;
+		contact.favorite = !contact.favorite;
+		saveContacts(contactsCache).then(refreshContactsList);
+	}
+
+	function deleteContact(id, name) {
+		if (!confirm('Remover "' + name + '" da lista de destinatários salvos?')) return;
+		contactsCache = contactsCache.filter(function (c) {
+			return c.id !== id;
+		});
+		saveContacts(contactsCache).then(refreshContactsList);
+	}
+
+	function refreshContactsList() {
+		if (!waPanel) return;
+		const query = waPanel.contactsSearch.value.trim().toLowerCase();
+		const filtered = contactsCache.filter(function (c) {
+			return !query || c.name.toLowerCase().indexOf(query) !== -1;
+		});
+		const sorted = sortContacts(filtered);
+
+		waPanel.contactsList.innerHTML = "";
+
+		if (!sorted.length) {
+			const li = document.createElement("li");
+			li.className = "pdp-wa-contacts-empty";
+			li.textContent = contactsCache.length
+				? "Nenhum destinatário encontrado."
+				: "Nenhum destinatário salvo ainda — clique em “+ Novo” para adicionar.";
+			waPanel.contactsList.appendChild(li);
+			return;
+		}
+
+		sorted.forEach(function (contact) {
+			const li = document.createElement("li");
+			li.className = "pdp-wa-contact-item";
+			li.title = "Usar este destinatário";
+
+			const favBtn = document.createElement("button");
+			favBtn.type = "button";
+			favBtn.className = "pdp-wa-contact-fav";
+			favBtn.title = contact.favorite ? "Remover dos favoritos" : "Marcar como favorito";
+			favBtn.textContent = contact.favorite ? "★" : "☆";
+			favBtn.addEventListener("click", function (e) {
+				e.stopPropagation();
+				toggleContactFavorite(contact.id);
+			});
+
+			const info = document.createElement("span");
+			info.className = "pdp-wa-contact-info";
+			const nameSpan = document.createElement("span");
+			nameSpan.className = "pdp-wa-contact-name";
+			nameSpan.textContent = contact.name;
+			const phoneSpan = document.createElement("span");
+			phoneSpan.className = "pdp-wa-contact-phone";
+			phoneSpan.textContent = contact.phone;
+			info.appendChild(nameSpan);
+			info.appendChild(phoneSpan);
+
+			const delBtn = document.createElement("button");
+			delBtn.type = "button";
+			delBtn.className = "pdp-wa-contact-delete";
+			delBtn.title = "Remover destinatário";
+			delBtn.textContent = "✕";
+			delBtn.addEventListener("click", function (e) {
+				e.stopPropagation();
+				deleteContact(contact.id, contact.name);
+			});
+
+			li.appendChild(favBtn);
+			li.appendChild(info);
+			li.appendChild(delBtn);
+
+			li.addEventListener("click", function () {
+				waPanel.phoneInput.value = contact.phone;
+				waPanel.status.textContent = "";
+			});
+
+			waPanel.contactsList.appendChild(li);
+		});
+	}
+
 	function ensureWaPanel() {
 		if (waPanel) return waPanel;
 
@@ -587,6 +758,21 @@
 			'  <div class="pdp-wa-modal-body">' +
 			'    <label class="pdp-wa-field-label" for="pdp-wa-phone">Número do WhatsApp (com DDD)</label>' +
 			'    <input type="tel" id="pdp-wa-phone" class="pdp-wa-phone-input" placeholder="Ex.: 41 99999-8888" autocomplete="off">' +
+			'    <div class="pdp-wa-contacts">' +
+			'      <div class="pdp-wa-contacts-toolbar">' +
+			'        <input type="text" class="pdp-wa-contacts-search" placeholder="Pesquisar destinatário salvo…">' +
+			'        <button type="button" class="pdp-wa-contact-add" title="Salvar destinatário">+ Novo</button>' +
+			"      </div>" +
+			'      <div class="pdp-wa-contact-form" hidden>' +
+			'        <input type="text" class="pdp-wa-contact-form-name" placeholder="Nome">' +
+			'        <input type="tel" class="pdp-wa-contact-form-phone" placeholder="Número (com DDD)">' +
+			'        <div class="pdp-wa-contact-form-actions">' +
+			'          <button type="button" class="pdp-wa-contact-form-cancel">Cancelar</button>' +
+			'          <button type="button" class="pdp-wa-contact-form-save">Salvar</button>' +
+			"        </div>" +
+			"      </div>" +
+			'      <ul class="pdp-wa-contacts-list"></ul>' +
+			"    </div>" +
 			'    <div class="pdp-wa-files-label">Arquivos selecionados:</div>' +
 			'    <ul class="pdp-wa-files-list"></ul>' +
 			'    <div class="pdp-wa-empty-hint">Marque a caixinha ao lado de um documento na tela para selecioná-lo.</div>' +
@@ -606,6 +792,12 @@
 			emptyHint: wrap.querySelector(".pdp-wa-empty-hint"),
 			status: wrap.querySelector(".pdp-wa-status"),
 			sendBtn: wrap.querySelector(".pdp-wa-send"),
+			contactsSearch: wrap.querySelector(".pdp-wa-contacts-search"),
+			contactsList: wrap.querySelector(".pdp-wa-contacts-list"),
+			contactAddBtn: wrap.querySelector(".pdp-wa-contact-add"),
+			contactForm: wrap.querySelector(".pdp-wa-contact-form"),
+			contactFormName: wrap.querySelector(".pdp-wa-contact-form-name"),
+			contactFormPhone: wrap.querySelector(".pdp-wa-contact-form-phone"),
 		};
 
 		wrap.querySelector(".pdp-wa-modal-close").addEventListener("click", closeWaPanel);
@@ -615,15 +807,25 @@
 		});
 		waPanel.sendBtn.addEventListener("click", sendSelectedDocsViaWhatsapp);
 
+		waPanel.contactsSearch.addEventListener("input", refreshContactsList);
+		waPanel.contactAddBtn.addEventListener("click", openContactForm);
+		wrap.querySelector(".pdp-wa-contact-form-cancel").addEventListener("click", closeContactForm);
+		wrap.querySelector(".pdp-wa-contact-form-save").addEventListener("click", saveContactFromForm);
+
 		return waPanel;
 	}
 
 	function openWaPanel() {
 		const panel = ensureWaPanel();
 		refreshWaPanelList();
+		closeContactForm();
 		panel.wrap.classList.add("pdp-wa-visible");
 		panel.status.textContent = "";
 		panel.phoneInput.focus();
+		loadContacts().then(function (list) {
+			contactsCache = list;
+			refreshContactsList();
+		});
 	}
 
 	function closeWaPanel() {
