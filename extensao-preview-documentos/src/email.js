@@ -454,12 +454,21 @@
 	}
 
 	// Número dos autos: no Projudi vem de <em class="attention">; no SEEU
-	// (e como reserva geral) usa o mesmo padrão já usado em subjectFromPage,
-	// aplicado ao título da página, que em ambos os sistemas contém o
-	// número do processo.
+	// vem do cabeçalho do processo (div.titulo.processo, que mistura o
+	// texto "Execução" com o número e alguns ícones/links — por isso
+	// extraímos com regex em vez de usar o textContent inteiro). Como
+	// última reserva, usa o mesmo padrão já usado em subjectFromPage,
+	// aplicado ao título da página.
 	function extractProcessNumber() {
 		const projudiEl = document.querySelector("em.attention");
 		if (projudiEl && projudiEl.textContent.trim()) return projudiEl.textContent.trim();
+
+		const seeuEl = document.querySelector("div.titulo.processo");
+		if (seeuEl) {
+			const seeuMatch = seeuEl.textContent.match(/([\d.\-]{15,})/);
+			if (seeuMatch) return seeuMatch[1];
+		}
+
 		const match = document.title.match(/([\d.\-]{15,})/);
 		return match ? match[1] : "";
 	}
