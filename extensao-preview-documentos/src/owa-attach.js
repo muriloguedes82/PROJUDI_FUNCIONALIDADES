@@ -72,43 +72,83 @@
 		});
 	}
 
-	// Rótulo do campo "De" na composição do Outlook Web (o rótulo pode mudar
-	// conforme idioma/versão — ajuste esta lista se parar de funcionar).
-	const FROM_TOGGLE_LABELS = ["de", "from"];
+	// O campo "De" não é um botão isolado: fica escondido atrás da guia
+	// "Opções" da faixa de opções (ribbon) → caixinha "Mostrar de" (grupo
+	// "Mostrar campos"). Os rótulos abaixo podem mudar conforme
+	// idioma/versão — ajuste esta lista se parar de funcionar.
+	const OPTIONS_TAB_LABELS = ["opções", "options"];
+	const MESSAGE_TAB_LABELS = ["mensagem", "message"];
+	const SHOW_FROM_LABELS = ["mostrar de", "show from"];
 
-	function findFromToggleCandidates() {
-		const elements = document.querySelectorAll('button, [role="button"], a');
-		const matches = [];
-		elements.forEach(function (el) {
-			const text = (el.textContent || "").trim().toLowerCase();
-			if (FROM_TOGGLE_LABELS.indexOf(text) !== -1) matches.push(el);
-		});
-		return matches;
+	function findByAccessibleText(selector, labelsLower) {
+		const elements = document.querySelectorAll(selector);
+		for (const el of elements) {
+			const text = (el.getAttribute("aria-label") || el.textContent || "").trim().toLowerCase();
+			if (labelsLower.indexOf(text) !== -1) return el;
+		}
+		return null;
 	}
 
-	// Tenta revelar o campo "De" da composição, clicando nele, para o
-	// usuário poder trocar o remetente manualmente. Só clica quando há
-	// exatamente UM candidato óbvio (um botão/link cujo texto é só "De"),
-	// para evitar clicar em algo errado por ambiguidade — "De" é uma
-	// palavra comum, então preferimos não agir a agir errado.
+	function findRibbonTab(labelsLower) {
+		return findByAccessibleText('[role="tab"], button', labelsLower);
+	}
+
+	function findShowFromCheckbox() {
+		// Tenta um <label> associado a um <input type="checkbox"> (padrão
+		// nativo de formulário).
+		const labels = document.querySelectorAll("label");
+		for (const label of labels) {
+			const text = (label.textContent || "").trim().toLowerCase();
+			if (SHOW_FROM_LABELS.indexOf(text) === -1) continue;
+			if (label.control) return label.control;
+			const forId = label.getAttribute("for");
+			if (forId) {
+				const el = document.getElementById(forId);
+				if (el) return el;
+			}
+		}
+		// Tenta um elemento com role="checkbox" (padrão comum em componentes
+		// Fluent UI), identificado pelo aria-label ou pelo próprio texto.
+		return findByAccessibleText('[role="checkbox"]', SHOW_FROM_LABELS);
+	}
+
+	function isCheckedOn(el) {
+		if (typeof el.checked === "boolean") return el.checked;
+		return el.getAttribute("aria-checked") === "true";
+	}
+
+	// Tenta revelar o campo "De" da composição: clica na guia "Opções" da
+	// faixa de opções, marca a caixinha "Mostrar de" (só se ainda não
+	// estiver marcada, para não escondê-la sem querer) e volta para a guia
+	// "Mensagem". Não pré-seleciona nenhuma conta — só expõe o seletor
+	// nativo do Outlook para o usuário trocar manualmente.
 	async function tryRevealFromField() {
 		await sleep(1500); // dá tempo da tela de composição terminar de montar
-		const candidates = findFromToggleCandidates();
-		if (candidates.length === 1) {
-			candidates[0].click();
-			console.log("[Projudi->Outlook] cliquei para revelar o campo 'De':", candidates[0]);
-		} else if (candidates.length > 1) {
-			console.warn(
-				"[Projudi->Outlook] mais de um elemento parecido com o campo 'De' encontrado; não cliquei, para evitar " +
-					"ambiguidade. Troque o remetente manualmente.",
-				candidates
-			);
-		} else {
-			console.warn(
-				"[Projudi->Outlook] não encontrei o campo 'De' para revelar automaticamente (pode já estar visível, " +
-					"ou o rótulo mudou)."
-			);
+
+		const optionsTab = findRibbonTab(OPTIONS_TAB_LABELS);
+		if (!optionsTab) {
+			console.warn("[Projudi->Outlook] não encontrei a guia 'Opções' da faixa de opções.");
+			return;
 		}
+		optionsTab.click();
+		await sleep(400);
+
+		const checkbox = findShowFromCheckbox();
+		if (!checkbox) {
+			console.warn("[Projudi->Outlook] não encontrei a caixa 'Mostrar de' na guia Opções.");
+			return;
+		}
+
+		if (isCheckedOn(checkbox)) {
+			console.log("[Projudi->Outlook] 'Mostrar de' já estava marcado.");
+		} else {
+			checkbox.click();
+			console.log("[Projudi->Outlook] marquei 'Mostrar de' para revelar o campo De.", checkbox);
+		}
+
+		await sleep(300);
+		const messageTab = findRibbonTab(MESSAGE_TAB_LABELS);
+		if (messageTab) messageTab.click();
 	}
 
 	async function run() {
