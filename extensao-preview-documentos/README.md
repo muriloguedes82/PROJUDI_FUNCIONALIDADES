@@ -99,6 +99,33 @@ Os destinatários salvos ficam em `chrome.storage.local`, portanto são
 locais ao navegador/perfil onde a extensão está instalada (não são
 sincronizados entre computadores nem enviados a nenhum servidor).
 
+### Remetentes salvos (campo "De")
+
+No modo **"Outlook Web (sem Azure AD)"**, o botão **"✉️ Remetente"** abre
+uma tela para cadastrar até **20** contas remetentes (Nome + E-mail) e
+marcar uma delas com a estrela (☆ → ★) como **padrão**. Toda vez que o
+Outlook abrir pela extensão:
+
+1. O script (`src/owa-attach.js`) revela o campo **"De"** automaticamente,
+   clicando na guia **Opções** da faixa de opções e marcando a caixinha
+   **"Mostrar de"** (só se ainda não estiver marcada).
+2. Em seguida, tenta selecionar nele o remetente marcado como padrão.
+
+**Pré-requisito obrigatório, fora do controle da extensão:** a conta
+autenticada precisa já ter a permissão **"Enviar como"** (configuração do
+Exchange/TI) na caixa marcada como padrão — sem isso, o Outlook nem
+oferece essa conta na lista para escolher, e a seleção automática não tem
+efeito (o campo "De" continua revelado, só não muda o remetente).
+
+A etapa de **selecionar** o remetente no campo "De" é experimental: ao
+contrário de revelar a caixinha "Mostrar de" (testado e funcionando), não
+temos o HTML real do controle "De" nem da lista de contas que ele abre, só
+um palpite razoável de seletores (`src/owa-attach.js`,
+`findFromControl()`/`findFromOption()`). Se não funcionar, inspecione o
+campo "De" no Outlook Web (botão direito → Inspecionar) e ajuste esses
+seletores — o console do navegador (F12, filtro "Projudi") mostra em qual
+etapa a automação parou.
+
 ### Configuração necessária (feita uma única vez pelo TI)
 
 O envio usa a Microsoft Graph API, então é preciso um aplicativo cadastrado

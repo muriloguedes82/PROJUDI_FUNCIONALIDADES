@@ -7,12 +7,13 @@
 // do usuário e abre esta página num pop-up já com a tela de novo e-mail
 // (deep link de compose). Este script:
 // 1) mostra um aviso dizendo quais arquivos foram baixados e como anexá-los;
-// 2) tenta revelar o campo "De" da composição, caso esteja recolhido, para
-//    o usuário poder trocar manualmente o remetente (ex.: entre o e-mail
-//    pessoal e uma caixa de grupo/secretaria), quando já tiver permissão de
-//    "Enviar como" na conta desejada. Diferente da automação de anexo (que
-//    esbarrou em restrições de "evento não confiável"), isto é só um clique
-//    normal de UI, então funciona sem os mesmos problemas.
+// 2) tenta revelar o campo "De" da composição, caso esteja recolhido, e em
+//    seguida selecionar nele o remetente marcado como padrão no botão
+//    "✉️ Remetente" do Projudi/SEEU (chrome.storage.local, gerenciado por
+//    src/email.js) — só funciona se essa conta já tiver permissão de
+//    "Enviar como" configurada pelo TI. Diferente da automação de anexo
+//    (que esbarrou em restrições de "evento não confiável"), revelar/clicar
+//    em controles de UI normais não tem essa limitação.
 //
 // NOTA - por que o anexo não é automático: já tentamos três formas de
 // anexar sozinho e nenhuma funcionou:
@@ -181,6 +182,75 @@
 		if (messageTab) messageTab.click();
 	}
 
+	function findFromControl() {
+		// Tenta um combobox/botão cujo aria-label comece com "de" (o valor
+		// atual do remetente normalmente vem junto no rótulo, ex.:
+		// "De: fulano@dominio.com"). ATENÇÃO: não temos o HTML real desse
+		// controle — este é um palpite genérico; ajuste se não funcionar.
+		const candidates = document.querySelectorAll('[role="combobox"], [role="button"], button');
+		for (const el of candidates) {
+			const label = (el.getAttribute("aria-label") || "").trim().toLowerCase();
+			if (label === "de" || label.indexOf("de:") === 0 || label.indexOf("from:") === 0) return el;
+		}
+		return null;
+	}
+
+	function findFromOption(email) {
+		const emailLower = email.toLowerCase();
+		const candidates = document.querySelectorAll('[role="option"], [role="menuitem"]');
+		for (const el of candidates) {
+			const text = (el.getAttribute("aria-label") || el.textContent || "").toLowerCase();
+			if (text.indexOf(emailLower) !== -1) return el;
+		}
+		return null;
+	}
+
+	// Tenta selecionar, no campo "De" já revelado, o remetente marcado como
+	// padrão nas opções da extensão (botão "✉️ Remetente" no Projudi/SEEU).
+	// Só funciona se a conta já tiver permissão de "Enviar como" configurada
+	// pelo TI — sem isso, o e-mail nem aparece na lista para escolher.
+	// EXPERIMENTAL: não temos o HTML real do controle "De" nem da lista de
+	// opções, então os seletores abaixo são um palpite; se não funcionar,
+	// inspecione o campo "De" no Outlook Web (botão direito → Inspecionar)
+	// e ajuste findFromControl()/findFromOption().
+	async function trySelectDefaultFrom() {
+		const data = await chrome.storage.local.get(["pdpFromAccounts", "pdpDefaultFromId"]);
+		const accounts = data.pdpFromAccounts || [];
+		const defaultAccount = accounts.find(function (a) {
+			return a.id === data.pdpDefaultFromId;
+		});
+		if (!defaultAccount) return; // nenhum remetente padrão configurado
+
+		const fromControl = await waitFor(findFromControl, WAIT_TIMEOUT_MS);
+		if (!fromControl) {
+			console.warn("[Projudi->Outlook] não encontrei o controle do campo 'De' para selecionar o remetente padrão.");
+			return;
+		}
+
+		const currentText = (fromControl.textContent || fromControl.value || "").toLowerCase();
+		if (currentText.indexOf(defaultAccount.email.toLowerCase()) !== -1) {
+			console.log("[Projudi->Outlook] remetente padrão já está selecionado no campo De.");
+			return;
+		}
+
+		fromControl.click();
+		console.log("[Projudi->Outlook] cliquei no campo 'De' para abrir a lista de remetentes.", fromControl);
+
+		const option = await waitFor(function () {
+			return findFromOption(defaultAccount.email);
+		}, WAIT_TIMEOUT_MS);
+		if (!option) {
+			console.warn(
+				"[Projudi->Outlook] não encontrei '" +
+					defaultAccount.email +
+					"' na lista de remetentes — confira se a permissão de 'Enviar como' está configurada para essa conta."
+			);
+			return;
+		}
+		option.click();
+		console.log("[Projudi->Outlook] selecionei o remetente padrão:", defaultAccount.email);
+	}
+
 	async function run() {
 		let pending;
 		try {
@@ -190,7 +260,7 @@
 		}
 		if (!pending) return;
 
-		tryRevealFromField();
+		tryRevealFromField().then(trySelectDefaultFrom);
 
 		const consumed = await chrome.runtime.sendMessage({ type: "CONSUME_DOWNLOAD_INFO", id: pending.id });
 		if (!consumed || !consumed.fileNames || !consumed.fileNames.length) return;

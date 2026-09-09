@@ -29,6 +29,9 @@
 	const FILE_LINK_SELECTOR = 'a.link[href*="/arquivo.do"]';
 	const RECIPIENTS_KEY = "pdpEmailRecipients";
 	const MAX_RECIPIENTS = 200;
+	const FROM_ACCOUNTS_KEY = "pdpFromAccounts";
+	const DEFAULT_FROM_KEY = "pdpDefaultFromId";
+	const MAX_FROM_ACCOUNTS = 20;
 
 	// Rótulos da barra de ações inferior do Projudi (Pedido Incidental,
 	// Juntar Documento, Peticionar, Patronato, Navegar, Exportar Processo,
@@ -50,6 +53,7 @@
 	const selected = new Map(); // href -> { href, name }
 	let sendButton = null;
 	let recipientsButton = null;
+	let fromButton = null;
 	let frameEligible = false;
 
 	// ---------------------------------------------------------------------
@@ -126,6 +130,17 @@
 			});
 			document.body.appendChild(recipientsButton);
 		}
+		if (!fromButton) {
+			fromButton = document.createElement("button");
+			fromButton.type = "button";
+			fromButton.id = "pdp-from-button";
+			fromButton.className = "pdp-email-visible";
+			fromButton.title = "Cadastrar remetentes e escolher o padrão ao abrir o Outlook";
+			fromButton.addEventListener("click", function () {
+				openFromAccountsDialog();
+			});
+			document.body.appendChild(fromButton);
+		}
 		if (!sendButton) {
 			sendButton = document.createElement("button");
 			sendButton.type = "button";
@@ -183,10 +198,17 @@
 			}
 		}
 
-		recipientsButton.style.bottom = baseBottom + "px";
+		let cursor = baseBottom;
+		recipientsButton.style.bottom = cursor + "px";
+		cursor += (recipientsButton.offsetHeight || 36) + BUTTON_GAP;
+
+		if (fromButton) {
+			fromButton.style.bottom = cursor + "px";
+			cursor += (fromButton.offsetHeight || 36) + BUTTON_GAP;
+		}
+
 		if (sendButton) {
-			const recipientsHeight = recipientsButton.offsetHeight || 36;
-			sendButton.style.bottom = baseBottom + recipientsHeight + BUTTON_GAP + "px";
+			sendButton.style.bottom = cursor + "px";
 		}
 	}
 
@@ -259,6 +281,168 @@
 	}
 
 	// ---------------------------------------------------------------------
+	// Remetentes salvos (chrome.storage.local) — o favorito ("padrão") é
+	// lido diretamente por src/owa-attach.js, que tenta selecioná-lo no
+	// campo "De" toda vez que o Outlook abre pela extensão. Só funciona se
+	// o usuário já tiver permissão de "Enviar como" na conta desejada
+	// (configuração do Exchange/TI, fora do controle da extensão).
+	// ---------------------------------------------------------------------
+
+	function loadFromAccounts() {
+		return chrome.storage.local.get([FROM_ACCOUNTS_KEY, DEFAULT_FROM_KEY]).then(function (data) {
+			return { accounts: data[FROM_ACCOUNTS_KEY] || [], defaultId: data[DEFAULT_FROM_KEY] || null };
+		});
+	}
+
+	function saveFromAccounts(accounts) {
+		return chrome.storage.local.set({ [FROM_ACCOUNTS_KEY]: accounts });
+	}
+
+	function setDefaultFromId(id) {
+		return chrome.storage.local.set({ [DEFAULT_FROM_KEY]: id || null });
+	}
+
+	async function addFromAccount(label, email) {
+		label = label.trim();
+		email = email.trim();
+		if (!label) throw new Error("Informe um nome para identificar o remetente.");
+		if (!isValidEmail(email)) throw new Error("Informe um e-mail válido.");
+
+		const { accounts } = await loadFromAccounts();
+		if (accounts.length >= MAX_FROM_ACCOUNTS) {
+			throw new Error("Limite de " + MAX_FROM_ACCOUNTS + " remetentes salvos atingido.");
+		}
+		if (accounts.some((a) => a.email.toLowerCase() === email.toLowerCase())) {
+			throw new Error("Já existe um remetente salvo com esse e-mail.");
+		}
+		accounts.push({ id: crypto.randomUUID(), label: label, email: email });
+		await saveFromAccounts(accounts);
+		return accounts;
+	}
+
+	async function removeFromAccount(id) {
+		const { accounts, defaultId } = await loadFromAccounts();
+		await saveFromAccounts(accounts.filter((a) => a.id !== id));
+		if (defaultId === id) await setDefaultFromId(null);
+	}
+
+	// ---------------------------------------------------------------------
+	// Diálogo de remetentes (cadastrar / remover / favoritar o padrão)
+	// ---------------------------------------------------------------------
+
+	function closeFromAccountsDialog() {
+		const existing = document.getElementById("pdp-from-overlay");
+		if (existing) existing.remove();
+	}
+
+	async function openFromAccountsDialog() {
+		closeFromAccountsDialog();
+
+		const overlay = document.createElement("div");
+		overlay.id = "pdp-from-overlay";
+		overlay.className = "pdp-dialog-overlay";
+		overlay.innerHTML =
+			'<div class="pdp-recipients-panel" role="dialog" aria-label="Remetentes salvos">' +
+			'  <div class="pdp-recipients-header">' +
+			"    <strong>Remetentes salvos</strong>" +
+			'    <button type="button" class="pdp-recipients-close" title="Fechar">✕</button>' +
+			"  </div>" +
+			'  <div class="pdp-from-hint">Marque a estrela do remetente que deve aparecer como padrão no campo ' +
+			'"De" toda vez que o Outlook abrir pela extensão. Só funciona se a conta já tiver permissão de ' +
+			'"Enviar como" configurada pelo TI — sem isso, o Outlook não vai oferecer essa opção.</div>' +
+			'  <div class="pdp-recipients-list"></div>' +
+			'  <div class="pdp-recipients-add">' +
+			'    <input type="text" class="pdp-from-add-label" placeholder="Nome (ex.: Secretaria)" />' +
+			'    <input type="email" class="pdp-from-add-email" placeholder="E-mail" />' +
+			'    <button type="button" class="pdp-from-add-save">+ Adicionar</button>' +
+			"  </div>" +
+			'  <div class="pdp-recipients-error" hidden></div>' +
+			"</div>";
+		document.body.appendChild(overlay);
+
+		const listEl = overlay.querySelector(".pdp-recipients-list");
+		const errorEl = overlay.querySelector(".pdp-recipients-error");
+
+		function showError(msg) {
+			errorEl.textContent = msg;
+			errorEl.hidden = !msg;
+		}
+
+		async function render() {
+			const { accounts, defaultId } = await loadFromAccounts();
+
+			listEl.innerHTML = "";
+			if (accounts.length === 0) {
+				const empty = document.createElement("div");
+				empty.className = "pdp-recipients-empty";
+				empty.textContent = "Nenhum remetente salvo ainda.";
+				listEl.appendChild(empty);
+			}
+
+			accounts.forEach(function (a) {
+				const isDefault = a.id === defaultId;
+				const row = document.createElement("div");
+				row.className = "pdp-recipients-row";
+
+				const info = document.createElement("div");
+				info.className = "pdp-recipients-row-info";
+				info.innerHTML =
+					"<span class=\"pdp-recipients-row-name\">" +
+					escapeHtml(a.label) +
+					"</span><span class=\"pdp-recipients-row-email\">" +
+					escapeHtml(a.email) +
+					"</span>";
+				row.appendChild(info);
+
+				const starBtn = document.createElement("button");
+				starBtn.type = "button";
+				starBtn.className = "pdp-recipients-row-pin";
+				starBtn.title = isDefault ? "Remover como padrão" : "Marcar como remetente padrão";
+				starBtn.textContent = isDefault ? "★" : "☆";
+				starBtn.addEventListener("click", async function () {
+					await setDefaultFromId(isDefault ? null : a.id);
+					render();
+				});
+				row.appendChild(starBtn);
+
+				const removeBtn = document.createElement("button");
+				removeBtn.type = "button";
+				removeBtn.className = "pdp-recipients-row-remove";
+				removeBtn.title = "Remover remetente salvo";
+				removeBtn.textContent = "🗑";
+				removeBtn.addEventListener("click", async function () {
+					await removeFromAccount(a.id);
+					render();
+				});
+				row.appendChild(removeBtn);
+
+				listEl.appendChild(row);
+			});
+		}
+
+		overlay.querySelector(".pdp-recipients-close").addEventListener("click", closeFromAccountsDialog);
+		overlay.addEventListener("click", function (e) {
+			if (e.target === overlay) closeFromAccountsDialog();
+		});
+
+		overlay.querySelector(".pdp-from-add-save").addEventListener("click", async function () {
+			const labelInput = overlay.querySelector(".pdp-from-add-label");
+			const emailInput = overlay.querySelector(".pdp-from-add-email");
+			try {
+				showError("");
+				await addFromAccount(labelInput.value, emailInput.value);
+				labelInput.value = "";
+				emailInput.value = "";
+				render();
+			} catch (err) {
+				showError(err.message);
+			}
+		});
+
+		await render();
+	}
+
+	// ---------------------------------------------------------------------
 	// Diálogo de destinatários (gerenciar / escolher antes de enviar)
 	// ---------------------------------------------------------------------
 
@@ -278,6 +462,7 @@
 
 		const overlay = document.createElement("div");
 		overlay.id = "pdp-recipients-overlay";
+		overlay.className = "pdp-dialog-overlay";
 		overlay.innerHTML =
 			'<div class="pdp-recipients-panel" role="dialog" aria-label="Destinatários salvos">' +
 			'  <div class="pdp-recipients-header">' +
