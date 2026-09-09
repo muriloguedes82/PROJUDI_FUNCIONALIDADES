@@ -114,9 +114,13 @@ Fluxo de uso:
 2. Clique em "Enviar por WhatsApp" e informe o número de destino (com DDD;
    se nenhum DDI for digitado, assume-se `55`/Brasil).
 3. Ao confirmar, a extensão baixa os arquivos selecionados (reaproveitando a
-   sessão do Projudi, do mesmo jeito que a pré-visualização) e abre (ou
-   reaproveita) uma aba do WhatsApp Web na conversa do número informado,
-   reaproveitando a sessão já aberta/conectada no navegador, se houver.
+   sessão do Projudi/SEEU, do mesmo jeito que a pré-visualização — o
+   download em si é feito pelo `src/background.js`, não pela página, porque
+   alguns sistemas como o SEEU redirecionam o link do documento para um
+   armazenamento externo com CORS bloqueado para leitura direto da página)
+   e abre (ou reaproveita) uma aba do WhatsApp Web na conversa do número
+   informado, reaproveitando a sessão já aberta/conectada no navegador, se
+   houver.
 4. Assim que a conversa termina de carregar, os arquivos são anexados
    automaticamente — a extensão simula "colar" (Ctrl+V) os arquivos na
    caixa de mensagem, o mesmo mecanismo que o próprio WhatsApp Web já
@@ -155,8 +159,11 @@ no destinatário certo:
 
 Essa parte depende de dois componentes adicionais:
 
-- `src/background.js`: service worker que guarda temporariamente os
-  arquivos selecionados (em `chrome.storage.local`, apenas até serem
+- `src/background.js`: service worker que baixa os arquivos selecionados
+  (a partir do seu próprio contexto de extensão — necessário para
+  contornar CORS em sistemas que redirecionam o link do documento para um
+  armazenamento externo, como o SEEU faz para um bucket S3), guarda
+  temporariamente o resultado (em `chrome.storage.local`, apenas até serem
   anexados ou expirarem após alguns minutos) e abre/reaproveita a aba do
   WhatsApp Web na conversa certa.
 - `src/whatsapp.js`: content script injetado em `web.whatsapp.com` que

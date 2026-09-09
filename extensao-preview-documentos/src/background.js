@@ -77,18 +77,56 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 });
 
 async function handleShare(message) {
-	if (!message.phone || !Array.isArray(message.files) || !message.files.length) {
+	if (!message.phone || !Array.isArray(message.docs) || !message.docs.length) {
 		throw new Error("Número ou arquivos inválidos.");
 	}
 
+	const files = await Promise.all(message.docs.map(downloadDocAsPayload));
+
 	const payload = {
 		phone: message.phone,
-		files: message.files,
+		files: files,
 		createdAt: Date.now(),
 	};
 
 	await chrome.storage.local.set({ [PENDING_KEY]: payload });
 	await openOrReuseWhatsappTab(message.phone);
+}
+
+function ensureFileName(name, mime) {
+	if (/\.[a-z0-9]{2,5}$/i.test(name)) return name;
+	const ext = (mime && mime.split("/")[1]) || "pdf";
+	return name + "." + ext;
+}
+
+function blobToDataUrl(blob) {
+	return new Promise(function (resolve, reject) {
+		const reader = new FileReader();
+		reader.onload = function () {
+			resolve(reader.result);
+		};
+		reader.onerror = function () {
+			reject(new Error("Falha ao ler o arquivo"));
+		};
+		reader.readAsDataURL(blob);
+	});
+}
+
+// Baixa o documento a partir do service worker (não do content script) de
+// propósito: alguns sistemas (ex.: SEEU) redirecionam o link do documento
+// para um armazenamento externo (ex.: um bucket S3 com URL assinada) sem
+// cabeçalhos de CORS liberando leitura via fetch() feito de dentro da
+// própria página. Um fetch feito por uma extensão a partir do seu contexto
+// de background, para um domínio coberto por host_permissions, ignora essa
+// restrição de CORS — daí a exigência de host_permissions tanto para o
+// domínio do sistema (Projudi/SEEU) quanto para o domínio de armazenamento
+// para onde ele redireciona (ver manifest.json).
+async function downloadDocAsPayload(doc) {
+	const resp = await fetch(doc.href, { credentials: "include" });
+	if (!resp.ok) throw new Error("Não foi possível baixar " + doc.name);
+	const blob = await resp.blob();
+	const dataUrl = await blobToDataUrl(blob);
+	return { name: ensureFileName(doc.name, blob.type), type: blob.type, dataUrl: dataUrl };
 }
 
 function extractPhoneFromUrl(url) {

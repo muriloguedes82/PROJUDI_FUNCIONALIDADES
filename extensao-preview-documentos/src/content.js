@@ -619,32 +619,13 @@
 		return digits;
 	}
 
-	function ensureFileName(name, mime) {
-		if (/\.[a-z0-9]{2,5}$/i.test(name)) return name;
-		const ext = (mime && mime.split("/")[1]) || "pdf";
-		return name + "." + ext;
-	}
-
-	function fetchDocAsPayload(doc) {
-		return fetch(doc.href, { credentials: "same-origin" })
-			.then(function (resp) {
-				if (!resp.ok) throw new Error("Não foi possível baixar " + doc.name);
-				return resp.blob();
-			})
-			.then(function (blob) {
-				return new Promise(function (resolve, reject) {
-					const reader = new FileReader();
-					reader.onload = function () {
-						resolve({ name: ensureFileName(doc.name, blob.type), type: blob.type, dataUrl: reader.result });
-					};
-					reader.onerror = function () {
-						reject(new Error("Falha ao ler " + doc.name));
-					};
-					reader.readAsDataURL(blob);
-				});
-			});
-	}
-
+	// O download do arquivo em si é feito pelo service worker (background.js),
+	// não aqui: alguns sistemas (ex.: SEEU) redirecionam o link do documento
+	// para um armazenamento externo (ex.: um bucket S3 com URL assinada) sem
+	// cabeçalhos de CORS liberando leitura via fetch() de dentro da própria
+	// página — só uma extensão com host_permissions para aquele domínio,
+	// buscando a partir do seu contexto de background, consegue ler esse
+	// conteúdo. Aqui só enviamos o link e o nome; quem baixa é o background.
 	function sendSelectedDocsViaWhatsapp() {
 		if (!waPanel) return;
 		const docs = Array.from(selectedDocs.values());
@@ -660,24 +641,20 @@
 		}
 
 		waPanel.sendBtn.disabled = true;
-		waPanel.status.textContent = "Baixando arquivo(s)…";
+		waPanel.status.textContent = "Baixando arquivo(s) e abrindo WhatsApp Web…";
 
-		Promise.all(docs.map(fetchDocAsPayload))
-			.then(function (files) {
-				waPanel.status.textContent = "Abrindo WhatsApp Web…";
-				return new Promise(function (resolve, reject) {
-					chrome.runtime.sendMessage(
-						{ source: MESSAGE_SOURCE, type: "whatsapp-share", phone: phone, files: files },
-						function (response) {
-							if (chrome.runtime.lastError) return reject(new Error(chrome.runtime.lastError.message));
-							if (!response || !response.ok) {
-								return reject(new Error((response && response.error) || "Falha ao abrir o WhatsApp Web."));
-							}
-							resolve();
-						}
-					);
-				});
-			})
+		new Promise(function (resolve, reject) {
+			chrome.runtime.sendMessage(
+				{ source: MESSAGE_SOURCE, type: "whatsapp-share", phone: phone, docs: docs },
+				function (response) {
+					if (chrome.runtime.lastError) return reject(new Error(chrome.runtime.lastError.message));
+					if (!response || !response.ok) {
+						return reject(new Error((response && response.error) || "Falha ao abrir o WhatsApp Web."));
+					}
+					resolve();
+				}
+			);
+		})
 			.then(function () {
 				selectedDocs.clear();
 				Array.prototype.forEach.call(document.querySelectorAll(".pdp-wa-checkbox:checked"), function (cb) {
