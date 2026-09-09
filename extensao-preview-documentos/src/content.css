@@ -8,7 +8,10 @@ a.link[href*="/arquivo.do"]:hover,
 
 .pdp-overlay {
 	position: fixed;
-	z-index: 2147483000;
+	/* Valor máximo de z-index (2^31 - 1): garante que a pré-visualização
+	   fique por cima de qualquer outra extensão que também injete overlays
+	   na página (ex.: AzFlow), em caso de conflito. */
+	z-index: 2147483647;
 	display: none;
 	opacity: 0;
 	transform: translateY(4px);
@@ -158,7 +161,7 @@ a.link[href*="/arquivo.do"]:hover,
 	padding: 7px 14px;
 	cursor: pointer;
 	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-	z-index: 2147483000;
+	z-index: 2147483647;
 }
 
 .pdp-wa-launcher:hover {
@@ -192,7 +195,7 @@ a.link[href*="/arquivo.do"]:hover,
 .pdp-wa-overlay {
 	position: fixed;
 	inset: 0;
-	z-index: 2147483001;
+	z-index: 2147483647;
 	display: none;
 	align-items: center;
 	justify-content: center;

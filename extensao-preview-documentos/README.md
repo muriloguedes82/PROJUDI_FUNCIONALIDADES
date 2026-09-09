@@ -224,6 +224,21 @@ Limitações:
 4. Abra um processo no Projudi (TJPR) ou no SEEU e passe o mouse sobre um
    documento na aba Movimentações.
 
+## Convivência com outras extensões (ex.: AzFlow)
+
+É comum ter outra extensão de produtividade jurídica instalada ao mesmo
+tempo (ex.: AzFlow), que também pode oferecer pré-visualização de
+documentos ao passar o mouse. Como as duas reagem ao mesmo evento nativo
+do navegador, essa extensão dá prioridade a si mesma em caso de conflito:
+ao identificar um link de documento ou de pendência, ela chama
+`stopImmediatePropagation()` no evento de mouseover/mouseout, impedindo
+que outros listeners (de outra extensão) tratem o mesmo evento e abram
+uma pré-visualização concorrente por cima; os painéis também usam o maior
+`z-index` possível, para sempre aparecer acima de qualquer overlay de
+outra extensão. Isso só se aplica ao passar o mouse sobre um link já
+reconhecido por esta extensão — em qualquer outro elemento da página, o
+evento segue normalmente e a outra extensão funciona como sempre.
+
 ## Limitações conhecidas
 
 - Funciona apenas para documentos que o navegador consiga exibir dentro de
