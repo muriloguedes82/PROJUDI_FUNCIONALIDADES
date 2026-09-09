@@ -70,6 +70,17 @@ function base64ToBytes(base64) {
 	return bytes;
 }
 
+// Converte bytes para base64 em pedaços, para não estourar o limite de
+// argumentos do String.fromCharCode.apply em arquivos grandes.
+function bytesToBase64(bytes) {
+	let binary = "";
+	const chunkSize = 0x8000;
+	for (let i = 0; i < bytes.length; i += chunkSize) {
+		binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+	}
+	return btoa(binary);
+}
+
 async function storeToken(tokenResponse) {
 	await chrome.storage.local.set({
 		msalToken: {
@@ -379,12 +390,42 @@ async function resolveSendMode() {
 	return azureClientId ? "graph" : "owa";
 }
 
+// Baixa o conteúdo de cada arquivo selecionado (a extensão recebe só nome +
+// link do content script — quem baixa é o service worker, não a página).
+// Isso é necessário porque, em alguns sistemas (ex.: o SEEU), o link do
+// arquivo redireciona para um bucket S3 com URL assinada que não devolve
+// cabeçalhos CORS liberando fetch() a partir da página (bloqueado pelo
+// navegador com "No 'Access-Control-Allow-Origin' header..."). O service
+// worker da extensão não sofre essa restrição para hosts cobertos pelos
+// host_permissions do manifest, então o download funciona normalmente
+// daqui, mesmo com o redirecionamento.
+async function resolveAttachments(attachments) {
+	const resolved = [];
+	for (const att of attachments) {
+		const resp = await fetch(att.href, { credentials: "include" });
+		if (!resp.ok) {
+			throw new Error("Falha ao baixar " + att.name + " (HTTP " + resp.status + ").");
+		}
+		const buffer = await resp.arrayBuffer();
+		const bytes = new Uint8Array(buffer);
+		resolved.push({
+			name: att.name,
+			contentType: resp.headers.get("content-type") || "application/octet-stream",
+			base64: bytesToBase64(bytes),
+		});
+	}
+	return resolved;
+}
+
 async function handleSendEmail(message) {
+	const attachments = await resolveAttachments(message.attachments || []);
+	const resolvedMessage = { ...message, attachments: attachments };
+
 	const mode = await resolveSendMode();
 	if (mode === "graph") {
-		return handleSendEmailGraph(message);
+		return handleSendEmailGraph(resolvedMessage);
 	}
-	return handleSendEmailFallback(message);
+	return handleSendEmailFallback(resolvedMessage);
 }
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {

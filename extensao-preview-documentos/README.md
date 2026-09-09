@@ -35,9 +35,12 @@ Ao clicar em "Enviar por e-mail":
 1. Se houver destinatários salvos como preferência (veja "Destinatários
    favoritos" abaixo), é exibido um seletor para escolher um ou mais antes
    de prosseguir (ou pular a etapa, se preferir preencher na hora).
-2. Os arquivos marcados (se houver) são baixados pela extensão
-   reaproveitando a sessão já autenticada do Projudi (mesmo mecanismo
-   usado na pré-visualização).
+2. Os arquivos marcados (se houver) são baixados pelo **background script**
+   da extensão (não pela página), reaproveitando a sessão já autenticada
+   — necessário porque, no SEEU, o link do arquivo redireciona para um
+   bucket S3 com URL assinada que bloqueia `fetch()` feito a partir da
+   própria página (erro de CORS); o service worker da extensão não sofre
+   essa restrição para os domínios liberados no `manifest.json`.
 3. A extensão autentica o usuário no Outlook institucional (Microsoft
    Entra ID / Azure AD, via Microsoft Graph) e cria um **rascunho de
    e-mail** já com os arquivos selecionados anexados (se houver), o campo
@@ -220,6 +223,11 @@ que é o único caminho 100% automático.
   (Projudi) e `seeu.pje.jus.br` (SEEU), os domínios usados no TJPR. Para
   usar em outro Tribunal (outro domínio de Projudi, ou outra instância do
   SEEU), ajuste os padrões de URL em `manifest.json`.
+- A extensão também tem permissão para `*.amazonaws.com` — necessária
+  porque o SEEU redireciona o link do arquivo para um bucket S3 (com URL
+  assinada) na hora do download, e o service worker precisa poder buscar
+  esse endereço final. Não é usada para mais nada além de baixar o
+  documento que o próprio usuário selecionou.
 - O reconhecimento das telas do SEEU foi validado a partir de um HTML
   estático (arquivo `.mhtml` salvo com a movimentação já expandida), não de
   testes ao vivo no sistema — o link de arquivo usa o mesmo padrão do

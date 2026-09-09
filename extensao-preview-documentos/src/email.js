@@ -1,22 +1,24 @@
-// Projudi - Envio de Documentos por E-mail (Outlook)
+// Projudi/SEEU - Envio de Documentos por E-mail (Outlook)
 //
 // Injeta uma checkbox ao lado de cada link de arquivo da tela de
 // Movimentações (mesmo padrão usado por content.js: <a class="link"
-// href=".../arquivo.do?...">). Dois botões flutuantes ficam sempre visíveis
-// sobre a tela: "Destinatários" (cadastrar/remover/priorizar destinatários
-// favoritos) e "Enviar por e-mail" — este último funciona com ou sem
-// nenhum arquivo marcado, para permitir enviar um e-mail sem anexar
-// documentos dos autos quando o usuário quiser.
+// href=".../arquivo.do?...">, igual no Projudi e no SEEU). Dois botões
+// flutuantes ficam sempre visíveis sobre a tela: "Destinatários"
+// (cadastrar/remover/priorizar destinatários favoritos) e "Enviar por
+// e-mail" — este último funciona com ou sem nenhum arquivo marcado, para
+// permitir enviar um e-mail sem anexar documentos dos autos quando o
+// usuário quiser.
 //
 // Ao clicar em "Enviar por e-mail": se houver destinatários salvos,
 // primeiro é exibido um seletor para escolher um ou mais (com busca e os
-// marcados como prioritários no topo); em seguida, os arquivos selecionados
-// (se houver) são baixados (reaproveitando a sessão do Projudi) e enviados
-// ao background script, que cria um rascunho no Outlook (via Microsoft
-// Graph) ou, no modo sem Azure AD, baixa os arquivos e abre o Outlook Web —
-// em ambos os casos já com o(s) destinatário(s) escolhido(s) e um texto
-// padrão no corpo (REF. AUTOS / JUÍZO, extraídos da própria tela do
-// processo) preenchidos.
+// marcados como prioritários no topo); em seguida, o nome e o link de cada
+// arquivo selecionado (se houver) são enviados ao background script — é lá
+// que o download de fato acontece (não aqui, veja o motivo em
+// src/background.js), que então cria um rascunho no Outlook (via
+// Microsoft Graph) ou, no modo sem Azure AD, baixa os arquivos e abre o
+// Outlook Web — em ambos os casos já com o(s) destinatário(s) escolhido(s)
+// e um texto padrão no corpo (REF. AUTOS / JUÍZO, extraídos da própria
+// tela do processo) preenchidos.
 
 (function () {
 	"use strict";
@@ -424,29 +426,8 @@
 	}
 
 	// ---------------------------------------------------------------------
-	// Envio (download dos anexos + mensagem para o background script)
+	// Envio (mensagem para o background script, que baixa os anexos)
 	// ---------------------------------------------------------------------
-
-	function fileToAttachment(href) {
-		return fetch(href, { credentials: "include" }).then(function (resp) {
-			if (!resp.ok) {
-				throw new Error("Falha ao baixar documento (HTTP " + resp.status + ").");
-			}
-			return resp.blob();
-		}).then(function (blob) {
-			return new Promise(function (resolve, reject) {
-				const reader = new FileReader();
-				reader.onload = function () {
-					const base64 = String(reader.result).split(",")[1] || "";
-					resolve({ base64: base64, contentType: blob.type || "application/octet-stream" });
-				};
-				reader.onerror = function () {
-					reject(reader.error || new Error("Falha ao ler o documento."));
-				};
-				reader.readAsDataURL(blob);
-			});
-		});
-	}
 
 	function subjectFromPage() {
 		const match = document.title.match(/([\d.\-]{15,})/);
@@ -518,18 +499,17 @@
 	async function proceedSend(recipientEmails) {
 		const entries = Array.from(selected.values());
 		sendButton.disabled = true;
-		sendButton.textContent = entries.length > 0 ? "Preparando anexos…" : "Preparando e-mail…";
+		sendButton.textContent = entries.length > 0 ? "Baixando anexos…" : "Preparando e-mail…";
 
 		try {
-			const attachments = [];
-			for (const entry of entries) {
-				const file = await fileToAttachment(entry.href);
-				attachments.push({
-					name: entry.name,
-					contentType: file.contentType,
-					base64: file.base64,
-				});
-			}
+			// O download de cada arquivo é feito pelo background script (não
+			// aqui), porque em alguns sistemas (ex.: SEEU) o link do arquivo
+			// redireciona para um servidor de armazenamento (S3) que bloqueia
+			// fetch() feito a partir da própria página por CORS — o service
+			// worker da extensão não sofre essa restrição.
+			const attachments = entries.map(function (entry) {
+				return { name: entry.name, href: entry.href };
+			});
 
 			sendButton.textContent = "Enviando para o Outlook…";
 			const response = await chrome.runtime.sendMessage({
