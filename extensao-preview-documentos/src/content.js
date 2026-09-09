@@ -1,10 +1,13 @@
-// Projudi - Pré-visualização de Documentos
+// Projudi/SEEU - Pré-visualização de Documentos
 //
 // Ao passar o mouse sobre um link de arquivo na tela de Movimentações
 // (ex.: <a class="link" target="_blank" href=".../arquivo.do?...">Certidao.pdf</a>),
 // mostra a íntegra do documento em um painel flutuante, sem abrir nova aba.
 // O documento é carregado num <iframe> apontando para a própria URL do
-// Projudi, reaproveitando a sessão/cookies já autenticados do usuário.
+// sistema (Projudi ou SEEU — os dois usam o mesmo padrão de link e de
+// sessão via cookies), reaproveitando a sessão/cookies já autenticados do
+// usuário. O quadro de "Pendências" (mais abaixo) é específico do Projudi;
+// no SEEU esse trecho simplesmente não encontra nada e não tem efeito.
 //
 // O mesmo painel flutuante é oferecido para os itens do quadro
 // "Pendências" (ex.: "Análise de Juntadas: Há 1 pendência(s) de análise de
@@ -439,10 +442,11 @@
 	// ---------------------------------------------------------------------
 	//
 	// Adiciona uma caixinha de seleção ao lado de cada link de documento
-	// (mesmo padrão a.link[href*="/arquivo.do"] usado na pré-visualização) e
-	// um botão flutuante, acima da barra de botões da tela (Pedido
-	// Incidental, Juntar Documento, ..., Voltar), que abre um pequeno painel
-	// para informar o número de WhatsApp e confirmar o envio.
+	// (mesmo padrão a.link[href*="/arquivo.do"] usado na pré-visualização,
+	// idêntico no Projudi e no SEEU) e um botão flutuante, acima da barra de
+	// botões da tela do processo (Peticionar/Juntar Documento, ..., Voltar),
+	// que abre um pequeno painel para informar o número de WhatsApp e
+	// confirmar o envio.
 	//
 	// Ao confirmar, os arquivos selecionados são baixados (reaproveitando a
 	// sessão do Projudi, igual à pré-visualização) e passados para
@@ -690,8 +694,23 @@
 			});
 	}
 
+	// A barra de botões da tela do processo tem `class="buttonBar"` no
+	// Projudi, mas não no SEEU (mesmo layout de botões, sem essa classe —
+	// provavelmente reskinado por uma extensão de terceiros). Em ambos,
+	// porém, o botão "Voltar" existe com o mesmo `id="backButton"`, então
+	// usamos ele como ponto de referência alternativo.
+	function findButtonBarAnchor() {
+		const classic = document.querySelector("table.buttonBar");
+		if (classic) return classic;
+
+		const backButton = document.getElementById("backButton");
+		if (backButton) return backButton.closest("table") || backButton.closest("tr") || backButton;
+
+		return null;
+	}
+
 	function initWhatsappLauncher() {
-		const buttonBar = document.querySelector("table.buttonBar");
+		const buttonBar = findButtonBarAnchor();
 		if (!buttonBar || document.getElementById("pdp-wa-launcher")) return;
 
 		const anchor = document.createElement("div");

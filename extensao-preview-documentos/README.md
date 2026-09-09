@@ -1,7 +1,9 @@
-# Projudi - Pré-visualização de Documentos
+# Projudi/SEEU - Pré-visualização de Documentos
 
 Extensão de navegador (Chrome/Edge, Manifest V3) que resolve dois problemas
-do dia a dia no Projudi:
+do dia a dia no Projudi (TJPR) e no SEEU — os dois usam o mesmo padrão de
+link de documento (`<a class="link" href=".../arquivo.do?...">`), então a
+extensão funciona da mesma forma nos dois sistemas:
 
 1. na tela **Movimentações**, para ler a íntegra de um documento anexado é
    preciso clicar no link e abri-lo em outra aba;
@@ -17,10 +19,12 @@ AzFlow.
 
 ## Como funciona
 
-1. Um content script (`src/content.js`) é injetado nas páginas
-   `processo.do` do Projudi (tela de movimentações/autos do processo).
-2. Ele identifica os links de arquivo da movimentação, que no HTML do
-   Projudi seguem o padrão:
+1. Um content script (`src/content.js`) é injetado nas páginas de processo
+   do Projudi (`processo.do`) e do SEEU (qualquer página em
+   `seeu.pje.jus.br/seeu/`, incluindo a tela de movimentações/autos do
+   processo, carregada em `visualizacaoProcesso.do`).
+2. Ele identifica os links de arquivo da movimentação, que seguem o mesmo
+   padrão nos dois sistemas:
    ```html
    <a target="_blank" class="link" href=".../arquivo.do?_tj=...">
        Certidao de Baixa.pdf
@@ -28,15 +32,20 @@ AzFlow.
    ```
 3. Ao detectar o mouse parado sobre um desses links por ~350ms, abre um
    painel (`<iframe>`) carregando a própria URL do `arquivo.do`. Como o
-   iframe está na mesma origem do Projudi, ele reaproveita a sessão/cookies
-   já autenticados do usuário — nenhuma credencial extra é usada ou
-   armazenada pela extensão.
+   iframe está na mesma origem do sistema (Projudi ou SEEU), ele reaproveita
+   a sessão/cookies já autenticados do usuário — nenhuma credencial extra é
+   usada ou armazenada pela extensão.
 4. O painel some automaticamente ao tirar o mouse do link e do próprio
    painel (com uma pequena tolerância para permitir mover o cursor até
    ele), ou pode ser fechado com o botão "✕" ou a tecla `Esc`. Também há um
    atalho "Abrir em nova aba" para o fluxo tradicional, quando necessário.
 
-## Pendências (Análise de Juntadas / Conclusões)
+## Pendências (Análise de Juntadas / Conclusões) — só no Projudi
+
+Esse recurso depende de uma tela específica do Projudi
+(`analisarJuntada.do`) que não existe no SEEU; lá, a pré-visualização
+funciona normalmente para os links de documento das movimentações (seção
+anterior), só esse quadro de Pendências que não se aplica.
 
 O mesmo painel de pré-visualização também é oferecido no quadro
 **Pendências** da capa do processo, para itens como:
@@ -205,8 +214,8 @@ Limitações:
 2. Ative o "Modo do desenvolvedor".
 3. Clique em "Carregar sem compactação" e selecione a pasta
    `extensao-preview-documentos`.
-4. Abra um processo no Projudi (TJPR) e passe o mouse sobre um documento na
-   aba Movimentações.
+4. Abra um processo no Projudi (TJPR) ou no SEEU e passe o mouse sobre um
+   documento na aba Movimentações.
 
 ## Limitações conhecidas
 
@@ -214,10 +223,10 @@ Limitações:
   um `<iframe>` (PDF é o caso comum, via visualizador nativo do
   Chrome/Edge). Alguns tipos de arquivo podem ser baixados diretamente pelo
   navegador em vez de exibidos — nesse caso, use "Abrir em nova aba".
-- O `host_permissions` do `manifest.json` está restrito a
-  `*.tjpr.jus.br`, domínio do exemplo fornecido. Para usar em outro
-  Tribunal que também utilize o Projudi, ajuste os padrões de URL em
-  `manifest.json`.
+- O `host_permissions` do `manifest.json` está restrito a `*.tjpr.jus.br`
+  (Projudi) e `seeu.pje.jus.br` (SEEU). Para usar em outro Tribunal que
+  também utilize o Projudi, ou outro domínio do SEEU, ajuste os padrões de
+  URL em `manifest.json`.
 - Não há armazenamento, envio ou cache de nenhum dado do processo pela
   extensão: o documento é sempre buscado diretamente do Projudi no momento
   do hover.
