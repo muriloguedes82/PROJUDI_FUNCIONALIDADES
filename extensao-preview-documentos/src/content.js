@@ -57,6 +57,41 @@
 
 	const PENDENCIA_FIELDSET_SELECTOR = "#quadroPendencias";
 
+	// No SEEU (só lá — no Projudi não houve esse conflito), a extensão
+	// AzFlow também oferece pré-visualização de documentos ao passar o
+	// mouse, disputando o mesmo tipo de interação. Tentar "vencer" esse
+	// conflito silenciando os eventos da AzFlow já mostrou ter efeitos
+	// colaterais (quebrou o reposicionamento da barra de botões dela) —
+	// então, em vez disso, quando o AzFlow está ativo no SEEU, esta
+	// extensão simplesmente não abre sua própria pré-visualização, e deixa
+	// o AzFlow cuidar disso sozinho. O restante (seleção de documentos e
+	// envio por WhatsApp) continua funcionando normalmente, já que não é
+	// algo que o AzFlow ofereça.
+	const IS_SEEU = /(^|\.)seeu\.pje\.jus\.br$/i.test(window.location.hostname);
+
+	// O AzFlow injeta atributos/classes com esse prefixo por toda a página
+	// quando está ativo (confirmado inspecionando o SEEU com ele habilitado:
+	// "data-azflow-onclick-original", "azflow-button-text", etc.). Sem esses
+	// marcadores, consideramos que o AzFlow não está rodando. O resultado é
+	// guardado em cache (uma vez detectado, continua detectado) para não
+	// repetir essa consulta a cada evento de mouseover.
+	const AZFLOW_MARKER_SELECTOR =
+		'[class*="azflow-"], [id*="azflow-"], [data-azflow-onclick-original], [data-azflow-menucs-applied]';
+	let azFlowDetected = false;
+
+	function isAzFlowActive() {
+		if (azFlowDetected) return true;
+		if (document.querySelector(AZFLOW_MARKER_SELECTOR)) {
+			azFlowDetected = true;
+			return true;
+		}
+		return false;
+	}
+
+	function shouldDeferPreviewToAzFlow() {
+		return IS_SEEU && isAzFlowActive();
+	}
+
 	let openTimer = null;
 	let closeTimerDoc = null;
 	let closeTimerPendencia = null;
@@ -372,6 +407,8 @@
 	document.addEventListener(
 		"mouseover",
 		function (e) {
+			if (shouldDeferPreviewToAzFlow()) return;
+
 			const docLink = findDocumentLink(e.target);
 			if (docLink) {
 				cancelCloseDoc();
@@ -397,6 +434,8 @@
 	document.addEventListener(
 		"mouseout",
 		function (e) {
+			if (shouldDeferPreviewToAzFlow()) return;
+
 			const docLink = findDocumentLink(e.target);
 			if (docLink) {
 				const toEl = e.relatedTarget;

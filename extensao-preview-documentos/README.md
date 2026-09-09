@@ -224,25 +224,30 @@ Limitações:
 4. Abra um processo no Projudi (TJPR) ou no SEEU e passe o mouse sobre um
    documento na aba Movimentações.
 
-## Convivência com outras extensões (ex.: AzFlow)
+## Convivência com o AzFlow no SEEU
 
-É comum ter outra extensão de produtividade jurídica instalada ao mesmo
-tempo (ex.: AzFlow), que pode oferecer funcionalidades parecidas (como
-pré-visualização de documentos ao passar o mouse) usando os mesmos eventos
-nativos do navegador. Para dar prioridade visual a esta extensão sem
-quebrar a outra, os painéis (preview e WhatsApp) usam o maior `z-index`
-possível (2147483647), garantindo que sempre apareçam por cima de qualquer
-overlay de outra extensão.
+O AzFlow é uma extensão de produtividade jurídica muito usada junto com o
+SEEU, e oferece uma pré-visualização de documentos parecida com a desta
+extensão. Como as duas reagem aos mesmos eventos nativos do navegador
+(mouseover/mouseout), tentar fazer as duas coexistirem sem critério gera
+conflito — em um teste anterior, interceptar esses eventos para dar
+prioridade a esta extensão chegou a quebrar o reposicionamento da própria
+barra de botões do AzFlow, que depende deles para funcionar.
 
-Importante: esta extensão **não** intercepta nem bloqueia eventos
-(`stopPropagation`/`stopImmediatePropagation`) para "vencer" outras
-extensões — uma tentativa anterior de fazer isso chegou a quebrar o
-reposicionamento da barra de botões do AzFlow no SEEU, que depende desses
-mesmos eventos para o próprio funcionamento. Se as duas extensões tentarem
-mostrar uma pré-visualização para o mesmo link ao mesmo tempo, pode
-aparecer mais de um painel sobreposto — nesse caso, o desta extensão fica
-por cima (z-index), mas o da outra continua existindo por baixo; feche o
-que não precisar com "✕" ou `Esc`.
+A solução adotada: **só no domínio do SEEU**, esta extensão detecta se o
+AzFlow está ativo (procurando pelos atributos/classes com prefixo
+`azflow-`/`data-azflow-` que ele injeta na página) e, se estiver, **não
+abre sua própria pré-visualização de documentos** — deixa o AzFlow cuidar
+disso sozinho, sem nenhuma interferência. As funcionalidades que só esta
+extensão oferece (seleção de documentos e envio por WhatsApp) continuam
+funcionando normalmente, já que não há nada do AzFlow para conflitar ali.
+No Projudi esse comportamento não se aplica — a pré-visualização desta
+extensão funciona normalmente, com ou sem o AzFlow instalado.
+
+Se o AzFlow mudar a forma como se identifica na página e a detecção parar
+de funcionar (a pré-visualização desta extensão voltar a aparecer no SEEU
+mesmo com o AzFlow ativo), ajuste `AZFLOW_MARKER_SELECTOR` em
+`src/content.js`.
 
 ## Limitações conhecidas
 
