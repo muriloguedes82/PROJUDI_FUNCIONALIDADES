@@ -102,9 +102,9 @@ sincronizados entre computadores nem enviados a nenhum servidor).
 ### Remetentes salvos (campo "De")
 
 No modo **"Outlook Web (sem Azure AD)"**, o botão **"✉️ Remetente"** abre
-uma tela para cadastrar até **20** contas remetentes (Nome + E-mail) e
-marcar uma delas com a estrela (☆ → ★) como **padrão**. Toda vez que o
-Outlook abrir pela extensão:
+uma tela para cadastrar até **20** contas remetentes (Nome + E-mail),
+editar (✏️), remover (🗑) e marcar uma delas com a estrela (☆ → ★) como
+**padrão**. Toda vez que o Outlook abrir pela extensão:
 
 1. O script (`src/owa-attach.js`) revela o campo **"De"** automaticamente,
    clicando na guia **Opções** da faixa de opções e marcando a caixinha

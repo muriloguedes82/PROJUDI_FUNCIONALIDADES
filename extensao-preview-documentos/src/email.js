@@ -135,6 +135,7 @@
 			fromButton.type = "button";
 			fromButton.id = "pdp-from-button";
 			fromButton.className = "pdp-email-visible";
+			fromButton.textContent = "✉️ Remetente";
 			fromButton.title = "Cadastrar remetentes e escolher o padrão ao abrir o Outlook";
 			fromButton.addEventListener("click", function () {
 				openFromAccountsDialog();
@@ -320,6 +321,24 @@
 		return accounts;
 	}
 
+	async function updateFromAccount(id, label, email) {
+		label = label.trim();
+		email = email.trim();
+		if (!label) throw new Error("Informe um nome para identificar o remetente.");
+		if (!isValidEmail(email)) throw new Error("Informe um e-mail válido.");
+
+		const { accounts } = await loadFromAccounts();
+		const item = accounts.find((a) => a.id === id);
+		if (!item) throw new Error("Remetente não encontrado.");
+		if (accounts.some((a) => a.id !== id && a.email.toLowerCase() === email.toLowerCase())) {
+			throw new Error("Já existe um remetente salvo com esse e-mail.");
+		}
+		item.label = label;
+		item.email = email;
+		await saveFromAccounts(accounts);
+		return accounts;
+	}
+
 	async function removeFromAccount(id) {
 		const { accounts, defaultId } = await loadFromAccounts();
 		await saveFromAccounts(accounts.filter((a) => a.id !== id));
@@ -355,6 +374,7 @@
 			'    <input type="text" class="pdp-from-add-label" placeholder="Nome (ex.: Secretaria)" />' +
 			'    <input type="email" class="pdp-from-add-email" placeholder="E-mail" />' +
 			'    <button type="button" class="pdp-from-add-save">+ Adicionar</button>' +
+			'    <button type="button" class="pdp-from-add-cancel" hidden>Cancelar edição</button>' +
 			"  </div>" +
 			'  <div class="pdp-recipients-error" hidden></div>' +
 			"</div>";
@@ -362,10 +382,32 @@
 
 		const listEl = overlay.querySelector(".pdp-recipients-list");
 		const errorEl = overlay.querySelector(".pdp-recipients-error");
+		const labelInput = overlay.querySelector(".pdp-from-add-label");
+		const emailInput = overlay.querySelector(".pdp-from-add-email");
+		const saveBtn = overlay.querySelector(".pdp-from-add-save");
+		const cancelBtn = overlay.querySelector(".pdp-from-add-cancel");
+		let editingId = null;
 
 		function showError(msg) {
 			errorEl.textContent = msg;
 			errorEl.hidden = !msg;
+		}
+
+		function enterEditMode(account) {
+			editingId = account.id;
+			labelInput.value = account.label;
+			emailInput.value = account.email;
+			saveBtn.textContent = "Salvar alterações";
+			cancelBtn.hidden = false;
+			labelInput.focus();
+		}
+
+		function exitEditMode() {
+			editingId = null;
+			labelInput.value = "";
+			emailInput.value = "";
+			saveBtn.textContent = "+ Adicionar";
+			cancelBtn.hidden = true;
 		}
 
 		async function render() {
@@ -405,12 +447,23 @@
 				});
 				row.appendChild(starBtn);
 
+				const editBtn = document.createElement("button");
+				editBtn.type = "button";
+				editBtn.className = "pdp-recipients-row-edit";
+				editBtn.title = "Editar nome/e-mail";
+				editBtn.textContent = "✏️";
+				editBtn.addEventListener("click", function () {
+					enterEditMode(a);
+				});
+				row.appendChild(editBtn);
+
 				const removeBtn = document.createElement("button");
 				removeBtn.type = "button";
 				removeBtn.className = "pdp-recipients-row-remove";
 				removeBtn.title = "Remover remetente salvo";
 				removeBtn.textContent = "🗑";
 				removeBtn.addEventListener("click", async function () {
+					if (editingId === a.id) exitEditMode();
 					await removeFromAccount(a.id);
 					render();
 				});
@@ -425,14 +478,20 @@
 			if (e.target === overlay) closeFromAccountsDialog();
 		});
 
-		overlay.querySelector(".pdp-from-add-save").addEventListener("click", async function () {
-			const labelInput = overlay.querySelector(".pdp-from-add-label");
-			const emailInput = overlay.querySelector(".pdp-from-add-email");
+		cancelBtn.addEventListener("click", function () {
+			showError("");
+			exitEditMode();
+		});
+
+		saveBtn.addEventListener("click", async function () {
 			try {
 				showError("");
-				await addFromAccount(labelInput.value, emailInput.value);
-				labelInput.value = "";
-				emailInput.value = "";
+				if (editingId) {
+					await updateFromAccount(editingId, labelInput.value, emailInput.value);
+				} else {
+					await addFromAccount(labelInput.value, emailInput.value);
+				}
+				exitEditMode();
 				render();
 			} catch (err) {
 				showError(err.message);

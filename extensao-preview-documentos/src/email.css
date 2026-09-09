@@ -176,6 +176,7 @@
 }
 
 .pdp-dialog-overlay .pdp-recipients-row-pin,
+.pdp-dialog-overlay .pdp-recipients-row-edit,
 .pdp-dialog-overlay .pdp-recipients-row-remove {
 	flex: 0 0 auto;
 	background: transparent;
@@ -191,6 +192,17 @@
 
 .pdp-dialog-overlay .pdp-recipients-row-remove {
 	color: #a33;
+}
+
+.pdp-dialog-overlay .pdp-from-add-cancel {
+	flex: 1 1 100%;
+	padding: 6px 10px;
+	font-size: 12px;
+	background: transparent;
+	color: #666;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	cursor: pointer;
 }
 
 .pdp-dialog-overlay .pdp-recipients-add {

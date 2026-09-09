@@ -182,27 +182,50 @@
 		if (messageTab) messageTab.click();
 	}
 
+	// Rótulo/texto do controle "De" da composição — pode aparecer como
+	// aria-label OU como texto visível do próprio botão (ex.: "De:
+	// fulano@dominio.com ⌄"). ATENÇÃO: não temos o HTML real desse
+	// controle — este é um palpite genérico; ajuste se não funcionar.
 	function findFromControl() {
-		// Tenta um combobox/botão cujo aria-label comece com "de" (o valor
-		// atual do remetente normalmente vem junto no rótulo, ex.:
-		// "De: fulano@dominio.com"). ATENÇÃO: não temos o HTML real desse
-		// controle — este é um palpite genérico; ajuste se não funcionar.
 		const candidates = document.querySelectorAll('[role="combobox"], [role="button"], button');
 		for (const el of candidates) {
-			const label = (el.getAttribute("aria-label") || "").trim().toLowerCase();
-			if (label === "de" || label.indexOf("de:") === 0 || label.indexOf("from:") === 0) return el;
+			const ariaLabel = (el.getAttribute("aria-label") || "").trim().toLowerCase();
+			const text = (el.textContent || "").trim().toLowerCase();
+			if (isFromLabel(ariaLabel) || isFromLabel(text)) return el;
 		}
 		return null;
 	}
 
+	function isFromLabel(text) {
+		return text === "de" || text.indexOf("de:") === 0 || text.indexOf("from:") === 0;
+	}
+
 	function findFromOption(email) {
 		const emailLower = email.toLowerCase();
-		const candidates = document.querySelectorAll('[role="option"], [role="menuitem"]');
+		// Cobre os padrões mais comuns de item de lista/menu em componentes
+		// Fluent UI (role="option"/"menuitem"), mas também botões soltos
+		// dentro de um menu/listbox aberto, caso o Outlook não use esses
+		// papéis ARIA para cada item.
+		const candidates = document.querySelectorAll(
+			'[role="option"], [role="menuitem"], [role="listbox"] button, [role="listbox"] li, [role="menu"] button, [role="menu"] li'
+		);
 		for (const el of candidates) {
 			const text = (el.getAttribute("aria-label") || el.textContent || "").toLowerCase();
 			if (text.indexOf(emailLower) !== -1) return el;
 		}
 		return null;
+	}
+
+	// Ajuda a diagnosticar quando a automação não acha o que precisa: lista
+	// os textos dos candidatos mais prováveis, para comparar com o que
+	// deveria aparecer (ex.: "De: fulano@dominio.com" ou a lista de contas).
+	function logNearbyTexts(selector, limit) {
+		const texts = [];
+		document.querySelectorAll(selector).forEach(function (el) {
+			const text = (el.getAttribute("aria-label") || el.textContent || "").trim();
+			if (text) texts.push(text);
+		});
+		console.log("[Projudi->Outlook] candidatos encontrados (" + selector + "):", texts.slice(0, limit || 30));
 	}
 
 	// Tenta selecionar, no campo "De" já revelado, o remetente marcado como
@@ -224,6 +247,7 @@
 		const fromControl = await waitFor(findFromControl, WAIT_TIMEOUT_MS);
 		if (!fromControl) {
 			console.warn("[Projudi->Outlook] não encontrei o controle do campo 'De' para selecionar o remetente padrão.");
+			logNearbyTexts('[role="combobox"], [role="button"], button');
 			return;
 		}
 
@@ -245,6 +269,7 @@
 					defaultAccount.email +
 					"' na lista de remetentes — confira se a permissão de 'Enviar como' está configurada para essa conta."
 			);
+			logNearbyTexts('[role="option"], [role="menuitem"], [role="listbox"] button, [role="listbox"] li, [role="menu"] button, [role="menu"] li');
 			return;
 		}
 		option.click();
