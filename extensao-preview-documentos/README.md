@@ -106,9 +106,8 @@ Fluxo de uso:
    se nenhum DDI for digitado, assume-se `55`/Brasil).
 3. Ao confirmar, a extensão baixa os arquivos selecionados (reaproveitando a
    sessão do Projudi, do mesmo jeito que a pré-visualização) e abre (ou
-   reaproveita) uma aba do WhatsApp Web — sem nunca recarregá-la — na
-   conversa do número informado, reaproveitando a sessão já
-   aberta/conectada no navegador, se houver.
+   reaproveita) uma aba do WhatsApp Web na conversa do número informado,
+   reaproveitando a sessão já aberta/conectada no navegador, se houver.
 4. Assim que a conversa termina de carregar, os arquivos são anexados
    automaticamente — a extensão simula "colar" (Ctrl+V) os arquivos na
    caixa de mensagem, o mesmo mecanismo que o próprio WhatsApp Web já
@@ -116,91 +115,75 @@ Fluxo de uso:
    alternativa). O envio da mensagem continua sendo uma ação manual do
    usuário, que pode revisar os anexos e adicionar uma legenda antes de
    enviar. Um aviso aparece no canto inferior esquerdo da tela do WhatsApp
-   Web mostrando o andamento ("abrindo conversa…", "aguardando a conversa
-   carregar…", "anexando arquivo(s)…", "arquivo(s) anexado(s)" ou um erro).
+   Web mostrando o andamento ("aguardando a conversa carregar…", "anexando
+   arquivo(s)…", "arquivo(s) anexado(s)" ou um erro).
 
 **Importante — confira sempre o destinatário antes de clicar em enviar.**
-Abrir a conversa certa depende de simular a busca do WhatsApp Web, que
-filtra a lista de forma assíncrona; a extensão espera a lista "assentar"
-antes de clicar no resultado, mas nenhuma automação desse tipo é
-infalível. Antes de enviar, olhe o nome/número no topo da conversa aberta
-e confirme que é o destinatário certo — documentos de processo são
-sensíveis, então esse segundo antes de clicar em "Enviar" vale a pena.
+Documentos de processo são sensíveis; esse segundo antes de clicar em
+"Enviar" vale a pena mesmo com a abertura da conversa sendo confiável (ver
+abaixo).
 
-Importante: o WhatsApp Web não permite duas abas logadas ao mesmo tempo (a
-segunda cai numa tela de conflito de sessão), e trocar a URL de uma aba
-(mesmo reaproveitando-a) sempre recarrega a página inteira — o que parece
-um "reinício de sessão" a cada envio. Por isso a extensão nunca navega uma
-aba do WhatsApp Web já aberta:
+Como a conversa certa é aberta: o WhatsApp Web não permite duas abas
+logadas ao mesmo tempo (a segunda cai numa tela de conflito de sessão), e
+não há uma forma de simular clique/busca na interface que seja garantida
+de acertar o destinatário — uma versão anterior desta extensão tentou isso
+e chegou a abrir a conversa de outra pessoa por engano. Por isso a
+extensão sempre abre a conversa através do link oficial
+`web.whatsapp.com/send?phone=<número>` (o "clique para conversar" que o
+próprio WhatsApp Web disponibiliza), que é a única forma garantida de abrir
+no destinatário certo:
 
-- se já existe uma aba de `web.whatsapp.com` aberta, ela só é focada — a
-  extensão então abre a conversa do número informado simulando o fluxo
-  manual (clicar em "Nova conversa", digitar o número na busca e clicar no
-  resultado), do mesmo jeito que você faria com o mouse, inteiramente por
-  manipulação da página, sem nenhuma navegação/reload;
-- essa mesma simulação é usada mesmo numa aba **nova** (criada quando
-  nenhuma estava aberta ainda) — a aba é criada em branco
-  (`web.whatsapp.com/`, sem número na URL) e a conversa é aberta do mesmo
-  jeito assim que a página carrega;
-- ela é sempre repetida a cada envio, mesmo que a conversa "pareça" já ser
-  a certa — não há como saber com certeza, de fora, qual conversa está
-  aberta no momento (você pode ter trocado de chat manualmente), e anexar
-  no chat errado enviaria o documento para a pessoa errada;
-- se, por algum motivo, não for possível abrir a conversa simulando esse
-  fluxo (ex.: o WhatsApp Web mudou a tela de "Nova conversa"), a extensão
-  cai de volta para navegar a aba para a URL `send?phone=...` como último
-  recurso — o que nesse caso específico *recarrega* a página (mas ainda
-  sem logout).
+- se já existe uma aba de `web.whatsapp.com` aberta **na mesma conversa**
+  que o número informado, ela só é focada, sem recarregar — a extensão
+  avisa o content script já injetado nela para buscar o novo arquivo
+  pendente e anexá-lo;
+- se a aba já aberta está numa conversa **diferente**, ela é reaproveitada
+  mas precisa ser navegada para a URL da conversa certa — isso recarrega a
+  página do WhatsApp Web (não tem como evitar usando esse link), mas a
+  sessão/login continua a mesma, não é um logout;
+- só é aberta uma aba **nova** se nenhuma estiver aberta ainda (também já
+  direto na conversa certa).
 
 Essa parte depende de dois componentes adicionais:
 
 - `src/background.js`: service worker que guarda temporariamente os
   arquivos selecionados (em `chrome.storage.local`, apenas até serem
   anexados ou expirarem após alguns minutos) e abre/reaproveita a aba do
-  WhatsApp Web.
+  WhatsApp Web na conversa certa.
 - `src/whatsapp.js`: content script injetado em `web.whatsapp.com` que
-  busca esse conteúdo pendente e tenta anexá-lo à conversa aberta. Ele
-  mostra o andamento na própria tela e também registra tudo no console do
-  DevTools da aba do WhatsApp Web (mensagens com o prefixo
-  `[Projudi WhatsApp]`), útil para diagnosticar se o anexo automático não
-  funcionar.
+  busca esse conteúdo pendente e anexa os arquivos assim que a conversa
+  termina de carregar. Ele mostra o andamento na própria tela e também
+  registra tudo no console do DevTools da aba do WhatsApp Web (mensagens
+  com o prefixo `[Projudi WhatsApp]`), útil para diagnosticar se o anexo
+  automático não funcionar.
 
-Detalhe técnico: como a aba do WhatsApp Web reaproveitada nunca é
-recarregada (ver acima), uma aba que já estava aberta antes de a extensão
-ser instalada/atualizada não teria `src/whatsapp.js` rodando nela — content
-scripts declarados no manifest só são injetados quando a página
-carrega/navega. Por isso `src/background.js` sempre tenta avisar a aba por
-mensagem primeiro e, se isso falhar (script ausente ou órfão de uma versão
-anterior), reinjeta `src/whatsapp.js` nela por conta própria (via
-`chrome.scripting`), sem precisar de nenhum F5 manual.
+Detalhe técnico: quando a aba já está na conversa certa e não precisa ser
+navegada, `src/background.js` avisa o content script por mensagem — mas
+uma aba que já estava aberta antes de a extensão ser instalada/atualizada
+pode não ter `src/whatsapp.js` rodando nela (content scripts declarados no
+manifest só são injetados quando a página carrega/navega) ou pode estar
+com uma versão órfã dele (o canal com `chrome.runtime` é cortado quando a
+extensão recarrega). Por isso, se avisar por mensagem falhar,
+`src/background.js` reinjeta `src/whatsapp.js` na aba por conta própria
+(via `chrome.scripting`), sem precisar de nenhum F5 manual.
 
 ### Se o anexo automático não funcionar
 
 1. Depois de atualizar os arquivos da extensão, sempre recarregue-a em
    `chrome://extensions` (ícone de recarregar no card da extensão) — só
    atualizar a página do Projudi ou do WhatsApp Web não é suficiente.
-2. Confira se a aba do WhatsApp Web está mesmo reaproveitando a sessão
-   (não deveria abrir uma aba nova a cada envio, só na primeira vez). Se
-   continuar abrindo aba nova, abra `chrome://extensions`, clique em
-   "Inspecionar visualizações: service worker" da extensão e veja se
-   aparecem as mensagens `[Projudi WhatsApp] abas do WhatsApp Web
-   encontradas: ...` — se aparecer `0` mesmo com uma aba do WhatsApp Web já
-   aberta, feche todas as abas de `web.whatsapp.com`, deixe só uma aberta e
-   logada, e tente de novo.
-3. Ao abrir o DevTools para ver os logs de `src/whatsapp.js`, confirme que
+2. Ao abrir o DevTools para ver os logs de `src/whatsapp.js`, confirme que
    ele está inspecionando mesmo a aba do **WhatsApp Web** — se o DevTools
    estiver "solto" (janela separada), ele fica preso à aba que estava em
    foco quando foi aberto, e trocar de aba clicando nela não muda isso;
    feche e abra o DevTools de novo com a aba do WhatsApp Web em foco, e
    confira que a URL mostrada no painel é `web.whatsapp.com`.
-3. Se a aba abre na conversa certa mas o arquivo não aparece anexado, ou
-   se a conversa não abre e a aba acaba recarregando mesmo já estando
-   aberta, abra o DevTools (F12) **na aba do WhatsApp Web** e veja as
-   mensagens `[Projudi WhatsApp]` no console — elas indicam em qual etapa
-   parou (abrir a conversa sem recarregar, colar, arrastar-e-soltar).
-   Isso normalmente indica que o WhatsApp Web mudou a estrutura da tela
-   (botão de "Nova conversa", campo de busca, caixa de mensagem, etc.) e
-   os seletores usados por `src/whatsapp.js` precisam de ajuste.
+3. Se a conversa abre certa mas o arquivo não aparece anexado, abra o
+   DevTools (F12) **na aba do WhatsApp Web** e veja as mensagens
+   `[Projudi WhatsApp]` no console — elas indicam em qual etapa parou
+   (conversa não carregou, colar, arrastar-e-soltar). Isso normalmente
+   indica que o WhatsApp Web mudou a estrutura da caixa de mensagem e o
+   seletor usado por `src/whatsapp.js` precisa de ajuste.
 
 Limitações:
 
