@@ -146,7 +146,13 @@ envio"). Nesse modo:
 4. Um aviso aparece no topo da tela do Outlook (`src/owa-attach.js`) com os
    nomes dos arquivos baixados, orientando a anexá-los pelo próprio botão
    **"Anexar arquivo" → "Navegar neste computador"**, escolhendo o(s)
-   arquivo(s) na pasta Downloads.
+   arquivo(s) na pasta Downloads. O mesmo script também tenta clicar no
+   campo **"De"** da composição para revelá-lo (caso esteja recolhido),
+   assim o usuário pode trocar o remetente manualmente pelo próprio
+   seletor do Outlook — só funciona se o usuário já tiver permissão de
+   "Enviar como" na conta desejada (configuração do Exchange/TI, fora do
+   controle da extensão); se o Outlook não mostrar nenhuma opção além da
+   conta padrão, é porque essa permissão não está configurada.
 5. O modo **"Automático"** (padrão) usa o Graph quando o Client ID estiver
    configurado e cai automaticamente neste modo quando não estiver — ou
    seja, a extensão funciona "out of the box" sem precisar de nenhum
