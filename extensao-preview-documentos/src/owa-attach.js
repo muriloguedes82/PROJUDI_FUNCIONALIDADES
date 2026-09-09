@@ -79,6 +79,8 @@
 	const OPTIONS_TAB_LABELS = ["opções", "options"];
 	const MESSAGE_TAB_LABELS = ["mensagem", "message"];
 	const SHOW_FROM_LABELS = ["mostrar de", "show from"];
+	const WAIT_TIMEOUT_MS = 15000;
+	const POLL_INTERVAL_MS = 300;
 
 	function findByAccessibleText(selector, labelsLower) {
 		const elements = document.querySelectorAll(selector);
@@ -89,8 +91,35 @@
 		return null;
 	}
 
+	// As abas da faixa de opções (role="tab") têm um <span
+	// class="pivot-header-label"> com o texto visível — mas quando a aba
+	// NÃO está selecionada, existe um segundo <span> "de reserva de
+	// espaço" com o mesmo texto, duplicando o textContent do botão inteiro
+	// (ex.: "MensagemMensagem"). Por isso comparamos o texto só do
+	// primeiro span, não do botão inteiro.
 	function findRibbonTab(labelsLower) {
-		return findByAccessibleText('[role="tab"], button', labelsLower);
+		const tabs = document.querySelectorAll('[role="tab"]');
+		for (const tab of tabs) {
+			const labelEl = tab.querySelector(".pivot-header-label") || tab.querySelector("span") || tab;
+			const text = (labelEl.textContent || "").trim().toLowerCase();
+			if (labelsLower.indexOf(text) !== -1) return tab;
+		}
+		return null;
+	}
+
+	// Espera até "find()" retornar algo (tentando a cada POLL_INTERVAL_MS),
+	// até WAIT_TIMEOUT_MS. A faixa de opções do Outlook Web pode demorar
+	// para terminar de montar, então uma única tentativa não é suficiente.
+	function waitFor(find, timeoutMs) {
+		return new Promise(function (resolve) {
+			const deadline = Date.now() + timeoutMs;
+			(function attempt() {
+				const result = find();
+				if (result) return resolve(result);
+				if (Date.now() >= deadline) return resolve(null);
+				setTimeout(attempt, POLL_INTERVAL_MS);
+			})();
+		});
 	}
 
 	function findShowFromCheckbox() {
@@ -123,17 +152,18 @@
 	// "Mensagem". Não pré-seleciona nenhuma conta — só expõe o seletor
 	// nativo do Outlook para o usuário trocar manualmente.
 	async function tryRevealFromField() {
-		await sleep(1500); // dá tempo da tela de composição terminar de montar
-
-		const optionsTab = findRibbonTab(OPTIONS_TAB_LABELS);
+		const optionsTab = await waitFor(function () {
+			return findRibbonTab(OPTIONS_TAB_LABELS);
+		}, WAIT_TIMEOUT_MS);
 		if (!optionsTab) {
 			console.warn("[Projudi->Outlook] não encontrei a guia 'Opções' da faixa de opções.");
 			return;
 		}
 		optionsTab.click();
+		console.log("[Projudi->Outlook] cliquei na guia 'Opções' da faixa de opções.", optionsTab);
 		await sleep(400);
 
-		const checkbox = findShowFromCheckbox();
+		const checkbox = await waitFor(findShowFromCheckbox, WAIT_TIMEOUT_MS);
 		if (!checkbox) {
 			console.warn("[Projudi->Outlook] não encontrei a caixa 'Mostrar de' na guia Opções.");
 			return;
