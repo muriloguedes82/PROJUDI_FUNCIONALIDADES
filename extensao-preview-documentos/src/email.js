@@ -453,15 +453,36 @@
 		return match ? "Documentos do processo " + match[1] : "Documentos do Projudi";
 	}
 
+	// Número dos autos: no Projudi vem de <em class="attention">; no SEEU
+	// (e como reserva geral) usa o mesmo padrão já usado em subjectFromPage,
+	// aplicado ao título da página, que em ambos os sistemas contém o
+	// número do processo.
+	function extractProcessNumber() {
+		const projudiEl = document.querySelector("em.attention");
+		if (projudiEl && projudiEl.textContent.trim()) return projudiEl.textContent.trim();
+		const match = document.title.match(/([\d.\-]{15,})/);
+		return match ? match[1] : "";
+	}
+
+	// Juízo/vara: no SEEU vem do campo "Juízo:" da tabela de informações do
+	// processo (td[data-label="juízo"], valor na célula seguinte); no
+	// Projudi vem do link "área de atuação" do usuário no cabeçalho.
+	function extractJudgeText() {
+		const seeuLabelCell = document.querySelector('td[data-label="juízo"]');
+		if (seeuLabelCell && seeuLabelCell.nextElementSibling) {
+			const text = seeuLabelCell.nextElementSibling.textContent.trim();
+			if (text) return text;
+		}
+		const projudiEl = document.querySelector("#areaatuacao");
+		return projudiEl ? projudiEl.textContent.trim() : "";
+	}
+
 	// Monta o texto padrão inserido no início de todo e-mail, com o número
-	// dos autos e o juízo, extraídos da própria tela do Projudi (mesmos
-	// elementos usados pelo próprio sistema para exibi-los no cabeçalho do
-	// processo).
+	// dos autos e o juízo, extraídos da própria tela do processo (Projudi
+	// ou SEEU).
 	function defaultBodyText() {
-		const numberEl = document.querySelector("em.attention");
-		const judgeEl = document.querySelector("#areaatuacao");
-		const number = numberEl ? numberEl.textContent.trim() : "";
-		const judge = judgeEl ? judgeEl.textContent.trim() : "";
+		const number = extractProcessNumber();
+		const judge = extractJudgeText();
 
 		const lines = [];
 		if (number) lines.push("REF. AUTOS Nº (" + number + ")");

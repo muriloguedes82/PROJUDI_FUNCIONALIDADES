@@ -1,7 +1,9 @@
-# Projudi - Documentos: Pré-visualização e Envio por E-mail
+# Projudi/SEEU - Documentos: Pré-visualização e Envio por E-mail
 
 Extensão de navegador (Chrome/Edge, Manifest V3) que resolve dois problemas
-na tela **Movimentações** do Projudi:
+na tela **Movimentações** do **Projudi** e do **SEEU** (o SEEU é construído
+sobre a mesma plataforma do Projudi e usa o mesmo padrão de link para os
+arquivos anexados, então a extensão funciona da mesma forma nos dois):
 
 1. Para ler a íntegra de um documento anexado é preciso clicar no link e
    abri-lo em outra aba (veja "Pré-visualização" abaixo).
@@ -49,18 +51,26 @@ Ao clicar em "Enviar por e-mail":
 ### Texto padrão do e-mail
 
 Todo e-mail já sai com estas duas linhas no início do corpo, extraídas
-diretamente da tela do processo aberta no Projudi:
+diretamente da tela do processo:
 
 ```
 REF. AUTOS Nº (0004608-81.2024.8.16.0033)
 JUÍZO: (Vara Criminal de Pinhais)
 ```
 
-O número dos autos vem do elemento `<em class="attention">` e o juízo do
-elemento `#areaatuacao` da própria página — os mesmos usados pelo Projudi
-para exibi-los no cabeçalho do processo. Se algum desses elementos não for
-encontrado na página (ex.: layout diferente), a linha correspondente
-simplesmente não é incluída.
+A extração muda um pouco conforme o sistema, mas o resultado final é igual:
+
+- **Número dos autos**: no Projudi vem do elemento `<em class="attention">`;
+  no SEEU (e como reserva geral, caso esse elemento não exista) vem do
+  próprio título da página, que em ambos os sistemas contém o número do
+  processo.
+- **Juízo**: no SEEU vem do campo "Juízo:" da tabela de informações do
+  processo (`td[data-label="juízo"]`); no Projudi vem do link "área de
+  atuação" do usuário no cabeçalho (`#areaatuacao`).
+
+Se nenhuma dessas fontes for encontrada na página (ex.: layout diferente
+numa atualização do sistema), a linha correspondente simplesmente não é
+incluída.
 
 ### Destinatários favoritos
 
@@ -169,10 +179,13 @@ que é o único caminho 100% automático.
 
 ## Como funciona
 
-1. Um content script (`src/content.js`) é injetado nas páginas
-   `processo.do` do Projudi (tela de movimentações/autos do processo).
-2. Ele identifica os links de arquivo da movimentação, que no HTML do
-   Projudi seguem o padrão:
+1. Um content script (`src/content.js` e `src/email.js`) é injetado nas
+   páginas de processo do **Projudi** (`processo.do`) e do **SEEU**
+   (`visualizacaoProcesso.do`) — tela de movimentações/autos do processo em
+   cada sistema.
+2. Ele identifica os links de arquivo da movimentação, que em ambos os
+   sistemas seguem o mesmo padrão (o SEEU é construído sobre a mesma
+   plataforma do Projudi):
    ```html
    <a target="_blank" class="link" href=".../arquivo.do?_tj=...">
        Certidao de Baixa.pdf
@@ -180,7 +193,7 @@ que é o único caminho 100% automático.
    ```
 3. Ao detectar o mouse parado sobre um desses links por ~350ms, abre um
    painel (`<iframe>`) carregando a própria URL do `arquivo.do`. Como o
-   iframe está na mesma origem do Projudi, ele reaproveita a sessão/cookies
+   iframe está na mesma origem da página, ele reaproveita a sessão/cookies
    já autenticados do usuário — nenhuma credencial extra é usada ou
    armazenada pela extensão.
 4. O painel some automaticamente ao tirar o mouse do link e do próprio
@@ -194,8 +207,8 @@ que é o único caminho 100% automático.
 2. Ative o "Modo do desenvolvedor".
 3. Clique em "Carregar sem compactação" e selecione a pasta
    `extensao-preview-documentos`.
-4. Abra um processo no Projudi (TJPR) e passe o mouse sobre um documento na
-   aba Movimentações.
+4. Abra um processo no Projudi (TJPR) ou no SEEU e passe o mouse sobre um
+   documento na aba Movimentações.
 
 ## Limitações conhecidas
 
@@ -203,10 +216,16 @@ que é o único caminho 100% automático.
   um `<iframe>` (PDF é o caso comum, via visualizador nativo do
   Chrome/Edge). Alguns tipos de arquivo podem ser baixados diretamente pelo
   navegador em vez de exibidos — nesse caso, use "Abrir em nova aba".
-- O `host_permissions` do `manifest.json` está restrito a
-  `*.tjpr.jus.br`, domínio do exemplo fornecido. Para usar em outro
-  Tribunal que também utilize o Projudi, ajuste os padrões de URL em
-  `manifest.json`.
+- O `host_permissions` do `manifest.json` está restrito a `*.tjpr.jus.br`
+  (Projudi) e `seeu.pje.jus.br` (SEEU), os domínios usados no TJPR. Para
+  usar em outro Tribunal (outro domínio de Projudi, ou outra instância do
+  SEEU), ajuste os padrões de URL em `manifest.json`.
+- O reconhecimento das telas do SEEU foi validado a partir de um HTML
+  estático (arquivo `.mhtml` salvo com a movimentação já expandida), não de
+  testes ao vivo no sistema — o link de arquivo usa o mesmo padrão do
+  Projudi (`class="link"` + `href` contendo `/arquivo.do`), então a
+  detecção de documentos deve funcionar sem ajustes, mas vale confirmar na
+  prática.
 - Não há armazenamento, envio ou cache de nenhum dado do processo pela
   extensão: o documento é sempre buscado diretamente do Projudi no momento
   do hover.
