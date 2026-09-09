@@ -70,7 +70,13 @@
 		});
 
 		checkbox.addEventListener("change", function () {
-			const href = link.getAttribute("href");
+			// Usa a propriedade "href" (sempre absoluta), não getAttribute
+			// ("href") (pode ser relativa, ex.: "arquivo.do?_tj=..." no
+			// Projudi) — o link é enviado ao background script para o
+			// download, e uma URL relativa não teria como ser resolvida
+			// corretamente lá (o "base" do background é a extensão, não a
+			// página do Projudi/SEEU).
+			const href = link.href;
 			const name = (link.textContent || "documento").trim();
 			if (checkbox.checked) {
 				selected.set(href, { href: href, name: name });
