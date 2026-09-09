@@ -227,17 +227,22 @@ Limitações:
 ## Convivência com outras extensões (ex.: AzFlow)
 
 É comum ter outra extensão de produtividade jurídica instalada ao mesmo
-tempo (ex.: AzFlow), que também pode oferecer pré-visualização de
-documentos ao passar o mouse. Como as duas reagem ao mesmo evento nativo
-do navegador, essa extensão dá prioridade a si mesma em caso de conflito:
-ao identificar um link de documento ou de pendência, ela chama
-`stopImmediatePropagation()` no evento de mouseover/mouseout, impedindo
-que outros listeners (de outra extensão) tratem o mesmo evento e abram
-uma pré-visualização concorrente por cima; os painéis também usam o maior
-`z-index` possível, para sempre aparecer acima de qualquer overlay de
-outra extensão. Isso só se aplica ao passar o mouse sobre um link já
-reconhecido por esta extensão — em qualquer outro elemento da página, o
-evento segue normalmente e a outra extensão funciona como sempre.
+tempo (ex.: AzFlow), que pode oferecer funcionalidades parecidas (como
+pré-visualização de documentos ao passar o mouse) usando os mesmos eventos
+nativos do navegador. Para dar prioridade visual a esta extensão sem
+quebrar a outra, os painéis (preview e WhatsApp) usam o maior `z-index`
+possível (2147483647), garantindo que sempre apareçam por cima de qualquer
+overlay de outra extensão.
+
+Importante: esta extensão **não** intercepta nem bloqueia eventos
+(`stopPropagation`/`stopImmediatePropagation`) para "vencer" outras
+extensões — uma tentativa anterior de fazer isso chegou a quebrar o
+reposicionamento da barra de botões do AzFlow no SEEU, que depende desses
+mesmos eventos para o próprio funcionamento. Se as duas extensões tentarem
+mostrar uma pré-visualização para o mesmo link ao mesmo tempo, pode
+aparecer mais de um painel sobreposto — nesse caso, o desta extensão fica
+por cima (z-index), mas o da outra continua existindo por baixo; feche o
+que não precisar com "✕" ou `Esc`.
 
 ## Limitações conhecidas
 

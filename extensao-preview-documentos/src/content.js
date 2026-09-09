@@ -362,20 +362,18 @@
 		clearTimeout(openTimer);
 	}
 
-	// Registrar em fase de captura (o `true` no fim) e chamar
-	// stopImmediatePropagation() quando decidimos agir dá prioridade a esta
-	// extensão sobre outras que também escutem mouseover/mouseout na página
-	// (ex.: AzFlow) — o evento nativo é compartilhado entre todas as
-	// extensões que rodam na mesma aba, então "consumi-lo" aqui evita que a
-	// pré-visualização de outra extensão abra por cima/ao mesmo tempo da
-	// nossa para o mesmo link. Só faz isso quando realmente vamos mostrar
-	// algo; em qualquer outro elemento da página o evento segue normalmente.
+	// Importante: NÃO chamamos stopPropagation()/stopImmediatePropagation()
+	// aqui. Outras extensões (ex.: AzFlow) também escutam esses mesmos
+	// eventos nativos para o próprio funcionamento (ex.: reposicionar a
+	// barra de botões da tela) — "consumir" o evento já chegou a quebrar
+	// esse comportamento delas. A prioridade desta extensão em caso de
+	// conflito visual vem só do z-index dos painéis (ver content.css), que
+	// não interfere em nada do que outra extensão faz.
 	document.addEventListener(
 		"mouseover",
 		function (e) {
 			const docLink = findDocumentLink(e.target);
 			if (docLink) {
-				e.stopImmediatePropagation();
 				cancelCloseDoc();
 				cancelOpen();
 				openTimer = setTimeout(function () {
@@ -386,7 +384,6 @@
 
 			const pendenciaLink = findPendenciaLink(e.target);
 			if (pendenciaLink) {
-				e.stopImmediatePropagation();
 				cancelClosePendencia();
 				cancelOpen();
 				openTimer = setTimeout(function () {
@@ -402,7 +399,6 @@
 		function (e) {
 			const docLink = findDocumentLink(e.target);
 			if (docLink) {
-				e.stopImmediatePropagation();
 				const toEl = e.relatedTarget;
 				if (docPanel && toEl && docPanel.wrap.contains(toEl)) return;
 				scheduleCloseDoc();
@@ -411,7 +407,6 @@
 
 			const pendenciaLink = findPendenciaLink(e.target);
 			if (pendenciaLink) {
-				e.stopImmediatePropagation();
 				const toEl = e.relatedTarget;
 				const stillInsideAPanel =
 					toEl &&
