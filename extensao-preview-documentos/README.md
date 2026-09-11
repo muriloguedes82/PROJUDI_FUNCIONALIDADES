@@ -286,17 +286,18 @@ painel depende de qual tela do processo você está vendo, já que o painel
   numa aba diferente do processo, como Partes e Outros): o painel avisa
   para abrir a aba "Movimentações" primeiro.
 
-**Nem toda movimentação leva à lista completa de "Ações":** o Projudi
-decide a tela de destino conforme o tipo da movimentação — por exemplo,
-uma "Juntada de Petição" ou uma confirmação automática do sistema
-("Confirmada a Comunicação Eletrônica") podem levar direto à tela "Juntar
-Documento", pulando a lista geral de Ações. Quando isso acontece com uma
-movimentação escolhida automaticamente pela extensão, ela **detecta e
-tenta de novo com a próxima movimentação válida** (voltando duas páginas
-e repetindo os passos acima), até 5 vezes, sem precisar de nada manual.
-Só se nenhuma das últimas movimentações levar à tela de Ações é que
-aparece um aviso pedindo para abrir manualmente uma movimentação mais
-antiga (um despacho/decisão costuma funcionar).
+**Às vezes "Movimentar a Partir Desta Movimentação" abre uma tela de ação
+específica** (ex.: "Juntar Documento") em vez da lista geral de Ações —
+em teste, a mesma movimentação levou a telas diferentes dependendo de
+quão rápido o botão foi clicado depois da tela carregar, então a extensão
+espera um instante (imitando o tempo de reação normal de uma pessoa) antes
+de cada clique automático. Se mesmo assim isso acontecer, ela **detecta e
+tenta de novo com a próxima movimentação válida** (voltando à mesma URL da
+lista de Movimentações — nunca usando "voltar" do navegador, que não é
+confiável aqui — e repetindo os passos acima), até 5 vezes, sem precisar
+de nada manual. Só se nenhuma das últimas movimentações levar à tela de
+Ações é que aparece um aviso pedindo para abrir manualmente uma
+movimentação mais antiga (um despacho/decisão costuma funcionar).
 
 Para cada ação, o painel oferece:
 

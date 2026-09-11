@@ -241,6 +241,10 @@
 	// recente para trás) antes de desistir e pedir para o usuário escolher
 	// manualmente uma mais antiga.
 	const MAX_MOVEMENT_ATTEMPTS = 5;
+	// Atraso antes de cada clique automático (evento/"Movimentar a Partir
+	// Desta Movimentação"), imitando o tempo de reação de uma pessoa real —
+	// ver o comentário em runIntentStateMachine sobre por que isso importa.
+	const AUTO_CLICK_DELAY_MS = 900;
 
 	function storePendingIntent(intent) {
 		intent.ts = Date.now();
@@ -342,15 +346,35 @@
 
 			const movimentarBtn = findMovimentarButton();
 			if (movimentarBtn) {
-				movimentarBtn.click(); // navegação de página inteira; retoma no próximo load
+				// Clicar assim que o botão aparece (quase instantâneo após o
+				// carregamento da página) pode ser rápido demais: em teste real,
+				// a MESMA movimentação levou à tela de Ações quando o usuário
+				// clicou manualmente (com o tempo de reação normal de uma
+				// pessoa) e a uma tela diferente quando clicada assim que
+				// detectada. O atraso aqui imita esse tempo de reação, dando
+				// chance a qualquer script da própria página terminar de
+				// configurar o destino correto antes do clique.
+				setTimeout(function () {
+					movimentarBtn.click(); // navegação de página inteira; retoma no próximo load
+				}, AUTO_CLICK_DELAY_MS);
 				return;
 			}
 
 			const eventLink = findLatestValidEventLink(intent.triedMovementIds);
 			if (eventLink) {
 				const triedMovementIds = (intent.triedMovementIds || []).concat([eventLink.id]);
-				storePendingIntent(Object.assign({}, intent, { triedMovementIds: triedMovementIds })).then(function () {
-					eventLink.click(); // navegação de página inteira; retoma no próximo load
+				// Guarda a URL desta própria lista de Movimentações — é para cá,
+				// e não para "voltar N páginas" no histórico do navegador
+				// (pouco confiável: depende de quantas navegações reais
+				// aconteceram até aqui, que variam conforme como o usuário
+				// chegou nesta tela), que a extensão volta se esta movimentação
+				// não levar à tela de Ações.
+				storePendingIntent(
+					Object.assign({}, intent, { triedMovementIds: triedMovementIds, movementsListUrl: window.location.href })
+				).then(function () {
+					setTimeout(function () {
+						eventLink.click(); // navegação de página inteira; retoma no próximo load
+					}, AUTO_CLICK_DELAY_MS);
 				});
 				return;
 			}
@@ -360,13 +384,13 @@
 			// tela de destino diferente (ex.: "Juntar Documento") — o tipo da
 			// movimentação escolhida não levava à lista geral de Ações. Se essa
 			// movimentação foi escolhida pela própria extensão (há
-			// triedMovementIds) e ainda não estourou o limite de tentativas,
-			// volta duas páginas (a mesma navegação que nos trouxe até aqui: da
-			// lista de eventos → detalhe da movimentação → esta tela) para
-			// tentar a PRÓXIMA movimentação válida.
+			// movementsListUrl guardada) e ainda não estourou o limite de
+			// tentativas, navega de volta para a MESMA URL da lista de
+			// Movimentações (não usa o histórico do navegador — ver acima) e
+			// tenta a PRÓXIMA movimentação válida.
 			const tried = intent.triedMovementIds || [];
-			if (tried.length && tried.length < MAX_MOVEMENT_ATTEMPTS) {
-				window.history.go(-2);
+			if (intent.movementsListUrl && tried.length && tried.length < MAX_MOVEMENT_ATTEMPTS) {
+				window.location.href = intent.movementsListUrl;
 				return;
 			}
 
