@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Projudi - Documentos: Pré-visualização e Envio por E-mail",
-  "version": "1.9.4",
+  "version": "1.9.5",
   "description": "Na tela de Movimentações do Projudi/SEEU, exibe a íntegra de um documento em janela sobreposta ao passar o mouse, e permite selecionar arquivos e enviá-los por e-mail via Outlook.",
   "permissions": ["identity", "storage", "windows", "downloads"],
   "host_permissions": [
@@ -20,10 +20,8 @@
   "content_scripts": [
     {
       "matches": [
-        "*://*.tjpr.jus.br/projudi/processo.do*",
-        "*://*.tjpr.jus.br/projudi/*processo*",
-        "*://seeu.pje.jus.br/seeu/visualizacaoProcesso.do*",
-        "*://seeu.pje.jus.br/seeu/*processo*"
+        "*://*.tjpr.jus.br/projudi/*",
+        "*://seeu.pje.jus.br/seeu/*"
       ],
       "js": ["src/content.js", "src/email.js"],
       "css": ["src/content.css", "src/email.css"],
