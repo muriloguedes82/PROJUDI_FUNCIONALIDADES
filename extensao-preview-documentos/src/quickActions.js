@@ -478,6 +478,27 @@
 		buildPanel(group);
 	}
 
+	// Diagnóstico: quando nenhuma ação de um grupo é encontrada, registra no
+	// console (F12, filtro "Projudi Ações Rápidas") os rótulos esperados e
+	// todo texto de link "a.link" realmente presente neste frame/URL — útil
+	// para comparar se o Projudi usa um texto levemente diferente do
+	// esperado (acento, espaço, "(*)" etc.) ou se esta tela/frame
+	// simplesmente não é a que tem o painel "Ações" (ex.: usuário está em
+	// outra aba do processo, não em Movimentações).
+	function logAvailableLinkTexts(group) {
+		const found = Array.prototype.slice.call(document.querySelectorAll("a.link")).map(normalizeLinkText).filter(Boolean);
+		console.info(
+			"[Projudi Ações Rápidas]",
+			'grupo "' + group.title + '" — nenhum rótulo esperado bateu nesta tela.',
+			"\nURL/frame:",
+			window.location.href,
+			"\nRótulos esperados:",
+			group.actions,
+			"\nTextos de a.link encontrados aqui:",
+			found
+		);
+	}
+
 	function buildPanel(group) {
 		activeGroupId = group.id;
 		const activeBtn = row && row.querySelector('[data-group-id="' + group.id + '"]');
@@ -494,6 +515,7 @@
 			empty.className = "pdp-qa-empty";
 			empty.textContent = 'Nenhuma ação de "' + group.title + '" foi encontrada nesta tela.';
 			activePanel.appendChild(empty);
+			logAvailableLinkTexts(group);
 		} else {
 			availableActions.forEach(function (label) {
 				activePanel.appendChild(buildActionRow(label));
