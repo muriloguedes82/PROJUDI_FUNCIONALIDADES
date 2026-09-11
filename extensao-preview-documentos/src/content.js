@@ -208,6 +208,13 @@
 	// Pré-visualização simples (link de documento)
 	// ---------------------------------------------------------------------
 
+	// Algumas telas trocam de aba (Movimentações, Partes e Outros, etc.)
+	// substituindo trechos do DOM via AJAX, o que remove nosso painel da
+	// página mesmo com a variável "docPanel" continuando preenchida — por
+	// isso também conferimos "isConnected" (só é verdadeiro enquanto o nó
+	// ainda está de fato na página) e recriamos o painel quando ele tiver
+	// sido desconectado, senão a pré-visualização para de aparecer depois
+	// de voltar para a aba de Movimentações.
 	function ensureDocPanel() {
 		// Se o painel antigo ficou "órfão" (a página substituiu o contêiner
 		// que o continha, ex.: ao trocar de aba do processo), ele já não faz

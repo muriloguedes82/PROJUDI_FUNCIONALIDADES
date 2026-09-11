@@ -1,31 +1,49 @@
 {
   "manifest_version": 3,
-  "name": "Projudi/SEEU - Pré-visualização de Documentos",
-  "version": "1.14.0",
-  "description": "Ao passar o mouse sobre um documento na tela de Movimentações (Projudi ou SEEU), ou sobre uma pendência de análise de juntada/conclusão do Projudi, exibe a íntegra do(s) arquivo(s) em janela(s) sobreposta(s), sem precisar abri-los em outra aba. Também permite selecionar arquivos do processo e enviá-los por WhatsApp Web.",
+  "name": "Projudi/SEEU - Documentos: Pré-visualização, WhatsApp e E-mail",
+  "version": "1.15.0",
+  "description": "Ao passar o mouse sobre um documento na tela de Movimentações (Projudi ou SEEU), ou sobre uma pendência de análise de juntada/conclusão do Projudi, exibe a íntegra do(s) arquivo(s) em janela(s) sobreposta(s), sem precisar abri-los em outra aba. Também permite selecionar arquivos do processo e enviá-los por WhatsApp Web ou por e-mail via Outlook.",
   "permissions": [
+    "identity",
     "storage",
     "unlimitedStorage",
     "tabs",
-    "scripting"
+    "scripting",
+    "windows",
+    "downloads"
   ],
   "host_permissions": [
     "*://*.tjpr.jus.br/*",
     "*://seeu.pje.jus.br/*",
     "*://*.amazonaws.com/*",
-    "https://web.whatsapp.com/*"
+    "https://web.whatsapp.com/*",
+    "https://login.microsoftonline.com/*",
+    "https://graph.microsoft.com/*",
+    "https://outlook.office.com/*",
+    "https://outlook.office365.com/*"
   ],
   "background": {
     "service_worker": "src/background.js"
   },
+  "options_page": "src/options.html",
   "content_scripts": [
     {
       "matches": [
         "*://*.tjpr.jus.br/projudi/*",
         "*://seeu.pje.jus.br/seeu/*"
       ],
-      "js": ["src/content.js"],
-      "css": ["src/content.css"],
+      "js": ["src/content.js", "src/email.js"],
+      "css": ["src/content.css", "src/email.css"],
+      "run_at": "document_idle",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://outlook.office.com/mail/*",
+        "https://outlook.office365.com/mail/*"
+      ],
+      "js": ["src/owa-attach.js"],
+      "css": ["src/owa-attach.css"],
       "run_at": "document_idle",
       "all_frames": true
     },
