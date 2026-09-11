@@ -1,15 +1,20 @@
-# Projudi/SEEU - Documentos: Pré-visualização e Envio por E-mail
+# Projudi/SEEU - Documentos: Pré-visualização, WhatsApp e E-mail
 
-Extensão de navegador (Chrome/Edge, Manifest V3) que resolve dois problemas
-na tela **Movimentações** do **Projudi** e do **SEEU** (o SEEU é construído
-sobre a mesma plataforma do Projudi e usa o mesmo padrão de link para os
-arquivos anexados, então a extensão funciona da mesma forma nos dois):
+Extensão de navegador (Chrome/Edge, Manifest V3) que resolve três problemas
+do dia a dia no Projudi (TJPR) e no SEEU — os dois usam o mesmo padrão de
+link de documento (`<a class="link" href=".../arquivo.do?...">`), então a
+extensão funciona da mesma forma nos dois sistemas:
 
-1. Para ler a íntegra de um documento anexado é preciso clicar no link e
-   abri-lo em outra aba (veja "Pré-visualização" abaixo).
-2. Para enviar um ou mais documentos do processo por e-mail, é preciso
+1. na tela **Movimentações**, para ler a íntegra de um documento anexado é
+   preciso clicar no link e abri-lo em outra aba (veja "Pré-visualização de
+   Documentos" abaixo);
+2. não há como enviar rapidamente um ou mais documentos do processo por
+   WhatsApp — é preciso baixar cada arquivo e depois anexá-lo manualmente
+   numa conversa do WhatsApp Web (veja "Envio de documentos por WhatsApp
+   Web" abaixo);
+3. para enviar um ou mais documentos do processo por e-mail, é preciso
    baixar cada arquivo manualmente e anexá-los um a um no Outlook (veja
-   "Envio por e-mail" abaixo).
+   "Envio por E-mail (Outlook)" abaixo).
 
 ## Pré-visualização de Documentos
 
@@ -216,13 +221,14 @@ que é o único caminho 100% automático.
 
 ## Como funciona
 
-1. Um content script (`src/content.js` e `src/email.js`) é injetado nas
-   páginas de processo do **Projudi** (`processo.do`) e do **SEEU**
-   (`visualizacaoProcesso.do`) — tela de movimentações/autos do processo em
-   cada sistema.
-2. Ele identifica os links de arquivo da movimentação, que em ambos os
-   sistemas seguem o mesmo padrão (o SEEU é construído sobre a mesma
-   plataforma do Projudi):
+1. Os content scripts (`src/content.js` e `src/email.js`) são injetados nas
+   páginas de processo do Projudi (`processo.do`) e do SEEU (qualquer
+   página em `seeu.pje.jus.br/seeu/`, incluindo a tela de
+   movimentações/autos do processo, carregada em
+   `visualizacaoProcesso.do`).
+2. Eles identificam os links de arquivo da movimentação, que seguem o mesmo
+   padrão nos dois sistemas (o SEEU é construído sobre a mesma plataforma
+   do Projudi):
    ```html
    <a target="_blank" class="link" href=".../arquivo.do?_tj=...">
        Certidao de Baixa.pdf
@@ -230,15 +236,20 @@ que é o único caminho 100% automático.
    ```
 3. Ao detectar o mouse parado sobre um desses links por ~350ms, abre um
    painel (`<iframe>`) carregando a própria URL do `arquivo.do`. Como o
-   iframe está na mesma origem da página, ele reaproveita a sessão/cookies
-   já autenticados do usuário — nenhuma credencial extra é usada ou
-   armazenada pela extensão.
+   iframe está na mesma origem do sistema (Projudi ou SEEU), ele reaproveita
+   a sessão/cookies já autenticados do usuário — nenhuma credencial extra é
+   usada ou armazenada pela extensão.
 4. O painel some automaticamente ao tirar o mouse do link e do próprio
    painel (com uma pequena tolerância para permitir mover o cursor até
    ele), ou pode ser fechado com o botão "✕" ou a tecla `Esc`. Também há um
    atalho "Abrir em nova aba" para o fluxo tradicional, quando necessário.
 
-## Pendências (Análise de Juntadas / Conclusões)
+## Pendências (Análise de Juntadas / Conclusões) — só no Projudi
+
+Esse recurso depende de uma tela específica do Projudi
+(`analisarJuntada.do`) que não existe no SEEU; lá, a pré-visualização
+funciona normalmente para os links de documento das movimentações (seção
+anterior), só esse quadro de Pendências que não se aplica.
 
 O mesmo painel de pré-visualização também é oferecido no quadro
 **Pendências** da capa do processo, para itens como:
@@ -290,6 +301,146 @@ responder), um aviso é exibido com um atalho para abrir a análise
 completa em nova aba — o comportamento original do link nunca é
 removido.
 
+## Envio de documentos por WhatsApp Web
+
+A extensão adiciona uma caixinha de seleção ao lado de cada documento
+(mesmo link `a.link` com `href` contendo `/arquivo.do` usado na
+pré-visualização) e um botão **"Enviar por WhatsApp"**, posicionado acima da
+barra de botões da tela do processo (Pedido Incidental, Juntar Documento,
+Peticionar, Patronato, Navegar, Exportar Processo, Voltar). Ao rolar a
+página para cima ou para baixo, o botão acompanha o usuário, "flutuando"
+fixo do lado direito da tela, para continuar acessível mesmo com a barra de
+botões fora da área visível.
+
+Fluxo de uso:
+
+1. Marque a caixinha ao lado de um ou mais documentos do processo.
+2. Clique em "Enviar por WhatsApp" e informe o número de destino (com DDD;
+   se nenhum DDI for digitado, assume-se `55`/Brasil) — ou escolha um
+   destinatário já salvo (ver "Destinatários salvos" abaixo).
+3. Ao confirmar, a extensão baixa os arquivos selecionados (reaproveitando a
+   sessão do Projudi/SEEU, do mesmo jeito que a pré-visualização — o
+   download em si é feito pelo `src/background.js`, não pela página, porque
+   alguns sistemas como o SEEU redirecionam o link do documento para um
+   armazenamento externo com CORS bloqueado para leitura direto da página)
+   e abre (ou reaproveita) uma aba do WhatsApp Web na conversa do número
+   informado, reaproveitando a sessão já aberta/conectada no navegador, se
+   houver.
+4. Assim que a conversa termina de carregar, os arquivos são anexados
+   automaticamente — a extensão simula "colar" (Ctrl+V) os arquivos na
+   caixa de mensagem, o mesmo mecanismo que o próprio WhatsApp Web já
+   suporta manualmente (se isso falhar, tenta arrastar-e-soltar como
+   alternativa). O envio da mensagem continua sendo uma ação manual do
+   usuário, que pode revisar os anexos e adicionar uma legenda antes de
+   enviar. Um aviso aparece no canto inferior esquerdo da tela do WhatsApp
+   Web mostrando o andamento ("aguardando a conversa carregar…", "anexando
+   arquivo(s)…", "arquivo(s) anexado(s)" ou um erro).
+
+### Destinatários salvos
+
+O painel de envio tem uma lista de destinatários salvos (nome + número),
+parecida com um catálogo de contatos de e-mail:
+
+- **Salvar**: clique em "+ Novo" (dentro do painel de envio), preencha nome
+  e número e confirme. Se já houver um número digitado no campo principal,
+  ele já vem preenchido no formulário.
+- **Usar**: clique em qualquer destinatário da lista para preencher o campo
+  de número com ele.
+- **Pesquisar**: digite no campo de busca para filtrar a lista pelo nome.
+- **Favoritar**: clique na estrela (☆/★) ao lado do nome — favoritos sempre
+  aparecem no topo da lista, antes dos demais (ordenados por ordem
+  alfabética dentro de cada grupo).
+- **Remover**: clique no "✕" ao lado do destinatário (pede confirmação
+  antes de remover).
+
+A lista é guardada em `chrome.storage.local` (armazenamento da própria
+extensão, não do site), então é a mesma lista tanto no Projudi quanto no
+SEEU, e continua disponível depois de fechar e reabrir o navegador.
+
+**Importante — confira sempre o destinatário antes de clicar em enviar.**
+Documentos de processo são sensíveis; esse segundo antes de clicar em
+"Enviar" vale a pena mesmo com a abertura da conversa sendo confiável (ver
+abaixo).
+
+Como a conversa certa é aberta: o WhatsApp Web não permite duas abas
+logadas ao mesmo tempo (a segunda cai numa tela de conflito de sessão), e
+não há uma forma de simular clique/busca na interface que seja garantida
+de acertar o destinatário — uma versão anterior desta extensão tentou isso
+e chegou a abrir a conversa de outra pessoa por engano. Por isso a
+extensão sempre abre a conversa através do link oficial
+`web.whatsapp.com/send?phone=<número>` (o "clique para conversar" que o
+próprio WhatsApp Web disponibiliza), que é a única forma garantida de abrir
+no destinatário certo:
+
+- se já existe uma aba de `web.whatsapp.com` aberta **na mesma conversa**
+  que o número informado, ela só é focada, sem recarregar — a extensão
+  avisa o content script já injetado nela para buscar o novo arquivo
+  pendente e anexá-lo;
+- se a aba já aberta está numa conversa **diferente**, ela é reaproveitada
+  mas precisa ser navegada para a URL da conversa certa — isso recarrega a
+  página do WhatsApp Web (não tem como evitar usando esse link), mas a
+  sessão/login continua a mesma, não é um logout;
+- só é aberta uma aba **nova** se nenhuma estiver aberta ainda (também já
+  direto na conversa certa).
+
+Essa parte depende de dois componentes adicionais:
+
+- `src/background.js`: service worker que baixa os arquivos selecionados
+  (a partir do seu próprio contexto de extensão — necessário para
+  contornar CORS em sistemas que redirecionam o link do documento para um
+  armazenamento externo, como o SEEU faz para um bucket S3), guarda
+  temporariamente o resultado (em `chrome.storage.local`, apenas até serem
+  anexados ou expirarem após alguns minutos) e abre/reaproveita a aba do
+  WhatsApp Web na conversa certa.
+- `src/whatsapp.js`: content script injetado em `web.whatsapp.com` que
+  busca esse conteúdo pendente e anexa os arquivos assim que a conversa
+  termina de carregar. Ele mostra o andamento na própria tela e também
+  registra tudo no console do DevTools da aba do WhatsApp Web (mensagens
+  com o prefixo `[Projudi WhatsApp]`), útil para diagnosticar se o anexo
+  automático não funcionar.
+
+Detalhe técnico: quando a aba já está na conversa certa e não precisa ser
+navegada, `src/background.js` avisa o content script por mensagem — mas
+uma aba que já estava aberta antes de a extensão ser instalada/atualizada
+pode não ter `src/whatsapp.js` rodando nela (content scripts declarados no
+manifest só são injetados quando a página carrega/navega) ou pode estar
+com uma versão órfã dele (o canal com `chrome.runtime` é cortado quando a
+extensão recarrega). Por isso, se avisar por mensagem falhar,
+`src/background.js` reinjeta `src/whatsapp.js` na aba por conta própria
+(via `chrome.scripting`), sem precisar de nenhum F5 manual.
+
+### Se o anexo automático não funcionar
+
+1. Depois de atualizar os arquivos da extensão, sempre recarregue-a em
+   `chrome://extensions` (ícone de recarregar no card da extensão) — só
+   atualizar a página do Projudi ou do WhatsApp Web não é suficiente.
+2. Ao abrir o DevTools para ver os logs de `src/whatsapp.js`, confirme que
+   ele está inspecionando mesmo a aba do **WhatsApp Web** — se o DevTools
+   estiver "solto" (janela separada), ele fica preso à aba que estava em
+   foco quando foi aberto, e trocar de aba clicando nela não muda isso;
+   feche e abra o DevTools de novo com a aba do WhatsApp Web em foco, e
+   confira que a URL mostrada no painel é `web.whatsapp.com`.
+3. Se a conversa abre certa mas o arquivo não aparece anexado, abra o
+   DevTools (F12) **na aba do WhatsApp Web** e veja as mensagens
+   `[Projudi WhatsApp]` no console — elas indicam em qual etapa parou
+   (conversa não carregou, colar, arrastar-e-soltar). Isso normalmente
+   indica que o WhatsApp Web mudou a estrutura da caixa de mensagem e o
+   seletor usado por `src/whatsapp.js` precisa de ajuste.
+
+Limitações:
+
+- É necessário que o WhatsApp Web já esteja conectado (QR Code lido) no
+  navegador; caso contrário, a aba abre normalmente, mas os arquivos não
+  são anexados (a extensão espera até 60s pela conversa carregar e depois
+  desiste silenciosamente).
+- A simulação de anexar arquivos depende da estrutura de tela atual do
+  WhatsApp Web (área principal `#main` com uma caixa de mensagem editável);
+  se o WhatsApp alterar esse layout, o anexo automático pode parar de
+  funcionar — a conversa ainda abre normalmente e os arquivos podem ser
+  anexados manualmente.
+- Nenhum arquivo, número de telefone ou mensagem é armazenado além do
+  tempo necessário para abrir a conversa e anexar os documentos.
+
 ## Instalação (modo desenvolvedor)
 
 1. Acesse `chrome://extensions` (ou `edge://extensions`).
@@ -298,6 +449,113 @@ removido.
    `extensao-preview-documentos`.
 4. Abra um processo no Projudi (TJPR) ou no SEEU e passe o mouse sobre um
    documento na aba Movimentações.
+
+## Convivência com o AzFlow no SEEU
+
+O AzFlow é uma extensão de produtividade jurídica muito usada junto com o
+SEEU, e oferece uma pré-visualização de documentos parecida com a desta
+extensão. Como as duas reagem aos mesmos eventos nativos do navegador
+(mouseover/mouseout), tentar fazer as duas coexistirem sem critério gera
+conflito — em um teste anterior, interceptar esses eventos para dar
+prioridade a esta extensão chegou a quebrar o reposicionamento da própria
+barra de botões do AzFlow, que depende deles para funcionar.
+
+A solução adotada: **só no domínio do SEEU**, esta extensão detecta se o
+AzFlow está ativo (procurando pelos atributos/classes com prefixo
+`azflow-`/`data-azflow-` que ele injeta na página) e, se estiver, **não
+abre sua própria pré-visualização de documentos** — deixa o AzFlow cuidar
+disso sozinho, sem nenhuma interferência. As funcionalidades que só esta
+extensão oferece (seleção de documentos e envio por WhatsApp) continuam
+funcionando normalmente, já que não há nada do AzFlow para conflitar ali.
+No Projudi esse comportamento não se aplica — a pré-visualização desta
+extensão funciona normalmente, com ou sem o AzFlow instalado.
+
+Se o AzFlow mudar a forma como se identifica na página e a detecção parar
+de funcionar (a pré-visualização desta extensão voltar a aparecer no SEEU
+mesmo com o AzFlow ativo), ajuste `AZFLOW_MARKER_SELECTOR` em
+`src/content.js`.
+
+Além dessa checagem específica (pré-visualização, só no SEEU), esta
+extensão segue duas regras gerais, em qualquer sistema, para nunca alterar
+a estrutura de outra extensão:
+
+1. **Nunca insere nada dentro da árvore de elementos que outra extensão
+   criou**, nem da barra de botões nativa da página — o botão "Enviar por
+   WhatsApp" é sempre um elemento solto, anexado direto ao
+   `document.body`, nunca filho/irmão de um elemento nativo ou de outra
+   extensão.
+2. **Nunca chama `stopPropagation()`/`stopImmediatePropagation()`** nos
+   eventos do navegador (mouseover, mouseout, etc.) — outras extensões
+   podem depender desses mesmos eventos para o próprio funcionamento, e
+   "consumi-los" já quebrou o AzFlow numa tentativa anterior (ver acima).
+
+## Posição do botão "Enviar por WhatsApp"
+
+O botão usa `position: fixed`, mas sua posição é recalculada
+continuamente (em cada rolagem, redimensionamento da janela, ou troca de
+aba) — mesma técnica do recurso irmão de envio por e-mail:
+
+- **Sem outros botões desta extensão na tela**: fica ancorado logo
+  **acima da barra de ações** do processo (Pedido Incidental, Juntar
+  Documento, ..., Voltar). Como ele é fixo e a posição é recalculada a
+  cada evento de rolagem, o efeito visual é o botão "acompanhando" a
+  página ao rolar — sempre logo acima da barra, enquanto ela estiver
+  visível. Se você rolar além da barra (ela sair da tela), o botão fica
+  ancorado ao rodapé da janela, em vez de tentar perseguir uma barra fora
+  de vista.
+- **Com botões de outra funcionalidade desta extensão fixados no canto da
+  tela** (ex.: um recurso de envio por e-mail, reconhecido pelos
+  ids/classes `#pdp-email-button`, `#pdp-recipients-button` ou
+  `.pdp-email-visible`): o botão do WhatsApp se posiciona automaticamente
+  **à esquerda deles**, alinhado na mesma altura do grupo — sem precisar
+  de nenhuma configuração manual.
+
+## Troca de abas do processo (Movimentações, Partes, etc.)
+
+Ao trocar de aba dentro da tela do processo e voltar, o Projudi/SEEU pode
+substituir um contêiner inteiro da página por conteúdo novo (em vez de só
+mostrar/esconder o que já existia) — o que fazia o botão "Enviar por
+WhatsApp", a pré-visualização e as caixinhas de seleção "sumirem", já que
+os elementos que esta extensão tinha criado ficavam fora da árvore visível
+do documento (ou eram removidos junto com o trecho da página em que
+tinham sido inseridos).
+
+A solução foi parar de inserir o botão como filho/irmão de qualquer
+elemento nativo da página: o botão "Enviar por WhatsApp" é sempre um
+elemento solto, anexado direto ao `document.body`, com posição fixa na
+tela (`position: fixed`) — não depende de nenhum elemento nativo
+continuar existindo no mesmo lugar. Isso também é proposital pelo motivo
+2 abaixo (convivência com outras extensões). Além disso:
+
+- a extensão reconcilia periodicamente (a cada ~700ms) o botão e as
+  caixinhas de seleção dos documentos — recriando o que for necessário —
+  e monitora `document.documentElement` em vez de `document.body` (o
+  `<body>` é o que costuma ser trocado; o `<html>`, praticamente nunca);
+- a seleção de arquivos em andamento (`selectedDocs`) não depende do DOM
+  antigo, então sobrevive normalmente a essas trocas — as caixinhas
+  recriadas já nascem marcadas para os documentos que ainda estavam
+  selecionados;
+- o painel de pré-visualização se recria sozinho se detectar que ficou
+  "órfão" (fora da árvore do documento).
+
+Duas causas adicionais do mesmo sintoma, encontradas depois (a última é a
+mais importante — quem realmente resolvia o problema em outro recurso
+irmão desta mesma extensão, o envio por e-mail):
+
+- o `manifest.json` injetava o content script só em páginas cuja URL
+  batesse com padrões restritos (ex.: `processo.do*`, `*processo*`) — mas
+  algumas abas do processo (Apensamentos, Vínculos, HCs TJ, etc.) navegam
+  para URLs que não batem com esses padrões, então o script **nunca
+  chegava a rodar** nelas. Agora os padrões cobrem toda a aplicação
+  (`/projudi/*` e `/seeu/*`);
+- a checagem de "isso é uma tela de processo?" usava classe/id
+  (`table.buttonBar`, `#backButton`), que pode variar entre Projudi e SEEU
+  ou não existir num instante específico de uma transição de aba. Agora
+  ela procura pelo **texto** dos botões da barra de ações (ex.:
+  "Peticionar", "Juntar Documento", "Voltar"), mais estável entre os dois
+  sistemas — e, uma vez que a tela provou ser de um processo, essa
+  elegibilidade fica guardada (não é reavaliada do zero a cada vez, o que
+  evitava um falso negativo bem no meio de uma troca de aba).
 
 ## Limitações conhecidas
 

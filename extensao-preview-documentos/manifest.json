@@ -1,13 +1,22 @@
 {
   "manifest_version": 3,
-  "name": "Projudi - Documentos: Pré-visualização e Envio por E-mail",
-  "version": "1.10.0",
-  "description": "Na tela de Movimentações do Projudi/SEEU, ou sobre uma pendência de análise de juntada/conclusão, exibe a íntegra do(s) documento(s) em janela sobreposta ao passar o mouse, e permite selecionar arquivos e enviá-los por e-mail via Outlook.",
-  "permissions": ["identity", "storage", "windows", "downloads"],
+  "name": "Projudi/SEEU - Documentos: Pré-visualização, WhatsApp e E-mail",
+  "version": "1.15.0",
+  "description": "Ao passar o mouse sobre um documento na tela de Movimentações (Projudi ou SEEU), ou sobre uma pendência de análise de juntada/conclusão do Projudi, exibe a íntegra do(s) arquivo(s) em janela(s) sobreposta(s), sem precisar abri-los em outra aba. Também permite selecionar arquivos do processo e enviá-los por WhatsApp Web ou por e-mail via Outlook.",
+  "permissions": [
+    "identity",
+    "storage",
+    "unlimitedStorage",
+    "tabs",
+    "scripting",
+    "windows",
+    "downloads"
+  ],
   "host_permissions": [
     "*://*.tjpr.jus.br/*",
     "*://seeu.pje.jus.br/*",
-    "https://*.amazonaws.com/*",
+    "*://*.amazonaws.com/*",
+    "https://web.whatsapp.com/*",
     "https://login.microsoftonline.com/*",
     "https://graph.microsoft.com/*",
     "https://outlook.office.com/*",
@@ -37,6 +46,11 @@
       "css": ["src/owa-attach.css"],
       "run_at": "document_idle",
       "all_frames": true
+    },
+    {
+      "matches": ["https://web.whatsapp.com/*"],
+      "js": ["src/whatsapp.js"],
+      "run_at": "document_idle"
     }
   ]
 }
