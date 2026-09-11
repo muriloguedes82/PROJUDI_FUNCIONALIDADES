@@ -273,6 +273,14 @@ painel depende de qual tela do processo você está vendo, já que o painel
   própria** — qual movimentação usar como base para uma nova ação é uma
   decisão processual sua, não uma formalidade mecânica.
 
+**Nem toda movimentação leva à lista completa de "Ações":** o Projudi
+decide a tela de destino conforme o tipo da movimentação escolhida — por
+exemplo, uma movimentação de "Juntada de Petição" pode levar direto à tela
+"Juntar Documento", pulando a lista geral de Ações. Se isso acontecer, a
+extensão mostra um aviso explicando para qual tela o Projudi te levou;
+volte à aba Movimentações e tente outra movimentação (um despacho/decisão
+recente costuma funcionar).
+
 Para cada ação, o painel oferece:
 
 - **"Abrir"**: localiza o link nativo correspondente já presente na

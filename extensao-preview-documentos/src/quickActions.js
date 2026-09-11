@@ -208,6 +208,19 @@
 		});
 	}
 
+	// Lê o sufixo do título da tela (ex.: "Processo 0000... - Juntar
+	// Documento" → "Juntar Documento") para explicar ao usuário para onde
+	// o Projudi o levou, quando não é a tela de Ações esperada.
+	function getScreenTitle() {
+		const headers = document.querySelectorAll("h3");
+		for (let i = 0; i < headers.length; i++) {
+			const text = (headers[i].textContent || "").replace(/\s+/g, " ").trim();
+			const match = text.match(/-\s*([^-]+)$/);
+			if (match && text.toLowerCase().indexOf("processo") !== -1) return match[1].trim();
+		}
+		return null;
+	}
+
 	function waitForActionLink(label, callback) {
 		const start = Date.now();
 		const iv = setInterval(function () {
@@ -228,9 +241,20 @@
 			if (Date.now() - intent.ts > PENDING_INTENT_MAX_AGE_MS) return;
 			waitForActionLink(intent.label, function (link) {
 				if (!link) {
+					const screenTitle = getScreenTitle();
 					console.warn(
 						"[Projudi Ações Rápidas]",
-						'Não encontrei a ação "' + intent.label + '" depois de ir para a tela de Ações.'
+						'Não encontrei a ação "' + intent.label + '" depois de ir para a tela de Ações.',
+						"Título da tela alcançada:",
+						screenTitle
+					);
+					alert(
+						'A movimentação escolhida não levou à ação "' +
+							intent.label +
+							'" — o Projudi abriu, em vez disso, a tela' +
+							(screenTitle ? ' "' + screenTitle + '"' : " outra tela") +
+							'. Isso acontece porque nem toda movimentação leva à lista geral de "Ações": o Projudi decide a tela de destino conforme o tipo da movimentação escolhida.\n\n' +
+							"Volte e tente escolher outra movimentação (geralmente um despacho/decisão recente costuma levar à lista completa de Ações)."
 					);
 					return;
 				}
