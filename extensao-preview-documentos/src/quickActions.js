@@ -1063,12 +1063,18 @@
 	setInterval(reconcile, 700);
 	reconcile();
 
-	// Só consome a intenção pendente no frame de nível mais alto — evita
-	// duas cópias deste script (ex.: um iframe oculto de pré-visualização
-	// de documento criado por src/content.js) disputarem a mesma intenção
-	// guardada no chrome.storage.local, que é compartilhado pela extensão
-	// inteira, não por frame.
-	if (window.top === window.self) {
+	// O Projudi usa framesets — a tela que realmente importa (com o botão
+	// "Movimentar a Partir Desta Movimentação", os eventos, o painel de
+	// Ações) quase sempre fica dentro de um FRAME FILHO, não na janela de
+	// nível mais alto (essa costuma ser só a moldura do frameset, sem
+	// conteúdo útil). Uma versão anterior só retomava a intenção pendente
+	// em `window.top`, o que bloqueava justamente o frame onde a cadeia
+	// precisava continuar depois de cada navegação de página inteira — a
+	// extensão avançava um passo e depois parava, silenciosamente, em toda
+	// tela carregada dentro de um frame. Por isso a checagem aqui é
+	// `isOnProcessScreen()` (o mesmo critério que decide se esta é uma
+	// tela do processo, em qualquer frame), não a posição do frame.
+	if (isOnProcessScreen()) {
 		runIntentStateMachine();
 	}
 
