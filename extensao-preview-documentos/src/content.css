@@ -147,15 +147,18 @@ a.link[href*="/arquivo.do"]:hover,
    página) — proposital, ver comentário em initWhatsappLauncher() no
    content.js: evita o botão "sumir" quando a tela troca de aba, e evita
    inserir qualquer coisa dentro da estrutura de outra extensão (ex.:
-   AzFlow). `top`/`right` abaixo são o padrão; content.js ajusta via
-   estilo inline quando detecta botões de outra funcionalidade (ex.:
-   envio por e-mail) no canto da tela, para não sobrepor um no outro. */
+   AzFlow). `bottom`/`right` abaixo são só o valor inicial antes do
+   primeiro cálculo; repositionLauncher() no content.js assume o controle
+   logo em seguida (e a cada rolagem/redimensionamento), ancorando o
+   botão acima da barra de ações — ou ao lado de botões de outra
+   funcionalidade desta extensão (ex.: envio por e-mail), quando
+   existirem. */
 .pdp-wa-launcher {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
 	position: fixed;
-	top: 100px;
+	bottom: 12px;
 	right: 14px;
 	font-family: Arial, Helvetica, sans-serif;
 	font-size: 12px;

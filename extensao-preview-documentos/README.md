@@ -287,15 +287,24 @@ a estrutura de outra extensão:
 
 ## Posição do botão "Enviar por WhatsApp"
 
-O botão fica sempre com posição fixa na tela (não rola junto com a
-página), independente da aba do processo em que você está. Se houver
-botões de outra funcionalidade desta extensão fixados no canto da tela
-(ex.: um recurso de envio por e-mail, reconhecido pelos ids/classes
-`#pdp-email-button`, `#pdp-recipients-button` ou `.pdp-email-visible`),
-o botão do WhatsApp se posiciona automaticamente **à esquerda deles**, na
-mesma altura, para não sobrepor um por cima do outro — sem precisar de
-nenhuma configuração manual. Sem esses botões na página, ele fica na
-posição padrão (canto superior direito).
+O botão usa `position: fixed`, mas sua posição é recalculada
+continuamente (em cada rolagem, redimensionamento da janela, ou troca de
+aba) — mesma técnica do recurso irmão de envio por e-mail:
+
+- **Sem outros botões desta extensão na tela**: fica ancorado logo
+  **acima da barra de ações** do processo (Pedido Incidental, Juntar
+  Documento, ..., Voltar). Como ele é fixo e a posição é recalculada a
+  cada evento de rolagem, o efeito visual é o botão "acompanhando" a
+  página ao rolar — sempre logo acima da barra, enquanto ela estiver
+  visível. Se você rolar além da barra (ela sair da tela), o botão fica
+  ancorado ao rodapé da janela, em vez de tentar perseguir uma barra fora
+  de vista.
+- **Com botões de outra funcionalidade desta extensão fixados no canto da
+  tela** (ex.: um recurso de envio por e-mail, reconhecido pelos
+  ids/classes `#pdp-email-button`, `#pdp-recipients-button` ou
+  `.pdp-email-visible`): o botão do WhatsApp se posiciona automaticamente
+  **à esquerda deles**, alinhado na mesma altura do grupo — sem precisar
+  de nenhuma configuração manual.
 
 ## Troca de abas do processo (Movimentações, Partes, etc.)
 

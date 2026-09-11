@@ -1021,38 +1021,67 @@
 		launcher.addEventListener("click", openWaPanel);
 	}
 
-	// Se houver botões de outra funcionalidade (ex.: envio por e-mail, com
-	// os mesmos ids/classes vistos numa versão anterior desse recurso:
-	// "pdp-email-button"/"pdp-recipients-button"/".pdp-email-visible")
-	// fixados no canto da tela, posiciona o nosso launcher logo à esquerda
-	// deles, alinhado na mesma altura, em vez de correr o risco de
-	// sobrepor um por cima do outro. Sem esses botões na página, usa a
-	// posição padrão definida em content.css.
+	// Posicionamento do launcher — mesma técnica usada com sucesso no
+	// recurso irmão de envio por e-mail (src/email.js, função
+	// repositionButtons()):
+	//
+	// 1. Por padrão, o botão "acompanha" a barra de ações (Pedido
+	//    Incidental, Juntar Documento, ..., Voltar): fica ancorado
+	//    logo ACIMA dela, na mesma posição relativa à tela, então rolar a
+	//    página para cima/baixo o move junto (ele é position:fixed, com o
+	//    "bottom" recalculado a cada rolagem para simular estar "grudado"
+	//    à barra). Se a barra sair da área visível (usuário rolou além
+	//    dela), o botão simplesmente fica ancorado ao rodapé da janela, em
+	//    vez de tentar perseguir uma barra que não está mais à vista.
+	// 2. Se houver botões de outra funcionalidade desta extensão no canto
+	//    da tela (ex.: envio por e-mail — mesmos ids/classes
+	//    "pdp-email-button"/"pdp-recipients-button"/".pdp-email-visible"),
+	//    o launcher se posiciona à ESQUERDA deles, na mesma altura, em vez
+	//    de seguir a barra de ações — para os dois grupos de botões
+	//    ficarem visualmente juntos, sem se sobrepor.
 	const EMAIL_BUTTON_SELECTOR = "#pdp-email-button, #pdp-recipients-button, .pdp-email-visible";
+	const BUTTON_SCREEN_MARGIN = 12;
 
-	function repositionLauncherNextToEmailButtons() {
+	function repositionLauncher() {
 		const launcher = document.getElementById("pdp-wa-launcher");
 		if (!launcher) return;
 
 		const emailButtons = Array.prototype.slice.call(document.querySelectorAll(EMAIL_BUTTON_SELECTOR));
-		if (!emailButtons.length) {
-			launcher.style.top = "";
-			launcher.style.right = "";
+		if (emailButtons.length) {
+			let minLeft = null;
+			let minTop = null;
+			let maxBottom = null;
+			emailButtons.forEach(function (btn) {
+				const rect = btn.getBoundingClientRect();
+				if (minLeft === null || rect.left < minLeft) minLeft = rect.left;
+				if (minTop === null || rect.top < minTop) minTop = rect.top;
+				if (maxBottom === null || rect.bottom > maxBottom) maxBottom = rect.bottom;
+			});
+
+			const groupCenter = (minTop + maxBottom) / 2;
+			const launcherHeight = launcher.offsetHeight || 32;
+			const bottom = window.innerHeight - groupCenter - launcherHeight / 2;
+			launcher.style.bottom = Math.max(BUTTON_SCREEN_MARGIN, Math.round(bottom)) + "px";
+			launcher.style.right = Math.round(window.innerWidth - minLeft + 8) + "px";
 			return;
 		}
 
-		let leftmostRight = null; // distância do lado direito da viewport até a borda esquerda do botão de e-mail mais à esquerda
-		let topmostTop = null;
-		emailButtons.forEach(function (btn) {
-			const rect = btn.getBoundingClientRect();
-			const rightGap = window.innerWidth - rect.left;
-			if (leftmostRight === null || rightGap > leftmostRight) leftmostRight = rightGap;
-			if (topmostTop === null || rect.top < topmostTop) topmostTop = rect.top;
-		});
-
-		if (leftmostRight === null || topmostTop === null) return;
-		launcher.style.top = Math.max(8, topmostTop) + "px";
-		launcher.style.right = leftmostRight + 8 + "px";
+		let bottom = BUTTON_SCREEN_MARGIN;
+		const toolbarButton = findProcessToolbarElement();
+		if (toolbarButton) {
+			// Sobe até um ancestral que representa a linha/barra inteira (tr,
+			// div ou td), para medir o topo da barra como um todo, não só do
+			// botão individual encontrado.
+			const row = toolbarButton.closest("tr, div, td") || toolbarButton.parentElement || toolbarButton;
+			const rect = row.getBoundingClientRect();
+			const toolbarVisible = rect.bottom > 0 && rect.top < window.innerHeight;
+			if (toolbarVisible) {
+				const offset = Math.round(window.innerHeight - rect.top + BUTTON_SCREEN_MARGIN);
+				bottom = Math.min(Math.max(BUTTON_SCREEN_MARGIN, offset), window.innerHeight - BUTTON_SCREEN_MARGIN);
+			}
+		}
+		launcher.style.bottom = bottom + "px";
+		launcher.style.right = BUTTON_SCREEN_MARGIN + "px";
 	}
 
 	// Algumas telas (Projudi e SEEU) trocam de "aba" do processo (ex.:
@@ -1114,7 +1143,7 @@
 			}
 
 			scanDocLinksForWhatsapp(document);
-			repositionLauncherNextToEmailButtons();
+			repositionLauncher();
 		} catch (err) {
 			console.error(WA_UI_LOG_PREFIX, "erro ao reconciliar:", err);
 		}
@@ -1151,11 +1180,23 @@
 		});
 		observer.observe(document.documentElement, { childList: true, subtree: true });
 
-		// Gatilhos extras de reconciliação — baratos e redundantes de
-		// propósito, para não depender de um único mecanismo detectar a
-		// troca de aba a tempo.
-		window.addEventListener("resize", reconcileWhatsappUi);
-		window.addEventListener("scroll", reconcileWhatsappUi, true);
+		// Rolar a página/redimensionar a janela só precisa reposicionar o
+		// launcher (não re-escanear o documento inteiro atrás de links de
+		// documento) — por isso usa só repositionLauncher(), não o
+		// reconcileWhatsappUi() completo, e agrupado por requestAnimationFrame
+		// (no máximo uma vez por frame), já que "scroll" pode disparar
+		// dezenas de vezes por segundo.
+		let repositionScheduled = false;
+		function scheduleReposition() {
+			if (repositionScheduled) return;
+			repositionScheduled = true;
+			requestAnimationFrame(function () {
+				repositionScheduled = false;
+				repositionLauncher();
+			});
+		}
+		window.addEventListener("resize", scheduleReposition);
+		window.addEventListener("scroll", scheduleReposition, true);
 	}
 
 	initWhatsappFeature();
