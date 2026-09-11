@@ -166,19 +166,26 @@
 	// em "Movimentar a Partir Desta Movimentação" — só então o Projudi
 	// carrega a URL movimentarProcesso.do, que tem o painel "Ações".
 	//
-	// O passo (2) é sempre mecânico (o mesmo botão, sem ambiguidade), então
-	// esta extensão pode clicá-lo sozinha. O passo (1) escolhe QUAL
-	// movimentação usar como base para a nova ação — mas como navegar até
-	// lá não envia nada ao Projudi (nenhuma ação processual é praticada só
-	// de abrir a tela de detalhe de uma movimentação), a extensão pode
-	// escolher a movimentação mais recente e válida (não tachada) sozinha,
-	// exatamente como um usuário faria na maioria dos casos: continuar a
-	// partir do estado atual do processo. Cada evento é identificado pelo
-	// padrão estável `id="LNKmov..."`; um evento inválido/tachado tem
-	// "INVALIDO" no próprio id e fica dentro de um <strike> (ver
-	// TELA_MOVIMENTAÇÃO_PROCESSO_HTML). O que de fato executa a ação
+	// Em vez de navegar de verdade por essas telas (o que fazia a tela
+	// principal "piscar" entre elas, mesmo coberta por um overlay), a
+	// extensão busca cada uma delas em segundo plano com fetch() — usando a
+	// mesma sessão/cookies do usuário, sem navegar a aba visível — e lê o
+	// HTML de cada resposta com DOMParser, só para achar o link/botão
+	// seguinte. No fim, ela extrai a URL real do diálogo final (do
+	// `onclick` do link da ação, algo como
+	// `openDialog('/projudi/processo/enviarConcluso.do?_tj=...', ...)`) e
+	// mostra SÓ essa URL, dentro de um iframe visível, num popup sobre a
+	// tela atual — a tela principal nunca navega. Essas funções "*In"
+	// recebem o `document` a examinar (o documento fetchado de cada etapa,
+	// ou `document` de verdade para o modo "já na tela de Ações").
+	//
+	// A escolha de QUAL movimentação usar como base (a mais recente e
+	// válida) é automática, mas como isso agora só afeta quais páginas são
+	// buscadas em segundo plano — nenhuma delas é exibida nem confirmada —
+	// o risco é ainda menor do que antes. O que de fato executa a ação
 	// processual — o clique final de confirmar dentro do diálogo — nunca é
 	// automático (ver showConfirmBar/"Sim, executar").
+	//
 	// IMPORTANTE: o Projudi reaproveita o mesmo id/name "movimentarButton"
 	// para outros botões de "iniciar uma movimentação" em telas diferentes
 	// — por exemplo, o botão nativo "Juntar Documento" da barra de
@@ -186,25 +193,28 @@
 	// id="movimentarButton" e name="movimentarButton", só com um "value"
 	// (texto) diferente. Por isso a checagem tem que ser SÓ pelo texto do
 	// botão ("Movimentar a Partir Desta Movimentação"), nunca por id/name
-	// — uma versão anterior usava id/name como atalho e acabava clicando
-	// no botão errado ("Juntar Documento") sempre que ele aparecia na
-	// mesma tela, confirmado via log de diagnóstico em produção.
-	function findMovimentarButton() {
-		const candidates = document.querySelectorAll('input[type="button"]');
+	// — uma versão anterior usava id/name como atalho e acabava
+	// encontrando o botão errado ("Juntar Documento") sempre que ele
+	// existia na mesma tela, confirmado via log de diagnóstico em produção.
+	function findMovimentarButtonIn(root) {
+		const candidates = root.querySelectorAll('input[type="button"]');
 		for (let i = 0; i < candidates.length; i++) {
 			if ((candidates[i].value || "").trim() === "Movimentar a Partir Desta Movimentação") return candidates[i];
 		}
 		return null;
 	}
+	function findMovimentarButton() {
+		return findMovimentarButtonIn(document);
+	}
 
 	// `excludeIds`: ids de eventos já tentados nesta cadeia (ver
-	// runIntentStateMachine) — alguns tipos de movimentação (ex.:
-	// confirmações automáticas do sistema, juntadas de petição) levam a
-	// uma tela de ação específica em vez da lista geral de Ações; nesse
-	// caso a extensão volta e tenta a próxima movimentação válida, em vez
-	// de insistir sempre na mesma.
-	function findLatestValidEventLink(excludeIds) {
-		const links = document.querySelectorAll('a.link[id^="LNKmov"]');
+	// resolveDialogUrl) — alguns tipos de movimentação (ex.: confirmações
+	// automáticas do sistema, juntadas de petição) levam a uma tela de
+	// ação específica em vez da lista geral de Ações; nesse caso a
+	// extensão busca (em segundo plano) a próxima movimentação válida, em
+	// vez de insistir sempre na mesma.
+	function findLatestValidEventLinkIn(root, excludeIds) {
+		const links = root.querySelectorAll('a.link[id^="LNKmov"]');
 		for (let i = 0; i < links.length; i++) {
 			const link = links[i];
 			if ((link.id || "").indexOf("INVALIDO") !== -1) continue;
@@ -214,80 +224,28 @@
 		}
 		return null;
 	}
+	function findLatestValidEventLink(excludeIds) {
+		return findLatestValidEventLinkIn(document, excludeIds);
+	}
 
-	// Marcador direto e estável de que estamos na tela com o painel
-	// "Ações" (o próprio título "Ações" da seção, ver TELA_DE_A__ES_HTML).
-	function isOnAcoesScreen() {
-		const headers = document.querySelectorAll("h3");
+	// Marcador direto e estável de que uma tela é a do painel "Ações" (o
+	// próprio título "Ações" da seção, ver TELA_DE_A__ES_HTML).
+	function isOnAcoesScreenIn(root) {
+		const headers = root.querySelectorAll("h3");
 		for (let i = 0; i < headers.length; i++) {
 			if ((headers[i].textContent || "").trim() === "Ações") return true;
 		}
 		return false;
 	}
-
-	// -------------------------------------------------------------------
-	// Intenção pendente — permite clicar num botão desta extensão de
-	// QUALQUER tela do processo (a capa, a lista de Movimentações, a tela
-	// de detalhe de uma movimentação) e a extensão avança sozinha, passo a
-	// passo, por navegações de página inteira (não AJAX) até a tela de
-	// Ações, retomando a intenção salva a cada carregamento:
-	//
-	//   1. Nem na lista de Movimentações nem na tela de Ações → sem como
-	//      avançar sozinha (ver runIntentStateMachine).
-	//   2. Lista de Movimentações (tem eventos "LNKmov...") → clica no
-	//      evento mais recente e válido (findLatestValidEventLink).
-	//   3. Tela de detalhe de uma movimentação (tem o botão "Movimentar a
-	//      Partir Desta Movimentação") → clica nele.
-	//   4. Tela de Ações → executa a intenção (abrir ação / aplicar
-	//      preferência / capturar nova preferência).
-	//
-	// Só o passo 4 tem qualquer efeito no processo, e mesmo assim nunca
-	// sozinho: aplicar uma preferência ainda pede a confirmação única (ver
-	// showConfirmBar), e abrir uma ação em branco só abre o diálogo nativo,
-	// sem preencher nem confirmar nada.
-	// -------------------------------------------------------------------
-
-	const PENDING_INTENT_KEY = "pdpQaPendingIntent";
-	const PENDING_INTENT_MAX_AGE_MS = 120000;
-	// Quantas movimentações diferentes a extensão tenta sozinha (da mais
-	// recente para trás) antes de desistir e pedir para o usuário escolher
-	// manualmente uma mais antiga.
-	const MAX_MOVEMENT_ATTEMPTS = 5;
-	// Atraso antes de cada clique automático (evento/"Movimentar a Partir
-	// Desta Movimentação"), imitando o tempo de reação de uma pessoa real —
-	// ver o comentário em runIntentStateMachine sobre por que isso importa.
-	const AUTO_CLICK_DELAY_MS = 900;
-
-	function storePendingIntent(intent) {
-		intent.ts = Date.now();
-		return chrome.storage.local.set({ [PENDING_INTENT_KEY]: intent });
+	function isOnAcoesScreen() {
+		return isOnAcoesScreenIn(document);
 	}
 
-	function peekPendingIntent() {
-		return chrome.storage.local.get([PENDING_INTENT_KEY]).then(function (data) {
-			return data[PENDING_INTENT_KEY] || null;
-		});
-	}
-
-	function clearPendingIntent() {
-		return chrome.storage.local.remove([PENDING_INTENT_KEY]);
-	}
-
-	// Ponto de entrada usado tanto ao clicar num botão desta extensão
-	// (guarda a intenção e tenta avançar na mesma tela) quanto a cada
-	// carregamento de página (retoma uma intenção guardada antes de uma
-	// navegação de página inteira).
-	function startOrAdvanceIntent(intent) {
-		logIntentStep("iniciando cadeia", intent);
-		showLoadingOverlay(intent.label);
-		storePendingIntent(intent).then(runIntentStateMachine);
-	}
-
-	// Lê o sufixo do título da tela (ex.: "Processo 0000... - Juntar
+	// Lê o sufixo do título de uma tela (ex.: "Processo 0000... - Juntar
 	// Documento" → "Juntar Documento") para explicar ao usuário para onde
-	// o Projudi o levou, quando não é a tela de Ações esperada.
-	function getScreenTitle() {
-		const headers = document.querySelectorAll("h3");
+	// uma movimentação levou, quando não é a tela de Ações esperada.
+	function getScreenTitleIn(root) {
+		const headers = root.querySelectorAll("h3");
 		for (let i = 0; i < headers.length; i++) {
 			const text = (headers[i].textContent || "").replace(/\s+/g, " ").trim();
 			const match = text.match(/-\s*([^-]+)$/);
@@ -296,34 +254,39 @@
 		return null;
 	}
 
-	function waitForActionLink(label, callback) {
-		const start = Date.now();
-		const iv = setInterval(function () {
-			const link = findActionLink(label);
-			if (link) {
-				clearInterval(iv);
-				callback(link);
-			} else if (Date.now() - start > DIALOG_WAIT_TIMEOUT_MS) {
-				clearInterval(iv);
-				callback(null);
-			}
-		}, DIALOG_WAIT_INTERVAL_MS);
-	}
+	// -------------------------------------------------------------------
+	// Resolução em segundo plano da URL do diálogo final
+	//
+	// Em vez de navegar de verdade pela lista de Movimentações → tela de
+	// detalhe → tela de Ações (o que fazia a aba visível trocar de
+	// conteúdo em cada etapa, mesmo coberta por um overlay), a extensão
+	// busca cada uma dessas telas com fetch() — reaproveitando a sessão/
+	// cookies do usuário, sem navegar a aba visível — e lê o HTML de cada
+	// resposta com DOMParser só para achar o link/botão seguinte. No fim,
+	// extrai a URL real do diálogo (do `onclick` do link da ação, ex.:
+	// `openDialog('/projudi/processo/enviarConcluso.do?_tj=...', ...)`) e
+	// devolve só essa URL — quem a exibe (num iframe, dentro de um popup
+	// desta extensão) é o código mais abaixo. A aba visível nunca navega.
+	//
+	// A escolha de QUAL movimentação usar como base (a mais recente e
+	// válida) continua automática, mas agora só decide quais páginas são
+	// buscadas em segundo plano — nenhuma delas chega a ser exibida. O que
+	// de fato executa a ação processual — o clique final de confirmar
+	// dentro do diálogo — nunca é automático (ver showConfirmBar/"Sim,
+	// executar").
+	// -------------------------------------------------------------------
 
-	// Diagnóstico: registra cada decisão da máquina de estados no console
-	// (F12, filtro "Projudi Ações Rápidas"), com timestamp, URL atual e o
-	// elemento exato que está prestes a ser clicado (id/name/value/href) —
-	// para investigar casos em que o destino final não é o esperado sem
-	// precisar adivinhar o que a extensão fez.
-	function logIntentStep(step, extra) {
-		console.info(
-			"[Projudi Ações Rápidas]",
-			new Date().toISOString(),
-			step,
-			"| URL:",
-			window.location.href,
-			extra || ""
-		);
+	// Quantas movimentações diferentes a extensão tenta em segundo plano
+	// (da mais recente para trás) antes de desistir e pedir para o usuário
+	// abrir manualmente uma mais antiga.
+	const MAX_MOVEMENT_ATTEMPTS = 5;
+
+	// Diagnóstico: registra cada etapa da resolução no console (F12,
+	// filtro "Projudi Ações Rápidas"), para investigar casos em que o
+	// diálogo final não é o esperado sem precisar adivinhar o que a
+	// extensão fez.
+	function logChainStep(step, extra) {
+		console.info("[Projudi Ações Rápidas]", new Date().toISOString(), step, extra || "");
 	}
 
 	function describeElement(el) {
@@ -339,23 +302,126 @@
 		};
 	}
 
+	// Busca uma URL com a sessão/cookies do usuário e devolve o HTML já
+	// interpretado (DOMParser), sem navegar nenhuma aba/frame visível.
+	function fetchDoc(url) {
+		return fetch(url, { credentials: "same-origin" }).then(function (res) {
+			return res.text().then(function (text) {
+				return { doc: new DOMParser().parseFromString(text, "text/html"), url: res.url || url };
+			});
+		});
+	}
+
+	// Extrai a URL de dentro de um `onclick` nativo do Projudi — cobre os
+	// padrões já observados: `document.location.href='...'` (botão
+	// "Movimentar a Partir Desta Movimentação"), `openDialog('...', ...)` /
+	// `openDialogMaximized('...', ...)` (maioria dos itens do painel
+	// Ações) e `confirmaRemessaTribunalJustica('...')` (Remessa Eletrônica
+	// para o Tribunal de Justiça). Resolve relativa a `baseUrl` (a URL da
+	// própria página onde o onclick foi encontrado).
+	function extractUrlFromOnclick(onclick, baseUrl) {
+		if (!onclick) return null;
+		const match = onclick.match(
+			/(?:document\.location\.href\s*=\s*|open(?:DialogMaximized|Dialog)\(|confirmaRemessaTribunalJustica\()\s*'([^']+)'/
+		);
+		if (!match) return null;
+		try {
+			return new URL(match[1], baseUrl).href;
+		} catch (err) {
+			return null;
+		}
+	}
+
+	// Ponto de entrada: devolve uma Promise que resolve com
+	// `{ url }` (a URL do diálogo pronta para um iframe) ou
+	// `{ failed: true, tried, screenTitle }` se não achar.
+	function resolveDialogUrl(label) {
+		logChainStep('resolvendo URL de "' + label + '" em segundo plano', { partindoDe: window.location.href });
+
+		const liveMovBtn = findMovimentarButtonIn(document);
+		if (liveMovBtn) {
+			// Já estamos na tela de detalhe de uma movimentação escolhida
+			// manualmente pelo usuário — só um destino possível, sem tentar
+			// outras movimentações.
+			logChainStep("já na tela de detalhe da movimentação", describeElement(liveMovBtn));
+			const movUrl = extractUrlFromOnclick(liveMovBtn.getAttribute("onclick"), window.location.href);
+			if (!movUrl) return Promise.resolve({ failed: true, screenTitle: null });
+			return fetchDoc(movUrl).then(function (result) {
+				if (isOnAcoesScreenIn(result.doc)) {
+					const link = findActionLinkIn(result.doc, label);
+					if (link) {
+						const dialogUrl = extractUrlFromOnclick(link.getAttribute("onclick"), result.url);
+						if (dialogUrl) return { url: dialogUrl };
+					}
+				}
+				return { failed: true, screenTitle: getScreenTitleIn(result.doc) };
+			});
+		}
+
+		const events = Array.prototype.slice
+			.call(document.querySelectorAll('a.link[id^="LNKmov"]'))
+			.filter(function (a) {
+				return (a.id || "").indexOf("INVALIDO") === -1 && !a.closest("strike, s, del");
+			})
+			.slice(0, MAX_MOVEMENT_ATTEMPTS);
+
+		let lastScreenTitle = null;
+
+		function tryEvent(index) {
+			if (index >= events.length) {
+				return Promise.resolve({ failed: true, tried: events.length, screenTitle: lastScreenTitle });
+			}
+			const href = events[index].getAttribute("href");
+			let eventUrl;
+			try {
+				eventUrl = new URL(href, window.location.href).href;
+			} catch (err) {
+				return tryEvent(index + 1);
+			}
+			return fetchDoc(eventUrl)
+				.then(function (detail) {
+					const movBtn = findMovimentarButtonIn(detail.doc);
+					logChainStep("movimentação " + (index + 1) + " buscada", { url: detail.url, movimentarBtn: describeElement(movBtn) });
+					const movUrl = movBtn ? extractUrlFromOnclick(movBtn.getAttribute("onclick"), detail.url) : null;
+					if (!movUrl) return tryEvent(index + 1);
+					return fetchDoc(movUrl).then(function (acoes) {
+						if (!isOnAcoesScreenIn(acoes.doc)) {
+							lastScreenTitle = getScreenTitleIn(acoes.doc);
+							logChainStep("movimentação " + (index + 1) + " não levou à tela de Ações", {
+								screenTitle: lastScreenTitle,
+							});
+							return tryEvent(index + 1);
+						}
+						const link = findActionLinkIn(acoes.doc, label);
+						if (!link) {
+							lastScreenTitle = "Ações (sem esta ação específica)";
+							return tryEvent(index + 1);
+						}
+						const dialogUrl = extractUrlFromOnclick(link.getAttribute("onclick"), acoes.url);
+						if (!dialogUrl) return tryEvent(index + 1);
+						logChainStep("URL do diálogo resolvida", dialogUrl);
+						return { url: dialogUrl };
+					});
+				})
+				.catch(function (err) {
+					logChainStep("erro ao buscar uma etapa da cadeia, tentando a próxima movimentação", String(err));
+					return tryEvent(index + 1);
+				});
+		}
+
+		return tryEvent(0);
+	}
+
 	// -------------------------------------------------------------------
-	// Overlay de carregamento — cobre a tela durante as navegações
-	// intermediárias da cadeia automática (lista de Movimentações → tela
-	// de detalhe → tela de Ações), para não expor essas telas "piscando"
-	// sem contexto. As navegações continuam acontecendo de verdade (a URL
-	// muda, a página recarrega) — o overlay só evita que o usuário veja o
-	// conteúdo cru de cada tela intermediária enquanto isso acontece. Como
-	// cada navegação recarrega a página do zero, um pequeno "flash" antes
-	// do overlay reaparecer (no tempo entre a página carregar e o content
-	// script rodar) é esperado e não dá para eliminar totalmente sem
-	// rodar a cadeia num iframe oculto — ver conversa sobre os dois
-	// caminhos possíveis.
+	// Overlay de carregamento — mostrado só durante a resolução em segundo
+	// plano (fetches), tipicamente menos de 1-2s. A tela principal nunca
+	// navega, então isso é só um indicador de "aguarde", não uma cortina
+	// para esconder telas piscando como numa versão anterior.
 	// -------------------------------------------------------------------
 
 	const LOADING_OVERLAY_ID = "pdp-qa-loading-overlay";
 
-	function showLoadingOverlay(label) {
+	function showLoadingOverlay(label, onCancel) {
 		removeLoadingOverlay();
 		const overlay = document.createElement("div");
 		overlay.id = LOADING_OVERLAY_ID;
@@ -370,9 +436,8 @@
 			"</div>";
 		document.body.appendChild(overlay);
 		overlay.querySelector(".pdp-qa-loading-cancel").addEventListener("click", function () {
-			logIntentStep("cancelado pelo usuário no overlay de carregamento");
-			clearPendingIntent();
 			removeLoadingOverlay();
+			if (onCancel) onCancel();
 		});
 	}
 
@@ -381,137 +446,56 @@
 		if (el) el.remove();
 	}
 
-	function runIntentStateMachine() {
-		peekPendingIntent().then(function (intent) {
-			if (!intent) return;
-			logIntentStep("intent encontrada", intent);
-			showLoadingOverlay(intent.label);
-			if (Date.now() - intent.ts > PENDING_INTENT_MAX_AGE_MS) {
-				removeLoadingOverlay();
-				logIntentStep("intent expirada, descartando");
-				clearPendingIntent();
-				return;
-			}
+	// -------------------------------------------------------------------
+	// Popup com o diálogo final — um iframe visível apontando direto para
+	// a URL resolvida por resolveDialogUrl, sobreposto à tela atual (que
+	// nunca navega). Mesma origem do Projudi, então dá para ler/preencher
+	// o formulário dentro do iframe (iframe.contentDocument) sem CORS.
+	// -------------------------------------------------------------------
 
-			if (isOnAcoesScreen()) {
-				logIntentStep("tela de Ações detectada (h3)");
-				waitForActionLink(intent.label, function (link) {
-					if (!link) {
-						removeLoadingOverlay();
-						clearPendingIntent();
-						const screenTitle = getScreenTitle();
-						console.warn(
-							"[Projudi Ações Rápidas]",
-							'Não encontrei a ação "' + intent.label + '" depois de ir para a tela de Ações.',
-							"Título da tela alcançada:",
-							screenTitle
-						);
-						alert(
-							'A movimentação escolhida não levou à ação "' +
-								intent.label +
-								'" — o Projudi abriu, em vez disso, a tela' +
-								(screenTitle ? ' "' + screenTitle + '"' : " outra tela") +
-								'. Isso acontece porque nem toda movimentação leva à lista geral de "Ações": o Projudi decide a tela de destino conforme o tipo da movimentação. Tente de novo a partir de outra movimentação (um despacho/decisão recente costuma funcionar).'
-						);
-						return;
-					}
-					clearPendingIntent();
-					removeLoadingOverlay();
-					if (intent.capture) {
-						link.click();
-						setTimeout(function () {
-							showCaptureToolbar(intent.label);
-						}, 400);
-					} else if (intent.prefId) {
-						loadPreferencesFor(intent.label).then(function (prefs) {
-							const pref = prefs.filter(function (p) {
-								return p.id === intent.prefId;
-							})[0];
-							if (pref) applyPreference(intent.label, pref);
-						});
-					} else {
-						openActionDialog(intent.label);
-					}
-				});
-				return;
-			}
+	const MODAL_ID = "pdp-qa-modal";
 
-			const movimentarBtn = findMovimentarButton();
-			if (movimentarBtn) {
-				logIntentStep("achei 'Movimentar a Partir Desta Movimentação', vou clicar em " + AUTO_CLICK_DELAY_MS + "ms", describeElement(movimentarBtn));
-				// Clicar assim que o botão aparece (quase instantâneo após o
-				// carregamento da página) pode ser rápido demais: em teste real,
-				// a MESMA movimentação levou à tela de Ações quando o usuário
-				// clicou manualmente (com o tempo de reação normal de uma
-				// pessoa) e a uma tela diferente quando clicada assim que
-				// detectada. O atraso aqui imita esse tempo de reação, dando
-				// chance a qualquer script da própria página terminar de
-				// configurar o destino correto antes do clique.
-				setTimeout(function () {
-					logIntentStep("clicando em 'Movimentar a Partir Desta Movimentação' agora", describeElement(movimentarBtn));
-					movimentarBtn.click(); // navegação de página inteira; retoma no próximo load
-				}, AUTO_CLICK_DELAY_MS);
-				return;
-			}
+	function showActionModal(label) {
+		removeActionModal();
+		const backdrop = document.createElement("div");
+		backdrop.id = MODAL_ID;
+		backdrop.className = "pdp-qa-modal-backdrop";
+		backdrop.innerHTML =
+			'<div class="pdp-qa-modal-box">' +
+			'<div class="pdp-qa-modal-header"><span>' +
+			escapeHtml(label) +
+			'</span><button type="button" class="pdp-qa-modal-close">✕ Fechar</button></div>' +
+			'<div class="pdp-qa-modal-body"><iframe class="pdp-qa-modal-iframe"></iframe></div>' +
+			"</div>";
+		document.body.appendChild(backdrop);
+		backdrop.querySelector(".pdp-qa-modal-close").addEventListener("click", removeActionModal);
+		return backdrop.querySelector(".pdp-qa-modal-iframe");
+	}
 
-			const eventLink = findLatestValidEventLink(intent.triedMovementIds);
-			if (eventLink) {
-				const triedMovementIds = (intent.triedMovementIds || []).concat([eventLink.id]);
-				logIntentStep(
-					"achei evento válido (tentativa " + triedMovementIds.length + "), vou clicar em " + AUTO_CLICK_DELAY_MS + "ms",
-					describeElement(eventLink)
-				);
-				// Guarda a URL desta própria lista de Movimentações — é para cá,
-				// e não para "voltar N páginas" no histórico do navegador
-				// (pouco confiável: depende de quantas navegações reais
-				// aconteceram até aqui, que variam conforme como o usuário
-				// chegou nesta tela), que a extensão volta se esta movimentação
-				// não levar à tela de Ações.
-				storePendingIntent(
-					Object.assign({}, intent, { triedMovementIds: triedMovementIds, movementsListUrl: window.location.href })
-				).then(function () {
-					setTimeout(function () {
-						logIntentStep("clicando no evento agora", describeElement(eventLink));
-						eventLink.click(); // navegação de página inteira; retoma no próximo load
-					}, AUTO_CLICK_DELAY_MS);
-				});
-				return;
-			}
+	function removeActionModal() {
+		const el = document.getElementById(MODAL_ID);
+		if (el) el.remove();
+		removeConfirmBar();
+		removeCaptureToolbar();
+	}
 
-			// Nem a tela de Ações, nem o botão "Movimentar a Partir Desta
-			// Movimentação", nem a lista de eventos estão aqui: chegamos a uma
-			// tela de destino diferente (ex.: "Juntar Documento") — o tipo da
-			// movimentação escolhida não levava à lista geral de Ações. Se essa
-			// movimentação foi escolhida pela própria extensão (há
-			// movementsListUrl guardada) e ainda não estourou o limite de
-			// tentativas, navega de volta para a MESMA URL da lista de
-			// Movimentações (não usa o histórico do navegador — ver acima) e
-			// tenta a PRÓXIMA movimentação válida.
-			const tried = intent.triedMovementIds || [];
-			logIntentStep("nem Ações, nem 'Movimentar', nem lista de eventos aqui — tela de destino inesperada", {
-				screenTitle: getScreenTitle(),
-				tried: tried,
-			});
-			if (intent.movementsListUrl && tried.length && tried.length < MAX_MOVEMENT_ATTEMPTS) {
-				logIntentStep("voltando para a lista de Movimentações para tentar de novo", intent.movementsListUrl);
-				window.location.href = intent.movementsListUrl;
-				return;
-			}
-
-			removeLoadingOverlay();
-			clearPendingIntent();
-			alert(
-				tried.length
-					? 'Tentei ' +
-							tried.length +
-							' movimentação(ões) recente(s) do processo e nenhuma levou à ação "' +
-							intent.label +
-							'". Abra manualmente uma movimentação mais antiga (um despacho/decisão costuma funcionar) e tente de novo a partir dela.'
-					: 'Não consegui chegar automaticamente até "' +
-							intent.label +
-							'" a partir desta tela. Abra a aba "Movimentações" do processo e tente de novo a partir de lá.'
-			);
-		});
+	function alertChainFailure(label, result) {
+		const tried = (result && result.tried) || 0;
+		alert(
+			tried
+				? "Tentei " +
+						tried +
+						' movimentação(ões) recente(s) do processo e nenhuma levou à ação "' +
+						label +
+						'"' +
+						(result.screenTitle ? ' (cheguei em telas como "' + result.screenTitle + '")' : "") +
+						". Abra manualmente uma movimentação mais antiga (um despacho/decisão costuma funcionar) e use \"Abrir\" a partir da tela de Ações."
+				: 'Não consegui localizar a ação "' +
+						label +
+						'" automaticamente' +
+						(result && result.screenTitle ? ' (cheguei na tela "' + result.screenTitle + '")' : "") +
+						". Abra manualmente a partir da aba Movimentações."
+		);
 	}
 
 	// -------------------------------------------------------------------
@@ -570,17 +554,23 @@
 		return !!el && el.offsetParent !== null;
 	}
 
-	function findLikelyDialogForm() {
-		const forms = document.querySelectorAll("form");
+	// Aceitam um `root` (o `document` de verdade para o modo "ready", ou
+	// `iframe.contentDocument` para o popup do modo "hop") — ver
+	// resolveDialogUrl/showActionModal.
+	function findLikelyDialogFormIn(root) {
+		const forms = root.querySelectorAll("form");
 		for (let i = forms.length - 1; i >= 0; i--) {
 			const form = forms[i];
 			if (isVisible(form) && form.querySelector("input, select, textarea")) return form;
 		}
 		return null;
 	}
+	function findLikelyDialogForm() {
+		return findLikelyDialogFormIn(document);
+	}
 
-	function findFormContainingFieldNames(names) {
-		const forms = document.querySelectorAll("form");
+	function findFormContainingFieldNamesIn(root, names) {
+		const forms = root.querySelectorAll("form");
 		for (let i = forms.length - 1; i >= 0; i--) {
 			const form = forms[i];
 			if (!isVisible(form)) continue;
@@ -590,6 +580,9 @@
 			if (hasAny) return form;
 		}
 		return null;
+	}
+	function findFormContainingFieldNames(names) {
+		return findFormContainingFieldNamesIn(document, names);
 	}
 
 	function cssEscapeAttr(value) {
@@ -673,7 +666,12 @@
 		}
 	}
 
-	function showCaptureToolbar(label) {
+	// `doc` é o documento onde o diálogo está: `document` de verdade no
+	// modo "ready" (diálogo nativo aberto na própria tela de Ações), ou
+	// `iframe.contentDocument` no modo "hop" (diálogo dentro do popup
+	// desta extensão — ver showActionModal). Por padrão usa `document`.
+	function showCaptureToolbar(label, doc) {
+		doc = doc || document;
 		removeCaptureToolbar();
 		captureToolbar = document.createElement("div");
 		captureToolbar.className = "pdp-qa-capture-bar";
@@ -685,7 +683,7 @@
 
 		captureToolbar.querySelector(".pdp-qa-capture-cancel").addEventListener("click", removeCaptureToolbar);
 		captureToolbar.querySelector(".pdp-qa-capture-save").addEventListener("click", function () {
-			const form = findLikelyDialogForm();
+			const form = findLikelyDialogFormIn(doc);
 			if (!form) {
 				alert('Não encontrei o formulário do diálogo "' + label + '" para capturar. Ele ainda está aberto na tela?');
 				return;
@@ -785,6 +783,93 @@
 			}
 			applyFormFields(form, pref.fields);
 			showConfirmBar(label, pref, form);
+		});
+	}
+
+	// -------------------------------------------------------------------
+	// Versões "hop" das três ações acima — usadas quando a tela atual
+	// ainda não é a de Ações (ver resolveDialogUrl). Resolvem a URL do
+	// diálogo em segundo plano e mostram só ela, num popup desta extensão
+	// (showActionModal), sem navegar a aba visível em nenhum momento.
+	// -------------------------------------------------------------------
+
+	function openActionDialogViaChain(label) {
+		const cancelToken = { cancelled: false };
+		showLoadingOverlay(label, function () {
+			cancelToken.cancelled = true;
+		});
+		resolveDialogUrl(label).then(function (result) {
+			removeLoadingOverlay();
+			if (cancelToken.cancelled) return;
+			if (result.failed) {
+				alertChainFailure(label, result);
+				return;
+			}
+			showActionModal(label).src = result.url;
+		});
+	}
+
+	function startNewPreferenceCaptureViaChain(label) {
+		const cancelToken = { cancelled: false };
+		showLoadingOverlay(label, function () {
+			cancelToken.cancelled = true;
+		});
+		resolveDialogUrl(label).then(function (result) {
+			removeLoadingOverlay();
+			if (cancelToken.cancelled) return;
+			if (result.failed) {
+				alertChainFailure(label, result);
+				return;
+			}
+			const iframe = showActionModal(label);
+			iframe.addEventListener(
+				"load",
+				function () {
+					showCaptureToolbar(label, iframe.contentDocument);
+				},
+				{ once: true }
+			);
+			iframe.src = result.url;
+		});
+	}
+
+	function applyPreferenceViaChain(label, pref) {
+		const cancelToken = { cancelled: false };
+		showLoadingOverlay(label, function () {
+			cancelToken.cancelled = true;
+		});
+		resolveDialogUrl(label).then(function (result) {
+			removeLoadingOverlay();
+			if (cancelToken.cancelled) return;
+			if (result.failed) {
+				alertChainFailure(label, result);
+				return;
+			}
+			const iframe = showActionModal(label);
+			iframe.addEventListener(
+				"load",
+				function () {
+					let doc;
+					try {
+						doc = iframe.contentDocument;
+					} catch (err) {
+						alert("Não consegui acessar o conteúdo do diálogo carregado.");
+						return;
+					}
+					const fieldNames = pref.fields.map(function (f) {
+						return f.name;
+					});
+					const form = findFormContainingFieldNamesIn(doc, fieldNames) || findLikelyDialogFormIn(doc);
+					if (!form) {
+						alert('Carreguei "' + label + '", mas não encontrei o formulário para preencher automaticamente. Preencha manualmente.');
+						return;
+					}
+					applyFormFields(form, pref.fields);
+					showConfirmBar(label, pref, form);
+				},
+				{ once: true }
+			);
+			iframe.src = result.url;
 		});
 	}
 
@@ -896,8 +981,8 @@
 			const note = document.createElement("div");
 			note.className = "pdp-qa-note";
 			note.textContent =
-				'Esta tela ainda não é a de "Ações" — ao clicar, a extensão chega lá sozinha (a partir da ' +
-				"movimentação mais recente e válida do processo) e completa a ação escolhida.";
+				'Esta tela ainda não é a de "Ações", mas ao clicar a extensão resolve isso sozinha em segundo ' +
+				"plano (sem sair desta tela) e abre a ação escolhida num popup.";
 			activePanel.appendChild(note);
 		} else {
 			mode = "unreachable";
@@ -948,7 +1033,7 @@
 		openBtn.addEventListener("click", function () {
 			closePanel();
 			if (mode === "hop") {
-				startOrAdvanceIntent({ label: label });
+				openActionDialogViaChain(label);
 			} else {
 				openActionDialog(label);
 			}
@@ -970,7 +1055,7 @@
 		newPrefBtn.addEventListener("click", function () {
 			closePanel();
 			if (mode === "hop") {
-				startOrAdvanceIntent({ label: label, capture: true });
+				startNewPreferenceCaptureViaChain(label);
 			} else {
 				startNewPreferenceCapture(label);
 			}
@@ -997,7 +1082,7 @@
 			applyBtn.addEventListener("click", function () {
 				if (mode === "hop") {
 					closePanel();
-					startOrAdvanceIntent({ label: label, prefId: pref.id });
+					applyPreferenceViaChain(label, pref);
 				} else {
 					applyPreference(label, pref);
 				}
@@ -1110,21 +1195,6 @@
 
 	setInterval(reconcile, 700);
 	reconcile();
-
-	// O Projudi usa framesets — a tela que realmente importa (com o botão
-	// "Movimentar a Partir Desta Movimentação", os eventos, o painel de
-	// Ações) quase sempre fica dentro de um FRAME FILHO, não na janela de
-	// nível mais alto (essa costuma ser só a moldura do frameset, sem
-	// conteúdo útil). Uma versão anterior só retomava a intenção pendente
-	// em `window.top`, o que bloqueava justamente o frame onde a cadeia
-	// precisava continuar depois de cada navegação de página inteira — a
-	// extensão avançava um passo e depois parava, silenciosamente, em toda
-	// tela carregada dentro de um frame. Por isso a checagem aqui é
-	// `isOnProcessScreen()` (o mesmo critério que decide se esta é uma
-	// tela do processo, em qualquer frame), não a posição do frame.
-	if (isOnProcessScreen()) {
-		runIntentStateMachine();
-	}
 
 	const observer = new MutationObserver(function () {
 		try {

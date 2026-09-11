@@ -254,43 +254,47 @@ painel depende de qual tela do processo você está vendo, já que o painel
 - **Na tela com o painel "Ações"**: o painel mostra só as ações que
   existirem no processo agora (ex.: se já estiver apensado, só
   "Desapensar" aparece, não "Apensar"); se nenhuma ação do grupo existir
-  para este processo, uma mensagem avisa.
+  para este processo, uma mensagem avisa. Clicar em **"Abrir"** localiza o
+  link nativo correspondente já presente na página (mesmo texto, mesmo
+  elemento `<a class="link">`, com o `onclick` que o próprio Projudi já
+  definiu) e simula um clique nele — o mesmo diálogo (`openDialog`/
+  `openDialogMaximized`) que apareceria clicando diretamente no painel
+  "Ações" aparece normalmente ali mesmo, sobreposto à tela.
 - **Em qualquer outra tela do processo que tenha a lista de Movimentações
   visível** (a capa do processo, a lista de eventos, ou a tela
   intermediária de detalhe de uma movimentação): o painel mostra todas as
-  ações do grupo, cada uma com um botão **"Ir e abrir"** — a extensão
-  chega sozinha até a tela de Ações e abre a ação escolhida, navegando por
-  conta própria pelas mesmas telas que você navegaria manualmente:
-  1. Se ainda não estiver na tela de detalhe de uma movimentação, clica no
-     **evento mais recente e válido** (não tachado) da coluna "Evento" —
-     identificado pelo próprio Projudi de forma estável (`id="LNKmov..."`
-     nos válidos, tachados/inválidos têm "INVALIDO" nesse id). Isso é o
-     que você faria na maioria dos casos: continuar o processo a partir do
-     seu estado atual (salvo se antes disso você já tiver aberto
-     manualmente uma movimentação específica).
-  2. Uma vez na tela de detalhe da movimentação, clica em "Movimentar a
-     Partir Desta Movimentação" — sempre o mesmo botão, sem ambiguidade.
-  3. Ao chegar na tela de Ações, executa a ação escolhida — **ou**, se o
-     tipo dessa movimentação levar a uma tela de ação diferente (ver
-     abaixo), volta e repete os passos 1-3 com a **próxima** movimentação
-     válida, até uma delas levar à lista de Ações ou esgotar até 5
-     tentativas.
+  ações do grupo, cada uma com um botão **"Ir e abrir"**. Ao clicar, a
+  extensão **não navega a tela visível em nenhum momento** — em vez
+  disso, ela busca em segundo plano (com `fetch()`, reaproveitando sua
+  sessão/cookies, sem abrir nem trocar nenhuma aba) as mesmas telas que
+  você navegaria manualmente, só para descobrir a URL real do diálogo
+  final:
+  1. Busca a lista de Movimentações (se ainda não estiver na tela de
+     detalhe de uma movimentação) e acha o **evento mais recente e
+     válido** (não tachado) da coluna "Evento" — identificado pelo
+     próprio Projudi de forma estável (`id="LNKmov..."` nos válidos,
+     tachados/inválidos têm "INVALIDO" nesse id).
+  2. Busca a tela de detalhe dessa movimentação e lê para onde o botão
+     "Movimentar a Partir Desta Movimentação" levaria.
+  3. Busca essa tela seguinte; se for a de Ações, lê a URL exata do
+     diálogo da ação escolhida (do próprio `onclick` do link, algo como
+     `openDialog('/projudi/processo/enviarConcluso.do?_tj=...', ...)`).
+     Se não for (o tipo dessa movimentação leva a outra tela de ação, ver
+     abaixo), repete os passos 1-3 com a **próxima** movimentação válida,
+     até achar uma que funcione ou esgotar até 5 tentativas.
+  4. Com a URL em mãos, abre um **popup** (sobreposto à tela atual, com
+     um "✕ Fechar") com um iframe carregando só essa URL — é aí, e só aí,
+     que uma requisição de verdade visível ao usuário acontece: o
+     restante foi só leitura em segundo plano para descobrir o caminho.
 
   **Nada disso pratica qualquer ato processual por conta própria** — os
-  dois primeiros passos só navegam entre telas de leitura, sem enviar nada
-  ao Projudi; o terceiro passo abre o diálogo nativo em branco (com
-  "Abrir"/"Ir e abrir") ou repreenche uma preferência salva e pede a
-  confirmação única de sempre antes de clicar em confirmar/enviar (ver
-  "Preferências" abaixo) — nunca confirma sozinha.
-
-  Enquanto a cadeia navega pelas telas intermediárias, um overlay
-  ("Abrindo 'Enviar Concluso'…", com um botão "Cancelar") cobre a tela —
-  assim você não vê a lista de Movimentações nem a tela de detalhe da
-  movimentação "piscando" sem contexto entre um clique e o diálogo final.
-  As navegações continuam acontecendo de verdade por baixo do overlay (a
-  URL muda, a página recarrega) — só o conteúdo cru de cada tela
-  intermediária fica coberto; pode haver um pequeno "flash" bem breve
-  entre uma página carregar e o overlay reaparecer nela.
+  passos 1-3 só leem páginas em segundo plano, sem exibi-las nem enviar
+  nada ao Projudi além do GET de leitura normal; o popup do passo 4 abre o
+  diálogo nativo em branco (com "Abrir"/"Ir e abrir") ou repreenche uma
+  preferência salva e pede a confirmação única de sempre antes de clicar
+  em confirmar/enviar (ver "Preferências" abaixo) — nunca confirma
+  sozinha. Enquanto os passos 1-3 acontecem (tipicamente menos de 1-2s), um
+  pequeno indicador "Abrindo '...'…" aparece, com um botão "Cancelar".
 - **Se não houver lista de Movimentações na tela atual** (ex.: você está
   numa aba diferente do processo, como Partes e Outros): o painel avisa
   para abrir a aba "Movimentações" primeiro.
@@ -301,31 +305,7 @@ reaproveita o mesmo `id`/`name` (`movimentarButton`) para vários botões de
 nativo **"Juntar Documento"** da barra de ferramentas da tela principal do
 processo também tem `id="movimentarButton"`, só com um texto (`value`)
 diferente. Por isso a extensão identifica o botão "Movimentar a Partir
-Desta Movimentação" **só pelo texto**, nunca por id/name — uma versão
-anterior usava id/name como atalho e podia acabar clicando em "Juntar
-Documento" por engano sempre que ele existisse na mesma tela.
-
-Como salvaguarda extra (caso uma movimentação realmente leve a uma tela de
-ação específica em vez da lista geral de Ações, por qualquer outro
-motivo), a extensão **detecta e tenta de novo com a próxima movimentação
-válida** (voltando à mesma URL da lista de Movimentações — nunca usando
-"voltar" do navegador, que não é confiável aqui — e repetindo os passos
-acima), até 5 vezes, sem precisar de nada manual. Só se nenhuma das
-últimas movimentações levar à tela de Ações é que aparece um aviso pedindo
-para abrir manualmente uma movimentação mais antiga.
-
-Para cada ação, o painel oferece:
-
-- **"Abrir"**: localiza o link nativo correspondente já presente na
-  página (mesmo texto, mesmo elemento `<a class="link">`, com o `onclick`
-  que o próprio Projudi já definiu) e simula um clique nele — o mesmo
-  diálogo (`openDialog`/`openDialogMaximized`) ou confirmação que
-  apareceria clicando diretamente no painel "Ações" aparece normalmente, e
-  o preenchimento/confirmação continua manual. Isso evita a extensão
-  precisar reconstruir as URLs de cada ação (cujo token de sessão,
-  `_tj=...`, expira e é específico de cada usuário) — ela sempre clica no
-  elemento que já está na página.
-- **Preferências salvas** (★): veja a seção seguinte.
+Desta Movimentação" **só pelo texto**, nunca por id/name.
 
 ### Preferências (preencher e confirmar com um clique)
 
@@ -352,13 +332,13 @@ diálogo como **preferência** e reaplicá-lo depois com poucos cliques:
 
 As preferências (e o "+ Nova preferência") também funcionam a partir de
 qualquer tela com a lista de Movimentações visível: nesse caso elas
-primeiro navegam sozinhas até a tela de Ações (ver acima) e só então
-aplicam o preenchimento/mostram a confirmação.
+primeiro resolvem a URL do diálogo em segundo plano (ver acima) e só
+então abrem o popup já preenchido/com a confirmação.
 
-**Como funciona por baixo dos panos e suas limitações:** como o Projudi
-abre cada ação como uma janela "interna" da própria página (não uma aba
-nova) e a extensão não tem acesso ao código-fonte desses diálogos, a
-localização do formulário é **heurística**: ao salvar, ela usa o último
+**Como funciona por baixo dos panos e suas limitações:** já que a extensão
+não tem acesso ao código-fonte desses diálogos, a localização do
+formulário (dentro do popup, ou da própria página quando já se está na
+tela de Ações) é **heurística**: ao salvar, ela usa o último
 `<form>` visível da página com campos preenchíveis; ao aplicar uma
 preferência, ela procura o `<form>` visível mais recente que contenha
 algum campo com o mesmo nome do que foi salvo, e para confirmar procura um
