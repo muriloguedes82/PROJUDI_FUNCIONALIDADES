@@ -119,9 +119,24 @@
 		return null;
 	}
 
+	// A tela de Ações (movimentarProcesso.do) e a tela intermediária de
+	// detalhe da movimentação NÃO têm nenhum dos botões de
+	// PROCESS_TOOLBAR_LABELS — o botão de voltar delas se chama "Voltar
+	// para o Processo" (id="backButton"), texto diferente do "Voltar" da
+	// barra de ações do processo. Por isso a checagem original deixava a
+	// fileira de botões desta extensão sem aparecer justamente nas telas
+	// onde ela mais importa. Agora também conta como elegível qualquer
+	// tela com esse #backButton, com o marcador direto da tela de Ações
+	// (isOnAcoesScreen) ou com o botão "Movimentar a Partir Desta
+	// Movimentação" (findMovimentarButton) — mesma ideia de robustez a
+	// diferenças de texto já usada no recurso irmão de WhatsApp
+	// (content.js), que por isso continuava aparecendo nessas telas
+	// enquanto esta fileira de botões não aparecia.
 	function isOnProcessScreen() {
 		if (processScreenEligible) return true;
-		if (findProcessToolbarElement()) processScreenEligible = true;
+		if (findProcessToolbarElement() || document.getElementById("backButton") || isOnAcoesScreen() || findMovimentarButton()) {
+			processScreenEligible = true;
+		}
 		return processScreenEligible;
 	}
 
