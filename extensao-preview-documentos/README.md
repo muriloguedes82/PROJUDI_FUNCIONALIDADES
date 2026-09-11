@@ -251,35 +251,46 @@ Cada botão abre um painel com as ações daquele grupo — o conteúdo do
 painel depende de qual tela do processo você está vendo, já que o painel
 "Ações" do Projudi só existe numa tela específica:
 
-- **Na tela com o painel "Ações"** (chegando lá manualmente, ou pelo modo
-  "Ir e abrir" abaixo): o painel mostra só as ações que existirem no
-  processo agora (ex.: se já estiver apensado, só "Desapensar" aparece,
-  não "Apensar"); se nenhuma ação do grupo existir para este processo, uma
-  mensagem avisa.
-- **Numa tela intermediária do processo, com o botão "Movimentar a Partir
-  Desta Movimentação"** (a tela que abre ao clicar num evento da aba
-  Movimentações): o painel mostra todas as ações do grupo, cada uma com um
-  botão **"Ir e abrir"** — ele clica sozinho em "Movimentar a Partir Desta
-  Movimentação" (navegação de página inteira do próprio Projudi) e, ao
-  chegar na tela de Ações, abre a ação escolhida automaticamente. Esse
-  passo é sempre mecânico (é literalmente o mesmo botão que você clicaria
-  na sequência normal), então a extensão pode fazê-lo sozinha com
-  segurança.
-- **Em qualquer outra tela** (ex.: a lista de Movimentações do processo):
-  o painel só mostra um aviso explicando os dois passos manuais para
-  chegar à tela de Ações — clicar num evento válido (não tachado) da
-  coluna "Evento" e, na tela seguinte, em "Movimentar a Partir Desta
-  Movimentação". **A extensão nunca escolhe esse evento por conta
-  própria** — qual movimentação usar como base para uma nova ação é uma
-  decisão processual sua, não uma formalidade mecânica.
+- **Na tela com o painel "Ações"**: o painel mostra só as ações que
+  existirem no processo agora (ex.: se já estiver apensado, só
+  "Desapensar" aparece, não "Apensar"); se nenhuma ação do grupo existir
+  para este processo, uma mensagem avisa.
+- **Em qualquer outra tela do processo que tenha a lista de Movimentações
+  visível** (a capa do processo, a lista de eventos, ou a tela
+  intermediária de detalhe de uma movimentação): o painel mostra todas as
+  ações do grupo, cada uma com um botão **"Ir e abrir"** — a extensão
+  chega sozinha até a tela de Ações e abre a ação escolhida, navegando por
+  conta própria pelas mesmas telas que você navegaria manualmente:
+  1. Se ainda não estiver na tela de detalhe de uma movimentação, clica no
+     **evento mais recente e válido** (não tachado) da coluna "Evento" —
+     identificado pelo próprio Projudi de forma estável (`id="LNKmov..."`
+     nos válidos, tachados/inválidos têm "INVALIDO" nesse id). A extensão
+     sempre usa a movimentação mais recente, e nunca uma diferente: é
+     assim que você continuaria o processo a partir do seu estado atual,
+     salvo se antes disso você já tiver aberto manualmente uma
+     movimentação específica.
+  2. Uma vez na tela de detalhe da movimentação, clica em "Movimentar a
+     Partir Desta Movimentação" — sempre o mesmo botão, sem ambiguidade.
+  3. Ao chegar na tela de Ações, executa a ação escolhida.
+
+  **Nada disso pratica qualquer ato processual por conta própria** — os
+  dois primeiros passos só navegam entre telas de leitura, sem enviar nada
+  ao Projudi; o terceiro passo abre o diálogo nativo em branco (com
+  "Abrir"/"Ir e abrir") ou repreenche uma preferência salva e pede a
+  confirmação única de sempre antes de clicar em confirmar/enviar (ver
+  "Preferências" abaixo) — nunca confirma sozinha.
+- **Se não houver lista de Movimentações na tela atual** (ex.: você está
+  numa aba diferente do processo, como Partes e Outros): o painel avisa
+  para abrir a aba "Movimentações" primeiro.
 
 **Nem toda movimentação leva à lista completa de "Ações":** o Projudi
-decide a tela de destino conforme o tipo da movimentação escolhida — por
-exemplo, uma movimentação de "Juntada de Petição" pode levar direto à tela
-"Juntar Documento", pulando a lista geral de Ações. Se isso acontecer, a
-extensão mostra um aviso explicando para qual tela o Projudi te levou;
-volte à aba Movimentações e tente outra movimentação (um despacho/decisão
-recente costuma funcionar).
+decide a tela de destino conforme o tipo da movimentação — por exemplo,
+uma movimentação de "Juntada de Petição" pode levar direto à tela "Juntar
+Documento", pulando a lista geral de Ações. Se isso acontecer com a
+movimentação mais recente do processo, a extensão mostra um aviso
+explicando para qual tela o Projudi te levou; abra manualmente uma
+movimentação diferente (um despacho/decisão recente costuma funcionar) e
+tente de novo a partir dela.
 
 Para cada ação, o painel oferece:
 
@@ -317,11 +328,10 @@ diálogo como **preferência** e reaplicá-lo depois com poucos cliques:
    efetivamente realiza a ação processual**, então confira os campos
    preenchidos antes de confirmar.
 
-As preferências (e o "+ Nova preferência") também funcionam a partir da
-tela intermediária ("Movimentar a Partir Desta Movimentação"): nesse caso
-elas primeiro dão o passo "Ir" (clicam nesse botão) e só então aplicam o
-preenchimento/mostram a confirmação, na tela de Ações que acabou de
-carregar.
+As preferências (e o "+ Nova preferência") também funcionam a partir de
+qualquer tela com a lista de Movimentações visível: nesse caso elas
+primeiro navegam sozinhas até a tela de Ações (ver acima) e só então
+aplicam o preenchimento/mostram a confirmação.
 
 **Como funciona por baixo dos panos e suas limitações:** como o Projudi
 abre cada ação como uma janela "interna" da própria página (não uma aba

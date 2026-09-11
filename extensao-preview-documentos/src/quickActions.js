@@ -166,15 +166,34 @@
 	// em "Movimentar a Partir Desta Movimentação" — só então o Projudi
 	// carrega a URL movimentarProcesso.do, que tem o painel "Ações".
 	//
-	// O passo (1) é uma escolha processual do usuário (qual movimentação
-	// usar como base) e nunca é feito automaticamente por esta extensão. O
-	// passo (2), uma vez que o usuário já chegou na tela de detalhe da
-	// movimentação escolhida, é mecânico — clicar sempre no mesmo botão,
-	// sem ambiguidade — por isso esta extensão pode fazê-lo sozinha.
+	// O passo (2) é sempre mecânico (o mesmo botão, sem ambiguidade), então
+	// esta extensão pode clicá-lo sozinha. O passo (1) escolhe QUAL
+	// movimentação usar como base para a nova ação — mas como navegar até
+	// lá não envia nada ao Projudi (nenhuma ação processual é praticada só
+	// de abrir a tela de detalhe de uma movimentação), a extensão pode
+	// escolher a movimentação mais recente e válida (não tachada) sozinha,
+	// exatamente como um usuário faria na maioria dos casos: continuar a
+	// partir do estado atual do processo. Cada evento é identificado pelo
+	// padrão estável `id="LNKmov..."`; um evento inválido/tachado tem
+	// "INVALIDO" no próprio id e fica dentro de um <strike> (ver
+	// TELA_MOVIMENTAÇÃO_PROCESSO_HTML). O que de fato executa a ação
+	// processual — o clique final de confirmar dentro do diálogo — nunca é
+	// automático (ver showConfirmBar/"Sim, executar").
 	function findMovimentarButton() {
 		return document.querySelector(
 			'#movimentarButton, input[name="movimentarButton"], input[value="Movimentar a Partir Desta Movimentação"]'
 		);
+	}
+
+	function findLatestValidEventLink() {
+		const links = document.querySelectorAll('a.link[id^="LNKmov"]');
+		for (let i = 0; i < links.length; i++) {
+			const link = links[i];
+			if ((link.id || "").indexOf("INVALIDO") !== -1) continue;
+			if (link.closest("strike, s, del")) continue;
+			return link;
+		}
+		return null;
 	}
 
 	// Marcador direto e estável de que estamos na tela com o painel
@@ -188,10 +207,25 @@
 	}
 
 	// -------------------------------------------------------------------
-	// Intenção pendente — permite clicar num botão desta extensão ANTES de
-	// chegar à tela de Ações: guarda o que fazer, clica em "Movimentar a
-	// Partir Desta Movimentação" (navegação de página inteira, não AJAX) e,
-	// ao recarregar em movimentarProcesso.do, retoma e executa a intenção.
+	// Intenção pendente — permite clicar num botão desta extensão de
+	// QUALQUER tela do processo (a capa, a lista de Movimentações, a tela
+	// de detalhe de uma movimentação) e a extensão avança sozinha, passo a
+	// passo, por navegações de página inteira (não AJAX) até a tela de
+	// Ações, retomando a intenção salva a cada carregamento:
+	//
+	//   1. Nem na lista de Movimentações nem na tela de Ações → sem como
+	//      avançar sozinha (ver runIntentStateMachine).
+	//   2. Lista de Movimentações (tem eventos "LNKmov...") → clica no
+	//      evento mais recente e válido (findLatestValidEventLink).
+	//   3. Tela de detalhe de uma movimentação (tem o botão "Movimentar a
+	//      Partir Desta Movimentação") → clica nele.
+	//   4. Tela de Ações → executa a intenção (abrir ação / aplicar
+	//      preferência / capturar nova preferência).
+	//
+	// Só o passo 4 tem qualquer efeito no processo, e mesmo assim nunca
+	// sozinho: aplicar uma preferência ainda pede a confirmação única (ver
+	// showConfirmBar), e abrir uma ação em branco só abre o diálogo nativo,
+	// sem preencher nem confirmar nada.
 	// -------------------------------------------------------------------
 
 	const PENDING_INTENT_KEY = "pdpQaPendingIntent";
@@ -202,25 +236,22 @@
 		return chrome.storage.local.set({ [PENDING_INTENT_KEY]: intent });
 	}
 
-	function consumePendingIntent() {
+	function peekPendingIntent() {
 		return chrome.storage.local.get([PENDING_INTENT_KEY]).then(function (data) {
-			const intent = data[PENDING_INTENT_KEY];
-			if (!intent) return null;
-			return chrome.storage.local.remove([PENDING_INTENT_KEY]).then(function () {
-				return intent;
-			});
+			return data[PENDING_INTENT_KEY] || null;
 		});
 	}
 
-	function hopToAcoesScreenThenRun(intent) {
-		const btn = findMovimentarButton();
-		if (!btn) {
-			alert('Não encontrei o botão "Movimentar a Partir Desta Movimentação" nesta tela.');
-			return;
-		}
-		storePendingIntent(intent).then(function () {
-			btn.click();
-		});
+	function clearPendingIntent() {
+		return chrome.storage.local.remove([PENDING_INTENT_KEY]);
+	}
+
+	// Ponto de entrada usado tanto ao clicar num botão desta extensão
+	// (guarda a intenção e tenta avançar na mesma tela) quanto a cada
+	// carregamento de página (retoma uma intenção guardada antes de uma
+	// navegação de página inteira).
+	function startOrAdvanceIntent(intent) {
+		storePendingIntent(intent).then(runIntentStateMachine);
 	}
 
 	// Lê o sufixo do título da tela (ex.: "Processo 0000... - Juntar
@@ -250,45 +281,72 @@
 		}, DIALOG_WAIT_INTERVAL_MS);
 	}
 
-	function tryConsumePendingIntent() {
-		consumePendingIntent().then(function (intent) {
+	function runIntentStateMachine() {
+		peekPendingIntent().then(function (intent) {
 			if (!intent) return;
-			if (Date.now() - intent.ts > PENDING_INTENT_MAX_AGE_MS) return;
-			waitForActionLink(intent.label, function (link) {
-				if (!link) {
-					const screenTitle = getScreenTitle();
-					console.warn(
-						"[Projudi Ações Rápidas]",
-						'Não encontrei a ação "' + intent.label + '" depois de ir para a tela de Ações.',
-						"Título da tela alcançada:",
-						screenTitle
-					);
-					alert(
-						'A movimentação escolhida não levou à ação "' +
-							intent.label +
-							'" — o Projudi abriu, em vez disso, a tela' +
-							(screenTitle ? ' "' + screenTitle + '"' : " outra tela") +
-							'. Isso acontece porque nem toda movimentação leva à lista geral de "Ações": o Projudi decide a tela de destino conforme o tipo da movimentação escolhida.\n\n' +
-							"Volte e tente escolher outra movimentação (geralmente um despacho/decisão recente costuma levar à lista completa de Ações)."
-					);
-					return;
-				}
-				if (intent.capture) {
-					link.click();
-					setTimeout(function () {
-						showCaptureToolbar(intent.label);
-					}, 400);
-				} else if (intent.prefId) {
-					loadPreferencesFor(intent.label).then(function (prefs) {
-						const pref = prefs.filter(function (p) {
-							return p.id === intent.prefId;
-						})[0];
-						if (pref) applyPreference(intent.label, pref);
-					});
-				} else {
-					openActionDialog(intent.label);
-				}
-			});
+			if (Date.now() - intent.ts > PENDING_INTENT_MAX_AGE_MS) {
+				clearPendingIntent();
+				return;
+			}
+
+			if (isOnAcoesScreen()) {
+				waitForActionLink(intent.label, function (link) {
+					if (!link) {
+						clearPendingIntent();
+						const screenTitle = getScreenTitle();
+						console.warn(
+							"[Projudi Ações Rápidas]",
+							'Não encontrei a ação "' + intent.label + '" depois de ir para a tela de Ações.',
+							"Título da tela alcançada:",
+							screenTitle
+						);
+						alert(
+							'A movimentação escolhida não levou à ação "' +
+								intent.label +
+								'" — o Projudi abriu, em vez disso, a tela' +
+								(screenTitle ? ' "' + screenTitle + '"' : " outra tela") +
+								'. Isso acontece porque nem toda movimentação leva à lista geral de "Ações": o Projudi decide a tela de destino conforme o tipo da movimentação. Tente de novo a partir de outra movimentação (um despacho/decisão recente costuma funcionar).'
+						);
+						return;
+					}
+					clearPendingIntent();
+					if (intent.capture) {
+						link.click();
+						setTimeout(function () {
+							showCaptureToolbar(intent.label);
+						}, 400);
+					} else if (intent.prefId) {
+						loadPreferencesFor(intent.label).then(function (prefs) {
+							const pref = prefs.filter(function (p) {
+								return p.id === intent.prefId;
+							})[0];
+							if (pref) applyPreference(intent.label, pref);
+						});
+					} else {
+						openActionDialog(intent.label);
+					}
+				});
+				return;
+			}
+
+			const movimentarBtn = findMovimentarButton();
+			if (movimentarBtn) {
+				movimentarBtn.click(); // navegação de página inteira; retoma no próximo load
+				return;
+			}
+
+			const eventLink = findLatestValidEventLink();
+			if (eventLink) {
+				eventLink.click(); // idem
+				return;
+			}
+
+			clearPendingIntent();
+			alert(
+				'Não consegui chegar automaticamente até "' +
+					intent.label +
+					'" a partir desta tela. Abra a aba "Movimentações" do processo e tente de novo a partir de lá.'
+			);
 		});
 	}
 
@@ -668,20 +726,20 @@
 				activePanel.appendChild(empty);
 				logAvailableLinkTexts(group);
 			}
-		} else if (findMovimentarButton()) {
+		} else if (findMovimentarButton() || findLatestValidEventLink()) {
 			mode = "hop";
 			actionsToRender = group.actions;
 			const note = document.createElement("div");
 			note.className = "pdp-qa-note";
-			note.textContent = 'Esta tela ainda não é a de "Ações" — ao clicar, a extensão vai para lá automaticamente.';
+			note.textContent =
+				'Esta tela ainda não é a de "Ações" — ao clicar, a extensão chega lá sozinha (a partir da ' +
+				"movimentação mais recente e válida do processo) e completa a ação escolhida.";
 			activePanel.appendChild(note);
 		} else {
 			mode = "unreachable";
 			const empty = document.createElement("div");
 			empty.className = "pdp-qa-empty";
-			empty.textContent =
-				'Esta tela não tem o painel "Ações". Clique num evento válido (não tachado) na coluna ' +
-				'"Evento" da aba Movimentações e, na tela seguinte, em "Movimentar a Partir Desta Movimentação".';
+			empty.textContent = 'Abra a aba "Movimentações" do processo para usar esta ação.';
 			activePanel.appendChild(empty);
 		}
 
@@ -726,7 +784,7 @@
 		openBtn.addEventListener("click", function () {
 			closePanel();
 			if (mode === "hop") {
-				hopToAcoesScreenThenRun({ label: label });
+				startOrAdvanceIntent({ label: label });
 			} else {
 				openActionDialog(label);
 			}
@@ -748,7 +806,7 @@
 		newPrefBtn.addEventListener("click", function () {
 			closePanel();
 			if (mode === "hop") {
-				hopToAcoesScreenThenRun({ label: label, capture: true });
+				startOrAdvanceIntent({ label: label, capture: true });
 			} else {
 				startNewPreferenceCapture(label);
 			}
@@ -775,7 +833,7 @@
 			applyBtn.addEventListener("click", function () {
 				if (mode === "hop") {
 					closePanel();
-					hopToAcoesScreenThenRun({ label: label, prefId: pref.id });
+					startOrAdvanceIntent({ label: label, prefId: pref.id });
 				} else {
 					applyPreference(label, pref);
 				}
@@ -895,7 +953,7 @@
 	// guardada no chrome.storage.local, que é compartilhado pela extensão
 	// inteira, não por frame.
 	if (window.top === window.self) {
-		tryConsumePendingIntent();
+		runIntentStateMachine();
 	}
 
 	const observer = new MutationObserver(function () {
