@@ -75,8 +75,15 @@
 		};
 	}
 
+	// Algumas telas trocam de aba (Movimentações, Partes e Outros, etc.)
+	// substituindo trechos do DOM via AJAX, o que remove nosso overlay da
+	// página mesmo com a variável "overlay" continuando preenchida — por
+	// isso também conferimos "isConnected" (só é verdadeiro enquanto o nó
+	// ainda está de fato na página) e recriamos o overlay quando ele tiver
+	// sido desconectado, senão a pré-visualização para de aparecer depois
+	// de voltar para a aba de Movimentações.
 	function ensureOverlay() {
-		if (overlay) return;
+		if (overlay && overlay.isConnected) return;
 		const built = buildOverlay();
 		overlay = built.wrap;
 		iframe = built.frame;

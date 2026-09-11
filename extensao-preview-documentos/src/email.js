@@ -116,9 +116,18 @@
 		return frameEligible;
 	}
 
+	// Algumas telas do Projudi/SEEU trocam de aba (Movimentações, Partes e
+	// Outros, etc.) substituindo trechos inteiros do DOM via AJAX, em vez de
+	// simplesmente escondê-los. Quando isso acontece, os elementos que
+	// tínhamos criado (botões, checkboxes) são removidos da árvore, mas as
+	// variáveis aqui ainda apontam para eles — daí a checagem "if (!X)"
+	// sozinha não bastava, pois a variável continuava "preenchida" mesmo com
+	// o elemento já fora do documento. Por isso também conferimos
+	// "isConnected" (verdadeiro só enquanto o nó está de fato na página) e
+	// recriamos o botão sempre que ele tiver sido desconectado.
 	function ensureButtons() {
 		if (!checkFrameEligible()) return;
-		if (!recipientsButton) {
+		if (!recipientsButton || !recipientsButton.isConnected) {
 			recipientsButton = document.createElement("button");
 			recipientsButton.type = "button";
 			recipientsButton.id = "pdp-recipients-button";
@@ -130,7 +139,7 @@
 			});
 			document.body.appendChild(recipientsButton);
 		}
-		if (!fromButton) {
+		if (!fromButton || !fromButton.isConnected) {
 			fromButton = document.createElement("button");
 			fromButton.type = "button";
 			fromButton.id = "pdp-from-button";
@@ -142,11 +151,12 @@
 			});
 			document.body.appendChild(fromButton);
 		}
-		if (!sendButton) {
+		if (!sendButton || !sendButton.isConnected) {
 			sendButton = document.createElement("button");
 			sendButton.type = "button";
 			sendButton.id = "pdp-email-button";
-			sendButton.textContent = "Enviar por e-mail";
+			sendButton.className = "pdp-email-visible";
+			sendButton.textContent = selected.size > 0 ? "Enviar por e-mail (" + selected.size + ")" : "Enviar por e-mail";
 			sendButton.addEventListener("click", onSendClick);
 			document.body.appendChild(sendButton);
 		}
