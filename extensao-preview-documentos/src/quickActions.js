@@ -394,7 +394,25 @@
 			return fetchDoc(eventUrl)
 				.then(function (detail) {
 					const movBtn = findMovimentarButtonIn(detail.doc);
-					logChainStep("movimentação " + (index + 1) + " buscada", { url: detail.url, movimentarBtn: describeElement(movBtn) });
+					const logInfo = { url: detail.url, movimentarBtn: describeElement(movBtn) };
+					if (!movBtn) {
+						// Diagnóstico: se o botão não veio, mostra o que a resposta
+						// realmente trouxe (título, scripts de redirecionamento tipo
+						// meta-refresh/JS, e um trecho do texto visível) — para
+						// diferenciar "não achei o botão nesta página" de "isto nem
+						// é a página de verdade, é uma intermediária que só
+						// funciona depois de um redirecionamento por JavaScript, que
+						// fetch()+DOMParser não executam".
+						logInfo.title = detail.doc.title;
+						logInfo.metaRefresh = !!detail.doc.querySelector('meta[http-equiv="refresh" i]');
+						logInfo.scriptsComLocationHref = Array.prototype.slice
+							.call(detail.doc.querySelectorAll("script"))
+							.filter(function (s) {
+								return /location\.href|location\.replace/.test(s.textContent || "");
+							}).length;
+						logInfo.bodySnippet = (detail.doc.body ? detail.doc.body.textContent || "" : "").replace(/\s+/g, " ").trim().slice(0, 300);
+					}
+					logChainStep("movimentação " + (index + 1) + " buscada", logInfo);
 					const movUrl = movBtn ? extractUrlFromOnclick(movBtn.getAttribute("onclick"), detail.url) : null;
 					if (!movUrl) return tryEvent(index + 1);
 					return fetchDoc(movUrl).then(function (acoes) {
