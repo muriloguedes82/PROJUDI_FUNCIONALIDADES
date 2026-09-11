@@ -145,6 +145,114 @@
 		return null;
 	}
 
+	// O painel "Ações" só existe na tela alcançada por: (1) clicar num
+	// evento válido (não tachado) da coluna "Evento" da aba Movimentações,
+	// o que abre a tela de detalhe daquela movimentação; e (2) nela, clicar
+	// em "Movimentar a Partir Desta Movimentação" — só então o Projudi
+	// carrega a URL movimentarProcesso.do, que tem o painel "Ações".
+	//
+	// O passo (1) é uma escolha processual do usuário (qual movimentação
+	// usar como base) e nunca é feito automaticamente por esta extensão. O
+	// passo (2), uma vez que o usuário já chegou na tela de detalhe da
+	// movimentação escolhida, é mecânico — clicar sempre no mesmo botão,
+	// sem ambiguidade — por isso esta extensão pode fazê-lo sozinha.
+	function findMovimentarButton() {
+		return document.querySelector(
+			'#movimentarButton, input[name="movimentarButton"], input[value="Movimentar a Partir Desta Movimentação"]'
+		);
+	}
+
+	// Marcador direto e estável de que estamos na tela com o painel
+	// "Ações" (o próprio título "Ações" da seção, ver TELA_DE_A__ES_HTML).
+	function isOnAcoesScreen() {
+		const headers = document.querySelectorAll("h3");
+		for (let i = 0; i < headers.length; i++) {
+			if ((headers[i].textContent || "").trim() === "Ações") return true;
+		}
+		return false;
+	}
+
+	// -------------------------------------------------------------------
+	// Intenção pendente — permite clicar num botão desta extensão ANTES de
+	// chegar à tela de Ações: guarda o que fazer, clica em "Movimentar a
+	// Partir Desta Movimentação" (navegação de página inteira, não AJAX) e,
+	// ao recarregar em movimentarProcesso.do, retoma e executa a intenção.
+	// -------------------------------------------------------------------
+
+	const PENDING_INTENT_KEY = "pdpQaPendingIntent";
+	const PENDING_INTENT_MAX_AGE_MS = 120000;
+
+	function storePendingIntent(intent) {
+		intent.ts = Date.now();
+		return chrome.storage.local.set({ [PENDING_INTENT_KEY]: intent });
+	}
+
+	function consumePendingIntent() {
+		return chrome.storage.local.get([PENDING_INTENT_KEY]).then(function (data) {
+			const intent = data[PENDING_INTENT_KEY];
+			if (!intent) return null;
+			return chrome.storage.local.remove([PENDING_INTENT_KEY]).then(function () {
+				return intent;
+			});
+		});
+	}
+
+	function hopToAcoesScreenThenRun(intent) {
+		const btn = findMovimentarButton();
+		if (!btn) {
+			alert('Não encontrei o botão "Movimentar a Partir Desta Movimentação" nesta tela.');
+			return;
+		}
+		storePendingIntent(intent).then(function () {
+			btn.click();
+		});
+	}
+
+	function waitForActionLink(label, callback) {
+		const start = Date.now();
+		const iv = setInterval(function () {
+			const link = findActionLink(label);
+			if (link) {
+				clearInterval(iv);
+				callback(link);
+			} else if (Date.now() - start > DIALOG_WAIT_TIMEOUT_MS) {
+				clearInterval(iv);
+				callback(null);
+			}
+		}, DIALOG_WAIT_INTERVAL_MS);
+	}
+
+	function tryConsumePendingIntent() {
+		consumePendingIntent().then(function (intent) {
+			if (!intent) return;
+			if (Date.now() - intent.ts > PENDING_INTENT_MAX_AGE_MS) return;
+			waitForActionLink(intent.label, function (link) {
+				if (!link) {
+					console.warn(
+						"[Projudi Ações Rápidas]",
+						'Não encontrei a ação "' + intent.label + '" depois de ir para a tela de Ações.'
+					);
+					return;
+				}
+				if (intent.capture) {
+					link.click();
+					setTimeout(function () {
+						showCaptureToolbar(intent.label);
+					}, 400);
+				} else if (intent.prefId) {
+					loadPreferencesFor(intent.label).then(function (prefs) {
+						const pref = prefs.filter(function (p) {
+							return p.id === intent.prefId;
+						})[0];
+						if (pref) applyPreference(intent.label, pref);
+					});
+				} else {
+					openActionDialog(intent.label);
+				}
+			});
+		});
+	}
+
 	// -------------------------------------------------------------------
 	// Preferências salvas (chrome.storage.local)
 	// -------------------------------------------------------------------
@@ -506,21 +614,41 @@
 		activePanel = document.createElement("div");
 		activePanel.className = "pdp-qa-panel";
 
-		const availableActions = group.actions.filter(function (label) {
-			return !!findActionLink(label);
-		});
+		let actionsToRender = [];
+		let mode; // 'ready' | 'hop' | 'unreachable'
 
-		if (!availableActions.length) {
+		if (isOnAcoesScreen()) {
+			mode = "ready";
+			actionsToRender = group.actions.filter(function (label) {
+				return !!findActionLink(label);
+			});
+			if (!actionsToRender.length) {
+				const empty = document.createElement("div");
+				empty.className = "pdp-qa-empty";
+				empty.textContent = 'Nenhuma ação de "' + group.title + '" está disponível neste processo agora.';
+				activePanel.appendChild(empty);
+				logAvailableLinkTexts(group);
+			}
+		} else if (findMovimentarButton()) {
+			mode = "hop";
+			actionsToRender = group.actions;
+			const note = document.createElement("div");
+			note.className = "pdp-qa-note";
+			note.textContent = 'Esta tela ainda não é a de "Ações" — ao clicar, a extensão vai para lá automaticamente.';
+			activePanel.appendChild(note);
+		} else {
+			mode = "unreachable";
 			const empty = document.createElement("div");
 			empty.className = "pdp-qa-empty";
-			empty.textContent = 'Nenhuma ação de "' + group.title + '" foi encontrada nesta tela.';
+			empty.textContent =
+				'Esta tela não tem o painel "Ações". Clique num evento válido (não tachado) na coluna ' +
+				'"Evento" da aba Movimentações e, na tela seguinte, em "Movimentar a Partir Desta Movimentação".';
 			activePanel.appendChild(empty);
-			logAvailableLinkTexts(group);
-		} else {
-			availableActions.forEach(function (label) {
-				activePanel.appendChild(buildActionRow(label));
-			});
 		}
+
+		actionsToRender.forEach(function (label) {
+			activePanel.appendChild(buildActionRow(label, mode));
+		});
 
 		document.body.appendChild(activePanel);
 		positionPanel(group.id);
@@ -530,15 +658,15 @@
 			document.addEventListener("keydown", onKeydown, true);
 		}, 0);
 
-		availableActions.forEach(function (label) {
+		actionsToRender.forEach(function (label) {
 			loadPreferencesFor(label).then(function (prefs) {
 				if (activeGroupId !== group.id) return; // painel já fechado/trocado
-				renderPreferences(label, prefs);
+				renderPreferences(label, prefs, mode);
 			});
 		});
 	}
 
-	function buildActionRow(label) {
+	function buildActionRow(label, mode) {
 		const actionRow = document.createElement("div");
 		actionRow.className = "pdp-qa-action";
 		actionRow.dataset.actionLabel = label;
@@ -554,11 +682,15 @@
 		const openBtn = document.createElement("button");
 		openBtn.type = "button";
 		openBtn.className = "pdp-qa-open-btn";
-		openBtn.textContent = "Abrir";
+		openBtn.textContent = mode === "hop" ? "Ir e abrir" : "Abrir";
 		openBtn.title = "Abrir o diálogo normal do Projudi para esta ação";
 		openBtn.addEventListener("click", function () {
 			closePanel();
-			openActionDialog(label);
+			if (mode === "hop") {
+				hopToAcoesScreenThenRun({ label: label });
+			} else {
+				openActionDialog(label);
+			}
 		});
 		header.appendChild(openBtn);
 
@@ -575,14 +707,19 @@
 		newPrefBtn.textContent = "+ Nova preferência";
 		newPrefBtn.title = "Abre o diálogo para você preencher e salvar o preenchimento como preferência";
 		newPrefBtn.addEventListener("click", function () {
-			startNewPreferenceCapture(label);
+			closePanel();
+			if (mode === "hop") {
+				hopToAcoesScreenThenRun({ label: label, capture: true });
+			} else {
+				startNewPreferenceCapture(label);
+			}
 		});
 		actionRow.appendChild(newPrefBtn);
 
 		return actionRow;
 	}
 
-	function renderPreferences(label, prefs) {
+	function renderPreferences(label, prefs, mode) {
 		if (!activePanel) return;
 		const wrap = activePanel.querySelector('.pdp-qa-prefs[data-action-label="' + cssEscapeAttr(label) + '"]');
 		if (!wrap) return;
@@ -597,7 +734,12 @@
 			applyBtn.textContent = "★ " + pref.name;
 			applyBtn.title = 'Preenche automaticamente e pede 1 confirmação para executar "' + label + '"';
 			applyBtn.addEventListener("click", function () {
-				applyPreference(label, pref);
+				if (mode === "hop") {
+					closePanel();
+					hopToAcoesScreenThenRun({ label: label, prefId: pref.id });
+				} else {
+					applyPreference(label, pref);
+				}
 			});
 			chip.appendChild(applyBtn);
 
@@ -611,7 +753,7 @@
 				removePreference(label, pref.id).then(function () {
 					return loadPreferencesFor(label);
 				}).then(function (updated) {
-					renderPreferences(label, updated);
+					renderPreferences(label, updated, mode);
 				});
 			});
 			chip.appendChild(delBtn);
@@ -707,6 +849,15 @@
 
 	setInterval(reconcile, 700);
 	reconcile();
+
+	// Só consome a intenção pendente no frame de nível mais alto — evita
+	// duas cópias deste script (ex.: um iframe oculto de pré-visualização
+	// de documento criado por src/content.js) disputarem a mesma intenção
+	// guardada no chrome.storage.local, que é compartilhado pela extensão
+	// inteira, não por frame.
+	if (window.top === window.self) {
+		tryConsumePendingIntent();
+	}
 
 	const observer = new MutationObserver(function () {
 		try {

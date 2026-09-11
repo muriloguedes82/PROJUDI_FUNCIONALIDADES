@@ -153,6 +153,16 @@
 	padding: 6px 4px;
 }
 
+.pdp-qa-note {
+	font-size: 11px;
+	color: #7a5c00;
+	background: #fff8e6;
+	border: 1px solid #e8cf8a;
+	border-radius: 3px;
+	padding: 6px 8px;
+	margin-bottom: 8px;
+}
+
 /* Barras flutuantes de captura ("+ Nova preferência") e confirmação
    (aplicar preferência salva) — soltas em document.body, centralizadas no
    topo da tela, para ficarem visíveis mesmo com o diálogo do Projudi

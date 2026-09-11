@@ -247,10 +247,31 @@ presentes):
   Transitar em Julgado, Declínio de competência para a Segunda Instância,
   Arquivar Processo, Apensar, Desapensar
 
-Cada botão abre um painel com as ações daquele grupo. Só aparecem as ações
-que existirem na tela atual (ex.: se o processo já estiver apensado, só
-"Desapensar" aparece, não "Apensar"); se nenhuma ação do grupo for
-encontrada, uma mensagem avisa para usar o painel "Ações" original.
+Cada botão abre um painel com as ações daquele grupo — o conteúdo do
+painel depende de qual tela do processo você está vendo, já que o painel
+"Ações" do Projudi só existe numa tela específica:
+
+- **Na tela com o painel "Ações"** (chegando lá manualmente, ou pelo modo
+  "Ir e abrir" abaixo): o painel mostra só as ações que existirem no
+  processo agora (ex.: se já estiver apensado, só "Desapensar" aparece,
+  não "Apensar"); se nenhuma ação do grupo existir para este processo, uma
+  mensagem avisa.
+- **Numa tela intermediária do processo, com o botão "Movimentar a Partir
+  Desta Movimentação"** (a tela que abre ao clicar num evento da aba
+  Movimentações): o painel mostra todas as ações do grupo, cada uma com um
+  botão **"Ir e abrir"** — ele clica sozinho em "Movimentar a Partir Desta
+  Movimentação" (navegação de página inteira do próprio Projudi) e, ao
+  chegar na tela de Ações, abre a ação escolhida automaticamente. Esse
+  passo é sempre mecânico (é literalmente o mesmo botão que você clicaria
+  na sequência normal), então a extensão pode fazê-lo sozinha com
+  segurança.
+- **Em qualquer outra tela** (ex.: a lista de Movimentações do processo):
+  o painel só mostra um aviso explicando os dois passos manuais para
+  chegar à tela de Ações — clicar num evento válido (não tachado) da
+  coluna "Evento" e, na tela seguinte, em "Movimentar a Partir Desta
+  Movimentação". **A extensão nunca escolhe esse evento por conta
+  própria** — qual movimentação usar como base para uma nova ação é uma
+  decisão processual sua, não uma formalidade mecânica.
 
 Para cada ação, o painel oferece:
 
@@ -287,6 +308,12 @@ diálogo como **preferência** e reaplicá-lo depois com poucos cliques:
    botão de confirmar/enviar do próprio Projudi — **esse é o passo que
    efetivamente realiza a ação processual**, então confira os campos
    preenchidos antes de confirmar.
+
+As preferências (e o "+ Nova preferência") também funcionam a partir da
+tela intermediária ("Movimentar a Partir Desta Movimentação"): nesse caso
+elas primeiro dão o passo "Ir" (clicam nesse botão) e só então aplicam o
+preenchimento/mostram a confirmação, na tela de Ações que acabou de
+carregar.
 
 **Como funciona por baixo dos panos e suas limitações:** como o Projudi
 abre cada ação como uma janela "interna" da própria página (não uma aba
