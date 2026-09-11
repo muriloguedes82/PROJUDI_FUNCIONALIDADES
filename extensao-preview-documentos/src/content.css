@@ -139,21 +139,24 @@ a.link[href*="/arquivo.do"]:hover,
 	cursor: pointer;
 }
 
-#pdp-wa-anchor {
-	display: block;
-	min-height: 1px;
-	text-align: right;
-	margin: 0 0 6px;
-}
-
 /* Cores próximas às dos botões nativos do sistema (ex.: "Pedido
    Incidental", "Juntar Documento"), em vez do verde do WhatsApp, para
-   combinar visualmente com a barra de botões em que o launcher fica. */
+   combinar visualmente com o resto da tela.
+
+   Posição sempre fixa (não é filho/irmão de nenhum elemento nativo da
+   página) — proposital, ver comentário em initWhatsappLauncher() no
+   content.js: evita o botão "sumir" quando a tela troca de aba, e evita
+   inserir qualquer coisa dentro da estrutura de outra extensão (ex.:
+   AzFlow). `top`/`right` abaixo são o padrão; content.js ajusta via
+   estilo inline quando detecta botões de outra funcionalidade (ex.:
+   envio por e-mail) no canto da tela, para não sobrepor um no outro. */
 .pdp-wa-launcher {
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
-	position: relative;
+	position: fixed;
+	top: 100px;
+	right: 14px;
 	font-family: Arial, Helvetica, sans-serif;
 	font-size: 12px;
 	font-weight: normal;
@@ -171,13 +174,6 @@ a.link[href*="/arquivo.do"]:hover,
 .pdp-wa-launcher:hover {
 	background: linear-gradient(to bottom, #f2f2f2, #dedede);
 	border-color: #8c8c8c;
-}
-
-.pdp-wa-launcher.pdp-wa-floating {
-	position: fixed;
-	top: 50%;
-	right: 14px;
-	transform: translateY(-50%);
 }
 
 .pdp-wa-icon {

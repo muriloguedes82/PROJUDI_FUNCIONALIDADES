@@ -271,19 +271,59 @@ de funcionar (a pré-visualização desta extensão voltar a aparecer no SEEU
 mesmo com o AzFlow ativo), ajuste `AZFLOW_MARKER_SELECTOR` em
 `src/content.js`.
 
+Além dessa checagem específica (pré-visualização, só no SEEU), esta
+extensão segue duas regras gerais, em qualquer sistema, para nunca alterar
+a estrutura de outra extensão:
+
+1. **Nunca insere nada dentro da árvore de elementos que outra extensão
+   criou**, nem da barra de botões nativa da página — o botão "Enviar por
+   WhatsApp" é sempre um elemento solto, anexado direto ao
+   `document.body`, nunca filho/irmão de um elemento nativo ou de outra
+   extensão.
+2. **Nunca chama `stopPropagation()`/`stopImmediatePropagation()`** nos
+   eventos do navegador (mouseover, mouseout, etc.) — outras extensões
+   podem depender desses mesmos eventos para o próprio funcionamento, e
+   "consumi-los" já quebrou o AzFlow numa tentativa anterior (ver acima).
+
+## Posição do botão "Enviar por WhatsApp"
+
+O botão fica sempre com posição fixa na tela (não rola junto com a
+página), independente da aba do processo em que você está. Se houver
+botões de outra funcionalidade desta extensão fixados no canto da tela
+(ex.: um recurso de envio por e-mail, reconhecido pelos ids/classes
+`#pdp-email-button`, `#pdp-recipients-button` ou `.pdp-email-visible`),
+o botão do WhatsApp se posiciona automaticamente **à esquerda deles**, na
+mesma altura, para não sobrepor um por cima do outro — sem precisar de
+nenhuma configuração manual. Sem esses botões na página, ele fica na
+posição padrão (canto superior direito).
+
 ## Troca de abas do processo (Movimentações, Partes, etc.)
 
 Ao trocar de aba dentro da tela do processo e voltar, o Projudi/SEEU pode
 substituir um contêiner inteiro da página por conteúdo novo (em vez de só
-mostrar/esconder o que já existia) — o que faria o botão "Enviar por
+mostrar/esconder o que já existia) — o que fazia o botão "Enviar por
 WhatsApp", a pré-visualização e as caixinhas de seleção "sumirem", já que
-os elementos que esta extensão tinha criado ficam fora da árvore visível
-do documento. Para lidar com isso, a extensão reconcilia periodicamente
-(a cada ~1,5s) o botão e as caixinhas de seleção — recriando o que for
-necessário — e monitora `document.documentElement` em vez de
-`document.body` (o `<body>` é o que costuma ser trocado; o `<html>`,
-praticamente nunca). A seleção de arquivos em andamento (`selectedDocs`)
-não depende do DOM antigo, então sobrevive normalmente a essas trocas.
+os elementos que esta extensão tinha criado ficavam fora da árvore visível
+do documento (ou eram removidos junto com o trecho da página em que
+tinham sido inseridos).
+
+A solução foi parar de inserir o botão como filho/irmão de qualquer
+elemento nativo da página: o botão "Enviar por WhatsApp" é sempre um
+elemento solto, anexado direto ao `document.body`, com posição fixa na
+tela (`position: fixed`) — não depende de nenhum elemento nativo
+continuar existindo no mesmo lugar. Isso também é proposital pelo motivo
+2 abaixo (convivência com outras extensões). Além disso:
+
+- a extensão reconcilia periodicamente (a cada ~700ms) o botão e as
+  caixinhas de seleção dos documentos — recriando o que for necessário —
+  e monitora `document.documentElement` em vez de `document.body` (o
+  `<body>` é o que costuma ser trocado; o `<html>`, praticamente nunca);
+- a seleção de arquivos em andamento (`selectedDocs`) não depende do DOM
+  antigo, então sobrevive normalmente a essas trocas — as caixinhas
+  recriadas já nascem marcadas para os documentos que ainda estavam
+  selecionados;
+- o painel de pré-visualização se recria sozinho se detectar que ficou
+  "órfão" (fora da árvore do documento).
 
 ## Limitações conhecidas
 

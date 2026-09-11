@@ -933,25 +933,34 @@
 	// A barra de botões da tela do processo tem `class="buttonBar"` no
 	// Projudi, mas não no SEEU (mesmo layout de botões, sem essa classe —
 	// provavelmente reskinado por uma extensão de terceiros). Em ambos,
-	// porém, o botão "Voltar" existe com o mesmo `id="backButton"`, então
-	// usamos ele como ponto de referência alternativo.
-	function findButtonBarAnchor() {
-		const classic = document.querySelector("table.buttonBar");
-		if (classic) return classic;
-
-		const backButton = document.getElementById("backButton");
-		if (backButton) return backButton.closest("table") || backButton.closest("tr") || backButton;
-
-		return null;
+	// porém, o botão "Voltar" existe com o mesmo `id="backButton"`. Usamos
+	// isso só como SINAL de que estamos numa tela de processo (para não
+	// mostrar o botão em telas irrelevantes, ex.: login) — não como ponto
+	// de inserção. O launcher nunca é inserido como filho/irmão de um
+	// elemento nativo da página: ele é sempre anexado direto ao
+	// `document.body`, com posição fixa (position: fixed) na tela. Isso é
+	// proposital, por dois motivos:
+	//
+	// 1. Robustez ao trocar de aba do processo (Movimentações → Partes →
+	//    Movimentações de novo): quando isso acontecia, o Projudi/SEEU
+	//    recriava o trecho da página onde o botão tinha sido inserido como
+	//    filho, e o botão "sumia" — mesmo com toda a reconciliação
+	//    periódica, porque o ponto de inserção em si deixava de existir.
+	//    Um botão fixo, solto no body, não depende de nenhum elemento
+	//    nativo continuar existindo.
+	// 2. Não interferir na estrutura de outras extensões (ex.: AzFlow):
+	//    nunca inserimos nada dentro da árvore de elementos que outra
+	//    extensão criou ou da barra de botões nativa — só adicionamos um
+	//    elemento novo, solto, ao body. Isso evita repetir o problema já
+	//    visto no SEEU, em que interferir na estrutura/eventos de outra
+	//    extensão quebrou o funcionamento dela.
+	function isOnProcessScreen() {
+		return !!(document.querySelector("table.buttonBar") || document.getElementById("backButton"));
 	}
 
 	function initWhatsappLauncher() {
-		const buttonBar = findButtonBarAnchor();
-		if (!buttonBar || document.getElementById("pdp-wa-launcher")) return;
-
-		const anchor = document.createElement("div");
-		anchor.id = "pdp-wa-anchor";
-		buttonBar.parentNode.insertBefore(anchor, buttonBar);
+		if (document.getElementById("pdp-wa-launcher")) return;
+		if (!isOnProcessScreen()) return;
 
 		const launcher = document.createElement("button");
 		launcher.type = "button";
@@ -961,19 +970,43 @@
 			'<span class="pdp-wa-icon">\u{1F4F1}</span>' +
 			'<span class="pdp-wa-label">Enviar por WhatsApp</span>' +
 			'<span class="pdp-wa-count" hidden>0</span>';
-		anchor.appendChild(launcher);
+		document.body.appendChild(launcher);
 
 		launcher.addEventListener("click", openWaPanel);
+	}
 
-		const observer = new IntersectionObserver(
-			function (entries) {
-				entries.forEach(function (entry) {
-					launcher.classList.toggle("pdp-wa-floating", !entry.isIntersecting);
-				});
-			},
-			{ threshold: 0 }
-		);
-		observer.observe(anchor);
+	// Se houver botões de outra funcionalidade (ex.: envio por e-mail, com
+	// os mesmos ids/classes vistos numa versão anterior desse recurso:
+	// "pdp-email-button"/"pdp-recipients-button"/".pdp-email-visible")
+	// fixados no canto da tela, posiciona o nosso launcher logo à esquerda
+	// deles, alinhado na mesma altura, em vez de correr o risco de
+	// sobrepor um por cima do outro. Sem esses botões na página, usa a
+	// posição padrão definida em content.css.
+	const EMAIL_BUTTON_SELECTOR = "#pdp-email-button, #pdp-recipients-button, .pdp-email-visible";
+
+	function repositionLauncherNextToEmailButtons() {
+		const launcher = document.getElementById("pdp-wa-launcher");
+		if (!launcher) return;
+
+		const emailButtons = Array.prototype.slice.call(document.querySelectorAll(EMAIL_BUTTON_SELECTOR));
+		if (!emailButtons.length) {
+			launcher.style.top = "";
+			launcher.style.right = "";
+			return;
+		}
+
+		let leftmostRight = null; // distância do lado direito da viewport até a borda esquerda do botão de e-mail mais à esquerda
+		let topmostTop = null;
+		emailButtons.forEach(function (btn) {
+			const rect = btn.getBoundingClientRect();
+			const rightGap = window.innerWidth - rect.left;
+			if (leftmostRight === null || rightGap > leftmostRight) leftmostRight = rightGap;
+			if (topmostTop === null || rect.top < topmostTop) topmostTop = rect.top;
+		});
+
+		if (leftmostRight === null || topmostTop === null) return;
+		launcher.style.top = Math.max(8, topmostTop) + "px";
+		launcher.style.right = leftmostRight + 8 + "px";
 	}
 
 	// Algumas telas (Projudi e SEEU) trocam de "aba" do processo (ex.:
@@ -1006,6 +1039,7 @@
 			updateWaLauncherCount();
 		}
 		scanDocLinksForWhatsapp(document);
+		repositionLauncherNextToEmailButtons();
 	}
 
 	function initWhatsappFeature() {
@@ -1023,8 +1057,10 @@
 		observer.observe(document.documentElement, { childList: true, subtree: true });
 
 		// Rede de segurança: reconcilia periodicamente, independente do
-		// observer ter pego a mudança ou não.
-		setInterval(reconcileWhatsappUi, 1500);
+		// observer ter pego a mudança ou não. Intervalo curto (700ms) para o
+		// botão voltar a aparecer quase na hora ao trocar de aba, sem ficar
+		// pesado (a checagem em si é barata: algumas consultas de seletor).
+		setInterval(reconcileWhatsappUi, 700);
 	}
 
 	initWhatsappFeature();
