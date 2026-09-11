@@ -152,12 +152,15 @@
 		return (clone.textContent || "").replace(/\s+/g, " ").trim();
 	}
 
-	function findActionLink(label) {
-		const links = document.querySelectorAll("a.link");
+	function findActionLinkIn(root, label) {
+		const links = root.querySelectorAll("a.link");
 		for (let i = 0; i < links.length; i++) {
 			if (normalizeLinkText(links[i]) === label) return links[i];
 		}
 		return null;
+	}
+	function findActionLink(label) {
+		return findActionLinkIn(document, label);
 	}
 
 	// O painel "Ações" só existe na tela alcançada por: (1) clicar num
