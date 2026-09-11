@@ -45,6 +45,13 @@
 		return;
 	}
 
+	// Evita rodar duas vezes no mesmo frame (ex.: reinjeção manual, ou
+	// bordas de casos em que o manifest injeta o script mais de uma vez) —
+	// duas instâncias concorrentes tentando criar/reconciliar os mesmos
+	// elementos causariam duplicação e comportamento inconsistente.
+	if (window.__pdpWaInjected) return;
+	window.__pdpWaInjected = true;
+
 	console.log("[Projudi Preview] content script carregado em", window.location.href);
 
 	const OPEN_DELAY_MS = 350;
@@ -954,8 +961,47 @@
 	//    elemento novo, solto, ao body. Isso evita repetir o problema já
 	//    visto no SEEU, em que interferir na estrutura/eventos de outra
 	//    extensão quebrou o funcionamento dela.
+	// Rótulos da barra de ações do processo (Projudi/SEEU). Procurar pelo
+	// TEXTO do botão, em vez de por classe/id (`table.buttonBar`,
+	// `#backButton`), é mais resistente a diferenças de estrutura entre
+	// Projudi e SEEU e a re-renderizações que mudem atributos internos —
+	// mesma técnica usada com sucesso no recurso irmão de envio por e-mail
+	// para este problema exato de "sumir" ao trocar de aba.
+	const PROCESS_TOOLBAR_LABELS = [
+		"Peticionar",
+		"Juntar Documento",
+		"Patronato",
+		"Exportar Processo",
+		"Pedido Incidental",
+		"Navegar",
+		"Voltar",
+	];
+
+	function findProcessToolbarElement() {
+		const candidates = document.querySelectorAll('button, a, input[type="button"], input[type="submit"]');
+		for (let i = 0; i < candidates.length; i++) {
+			const el = candidates[i];
+			const text = (el.textContent || el.value || "").trim();
+			if (PROCESS_TOOLBAR_LABELS.indexOf(text) !== -1) return el;
+		}
+		return null;
+	}
+
+	// Uma vez que este frame provou ter uma tela de processo (achou a
+	// barra de ações ou algum link de documento), continuamos considerando
+	// elegível daqui pra frente, mesmo que uma checagem pontual não ache
+	// nada no meio de uma transição de aba (ex.: um instante em que a AJAX
+	// ainda não terminou de repor o conteúdo). Reavaliar do zero a cada vez
+	// arriscava um falso negativo bem na hora de trocar de aba — exatamente
+	// quando mais precisamos que o botão reapareça.
+	let processScreenEligible = false;
+
 	function isOnProcessScreen() {
-		return !!(document.querySelector("table.buttonBar") || document.getElementById("backButton"));
+		if (processScreenEligible) return true;
+		if (findProcessToolbarElement() || document.querySelector('a.link[href*="' + DOC_LINK_HREF_MARKER + '"]')) {
+			processScreenEligible = true;
+		}
+		return processScreenEligible;
 	}
 
 	function initWhatsappLauncher() {
@@ -1090,14 +1136,26 @@
 					m.addedNodes.forEach(function (node) {
 						if (node.nodeType !== 1) return;
 						scanDocLinksForWhatsapp(node);
-						if (!isElementUsable(document.getElementById("pdp-wa-launcher"))) initWhatsappLauncher();
 					});
 				});
+				// Reconcilia depois de QUALQUER mutação no documento, não só
+				// quando encontramos nós novos no laço acima — mesma
+				// abordagem usada com sucesso no recurso irmão de envio por
+				// e-mail para este problema. Uma troca de aba pode remover
+				// nós (sem necessariamente adicionar nós novos na mesma
+				// leva de mutações) e ainda assim precisar recriar o botão.
+				reconcileWhatsappUi();
 			} catch (err) {
 				console.error(WA_UI_LOG_PREFIX, "erro no MutationObserver:", err);
 			}
 		});
 		observer.observe(document.documentElement, { childList: true, subtree: true });
+
+		// Gatilhos extras de reconciliação — baratos e redundantes de
+		// propósito, para não depender de um único mecanismo detectar a
+		// troca de aba a tempo.
+		window.addEventListener("resize", reconcileWhatsappUi);
+		window.addEventListener("scroll", reconcileWhatsappUi, true);
 	}
 
 	initWhatsappFeature();

@@ -325,6 +325,25 @@ continuar existindo no mesmo lugar. Isso também é proposital pelo motivo
 - o painel de pré-visualização se recria sozinho se detectar que ficou
   "órfão" (fora da árvore do documento).
 
+Duas causas adicionais do mesmo sintoma, encontradas depois (a última é a
+mais importante — quem realmente resolvia o problema em outro recurso
+irmão desta mesma extensão, o envio por e-mail):
+
+- o `manifest.json` injetava o content script só em páginas cuja URL
+  batesse com padrões restritos (ex.: `processo.do*`, `*processo*`) — mas
+  algumas abas do processo (Apensamentos, Vínculos, HCs TJ, etc.) navegam
+  para URLs que não batem com esses padrões, então o script **nunca
+  chegava a rodar** nelas. Agora os padrões cobrem toda a aplicação
+  (`/projudi/*` e `/seeu/*`);
+- a checagem de "isso é uma tela de processo?" usava classe/id
+  (`table.buttonBar`, `#backButton`), que pode variar entre Projudi e SEEU
+  ou não existir num instante específico de uma transição de aba. Agora
+  ela procura pelo **texto** dos botões da barra de ações (ex.:
+  "Peticionar", "Juntar Documento", "Voltar"), mais estável entre os dois
+  sistemas — e, uma vez que a tela provou ser de um processo, essa
+  elegibilidade fica guardada (não é reavaliada do zero a cada vez, o que
+  evitava um falso negativo bem no meio de uma troca de aba).
+
 ## Limitações conhecidas
 
 - Funciona apenas para documentos que o navegador consiga exibir dentro de

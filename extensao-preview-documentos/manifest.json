@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Projudi/SEEU - Pré-visualização de Documentos",
-  "version": "1.12.1",
+  "version": "1.13.0",
   "description": "Ao passar o mouse sobre um documento na tela de Movimentações (Projudi ou SEEU), ou sobre uma pendência de análise de juntada/conclusão do Projudi, exibe a íntegra do(s) arquivo(s) em janela(s) sobreposta(s), sem precisar abri-los em outra aba. Também permite selecionar arquivos do processo e enviá-los por WhatsApp Web.",
   "permissions": [
     "storage",
@@ -21,8 +21,7 @@
   "content_scripts": [
     {
       "matches": [
-        "*://*.tjpr.jus.br/projudi/processo.do*",
-        "*://*.tjpr.jus.br/projudi/*processo*",
+        "*://*.tjpr.jus.br/projudi/*",
         "*://seeu.pje.jus.br/seeu/*"
       ],
       "js": ["src/content.js"],
