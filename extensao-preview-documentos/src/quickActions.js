@@ -279,6 +279,7 @@
 	// navegação de página inteira).
 	function startOrAdvanceIntent(intent) {
 		logIntentStep("iniciando cadeia", intent);
+		showLoadingOverlay(intent.label);
 		storePendingIntent(intent).then(runIntentStateMachine);
 	}
 
@@ -338,11 +339,55 @@
 		};
 	}
 
+	// -------------------------------------------------------------------
+	// Overlay de carregamento — cobre a tela durante as navegações
+	// intermediárias da cadeia automática (lista de Movimentações → tela
+	// de detalhe → tela de Ações), para não expor essas telas "piscando"
+	// sem contexto. As navegações continuam acontecendo de verdade (a URL
+	// muda, a página recarrega) — o overlay só evita que o usuário veja o
+	// conteúdo cru de cada tela intermediária enquanto isso acontece. Como
+	// cada navegação recarrega a página do zero, um pequeno "flash" antes
+	// do overlay reaparecer (no tempo entre a página carregar e o content
+	// script rodar) é esperado e não dá para eliminar totalmente sem
+	// rodar a cadeia num iframe oculto — ver conversa sobre os dois
+	// caminhos possíveis.
+	// -------------------------------------------------------------------
+
+	const LOADING_OVERLAY_ID = "pdp-qa-loading-overlay";
+
+	function showLoadingOverlay(label) {
+		removeLoadingOverlay();
+		const overlay = document.createElement("div");
+		overlay.id = LOADING_OVERLAY_ID;
+		overlay.className = "pdp-qa-loading-overlay";
+		overlay.innerHTML =
+			'<div class="pdp-qa-loading-box">' +
+			'<div class="pdp-qa-loading-spinner"></div>' +
+			'<div class="pdp-qa-loading-text">Abrindo "' +
+			escapeHtml(label) +
+			'"…</div>' +
+			'<button type="button" class="pdp-qa-loading-cancel">Cancelar</button>' +
+			"</div>";
+		document.body.appendChild(overlay);
+		overlay.querySelector(".pdp-qa-loading-cancel").addEventListener("click", function () {
+			logIntentStep("cancelado pelo usuário no overlay de carregamento");
+			clearPendingIntent();
+			removeLoadingOverlay();
+		});
+	}
+
+	function removeLoadingOverlay() {
+		const el = document.getElementById(LOADING_OVERLAY_ID);
+		if (el) el.remove();
+	}
+
 	function runIntentStateMachine() {
 		peekPendingIntent().then(function (intent) {
 			if (!intent) return;
 			logIntentStep("intent encontrada", intent);
+			showLoadingOverlay(intent.label);
 			if (Date.now() - intent.ts > PENDING_INTENT_MAX_AGE_MS) {
+				removeLoadingOverlay();
 				logIntentStep("intent expirada, descartando");
 				clearPendingIntent();
 				return;
@@ -352,6 +397,7 @@
 				logIntentStep("tela de Ações detectada (h3)");
 				waitForActionLink(intent.label, function (link) {
 					if (!link) {
+						removeLoadingOverlay();
 						clearPendingIntent();
 						const screenTitle = getScreenTitle();
 						console.warn(
@@ -370,6 +416,7 @@
 						return;
 					}
 					clearPendingIntent();
+					removeLoadingOverlay();
 					if (intent.capture) {
 						link.click();
 						setTimeout(function () {
@@ -451,6 +498,7 @@
 				return;
 			}
 
+			removeLoadingOverlay();
 			clearPendingIntent();
 			alert(
 				tried.length

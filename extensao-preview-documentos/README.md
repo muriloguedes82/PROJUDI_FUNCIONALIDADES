@@ -282,6 +282,15 @@ painel depende de qual tela do processo você está vendo, já que o painel
   "Abrir"/"Ir e abrir") ou repreenche uma preferência salva e pede a
   confirmação única de sempre antes de clicar em confirmar/enviar (ver
   "Preferências" abaixo) — nunca confirma sozinha.
+
+  Enquanto a cadeia navega pelas telas intermediárias, um overlay
+  ("Abrindo 'Enviar Concluso'…", com um botão "Cancelar") cobre a tela —
+  assim você não vê a lista de Movimentações nem a tela de detalhe da
+  movimentação "piscando" sem contexto entre um clique e o diálogo final.
+  As navegações continuam acontecendo de verdade por baixo do overlay (a
+  URL muda, a página recarrega) — só o conteúdo cru de cada tela
+  intermediária fica coberto; pode haver um pequeno "flash" bem breve
+  entre uma página carregar e o overlay reaparecer nela.
 - **Se não houver lista de Movimentações na tela atual** (ex.: você está
   numa aba diferente do processo, como Partes e Outros): o painel avisa
   para abrir a aba "Movimentações" primeiro.
