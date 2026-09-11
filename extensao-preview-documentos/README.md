@@ -231,10 +231,10 @@ links — Intimar Partes, Ordenar Cumprimentos, Realizar Remessa, Enviar
 Concluso, Apensar, etc. — que obriga a rolar a página até achar a ação
 desejada.
 
-A extensão adiciona um botão flutuante **"⚡ Ações rápidas"**, no mesmo
-canto da tela dos botões de WhatsApp/e-mail (posicionando-se ao lado deles
-quando presentes), que abre um painel com essas mesmas ações já
-agrupadas:
+A extensão adiciona **um botão flutuante por grupo de ações** — Concluso,
+Remessa, Ordenações, Partes, Outras — lado a lado, no mesmo canto da tela
+dos botões de WhatsApp/e-mail (posicionando-se ao lado deles quando
+presentes):
 
 - **Concluso**: Enviar Concluso
 - **Remessa**: Realizar Remessa, Remessa Eletrônica para o Tribunal de
@@ -243,24 +243,70 @@ agrupadas:
   BNMP
 - **Partes**: Intimar Partes, Notificar Partes, Citar Partes, Intimar
   Peritos e Auxiliares da Justiça
-- **Outras ações**: Interromper Prazo, Suspender ou Sobrestar Processo,
+- **Outras**: Interromper Prazo, Suspender ou Sobrestar Processo,
   Transitar em Julgado, Declínio de competência para a Segunda Instância,
   Arquivar Processo, Apensar, Desapensar
 
-Cada item do painel **não executa nada sozinho**: ele só localiza o link
-nativo correspondente já presente na página (mesmo texto, mesmo elemento
-`<a class="link">`, com o `onclick` que o próprio Projudi já definiu) e
-simula um clique nele — o mesmo diálogo (`openDialog`/
-`openDialogMaximized`) ou confirmação que apareceria clicando diretamente
-no painel "Ações" aparece normalmente, e o preenchimento/confirmação
-continua manual. Isso evita a extensão precisar reconstruir as URLs de
-cada ação (cujo token de sessão, `_tj=...`, expira e é específico de cada
-usuário) — ela sempre clica no elemento que já está na página.
+Cada botão abre um painel com as ações daquele grupo. Só aparecem as ações
+que existirem na tela atual (ex.: se o processo já estiver apensado, só
+"Desapensar" aparece, não "Apensar"); se nenhuma ação do grupo for
+encontrada, uma mensagem avisa para usar o painel "Ações" original.
 
-Só aparecem no painel as ações que existirem na tela atual (ex.: se o
-processo já estiver apensado, só "Desapensar" aparece, não "Apensar"); se
-nenhuma ação do painel "Ações" for encontrada, uma mensagem avisa para
-usar o painel original.
+Para cada ação, o painel oferece:
+
+- **"Abrir"**: localiza o link nativo correspondente já presente na
+  página (mesmo texto, mesmo elemento `<a class="link">`, com o `onclick`
+  que o próprio Projudi já definiu) e simula um clique nele — o mesmo
+  diálogo (`openDialog`/`openDialogMaximized`) ou confirmação que
+  apareceria clicando diretamente no painel "Ações" aparece normalmente, e
+  o preenchimento/confirmação continua manual. Isso evita a extensão
+  precisar reconstruir as URLs de cada ação (cujo token de sessão,
+  `_tj=...`, expira e é específico de cada usuário) — ela sempre clica no
+  elemento que já está na página.
+- **Preferências salvas** (★): veja a seção seguinte.
+
+### Preferências (preencher e confirmar com um clique)
+
+Além de abrir o diálogo em branco, é possível salvar o preenchimento de um
+diálogo como **preferência** e reaplicá-lo depois com poucos cliques:
+
+1. Clique em **"+ Nova preferência"** na ação desejada — isso abre o
+   diálogo normal do Projudi (igual ao botão "Abrir").
+2. Preencha o diálogo como faria manualmente (destinatário, tipo de
+   ordem, texto, etc.).
+3. Com o diálogo ainda aberto, clique em **"💾 Salvar como preferência"**
+   (uma barra aparece no topo da tela) e dê um nome a ela — ex.: "Intimar
+   assistente social padrão". Nada é enviado ao Projudi nesse passo: você
+   ainda decide se confirma o formulário manualmente, como sempre.
+4. Da próxima vez, clique na preferência salva (aparece como um chip
+   **"★ nome-da-preferência"** abaixo da ação, com um 🗑 para remover) — a
+   extensão abre o mesmo diálogo, repreenche os mesmos campos
+   automaticamente e mostra uma barra de confirmação única, do tipo
+   `Confirmar "Enviar Concluso" com a preferência "..."? [✅ Sim, executar]
+   [Cancelar]`. Só ao clicar em **"✅ Sim, executar"** a extensão clica no
+   botão de confirmar/enviar do próprio Projudi — **esse é o passo que
+   efetivamente realiza a ação processual**, então confira os campos
+   preenchidos antes de confirmar.
+
+**Como funciona por baixo dos panos e suas limitações:** como o Projudi
+abre cada ação como uma janela "interna" da própria página (não uma aba
+nova) e a extensão não tem acesso ao código-fonte desses diálogos, a
+localização do formulário é **heurística**: ao salvar, ela usa o último
+`<form>` visível da página com campos preenchíveis; ao aplicar uma
+preferência, ela procura o `<form>` visível mais recente que contenha
+algum campo com o mesmo nome do que foi salvo, e para confirmar procura um
+botão cujo texto seja algo como "Confirmar", "Enviar", "Salvar", "OK" etc.
+Campos ocultos (tokens de sessão, `_tj=...`) nunca são capturados nem
+reescritos. Isso deve funcionar bem na maioria dos diálogos, mas **não foi
+validado ao vivo no Projudi** (só a partir dos HTMLs estáticos das telas)
+— sempre confira visualmente os campos preenchidos antes de clicar em
+"Sim, executar", e se algo não funcionar como esperado, use "Abrir" e
+preencha manualmente dessa vez.
+
+As preferências ficam em `chrome.storage.local` (armazenamento local da
+própria extensão, não enviado a nenhum servidor), organizadas por ação —
+ex.: as preferências de "Ordenar Cumprimentos" não aparecem em "Ordenar
+RPV".
 
 ## Como funciona
 
