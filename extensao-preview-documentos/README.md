@@ -264,14 +264,17 @@ painel depende de qual tela do processo você está vendo, já que o painel
   1. Se ainda não estiver na tela de detalhe de uma movimentação, clica no
      **evento mais recente e válido** (não tachado) da coluna "Evento" —
      identificado pelo próprio Projudi de forma estável (`id="LNKmov..."`
-     nos válidos, tachados/inválidos têm "INVALIDO" nesse id). A extensão
-     sempre usa a movimentação mais recente, e nunca uma diferente: é
-     assim que você continuaria o processo a partir do seu estado atual,
-     salvo se antes disso você já tiver aberto manualmente uma
-     movimentação específica.
+     nos válidos, tachados/inválidos têm "INVALIDO" nesse id). Isso é o
+     que você faria na maioria dos casos: continuar o processo a partir do
+     seu estado atual (salvo se antes disso você já tiver aberto
+     manualmente uma movimentação específica).
   2. Uma vez na tela de detalhe da movimentação, clica em "Movimentar a
      Partir Desta Movimentação" — sempre o mesmo botão, sem ambiguidade.
-  3. Ao chegar na tela de Ações, executa a ação escolhida.
+  3. Ao chegar na tela de Ações, executa a ação escolhida — **ou**, se o
+     tipo dessa movimentação levar a uma tela de ação diferente (ver
+     abaixo), volta e repete os passos 1-3 com a **próxima** movimentação
+     válida, até uma delas levar à lista de Ações ou esgotar até 5
+     tentativas.
 
   **Nada disso pratica qualquer ato processual por conta própria** — os
   dois primeiros passos só navegam entre telas de leitura, sem enviar nada
@@ -285,12 +288,15 @@ painel depende de qual tela do processo você está vendo, já que o painel
 
 **Nem toda movimentação leva à lista completa de "Ações":** o Projudi
 decide a tela de destino conforme o tipo da movimentação — por exemplo,
-uma movimentação de "Juntada de Petição" pode levar direto à tela "Juntar
-Documento", pulando a lista geral de Ações. Se isso acontecer com a
-movimentação mais recente do processo, a extensão mostra um aviso
-explicando para qual tela o Projudi te levou; abra manualmente uma
-movimentação diferente (um despacho/decisão recente costuma funcionar) e
-tente de novo a partir dela.
+uma "Juntada de Petição" ou uma confirmação automática do sistema
+("Confirmada a Comunicação Eletrônica") podem levar direto à tela "Juntar
+Documento", pulando a lista geral de Ações. Quando isso acontece com uma
+movimentação escolhida automaticamente pela extensão, ela **detecta e
+tenta de novo com a próxima movimentação válida** (voltando duas páginas
+e repetindo os passos acima), até 5 vezes, sem precisar de nada manual.
+Só se nenhuma das últimas movimentações levar à tela de Ações é que
+aparece um aviso pedindo para abrir manualmente uma movimentação mais
+antiga (um despacho/decisão costuma funcionar).
 
 Para cada ação, o painel oferece:
 

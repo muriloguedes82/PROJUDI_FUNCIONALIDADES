@@ -185,12 +185,19 @@
 		);
 	}
 
-	function findLatestValidEventLink() {
+	// `excludeIds`: ids de eventos já tentados nesta cadeia (ver
+	// runIntentStateMachine) — alguns tipos de movimentação (ex.:
+	// confirmações automáticas do sistema, juntadas de petição) levam a
+	// uma tela de ação específica em vez da lista geral de Ações; nesse
+	// caso a extensão volta e tenta a próxima movimentação válida, em vez
+	// de insistir sempre na mesma.
+	function findLatestValidEventLink(excludeIds) {
 		const links = document.querySelectorAll('a.link[id^="LNKmov"]');
 		for (let i = 0; i < links.length; i++) {
 			const link = links[i];
 			if ((link.id || "").indexOf("INVALIDO") !== -1) continue;
 			if (link.closest("strike, s, del")) continue;
+			if (excludeIds && excludeIds.indexOf(link.id) !== -1) continue;
 			return link;
 		}
 		return null;
@@ -230,6 +237,10 @@
 
 	const PENDING_INTENT_KEY = "pdpQaPendingIntent";
 	const PENDING_INTENT_MAX_AGE_MS = 120000;
+	// Quantas movimentações diferentes a extensão tenta sozinha (da mais
+	// recente para trás) antes de desistir e pedir para o usuário escolher
+	// manualmente uma mais antiga.
+	const MAX_MOVEMENT_ATTEMPTS = 5;
 
 	function storePendingIntent(intent) {
 		intent.ts = Date.now();
@@ -335,17 +346,41 @@
 				return;
 			}
 
-			const eventLink = findLatestValidEventLink();
+			const eventLink = findLatestValidEventLink(intent.triedMovementIds);
 			if (eventLink) {
-				eventLink.click(); // idem
+				const triedMovementIds = (intent.triedMovementIds || []).concat([eventLink.id]);
+				storePendingIntent(Object.assign({}, intent, { triedMovementIds: triedMovementIds })).then(function () {
+					eventLink.click(); // navegação de página inteira; retoma no próximo load
+				});
+				return;
+			}
+
+			// Nem a tela de Ações, nem o botão "Movimentar a Partir Desta
+			// Movimentação", nem a lista de eventos estão aqui: chegamos a uma
+			// tela de destino diferente (ex.: "Juntar Documento") — o tipo da
+			// movimentação escolhida não levava à lista geral de Ações. Se essa
+			// movimentação foi escolhida pela própria extensão (há
+			// triedMovementIds) e ainda não estourou o limite de tentativas,
+			// volta duas páginas (a mesma navegação que nos trouxe até aqui: da
+			// lista de eventos → detalhe da movimentação → esta tela) para
+			// tentar a PRÓXIMA movimentação válida.
+			const tried = intent.triedMovementIds || [];
+			if (tried.length && tried.length < MAX_MOVEMENT_ATTEMPTS) {
+				window.history.go(-2);
 				return;
 			}
 
 			clearPendingIntent();
 			alert(
-				'Não consegui chegar automaticamente até "' +
-					intent.label +
-					'" a partir desta tela. Abra a aba "Movimentações" do processo e tente de novo a partir de lá.'
+				tried.length
+					? 'Tentei ' +
+							tried.length +
+							' movimentação(ões) recente(s) do processo e nenhuma levou à ação "' +
+							intent.label +
+							'". Abra manualmente uma movimentação mais antiga (um despacho/decisão costuma funcionar) e tente de novo a partir dela.'
+					: 'Não consegui chegar automaticamente até "' +
+							intent.label +
+							'" a partir desta tela. Abra a aba "Movimentações" do processo e tente de novo a partir de lá.'
 			);
 		});
 	}
