@@ -357,16 +357,23 @@
 
 			iframe.addEventListener("load", function () {
 				if (settled) return;
-				settled = true;
 				let doc, finalUrl;
 				try {
 					doc = iframe.contentDocument;
 					finalUrl = iframe.contentWindow.location.href;
 				} catch (err) {
+					settled = true;
 					cleanup();
 					reject(err);
 					return;
 				}
+				// Inserir o iframe no documento já dispara um "load" para a
+				// página em branco inicial (about:blank), ANTES mesmo da
+				// navegação para `url` começar — sem essa checagem, a Promise
+				// resolvia cedo demais com um documento vazio. Só resolve no
+				// "load" que corresponde à navegação de verdade.
+				if (finalUrl === "about:blank") return;
+				settled = true;
 				cleanup();
 				resolve({ doc: doc, url: finalUrl });
 			});
