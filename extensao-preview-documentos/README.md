@@ -1,7 +1,7 @@
 # Projudi/SEEU - Documentos: Pré-visualização, WhatsApp e E-mail
 
-Extensão de navegador (Chrome/Edge, Manifest V3) que resolve três problemas
-do dia a dia no Projudi (TJPR) e no SEEU — os dois usam o mesmo padrão de
+Extensão de navegador (Chrome/Edge, Manifest V3) que resolve problemas do
+dia a dia no Projudi (TJPR) e no SEEU — os dois usam o mesmo padrão de
 link de documento (`<a class="link" href=".../arquivo.do?...">`), então a
 extensão funciona da mesma forma nos dois sistemas:
 
@@ -14,7 +14,11 @@ extensão funciona da mesma forma nos dois sistemas:
    Web" abaixo);
 3. para enviar um ou mais documentos do processo por e-mail, é preciso
    baixar cada arquivo manualmente e anexá-los um a um no Outlook (veja
-   "Envio por E-mail (Outlook)" abaixo).
+   "Envio por E-mail (Outlook)" abaixo);
+4. no Projudi, o painel lateral **Ações** (Intimar Partes, Ordenar
+   Cumprimentos, Realizar Remessa, Enviar Concluso, Apensar, etc.) fica
+   comprido e é preciso rolar a tela para achar a ação desejada (veja
+   "Ações rápidas" abaixo).
 
 ## Pré-visualização de Documentos
 
@@ -218,6 +222,45 @@ sem garantia de funcionar.
 Esse modo **não depende de nenhuma configuração de TI**, mas é o modo Graph
 que deve ser preferido sempre que o cadastro no Azure AD for possível, já
 que é o único caminho 100% automático.
+
+## Ações rápidas (painel "Ações" do Projudi)
+
+Só no Projudi. A tela de Movimentações tem um painel lateral **Ações** (e
+um segundo bloco **Outras Ações** logo abaixo) com uma lista comprida de
+links — Intimar Partes, Ordenar Cumprimentos, Realizar Remessa, Enviar
+Concluso, Apensar, etc. — que obriga a rolar a página até achar a ação
+desejada.
+
+A extensão adiciona um botão flutuante **"⚡ Ações rápidas"**, no mesmo
+canto da tela dos botões de WhatsApp/e-mail (posicionando-se ao lado deles
+quando presentes), que abre um painel com essas mesmas ações já
+agrupadas:
+
+- **Concluso**: Enviar Concluso
+- **Remessa**: Realizar Remessa, Remessa Eletrônica para o Tribunal de
+  Justiça
+- **Ordenações**: Ordenar Cumprimentos, Ordenar RPV, Ordenar Expedição
+  BNMP
+- **Partes**: Intimar Partes, Notificar Partes, Citar Partes, Intimar
+  Peritos e Auxiliares da Justiça
+- **Outras ações**: Interromper Prazo, Suspender ou Sobrestar Processo,
+  Transitar em Julgado, Declínio de competência para a Segunda Instância,
+  Arquivar Processo, Apensar, Desapensar
+
+Cada item do painel **não executa nada sozinho**: ele só localiza o link
+nativo correspondente já presente na página (mesmo texto, mesmo elemento
+`<a class="link">`, com o `onclick` que o próprio Projudi já definiu) e
+simula um clique nele — o mesmo diálogo (`openDialog`/
+`openDialogMaximized`) ou confirmação que apareceria clicando diretamente
+no painel "Ações" aparece normalmente, e o preenchimento/confirmação
+continua manual. Isso evita a extensão precisar reconstruir as URLs de
+cada ação (cujo token de sessão, `_tj=...`, expira e é específico de cada
+usuário) — ela sempre clica no elemento que já está na página.
+
+Só aparecem no painel as ações que existirem na tela atual (ex.: se o
+processo já estiver apensado, só "Desapensar" aparece, não "Apensar"); se
+nenhuma ação do painel "Ações" for encontrada, uma mensagem avisa para
+usar o painel original.
 
 ## Como funciona
 
