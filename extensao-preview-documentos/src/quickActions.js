@@ -286,7 +286,20 @@
 	// diálogo final não é o esperado sem precisar adivinhar o que a
 	// extensão fez.
 	function logChainStep(step, extra) {
-		console.info("[Projudi Ações Rápidas]", new Date().toISOString(), step, extra || "");
+		// JSON.stringify em vez de passar `extra` como argumento separado:
+		// copiar o texto do console (Ctrl+C numa seleção, ou botão direito →
+		// "Save as...") perde os `Object`/`Array` que o Chrome só expande
+		// interativamente — com tudo já em texto, uma cópia simples basta
+		// para diagnosticar.
+		let extraText = "";
+		if (extra !== undefined) {
+			try {
+				extraText = " | " + JSON.stringify(extra);
+			} catch (err) {
+				extraText = " | " + String(extra);
+			}
+		}
+		console.info("[Projudi Ações Rápidas] " + new Date().toISOString() + " " + step + extraText);
 	}
 
 	function describeElement(el) {
@@ -395,10 +408,18 @@
 						const link = findActionLinkIn(acoes.doc, label);
 						if (!link) {
 							lastScreenTitle = "Ações (sem esta ação específica)";
+							const found = Array.prototype.slice
+								.call(acoes.doc.querySelectorAll("a.link"))
+								.map(normalizeLinkText)
+								.filter(Boolean);
+							logChainStep('tela de Ações achada, mas sem o rótulo "' + label + '"', { url: acoes.url, linksEncontrados: found });
 							return tryEvent(index + 1);
 						}
 						const dialogUrl = extractUrlFromOnclick(link.getAttribute("onclick"), acoes.url);
-						if (!dialogUrl) return tryEvent(index + 1);
+						if (!dialogUrl) {
+							logChainStep("achei o link da ação mas não consegui extrair a URL do onclick", describeElement(link));
+							return tryEvent(index + 1);
+						}
 						logChainStep("URL do diálogo resolvida", dialogUrl);
 						return { url: dialogUrl };
 					});
