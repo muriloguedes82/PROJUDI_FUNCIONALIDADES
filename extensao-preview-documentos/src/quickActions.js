@@ -166,17 +166,18 @@
 	// em "Movimentar a Partir Desta Movimentação" — só então o Projudi
 	// carrega a URL movimentarProcesso.do, que tem o painel "Ações".
 	//
-	// Em vez de navegar de verdade por essas telas (o que fazia a tela
-	// principal "piscar" entre elas, mesmo coberta por um overlay), a
-	// extensão busca cada uma delas em segundo plano com fetch() — usando a
-	// mesma sessão/cookies do usuário, sem navegar a aba visível — e lê o
-	// HTML de cada resposta com DOMParser, só para achar o link/botão
+	// Em vez de navegar de verdade por essas telas na aba visível (o que
+	// fazia a tela principal "piscar" entre elas, mesmo coberta por um
+	// overlay), a extensão carrega cada uma delas num IFRAME OCULTO (fora
+	// da área visível da tela, mas uma navegação de verdade — ver
+	// fetchDoc) e lê o HTML resultante só para achar o link/botão
 	// seguinte. No fim, ela extrai a URL real do diálogo final (do
 	// `onclick` do link da ação, algo como
 	// `openDialog('/projudi/processo/enviarConcluso.do?_tj=...', ...)`) e
 	// mostra SÓ essa URL, dentro de um iframe visível, num popup sobre a
 	// tela atual — a tela principal nunca navega. Essas funções "*In"
-	// recebem o `document` a examinar (o documento fetchado de cada etapa,
+	// recebem o `document` a examinar (o documento carregado no iframe
+	// oculto de cada etapa,
 	// ou `document` de verdade para o modo "já na tela de Ações").
 	//
 	// A escolha de QUAL movimentação usar como base (a mais recente e
@@ -258,12 +259,15 @@
 	// Resolução em segundo plano da URL do diálogo final
 	//
 	// Em vez de navegar de verdade pela lista de Movimentações → tela de
-	// detalhe → tela de Ações (o que fazia a aba visível trocar de
+	// detalhe → tela de Ações na aba visível (o que fazia a aba trocar de
 	// conteúdo em cada etapa, mesmo coberta por um overlay), a extensão
-	// busca cada uma dessas telas com fetch() — reaproveitando a sessão/
-	// cookies do usuário, sem navegar a aba visível — e lê o HTML de cada
-	// resposta com DOMParser só para achar o link/botão seguinte. No fim,
-	// extrai a URL real do diálogo (do `onclick` do link da ação, ex.:
+	// carrega cada uma dessas telas num iframe oculto — fora da área
+	// visível da tela, mas uma navegação de verdade (`fetch()`/`XHR`
+	// simples não davam certo: o Projudi devolve as telas sem os botões de
+	// ação quando a requisição não "parece" uma navegação de aba de
+	// verdade) — e lê o HTML resultante só para achar o link/botão
+	// seguinte. No fim, extrai a URL real do diálogo (do `onclick` do link
+	// da ação, ex.:
 	// `openDialog('/projudi/processo/enviarConcluso.do?_tj=...', ...)`) e
 	// devolve só essa URL — quem a exibe (num iframe, dentro de um popup
 	// desta extensão) é o código mais abaixo. A aba visível nunca navega.
@@ -317,11 +321,58 @@
 
 	// Busca uma URL com a sessão/cookies do usuário e devolve o HTML já
 	// interpretado (DOMParser), sem navegar nenhuma aba/frame visível.
+	// Carrega uma URL numa navegação de verdade, só que invisível — um
+	// iframe fora da área visível da tela (mesma técnica já usada com
+	// sucesso no recurso de Pendências, em content.js). Comparado a
+	// `fetch()`, isso foi necessário porque testes reais mostraram que o
+	// Projudi devolve uma versão da página SEM os botões de ação (mesmo
+	// título, mesmo HTML "por fora") quando a requisição não é uma
+	// navegação de aba de verdade — provavelmente algum filtro/proteção do
+	// próprio Tribunal que distingue `fetch()`/XHR de uma navegação normal
+	// pelos cabeçalhos que o navegador envia automaticamente (não dá para
+	// alterar esses cabeçalhos por JavaScript). Um iframe, mesmo oculto, é
+	// tecnicamente uma navegação como outra qualquer para o navegador e
+	// para o servidor.
 	function fetchDoc(url) {
-		return fetch(url, { credentials: "same-origin" }).then(function (res) {
-			return res.text().then(function (text) {
-				return { doc: new DOMParser().parseFromString(text, "text/html"), url: res.url || url };
+		return new Promise(function (resolve, reject) {
+			const iframe = document.createElement("iframe");
+			iframe.style.position = "absolute";
+			iframe.style.top = "-9999px";
+			iframe.style.left = "-9999px";
+			iframe.style.width = "1024px";
+			iframe.style.height = "768px";
+
+			let settled = false;
+			const timeout = setTimeout(function () {
+				if (settled) return;
+				settled = true;
+				cleanup();
+				reject(new Error("tempo esgotado carregando " + url));
+			}, 12000);
+
+			function cleanup() {
+				clearTimeout(timeout);
+				if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+			}
+
+			iframe.addEventListener("load", function () {
+				if (settled) return;
+				settled = true;
+				let doc, finalUrl;
+				try {
+					doc = iframe.contentDocument;
+					finalUrl = iframe.contentWindow.location.href;
+				} catch (err) {
+					cleanup();
+					reject(err);
+					return;
+				}
+				cleanup();
+				resolve({ doc: doc, url: finalUrl });
 			});
+
+			document.body.appendChild(iframe);
+			iframe.src = url;
 		});
 	}
 
@@ -396,13 +447,11 @@
 					const movBtn = findMovimentarButtonIn(detail.doc);
 					const logInfo = { url: detail.url, movimentarBtn: describeElement(movBtn) };
 					if (!movBtn) {
-						// Diagnóstico: se o botão não veio, mostra o que a resposta
-						// realmente trouxe (título, scripts de redirecionamento tipo
-						// meta-refresh/JS, e um trecho do texto visível) — para
-						// diferenciar "não achei o botão nesta página" de "isto nem
-						// é a página de verdade, é uma intermediária que só
-						// funciona depois de um redirecionamento por JavaScript, que
-						// fetch()+DOMParser não executam".
+						// Diagnóstico: se o botão não veio, mostra o que a página
+						// carregada no iframe oculto realmente trouxe (título,
+						// eventual redirecionamento, um trecho do texto visível) —
+						// útil para investigar qualquer causa futura sem precisar
+						// adivinhar.
 						logInfo.title = detail.doc.title;
 						logInfo.metaRefresh = !!detail.doc.querySelector('meta[http-equiv="refresh" i]');
 						logInfo.scriptsComLocationHref = Array.prototype.slice

@@ -265,31 +265,35 @@ painel depende de qual tela do processo você está vendo, já que o painel
   intermediária de detalhe de uma movimentação): o painel mostra todas as
   ações do grupo, cada uma com um botão **"Ir e abrir"**. Ao clicar, a
   extensão **não navega a tela visível em nenhum momento** — em vez
-  disso, ela busca em segundo plano (com `fetch()`, reaproveitando sua
-  sessão/cookies, sem abrir nem trocar nenhuma aba) as mesmas telas que
-  você navegaria manualmente, só para descobrir a URL real do diálogo
-  final:
-  1. Busca a lista de Movimentações (se ainda não estiver na tela de
+  disso, ela carrega as mesmas telas que você navegaria manualmente num
+  **iframe oculto** (fora da área visível da tela, mas uma navegação de
+  verdade — testes mostraram que o Projudi devolve as telas sem os botões
+  de ação quando a requisição não "parece" uma navegação de aba real, daí
+  não dar para usar `fetch()` puro), só para descobrir a URL real do
+  diálogo final:
+  1. Carrega a lista de Movimentações (se ainda não estiver na tela de
      detalhe de uma movimentação) e acha o **evento mais recente e
      válido** (não tachado) da coluna "Evento" — identificado pelo
      próprio Projudi de forma estável (`id="LNKmov..."` nos válidos,
      tachados/inválidos têm "INVALIDO" nesse id).
-  2. Busca a tela de detalhe dessa movimentação e lê para onde o botão
+  2. Carrega a tela de detalhe dessa movimentação e lê para onde o botão
      "Movimentar a Partir Desta Movimentação" levaria.
-  3. Busca essa tela seguinte; se for a de Ações, lê a URL exata do
+  3. Carrega essa tela seguinte; se for a de Ações, lê a URL exata do
      diálogo da ação escolhida (do próprio `onclick` do link, algo como
      `openDialog('/projudi/processo/enviarConcluso.do?_tj=...', ...)`).
      Se não for (o tipo dessa movimentação leva a outra tela de ação, ver
      abaixo), repete os passos 1-3 com a **próxima** movimentação válida,
      até achar uma que funcione ou esgotar até 5 tentativas.
-  4. Com a URL em mãos, abre um **popup** (sobreposto à tela atual, com
-     um "✕ Fechar") com um iframe carregando só essa URL — é aí, e só aí,
-     que uma requisição de verdade visível ao usuário acontece: o
-     restante foi só leitura em segundo plano para descobrir o caminho.
+  4. Com a URL em mãos, descarta o iframe oculto e abre um **popup**
+     visível (sobreposto à tela atual, com um "✕ Fechar") com um NOVO
+     iframe carregando só essa URL — esse é o único iframe que o usuário
+     chega a ver.
 
   **Nada disso pratica qualquer ato processual por conta própria** — os
-  passos 1-3 só leem páginas em segundo plano, sem exibi-las nem enviar
-  nada ao Projudi além do GET de leitura normal; o popup do passo 4 abre o
+  passos 1-3 só leem páginas dentro do iframe oculto, sem exibi-las ao
+  usuário nem enviar nada ao Projudi além do carregamento de leitura
+  normal (o mesmo que aconteceria navegando manualmente); o popup do
+  passo 4 abre o
   diálogo nativo em branco (com "Abrir"/"Ir e abrir") ou repreenche uma
   preferência salva e pede a confirmação única de sempre antes de clicar
   em confirmar/enviar (ver "Preferências" abaixo) — nunca confirma
