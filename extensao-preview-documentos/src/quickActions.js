@@ -179,10 +179,22 @@
 	// TELA_MOVIMENTAÇÃO_PROCESSO_HTML). O que de fato executa a ação
 	// processual — o clique final de confirmar dentro do diálogo — nunca é
 	// automático (ver showConfirmBar/"Sim, executar").
+	// IMPORTANTE: o Projudi reaproveita o mesmo id/name "movimentarButton"
+	// para outros botões de "iniciar uma movimentação" em telas diferentes
+	// — por exemplo, o botão nativo "Juntar Documento" da barra de
+	// ferramentas da tela principal do processo TAMBÉM tem
+	// id="movimentarButton" e name="movimentarButton", só com um "value"
+	// (texto) diferente. Por isso a checagem tem que ser SÓ pelo texto do
+	// botão ("Movimentar a Partir Desta Movimentação"), nunca por id/name
+	// — uma versão anterior usava id/name como atalho e acabava clicando
+	// no botão errado ("Juntar Documento") sempre que ele aparecia na
+	// mesma tela, confirmado via log de diagnóstico em produção.
 	function findMovimentarButton() {
-		return document.querySelector(
-			'#movimentarButton, input[name="movimentarButton"], input[value="Movimentar a Partir Desta Movimentação"]'
-		);
+		const candidates = document.querySelectorAll('input[type="button"]');
+		for (let i = 0; i < candidates.length; i++) {
+			if ((candidates[i].value || "").trim() === "Movimentar a Partir Desta Movimentação") return candidates[i];
+		}
+		return null;
 	}
 
 	// `excludeIds`: ids de eventos já tentados nesta cadeia (ver

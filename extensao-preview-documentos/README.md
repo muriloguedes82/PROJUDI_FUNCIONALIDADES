@@ -286,18 +286,24 @@ painel depende de qual tela do processo você está vendo, já que o painel
   numa aba diferente do processo, como Partes e Outros): o painel avisa
   para abrir a aba "Movimentações" primeiro.
 
-**Às vezes "Movimentar a Partir Desta Movimentação" abre uma tela de ação
-específica** (ex.: "Juntar Documento") em vez da lista geral de Ações —
-em teste, a mesma movimentação levou a telas diferentes dependendo de
-quão rápido o botão foi clicado depois da tela carregar, então a extensão
-espera um instante (imitando o tempo de reação normal de uma pessoa) antes
-de cada clique automático. Se mesmo assim isso acontecer, ela **detecta e
-tenta de novo com a próxima movimentação válida** (voltando à mesma URL da
-lista de Movimentações — nunca usando "voltar" do navegador, que não é
-confiável aqui — e repetindo os passos acima), até 5 vezes, sem precisar
-de nada manual. Só se nenhuma das últimas movimentações levar à tela de
-Ações é que aparece um aviso pedindo para abrir manualmente uma
-movimentação mais antiga (um despacho/decisão costuma funcionar).
+**Atenção a um detalhe já corrigido, mas que vale registrar:** o Projudi
+reaproveita o mesmo `id`/`name` (`movimentarButton`) para vários botões de
+"iniciar uma movimentação" em telas diferentes — por exemplo, o botão
+nativo **"Juntar Documento"** da barra de ferramentas da tela principal do
+processo também tem `id="movimentarButton"`, só com um texto (`value`)
+diferente. Por isso a extensão identifica o botão "Movimentar a Partir
+Desta Movimentação" **só pelo texto**, nunca por id/name — uma versão
+anterior usava id/name como atalho e podia acabar clicando em "Juntar
+Documento" por engano sempre que ele existisse na mesma tela.
+
+Como salvaguarda extra (caso uma movimentação realmente leve a uma tela de
+ação específica em vez da lista geral de Ações, por qualquer outro
+motivo), a extensão **detecta e tenta de novo com a próxima movimentação
+válida** (voltando à mesma URL da lista de Movimentações — nunca usando
+"voltar" do navegador, que não é confiável aqui — e repetindo os passos
+acima), até 5 vezes, sem precisar de nada manual. Só se nenhuma das
+últimas movimentações levar à tela de Ações é que aparece um aviso pedindo
+para abrir manualmente uma movimentação mais antiga.
 
 Para cada ação, o painel oferece:
 
