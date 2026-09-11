@@ -271,6 +271,20 @@ de funcionar (a pré-visualização desta extensão voltar a aparecer no SEEU
 mesmo com o AzFlow ativo), ajuste `AZFLOW_MARKER_SELECTOR` em
 `src/content.js`.
 
+## Troca de abas do processo (Movimentações, Partes, etc.)
+
+Ao trocar de aba dentro da tela do processo e voltar, o Projudi/SEEU pode
+substituir um contêiner inteiro da página por conteúdo novo (em vez de só
+mostrar/esconder o que já existia) — o que faria o botão "Enviar por
+WhatsApp", a pré-visualização e as caixinhas de seleção "sumirem", já que
+os elementos que esta extensão tinha criado ficam fora da árvore visível
+do documento. Para lidar com isso, a extensão reconcilia periodicamente
+(a cada ~1,5s) o botão e as caixinhas de seleção — recriando o que for
+necessário — e monitora `document.documentElement` em vez de
+`document.body` (o `<body>` é o que costuma ser trocado; o `<html>`,
+praticamente nunca). A seleção de arquivos em andamento (`selectedDocs`)
+não depende do DOM antigo, então sobrevive normalmente a essas trocas.
+
 ## Limitações conhecidas
 
 - Funciona apenas para documentos que o navegador consiga exibir dentro de

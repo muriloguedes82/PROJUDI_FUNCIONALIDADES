@@ -202,6 +202,10 @@
 	// ---------------------------------------------------------------------
 
 	function ensureDocPanel() {
+		// Se o painel antigo ficou "órfão" (a página substituiu o contêiner
+		// que o continha, ex.: ao trocar de aba do processo), ele já não faz
+		// mais parte do documento visível — descarta e recria do zero.
+		if (docPanel && !docPanel.wrap.isConnected) docPanel = null;
 		if (docPanel) return docPanel;
 		docPanel = buildPanel();
 		docPanel.wrap.addEventListener("mouseenter", cancelCloseDoc);
@@ -522,6 +526,10 @@
 		checkbox.type = "checkbox";
 		checkbox.className = "pdp-wa-checkbox";
 		checkbox.title = "Selecionar para enviar por WhatsApp";
+		// Se a página recriou este link (ex.: ao voltar para a aba de
+		// Movimentações) e o documento já estava selecionado antes, mantém a
+		// caixinha marcada em vez de "perder" a seleção visualmente.
+		checkbox.checked = selectedDocs.has(absolute);
 		checkbox.addEventListener("click", function (e) {
 			e.stopPropagation();
 		});
@@ -745,6 +753,9 @@
 	}
 
 	function ensureWaPanel() {
+		// Mesmo raciocínio do ensureDocPanel(): se o painel antigo ficou
+		// órfão (fora da árvore visível do documento), descarta e recria.
+		if (waPanel && !waPanel.wrap.isConnected) waPanel = null;
 		if (waPanel) return waPanel;
 
 		const wrap = document.createElement("div");
@@ -965,20 +976,55 @@
 		observer.observe(anchor);
 	}
 
-	function initWhatsappFeature() {
-		initWhatsappLauncher();
+	// Algumas telas (Projudi e SEEU) trocam de "aba" do processo (ex.:
+	// Movimentações → Partes → Movimentações de novo) substituindo um
+	// contêiner inteiro da página por conteúdo novo, em vez de só
+	// mostrar/esconder o que já existia. Quando isso inclui o próprio
+	// `document.body` (ou um ancestral direto dele), qualquer elemento que
+	// esta extensão tinha criado antes (o botão de WhatsApp, o painel de
+	// pré-visualização, as caixinhas de seleção) fica "órfão" — some
+	// visualmente mesmo sem erro nenhum, porque ainda existe em memória, só
+	// que fora da árvore visível do documento. Um MutationObserver
+	// observando `document.body` diretamente sofre do mesmo problema: se o
+	// body for trocado, o observer para de "ver" qualquer coisa.
+	//
+	// Por isso: (1) o observer é montado em `document.documentElement`
+	// (`<html>`), que praticamente nunca é substituído, mesmo quando o
+	// `<body>` é; e (2) como rede de segurança extra — para cobrir qualquer
+	// padrão de troca de conteúdo que o observer não pegue a tempo — uma
+	// checagem periódica reconecta o botão e as caixinhas de seleção.
+	function isElementUsable(el) {
+		return !!el && el.isConnected;
+	}
+
+	function reconcileWhatsappUi() {
+		if (!isElementUsable(document.getElementById("pdp-wa-launcher"))) {
+			initWhatsappLauncher();
+			// O botão recém-criado começa com o contador zerado/oculto — sincroniza
+			// com o que já estava selecionado (a seleção em si, `selectedDocs`, não
+			// depende do DOM antigo, então sobrevive à troca de aba).
+			updateWaLauncherCount();
+		}
 		scanDocLinksForWhatsapp(document);
+	}
+
+	function initWhatsappFeature() {
+		reconcileWhatsappUi();
 
 		const observer = new MutationObserver(function (mutations) {
 			mutations.forEach(function (m) {
 				m.addedNodes.forEach(function (node) {
 					if (node.nodeType !== 1) return;
 					scanDocLinksForWhatsapp(node);
-					if (!document.getElementById("pdp-wa-launcher")) initWhatsappLauncher();
+					if (!isElementUsable(document.getElementById("pdp-wa-launcher"))) initWhatsappLauncher();
 				});
 			});
 		});
-		observer.observe(document.body, { childList: true, subtree: true });
+		observer.observe(document.documentElement, { childList: true, subtree: true });
+
+		// Rede de segurança: reconcilia periodicamente, independente do
+		// observer ter pego a mudança ou não.
+		setInterval(reconcileWhatsappUi, 1500);
 	}
 
 	initWhatsappFeature();
