@@ -1,0 +1,287 @@
+.pdp-email-checkbox {
+	margin-right: 4px;
+	vertical-align: middle;
+	cursor: pointer;
+}
+
+/* Visual neutro, parecido com os botões da própria barra de ações do
+   Projudi/SEEU (cinza claro, borda fina, cantos levemente arredondados) —
+   em vez de destacar com cor própria, os botões flutuantes se misturam ao
+   restante da interface do sistema. */
+#pdp-email-button,
+#pdp-recipients-button,
+#pdp-from-button {
+	position: fixed;
+	right: 16px;
+	/* "bottom" é recalculado em tempo real pelo email.js para ficar sempre
+	   logo acima da barra de ações (Peticionar, Juntar Documento, etc.). */
+	bottom: 16px;
+	z-index: 2147483000;
+	padding: 8px 14px;
+	background: #f0f0f0;
+	color: #1a1a1a;
+	border: 1px solid #adadad;
+	border-radius: 4px;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 13px;
+	font-weight: normal;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+	cursor: pointer;
+}
+
+#pdp-email-button {
+	display: none;
+}
+
+#pdp-email-button.pdp-email-visible {
+	display: inline-block;
+}
+
+#pdp-email-button:hover,
+#pdp-recipients-button:hover,
+#pdp-from-button:hover {
+	background: #e2e2e2;
+}
+
+#pdp-email-button:disabled {
+	opacity: 0.6;
+	cursor: wait;
+}
+
+/* Diálogo de destinatários (gerenciar / escolher antes de enviar) */
+
+.pdp-dialog-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 2147483001;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0, 0, 0, 0.4);
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Uma regra com display:flex/inline-block em elemento específico teria a
+   mesma especificidade do seletor [hidden] da folha de estilos do
+   navegador, e no empate o CSS do autor vence — ou seja, sem esta regra
+   elementos com o atributo "hidden" (rodapé Pular/Prosseguir, mensagem de
+   erro) continuariam visíveis mesmo escondidos via JS. */
+.pdp-dialog-overlay [hidden] {
+	display: none !important;
+}
+
+.pdp-dialog-overlay .pdp-recipients-panel {
+	width: 420px;
+	max-width: calc(100vw - 32px);
+	max-height: calc(100vh - 64px);
+	display: flex;
+	flex-direction: column;
+	background: #fff;
+	border-radius: 8px;
+	box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+	overflow: hidden;
+}
+
+.pdp-dialog-overlay .pdp-recipients-header {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 14px;
+	background: #6b7f3a;
+	color: #fff;
+	font-size: 14px;
+}
+
+.pdp-dialog-overlay .pdp-recipients-close {
+	background: transparent;
+	border: none;
+	color: #fff;
+	font-size: 15px;
+	cursor: pointer;
+	padding: 2px 4px;
+}
+
+.pdp-dialog-overlay .pdp-recipients-search {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 10px 14px;
+	border-bottom: 1px solid #e0e0e0;
+}
+
+.pdp-dialog-overlay .pdp-recipients-search-icon {
+	font-size: 13px;
+	opacity: 0.6;
+}
+
+.pdp-dialog-overlay .pdp-recipients-search-input {
+	flex: 1 1 auto;
+	padding: 6px 8px;
+	font-size: 13px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+
+.pdp-dialog-overlay .pdp-recipients-list {
+	flex: 1 1 auto;
+	overflow-y: auto;
+	min-height: 80px;
+	padding: 4px 0;
+}
+
+.pdp-dialog-overlay .pdp-recipients-empty {
+	padding: 16px 14px;
+	font-size: 13px;
+	color: #777;
+	text-align: center;
+}
+
+.pdp-dialog-overlay .pdp-recipients-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 14px;
+	border-bottom: 1px solid #f0f0f0;
+}
+
+.pdp-dialog-overlay .pdp-recipients-row-info {
+	flex: 1 1 auto;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.pdp-dialog-overlay .pdp-recipients-row-name {
+	font-size: 13px;
+	font-weight: bold;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.pdp-dialog-overlay .pdp-recipients-row-email {
+	font-size: 12px;
+	color: #666;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.pdp-dialog-overlay .pdp-recipients-row-pin,
+.pdp-dialog-overlay .pdp-recipients-row-edit,
+.pdp-dialog-overlay .pdp-recipients-row-remove {
+	flex: 0 0 auto;
+	background: transparent;
+	border: none;
+	font-size: 14px;
+	cursor: pointer;
+	padding: 2px 4px;
+}
+
+.pdp-dialog-overlay .pdp-recipients-row-pin {
+	color: #c9a227;
+}
+
+.pdp-dialog-overlay .pdp-recipients-row-remove {
+	color: #a33;
+}
+
+.pdp-dialog-overlay .pdp-from-add-cancel {
+	flex: 1 1 100%;
+	padding: 6px 10px;
+	font-size: 12px;
+	background: transparent;
+	color: #666;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.pdp-dialog-overlay .pdp-recipients-add {
+	flex: 0 0 auto;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	padding: 10px 14px;
+	border-top: 1px solid #e0e0e0;
+}
+
+.pdp-dialog-overlay .pdp-recipients-add-name,
+.pdp-dialog-overlay .pdp-recipients-add-email,
+.pdp-dialog-overlay .pdp-from-add-label,
+.pdp-dialog-overlay .pdp-from-add-email {
+	flex: 1 1 140px;
+	min-width: 0;
+	padding: 6px 8px;
+	font-size: 13px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+
+.pdp-dialog-overlay .pdp-from-hint {
+	flex: 0 0 auto;
+	padding: 10px 14px 0;
+	font-size: 12px;
+	color: #666;
+}
+
+.pdp-dialog-overlay .pdp-recipients-add-save,
+.pdp-dialog-overlay .pdp-from-add-save {
+	flex: 1 1 100%;
+	padding: 8px 10px;
+	font-size: 13px;
+	font-weight: bold;
+	color: #fff;
+	background: #6b7f3a;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.pdp-dialog-overlay .pdp-recipients-add-save:hover,
+.pdp-dialog-overlay .pdp-from-add-save:hover {
+	background: #55642e;
+}
+
+.pdp-dialog-overlay .pdp-recipients-error {
+	padding: 0 14px 10px;
+	font-size: 12px;
+	color: #a33;
+}
+
+.pdp-dialog-overlay .pdp-recipients-footer {
+	flex: 0 0 auto;
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	padding: 10px 14px;
+	border-top: 1px solid #e0e0e0;
+}
+
+.pdp-dialog-overlay .pdp-recipients-skip {
+	padding: 8px 14px;
+	font-size: 13px;
+	background: transparent;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.pdp-dialog-overlay .pdp-recipients-proceed {
+	padding: 8px 14px;
+	font-size: 13px;
+	font-weight: bold;
+	color: #fff;
+	background: #6b7f3a;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.pdp-dialog-overlay .pdp-recipients-proceed:hover {
+	background: #55642e;
+}
