@@ -266,6 +266,7 @@
 	// carregamento de página (retoma uma intenção guardada antes de uma
 	// navegação de página inteira).
 	function startOrAdvanceIntent(intent) {
+		logIntentStep("iniciando cadeia", intent);
 		storePendingIntent(intent).then(runIntentStateMachine);
 	}
 
@@ -296,15 +297,47 @@
 		}, DIALOG_WAIT_INTERVAL_MS);
 	}
 
+	// Diagnóstico: registra cada decisão da máquina de estados no console
+	// (F12, filtro "Projudi Ações Rápidas"), com timestamp, URL atual e o
+	// elemento exato que está prestes a ser clicado (id/name/value/href) —
+	// para investigar casos em que o destino final não é o esperado sem
+	// precisar adivinhar o que a extensão fez.
+	function logIntentStep(step, extra) {
+		console.info(
+			"[Projudi Ações Rápidas]",
+			new Date().toISOString(),
+			step,
+			"| URL:",
+			window.location.href,
+			extra || ""
+		);
+	}
+
+	function describeElement(el) {
+		if (!el) return null;
+		return {
+			tag: el.tagName,
+			id: el.id || null,
+			name: el.name || null,
+			value: el.value || null,
+			text: (el.textContent || "").trim().slice(0, 60) || null,
+			href: el.getAttribute ? el.getAttribute("href") : null,
+			onclick: el.getAttribute ? el.getAttribute("onclick") : null,
+		};
+	}
+
 	function runIntentStateMachine() {
 		peekPendingIntent().then(function (intent) {
 			if (!intent) return;
+			logIntentStep("intent encontrada", intent);
 			if (Date.now() - intent.ts > PENDING_INTENT_MAX_AGE_MS) {
+				logIntentStep("intent expirada, descartando");
 				clearPendingIntent();
 				return;
 			}
 
 			if (isOnAcoesScreen()) {
+				logIntentStep("tela de Ações detectada (h3)");
 				waitForActionLink(intent.label, function (link) {
 					if (!link) {
 						clearPendingIntent();
@@ -346,6 +379,7 @@
 
 			const movimentarBtn = findMovimentarButton();
 			if (movimentarBtn) {
+				logIntentStep("achei 'Movimentar a Partir Desta Movimentação', vou clicar em " + AUTO_CLICK_DELAY_MS + "ms", describeElement(movimentarBtn));
 				// Clicar assim que o botão aparece (quase instantâneo após o
 				// carregamento da página) pode ser rápido demais: em teste real,
 				// a MESMA movimentação levou à tela de Ações quando o usuário
@@ -355,6 +389,7 @@
 				// chance a qualquer script da própria página terminar de
 				// configurar o destino correto antes do clique.
 				setTimeout(function () {
+					logIntentStep("clicando em 'Movimentar a Partir Desta Movimentação' agora", describeElement(movimentarBtn));
 					movimentarBtn.click(); // navegação de página inteira; retoma no próximo load
 				}, AUTO_CLICK_DELAY_MS);
 				return;
@@ -363,6 +398,10 @@
 			const eventLink = findLatestValidEventLink(intent.triedMovementIds);
 			if (eventLink) {
 				const triedMovementIds = (intent.triedMovementIds || []).concat([eventLink.id]);
+				logIntentStep(
+					"achei evento válido (tentativa " + triedMovementIds.length + "), vou clicar em " + AUTO_CLICK_DELAY_MS + "ms",
+					describeElement(eventLink)
+				);
 				// Guarda a URL desta própria lista de Movimentações — é para cá,
 				// e não para "voltar N páginas" no histórico do navegador
 				// (pouco confiável: depende de quantas navegações reais
@@ -373,6 +412,7 @@
 					Object.assign({}, intent, { triedMovementIds: triedMovementIds, movementsListUrl: window.location.href })
 				).then(function () {
 					setTimeout(function () {
+						logIntentStep("clicando no evento agora", describeElement(eventLink));
 						eventLink.click(); // navegação de página inteira; retoma no próximo load
 					}, AUTO_CLICK_DELAY_MS);
 				});
@@ -389,7 +429,12 @@
 			// Movimentações (não usa o histórico do navegador — ver acima) e
 			// tenta a PRÓXIMA movimentação válida.
 			const tried = intent.triedMovementIds || [];
+			logIntentStep("nem Ações, nem 'Movimentar', nem lista de eventos aqui — tela de destino inesperada", {
+				screenTitle: getScreenTitle(),
+				tried: tried,
+			});
 			if (intent.movementsListUrl && tried.length && tried.length < MAX_MOVEMENT_ATTEMPTS) {
+				logIntentStep("voltando para a lista de Movimentações para tentar de novo", intent.movementsListUrl);
 				window.location.href = intent.movementsListUrl;
 				return;
 			}
