@@ -1030,37 +1030,74 @@
 		return !!el && el.isConnected;
 	}
 
+	// Diagnóstico: registra no console (prefixo "[Projudi WA-UI]") sempre que
+	// o botão aparece/desaparece, e qualquer erro que aconteça tentando
+	// reconciliar — sem isso, um erro numa chamada síncrona dentro de
+	// initWhatsappFeature() poderia interromper a função ANTES da linha que
+	// registra o setInterval, deixando a "rede de segurança" nunca
+	// instalada, silenciosamente. Também ajuda a diagnosticar por que o
+	// botão não está voltando: se aparecer "erro ao reconciliar" no
+	// console, esse é o problema; se não aparecer nada, o script pode nem
+	// estar rodando mais nessa página/aba.
+	const WA_UI_LOG_PREFIX = "[Projudi WA-UI]";
+	let waUiLauncherWasPresent = null;
+
+	function logWaUi() {
+		console.info.apply(console, [WA_UI_LOG_PREFIX].concat(Array.prototype.slice.call(arguments)));
+	}
+
 	function reconcileWhatsappUi() {
-		if (!isElementUsable(document.getElementById("pdp-wa-launcher"))) {
-			initWhatsappLauncher();
-			// O botão recém-criado começa com o contador zerado/oculto — sincroniza
-			// com o que já estava selecionado (a seleção em si, `selectedDocs`, não
-			// depende do DOM antigo, então sobrevive à troca de aba).
-			updateWaLauncherCount();
+		try {
+			const present = isElementUsable(document.getElementById("pdp-wa-launcher"));
+			if (present !== waUiLauncherWasPresent) {
+				logWaUi(present ? "botão presente." : "botão ausente — recriando…", window.location.href);
+				waUiLauncherWasPresent = present;
+			}
+
+			if (!present) {
+				initWhatsappLauncher();
+				// O botão recém-criado começa com o contador zerado/oculto —
+				// sincroniza com o que já estava selecionado (a seleção em si,
+				// `selectedDocs`, não depende do DOM antigo, então sobrevive à
+				// troca de aba).
+				updateWaLauncherCount();
+
+				if (!isElementUsable(document.getElementById("pdp-wa-launcher"))) {
+					logWaUi("initWhatsappLauncher() não criou o botão — isOnProcessScreen() retornou falso?", isOnProcessScreen());
+				}
+			}
+
+			scanDocLinksForWhatsapp(document);
+			repositionLauncherNextToEmailButtons();
+		} catch (err) {
+			console.error(WA_UI_LOG_PREFIX, "erro ao reconciliar:", err);
 		}
-		scanDocLinksForWhatsapp(document);
-		repositionLauncherNextToEmailButtons();
 	}
 
 	function initWhatsappFeature() {
+		logWaUi("content script iniciado em", window.location.href);
+
+		// A "rede de segurança" (setInterval) é registrada ANTES da primeira
+		// chamada síncrona de reconcileWhatsappUi(), para o caso de ela
+		// lançar um erro não previsto: mesmo assim, o intervalo continua
+		// rodando e tentando de novo a cada 700ms.
+		setInterval(reconcileWhatsappUi, 700);
 		reconcileWhatsappUi();
 
 		const observer = new MutationObserver(function (mutations) {
-			mutations.forEach(function (m) {
-				m.addedNodes.forEach(function (node) {
-					if (node.nodeType !== 1) return;
-					scanDocLinksForWhatsapp(node);
-					if (!isElementUsable(document.getElementById("pdp-wa-launcher"))) initWhatsappLauncher();
+			try {
+				mutations.forEach(function (m) {
+					m.addedNodes.forEach(function (node) {
+						if (node.nodeType !== 1) return;
+						scanDocLinksForWhatsapp(node);
+						if (!isElementUsable(document.getElementById("pdp-wa-launcher"))) initWhatsappLauncher();
+					});
 				});
-			});
+			} catch (err) {
+				console.error(WA_UI_LOG_PREFIX, "erro no MutationObserver:", err);
+			}
 		});
 		observer.observe(document.documentElement, { childList: true, subtree: true });
-
-		// Rede de segurança: reconcilia periodicamente, independente do
-		// observer ter pego a mudança ou não. Intervalo curto (700ms) para o
-		// botão voltar a aparecer quase na hora ao trocar de aba, sem ficar
-		// pesado (a checagem em si é barata: algumas consultas de seletor).
-		setInterval(reconcileWhatsappUi, 700);
 	}
 
 	initWhatsappFeature();
