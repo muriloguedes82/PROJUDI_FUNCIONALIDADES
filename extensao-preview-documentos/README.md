@@ -288,14 +288,21 @@ painel depende de qual tela do processo você está vendo, já que o painel
      visível (sobreposto à tela atual, com um "✕ Fechar") com um NOVO
      iframe carregando só essa URL — esse é o único iframe que o usuário
      chega a ver. Algumas ações (ex.: Ordenar Cumprimentos) terminam numa
-     tela nativa "Aguarde..." que o próprio Projudi fecha sozinha quando o
-     processamento acaba — como esse fechamento nativo espera uma janela
-     de verdade (`window.opener`/`window.close()`), a extensão reaplica
-     esses dois a cada navegação deste iframe (apontando `opener` para a
-     aba real do processo) para que a tela feche sozinha ao terminar, em
-     vez de ficar presa em "Aguarde..." até um clique manual em "✕
-     Fechar" (a ação em si já havia sido registrada normalmente mesmo
-     antes dessa correção).
+     tela nativa "Aguarde..." que o próprio Projudi normalmente fecha
+     sozinha: um campo oculto `flagClosePopup` no formulário da tela final
+     vem `"true"` quando a ação termina, e um script nativo (`checkClosePopup()`)
+     usa isso para submeter, na JANELA PAI, um formulário que volta para a
+     tela de Ações — o diálogo foi desenhado pra rodar como um iframe
+     dentro da própria tela de Ações, não como uma janela separada. Como
+     aqui a "janela pai" é a página onde esta extensão criou o popup (não
+     a tela de Ações, que não existe nesse fluxo), aquele formulário nunca
+     é encontrado e nada acontece — a tela ficava presa em "Aguarde..." até
+     um clique manual em "✕ Fechar" (a ação em si já havia sido registrada
+     normalmente mesmo antes dessa correção). A extensão agora lê esse
+     mesmo campo `flagClosePopup` diretamente e, quando ele vier `"true"`,
+     recarrega a aba real por trás e fecha o popup por conta própria — sem
+     depender do formulário nativo, que nunca existe no contexto do popup
+     desta extensão.
 
   **Nada disso pratica qualquer ato processual por conta própria** — os
   passos 1-3 só leem páginas dentro do iframe oculto, sem exibi-las ao

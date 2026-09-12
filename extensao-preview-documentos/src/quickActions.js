@@ -829,7 +829,66 @@
 			} catch (err) {
 				logChainStep("shim: falhou ao aplicar close", String(err));
 			}
+
+			checkFlagClosePopup(win);
 		});
+	}
+
+	// O diálogo final de ações como "Ordenar Cumprimentos" NUNCA chama
+	// window.close() — o dump de diagnóstico revelou o mecanismo real
+	// (função checkClosePopup(), presente em vários desses diálogos):
+	//
+	//   if (document.xxxForm.flagClosePopup.value == "true") {
+	//     var parentForm = window.parent.$(document.xxxForm.parentForm.value);
+	//     parentForm.action = document.xxxForm.backURL.value;
+	//     parentForm.submit();
+	//   }
+	//
+	// Ou seja: o diálogo foi desenhado para rodar como um iframe DENTRO da
+	// própria tela de Ações do Projudi — "window.parent" é essa tela, que
+	// tem um <form> com o id salvo em `parentForm`; ao terminar, ele ajusta
+	// a action desse form pra "backURL" e submete, fazendo a tela de Ações
+	// (o pai de verdade) recarregar/voltar sozinha. Nunca existiu uma
+	// "janela" pra fechar.
+	//
+	// No modo "hop" desta extensão, `window.parent` é a página onde o
+	// popup foi criado (ex.: processo.do) — que não tem esse form
+	// específico —, então aquele `parentForm.submit()` nativo não encontra
+	// nada e não faz efeito nenhum (sem lançar erro, o que explica por que
+	// nunca vimos um "erro não tratado" nos logs). O `flagClosePopup` em si
+	// já é o sinal confiável de "a ação terminou" — em vez de depender do
+	// submit nativo (que mira no lugar errado no nosso caso), lemos esse
+	// campo diretamente e agimos por conta própria: recarrega a aba real
+	// por trás (equivalente ao que o backURL faria) e fecha o popup.
+	function checkFlagClosePopup(win) {
+		let doc;
+		try {
+			doc = win.document;
+		} catch (err) {
+			return;
+		}
+		if (!doc || !doc.forms) return;
+		for (let i = 0; i < doc.forms.length; i++) {
+			const form = doc.forms[i];
+			const flagField = form.elements && form.elements.namedItem ? form.elements.namedItem("flagClosePopup") : null;
+			if (!flagField) continue;
+			const backURLField = form.elements.namedItem("backURL");
+			logChainStep("shim: achado campo flagClosePopup no diálogo", {
+				form: form.name || form.id || "(sem nome)",
+				flagClosePopup: flagField.value,
+				backURL: backURLField ? backURLField.value : null,
+			});
+			if (flagField.value === "true") {
+				logChainStep("shim: flagClosePopup=true — a ação terminou; recarregando a tela e fechando o popup", null);
+				try {
+					window.location.reload();
+				} catch (err) {
+					logChainStep("shim: falhou ao recarregar a tela por trás", String(err));
+				}
+				removeActionModal();
+			}
+			break; // só o 1º form com esse campo importa — mesma suposição do próprio Projudi
+		}
 	}
 
 	function showActionModal(label) {
