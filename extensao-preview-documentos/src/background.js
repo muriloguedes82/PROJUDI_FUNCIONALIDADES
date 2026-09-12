@@ -73,8 +73,31 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 		return true;
 	}
 
+	if (message.type === "certidao-fetch-doc") {
+		fetchDocForCertidao(message.href)
+			.then(function (result) {
+				sendResponse({ ok: true, base64: result.base64, contentType: result.contentType });
+			})
+			.catch(function (err) {
+				sendResponse({ ok: false, error: String((err && err.message) || err) });
+			});
+		return true;
+	}
+
 	return false;
 });
+
+// Baixa o documento (denúncia/aditamento) a partir do service worker, para o
+// recurso de Certidão Explicativa (src/certidaoExplicativa.js) extrair o
+// texto com pdf.js — mesmo motivo dos outros downloads deste arquivo: alguns
+// sistemas (ex.: SEEU) redirecionam para um armazenamento externo (S3) que
+// bloqueia fetch() feito a partir da própria página por CORS.
+async function fetchDocForCertidao(href) {
+	const resp = await fetch(href, { credentials: "include" });
+	if (!resp.ok) throw new Error("Falha ao baixar o documento (HTTP " + resp.status + ").");
+	const buffer = await resp.arrayBuffer();
+	return { base64: bytesToBase64(new Uint8Array(buffer)), contentType: resp.headers.get("content-type") || "application/pdf" };
+}
 
 async function handleShare(message) {
 	if (!message.phone || !Array.isArray(message.docs) || !message.docs.length) {

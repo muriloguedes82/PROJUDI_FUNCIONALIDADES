@@ -223,6 +223,65 @@ Esse modo **não depende de nenhuma configuração de TI**, mas é o modo Graph
 que deve ser preferido sempre que o cadastro no Azure AD for possível, já
 que é o único caminho 100% automático.
 
+## Certidão Explicativa dos Autos
+
+Na tela de Movimentações, um botão flutuante **"📜 Certidão Explicativa"**
+(mesmo canto dos botões de WhatsApp/e-mail/Ações rápidas) monta uma **minuta**
+de certidão narrativa/explicativa (objeto e pé) do processo, no mesmo espírito
+das certidões narratórias do eproc/STJ, mas destacando os eventos mais
+relevantes de um processo criminal:
+
+- Distribuição
+- Denúncia / Aditamento à denúncia
+- Audiências
+- Sentença
+- Acórdão
+- Recursos
+- Trânsito em julgado
+- Arquivamento
+
+### Como usar
+
+1. Clique em **"📜 Certidão Explicativa"** e depois em **"🔍 Coletar desta
+   tela"** — a extensão lê todas as movimentações válidas (não tachadas) já
+   carregadas na tela atual (mesmo padrão de link `a.link[id^="LNKmov"]` usado
+   pelas Ações rápidas), com data, texto completo do evento e os documentos
+   anexados a cada uma.
+2. **Se o processo tiver movimentações em mais de uma aba/grau** (ex.: 1º e
+   2º grau, um apenso com movimentação própria), mude para cada uma dessas
+   telas e clique em "Coletar desta tela" de novo — os eventos vão se
+   somando (mostrados no contador do painel), sem duplicar (cada evento é
+   identificado pelo `id` único que o próprio Projudi já usa).
+3. Clique em **"📄 Gerar minuta da certidão"**. Para cada evento de
+   **denúncia/aditamento** com documento anexado, a extensão baixa o PDF
+   (reaproveitando a sessão logada, do mesmo jeito que os recursos de
+   WhatsApp/e-mail) e usa a biblioteca **pdf.js** (vendorizada em
+   `src/vendor/`, sem sair da máquina do usuário) para extrair o texto do
+   documento e tentar localizar automaticamente:
+   - referências a artigos de lei (capitulação penal — ex.: "art. 33 da Lei
+     nº 11.343/2006"), por expressão regular;
+   - o trecho inicial do documento (onde a denúncia normalmente qualifica o
+     réu/a ré), copiado literalmente para revisão.
+4. O resultado abre em **uma aba nova**, como uma minuta com todo o texto
+   **editável** (clique e digite normalmente) — incluindo os trechos
+   extraídos do PDF, que devem sempre ser revisados/completados manualmente
+   antes de virarem a certidão oficial — e um botão "🖨 Imprimir/Salvar PDF".
+
+### Limitações
+
+- A extração da qualificação/capitulação penal é **heurística**: localiza
+  padrões de texto prováveis (menções a "art. ... da Lei/Código Penal") e
+  mostra o início do documento para revisão, mas não "entende" o conteúdo —
+  sempre confira e complete manualmente antes de expedir a certidão.
+- Só documentos em **PDF** têm o texto extraído automaticamente; outros
+  formatos mostram um aviso pedindo preenchimento manual.
+- A extensão nunca gera nem envia a certidão oficial sozinha — o resultado é
+  sempre uma minuta de apoio, aberta numa aba separada para revisão.
+- A coleta lê apenas o que já está carregado na tela (mesma técnica das
+  Ações rápidas); ela não navega nem clica em nada sozinha além de ler o
+  DOM atual, por isso a necessidade de repetir "Coletar desta tela" em cada
+  aba/grau do processo.
+
 ## Ações rápidas (painel "Ações" do Projudi)
 
 Só no Projudi. A tela de Movimentações tem um painel lateral **Ações** (e

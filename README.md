@@ -23,6 +23,12 @@ uma extensão de navegador que resolve os três casos:
    "Enviar por e-mail", que prepara um rascunho no Outlook institucional já
    com os documentos selecionados anexados, aberto em uma janela pop-up
    menor sobre a tela do Projudi.
+4. Monta uma minuta de **certidão explicativa dos autos**, destacando
+   denúncia, aditamento, audiências, sentença, acórdão, trânsito em julgado
+   e arquivamento — inclusive tentando extrair automaticamente do PDF da
+   denúncia/aditamento a qualificação do(a) denunciado(a) e a capitulação
+   penal, sempre editável antes de virar a certidão oficial. Veja a seção
+   "Certidão Explicativa dos Autos" no README da pasta.
 
 Veja o README da pasta para detalhes de funcionamento, instalação e
 configuração.
