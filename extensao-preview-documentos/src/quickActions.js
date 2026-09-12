@@ -94,15 +94,13 @@
 	// se sobrepor (mesma técnica usada entre WhatsApp e e-mail).
 	const OTHER_BUTTON_SELECTOR = "#pdp-wa-launcher, .pdp-email-visible";
 	const PREFERENCES_KEY = "pdpActionPreferences"; // { [actionLabel]: [{id, name, fields, createdAt}] }
-	const DIALOG_WAIT_TIMEOUT_MS = 6000;
-	const DIALOG_WAIT_INTERVAL_MS = 150;
 	const SUBMIT_LABEL_CANDIDATES = ["confirmar", "enviar", "salvar", "ok", "concluir", "sim", "gravar", "executar", "confirma"];
 
 	let row = null;
+	let prefsRow = null;
 	let activePanel = null;
 	let activeGroupId = null;
 	let processScreenEligible = false;
-	let captureToolbar = null;
 	let confirmBar = null;
 
 	// -------------------------------------------------------------------
@@ -511,44 +509,15 @@
 	}
 
 	// -------------------------------------------------------------------
-	// Overlay de carregamento — mostrado só durante a resolução em segundo
-	// plano (fetches), tipicamente menos de 1-2s. A tela principal nunca
-	// navega, então isso é só um indicador de "aguarde", não uma cortina
-	// para esconder telas piscando como numa versão anterior.
-	// -------------------------------------------------------------------
-
-	const LOADING_OVERLAY_ID = "pdp-qa-loading-overlay";
-
-	function showLoadingOverlay(label, onCancel) {
-		removeLoadingOverlay();
-		const overlay = document.createElement("div");
-		overlay.id = LOADING_OVERLAY_ID;
-		overlay.className = "pdp-qa-loading-overlay";
-		overlay.innerHTML =
-			'<div class="pdp-qa-loading-box">' +
-			'<div class="pdp-qa-loading-spinner"></div>' +
-			'<div class="pdp-qa-loading-text">Abrindo "' +
-			escapeHtml(label) +
-			'"…</div>' +
-			'<button type="button" class="pdp-qa-loading-cancel">Cancelar</button>' +
-			"</div>";
-		document.body.appendChild(overlay);
-		overlay.querySelector(".pdp-qa-loading-cancel").addEventListener("click", function () {
-			removeLoadingOverlay();
-			if (onCancel) onCancel();
-		});
-	}
-
-	function removeLoadingOverlay() {
-		const el = document.getElementById(LOADING_OVERLAY_ID);
-		if (el) el.remove();
-	}
-
-	// -------------------------------------------------------------------
-	// Popup com o diálogo final — um iframe visível apontando direto para
-	// a URL resolvida por resolveDialogUrl, sobreposto à tela atual (que
-	// nunca navega). Mesma origem do Projudi, então dá para ler/preencher
-	// o formulário dentro do iframe (iframe.contentDocument) sem CORS.
+	// Popup com o diálogo final — aparece imediatamente ao clicar (com um
+	// spinner no lugar do iframe até haver algo para mostrar), e some só
+	// quando o usuário fecha ("✕ Fechar"). Traz também "💾 Salvar como
+	// preferência" no próprio cabeçalho — funciona a qualquer momento
+	// enquanto o popup estiver aberto, então não é mais preciso escolher
+	// "vou salvar uma preferência" antes de abrir a ação: abre normalmente
+	// e, se quiser guardar o preenchimento, clica nesse botão quando
+	// quiser. Mesma origem do Projudi, então dá para ler/preencher o
+	// formulário dentro do iframe (iframe.contentDocument) sem CORS.
 	// -------------------------------------------------------------------
 
 	const MODAL_ID = "pdp-qa-modal";
@@ -560,40 +529,82 @@
 		backdrop.className = "pdp-qa-modal-backdrop";
 		backdrop.innerHTML =
 			'<div class="pdp-qa-modal-box">' +
-			'<div class="pdp-qa-modal-header"><span>' +
+			'<div class="pdp-qa-modal-header">' +
+			"<span>" +
 			escapeHtml(label) +
-			'</span><button type="button" class="pdp-qa-modal-close">✕ Fechar</button></div>' +
-			'<div class="pdp-qa-modal-body"><iframe class="pdp-qa-modal-iframe"></iframe></div>' +
+			"</span>" +
+			'<span class="pdp-qa-modal-header-actions">' +
+			'<button type="button" class="pdp-qa-modal-save">💾 Salvar como preferência</button>' +
+			'<button type="button" class="pdp-qa-modal-close">✕ Fechar</button>' +
+			"</span>" +
+			"</div>" +
+			'<div class="pdp-qa-modal-body">' +
+			'<div class="pdp-qa-modal-spinner"><div class="pdp-qa-loading-spinner"></div></div>' +
+			'<iframe class="pdp-qa-modal-iframe"></iframe>' +
+			"</div>" +
 			"</div>";
 		document.body.appendChild(backdrop);
+
+		const iframe = backdrop.querySelector(".pdp-qa-modal-iframe");
+		const spinner = backdrop.querySelector(".pdp-qa-modal-spinner");
+		iframe.addEventListener("load", function () {
+			spinner.hidden = true;
+		});
+
 		backdrop.querySelector(".pdp-qa-modal-close").addEventListener("click", removeActionModal);
-		return backdrop.querySelector(".pdp-qa-modal-iframe");
+		backdrop.querySelector(".pdp-qa-modal-save").addEventListener("click", function () {
+			let doc;
+			try {
+				doc = iframe.contentDocument;
+			} catch (err) {
+				alert("Não consegui acessar o conteúdo do diálogo para capturar.");
+				return;
+			}
+			const form = doc && findLikelyDialogFormIn(doc);
+			if (!form) {
+				alert('Não encontrei o formulário do diálogo "' + label + '" para capturar. Ele ainda está carregando ou aberto?');
+				return;
+			}
+			const name = prompt('Nome para esta preferência de "' + label + '":', "");
+			if (!name) return;
+			const fields = captureFormFields(form);
+			addPreference(label, name.trim(), fields).then(function () {
+				refreshPrefsRow();
+				alert('Preferência "' + name.trim() + '" salva para "' + label + '". Você ainda pode revisar e enviar este formulário normalmente.');
+			});
+		});
+
+		return iframe;
+	}
+
+	function showModalError(message) {
+		const backdrop = document.getElementById(MODAL_ID);
+		if (!backdrop) return;
+		const body = backdrop.querySelector(".pdp-qa-modal-body");
+		if (body) body.innerHTML = '<div class="pdp-qa-modal-error">' + escapeHtml(message) + "</div>";
 	}
 
 	function removeActionModal() {
 		const el = document.getElementById(MODAL_ID);
 		if (el) el.remove();
 		removeConfirmBar();
-		removeCaptureToolbar();
 	}
 
-	function alertChainFailure(label, result) {
+	function buildChainFailureMessage(label, result) {
 		const tried = (result && result.tried) || 0;
-		alert(
-			tried
-				? "Tentei " +
-						tried +
-						' movimentação(ões) recente(s) do processo e nenhuma levou à ação "' +
-						label +
-						'"' +
-						(result.screenTitle ? ' (cheguei em telas como "' + result.screenTitle + '")' : "") +
-						". Abra manualmente uma movimentação mais antiga (um despacho/decisão costuma funcionar) e use \"Abrir\" a partir da tela de Ações."
-				: 'Não consegui localizar a ação "' +
-						label +
-						'" automaticamente' +
-						(result && result.screenTitle ? ' (cheguei na tela "' + result.screenTitle + '")' : "") +
-						". Abra manualmente a partir da aba Movimentações."
-		);
+		return tried
+			? "Tentei " +
+					tried +
+					' movimentação(ões) recente(s) do processo e nenhuma levou à ação "' +
+					label +
+					'"' +
+					(result.screenTitle ? ' (cheguei em telas como "' + result.screenTitle + '")' : "") +
+					". Abra manualmente uma movimentação mais antiga (um despacho/decisão costuma funcionar) e use \"Abrir\" a partir da tela de Ações."
+			: 'Não consegui localizar a ação "' +
+					label +
+					'" automaticamente' +
+					(result && result.screenTitle ? ' (cheguei na tela "' + result.screenTitle + '")' : "") +
+					". Abra manualmente a partir da aba Movimentações.";
 	}
 
 	// -------------------------------------------------------------------
@@ -663,9 +674,6 @@
 		}
 		return null;
 	}
-	function findLikelyDialogForm() {
-		return findLikelyDialogFormIn(document);
-	}
 
 	function findFormContainingFieldNamesIn(root, names) {
 		const forms = root.querySelectorAll("form");
@@ -678,9 +686,6 @@
 			if (hasAny) return form;
 		}
 		return null;
-	}
-	function findFormContainingFieldNames(names) {
-		return findFormContainingFieldNamesIn(document, names);
 	}
 
 	function cssEscapeAttr(value) {
@@ -739,63 +744,6 @@
 		return submits.length ? submits[submits.length - 1] : null;
 	}
 
-	function waitForFormWithFieldNames(names, callback) {
-		const start = Date.now();
-		const iv = setInterval(function () {
-			const form = findFormContainingFieldNames(names);
-			if (form) {
-				clearInterval(iv);
-				callback(form);
-			} else if (Date.now() - start > DIALOG_WAIT_TIMEOUT_MS) {
-				clearInterval(iv);
-				callback(null);
-			}
-		}, DIALOG_WAIT_INTERVAL_MS);
-	}
-
-	// -------------------------------------------------------------------
-	// Barra flutuante de captura ("+ Nova preferência")
-	// -------------------------------------------------------------------
-
-	function removeCaptureToolbar() {
-		if (captureToolbar) {
-			captureToolbar.remove();
-			captureToolbar = null;
-		}
-	}
-
-	// `doc` é o documento onde o diálogo está: `document` de verdade no
-	// modo "ready" (diálogo nativo aberto na própria tela de Ações), ou
-	// `iframe.contentDocument` no modo "hop" (diálogo dentro do popup
-	// desta extensão — ver showActionModal). Por padrão usa `document`.
-	function showCaptureToolbar(label, doc) {
-		doc = doc || document;
-		removeCaptureToolbar();
-		captureToolbar = document.createElement("div");
-		captureToolbar.className = "pdp-qa-capture-bar";
-		captureToolbar.innerHTML =
-			'<span>Preencha o diálogo acima normalmente e depois:</span>' +
-			'<button type="button" class="pdp-qa-capture-save">💾 Salvar como preferência</button>' +
-			'<button type="button" class="pdp-qa-capture-cancel">Cancelar</button>';
-		document.body.appendChild(captureToolbar);
-
-		captureToolbar.querySelector(".pdp-qa-capture-cancel").addEventListener("click", removeCaptureToolbar);
-		captureToolbar.querySelector(".pdp-qa-capture-save").addEventListener("click", function () {
-			const form = findLikelyDialogFormIn(doc);
-			if (!form) {
-				alert('Não encontrei o formulário do diálogo "' + label + '" para capturar. Ele ainda está aberto na tela?');
-				return;
-			}
-			const name = prompt('Nome para esta preferência de "' + label + '":', "");
-			if (!name) return;
-			const fields = captureFormFields(form);
-			addPreference(label, name.trim(), fields).then(function () {
-				removeCaptureToolbar();
-				alert('Preferência "' + name.trim() + '" salva para "' + label + '". Você ainda pode revisar e enviar este formulário normalmente.');
-			});
-		});
-	}
-
 	// -------------------------------------------------------------------
 	// Barra flutuante de confirmação (aplicar preferência)
 	// -------------------------------------------------------------------
@@ -837,136 +785,110 @@
 
 	// -------------------------------------------------------------------
 	// Ações dos itens do painel
+	//
+	// "ready" (já na tela de Ações) e "hop" (em qualquer outra tela com a
+	// lista de Movimentações visível) convergem quase totalmente: a única
+	// diferença é como se obtém a URL do diálogo — direto do link nativo
+	// já na página ("ready") ou resolvendo em segundo plano com
+	// resolveDialogUrl ("hop"). Em ambos os casos, o popup (showActionModal)
+	// aparece imediatamente, com um spinner até a URL carregar dentro dele.
 	// -------------------------------------------------------------------
 
-	function openActionDialog(label) {
+	// Extrai a URL do diálogo direto do link já presente na página atual
+	// (só funciona no modo "ready" — quando já se está na tela de Ações).
+	function getDialogUrlFromLiveLink(label) {
 		const link = findActionLink(label);
-		if (!link) {
-			alert('Não foi possível localizar a ação "' + label + '" na tela atual.');
-			return;
-		}
-		link.click();
+		if (!link) return { link: null, url: null };
+		return { link: link, url: extractUrlFromOnclick(link.getAttribute("onclick"), window.location.href) };
 	}
 
-	function startNewPreferenceCapture(label) {
+	function wireApplyPreferenceOnLoad(iframe, label, pref) {
+		iframe.addEventListener(
+			"load",
+			function () {
+				let doc;
+				try {
+					doc = iframe.contentDocument;
+				} catch (err) {
+					alert("Não consegui acessar o conteúdo do diálogo carregado.");
+					return;
+				}
+				const fieldNames = pref.fields.map(function (f) {
+					return f.name;
+				});
+				const form = findFormContainingFieldNamesIn(doc, fieldNames) || findLikelyDialogFormIn(doc);
+				if (!form) {
+					alert('Carreguei "' + label + '", mas não encontrei o formulário para preencher automaticamente. Preencha manualmente.');
+					return;
+				}
+				applyFormFields(form, pref.fields);
+				showConfirmBar(label, pref, form);
+			},
+			{ once: true }
+		);
+	}
+
+	function openActionDialog(label) {
 		closePanel();
-		removeConfirmBar();
-		const link = findActionLink(label);
-		if (!link) {
+		const found = getDialogUrlFromLiveLink(label);
+		if (!found.link) {
 			alert('Não foi possível localizar a ação "' + label + '" na tela atual.');
 			return;
 		}
-		link.click();
-		setTimeout(function () {
-			showCaptureToolbar(label);
-		}, 400);
+		if (!found.url) {
+			// Algumas ações (ex.: avisos de restrição) não abrem um diálogo de
+			// verdade, só mostram um alerta — nesse caso o comportamento
+			// nativo do link já é o esperado, sem popup.
+			found.link.click();
+			return;
+		}
+		showActionModal(label).src = found.url;
 	}
 
 	function applyPreference(label, pref) {
 		closePanel();
-		removeCaptureToolbar();
-		const link = findActionLink(label);
-		if (!link) {
+		removeConfirmBar();
+		const found = getDialogUrlFromLiveLink(label);
+		if (!found.link || !found.url) {
 			alert('Não foi possível localizar a ação "' + label + '" na tela atual.');
 			return;
 		}
-		const fieldNames = pref.fields.map(function (f) {
-			return f.name;
-		});
-		link.click();
-		waitForFormWithFieldNames(fieldNames, function (form) {
-			if (!form) {
-				alert('A janela de "' + label + '" não apareceu a tempo (ou os campos mudaram). Preencha manualmente desta vez.');
-				return;
-			}
-			applyFormFields(form, pref.fields);
-			showConfirmBar(label, pref, form);
-		});
+		const iframe = showActionModal(label);
+		wireApplyPreferenceOnLoad(iframe, label, pref);
+		iframe.src = found.url;
 	}
 
 	// -------------------------------------------------------------------
-	// Versões "hop" das três ações acima — usadas quando a tela atual
-	// ainda não é a de Ações (ver resolveDialogUrl). Resolvem a URL do
-	// diálogo em segundo plano e mostram só ela, num popup desta extensão
-	// (showActionModal), sem navegar a aba visível em nenhum momento.
+	// Versões "hop" das duas ações acima — usadas quando a tela atual
+	// ainda não é a de Ações (ver resolveDialogUrl). O popup já abre na
+	// hora (com um spinner), e a URL do diálogo é resolvida em segundo
+	// plano e só então carregada nele — a aba visível nunca navega.
 	// -------------------------------------------------------------------
 
 	function openActionDialogViaChain(label) {
-		const cancelToken = { cancelled: false };
-		showLoadingOverlay(label, function () {
-			cancelToken.cancelled = true;
-		});
+		closePanel();
+		const iframe = showActionModal(label);
 		resolveDialogUrl(label).then(function (result) {
-			removeLoadingOverlay();
-			if (cancelToken.cancelled) return;
+			if (!document.getElementById(MODAL_ID)) return; // usuário fechou o popup enquanto resolvia
 			if (result.failed) {
-				alertChainFailure(label, result);
+				showModalError(buildChainFailureMessage(label, result));
 				return;
 			}
-			showActionModal(label).src = result.url;
-		});
-	}
-
-	function startNewPreferenceCaptureViaChain(label) {
-		const cancelToken = { cancelled: false };
-		showLoadingOverlay(label, function () {
-			cancelToken.cancelled = true;
-		});
-		resolveDialogUrl(label).then(function (result) {
-			removeLoadingOverlay();
-			if (cancelToken.cancelled) return;
-			if (result.failed) {
-				alertChainFailure(label, result);
-				return;
-			}
-			const iframe = showActionModal(label);
-			iframe.addEventListener(
-				"load",
-				function () {
-					showCaptureToolbar(label, iframe.contentDocument);
-				},
-				{ once: true }
-			);
 			iframe.src = result.url;
 		});
 	}
 
 	function applyPreferenceViaChain(label, pref) {
-		const cancelToken = { cancelled: false };
-		showLoadingOverlay(label, function () {
-			cancelToken.cancelled = true;
-		});
+		closePanel();
+		removeConfirmBar();
+		const iframe = showActionModal(label);
 		resolveDialogUrl(label).then(function (result) {
-			removeLoadingOverlay();
-			if (cancelToken.cancelled) return;
+			if (!document.getElementById(MODAL_ID)) return;
 			if (result.failed) {
-				alertChainFailure(label, result);
+				showModalError(buildChainFailureMessage(label, result));
 				return;
 			}
-			const iframe = showActionModal(label);
-			iframe.addEventListener(
-				"load",
-				function () {
-					let doc;
-					try {
-						doc = iframe.contentDocument;
-					} catch (err) {
-						alert("Não consegui acessar o conteúdo do diálogo carregado.");
-						return;
-					}
-					const fieldNames = pref.fields.map(function (f) {
-						return f.name;
-					});
-					const form = findFormContainingFieldNamesIn(doc, fieldNames) || findLikelyDialogFormIn(doc);
-					if (!form) {
-						alert('Carreguei "' + label + '", mas não encontrei o formulário para preencher automaticamente. Preencha manualmente.');
-						return;
-					}
-					applyFormFields(form, pref.fields);
-					showConfirmBar(label, pref, form);
-				},
-				{ once: true }
-			);
+			wireApplyPreferenceOnLoad(iframe, label, pref);
 			iframe.src = result.url;
 		});
 	}
@@ -997,6 +919,54 @@
 		});
 
 		document.body.appendChild(row);
+	}
+
+	// Segunda fileira, logo abaixo da de grupos, com um botão por
+	// preferência salva (de qualquer ação) — clicar direto já preenche e
+	// pede a confirmação única de sempre, sem precisar abrir o painel do
+	// grupo primeiro.
+	function ensurePrefsRow() {
+		if (prefsRow && prefsRow.isConnected) return;
+		prefsRow = document.createElement("div");
+		prefsRow.id = "pdp-qa-prefs-row";
+		prefsRow.className = "pdp-qa-row pdp-qa-prefs-row";
+		prefsRow.hidden = true;
+		document.body.appendChild(prefsRow);
+	}
+
+	// Decide, para uma ação específica, se dá para executá-la "ready" (já
+	// na tela de Ações, com o link existindo para este processo agora) ou
+	// "hop" (em qualquer outra tela com a lista de Movimentações), ou não
+	// dá pra decidir daqui (null) — mesmos critérios usados em buildPanel.
+	function computeActionMode(label) {
+		if (isOnAcoesScreen()) return findActionLink(label) ? "ready" : null;
+		if (findMovimentarButton() || findLatestValidEventLink()) return "hop";
+		return null;
+	}
+
+	function refreshPrefsRow() {
+		loadAllPreferences().then(function (all) {
+			ensurePrefsRow();
+			prefsRow.innerHTML = "";
+			Object.keys(all).forEach(function (label) {
+				(all[label] || []).forEach(function (pref) {
+					const btn = document.createElement("button");
+					btn.type = "button";
+					btn.className = "pdp-qa-quickpref-btn";
+					btn.innerHTML = '<span class="pdp-qa-icon">★</span><span>' + escapeHtml(label) + ": " + escapeHtml(pref.name) + "</span>";
+					btn.title = 'Preenche automaticamente e pede 1 confirmação para executar "' + label + '"';
+					btn.addEventListener("click", function () {
+						const mode = computeActionMode(label);
+						if (mode === "ready") applyPreference(label, pref);
+						else if (mode === "hop") applyPreferenceViaChain(label, pref);
+						else alert('Abra a aba "Movimentações" do processo para usar a preferência "' + pref.name + '".');
+					});
+					prefsRow.appendChild(btn);
+				});
+			});
+			prefsRow.hidden = !prefsRow.children.length;
+			repositionRow();
+		});
 	}
 
 	function closePanel() {
@@ -1145,20 +1115,10 @@
 		prefsWrap.dataset.actionLabel = label;
 		actionRow.appendChild(prefsWrap);
 
-		const newPrefBtn = document.createElement("button");
-		newPrefBtn.type = "button";
-		newPrefBtn.className = "pdp-qa-pref-new";
-		newPrefBtn.textContent = "+ Nova preferência";
-		newPrefBtn.title = "Abre o diálogo para você preencher e salvar o preenchimento como preferência";
-		newPrefBtn.addEventListener("click", function () {
-			closePanel();
-			if (mode === "hop") {
-				startNewPreferenceCaptureViaChain(label);
-			} else {
-				startNewPreferenceCapture(label);
-			}
-		});
-		actionRow.appendChild(newPrefBtn);
+		const hint = document.createElement("div");
+		hint.className = "pdp-qa-action-hint";
+		hint.textContent = 'Dica: dentro do popup tem "💾 Salvar como preferência".';
+		actionRow.appendChild(hint);
 
 		return actionRow;
 	}
@@ -1195,6 +1155,7 @@
 			delBtn.addEventListener("click", function () {
 				if (!confirm('Remover a preferência "' + pref.name + '" de "' + label + '"?')) return;
 				removePreference(label, pref.id).then(function () {
+					refreshPrefsRow();
 					return loadPreferencesFor(label);
 				}).then(function (updated) {
 					renderPreferences(label, updated, mode);
@@ -1228,6 +1189,17 @@
 		activePanel.style.right = Math.max(BUTTON_SCREEN_MARGIN, Math.round(right)) + "px";
 	}
 
+	// Posiciona `prefsRow` logo abaixo de `row` (mesmo `right`, `bottom`
+	// menor pelo tanto necessário para não sobrepor) — só se ela existir e
+	// tiver algum botão (ver refreshPrefsRow).
+	function positionPrefsRowBelow(rowBottom, right) {
+		if (!prefsRow || prefsRow.hidden) return;
+		const gap = 6;
+		const rowHeight = row.offsetHeight || 32;
+		prefsRow.style.bottom = Math.max(BUTTON_SCREEN_MARGIN, Math.round(rowBottom - rowHeight - gap)) + "px";
+		prefsRow.style.right = right;
+	}
+
 	function repositionRow() {
 		if (!row) return;
 
@@ -1246,8 +1218,11 @@
 			const groupCenter = (minTop + maxBottom) / 2;
 			const rowHeight = row.offsetHeight || 32;
 			const bottom = window.innerHeight - groupCenter - rowHeight / 2;
-			row.style.bottom = Math.max(BUTTON_SCREEN_MARGIN, Math.round(bottom)) + "px";
-			row.style.right = Math.round(window.innerWidth - minLeft + 8) + "px";
+			const clampedBottom = Math.max(BUTTON_SCREEN_MARGIN, Math.round(bottom));
+			const right = Math.round(window.innerWidth - minLeft + 8) + "px";
+			row.style.bottom = clampedBottom + "px";
+			row.style.right = right;
+			positionPrefsRowBelow(clampedBottom, right);
 			if (activeGroupId) positionPanel(activeGroupId);
 			return;
 		}
@@ -1265,6 +1240,7 @@
 		}
 		row.style.bottom = bottom + "px";
 		row.style.right = BUTTON_SCREEN_MARGIN + "px";
+		positionPrefsRowBelow(bottom, BUTTON_SCREEN_MARGIN + "px");
 		if (activeGroupId) positionPanel(activeGroupId);
 	}
 
@@ -1280,6 +1256,9 @@
 		try {
 			if (!isElementUsable(row)) {
 				ensureRow();
+				if (row) refreshPrefsRow(); // recém-criada (ou recriada após troca de aba): repopula
+			} else if (!isElementUsable(prefsRow)) {
+				refreshPrefsRow(); // sobrevive à troca de aba, mas pode ter sido desconectada
 			}
 			if (activePanel && !activePanel.isConnected) {
 				activePanel = null;

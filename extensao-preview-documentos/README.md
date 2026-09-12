@@ -234,7 +234,9 @@ desejada.
 A extensão adiciona **um botão flutuante por grupo de ações** — Concluso,
 Remessa, Ordenações, Partes, Outras — lado a lado, no mesmo canto da tela
 dos botões de WhatsApp/e-mail (posicionando-se ao lado deles quando
-presentes):
+presentes). Se houver alguma preferência salva (ver "Preferências"
+abaixo), uma **segunda fileira** aparece logo abaixo, com um botão por
+preferência — direto ao ponto, sem precisar abrir o painel do grupo:
 
 - **Concluso**: Enviar Concluso
 - **Remessa**: Realizar Remessa, Remessa Eletrônica para o Tribunal de
@@ -293,15 +295,20 @@ painel depende de qual tela do processo você está vendo, já que o painel
   passos 1-3 só leem páginas dentro do iframe oculto, sem exibi-las ao
   usuário nem enviar nada ao Projudi além do carregamento de leitura
   normal (o mesmo que aconteceria navegando manualmente); o popup do
-  passo 4 abre o
-  diálogo nativo em branco (com "Abrir"/"Ir e abrir") ou repreenche uma
-  preferência salva e pede a confirmação única de sempre antes de clicar
-  em confirmar/enviar (ver "Preferências" abaixo) — nunca confirma
-  sozinha. Enquanto os passos 1-3 acontecem (tipicamente menos de 1-2s), um
-  pequeno indicador "Abrindo '...'…" aparece, com um botão "Cancelar".
+  passo 4 abre o popup **imediatamente**, com um spinner no lugar do
+  conteúdo até a URL ficar pronta e o iframe carregar — sem nenhum aviso
+  de tela cheia antes.
 - **Se não houver lista de Movimentações na tela atual** (ex.: você está
   numa aba diferente do processo, como Partes e Outros): o painel avisa
   para abrir a aba "Movimentações" primeiro.
+
+**Nada disso pratica qualquer ato processual por conta própria** — os
+passos 1-3 só leem páginas dentro do iframe oculto, sem exibi-las ao
+usuário nem enviar nada ao Projudi além do carregamento de leitura normal;
+o popup do passo 4 abre o diálogo nativo em branco (com "Abrir"/"Ir e
+abrir") ou repreenche uma preferência salva e pede a confirmação única de
+sempre antes de clicar em confirmar/enviar (ver "Preferências" abaixo) —
+nunca confirma sozinha.
 
 **Atenção a um detalhe já corrigido, mas que vale registrar:** o Projudi
 reaproveita o mesmo `id`/`name` (`movimentarButton`) para vários botões de
@@ -316,48 +323,49 @@ Desta Movimentação" **só pelo texto**, nunca por id/name.
 Além de abrir o diálogo em branco, é possível salvar o preenchimento de um
 diálogo como **preferência** e reaplicá-lo depois com poucos cliques:
 
-1. Clique em **"+ Nova preferência"** na ação desejada — isso abre o
-   diálogo normal do Projudi (igual ao botão "Abrir").
+1. Clique em **"Abrir"**/**"Ir e abrir"** na ação desejada, como faria
+   normalmente — o popup aparece com o diálogo nativo do Projudi dentro.
 2. Preencha o diálogo como faria manualmente (destinatário, tipo de
    ordem, texto, etc.).
-3. Com o diálogo ainda aberto, clique em **"💾 Salvar como preferência"**
-   (uma barra aparece no topo da tela) e dê um nome a ela — ex.: "Intimar
-   assistente social padrão". Nada é enviado ao Projudi nesse passo: você
-   ainda decide se confirma o formulário manualmente, como sempre.
-4. Da próxima vez, clique na preferência salva (aparece como um chip
-   **"★ nome-da-preferência"** abaixo da ação, com um 🗑 para remover) — a
-   extensão abre o mesmo diálogo, repreenche os mesmos campos
-   automaticamente e mostra uma barra de confirmação única, do tipo
-   `Confirmar "Enviar Concluso" com a preferência "..."? [✅ Sim, executar]
-   [Cancelar]`. Só ao clicar em **"✅ Sim, executar"** a extensão clica no
-   botão de confirmar/enviar do próprio Projudi — **esse é o passo que
-   efetivamente realiza a ação processual**, então confira os campos
-   preenchidos antes de confirmar.
+3. Com o popup ainda aberto, clique em **"💾 Salvar como preferência"**
+   (fica no próprio cabeçalho do popup, ao lado de "✕ Fechar") e dê um
+   nome a ela — ex.: "Intimar assistente social padrão". Nada é enviado ao
+   Projudi nesse passo: você ainda decide se confirma o formulário
+   manualmente, como sempre, dentro do próprio popup.
+4. Da próxima vez, clique na preferência salva:
+   - **Dentro do painel do grupo**, aparece como um chip
+     **"★ nome-da-preferência"** abaixo da ação (com um 🗑 para remover);
+   - **Ou direto**, sem abrir painel nenhum: toda preferência salva também
+     ganha um botão próprio numa **segunda fileira**, logo abaixo dos
+     botões de grupo (Concluso/Remessa/Ordenações/Partes/Outras) — ex.:
+     "★ Enviar Concluso: Decisão padrão".
 
-As preferências (e o "+ Nova preferência") também funcionam a partir de
-qualquer tela com a lista de Movimentações visível: nesse caso elas
-primeiro resolvem a URL do diálogo em segundo plano (ver acima) e só
-então abrem o popup já preenchido/com a confirmação.
+   De qualquer um dos dois jeitos, a extensão abre o popup com o mesmo
+   diálogo, repreenche os mesmos campos automaticamente e mostra uma barra
+   de confirmação única, do tipo `Confirmar "Enviar Concluso" com a
+   preferência "..."? [✅ Sim, executar] [Cancelar]`. Só ao clicar em
+   **"✅ Sim, executar"** a extensão clica no botão de confirmar/enviar do
+   próprio Projudi — **esse é o passo que efetivamente realiza a ação
+   processual**, então confira os campos preenchidos antes de confirmar.
 
 **Como funciona por baixo dos panos e suas limitações:** já que a extensão
 não tem acesso ao código-fonte desses diálogos, a localização do
-formulário (dentro do popup, ou da própria página quando já se está na
-tela de Ações) é **heurística**: ao salvar, ela usa o último
-`<form>` visível da página com campos preenchíveis; ao aplicar uma
-preferência, ela procura o `<form>` visível mais recente que contenha
-algum campo com o mesmo nome do que foi salvo, e para confirmar procura um
-botão cujo texto seja algo como "Confirmar", "Enviar", "Salvar", "OK" etc.
-Campos ocultos (tokens de sessão, `_tj=...`) nunca são capturados nem
-reescritos. Isso deve funcionar bem na maioria dos diálogos, mas **não foi
-validado ao vivo no Projudi** (só a partir dos HTMLs estáticos das telas)
-— sempre confira visualmente os campos preenchidos antes de clicar em
-"Sim, executar", e se algo não funcionar como esperado, use "Abrir" e
-preencha manualmente dessa vez.
+formulário dentro do popup é **heurística**: ao salvar, ela usa o último
+`<form>` visível com campos preenchíveis; ao aplicar uma preferência, ela
+procura o `<form>` visível mais recente que contenha algum campo com o
+mesmo nome do que foi salvo, e para confirmar procura um botão cujo texto
+seja algo como "Confirmar", "Enviar", "Salvar", "OK" etc. Campos ocultos
+(tokens de sessão, `_tj=...`) nunca são capturados nem reescritos. Isso
+deve funcionar bem na maioria dos diálogos, mas **não foi validado em
+todos os tipos de ação** — sempre confira visualmente os campos
+preenchidos antes de clicar em "Sim, executar", e se algo não funcionar
+como esperado, preencha manualmente dessa vez.
 
 As preferências ficam em `chrome.storage.local` (armazenamento local da
 própria extensão, não enviado a nenhum servidor), organizadas por ação —
 ex.: as preferências de "Ordenar Cumprimentos" não aparecem em "Ordenar
-RPV".
+RPV", mas a segunda fileira de botões junta as de todas as ações num só
+lugar.
 
 ## Como funciona
 
