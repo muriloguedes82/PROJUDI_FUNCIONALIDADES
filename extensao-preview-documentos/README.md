@@ -1,7 +1,7 @@
 # Projudi/SEEU - Documentos: Pré-visualização, WhatsApp e E-mail
 
-Extensão de navegador (Chrome/Edge, Manifest V3) que resolve três problemas
-do dia a dia no Projudi (TJPR) e no SEEU — os dois usam o mesmo padrão de
+Extensão de navegador (Chrome/Edge, Manifest V3) que resolve problemas do
+dia a dia no Projudi (TJPR) e no SEEU — os dois usam o mesmo padrão de
 link de documento (`<a class="link" href=".../arquivo.do?...">`), então a
 extensão funciona da mesma forma nos dois sistemas:
 
@@ -14,7 +14,11 @@ extensão funciona da mesma forma nos dois sistemas:
    Web" abaixo);
 3. para enviar um ou mais documentos do processo por e-mail, é preciso
    baixar cada arquivo manualmente e anexá-los um a um no Outlook (veja
-   "Envio por E-mail (Outlook)" abaixo).
+   "Envio por E-mail (Outlook)" abaixo);
+4. no Projudi, o painel lateral **Ações** (Intimar Partes, Ordenar
+   Cumprimentos, Realizar Remessa, Enviar Concluso, Apensar, etc.) fica
+   comprido e é preciso rolar a tela para achar a ação desejada (veja
+   "Ações rápidas" abaixo).
 
 ## Pré-visualização de Documentos
 
@@ -218,6 +222,142 @@ sem garantia de funcionar.
 Esse modo **não depende de nenhuma configuração de TI**, mas é o modo Graph
 que deve ser preferido sempre que o cadastro no Azure AD for possível, já
 que é o único caminho 100% automático.
+
+## Ações rápidas (painel "Ações" do Projudi)
+
+Só no Projudi. A tela de Movimentações tem um painel lateral **Ações** (e
+um segundo bloco **Outras Ações** logo abaixo) com uma lista comprida de
+links — Intimar Partes, Ordenar Cumprimentos, Realizar Remessa, Enviar
+Concluso, Apensar, etc. — que obriga a rolar a página até achar a ação
+desejada.
+
+A extensão adiciona **um botão flutuante por grupo de ações** — Concluso,
+Remessa, Ordenações, Partes, Outras — lado a lado, no mesmo canto da tela
+dos botões de WhatsApp/e-mail (posicionando-se ao lado deles quando
+presentes):
+
+- **Concluso**: Enviar Concluso
+- **Remessa**: Realizar Remessa, Remessa Eletrônica para o Tribunal de
+  Justiça
+- **Ordenações**: Ordenar Cumprimentos, Ordenar RPV, Ordenar Expedição
+  BNMP
+- **Partes**: Intimar Partes, Notificar Partes, Citar Partes, Intimar
+  Peritos e Auxiliares da Justiça
+- **Outras**: Interromper Prazo, Suspender ou Sobrestar Processo,
+  Transitar em Julgado, Declínio de competência para a Segunda Instância,
+  Arquivar Processo, Apensar, Desapensar
+
+Cada botão abre um painel com as ações daquele grupo — o conteúdo do
+painel depende de qual tela do processo você está vendo, já que o painel
+"Ações" do Projudi só existe numa tela específica:
+
+- **Na tela com o painel "Ações"**: o painel mostra só as ações que
+  existirem no processo agora (ex.: se já estiver apensado, só
+  "Desapensar" aparece, não "Apensar"); se nenhuma ação do grupo existir
+  para este processo, uma mensagem avisa. Clicar em **"Abrir"** localiza o
+  link nativo correspondente já presente na página (mesmo texto, mesmo
+  elemento `<a class="link">`, com o `onclick` que o próprio Projudi já
+  definiu) e simula um clique nele — o mesmo diálogo (`openDialog`/
+  `openDialogMaximized`) que apareceria clicando diretamente no painel
+  "Ações" aparece normalmente ali mesmo, sobreposto à tela.
+- **Em qualquer outra tela do processo que tenha a lista de Movimentações
+  visível** (a capa do processo, a lista de eventos, ou a tela
+  intermediária de detalhe de uma movimentação): o painel mostra todas as
+  ações do grupo, cada uma com um botão **"Ir e abrir"**. Ao clicar, a
+  extensão **não navega a tela visível em nenhum momento** — em vez
+  disso, ela carrega as mesmas telas que você navegaria manualmente num
+  **iframe oculto** (fora da área visível da tela, mas uma navegação de
+  verdade — testes mostraram que o Projudi devolve as telas sem os botões
+  de ação quando a requisição não "parece" uma navegação de aba real, daí
+  não dar para usar `fetch()` puro), só para descobrir a URL real do
+  diálogo final:
+  1. Carrega a lista de Movimentações (se ainda não estiver na tela de
+     detalhe de uma movimentação) e acha o **evento mais recente e
+     válido** (não tachado) da coluna "Evento" — identificado pelo
+     próprio Projudi de forma estável (`id="LNKmov..."` nos válidos,
+     tachados/inválidos têm "INVALIDO" nesse id).
+  2. Carrega a tela de detalhe dessa movimentação e lê para onde o botão
+     "Movimentar a Partir Desta Movimentação" levaria.
+  3. Carrega essa tela seguinte; se for a de Ações, lê a URL exata do
+     diálogo da ação escolhida (do próprio `onclick` do link, algo como
+     `openDialog('/projudi/processo/enviarConcluso.do?_tj=...', ...)`).
+     Se não for (o tipo dessa movimentação leva a outra tela de ação, ver
+     abaixo), repete os passos 1-3 com a **próxima** movimentação válida,
+     até achar uma que funcione ou esgotar até 5 tentativas.
+  4. Com a URL em mãos, descarta o iframe oculto e abre um **popup**
+     visível (sobreposto à tela atual, com um "✕ Fechar") com um NOVO
+     iframe carregando só essa URL — esse é o único iframe que o usuário
+     chega a ver.
+
+  **Nada disso pratica qualquer ato processual por conta própria** — os
+  passos 1-3 só leem páginas dentro do iframe oculto, sem exibi-las ao
+  usuário nem enviar nada ao Projudi além do carregamento de leitura
+  normal (o mesmo que aconteceria navegando manualmente); o popup do
+  passo 4 abre o
+  diálogo nativo em branco (com "Abrir"/"Ir e abrir") ou repreenche uma
+  preferência salva e pede a confirmação única de sempre antes de clicar
+  em confirmar/enviar (ver "Preferências" abaixo) — nunca confirma
+  sozinha. Enquanto os passos 1-3 acontecem (tipicamente menos de 1-2s), um
+  pequeno indicador "Abrindo '...'…" aparece, com um botão "Cancelar".
+- **Se não houver lista de Movimentações na tela atual** (ex.: você está
+  numa aba diferente do processo, como Partes e Outros): o painel avisa
+  para abrir a aba "Movimentações" primeiro.
+
+**Atenção a um detalhe já corrigido, mas que vale registrar:** o Projudi
+reaproveita o mesmo `id`/`name` (`movimentarButton`) para vários botões de
+"iniciar uma movimentação" em telas diferentes — por exemplo, o botão
+nativo **"Juntar Documento"** da barra de ferramentas da tela principal do
+processo também tem `id="movimentarButton"`, só com um texto (`value`)
+diferente. Por isso a extensão identifica o botão "Movimentar a Partir
+Desta Movimentação" **só pelo texto**, nunca por id/name.
+
+### Preferências (preencher e confirmar com um clique)
+
+Além de abrir o diálogo em branco, é possível salvar o preenchimento de um
+diálogo como **preferência** e reaplicá-lo depois com poucos cliques:
+
+1. Clique em **"+ Nova preferência"** na ação desejada — isso abre o
+   diálogo normal do Projudi (igual ao botão "Abrir").
+2. Preencha o diálogo como faria manualmente (destinatário, tipo de
+   ordem, texto, etc.).
+3. Com o diálogo ainda aberto, clique em **"💾 Salvar como preferência"**
+   (uma barra aparece no topo da tela) e dê um nome a ela — ex.: "Intimar
+   assistente social padrão". Nada é enviado ao Projudi nesse passo: você
+   ainda decide se confirma o formulário manualmente, como sempre.
+4. Da próxima vez, clique na preferência salva (aparece como um chip
+   **"★ nome-da-preferência"** abaixo da ação, com um 🗑 para remover) — a
+   extensão abre o mesmo diálogo, repreenche os mesmos campos
+   automaticamente e mostra uma barra de confirmação única, do tipo
+   `Confirmar "Enviar Concluso" com a preferência "..."? [✅ Sim, executar]
+   [Cancelar]`. Só ao clicar em **"✅ Sim, executar"** a extensão clica no
+   botão de confirmar/enviar do próprio Projudi — **esse é o passo que
+   efetivamente realiza a ação processual**, então confira os campos
+   preenchidos antes de confirmar.
+
+As preferências (e o "+ Nova preferência") também funcionam a partir de
+qualquer tela com a lista de Movimentações visível: nesse caso elas
+primeiro resolvem a URL do diálogo em segundo plano (ver acima) e só
+então abrem o popup já preenchido/com a confirmação.
+
+**Como funciona por baixo dos panos e suas limitações:** já que a extensão
+não tem acesso ao código-fonte desses diálogos, a localização do
+formulário (dentro do popup, ou da própria página quando já se está na
+tela de Ações) é **heurística**: ao salvar, ela usa o último
+`<form>` visível da página com campos preenchíveis; ao aplicar uma
+preferência, ela procura o `<form>` visível mais recente que contenha
+algum campo com o mesmo nome do que foi salvo, e para confirmar procura um
+botão cujo texto seja algo como "Confirmar", "Enviar", "Salvar", "OK" etc.
+Campos ocultos (tokens de sessão, `_tj=...`) nunca são capturados nem
+reescritos. Isso deve funcionar bem na maioria dos diálogos, mas **não foi
+validado ao vivo no Projudi** (só a partir dos HTMLs estáticos das telas)
+— sempre confira visualmente os campos preenchidos antes de clicar em
+"Sim, executar", e se algo não funcionar como esperado, use "Abrir" e
+preencha manualmente dessa vez.
+
+As preferências ficam em `chrome.storage.local` (armazenamento local da
+própria extensão, não enviado a nenhum servidor), organizadas por ação —
+ex.: as preferências de "Ordenar Cumprimentos" não aparecem em "Ordenar
+RPV".
 
 ## Como funciona
 
