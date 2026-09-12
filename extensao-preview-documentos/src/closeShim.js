@@ -31,6 +31,14 @@
 (function () {
 	"use strict";
 
+	// Log incondicional (não depende de postMessage nem de nada além do
+	// próprio console) — só para confirmar, sem ambiguidade, que este
+	// arquivo está mesmo sendo executado neste frame com a versão mais
+	// recente da extensão. Aparece no console do DevTools prefixado com a
+	// URL do frame de origem (o Chrome mostra logs de todos os
+	// frames/iframes por padrão).
+	console.info("[Projudi Ações Rápidas] closeShim.js carregado em", window.location.href, "| top?", window.top === window);
+
 	if (window.top === window) return; // não faz sentido na aba principal (nunca é o popup desta extensão)
 	if (window.__pdpCloseShimInjected) return;
 	window.__pdpCloseShimInjected = true;
