@@ -656,6 +656,37 @@
 	const MODAL_WATCH_INTERVAL_MS = 1000;
 	let modalWatchInterval = null;
 	let modalWatchLastSnapshot = null;
+	let modalWatchLastDumpedHref = null;
+
+	// Diagnóstico definitivo: em vez de continuar adivinhando o que a tela
+	// "Aguarde..." faz (window.close()? top.close()? um erro? nada?),
+	// extrai o HTML/scripts REAIS dessa página (mesma origem do Projudi,
+	// acesso direto permitido) e manda pro console — dá pra ler o código
+	// de verdade em vez de inferir a partir de sintomas. Roda só uma vez
+	// por URL nova (não a cada poll de 1s) pra não poluir o console.
+	function dumpDialogSourceOnce(doc, href) {
+		if (href === modalWatchLastDumpedHref) return;
+		modalWatchLastDumpedHref = href;
+		try {
+			const scripts = Array.prototype.slice
+				.call(doc.querySelectorAll("script"))
+				.map(function (s, i) {
+					return "----- script " + i + " (" + (s.src || "inline") + ") -----\n" + (s.textContent || "").slice(0, 6000);
+				})
+				.join("\n\n");
+			const visibleText = doc.body ? doc.body.innerText || "" : "";
+			console.info(
+				"[Projudi Ações Rápidas] DUMP do diálogo (" +
+					href +
+					")\n=== texto visível (innerText) ===\n" +
+					visibleText +
+					"\n=== scripts ===\n" +
+					(scripts || "(nenhum <script> encontrado)")
+			);
+		} catch (err) {
+			logChainStep("watcher: erro ao extrair HTML/scripts do iframe", String(err));
+		}
+	}
 
 	function snapshotIframeState(iframe, tag) {
 		let win, doc;
@@ -676,6 +707,7 @@
 		} catch (err) {
 			href = "(erro ao ler location: " + err + ")";
 		}
+		if (doc.readyState === "complete") dumpDialogSourceOnce(doc, href);
 		const bodyText = (doc.body ? doc.body.textContent || "" : "").replace(/\s+/g, " ").trim().slice(0, 200);
 		const snapshot = JSON.stringify({
 			href: href,
