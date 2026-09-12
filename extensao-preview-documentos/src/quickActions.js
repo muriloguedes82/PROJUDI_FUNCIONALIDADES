@@ -599,26 +599,139 @@
 	// próprio Projudi decidir que a ação terminou, para qualquer ação que
 	// use este popup (Ordenar Cumprimentos, Ordenar RPV, Enviar Concluso
 	// etc.), não só para esta.
+	// Diagnóstico: o "watcher" abaixo faz um snapshot periódico do
+	// documento carregado no iframe do popup enquanto ele estiver aberto,
+	// para descobrirmos (via console, F12, filtro "Projudi Ações Rápidas")
+	// POR QUE a tela "Aguarde..." não fecha sozinha mesmo com o shim de
+	// opener/close. Hipóteses que este log ajuda a distinguir:
+	//   a) o script nativo nunca chama window.close()/opener.*, e sim
+	//      top.close()/parent.close() (aí o shim, que só troca
+	//      iframe.contentWindow, não pega essa chamada);
+	//   b) a tela "Aguarde..." não é uma NAVEGAÇÃO nova do iframe — é a
+	//      MESMA página trocando o próprio conteúdo via AJAX/innerHTML, daí
+	//      o evento "load" (onde o shim reaplica opener/close) nunca
+	//      dispara de novo depois da 1ª carga, e o script pode ter guardado
+	//      uma referência à função close() original antes do shim rodar;
+	//   c) o iframe é bloqueado por cross-origin em algum ponto (troca de
+	//      domínio/subdomínio) e win/doc somem;
+	//   d) o script nativo trava numa exceção não relacionada a
+	//      opener/close (ex.: outro campo que também espera comportamento
+	//      de janela de verdade), e a tela realmente NUNCA chega a chamar
+	//      close() — precisaria de outro mecanismo (ex.: detectar o fim via
+	//      o conteúdo da própria tela, não via close()).
+	const MODAL_WATCH_INTERVAL_MS = 1000;
+	let modalWatchInterval = null;
+	let modalWatchLastSnapshot = null;
+
+	function snapshotIframeState(iframe, tag) {
+		let win, doc;
+		try {
+			win = iframe.contentWindow;
+			doc = iframe.contentDocument;
+		} catch (err) {
+			logChainStep("watcher do popup: erro de acesso ao iframe (" + tag + ")", String(err));
+			return;
+		}
+		if (!win || !doc) {
+			logChainStep("watcher do popup: iframe sem contentWindow/contentDocument (" + tag + ")", null);
+			return;
+		}
+		let href = null;
+		try {
+			href = win.location.href;
+		} catch (err) {
+			href = "(erro ao ler location: " + err + ")";
+		}
+		const bodyText = (doc.body ? doc.body.textContent || "" : "").replace(/\s+/g, " ").trim().slice(0, 200);
+		const snapshot = JSON.stringify({
+			href: href,
+			readyState: doc.readyState,
+			title: doc.title,
+			bodySnippet: bodyText,
+			typeofClose: typeof win.close,
+			closeIsOurShim: win.close && win.close.__pdpShim === true,
+			opener: win.opener === window ? "(nossa aba)" : win.opener ? "(outro valor)" : null,
+		});
+		if (snapshot !== modalWatchLastSnapshot) {
+			modalWatchLastSnapshot = snapshot;
+			logChainStep("watcher do popup: mudança detectada (" + tag + ")", JSON.parse(snapshot));
+		}
+	}
+
+	function startModalWatch(iframe) {
+		stopModalWatch();
+		modalWatchLastSnapshot = null;
+		snapshotIframeState(iframe, "inicial");
+		modalWatchInterval = setInterval(function () {
+			snapshotIframeState(iframe, "poll");
+		}, MODAL_WATCH_INTERVAL_MS);
+	}
+
+	function stopModalWatch() {
+		if (modalWatchInterval) {
+			clearInterval(modalWatchInterval);
+			modalWatchInterval = null;
+		}
+	}
+
 	function attachModalIframeCloseShim(iframe) {
 		iframe.addEventListener("load", function () {
 			let win;
 			try {
 				win = iframe.contentWindow;
 			} catch (err) {
+				logChainStep("shim: erro ao acessar contentWindow no load", String(err));
 				return;
 			}
-			if (!win) return;
+			if (!win) {
+				logChainStep("shim: contentWindow ausente no load", null);
+				return;
+			}
+			let href = null;
+			try {
+				href = win.location.href;
+			} catch (err) {
+				href = "(erro ao ler location: " + err + ")";
+			}
+			logChainStep("shim: iframe do popup navegou/recarregou", { href: href, title: win.document && win.document.title });
+
 			try {
 				win.opener = window;
+				logChainStep("shim: opener aplicado", null);
 			} catch (err) {
-				/* ignore */
+				logChainStep("shim: falhou ao aplicar opener", String(err));
 			}
 			try {
-				win.close = function () {
+				const shimClose = function () {
+					logChainStep("shim: win.close() do iframe foi chamado — fechando o popup da extensão", null);
 					removeActionModal();
 				};
+				shimClose.__pdpShim = true;
+				win.close = shimClose;
+				logChainStep("shim: close aplicado", null);
 			} catch (err) {
-				/* ignore */
+				logChainStep("shim: falhou ao aplicar close", String(err));
+			}
+
+			// Cobre top.close()/parent.close(): dentro do iframe, `top` e
+			// `parent` apontam para a aba REAL do processo (não para este
+			// iframe), então se o script nativo chamar por ali em vez de
+			// window.close(), o shim acima (que só troca
+			// iframe.contentWindow) não intercepta. Também sobrescrevemos
+			// aqui, só enquanto o popup estiver aberto, para diagnosticar
+			// (e já resolver) esse caso.
+			try {
+				if (win.top !== win) {
+					win.top.close = function () {
+						logChainStep("shim: top.close() foi chamado a partir do iframe — fechando o popup da extensão", null);
+						removeActionModal();
+					};
+				}
+				if (win.parent !== win) {
+					win.parent.close = win.top.close;
+				}
+			} catch (err) {
+				logChainStep("shim: falhou ao aplicar top/parent.close", String(err));
 			}
 		});
 	}
@@ -636,15 +749,20 @@
 			'<div class="pdp-qa-modal-body"><iframe class="pdp-qa-modal-iframe"></iframe></div>' +
 			"</div>";
 		document.body.appendChild(backdrop);
-		backdrop.querySelector(".pdp-qa-modal-close").addEventListener("click", removeActionModal);
+		backdrop.querySelector(".pdp-qa-modal-close").addEventListener("click", function () {
+			logChainStep('"✕ Fechar" clicado manualmente pelo usuário', null);
+			removeActionModal();
+		});
 		const iframe = backdrop.querySelector(".pdp-qa-modal-iframe");
 		attachModalIframeCloseShim(iframe);
+		startModalWatch(iframe);
 		return iframe;
 	}
 
 	function removeActionModal() {
 		const el = document.getElementById(MODAL_ID);
 		if (el) el.remove();
+		stopModalWatch();
 		removeConfirmBar();
 		removeCaptureToolbar();
 	}
