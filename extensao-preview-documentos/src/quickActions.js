@@ -664,24 +664,67 @@
 	// acesso direto permitido) e manda pro console — dá pra ler o código
 	// de verdade em vez de inferir a partir de sintomas. Roda só uma vez
 	// por URL nova (não a cada poll de 1s) pra não poluir o console.
+	// Palavras que só aparecem em scripts que de fato tentam controlar a
+	// janela/navegação (fechar, redirecionar, recarregar, fazer polling) —
+	// os scripts de framework (jQuery, prototype.js etc., vistos no dump
+	// anterior) não têm nada disso, então filtrar por elas separa o que
+	// interessa da bagagem genérica que todo página do Projudi carrega.
+	const DIALOG_SCRIPT_KEYWORDS = [
+		"close",
+		"opener",
+		"top.",
+		"parent.",
+		"location.href",
+		"location.reload",
+		"periodicalUpdater",
+		"setTimeout",
+		"setInterval",
+		"submit(",
+	];
+
 	function dumpDialogSourceOnce(doc, href) {
 		if (href === modalWatchLastDumpedHref) return;
 		modalWatchLastDumpedHref = href;
 		try {
-			const scripts = Array.prototype.slice
-				.call(doc.querySelectorAll("script"))
+			const allScripts = Array.prototype.slice.call(doc.querySelectorAll("script"));
+			const relevant = allScripts.filter(function (s) {
+				const text = s.textContent || "";
+				return !s.src && DIALOG_SCRIPT_KEYWORDS.some(function (kw) {
+					return text.indexOf(kw) !== -1;
+				});
+			});
+			const relevantText = relevant
 				.map(function (s, i) {
-					return "----- script " + i + " (" + (s.src || "inline") + ") -----\n" + (s.textContent || "").slice(0, 6000);
+					return "----- script inline relevante " + i + " -----\n" + (s.textContent || "").slice(0, 20000);
 				})
 				.join("\n\n");
+			const metaRefresh = doc.querySelector('meta[http-equiv="refresh" i]');
 			const visibleText = doc.body ? doc.body.innerText || "" : "";
 			console.info(
 				"[Projudi Ações Rápidas] DUMP do diálogo (" +
 					href +
 					")\n=== texto visível (innerText) ===\n" +
 					visibleText +
-					"\n=== scripts ===\n" +
-					(scripts || "(nenhum <script> encontrado)")
+					"\n=== total de <script>: " +
+					allScripts.length +
+					" (" +
+					relevant.length +
+					" inline relevante(s) por palavra-chave) ===" +
+					"\n=== meta refresh: " +
+					(metaRefresh ? metaRefresh.getAttribute("content") : "(nenhum)") +
+					"\n=== scripts inline relevantes ===\n" +
+					(relevantText || "(nenhum script inline bateu com as palavras-chave — ver lista completa abaixo)") +
+					(relevant.length
+						? ""
+						: "\n=== TODOS os scripts inline (fallback, já que o filtro não achou nada) ===\n" +
+								allScripts
+									.filter(function (s) {
+										return !s.src;
+									})
+									.map(function (s, i) {
+										return "----- script inline " + i + " -----\n" + (s.textContent || "").slice(0, 20000);
+									})
+									.join("\n\n"))
 			);
 		} catch (err) {
 			logChainStep("watcher: erro ao extrair HTML/scripts do iframe", String(err));
