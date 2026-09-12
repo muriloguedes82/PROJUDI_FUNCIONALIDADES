@@ -232,9 +232,9 @@ Concluso, Apensar, etc. — que obriga a rolar a página até achar a ação
 desejada.
 
 A extensão adiciona **um botão flutuante por grupo de ações** — Concluso,
-Remessa, Ordenações, Partes, Outras — lado a lado, no mesmo canto da tela
-dos botões de WhatsApp/e-mail (posicionando-se ao lado deles quando
-presentes):
+Remessa, Ordenações, Partes, Suspender, Transitar, Arquivar, Outras —
+lado a lado, no mesmo canto da tela dos botões de WhatsApp/e-mail
+(posicionando-se ao lado deles quando presentes):
 
 - **Concluso**: Enviar Concluso
 - **Remessa**: Realizar Remessa, Remessa Eletrônica para o Tribunal de
@@ -243,9 +243,11 @@ presentes):
   BNMP
 - **Partes**: Intimar Partes, Notificar Partes, Citar Partes, Intimar
   Peritos e Auxiliares da Justiça
-- **Outras**: Interromper Prazo, Suspender ou Sobrestar Processo,
-  Transitar em Julgado, Declínio de competência para a Segunda Instância,
-  Arquivar Processo, Apensar, Desapensar
+- **Suspender**: Suspender ou Sobrestar Processo
+- **Transitar**: Transitar em Julgado
+- **Arquivar**: Arquivar Processo
+- **Outras**: Interromper Prazo, Declínio de competência para a Segunda
+  Instância, Apensar, Desapensar
 
 Cada botão abre um painel com as ações daquele grupo — o conteúdo do
 painel depende de qual tela do processo você está vendo, já que o painel
@@ -287,7 +289,22 @@ painel depende de qual tela do processo você está vendo, já que o painel
   4. Com a URL em mãos, descarta o iframe oculto e abre um **popup**
      visível (sobreposto à tela atual, com um "✕ Fechar") com um NOVO
      iframe carregando só essa URL — esse é o único iframe que o usuário
-     chega a ver.
+     chega a ver. Algumas ações (ex.: Ordenar Cumprimentos) terminam numa
+     tela nativa "Aguarde..." que o próprio Projudi normalmente fecha
+     sozinha: um campo oculto `flagClosePopup` no formulário da tela final
+     vem `"true"` quando a ação termina, e um script nativo (`checkClosePopup()`)
+     usa isso para submeter, na JANELA PAI, um formulário que volta para a
+     tela de Ações — o diálogo foi desenhado pra rodar como um iframe
+     dentro da própria tela de Ações, não como uma janela separada. Como
+     aqui a "janela pai" é a página onde esta extensão criou o popup (não
+     a tela de Ações, que não existe nesse fluxo), aquele formulário nunca
+     é encontrado e nada acontece — a tela ficava presa em "Aguarde..." até
+     um clique manual em "✕ Fechar" (a ação em si já havia sido registrada
+     normalmente mesmo antes dessa correção). A extensão agora lê esse
+     mesmo campo `flagClosePopup` diretamente e, quando ele vier `"true"`,
+     recarrega a aba real por trás e fecha o popup por conta própria — sem
+     depender do formulário nativo, que nunca existe no contexto do popup
+     desta extensão.
 
   **Nada disso pratica qualquer ato processual por conta própria** — os
   passos 1-3 só leem páginas dentro do iframe oculto, sem exibi-las ao

@@ -64,15 +64,30 @@
 			actions: ["Intimar Partes", "Notificar Partes", "Citar Partes", "Intimar Peritos e Auxiliares da Justiça"],
 		},
 		{
+			id: "suspender",
+			title: "Suspender",
+			icon: "⏸️",
+			actions: ["Suspender ou Sobrestar Processo"],
+		},
+		{
+			id: "transitar",
+			title: "Transitar",
+			icon: "🏁",
+			actions: ["Transitar em Julgado"],
+		},
+		{
+			id: "arquivar",
+			title: "Arquivar",
+			icon: "🗄️",
+			actions: ["Arquivar Processo"],
+		},
+		{
 			id: "outras",
 			title: "Outras",
 			icon: "⋯",
 			actions: [
 				"Interromper Prazo",
-				"Suspender ou Sobrestar Processo",
-				"Transitar em Julgado",
 				"Declínio de competência para a Segunda Instância",
-				"Arquivar Processo",
 				"Apensar",
 				"Desapensar",
 			],
@@ -104,6 +119,40 @@
 	let processScreenEligible = false;
 	let captureToolbar = null;
 	let confirmBar = null;
+	let activeModalIframe = null;
+
+	// O shim de window.close()/window.opener (src/closeShim.js,
+	// "document_start", roda ANTES de qualquer script da própria página do
+	// diálogo) avisa por postMessage sobre o que acontece dentro do iframe
+	// do popup — inclusive erros não tratados no script nativo (ver
+	// closeShim.js para o porquê disso ser útil para diagnóstico) — mesmo
+	// quando isso acontece de forma síncrona durante o carregamento da
+	// página, cedo demais para qualquer shim aplicado só a partir do evento
+	// "load" do <iframe> (ver attachModalIframeCloseShim).
+	//
+	// IMPORTANTE: o Projudi usa framesets — a própria tela do processo
+	// (onde esta extensão cria o popup) já é um sub-frame, nunca o topo
+	// literal da aba (confirmado via os logs de diagnóstico do
+	// closeShim.js: "top?" veio `false` até para a página processo.do).
+	// Por isso o listener NÃO pode ficar restrito a `window.top === window`
+	// — isso registrava o listener só no frameset externo, que nunca cria
+	// popup nenhum e por isso nunca via a mensagem. Cada instância deste
+	// script (uma por frame) registra seu próprio listener; só a que tiver
+	// `activeModalIframe` preenchido (a que de fato abriu o popup) chega a
+	// bater no `event.source` e reagir — as demais ignoram silenciosamente.
+	window.addEventListener("message", function (event) {
+		if (event.origin !== window.location.origin) return;
+		if (!event.data || event.data.__pdpShim !== true) return;
+		if (!activeModalIframe || event.source !== activeModalIframe.contentWindow) return;
+		if (event.data.__pdpCloseSignal) {
+			logChainStep("recebido sinal de fechamento do popup (closeShim, document_start)", event.data);
+			removeActionModal();
+		} else if (event.data.__pdpOpenerSignal) {
+			logChainStep("closeShim: estado inicial de window.opener no diálogo", event.data);
+		} else if (event.data.__pdpErrorSignal) {
+			logChainStep("closeShim: erro não tratado dentro do diálogo", event.data);
+		}
+	});
 
 	// -------------------------------------------------------------------
 	// Detecção da tela de processo (mesma técnica usada em content.js/email.js)
@@ -577,6 +626,286 @@
 
 	const MODAL_ID = "pdp-qa-modal";
 
+	// Diálogos como "Ordenar Cumprimentos" terminam com uma tela nativa do
+	// Projudi ("Aguarde...") que fica esperando a conclusão do processamento
+	// e então se fecha sozinha — mas esse fechamento automático foi escrito
+	// para quando o diálogo é uma janela de verdade aberta via
+	// `window.open()` (com `window.opener` apontando para a tela do
+	// processo e `window.close()` funcionando). Como aqui o diálogo roda
+	// dentro de um <iframe> deste popup (não uma janela real), `opener` vem
+	// `null` e `close()` não faz nada — o script nativo tenta usá-los e a
+	// tela fica presa em "Aguarde..." apesar de a ordenação já ter sido
+	// registrada no processo por trás; só o clique manual em "✕ Fechar"
+	// (que sempre funcionou, por ser desta extensão) "resolvia" o problema.
+	//
+	// Para o iframe nativo se comportar como se fosse mesmo a janela que
+	// ele espera ser, isso reaplica `opener`/`close` a cada navegação dele
+	// (inclusive a própria tela de "Aguarde...", que é uma navegação nova):
+	// `opener` passa a apontar para a aba real do processo (então
+	// `opener.location.reload()` recarrega a tela por trás, como o Projudi
+	// já esperava fazer) e `close()` passa a fechar este popup da extensão
+	// em vez de não fazer nada — assim a tela fecha sozinha assim que o
+	// próprio Projudi decidir que a ação terminou, para qualquer ação que
+	// use este popup (Ordenar Cumprimentos, Ordenar RPV, Enviar Concluso
+	// etc.), não só para esta.
+	// Diagnóstico: o "watcher" abaixo faz um snapshot periódico do
+	// documento carregado no iframe do popup enquanto ele estiver aberto,
+	// para descobrirmos (via console, F12, filtro "Projudi Ações Rápidas")
+	// POR QUE a tela "Aguarde..." não fecha sozinha mesmo com o shim de
+	// opener/close. Hipóteses que este log ajuda a distinguir:
+	//   a) o script nativo nunca chama window.close()/opener.*, e sim
+	//      top.close()/parent.close() (aí o shim, que só troca
+	//      iframe.contentWindow, não pega essa chamada);
+	//   b) a tela "Aguarde..." não é uma NAVEGAÇÃO nova do iframe — é a
+	//      MESMA página trocando o próprio conteúdo via AJAX/innerHTML, daí
+	//      o evento "load" (onde o shim reaplica opener/close) nunca
+	//      dispara de novo depois da 1ª carga, e o script pode ter guardado
+	//      uma referência à função close() original antes do shim rodar;
+	//   c) o iframe é bloqueado por cross-origin em algum ponto (troca de
+	//      domínio/subdomínio) e win/doc somem;
+	//   d) o script nativo trava numa exceção não relacionada a
+	//      opener/close (ex.: outro campo que também espera comportamento
+	//      de janela de verdade), e a tela realmente NUNCA chega a chamar
+	//      close() — precisaria de outro mecanismo (ex.: detectar o fim via
+	//      o conteúdo da própria tela, não via close()).
+	const MODAL_WATCH_INTERVAL_MS = 1000;
+	let modalWatchInterval = null;
+	let modalWatchLastSnapshot = null;
+	let modalWatchLastDumpedHref = null;
+
+	// Diagnóstico definitivo: em vez de continuar adivinhando o que a tela
+	// "Aguarde..." faz (window.close()? top.close()? um erro? nada?),
+	// extrai o HTML/scripts REAIS dessa página (mesma origem do Projudi,
+	// acesso direto permitido) e manda pro console — dá pra ler o código
+	// de verdade em vez de inferir a partir de sintomas. Roda só uma vez
+	// por URL nova (não a cada poll de 1s) pra não poluir o console.
+	// Palavras que só aparecem em scripts que de fato tentam controlar a
+	// janela/navegação (fechar, redirecionar, recarregar, fazer polling) —
+	// os scripts de framework (jQuery, prototype.js etc., vistos no dump
+	// anterior) não têm nada disso, então filtrar por elas separa o que
+	// interessa da bagagem genérica que todo página do Projudi carrega.
+	const DIALOG_SCRIPT_KEYWORDS = [
+		"close",
+		"opener",
+		"top.",
+		"parent.",
+		"location.href",
+		"location.reload",
+		"periodicalUpdater",
+		"setTimeout",
+		"setInterval",
+		"submit(",
+	];
+
+	function dumpDialogSourceOnce(doc, href) {
+		if (href === modalWatchLastDumpedHref) return;
+		modalWatchLastDumpedHref = href;
+		try {
+			const allScripts = Array.prototype.slice.call(doc.querySelectorAll("script"));
+			const relevant = allScripts.filter(function (s) {
+				const text = s.textContent || "";
+				return !s.src && DIALOG_SCRIPT_KEYWORDS.some(function (kw) {
+					return text.indexOf(kw) !== -1;
+				});
+			});
+			const relevantText = relevant
+				.map(function (s, i) {
+					return "----- script inline relevante " + i + " -----\n" + (s.textContent || "").slice(0, 20000);
+				})
+				.join("\n\n");
+			const metaRefresh = doc.querySelector('meta[http-equiv="refresh" i]');
+			const visibleText = doc.body ? doc.body.innerText || "" : "";
+			console.info(
+				"[Projudi Ações Rápidas] DUMP do diálogo (" +
+					href +
+					")\n=== texto visível (innerText) ===\n" +
+					visibleText +
+					"\n=== total de <script>: " +
+					allScripts.length +
+					" (" +
+					relevant.length +
+					" inline relevante(s) por palavra-chave) ===" +
+					"\n=== meta refresh: " +
+					(metaRefresh ? metaRefresh.getAttribute("content") : "(nenhum)") +
+					"\n=== scripts inline relevantes ===\n" +
+					(relevantText || "(nenhum script inline bateu com as palavras-chave — ver lista completa abaixo)") +
+					(relevant.length
+						? ""
+						: "\n=== TODOS os scripts inline (fallback, já que o filtro não achou nada) ===\n" +
+								allScripts
+									.filter(function (s) {
+										return !s.src;
+									})
+									.map(function (s, i) {
+										return "----- script inline " + i + " -----\n" + (s.textContent || "").slice(0, 20000);
+									})
+									.join("\n\n"))
+			);
+		} catch (err) {
+			logChainStep("watcher: erro ao extrair HTML/scripts do iframe", String(err));
+		}
+	}
+
+	function snapshotIframeState(iframe, tag) {
+		let win, doc;
+		try {
+			win = iframe.contentWindow;
+			doc = iframe.contentDocument;
+		} catch (err) {
+			logChainStep("watcher do popup: erro de acesso ao iframe (" + tag + ")", String(err));
+			return;
+		}
+		if (!win || !doc) {
+			logChainStep("watcher do popup: iframe sem contentWindow/contentDocument (" + tag + ")", null);
+			return;
+		}
+		let href = null;
+		try {
+			href = win.location.href;
+		} catch (err) {
+			href = "(erro ao ler location: " + err + ")";
+		}
+		if (doc.readyState === "complete") dumpDialogSourceOnce(doc, href);
+		const bodyText = (doc.body ? doc.body.textContent || "" : "").replace(/\s+/g, " ").trim().slice(0, 200);
+		const snapshot = JSON.stringify({
+			href: href,
+			readyState: doc.readyState,
+			title: doc.title,
+			bodySnippet: bodyText,
+			typeofClose: typeof win.close,
+			closeIsOurShim: win.close && win.close.__pdpShim === true,
+			opener: win.opener === window ? "(nossa aba)" : win.opener ? "(outro valor)" : null,
+		});
+		if (snapshot !== modalWatchLastSnapshot) {
+			modalWatchLastSnapshot = snapshot;
+			logChainStep("watcher do popup: mudança detectada (" + tag + ")", JSON.parse(snapshot));
+		}
+	}
+
+	function startModalWatch(iframe) {
+		stopModalWatch();
+		modalWatchLastSnapshot = null;
+		snapshotIframeState(iframe, "inicial");
+		modalWatchInterval = setInterval(function () {
+			snapshotIframeState(iframe, "poll");
+		}, MODAL_WATCH_INTERVAL_MS);
+	}
+
+	function stopModalWatch() {
+		if (modalWatchInterval) {
+			clearInterval(modalWatchInterval);
+			modalWatchInterval = null;
+		}
+	}
+
+	function attachModalIframeCloseShim(iframe) {
+		iframe.addEventListener("load", function () {
+			let win;
+			try {
+				win = iframe.contentWindow;
+			} catch (err) {
+				logChainStep("shim: erro ao acessar contentWindow no load", String(err));
+				return;
+			}
+			if (!win) {
+				logChainStep("shim: contentWindow ausente no load", null);
+				return;
+			}
+			let href = null;
+			try {
+				href = win.location.href;
+			} catch (err) {
+				href = "(erro ao ler location: " + err + ")";
+			}
+			logChainStep("shim: iframe do popup navegou/recarregou", { href: href, title: win.document && win.document.title });
+
+			try {
+				win.opener = window;
+				logChainStep("shim: opener aplicado", null);
+			} catch (err) {
+				logChainStep("shim: falhou ao aplicar opener", String(err));
+			}
+			// Reaplica um shim de close() também aqui, como reforço, para o
+			// caso (raro) de o script nativo chamar close() depois deste
+			// evento "load" (ex.: um setTimeout) — mas o caminho principal
+			// para fechar o popup automaticamente é o closeShim.js (ver
+			// listener de "message" no topo deste arquivo), que roda em
+			// "document_start" e por isso consegue interceptar mesmo uma
+			// chamada síncrona de close() feita durante o carregamento da
+			// página, antes deste evento "load" chegar a disparar.
+			try {
+				const shimClose = function () {
+					logChainStep("shim (load): win.close() do iframe foi chamado — fechando o popup da extensão", null);
+					removeActionModal();
+				};
+				shimClose.__pdpShim = true;
+				win.close = shimClose;
+				logChainStep("shim: close aplicado", null);
+			} catch (err) {
+				logChainStep("shim: falhou ao aplicar close", String(err));
+			}
+
+			checkFlagClosePopup(win);
+		});
+	}
+
+	// O diálogo final de ações como "Ordenar Cumprimentos" NUNCA chama
+	// window.close() — o dump de diagnóstico revelou o mecanismo real
+	// (função checkClosePopup(), presente em vários desses diálogos):
+	//
+	//   if (document.xxxForm.flagClosePopup.value == "true") {
+	//     var parentForm = window.parent.$(document.xxxForm.parentForm.value);
+	//     parentForm.action = document.xxxForm.backURL.value;
+	//     parentForm.submit();
+	//   }
+	//
+	// Ou seja: o diálogo foi desenhado para rodar como um iframe DENTRO da
+	// própria tela de Ações do Projudi — "window.parent" é essa tela, que
+	// tem um <form> com o id salvo em `parentForm`; ao terminar, ele ajusta
+	// a action desse form pra "backURL" e submete, fazendo a tela de Ações
+	// (o pai de verdade) recarregar/voltar sozinha. Nunca existiu uma
+	// "janela" pra fechar.
+	//
+	// No modo "hop" desta extensão, `window.parent` é a página onde o
+	// popup foi criado (ex.: processo.do) — que não tem esse form
+	// específico —, então aquele `parentForm.submit()` nativo não encontra
+	// nada e não faz efeito nenhum (sem lançar erro, o que explica por que
+	// nunca vimos um "erro não tratado" nos logs). O `flagClosePopup` em si
+	// já é o sinal confiável de "a ação terminou" — em vez de depender do
+	// submit nativo (que mira no lugar errado no nosso caso), lemos esse
+	// campo diretamente e agimos por conta própria: recarrega a aba real
+	// por trás (equivalente ao que o backURL faria) e fecha o popup.
+	function checkFlagClosePopup(win) {
+		let doc;
+		try {
+			doc = win.document;
+		} catch (err) {
+			return;
+		}
+		if (!doc || !doc.forms) return;
+		for (let i = 0; i < doc.forms.length; i++) {
+			const form = doc.forms[i];
+			const flagField = form.elements && form.elements.namedItem ? form.elements.namedItem("flagClosePopup") : null;
+			if (!flagField) continue;
+			const backURLField = form.elements.namedItem("backURL");
+			logChainStep("shim: achado campo flagClosePopup no diálogo", {
+				form: form.name || form.id || "(sem nome)",
+				flagClosePopup: flagField.value,
+				backURL: backURLField ? backURLField.value : null,
+			});
+			if (flagField.value === "true") {
+				logChainStep("shim: flagClosePopup=true — a ação terminou; recarregando a tela e fechando o popup", null);
+				try {
+					window.location.reload();
+				} catch (err) {
+					logChainStep("shim: falhou ao recarregar a tela por trás", String(err));
+				}
+				removeActionModal();
+			}
+			break; // só o 1º form com esse campo importa — mesma suposição do próprio Projudi
+		}
+	}
+
 	function showActionModal(label) {
 		removeActionModal();
 		const backdrop = document.createElement("div");
@@ -590,13 +919,22 @@
 			'<div class="pdp-qa-modal-body"><iframe class="pdp-qa-modal-iframe"></iframe></div>' +
 			"</div>";
 		document.body.appendChild(backdrop);
-		backdrop.querySelector(".pdp-qa-modal-close").addEventListener("click", removeActionModal);
-		return backdrop.querySelector(".pdp-qa-modal-iframe");
+		backdrop.querySelector(".pdp-qa-modal-close").addEventListener("click", function () {
+			logChainStep('"✕ Fechar" clicado manualmente pelo usuário', null);
+			removeActionModal();
+		});
+		const iframe = backdrop.querySelector(".pdp-qa-modal-iframe");
+		activeModalIframe = iframe;
+		attachModalIframeCloseShim(iframe);
+		startModalWatch(iframe);
+		return iframe;
 	}
 
 	function removeActionModal() {
 		const el = document.getElementById(MODAL_ID);
 		if (el) el.remove();
+		activeModalIframe = null;
+		stopModalWatch();
 		removeConfirmBar();
 		removeCaptureToolbar();
 	}
