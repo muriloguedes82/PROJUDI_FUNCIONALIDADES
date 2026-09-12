@@ -113,25 +113,31 @@
 	// closeShim.js para o porquê disso ser útil para diagnóstico) — mesmo
 	// quando isso acontece de forma síncrona durante o carregamento da
 	// página, cedo demais para qualquer shim aplicado só a partir do evento
-	// "load" do <iframe> (ver attachModalIframeCloseShim). Só reage se a
-	// mensagem vier do iframe do popup atualmente aberto (activeModalIframe):
-	// o mesmo closeShim.js roda em todo frame do Projudi, então mensagens de
-	// outros frames precisam ser ignoradas.
-	if (window.top === window) {
-		window.addEventListener("message", function (event) {
-			if (event.origin !== window.location.origin) return;
-			if (!event.data || event.data.__pdpShim !== true) return;
-			if (!activeModalIframe || event.source !== activeModalIframe.contentWindow) return;
-			if (event.data.__pdpCloseSignal) {
-				logChainStep("recebido sinal de fechamento do popup (closeShim, document_start)", event.data);
-				removeActionModal();
-			} else if (event.data.__pdpOpenerSignal) {
-				logChainStep("closeShim: estado inicial de window.opener no diálogo", event.data);
-			} else if (event.data.__pdpErrorSignal) {
-				logChainStep("closeShim: erro não tratado dentro do diálogo", event.data);
-			}
-		});
-	}
+	// "load" do <iframe> (ver attachModalIframeCloseShim).
+	//
+	// IMPORTANTE: o Projudi usa framesets — a própria tela do processo
+	// (onde esta extensão cria o popup) já é um sub-frame, nunca o topo
+	// literal da aba (confirmado via os logs de diagnóstico do
+	// closeShim.js: "top?" veio `false` até para a página processo.do).
+	// Por isso o listener NÃO pode ficar restrito a `window.top === window`
+	// — isso registrava o listener só no frameset externo, que nunca cria
+	// popup nenhum e por isso nunca via a mensagem. Cada instância deste
+	// script (uma por frame) registra seu próprio listener; só a que tiver
+	// `activeModalIframe` preenchido (a que de fato abriu o popup) chega a
+	// bater no `event.source` e reagir — as demais ignoram silenciosamente.
+	window.addEventListener("message", function (event) {
+		if (event.origin !== window.location.origin) return;
+		if (!event.data || event.data.__pdpShim !== true) return;
+		if (!activeModalIframe || event.source !== activeModalIframe.contentWindow) return;
+		if (event.data.__pdpCloseSignal) {
+			logChainStep("recebido sinal de fechamento do popup (closeShim, document_start)", event.data);
+			removeActionModal();
+		} else if (event.data.__pdpOpenerSignal) {
+			logChainStep("closeShim: estado inicial de window.opener no diálogo", event.data);
+		} else if (event.data.__pdpErrorSignal) {
+			logChainStep("closeShim: erro não tratado dentro do diálogo", event.data);
+		}
+	});
 
 	// -------------------------------------------------------------------
 	// Detecção da tela de processo (mesma técnica usada em content.js/email.js)
