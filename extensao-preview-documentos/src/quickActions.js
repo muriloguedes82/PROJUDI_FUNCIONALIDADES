@@ -104,6 +104,26 @@
 	let processScreenEligible = false;
 	let captureToolbar = null;
 	let confirmBar = null;
+	let activeModalIframe = null;
+
+	// O shim de window.close() (src/closeShim.js, "document_start", roda
+	// ANTES de qualquer script da própria página do diálogo) avisa por
+	// postMessage quando o Projudi chama close() dentro do iframe do popup
+	// — mesmo quando essa chamada acontece de forma síncrona durante o
+	// carregamento da página, cedo demais para qualquer shim aplicado só a
+	// partir do evento "load" do <iframe> (ver attachModalIframeCloseShim).
+	// Só reage se a mensagem vier do iframe do popup atualmente aberto
+	// (activeModalIframe): o mesmo closeShim.js roda em todo frame do
+	// Projudi, então mensagens de outros frames precisam ser ignoradas.
+	if (window.top === window) {
+		window.addEventListener("message", function (event) {
+			if (event.origin !== window.location.origin) return;
+			if (!event.data || event.data.__pdpCloseSignal !== true) return;
+			if (!activeModalIframe || event.source !== activeModalIframe.contentWindow) return;
+			logChainStep("recebido sinal de fechamento do popup (closeShim, document_start)", null);
+			removeActionModal();
+		});
+	}
 
 	// -------------------------------------------------------------------
 	// Detecção da tela de processo (mesma técnica usada em content.js/email.js)
@@ -701,9 +721,17 @@
 			} catch (err) {
 				logChainStep("shim: falhou ao aplicar opener", String(err));
 			}
+			// Reaplica um shim de close() também aqui, como reforço, para o
+			// caso (raro) de o script nativo chamar close() depois deste
+			// evento "load" (ex.: um setTimeout) — mas o caminho principal
+			// para fechar o popup automaticamente é o closeShim.js (ver
+			// listener de "message" no topo deste arquivo), que roda em
+			// "document_start" e por isso consegue interceptar mesmo uma
+			// chamada síncrona de close() feita durante o carregamento da
+			// página, antes deste evento "load" chegar a disparar.
 			try {
 				const shimClose = function () {
-					logChainStep("shim: win.close() do iframe foi chamado — fechando o popup da extensão", null);
+					logChainStep("shim (load): win.close() do iframe foi chamado — fechando o popup da extensão", null);
 					removeActionModal();
 				};
 				shimClose.__pdpShim = true;
@@ -711,27 +739,6 @@
 				logChainStep("shim: close aplicado", null);
 			} catch (err) {
 				logChainStep("shim: falhou ao aplicar close", String(err));
-			}
-
-			// Cobre top.close()/parent.close(): dentro do iframe, `top` e
-			// `parent` apontam para a aba REAL do processo (não para este
-			// iframe), então se o script nativo chamar por ali em vez de
-			// window.close(), o shim acima (que só troca
-			// iframe.contentWindow) não intercepta. Também sobrescrevemos
-			// aqui, só enquanto o popup estiver aberto, para diagnosticar
-			// (e já resolver) esse caso.
-			try {
-				if (win.top !== win) {
-					win.top.close = function () {
-						logChainStep("shim: top.close() foi chamado a partir do iframe — fechando o popup da extensão", null);
-						removeActionModal();
-					};
-				}
-				if (win.parent !== win) {
-					win.parent.close = win.top.close;
-				}
-			} catch (err) {
-				logChainStep("shim: falhou ao aplicar top/parent.close", String(err));
 			}
 		});
 	}
@@ -754,6 +761,7 @@
 			removeActionModal();
 		});
 		const iframe = backdrop.querySelector(".pdp-qa-modal-iframe");
+		activeModalIframe = iframe;
 		attachModalIframeCloseShim(iframe);
 		startModalWatch(iframe);
 		return iframe;
@@ -762,6 +770,7 @@
 	function removeActionModal() {
 		const el = document.getElementById(MODAL_ID);
 		if (el) el.remove();
+		activeModalIframe = null;
 		stopModalWatch();
 		removeConfirmBar();
 		removeCaptureToolbar();

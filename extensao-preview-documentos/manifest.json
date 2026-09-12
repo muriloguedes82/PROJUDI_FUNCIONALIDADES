@@ -32,6 +32,15 @@
         "*://*.tjpr.jus.br/projudi/*",
         "*://seeu.pje.jus.br/seeu/*"
       ],
+      "js": ["src/closeShim.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "*://*.tjpr.jus.br/projudi/*",
+        "*://seeu.pje.jus.br/seeu/*"
+      ],
       "js": ["src/content.js", "src/email.js", "src/quickActions.js"],
       "css": ["src/content.css", "src/email.css", "src/quickActions.css"],
       "run_at": "document_idle",
