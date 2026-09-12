@@ -359,6 +359,32 @@ própria extensão, não enviado a nenhum servidor), organizadas por ação —
 ex.: as preferências de "Ordenar Cumprimentos" não aparecem em "Ordenar
 RPV".
 
+### "Nova Ordenação" (ordenar vários cumprimentos em seguida)
+
+Depois que o script de triagem roda num processo, é comum precisar ordenar
+mais de um cumprimento seguido (um ofício, um mandado, um edital, uma
+requisição de laudo, etc.). Sem este recurso, cada nova ordenação exige
+fechar o diálogo, voltar à tela inicial e reabrir "Ordenar Cumprimentos"
+(ou "Ordenar RPV"/"Ordenar Expedição BNMP") do zero.
+
+A extensão adiciona um botão **"🔁 Nova Ordenação"** ao lado do botão
+nativo "Ordenar" desses três diálogos. Ele:
+
+1. Clica no **mesmo botão "Ordenar" nativo** do Projudi — nenhuma
+   validação é pulada nem reimplementada, é o clique de verdade.
+2. Quando o diálogo de ordenação some da tela (ordenação concluída), a
+   extensão reabre automaticamente o **mesmo diálogo em branco**,
+   preferencialmente clicando de novo no link nativo "Ordenar
+   Cumprimentos"/"Ordenar RPV"/"Ordenar Expedição BNMP" do painel Ações
+   (o que garante um token de sessão novo a cada abertura, em vez de
+   reaproveitar a URL anterior) — assim o servidor pode ordenar quantos
+   cumprimentos forem necessários sem repetir o procedimento inicial a
+   cada um.
+
+O botão "Ordenar" original continua funcionando normalmente, sem nenhuma
+mudança de comportamento — "Nova Ordenação" é só um atalho a mais ao lado
+dele.
+
 ## Como funciona
 
 1. Os content scripts (`src/content.js` e `src/email.js`) são injetados nas

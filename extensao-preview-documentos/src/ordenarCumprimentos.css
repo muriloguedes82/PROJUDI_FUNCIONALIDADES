@@ -1,0 +1,15 @@
+/* Botão "Nova Ordenação" injetado ao lado do "Ordenar" nativo dos diálogos
+   de ordenação (src/ordenarCumprimentos.js). É um clone do botão nativo
+   "Ordenar" (herda a aparência padrão do Projudi); aqui só ajustamos o
+   espaçamento e um leve destaque de cor para diferenciar dos botões
+   nativos "Ordenar"/"Cancelar" ao lado. */
+
+.pdp-nova-ordenacao-btn {
+	margin-left: 8px;
+	background-color: #eaf3ff;
+	border-color: #7fa8d9;
+}
+
+.pdp-nova-ordenacao-btn:hover {
+	background-color: #d9e9ff;
+}
