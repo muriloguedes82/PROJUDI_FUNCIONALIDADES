@@ -64,15 +64,30 @@
 			actions: ["Intimar Partes", "Notificar Partes", "Citar Partes", "Intimar Peritos e Auxiliares da Justiça"],
 		},
 		{
+			id: "suspender",
+			title: "Suspender",
+			icon: "⏸️",
+			actions: ["Suspender ou Sobrestar Processo"],
+		},
+		{
+			id: "transitar",
+			title: "Transitar",
+			icon: "🏁",
+			actions: ["Transitar em Julgado"],
+		},
+		{
+			id: "arquivar",
+			title: "Arquivar",
+			icon: "🗄️",
+			actions: ["Arquivar Processo"],
+		},
+		{
 			id: "outras",
 			title: "Outras",
 			icon: "⋯",
 			actions: [
 				"Interromper Prazo",
-				"Suspender ou Sobrestar Processo",
-				"Transitar em Julgado",
 				"Declínio de competência para a Segunda Instância",
-				"Arquivar Processo",
 				"Apensar",
 				"Desapensar",
 			],

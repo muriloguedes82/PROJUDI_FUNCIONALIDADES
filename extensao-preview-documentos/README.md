@@ -232,9 +232,9 @@ Concluso, Apensar, etc. — que obriga a rolar a página até achar a ação
 desejada.
 
 A extensão adiciona **um botão flutuante por grupo de ações** — Concluso,
-Remessa, Ordenações, Partes, Outras — lado a lado, no mesmo canto da tela
-dos botões de WhatsApp/e-mail (posicionando-se ao lado deles quando
-presentes):
+Remessa, Ordenações, Partes, Suspender, Transitar, Arquivar, Outras —
+lado a lado, no mesmo canto da tela dos botões de WhatsApp/e-mail
+(posicionando-se ao lado deles quando presentes):
 
 - **Concluso**: Enviar Concluso
 - **Remessa**: Realizar Remessa, Remessa Eletrônica para o Tribunal de
@@ -243,9 +243,11 @@ presentes):
   BNMP
 - **Partes**: Intimar Partes, Notificar Partes, Citar Partes, Intimar
   Peritos e Auxiliares da Justiça
-- **Outras**: Interromper Prazo, Suspender ou Sobrestar Processo,
-  Transitar em Julgado, Declínio de competência para a Segunda Instância,
-  Arquivar Processo, Apensar, Desapensar
+- **Suspender**: Suspender ou Sobrestar Processo
+- **Transitar**: Transitar em Julgado
+- **Arquivar**: Arquivar Processo
+- **Outras**: Interromper Prazo, Declínio de competência para a Segunda
+  Instância, Apensar, Desapensar
 
 Cada botão abre um painel com as ações daquele grupo — o conteúdo do
 painel depende de qual tela do processo você está vendo, já que o painel
