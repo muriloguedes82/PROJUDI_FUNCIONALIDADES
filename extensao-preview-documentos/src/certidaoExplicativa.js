@@ -72,7 +72,7 @@
 	}
 	function isOnProcessScreen() {
 		if (processScreenEligible) return true;
-		if (findProcessToolbarElement() || document.querySelector(EVENT_LINK_SELECTOR)) {
+		if (findProcessToolbarElement() || document.querySelector(EVENT_LINK_SELECTOR) || findMovementsTable()) {
 			processScreenEligible = true;
 		}
 		return processScreenEligible;
@@ -93,6 +93,27 @@
 	// -------------------------------------------------------------------
 	// Coleta de eventos da tela atual
 	// -------------------------------------------------------------------
+	//
+	// A tabela de Movimentações do Projudi tem colunas "Seq.", "Data",
+	// "Evento" e "Movimentado Por" — mas nem todo evento vira um link
+	// clicável com id="LNKmov..." (só os que levam a uma tela de
+	// detalhe/ação o têm; eventos automáticos do sistema, sem essa
+	// possibilidade, ficam como texto puro na célula). Usar só esse
+	// seletor de link deixava a maioria dos eventos de fora. Por isso a
+	// coleta agora localiza a TABELA pelo cabeçalho ("Evento" +
+	// "Movimentado Por") e lê linha a linha, o que também é mais estável
+	// entre Projudi e SEEU.
+	//
+	// Os documentos anexados a cada evento só aparecem no DOM depois que o
+	// usuário expande o indicador "Arquivos N" daquela linha (mesmo padrão
+	// de ícone "+"/showDetail já usado no recurso de Pendências, em
+	// content.js) — por isso, depois de montar a lista de eventos, a
+	// extensão clica automaticamente nesses indicadores (leitura apenas,
+	// nenhuma ação processual) e aguarda o resultado ser inserido no DOM
+	// antes de coletar os links de documento.
+
+	const EXPAND_ICON_SELECTOR = 'a[id^="linkArquivos"] img, img[onclick*="showDetail"], img[id^="icon"]';
+	const EXPAND_WAIT_MS = 1500;
 
 	function normalizeText(node) {
 		const clone = node.cloneNode(true);
@@ -110,6 +131,7 @@
 
 	function collectDocsFromRow(row) {
 		const docs = [];
+		if (!row || !row.querySelectorAll) return docs;
 		row.querySelectorAll('a.link[href*="' + DOC_LINK_HREF_MARKER + '"]').forEach(function (a) {
 			let href;
 			try {
@@ -122,10 +144,189 @@
 		return docs;
 	}
 
-	// Devolve a lista de eventos encontrados NA TELA ATUAL (não navega nem
-	// expande nada — só lê o que já está no DOM, igual ao recurso de
-	// pré-visualização de documentos).
-	function collectFromCurrentScreen() {
+	function isStruckThrough(el) {
+		if (!el) return false;
+		if (el.querySelector && el.querySelector("strike, s, del")) return true;
+		const all = [el].concat(el.querySelectorAll ? Array.prototype.slice.call(el.querySelectorAll("*")) : []);
+		return all.some(function (node) {
+			if (node.nodeType !== 1 || !window.getComputedStyle) return false;
+			const cs = window.getComputedStyle(node);
+			return cs && /line-through/.test(cs.textDecorationLine || cs.textDecoration || "");
+		});
+	}
+
+	// Remove o indicador "Arquivos N" (link/ícone de expandir) do texto do
+	// evento — sem isso ele aparecia embutido no meio da frase, quebrando a
+	// leitura ("...JUNTADA DE PETIÇÃO Arquivos 1 03/01/2021...").
+	function cleanEventoText(cell) {
+		const clone = cell.cloneNode(true);
+		clone.querySelectorAll("img, script, style, input").forEach(function (el) {
+			el.remove();
+		});
+		clone.querySelectorAll("a, span").forEach(function (el) {
+			const t = (el.textContent || "").trim();
+			if (/^\(?\d+\)?\s*arquivos?$/i.test(t) || /^arquivos?\s*\(?\d+\)?$/i.test(t)) el.remove();
+		});
+		return (clone.textContent || "").replace(/\s+/g, " ").trim();
+	}
+
+	function findMovementsTable() {
+		const tables = document.querySelectorAll("table");
+		for (let t = 0; t < tables.length; t++) {
+			const table = tables[t];
+			const rows = table.rows;
+			for (let r = 0; r < Math.min(rows.length, 3); r++) {
+				const cells = rows[r].cells;
+				const texts = [];
+				for (let c = 0; c < cells.length; c++) texts.push(normalizeText(cells[c]).toLowerCase());
+				const hasEvento = texts.some(function (txt) {
+					return /^evento/.test(txt);
+				});
+				const hasMovimentado = texts.some(function (txt) {
+					return /movimentado/.test(txt);
+				});
+				if (hasEvento && hasMovimentado) {
+					return { table: table, headerRowIndex: r, headerTexts: texts };
+				}
+			}
+		}
+		return null;
+	}
+
+	function wait(ms) {
+		return new Promise(function (resolve) {
+			setTimeout(resolve, ms);
+		});
+	}
+
+	function findArquivosToggle(row) {
+		const icon = row.querySelector(EXPAND_ICON_SELECTOR);
+		if (icon) return icon;
+		const candidates = row.querySelectorAll("a, span");
+		for (let i = 0; i < candidates.length; i++) {
+			const t = (candidates[i].textContent || "").trim();
+			if (/^\(?\d+\)?\s*arquivos?$/i.test(t) || /^arquivos?\s*\(?\d+\)?$/i.test(t)) return candidates[i];
+		}
+		return null;
+	}
+
+	// A partir do ícone "+" (ex.: id="icon0"), localiza o contêiner que o
+	// Projudi preenche com o resultado da expansão (ex.: id="row0"/"div0") —
+	// mesma técnica já usada e validada no recurso de Pendências
+	// (content.js, findContainerForIcon). Sem um id numerado reconhecível,
+	// cai de volta para a própria linha e a linha seguinte.
+	function findExpandedContainer(icon, row) {
+		const id = icon.id || "";
+		const match = id.match(/(\d+)$/);
+		if (match) {
+			const suffix = match[1];
+			const byRow = document.getElementById("row" + suffix);
+			if (byRow) return byRow;
+			const byDiv = document.getElementById("div" + suffix);
+			if (byDiv) return byDiv;
+		}
+		const next = row.nextElementSibling;
+		if (next && next.tagName === "TR") return next;
+		return row;
+	}
+
+	// Devolve a lista de eventos encontrados NA TELA ATUAL. Só expande (por
+	// clique programático) os indicadores "Arquivos N" das linhas — nenhuma
+	// navegação, nenhuma ação processual — para poder coletar os links de
+	// documento que o Projudi só insere no DOM depois dessa expansão.
+	async function collectFromCurrentScreen(onProgress) {
+		const found = findMovementsTable();
+		if (!found) return legacyCollectFromCurrentScreen();
+
+		const headerTexts = found.headerTexts;
+		const seqIdx = headerTexts.findIndex(function (t) {
+			return /^seq/.test(t);
+		});
+		let eventoIdx = headerTexts.findIndex(function (t) {
+			return /^evento/.test(t);
+		});
+		if (eventoIdx === -1) eventoIdx = headerTexts.findIndex(function (t) {
+			return /evento/.test(t);
+		});
+		const dataIdx = headerTexts.findIndex(function (t) {
+			return /^data/.test(t);
+		});
+
+		const rows = Array.prototype.slice.call(found.table.rows).slice(found.headerRowIndex + 1);
+		const events = [];
+		let current = null;
+
+		rows.forEach(function (row, idx) {
+			const cells = row.cells;
+			if (eventoIdx !== -1 && cells.length > eventoIdx) {
+				const eventoCell = cells[eventoIdx];
+				if (isStruckThrough(eventoCell)) {
+					current = null;
+					return;
+				}
+				const text = cleanEventoText(eventoCell);
+				if (!text) {
+					current = null;
+					return;
+				}
+				const seqText = seqIdx !== -1 && cells[seqIdx] ? normalizeText(cells[seqIdx]) : "";
+				const dataText = dataIdx !== -1 && cells[dataIdx] ? normalizeText(cells[dataIdx]) : "";
+				const dateInfo = findDateIn(dataText) || findDateIn(normalizeText(row));
+				current = {
+					id: "seq-" + (seqText || idx) + "-" + idx,
+					seq: seqText,
+					date: dateInfo ? dateInfo.date : null,
+					time: dateInfo ? dateInfo.time : null,
+					text: text,
+					docs: collectDocsFromRow(row),
+					_row: row,
+					_toggle: findArquivosToggle(row),
+				};
+				events.push(current);
+			} else if (current) {
+				// Linha de continuação (ex.: conteúdo já expandido de "Arquivos") —
+				// não tem a coluna Evento própria; junta os documentos dela ao
+				// último evento válido.
+				collectDocsFromRow(row).forEach(function (doc) {
+					if (!current.docs.some(function (d) { return d.href === doc.href; })) current.docs.push(doc);
+				});
+			}
+		});
+
+		const toExpand = events.filter(function (ev) {
+			return ev._toggle && ev.docs.length === 0;
+		});
+		if (toExpand.length) {
+			if (onProgress) onProgress("Expandindo anexos de " + toExpand.length + " evento(s)…");
+			toExpand.forEach(function (ev) {
+				try {
+					ev._toggle.click();
+				} catch (err) {
+					/* ignore */
+				}
+			});
+			await wait(EXPAND_WAIT_MS);
+			toExpand.forEach(function (ev) {
+				const container = findExpandedContainer(ev._toggle, ev._row);
+				[ev._row, container].forEach(function (scope) {
+					collectDocsFromRow(scope).forEach(function (doc) {
+						if (!ev.docs.some(function (d) { return d.href === doc.href; })) ev.docs.push(doc);
+					});
+				});
+			});
+		}
+
+		events.forEach(function (ev) {
+			delete ev._row;
+			delete ev._toggle;
+		});
+		return events;
+	}
+
+	// Reserva para telas em que a tabela de Movimentações não é reconhecida
+	// pelo cabeçalho (ex.: layout muito diferente) — mesmo comportamento da
+	// versão anterior deste recurso, baseado só nos links de evento válidos.
+	function legacyCollectFromCurrentScreen() {
 		const links = document.querySelectorAll(EVENT_LINK_SELECTOR);
 		const events = [];
 		links.forEach(function (link) {
@@ -167,10 +368,12 @@
 	}
 
 	function sortKey(ev) {
-		if (!ev.date) return "9999-99-99 99:99:99__" + ev.id;
+		const seqNum = parseInt(ev.seq, 10);
+		const seqPart = "__" + (isNaN(seqNum) ? "999999" : String(seqNum).padStart(6, "0"));
+		if (!ev.date) return "9999-99-99 99:99:99" + seqPart;
 		const parts = ev.date.split("/");
 		const iso = parts[2] + "-" + parts[1] + "-" + parts[0];
-		return iso + " " + (ev.time || "00:00:00") + "__" + ev.id;
+		return iso + " " + (ev.time || "00:00:00") + seqPart;
 	}
 
 	// -------------------------------------------------------------------
@@ -359,14 +562,21 @@
 		panel.querySelector(".pdp-certidao-generate").disabled = count === 0;
 	}
 
-	function onCollectClick() {
-		const events = collectFromCurrentScreen();
-		if (!events.length) {
-			refreshStatus("Nenhuma movimentação válida encontrada nesta tela. Abra a aba \"Movimentações\" do processo.");
-			return;
+	async function onCollectClick() {
+		const collectBtn = panel.querySelector(".pdp-certidao-collect");
+		collectBtn.disabled = true;
+		refreshStatus("Lendo movimentações desta tela…");
+		try {
+			const events = await collectFromCurrentScreen(refreshStatus);
+			if (!events.length) {
+				refreshStatus('Nenhuma movimentação válida encontrada nesta tela. Abra a aba "Movimentações" do processo.');
+				return;
+			}
+			addEvents(events);
+			refreshStatus();
+		} finally {
+			collectBtn.disabled = false;
 		}
-		addEvents(events);
-		refreshStatus();
 	}
 
 	function onClearClick() {
@@ -424,42 +634,95 @@
 		return div.innerHTML;
 	}
 
-	function formatEventoNarrativo(item) {
-		const ev = item.event;
-		const when = ev.date ? "em " + ev.date + (ev.time ? " às " + ev.time : "") : "em data não identificada";
-		const highlighted = !!item.rule;
-		const textHtml = escapeHtml(ev.text);
-		const span = highlighted
-			? '<strong class="pdp-cert-highlight" data-cat="' + item.rule.id + '">' + textHtml + "</strong>"
-			: textHtml;
-		let html = "<li>" + escapeHtml(when) + ", " + span + "</li>";
+	const MONTHS_PT = [
+		"janeiro", "fevereiro", "março", "abril", "maio", "junho",
+		"julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
+	];
 
-		if (item.rule && item.rule.extractDoc && ev.docs.length) {
-			html += '<li class="pdp-cert-extract">';
-			if (item.extractionError) {
-				html +=
-					"<em>Não foi possível extrair automaticamente o texto do documento anexado (" +
-					escapeHtml(item.extractionError) +
-					"). Abra o documento (" +
+	// Converte "03/01/2021" em "03 de janeiro de 2021" — mesmo formato por
+	// extenso usado nas certidões narratórias do eproc/STJ, que lê de forma
+	// mais fluida numa frase corrida do que a data numérica isolada.
+	function dateExtenso(dateStr) {
+		if (!dateStr) return "data não identificada";
+		const parts = dateStr.split("/");
+		if (parts.length !== 3) return dateStr;
+		const day = parseInt(parts[0], 10);
+		const month = MONTHS_PT[parseInt(parts[1], 10) - 1];
+		if (!month) return dateStr;
+		return (day < 10 ? "0" + day : day) + " de " + month + " de " + parts[2];
+	}
+
+	// Frase corrida por evento, no molde "em 03 de janeiro de 2021, [texto do
+	// evento]" — os eventos são unidos por "; " numa única narrativa (ver
+	// buildNarrativeParagraph), em vez de itens soltos de lista, para ler
+	// como um texto humano/corrido, no mesmo estilo das certidões
+	// narratórias do eproc/STJ.
+	function formatEventoFrase(item) {
+		const ev = item.event;
+		const when = "em " + dateExtenso(ev.date) + (ev.time ? ", às " + ev.time : "");
+		const textHtml = escapeHtml(ev.text);
+		const body = item.rule
+			? '<mark class="pdp-cert-highlight" data-cat="' + item.rule.id + '">' + textHtml + "</mark>"
+			: textHtml;
+		return when + ", " + body;
+	}
+
+	function buildNarrativeParagraph(enriched) {
+		return enriched.map(formatEventoFrase).join("; ") + ".";
+	}
+
+	// Bloco separado (fora da narrativa corrida) com o que foi extraído
+	// automaticamente do PDF de cada denúncia/aditamento — mantém a
+	// narrativa principal fluida, sem interromper a leitura no meio da
+	// frase com o texto bruto extraído do documento.
+	function buildExtractionSections(enriched) {
+		const withDoc = enriched.filter(function (item) {
+			return item.rule && item.rule.extractDoc && item.event.docs.length;
+		});
+		if (!withDoc.length) return "";
+
+		const blocks = withDoc
+			.map(function (item, index) {
+				const ev = item.event;
+				let html =
+					'<div class="pdp-cert-extract">' +
+					"<strong>" +
+					(index + 1) +
+					". " +
+					escapeHtml(item.rule.label) +
+					" de " +
+					escapeHtml(dateExtenso(ev.date)) +
+					' — documento "' +
 					escapeHtml(ev.docs[0].name) +
-					") e complete manualmente:</em>";
-				html += '<div contenteditable="true" class="pdp-cert-editable">[qualificação do(a) denunciado(a) e capitulação penal — preencher manualmente]</div>';
-			} else {
-				const extraction = item.extraction;
-				html +=
-					"<strong>Capitulação penal identificada automaticamente no documento \"" +
-					escapeHtml(ev.docs[0].name) +
-					'" (revise antes de usar):</strong>';
-				html +=
-					'<div contenteditable="true" class="pdp-cert-editable">' +
-					(extraction.crimes.length ? escapeHtml(extraction.crimes.join("; ")) : "[nenhuma referência a artigo de lei identificada automaticamente — preencher manualmente]") +
-					"</div>";
-				html += "<strong>Trecho inicial do documento (geralmente contém a qualificação do(a) denunciado(a) — revise e recorte o necessário):</strong>";
-				html += '<div contenteditable="true" class="pdp-cert-editable pdp-cert-editable-long">' + escapeHtml(extraction.qualificationExcerpt) + "</div>";
-			}
-			html += "</li>";
-		}
-		return html;
+					'":</strong>';
+
+				if (item.extractionError) {
+					html +=
+						"<p><em>Não foi possível extrair automaticamente o texto deste documento (" +
+						escapeHtml(item.extractionError) +
+						"). Abra-o manualmente e preencha abaixo:</em></p>";
+					html += '<div contenteditable="true" class="pdp-cert-editable">[qualificação do(a) denunciado(a) e capitulação penal — preencher manualmente]</div>';
+				} else {
+					const extraction = item.extraction;
+					html += "<p>Capitulação penal identificada automaticamente (revise antes de usar):</p>";
+					html +=
+						'<div contenteditable="true" class="pdp-cert-editable">' +
+						(extraction.crimes.length
+							? escapeHtml(extraction.crimes.join("; "))
+							: "[nenhuma referência a artigo de lei identificada automaticamente — preencher manualmente]") +
+						"</div>";
+					html += "<p>Trecho inicial do documento (geralmente traz a qualificação do(a) denunciado(a) — revise e recorte o necessário):</p>";
+					html += '<div contenteditable="true" class="pdp-cert-editable pdp-cert-editable-long">' + escapeHtml(extraction.qualificationExcerpt) + "</div>";
+				}
+				html += "</div>";
+				return html;
+			})
+			.join("");
+
+		return (
+			'<p contenteditable="true"><strong>Qualificação e capitulação penal identificadas nos documentos de denúncia/aditamento:</strong></p>' +
+			blocks
+		);
 	}
 
 	function buildDraftHtml(enriched) {
@@ -469,31 +732,30 @@
 		});
 		const summaryList = highlightedItems
 			.map(function (item) {
-				const when = item.event.date || "?";
-				return "<li>" + escapeHtml(when) + " — " + escapeHtml(item.rule.label) + "</li>";
+				return "<li>" + escapeHtml(dateExtenso(item.event.date)) + " — " + escapeHtml(item.rule.label) + "</li>";
 			})
 			.join("");
 
-		const narrative = enriched.map(formatEventoNarrativo).join("");
+		const narrativeParagraph = buildNarrativeParagraph(enriched);
+		const extractionSections = buildExtractionSections(enriched);
 
 		return (
 			"<!doctype html><html><head><meta charset=\"utf-8\"><title>Minuta de Certidão Explicativa</title>" +
 			"<style>" +
-			"body{font-family:'Times New Roman', serif; font-size:14px; line-height:1.6; max-width:900px; margin:32px auto; padding:0 24px; color:#111;}" +
+			"body{font-family:'Times New Roman', serif; font-size:14px; line-height:1.7; max-width:900px; margin:32px auto; padding:0 24px; color:#111;}" +
 			"h1{font-size:16px; text-align:center; text-transform:uppercase; letter-spacing:.03em;}" +
 			".pdp-cert-toolbar{position:sticky; top:0; background:#fffbe6; border:1px solid #e8cf8a; border-radius:4px; padding:8px 12px; margin-bottom:20px; font-family:Arial, sans-serif; font-size:12.5px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;}" +
 			".pdp-cert-toolbar button{font-size:12px; padding:5px 10px; cursor:pointer;}" +
 			".pdp-cert-summary{background:#f4f7fb; border:1px solid #d5e2f2; border-radius:4px; padding:10px 16px; margin-bottom:20px; font-family:Arial, sans-serif; font-size:13px;}" +
 			".pdp-cert-summary li{margin:2px 0;}" +
-			"ul.pdp-cert-narrative{list-style:none; margin:0; padding:0;}" +
-			"ul.pdp-cert-narrative > li{margin-bottom:10px; text-align:justify;}" +
-			".pdp-cert-highlight{background:#fff3b0;}" +
-			".pdp-cert-extract{list-style:none; margin:6px 0 16px 24px; padding:10px 14px; background:#f7fcf7; border:1px dashed #9bcf9b; border-radius:4px; font-family:Arial, sans-serif; font-size:12.5px;}" +
-			".pdp-cert-editable{border:1px solid #cfe3cf; background:#fff; border-radius:3px; padding:6px 8px; margin:6px 0; min-height:1.4em; white-space:pre-wrap;}" +
+			".pdp-cert-narrative{text-align:justify;}" +
+			".pdp-cert-highlight{background:#fff3b0; padding:0 1px;}" +
+			".pdp-cert-extract{margin:10px 0 18px; padding:10px 14px; background:#f7fcf7; border:1px dashed #9bcf9b; border-radius:4px; font-family:Arial, sans-serif; font-size:12.5px;}" +
+			".pdp-cert-extract p{margin:8px 0 2px;}" +
+			".pdp-cert-editable{border:1px solid #cfe3cf; background:#fff; border-radius:3px; padding:6px 8px; margin:4px 0 2px; min-height:1.4em; white-space:pre-wrap;}" +
 			".pdp-cert-editable-long{max-height:260px; overflow:auto;}" +
 			".pdp-cert-editable:focus{outline:2px solid #6c93d6;}" +
 			"[contenteditable]:focus{outline:2px solid #6c93d6;}" +
-			"h1, .pdp-cert-editable-top{outline:none;}" +
 			"@media print{.pdp-cert-toolbar{display:none;} .pdp-cert-editable{border:none; padding:0;}}" +
 			"</style></head><body>" +
 			'<div class="pdp-cert-toolbar">' +
@@ -509,10 +771,8 @@
 			(summaryList
 				? '<div class="pdp-cert-summary"><strong>Principais eventos identificados:</strong><ul>' + summaryList + "</ul></div>"
 				: "") +
-			'<p contenteditable="true"><strong>Narrativa completa dos autos:</strong></p>' +
-			'<ul class="pdp-cert-narrative">' +
-			narrative +
-			"</ul>" +
+			'<p contenteditable="true" class="pdp-cert-narrative">' + narrativeParagraph + "</p>" +
+			extractionSections +
 			'<p contenteditable="true">Nada mais havendo a certificar, encerro a presente certidão, que segue assinada digitalmente.</p>' +
 			"</body></html>"
 		);
