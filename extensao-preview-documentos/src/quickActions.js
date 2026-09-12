@@ -106,22 +106,30 @@
 	let confirmBar = null;
 	let activeModalIframe = null;
 
-	// O shim de window.close() (src/closeShim.js, "document_start", roda
-	// ANTES de qualquer script da própria página do diálogo) avisa por
-	// postMessage quando o Projudi chama close() dentro do iframe do popup
-	// — mesmo quando essa chamada acontece de forma síncrona durante o
-	// carregamento da página, cedo demais para qualquer shim aplicado só a
-	// partir do evento "load" do <iframe> (ver attachModalIframeCloseShim).
-	// Só reage se a mensagem vier do iframe do popup atualmente aberto
-	// (activeModalIframe): o mesmo closeShim.js roda em todo frame do
-	// Projudi, então mensagens de outros frames precisam ser ignoradas.
+	// O shim de window.close()/window.opener (src/closeShim.js,
+	// "document_start", roda ANTES de qualquer script da própria página do
+	// diálogo) avisa por postMessage sobre o que acontece dentro do iframe
+	// do popup — inclusive erros não tratados no script nativo (ver
+	// closeShim.js para o porquê disso ser útil para diagnóstico) — mesmo
+	// quando isso acontece de forma síncrona durante o carregamento da
+	// página, cedo demais para qualquer shim aplicado só a partir do evento
+	// "load" do <iframe> (ver attachModalIframeCloseShim). Só reage se a
+	// mensagem vier do iframe do popup atualmente aberto (activeModalIframe):
+	// o mesmo closeShim.js roda em todo frame do Projudi, então mensagens de
+	// outros frames precisam ser ignoradas.
 	if (window.top === window) {
 		window.addEventListener("message", function (event) {
 			if (event.origin !== window.location.origin) return;
-			if (!event.data || event.data.__pdpCloseSignal !== true) return;
+			if (!event.data || event.data.__pdpShim !== true) return;
 			if (!activeModalIframe || event.source !== activeModalIframe.contentWindow) return;
-			logChainStep("recebido sinal de fechamento do popup (closeShim, document_start)", null);
-			removeActionModal();
+			if (event.data.__pdpCloseSignal) {
+				logChainStep("recebido sinal de fechamento do popup (closeShim, document_start)", event.data);
+				removeActionModal();
+			} else if (event.data.__pdpOpenerSignal) {
+				logChainStep("closeShim: estado inicial de window.opener no diálogo", event.data);
+			} else if (event.data.__pdpErrorSignal) {
+				logChainStep("closeShim: erro não tratado dentro do diálogo", event.data);
+			}
 		});
 	}
 
