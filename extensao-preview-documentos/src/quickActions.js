@@ -119,6 +119,19 @@
 		return null;
 	}
 
+	// Número dos autos: mesma técnica usada em email.js (extractProcessNumber)
+	// para identificar que a tela atual pertence de fato a um processo aberto,
+	// e não só a alguma tela solta do sistema que por coincidência tenha um
+	// elemento #backButton ou um cabeçalho "Ações" (padrão comum em telas de
+	// cadastro/administração do Projudi que nada têm a ver com processos).
+	function hasProcessNumberMarker() {
+		const projudiEl = document.querySelector("em.attention");
+		if (projudiEl && projudiEl.textContent.trim()) return true;
+		const seeuEl = document.querySelector("div.titulo.processo");
+		if (seeuEl && /[\d.\-]{15,}/.test(seeuEl.textContent || "")) return true;
+		return false;
+	}
+
 	// A tela de Ações (movimentarProcesso.do) e a tela intermediária de
 	// detalhe da movimentação NÃO têm nenhum dos botões de
 	// PROCESS_TOOLBAR_LABELS — o botão de voltar delas se chama "Voltar
@@ -132,9 +145,20 @@
 	// diferenças de texto já usada no recurso irmão de WhatsApp
 	// (content.js), que por isso continuava aparecendo nessas telas
 	// enquanto esta fileira de botões não aparecia.
+	//
+	// Esses três sinais, sozinhos, são genéricos demais (um #backButton ou um
+	// <h3>Ações</h3> aparecem em telas do Projudi sem nenhuma relação com um
+	// processo específico), o que fazia a fileira de botões surgir em "telas
+	// aleatórias". Por isso eles só contam quando também há o marcador de
+	// número de processo na tela (hasProcessNumberMarker) — já
+	// findProcessToolbarElement() continua bastando sozinho, sem essa
+	// exigência extra, pois é o mesmo sinal (comprovadamente confiável) usado
+	// pelo recurso irmão de WhatsApp.
 	function isOnProcessScreen() {
 		if (processScreenEligible) return true;
-		if (findProcessToolbarElement() || document.getElementById("backButton") || isOnAcoesScreen() || findMovimentarButton()) {
+		if (findProcessToolbarElement()) {
+			processScreenEligible = true;
+		} else if ((document.getElementById("backButton") || isOnAcoesScreen() || findMovimentarButton()) && hasProcessNumberMarker()) {
 			processScreenEligible = true;
 		}
 		return processScreenEligible;
