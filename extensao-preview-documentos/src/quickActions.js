@@ -577,6 +577,52 @@
 
 	const MODAL_ID = "pdp-qa-modal";
 
+	// Diálogos como "Ordenar Cumprimentos" terminam com uma tela nativa do
+	// Projudi ("Aguarde...") que fica esperando a conclusão do processamento
+	// e então se fecha sozinha — mas esse fechamento automático foi escrito
+	// para quando o diálogo é uma janela de verdade aberta via
+	// `window.open()` (com `window.opener` apontando para a tela do
+	// processo e `window.close()` funcionando). Como aqui o diálogo roda
+	// dentro de um <iframe> deste popup (não uma janela real), `opener` vem
+	// `null` e `close()` não faz nada — o script nativo tenta usá-los e a
+	// tela fica presa em "Aguarde..." apesar de a ordenação já ter sido
+	// registrada no processo por trás; só o clique manual em "✕ Fechar"
+	// (que sempre funcionou, por ser desta extensão) "resolvia" o problema.
+	//
+	// Para o iframe nativo se comportar como se fosse mesmo a janela que
+	// ele espera ser, isso reaplica `opener`/`close` a cada navegação dele
+	// (inclusive a própria tela de "Aguarde...", que é uma navegação nova):
+	// `opener` passa a apontar para a aba real do processo (então
+	// `opener.location.reload()` recarrega a tela por trás, como o Projudi
+	// já esperava fazer) e `close()` passa a fechar este popup da extensão
+	// em vez de não fazer nada — assim a tela fecha sozinha assim que o
+	// próprio Projudi decidir que a ação terminou, para qualquer ação que
+	// use este popup (Ordenar Cumprimentos, Ordenar RPV, Enviar Concluso
+	// etc.), não só para esta.
+	function attachModalIframeCloseShim(iframe) {
+		iframe.addEventListener("load", function () {
+			let win;
+			try {
+				win = iframe.contentWindow;
+			} catch (err) {
+				return;
+			}
+			if (!win) return;
+			try {
+				win.opener = window;
+			} catch (err) {
+				/* ignore */
+			}
+			try {
+				win.close = function () {
+					removeActionModal();
+				};
+			} catch (err) {
+				/* ignore */
+			}
+		});
+	}
+
 	function showActionModal(label) {
 		removeActionModal();
 		const backdrop = document.createElement("div");
@@ -591,7 +637,9 @@
 			"</div>";
 		document.body.appendChild(backdrop);
 		backdrop.querySelector(".pdp-qa-modal-close").addEventListener("click", removeActionModal);
-		return backdrop.querySelector(".pdp-qa-modal-iframe");
+		const iframe = backdrop.querySelector(".pdp-qa-modal-iframe");
+		attachModalIframeCloseShim(iframe);
+		return iframe;
 	}
 
 	function removeActionModal() {

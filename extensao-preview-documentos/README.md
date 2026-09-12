@@ -287,7 +287,15 @@ painel depende de qual tela do processo você está vendo, já que o painel
   4. Com a URL em mãos, descarta o iframe oculto e abre um **popup**
      visível (sobreposto à tela atual, com um "✕ Fechar") com um NOVO
      iframe carregando só essa URL — esse é o único iframe que o usuário
-     chega a ver.
+     chega a ver. Algumas ações (ex.: Ordenar Cumprimentos) terminam numa
+     tela nativa "Aguarde..." que o próprio Projudi fecha sozinha quando o
+     processamento acaba — como esse fechamento nativo espera uma janela
+     de verdade (`window.opener`/`window.close()`), a extensão reaplica
+     esses dois a cada navegação deste iframe (apontando `opener` para a
+     aba real do processo) para que a tela feche sozinha ao terminar, em
+     vez de ficar presa em "Aguarde..." até um clique manual em "✕
+     Fechar" (a ação em si já havia sido registrada normalmente mesmo
+     antes dessa correção).
 
   **Nada disso pratica qualquer ato processual por conta própria** — os
   passos 1-3 só leem páginas dentro do iframe oculto, sem exibi-las ao
