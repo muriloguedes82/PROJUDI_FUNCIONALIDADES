@@ -34,6 +34,15 @@
 	if (window.__pdpQuickActionsInjected) return;
 	window.__pdpQuickActionsInjected = true;
 
+	// Este recurso ("Ações rápidas") lê o painel "Ações" do Projudi, que não
+	// existe no SEEU — os rótulos em ACTION_GROUPS/PROCESS_TOOLBAR_LABELS são
+	// específicos do Projudi. hasProcessNumberMarker() (usada por
+	// isOnProcessScreen) reconhece o marcador de processo do SEEU também
+	// (mesma função usada pelo recurso irmão de e-mail), o que fazia a
+	// fileira de botões aparecer no SEEU sem nenhuma ação funcionar de fato.
+	// Por isso o recurso inteiro fica desativado nesse domínio.
+	const IS_SEEU = /(^|\.)seeu\.pje\.jus\.br$/i.test(window.location.hostname);
+
 	// Rótulos exatos dos links do painel Ações/Outras Ações, agrupados como
 	// aparecem para o usuário. Comparados com o texto do link já "limpo"
 	// (sem os marcadores "(*)"/ícones de ajuda/menu de contexto — ver
@@ -204,6 +213,7 @@
 	// exigência extra, pois é o mesmo sinal (comprovadamente confiável) usado
 	// pelo recurso irmão de WhatsApp.
 	function isOnProcessScreen() {
+		if (IS_SEEU) return false;
 		if (processScreenEligible) return true;
 		if (findProcessToolbarElement()) {
 			processScreenEligible = true;
