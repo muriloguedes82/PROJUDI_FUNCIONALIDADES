@@ -4,25 +4,34 @@
 // Depois que o script de triagem roda num processo, é comum o usuário
 // precisar ordenar mais de um cumprimento em seguida (ex.: um ofício, um
 // mandado, um edital, uma requisição de laudo). Sem este recurso, ao
-// clicar em "Ordenar" o diálogo se fecha e o usuário volta para a tela
-// inicial, tendo que reabrir manualmente "Ordenar Cumprimentos" (painel
-// Ações) a cada nova ordenação.
+// clicar em "Ordenar" o Projudi encerra o fluxo e leva o usuário para a
+// tela geral de "Ordenações" (não de volta ao processo), tendo que
+// recomeçar manualmente todo o caminho até "Ordenar Cumprimentos" (painel
+// Ações do processo) a cada nova ordenação.
 //
 // Este recurso adiciona um botão "🔁 Nova Ordenação" ao lado do botão
-// nativo "Ordenar", dentro desses diálogos. Ele tem o MESMO efeito do
-// "Ordenar" nativo (clica exatamente no botão original, disparando
-// qualquer validação/onclick que o próprio Projudi já tenha definido —
-// nada é reimplementado), mas guarda um sinalizador antes disso; quando o
-// diálogo de ordenação some da tela (ordenação concluída), o sinalizador
-// é consumido para reabrir automaticamente o MESMO diálogo em branco,
-// pronto para a próxima ordenação, sem voltar para a tela inicial do
-// processo.
+// nativo "Ordenar", dentro desses diálogos. Ele:
+// 1. Clica no MESMO botão "Ordenar" nativo (nenhuma validação é pulada
+//    nem reimplementada) - a ordenação é concretizada exatamente como
+//    clicando em "Ordenar" normalmente, com a mesma navegação de saída
+//    que o Projudi já faz sozinho.
+// 2. Guarda um sinalizador (sessionStorage, sobrevive à navegação) antes
+//    disso, com QUAL diálogo estava aberto.
+// 3. Assim que a tela de "Ordenar Cumprimentos"/RPV/Expedição BNMP some
+//    (ordenação concluída, Projudi já navegou para outra tela), usa esse
+//    sinalizador para voltar automaticamente à tela anterior do processo
+//    (`history.back()`, a mesma navegação que o botão "Voltar" do
+//    navegador faria) e then reabrir o MESMO diálogo, reaproveitando a
+//    lógica já pronta em src/quickActions.js (`window.__pdpQuickActions.
+//    reopenAction`) — clique direto no link nativo quando já se está na
+//    tela de Ações, ou a cadeia oculta em segundo plano (iframe fora da
+//    tela, sem navegar a aba visível) quando não se está. Nada disso
+//    pratica nenhum ato processual por conta própria: só reabre o
+//    diálogo em branco, pronto para a próxima ordenação.
 //
-// O Projudi abre esses diálogos como IFRAMES internos da própria página
-// (ver README, seção "Ações rápidas" — mesma técnica do `openDialog`/
-// `openDialogMaximized`), por isso este script (carregado com
-// `all_frames: true`) roda tanto no documento principal quanto dentro do
-// iframe do diálogo, dependendo de onde cada coisa acontece.
+// O botão "Ordenar" original continua funcionando normalmente, sem
+// nenhuma mudança de comportamento - "Nova Ordenação" é só um atalho a
+// mais ao lado dele.
 
 (function () {
 	"use strict";
@@ -40,9 +49,15 @@
 	const NEW_BUTTON_CLASS = "pdp-nova-ordenacao-btn";
 	const DONE_MARKER = "pdpNovaOrdenacaoFeito";
 	const REOPEN_FLAG_KEY = "pdpReabrirOrdenacao";
-	const REOPEN_URL_KEY = "pdpReabrirOrdenacaoUrl";
+	const REOPEN_LABEL_KEY = "pdpReabrirOrdenacaoLabel";
+	const REOPEN_WENT_BACK_KEY = "pdpReabrirOrdenacaoVoltou";
+	const REOPEN_STARTED_AT_KEY = "pdpReabrirOrdenacaoDesde";
 	const RECONCILE_INTERVAL_MS = 500;
 	const MAX_ANCESTOR_HOPS = 8;
+	// Tempo máximo tentando reabrir antes de desistir silenciosamente (evita
+	// ficar navegando/tentando para sempre se a tela seguinte não for a
+	// esperada por algum motivo imprevisto).
+	const GIVE_UP_AFTER_MS = 12000;
 
 	function normalizeText(el) {
 		return (el.textContent || "").replace(/\s+/g, " ").trim();
@@ -79,14 +94,15 @@
 
 	// Confirma que o par de botões encontrado pertence mesmo a um dos
 	// diálogos de ordenação (e não a outro par "Ordenar"/"Cancelar" do
-	// Projudi), subindo alguns níveis a partir do botão até achar um
-	// container cujo texto inclua um dos títulos esperados.
-	function findDialogContainer(button) {
+	// Projudi) e identifica QUAL diálogo é, subindo alguns níveis a partir
+	// do botão até achar um container cujo texto inclua um dos títulos
+	// esperados.
+	function findDialogTitle(button) {
 		let node = button;
 		for (let i = 0; i < MAX_ANCESTOR_HOPS && node; i++) {
 			const text = node.textContent || "";
 			for (let j = 0; j < DIALOG_TITLES.length; j++) {
-				if (text.indexOf(DIALOG_TITLES[j]) !== -1) return node;
+				if (text.indexOf(DIALOG_TITLES[j]) !== -1) return DIALOG_TITLES[j];
 			}
 			node = node.parentElement;
 		}
@@ -96,12 +112,12 @@
 	function findOrdenacaoDialog(doc) {
 		const button = findOrdenarButton(doc);
 		if (!button) return null;
-		const container = findDialogContainer(button);
-		if (!container) return null;
-		return { button: button, container: container };
+		const title = findDialogTitle(button);
+		if (!title) return null;
+		return { button: button, title: title };
 	}
 
-	function makeNovaOrdenacaoButton(ordenarBtn) {
+	function makeNovaOrdenacaoButton(ordenarBtn, title) {
 		const btn = ordenarBtn.cloneNode(true);
 		btn.removeAttribute("id");
 		btn.removeAttribute("name");
@@ -113,18 +129,21 @@
 		} else {
 			btn.textContent = "🔁 Nova Ordenação";
 		}
-		btn.title = 'Ordena e já reabre esta tela em branco para a próxima ordenação (ex.: um ofício, um mandado, um edital), sem voltar para a tela inicial.';
+		btn.title = 'Ordena e já reabre "' + title + '" em branco para a próxima ordenação (ex.: um ofício, um mandado, um edital), sem precisar recomeçar pelo processo.';
 		btn.addEventListener("click", function (evt) {
 			evt.preventDefault();
 			try {
 				sessionStorage.setItem(REOPEN_FLAG_KEY, "1");
-				sessionStorage.setItem(REOPEN_URL_KEY, window.location.href);
+				sessionStorage.setItem(REOPEN_LABEL_KEY, title);
+				sessionStorage.setItem(REOPEN_STARTED_AT_KEY, String(Date.now()));
+				sessionStorage.removeItem(REOPEN_WENT_BACK_KEY);
 			} catch (err) {
 				console.error("[Projudi Nova Ordenação]", "erro ao gravar sessionStorage:", err);
 			}
 			// Dispara o clique no botão NATIVO "Ordenar" de verdade — qualquer
 			// validação/onclick que o Projudi já tenha definido roda
-			// normalmente, exatamente como se o usuário tivesse clicado nele.
+			// normalmente, exatamente como se o usuário tivesse clicado nele
+			// (inclusive a navegação de saída que o Projudi já faz sozinho).
 			ordenarBtn.click();
 		});
 		return btn;
@@ -133,7 +152,7 @@
 	function injectButton(dialog) {
 		if (dialog.button.dataset[DONE_MARKER]) return;
 		dialog.button.dataset[DONE_MARKER] = "1";
-		const novoBtn = makeNovaOrdenacaoButton(dialog.button);
+		const novoBtn = makeNovaOrdenacaoButton(dialog.button, dialog.title);
 		dialog.button.insertAdjacentElement("afterend", novoBtn);
 	}
 
@@ -141,72 +160,66 @@
 	// Reabertura automática após a ordenação
 	// -------------------------------------------------------------------
 
-	function findReopenLinkIn(doc) {
-		const links = doc.querySelectorAll("a.link");
-		for (let i = 0; i < links.length; i++) {
-			const text = normalizeText(links[i]);
-			if (DIALOG_TITLES.indexOf(text) !== -1) return links[i];
-		}
-		return null;
-	}
-
-	// Tenta reabrir pelo link nativo do painel Ações — preferível a recarregar
-	// a URL do diálogo "na mão", porque esses diálogos costumam levar um
-	// token de uso único na URL (`_tj=...`, ver quickActions.js); clicar de
-	// novo no link nativo faz o Projudi gerar um diálogo (e token) novos.
-	function tryReopenViaLink() {
-		let link = findReopenLinkIn(document);
-		if (link) {
-			link.click();
-			return true;
-		}
-		try {
-			if (window.parent && window.parent !== window && window.parent.document) {
-				link = findReopenLinkIn(window.parent.document);
-				if (link) {
-					link.click();
-					return true;
-				}
-			}
-		} catch (err) {
-			// Acesso entre frames bloqueado (ex.: origem diferente) - ignora e
-			// cai no fallback abaixo.
-		}
-		return false;
+	function clearReopenState() {
+		sessionStorage.removeItem(REOPEN_FLAG_KEY);
+		sessionStorage.removeItem(REOPEN_LABEL_KEY);
+		sessionStorage.removeItem(REOPEN_WENT_BACK_KEY);
+		sessionStorage.removeItem(REOPEN_STARTED_AT_KEY);
 	}
 
 	function maybeReopen() {
-		let flag;
+		let flag, label;
 		try {
 			flag = sessionStorage.getItem(REOPEN_FLAG_KEY);
+			label = sessionStorage.getItem(REOPEN_LABEL_KEY);
 		} catch (err) {
 			return;
 		}
-		if (flag !== "1") return;
-		// O diálogo ainda está aberto (validação falhou, ou ainda carregando)
-		// - espera a próxima checagem em vez de agir agora.
+		if (flag !== "1" || !label) return;
+
+		// O diálogo ainda está aberto (validação falhou, ou ainda carregando
+		// a navegação de saída) - espera a próxima checagem em vez de agir
+		// agora.
 		if (findOrdenacaoDialog(document)) return;
 
-		if (tryReopenViaLink()) {
-			sessionStorage.removeItem(REOPEN_FLAG_KEY);
-			sessionStorage.removeItem(REOPEN_URL_KEY);
+		const api = window.__pdpQuickActions;
+		if (api && typeof api.reopenAction === "function" && api.reopenAction(label)) {
+			clearReopenState();
 			return;
 		}
 
-		// Não achou o link nativo em nenhum frame acessível (provável iframe
-		// isolado do próprio diálogo, já navegado para uma tela de
-		// sucesso/confirmação) - último recurso: recarrega a mesma URL que
-		// abriu o diálogo, reabrindo-o em branco.
-		let url;
+		// Ainda não estamos numa tela de onde dá para reabrir o diálogo
+		// (provável tela de destino do "Ordenar" nativo, ex.: a listagem
+		// geral de Ordenações) - volta uma vez para a tela anterior do
+		// processo (a mesma navegação do botão "Voltar" do navegador), de
+		// onde a próxima checagem deve conseguir reabrir.
+		let startedAt;
 		try {
-			url = sessionStorage.getItem(REOPEN_URL_KEY);
+			startedAt = Number(sessionStorage.getItem(REOPEN_STARTED_AT_KEY)) || Date.now();
 		} catch (err) {
-			url = null;
+			startedAt = Date.now();
 		}
-		if (url) {
-			sessionStorage.removeItem(REOPEN_FLAG_KEY);
-			sessionStorage.removeItem(REOPEN_URL_KEY);
-			if (url !== window.location.href) window.location.href = url;
+		if (Date.now() - startedAt > GIVE_UP_AFTER_MS) {
+			// Não conseguiu reabrir a tempo - desiste silenciosamente; a
+			// ordenação em si já foi concretizada normalmente pelo "Ordenar"
+			// nativo, só a reabertura automática não deu certo desta vez.
+			clearReopenState();
+			return;
+		}
+
+		let wentBack;
+		try {
+			wentBack = sessionStorage.getItem(REOPEN_WENT_BACK_KEY);
+		} catch (err) {
+			wentBack = null;
+		}
+		if (!wentBack) {
+			try {
+				sessionStorage.setItem(REOPEN_WENT_BACK_KEY, "1");
+			} catch (err) {
+				// ignora - sem persistência, na pior hipótese tenta de novo
+			}
+			history.back();
 		}
 	}
 

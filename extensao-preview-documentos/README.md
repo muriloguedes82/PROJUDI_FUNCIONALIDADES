@@ -415,23 +415,35 @@ RPV".
 
 Depois que o script de triagem roda num processo, é comum precisar ordenar
 mais de um cumprimento seguido (um ofício, um mandado, um edital, uma
-requisição de laudo, etc.). Sem este recurso, cada nova ordenação exige
-fechar o diálogo, voltar à tela inicial e reabrir "Ordenar Cumprimentos"
-(ou "Ordenar RPV"/"Ordenar Expedição BNMP") do zero.
+requisição de laudo, etc.). Sem este recurso, ao clicar em "Ordenar" o
+Projudi encerra o fluxo e leva para a tela geral de **Ordenações** (não de
+volta ao processo) — cada nova ordenação exige recomeçar manualmente todo
+o caminho até "Ordenar Cumprimentos" (painel Ações do processo).
 
 A extensão adiciona um botão **"🔁 Nova Ordenação"** ao lado do botão
 nativo "Ordenar" desses três diálogos. Ele:
 
 1. Clica no **mesmo botão "Ordenar" nativo** do Projudi — nenhuma
-   validação é pulada nem reimplementada, é o clique de verdade.
-2. Quando o diálogo de ordenação some da tela (ordenação concluída), a
-   extensão reabre automaticamente o **mesmo diálogo em branco**,
-   preferencialmente clicando de novo no link nativo "Ordenar
-   Cumprimentos"/"Ordenar RPV"/"Ordenar Expedição BNMP" do painel Ações
-   (o que garante um token de sessão novo a cada abertura, em vez de
-   reaproveitar a URL anterior) — assim o servidor pode ordenar quantos
-   cumprimentos forem necessários sem repetir o procedimento inicial a
-   cada um.
+   validação é pulada nem reimplementada, é o clique de verdade, com a
+   mesma navegação de saída que o Projudi já faz sozinho ao concluir uma
+   ordenação.
+2. Assim que o diálogo de ordenação some da tela (ordenação concluída), a
+   extensão volta automaticamente à tela anterior do processo (a mesma
+   navegação do botão "Voltar" do navegador) e reabre o **mesmo diálogo em
+   branco** — reaproveitando a lógica já usada pelas "Ações rápidas"
+   acima: clique direto no link nativo "Ordenar Cumprimentos"/"Ordenar
+   RPV"/"Ordenar Expedição BNMP" quando já se está na tela de Ações, ou a
+   mesma cadeia oculta em segundo plano (sem navegar a aba visível) quando
+   não se está — o que garante um diálogo (e token de sessão) novos a
+   cada abertura, em vez de reaproveitar a URL anterior. Assim o servidor
+   pode ordenar quantos cumprimentos forem necessários sem repetir o
+   procedimento inicial a cada um.
+
+Se por algum motivo a tela seguinte não permitir reabrir automaticamente
+(ex.: uma tela inesperada do Projudi), a extensão desiste silenciosamente
+após alguns segundos — a ordenação em si já foi concretizada normalmente
+pelo "Ordenar" nativo, só a reabertura automática não acontece nesse caso,
+e "Ordenar Cumprimentos" pode ser reaberto manualmente como sempre.
 
 O botão "Ordenar" original continua funcionando normalmente, sem nenhuma
 mudança de comportamento — "Nova Ordenação" é só um atalho a mais ao lado
