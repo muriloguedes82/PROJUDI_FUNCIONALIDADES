@@ -45,6 +45,7 @@
 		"Exportar Processo",
 		"Pedido Incidental",
 		"Navegar",
+		"Concluir Movimento",
 		"Voltar",
 	];
 	const BUTTON_MARGIN = 12;
@@ -164,7 +165,13 @@
 
 	function findActionToolbarElement() {
 		const candidates = document.querySelectorAll('button, a, input[type="button"], input[type="submit"]');
-		for (const el of candidates) {
+		// Varre de trás para frente: prefere o ÚLTIMO elemento com um desses
+		// rótulos (a barra de ações real, no rodapé do conteúdo), não o
+		// primeiro — um "Voltar" solto mais acima na página (breadcrumb, menu)
+		// faria os botões flutuantes pousarem no lugar errado. Mesma técnica
+		// usada em quickActions.js/content.js.
+		for (let i = candidates.length - 1; i >= 0; i--) {
+			const el = candidates[i];
 			const text = (el.textContent || el.value || "").trim();
 			if (TOOLBAR_LABELS.indexOf(text) !== -1) return el;
 		}
@@ -293,9 +300,13 @@
 
 	// ---------------------------------------------------------------------
 	// Remetentes salvos (chrome.storage.local) — o favorito ("padrão") é
-	// lido diretamente por src/owa-attach.js, que tenta selecioná-lo no
-	// campo "De" toda vez que o Outlook abre pela extensão. Só funciona se
-	// o usuário já tiver permissão de "Enviar como" na conta desejada
+	// lido em dois lugares: por src/owa-attach.js, no modo sem Azure AD,
+	// que tenta selecioná-lo no campo "De" toda vez que o Outlook abre pela
+	// extensão; e por src/background.js, no modo Graph, que cria o
+	// rascunho diretamente na caixa desse remetente (em vez de sempre na
+	// caixa pessoal do usuário) para que o e-mail enviado seja salvo na
+	// pasta "Enviados" certa. Em ambos os modos só funciona se o usuário
+	// já tiver permissão ("Enviar como"/acesso delegado) na conta desejada
 	// (configuração do Exchange/TI, fora do controle da extensão).
 	// ---------------------------------------------------------------------
 

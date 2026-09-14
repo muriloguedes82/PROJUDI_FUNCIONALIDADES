@@ -34,6 +34,15 @@
 	if (window.__pdpQuickActionsInjected) return;
 	window.__pdpQuickActionsInjected = true;
 
+	// Este recurso ("Ações rápidas") lê o painel "Ações" do Projudi, que não
+	// existe no SEEU — os rótulos em ACTION_GROUPS/PROCESS_TOOLBAR_LABELS são
+	// específicos do Projudi. hasProcessNumberMarker() (usada por
+	// isOnProcessScreen) reconhece o marcador de processo do SEEU também
+	// (mesma função usada pelo recurso irmão de e-mail), o que fazia a
+	// fileira de botões aparecer no SEEU sem nenhuma ação funcionar de fato.
+	// Por isso o recurso inteiro fica desativado nesse domínio.
+	const IS_SEEU = /(^|\.)seeu\.pje\.jus\.br$/i.test(window.location.hostname);
+
 	// Rótulos exatos dos links do painel Ações/Outras Ações, agrupados como
 	// aparecem para o usuário. Comparados com o texto do link já "limpo"
 	// (sem os marcadores "(*)"/ícones de ajuda/menu de contexto — ver
@@ -64,15 +73,30 @@
 			actions: ["Intimar Partes", "Notificar Partes", "Citar Partes", "Intimar Peritos e Auxiliares da Justiça"],
 		},
 		{
+			id: "suspender",
+			title: "Suspender",
+			icon: "⏸️",
+			actions: ["Suspender ou Sobrestar Processo"],
+		},
+		{
+			id: "transitar",
+			title: "Transitar",
+			icon: "🏁",
+			actions: ["Transitar em Julgado"],
+		},
+		{
+			id: "arquivar",
+			title: "Arquivar",
+			icon: "🗄️",
+			actions: ["Arquivar Processo"],
+		},
+		{
 			id: "outras",
 			title: "Outras",
 			icon: "⋯",
 			actions: [
 				"Interromper Prazo",
-				"Suspender ou Sobrestar Processo",
-				"Transitar em Julgado",
 				"Declínio de competência para a Segunda Instância",
-				"Arquivar Processo",
 				"Apensar",
 				"Desapensar",
 			],
@@ -86,13 +110,18 @@
 		"Exportar Processo",
 		"Pedido Incidental",
 		"Navegar",
+		"Concluir Movimento",
 		"Voltar",
 	];
 	const BUTTON_SCREEN_MARGIN = 12;
-	// Fica à esquerda do botão de WhatsApp e dos botões de e-mail, quando
-	// existirem, para os grupos de botões desta extensão ficarem juntos sem
-	// se sobrepor (mesma técnica usada entre WhatsApp e e-mail).
-	const OTHER_BUTTON_SELECTOR = "#pdp-wa-launcher, .pdp-email-visible";
+	// Fica à esquerda do botão de WhatsApp e do botão "Enviar por e-mail",
+	// quando existirem, para os grupos de botões desta extensão ficarem
+	// juntos, na mesma linha, sem se sobrepor (mesma técnica usada entre
+	// WhatsApp e e-mail). Só o topo da pilha de e-mail
+	// (#pdp-email-button) entra na conta — "Remetente" e "Destinatários"
+	// ficam empilhados abaixo dele (ver repositionButtons() em email.js) e
+	// não devem puxar esta fileira para uma linha mais baixa.
+	const OTHER_BUTTON_SELECTOR = "#pdp-wa-launcher, #pdp-email-button";
 	const PREFERENCES_KEY = "pdpActionPreferences"; // { [actionLabel]: [{id, name, fields, createdAt}] }
 	const DIALOG_WAIT_TIMEOUT_MS = 6000;
 	const DIALOG_WAIT_INTERVAL_MS = 150;
@@ -104,6 +133,89 @@
 	let processScreenEligible = false;
 	let captureToolbar = null;
 	let confirmBar = null;
+	let activeModalIframe = null;
+	// Regra padrão: no topo da tela, todos os botões de grupo ficam
+	// visíveis; ao rolar a tela para baixo, eles se recolhem atrás do
+	// botão "Ações" (evitando poluir o canto da tela sobre o conteúdo);
+	// voltando ao topo, todos reaparecem automaticamente. Não é uma
+	// preferência salva — é sempre recalculada a partir da posição atual
+	// de rolagem (ver updateRowExpandedFromScroll).
+	const SCROLL_TOP_THRESHOLD = 8;
+	let rowExpanded = true;
+
+	function updateRowExpandedFromScroll() {
+		const shouldExpand = window.scrollY <= SCROLL_TOP_THRESHOLD;
+		if (shouldExpand === rowExpanded) return;
+		rowExpanded = shouldExpand;
+		applyRowExpandedState();
+	}
+
+	function applyRowExpandedState() {
+		if (!row) return;
+
+		const actionsBtn = row.querySelector("#pdp-qa-options");
+		if (actionsBtn) {
+			actionsBtn.setAttribute("aria-expanded", String(rowExpanded));
+			actionsBtn.textContent = rowExpanded ? "▾ Ações" : "▸ Ações";
+			actionsBtn.title = rowExpanded
+				? "Recolher os botões de ações"
+				: "Mostrar os botões de ações";
+		}
+
+		row.querySelectorAll("[data-group-id]").forEach(function (btn) {
+			btn.hidden = !rowExpanded;
+			if (rowExpanded) {
+				btn.style.removeProperty("display");
+			} else {
+				// Garante o recolhimento mesmo se o CSS definir display.
+				btn.style.setProperty("display", "none", "important");
+			}
+		});
+
+		if (!rowExpanded) closePanel();
+		repositionRow();
+	}
+
+	// Clicar no botão "Ações" alterna manualmente a fileira (por exemplo,
+	// para abrir os botões mesmo tendo rolado a tela); rolar a página de
+	// novo reaplica a regra padrão acima (updateRowExpandedFromScroll).
+	function toggleRowExpanded() {
+		rowExpanded = !rowExpanded;
+		applyRowExpandedState();
+	}
+
+	// O shim de window.close()/window.opener (src/closeShim.js,
+	// "document_start", roda ANTES de qualquer script da própria página do
+	// diálogo) avisa por postMessage sobre o que acontece dentro do iframe
+	// do popup — inclusive erros não tratados no script nativo (ver
+	// closeShim.js para o porquê disso ser útil para diagnóstico) — mesmo
+	// quando isso acontece de forma síncrona durante o carregamento da
+	// página, cedo demais para qualquer shim aplicado só a partir do evento
+	// "load" do <iframe> (ver attachModalIframeCloseShim).
+	//
+	// IMPORTANTE: o Projudi usa framesets — a própria tela do processo
+	// (onde esta extensão cria o popup) já é um sub-frame, nunca o topo
+	// literal da aba (confirmado via os logs de diagnóstico do
+	// closeShim.js: "top?" veio `false` até para a página processo.do).
+	// Por isso o listener NÃO pode ficar restrito a `window.top === window`
+	// — isso registrava o listener só no frameset externo, que nunca cria
+	// popup nenhum e por isso nunca via a mensagem. Cada instância deste
+	// script (uma por frame) registra seu próprio listener; só a que tiver
+	// `activeModalIframe` preenchido (a que de fato abriu o popup) chega a
+	// bater no `event.source` e reagir — as demais ignoram silenciosamente.
+	window.addEventListener("message", function (event) {
+		if (event.origin !== window.location.origin) return;
+		if (!event.data || event.data.__pdpShim !== true) return;
+		if (!activeModalIframe || event.source !== activeModalIframe.contentWindow) return;
+		if (event.data.__pdpCloseSignal) {
+			logChainStep("recebido sinal de fechamento do popup (closeShim, document_start)", event.data);
+			removeActionModal();
+		} else if (event.data.__pdpOpenerSignal) {
+			logChainStep("closeShim: estado inicial de window.opener no diálogo", event.data);
+		} else if (event.data.__pdpErrorSignal) {
+			logChainStep("closeShim: erro não tratado dentro do diálogo", event.data);
+		}
+	});
 
 	// -------------------------------------------------------------------
 	// Detecção da tela de processo (mesma técnica usada em content.js/email.js)
@@ -111,7 +223,15 @@
 
 	function findProcessToolbarElement() {
 		const candidates = document.querySelectorAll('button, a, input[type="button"], input[type="submit"]');
-		for (let i = 0; i < candidates.length; i++) {
+		// Varre de trás para frente: a barra de ações real do processo fica no
+		// rodapé do conteúdo, mas rótulos como "Voltar" podem aparecer antes
+		// dela também (breadcrumb, menu, link solto no topo da tela). Pegando
+		// o ÚLTIMO elemento com um desses rótulos, em vez do primeiro,
+		// ancoramos na barra de verdade — evitando que os botões flutuantes
+		// desta extensão pousem no meio do conteúdo (ex.: sobre a tabela de
+		// arquivos da tela de Recursos) por terem se guiado por um link
+		// homônimo mais acima na página.
+		for (let i = candidates.length - 1; i >= 0; i--) {
 			const el = candidates[i];
 			const text = (el.textContent || el.value || "").trim();
 			if (PROCESS_TOOLBAR_LABELS.indexOf(text) !== -1) return el;
@@ -155,6 +275,7 @@
 	// exigência extra, pois é o mesmo sinal (comprovadamente confiável) usado
 	// pelo recurso irmão de WhatsApp.
 	function isOnProcessScreen() {
+		if (IS_SEEU) return false;
 		if (processScreenEligible) return true;
 		if (findProcessToolbarElement()) {
 			processScreenEligible = true;
@@ -577,6 +698,286 @@
 
 	const MODAL_ID = "pdp-qa-modal";
 
+	// Diálogos como "Ordenar Cumprimentos" terminam com uma tela nativa do
+	// Projudi ("Aguarde...") que fica esperando a conclusão do processamento
+	// e então se fecha sozinha — mas esse fechamento automático foi escrito
+	// para quando o diálogo é uma janela de verdade aberta via
+	// `window.open()` (com `window.opener` apontando para a tela do
+	// processo e `window.close()` funcionando). Como aqui o diálogo roda
+	// dentro de um <iframe> deste popup (não uma janela real), `opener` vem
+	// `null` e `close()` não faz nada — o script nativo tenta usá-los e a
+	// tela fica presa em "Aguarde..." apesar de a ordenação já ter sido
+	// registrada no processo por trás; só o clique manual em "✕ Fechar"
+	// (que sempre funcionou, por ser desta extensão) "resolvia" o problema.
+	//
+	// Para o iframe nativo se comportar como se fosse mesmo a janela que
+	// ele espera ser, isso reaplica `opener`/`close` a cada navegação dele
+	// (inclusive a própria tela de "Aguarde...", que é uma navegação nova):
+	// `opener` passa a apontar para a aba real do processo (então
+	// `opener.location.reload()` recarrega a tela por trás, como o Projudi
+	// já esperava fazer) e `close()` passa a fechar este popup da extensão
+	// em vez de não fazer nada — assim a tela fecha sozinha assim que o
+	// próprio Projudi decidir que a ação terminou, para qualquer ação que
+	// use este popup (Ordenar Cumprimentos, Ordenar RPV, Enviar Concluso
+	// etc.), não só para esta.
+	// Diagnóstico: o "watcher" abaixo faz um snapshot periódico do
+	// documento carregado no iframe do popup enquanto ele estiver aberto,
+	// para descobrirmos (via console, F12, filtro "Projudi Ações Rápidas")
+	// POR QUE a tela "Aguarde..." não fecha sozinha mesmo com o shim de
+	// opener/close. Hipóteses que este log ajuda a distinguir:
+	//   a) o script nativo nunca chama window.close()/opener.*, e sim
+	//      top.close()/parent.close() (aí o shim, que só troca
+	//      iframe.contentWindow, não pega essa chamada);
+	//   b) a tela "Aguarde..." não é uma NAVEGAÇÃO nova do iframe — é a
+	//      MESMA página trocando o próprio conteúdo via AJAX/innerHTML, daí
+	//      o evento "load" (onde o shim reaplica opener/close) nunca
+	//      dispara de novo depois da 1ª carga, e o script pode ter guardado
+	//      uma referência à função close() original antes do shim rodar;
+	//   c) o iframe é bloqueado por cross-origin em algum ponto (troca de
+	//      domínio/subdomínio) e win/doc somem;
+	//   d) o script nativo trava numa exceção não relacionada a
+	//      opener/close (ex.: outro campo que também espera comportamento
+	//      de janela de verdade), e a tela realmente NUNCA chega a chamar
+	//      close() — precisaria de outro mecanismo (ex.: detectar o fim via
+	//      o conteúdo da própria tela, não via close()).
+	const MODAL_WATCH_INTERVAL_MS = 1000;
+	let modalWatchInterval = null;
+	let modalWatchLastSnapshot = null;
+	let modalWatchLastDumpedHref = null;
+
+	// Diagnóstico definitivo: em vez de continuar adivinhando o que a tela
+	// "Aguarde..." faz (window.close()? top.close()? um erro? nada?),
+	// extrai o HTML/scripts REAIS dessa página (mesma origem do Projudi,
+	// acesso direto permitido) e manda pro console — dá pra ler o código
+	// de verdade em vez de inferir a partir de sintomas. Roda só uma vez
+	// por URL nova (não a cada poll de 1s) pra não poluir o console.
+	// Palavras que só aparecem em scripts que de fato tentam controlar a
+	// janela/navegação (fechar, redirecionar, recarregar, fazer polling) —
+	// os scripts de framework (jQuery, prototype.js etc., vistos no dump
+	// anterior) não têm nada disso, então filtrar por elas separa o que
+	// interessa da bagagem genérica que todo página do Projudi carrega.
+	const DIALOG_SCRIPT_KEYWORDS = [
+		"close",
+		"opener",
+		"top.",
+		"parent.",
+		"location.href",
+		"location.reload",
+		"periodicalUpdater",
+		"setTimeout",
+		"setInterval",
+		"submit(",
+	];
+
+	function dumpDialogSourceOnce(doc, href) {
+		if (href === modalWatchLastDumpedHref) return;
+		modalWatchLastDumpedHref = href;
+		try {
+			const allScripts = Array.prototype.slice.call(doc.querySelectorAll("script"));
+			const relevant = allScripts.filter(function (s) {
+				const text = s.textContent || "";
+				return !s.src && DIALOG_SCRIPT_KEYWORDS.some(function (kw) {
+					return text.indexOf(kw) !== -1;
+				});
+			});
+			const relevantText = relevant
+				.map(function (s, i) {
+					return "----- script inline relevante " + i + " -----\n" + (s.textContent || "").slice(0, 20000);
+				})
+				.join("\n\n");
+			const metaRefresh = doc.querySelector('meta[http-equiv="refresh" i]');
+			const visibleText = doc.body ? doc.body.innerText || "" : "";
+			console.info(
+				"[Projudi Ações Rápidas] DUMP do diálogo (" +
+					href +
+					")\n=== texto visível (innerText) ===\n" +
+					visibleText +
+					"\n=== total de <script>: " +
+					allScripts.length +
+					" (" +
+					relevant.length +
+					" inline relevante(s) por palavra-chave) ===" +
+					"\n=== meta refresh: " +
+					(metaRefresh ? metaRefresh.getAttribute("content") : "(nenhum)") +
+					"\n=== scripts inline relevantes ===\n" +
+					(relevantText || "(nenhum script inline bateu com as palavras-chave — ver lista completa abaixo)") +
+					(relevant.length
+						? ""
+						: "\n=== TODOS os scripts inline (fallback, já que o filtro não achou nada) ===\n" +
+								allScripts
+									.filter(function (s) {
+										return !s.src;
+									})
+									.map(function (s, i) {
+										return "----- script inline " + i + " -----\n" + (s.textContent || "").slice(0, 20000);
+									})
+									.join("\n\n"))
+			);
+		} catch (err) {
+			logChainStep("watcher: erro ao extrair HTML/scripts do iframe", String(err));
+		}
+	}
+
+	function snapshotIframeState(iframe, tag) {
+		let win, doc;
+		try {
+			win = iframe.contentWindow;
+			doc = iframe.contentDocument;
+		} catch (err) {
+			logChainStep("watcher do popup: erro de acesso ao iframe (" + tag + ")", String(err));
+			return;
+		}
+		if (!win || !doc) {
+			logChainStep("watcher do popup: iframe sem contentWindow/contentDocument (" + tag + ")", null);
+			return;
+		}
+		let href = null;
+		try {
+			href = win.location.href;
+		} catch (err) {
+			href = "(erro ao ler location: " + err + ")";
+		}
+		if (doc.readyState === "complete") dumpDialogSourceOnce(doc, href);
+		const bodyText = (doc.body ? doc.body.textContent || "" : "").replace(/\s+/g, " ").trim().slice(0, 200);
+		const snapshot = JSON.stringify({
+			href: href,
+			readyState: doc.readyState,
+			title: doc.title,
+			bodySnippet: bodyText,
+			typeofClose: typeof win.close,
+			closeIsOurShim: win.close && win.close.__pdpShim === true,
+			opener: win.opener === window ? "(nossa aba)" : win.opener ? "(outro valor)" : null,
+		});
+		if (snapshot !== modalWatchLastSnapshot) {
+			modalWatchLastSnapshot = snapshot;
+			logChainStep("watcher do popup: mudança detectada (" + tag + ")", JSON.parse(snapshot));
+		}
+	}
+
+	function startModalWatch(iframe) {
+		stopModalWatch();
+		modalWatchLastSnapshot = null;
+		snapshotIframeState(iframe, "inicial");
+		modalWatchInterval = setInterval(function () {
+			snapshotIframeState(iframe, "poll");
+		}, MODAL_WATCH_INTERVAL_MS);
+	}
+
+	function stopModalWatch() {
+		if (modalWatchInterval) {
+			clearInterval(modalWatchInterval);
+			modalWatchInterval = null;
+		}
+	}
+
+	function attachModalIframeCloseShim(iframe) {
+		iframe.addEventListener("load", function () {
+			let win;
+			try {
+				win = iframe.contentWindow;
+			} catch (err) {
+				logChainStep("shim: erro ao acessar contentWindow no load", String(err));
+				return;
+			}
+			if (!win) {
+				logChainStep("shim: contentWindow ausente no load", null);
+				return;
+			}
+			let href = null;
+			try {
+				href = win.location.href;
+			} catch (err) {
+				href = "(erro ao ler location: " + err + ")";
+			}
+			logChainStep("shim: iframe do popup navegou/recarregou", { href: href, title: win.document && win.document.title });
+
+			try {
+				win.opener = window;
+				logChainStep("shim: opener aplicado", null);
+			} catch (err) {
+				logChainStep("shim: falhou ao aplicar opener", String(err));
+			}
+			// Reaplica um shim de close() também aqui, como reforço, para o
+			// caso (raro) de o script nativo chamar close() depois deste
+			// evento "load" (ex.: um setTimeout) — mas o caminho principal
+			// para fechar o popup automaticamente é o closeShim.js (ver
+			// listener de "message" no topo deste arquivo), que roda em
+			// "document_start" e por isso consegue interceptar mesmo uma
+			// chamada síncrona de close() feita durante o carregamento da
+			// página, antes deste evento "load" chegar a disparar.
+			try {
+				const shimClose = function () {
+					logChainStep("shim (load): win.close() do iframe foi chamado — fechando o popup da extensão", null);
+					removeActionModal();
+				};
+				shimClose.__pdpShim = true;
+				win.close = shimClose;
+				logChainStep("shim: close aplicado", null);
+			} catch (err) {
+				logChainStep("shim: falhou ao aplicar close", String(err));
+			}
+
+			checkFlagClosePopup(win);
+		});
+	}
+
+	// O diálogo final de ações como "Ordenar Cumprimentos" NUNCA chama
+	// window.close() — o dump de diagnóstico revelou o mecanismo real
+	// (função checkClosePopup(), presente em vários desses diálogos):
+	//
+	//   if (document.xxxForm.flagClosePopup.value == "true") {
+	//     var parentForm = window.parent.$(document.xxxForm.parentForm.value);
+	//     parentForm.action = document.xxxForm.backURL.value;
+	//     parentForm.submit();
+	//   }
+	//
+	// Ou seja: o diálogo foi desenhado para rodar como um iframe DENTRO da
+	// própria tela de Ações do Projudi — "window.parent" é essa tela, que
+	// tem um <form> com o id salvo em `parentForm`; ao terminar, ele ajusta
+	// a action desse form pra "backURL" e submete, fazendo a tela de Ações
+	// (o pai de verdade) recarregar/voltar sozinha. Nunca existiu uma
+	// "janela" pra fechar.
+	//
+	// No modo "hop" desta extensão, `window.parent` é a página onde o
+	// popup foi criado (ex.: processo.do) — que não tem esse form
+	// específico —, então aquele `parentForm.submit()` nativo não encontra
+	// nada e não faz efeito nenhum (sem lançar erro, o que explica por que
+	// nunca vimos um "erro não tratado" nos logs). O `flagClosePopup` em si
+	// já é o sinal confiável de "a ação terminou" — em vez de depender do
+	// submit nativo (que mira no lugar errado no nosso caso), lemos esse
+	// campo diretamente e agimos por conta própria: recarrega a aba real
+	// por trás (equivalente ao que o backURL faria) e fecha o popup.
+	function checkFlagClosePopup(win) {
+		let doc;
+		try {
+			doc = win.document;
+		} catch (err) {
+			return;
+		}
+		if (!doc || !doc.forms) return;
+		for (let i = 0; i < doc.forms.length; i++) {
+			const form = doc.forms[i];
+			const flagField = form.elements && form.elements.namedItem ? form.elements.namedItem("flagClosePopup") : null;
+			if (!flagField) continue;
+			const backURLField = form.elements.namedItem("backURL");
+			logChainStep("shim: achado campo flagClosePopup no diálogo", {
+				form: form.name || form.id || "(sem nome)",
+				flagClosePopup: flagField.value,
+				backURL: backURLField ? backURLField.value : null,
+			});
+			if (flagField.value === "true") {
+				logChainStep("shim: flagClosePopup=true — a ação terminou; recarregando a tela e fechando o popup", null);
+				try {
+					window.location.reload();
+				} catch (err) {
+					logChainStep("shim: falhou ao recarregar a tela por trás", String(err));
+				}
+				removeActionModal();
+			}
+			break; // só o 1º form com esse campo importa — mesma suposição do próprio Projudi
+		}
+	}
+
 	function showActionModal(label) {
 		removeActionModal();
 		const backdrop = document.createElement("div");
@@ -590,13 +991,22 @@
 			'<div class="pdp-qa-modal-body"><iframe class="pdp-qa-modal-iframe"></iframe></div>' +
 			"</div>";
 		document.body.appendChild(backdrop);
-		backdrop.querySelector(".pdp-qa-modal-close").addEventListener("click", removeActionModal);
-		return backdrop.querySelector(".pdp-qa-modal-iframe");
+		backdrop.querySelector(".pdp-qa-modal-close").addEventListener("click", function () {
+			logChainStep('"✕ Fechar" clicado manualmente pelo usuário', null);
+			removeActionModal();
+		});
+		const iframe = backdrop.querySelector(".pdp-qa-modal-iframe");
+		activeModalIframe = iframe;
+		attachModalIframeCloseShim(iframe);
+		startModalWatch(iframe);
+		return iframe;
 	}
 
 	function removeActionModal() {
 		const el = document.getElementById(MODAL_ID);
 		if (el) el.remove();
+		activeModalIframe = null;
+		stopModalWatch();
 		removeConfirmBar();
 		removeCaptureToolbar();
 	}
@@ -1003,6 +1413,8 @@
 		if (row && row.isConnected) return;
 		if (!isOnProcessScreen()) return;
 
+		closePanel();
+
 		row = document.createElement("div");
 		row.id = "pdp-qa-row";
 		row.className = "pdp-qa-row";
@@ -1012,7 +1424,9 @@
 			btn.type = "button";
 			btn.className = "pdp-qa-group-btn";
 			btn.dataset.groupId = group.id;
-			btn.innerHTML = '<span class="pdp-qa-icon">' + group.icon + "</span><span>" + group.title + "</span>";
+			btn.innerHTML =
+				'<span class="pdp-qa-icon">' + group.icon +
+				"</span><span>" + group.title + "</span>";
 			btn.title = "Ações de " + group.title;
 			btn.addEventListener("click", function () {
 				togglePanel(group);
@@ -1020,7 +1434,25 @@
 			row.appendChild(btn);
 		});
 
+		const optionsBtn = document.createElement("button");
+		optionsBtn.type = "button";
+		optionsBtn.id = "pdp-qa-options";
+		optionsBtn.className = "pdp-qa-group-btn";
+		optionsBtn.addEventListener("click", toggleRowExpanded);
+		row.appendChild(optionsBtn);
+
+		// Anexa ao documento ANTES do cálculo de posição: repositionRow() usa
+		// row.offsetHeight (ramo em que a fileira fica ao lado do WhatsApp/
+		// e-mail), que é sempre 0 enquanto o elemento está desconectado do
+		// DOM.
 		document.body.appendChild(row);
+
+		// Parte do estado que combina com a posição de rolagem atual
+		// (ex.: script injetado depois de a página já estar rolada), em
+		// vez de sempre assumir "expandido" por um instante.
+		rowExpanded = window.scrollY <= SCROLL_TOP_THRESHOLD;
+		applyRowExpandedState();
+		repositionRow();
 	}
 
 	function closePanel() {
@@ -1333,6 +1765,7 @@
 		repositionScheduled = true;
 		requestAnimationFrame(function () {
 			repositionScheduled = false;
+			updateRowExpandedFromScroll();
 			repositionRow();
 		});
 	}

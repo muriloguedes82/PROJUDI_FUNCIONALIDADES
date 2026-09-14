@@ -981,12 +981,18 @@
 		"Exportar Processo",
 		"Pedido Incidental",
 		"Navegar",
+		"Concluir Movimento",
 		"Voltar",
 	];
 
 	function findProcessToolbarElement() {
 		const candidates = document.querySelectorAll('button, a, input[type="button"], input[type="submit"]');
-		for (let i = 0; i < candidates.length; i++) {
+		// Varre de trás para frente: prefere o ÚLTIMO elemento com um desses
+		// rótulos (a barra de ações real, no rodapé do conteúdo), não o
+		// primeiro — um "Voltar" solto mais acima na página (breadcrumb, menu)
+		// faria o botão flutuante pousar no lugar errado. Mesma técnica usada
+		// em quickActions.js.
+		for (let i = candidates.length - 1; i >= 0; i--) {
 			const el = candidates[i];
 			const text = (el.textContent || el.value || "").trim();
 			if (PROCESS_TOOLBAR_LABELS.indexOf(text) !== -1) return el;
@@ -1040,13 +1046,14 @@
 	//    à barra). Se a barra sair da área visível (usuário rolou além
 	//    dela), o botão simplesmente fica ancorado ao rodapé da janela, em
 	//    vez de tentar perseguir uma barra que não está mais à vista.
-	// 2. Se houver botões de outra funcionalidade desta extensão no canto
-	//    da tela (ex.: envio por e-mail — mesmos ids/classes
-	//    "pdp-email-button"/"pdp-recipients-button"/".pdp-email-visible"),
-	//    o launcher se posiciona à ESQUERDA deles, na mesma altura, em vez
-	//    de seguir a barra de ações — para os dois grupos de botões
-	//    ficarem visualmente juntos, sem se sobrepor.
-	const EMAIL_BUTTON_SELECTOR = "#pdp-email-button, #pdp-recipients-button, .pdp-email-visible";
+	// 2. Se houver o botão "Enviar por e-mail" (#pdp-email-button) no canto
+	//    da tela, o launcher se posiciona à ESQUERDA dele, na mesma altura
+	//    — para os dois grupos de botões ficarem juntos na mesma linha,
+	//    sem se sobrepor. Só esse botão (o topo da pilha de e-mail) entra
+	//    na conta — "Remetente" e "Destinatários" ficam empilhados abaixo
+	//    dele (ver repositionButtons() em email.js) e não devem puxar o
+	//    launcher/a fileira de ações para uma linha mais baixa.
+	const EMAIL_BUTTON_SELECTOR = "#pdp-email-button";
 	const BUTTON_SCREEN_MARGIN = 12;
 
 	function repositionLauncher() {
