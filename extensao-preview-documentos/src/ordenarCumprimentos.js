@@ -60,12 +60,34 @@
 	// problema:
 	//   copy(JSON.stringify(window.__pdpNovaOrdenacaoLog, null, 2))
 	// cola o log inteiro na área de transferência para compartilhar.
+	//
+	// Guardado em sessionStorage (não só em memória): o clique final em
+	// "Ordenar" NAVEGA de verdade para a tela seguinte (sucesso ou erro),
+	// o que destrói e reinicia este script do zero - um array só em
+	// memória se perderia antes de dar tempo de copiá-lo. sessionStorage
+	// sobrevive a essa navegação (mesma aba, mesma origem).
 	// -------------------------------------------------------------------
-	const diagnosticLog = [];
+	const LOG_STORAGE_KEY = "pdpNovaOrdenacaoLog";
+	const LOG_MAX_ENTRIES = 300;
+	let diagnosticLog;
+	try {
+		diagnosticLog = JSON.parse(sessionStorage.getItem(LOG_STORAGE_KEY) || "[]");
+		if (!Array.isArray(diagnosticLog)) diagnosticLog = [];
+	} catch (err) {
+		diagnosticLog = [];
+	}
 	window.__pdpNovaOrdenacaoLog = diagnosticLog;
 	function logEvent(type, data) {
 		const entry = Object.assign({ t: new Date().toISOString(), url: window.location.href, type: type }, data || {});
 		diagnosticLog.push(entry);
+		if (diagnosticLog.length > LOG_MAX_ENTRIES) diagnosticLog.splice(0, diagnosticLog.length - LOG_MAX_ENTRIES);
+		try {
+			sessionStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(diagnosticLog));
+		} catch (err) {
+			// sessionStorage cheio ou indisponível - o log continua
+			// funcionando só em memória (window.__pdpNovaOrdenacaoLog) para
+			// esta página, mesmo que não sobreviva a uma navegação.
+		}
 		console.info(LOG_PREFIX, type, data || "");
 	}
 	// Log incondicional, só pra confirmar que o script está mesmo ativo

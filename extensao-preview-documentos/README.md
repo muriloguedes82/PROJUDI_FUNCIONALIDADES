@@ -463,12 +463,18 @@ cumprimento. Antes de confiar nele em ordenações com prazo real,
 recomenda-se testar com um item não crítico e conferir depois, nos autos,
 se todos os itens da fila foram realmente registrados.
 
-**Diagnóstico:** cada passo (o que cada item guardou, o que cada reenvio
-em segundo plano mandou e recebeu de volta do Projudi — inclusive a
-mensagem de erro e o número de protocolo, quando o Projudi mostrar uma
-tela de erro) fica registrado em `window.__pdpNovaOrdenacaoLog`, acessível
-pelo console do navegador (F12) enquanto o diálogo estiver aberto. Depois
-de reproduzir um problema, rodar no console:
+**Diagnóstico:** cada passo (o script carregando, o diálogo sendo
+reconhecido, o que cada item guardou, o que cada reenvio em segundo plano
+mandou e recebeu de volta do Projudi — inclusive a mensagem de erro e o
+número de protocolo, quando o Projudi mostrar uma tela de erro) fica
+registrado em `window.__pdpNovaOrdenacaoLog`, acessível pelo console do
+navegador (F12). O log é salvo em `sessionStorage` (não só em memória),
+então sobrevive à navegação de saída que o "Ordenar" final sempre faz —
+inclusive se essa navegação abrir **outra aba** (nesse caso o log
+acompanha, já que o navegador copia o `sessionStorage` da aba de origem
+para uma aba aberta a partir dela). Depois de reproduzir um problema, na
+aba/tela final (onde o erro apareceu), com o console no frame certo
+(dropdown de contexto, não "top"), rodar:
 
 ```js
 copy(JSON.stringify(window.__pdpNovaOrdenacaoLog, null, 2))
