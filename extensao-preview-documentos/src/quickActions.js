@@ -101,6 +101,7 @@
 		"Exportar Processo",
 		"Pedido Incidental",
 		"Navegar",
+		"Concluir Movimento",
 		"Voltar",
 	];
 	const BUTTON_SCREEN_MARGIN = 12;
@@ -164,7 +165,15 @@
 
 	function findProcessToolbarElement() {
 		const candidates = document.querySelectorAll('button, a, input[type="button"], input[type="submit"]');
-		for (let i = 0; i < candidates.length; i++) {
+		// Varre de trás para frente: a barra de ações real do processo fica no
+		// rodapé do conteúdo, mas rótulos como "Voltar" podem aparecer antes
+		// dela também (breadcrumb, menu, link solto no topo da tela). Pegando
+		// o ÚLTIMO elemento com um desses rótulos, em vez do primeiro,
+		// ancoramos na barra de verdade — evitando que os botões flutuantes
+		// desta extensão pousem no meio do conteúdo (ex.: sobre a tabela de
+		// arquivos da tela de Recursos) por terem se guiado por um link
+		// homônimo mais acima na página.
+		for (let i = candidates.length - 1; i >= 0; i--) {
 			const el = candidates[i];
 			const text = (el.textContent || el.value || "").trim();
 			if (PROCESS_TOOLBAR_LABELS.indexOf(text) !== -1) return el;

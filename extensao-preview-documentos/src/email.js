@@ -45,6 +45,7 @@
 		"Exportar Processo",
 		"Pedido Incidental",
 		"Navegar",
+		"Concluir Movimento",
 		"Voltar",
 	];
 	const BUTTON_MARGIN = 12;
@@ -164,7 +165,13 @@
 
 	function findActionToolbarElement() {
 		const candidates = document.querySelectorAll('button, a, input[type="button"], input[type="submit"]');
-		for (const el of candidates) {
+		// Varre de trás para frente: prefere o ÚLTIMO elemento com um desses
+		// rótulos (a barra de ações real, no rodapé do conteúdo), não o
+		// primeiro — um "Voltar" solto mais acima na página (breadcrumb, menu)
+		// faria os botões flutuantes pousarem no lugar errado. Mesma técnica
+		// usada em quickActions.js/content.js.
+		for (let i = candidates.length - 1; i >= 0; i--) {
+			const el = candidates[i];
 			const text = (el.textContent || el.value || "").trim();
 			if (TOOLBAR_LABELS.indexOf(text) !== -1) return el;
 		}

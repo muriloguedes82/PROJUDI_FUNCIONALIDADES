@@ -981,12 +981,18 @@
 		"Exportar Processo",
 		"Pedido Incidental",
 		"Navegar",
+		"Concluir Movimento",
 		"Voltar",
 	];
 
 	function findProcessToolbarElement() {
 		const candidates = document.querySelectorAll('button, a, input[type="button"], input[type="submit"]');
-		for (let i = 0; i < candidates.length; i++) {
+		// Varre de trás para frente: prefere o ÚLTIMO elemento com um desses
+		// rótulos (a barra de ações real, no rodapé do conteúdo), não o
+		// primeiro — um "Voltar" solto mais acima na página (breadcrumb, menu)
+		// faria o botão flutuante pousar no lugar errado. Mesma técnica usada
+		// em quickActions.js.
+		for (let i = candidates.length - 1; i >= 0; i--) {
 			const el = candidates[i];
 			const text = (el.textContent || el.value || "").trim();
 			if (PROCESS_TOOLBAR_LABELS.indexOf(text) !== -1) return el;
