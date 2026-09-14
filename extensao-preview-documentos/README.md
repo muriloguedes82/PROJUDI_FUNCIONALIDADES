@@ -415,39 +415,53 @@ RPV".
 
 Depois que o script de triagem roda num processo, é comum precisar ordenar
 mais de um cumprimento seguido (um ofício, um mandado, um edital, uma
-requisição de laudo, etc.). Sem este recurso, ao clicar em "Ordenar" o
-Projudi encerra o fluxo e leva para a tela geral de **Ordenações** (não de
-volta ao processo) — cada nova ordenação exige recomeçar manualmente todo
-o caminho até "Ordenar Cumprimentos" (painel Ações do processo).
+requisição de laudo, etc.). O diálogo nativo só ordena UM cumprimento por
+envio: ao clicar em "Ordenar", o Projudi encerra o fluxo e leva de volta
+para a tela do processo — correto para uma única ação, mas obriga a
+reabrir manualmente o diálogo do zero a cada nova ordenação.
 
 A extensão adiciona um botão **"🔁 Nova Ordenação"** ao lado do botão
-nativo "Ordenar" desses três diálogos. Ele:
+nativo "Ordenar" desses diálogos. Em vez de enviar o formulário, ele:
 
-1. Clica no **mesmo botão "Ordenar" nativo** do Projudi — nenhuma
-   validação é pulada nem reimplementada, é o clique de verdade, com a
-   mesma navegação de saída que o Projudi já faz sozinho ao concluir uma
-   ordenação.
-2. Assim que o diálogo de ordenação some da tela (ordenação concluída), a
-   extensão volta automaticamente à tela anterior do processo (a mesma
-   navegação do botão "Voltar" do navegador) e reabre o **mesmo diálogo em
-   branco** — reaproveitando a lógica já usada pelas "Ações rápidas"
-   acima: clique direto no link nativo "Ordenar Cumprimentos"/"Ordenar
-   RPV"/"Ordenar Expedição BNMP" quando já se está na tela de Ações, ou a
-   mesma cadeia oculta em segundo plano (sem navegar a aba visível) quando
-   não se está — o que garante um diálogo (e token de sessão) novos a
-   cada abertura, em vez de reaproveitar a URL anterior. Assim o servidor
-   pode ordenar quantos cumprimentos forem necessários sem repetir o
-   procedimento inicial a cada um.
+1. Confere o preenchimento atual (validação nativa do navegador).
+2. **Guarda** os dados preenchidos numa fila, em memória — nada é enviado
+   ao Projudi ainda.
+3. Limpa o formulário (`Tipo de Cumprimento`, partes, prazo, orientações
+   etc.) para a próxima ordenação, no **mesmo diálogo já aberto**, sem
+   navegar nem reabrir nada.
 
-Se por algum motivo a tela seguinte não permitir reabrir automaticamente
-(ex.: uma tela inesperada do Projudi), a extensão desiste silenciosamente
-após alguns segundos — a ordenação em si já foi concretizada normalmente
-pelo "Ordenar" nativo, só a reabertura automática não acontece nesse caso,
-e "Ordenar Cumprimentos" pode ser reaberto manualmente como sempre.
+O botão mostra quantos itens já estão na fila (ex.: "🔁 Nova Ordenação (2
+na fila)"), com um pequeno painel logo abaixo listando cada um (é possível
+remover um item da fila clicando no ✕ ao lado dele, caso tenha sido
+adicionado por engano).
 
-O botão "Ordenar" original continua funcionando normalmente, sem nenhuma
-mudança de comportamento — "Nova Ordenação" é só um atalho a mais ao lado
-dele.
+Só quando você clica no botão **"Ordenar" nativo de verdade** (o último,
+para encerrar o fluxo) é que tudo é enviado ao Projudi:
+
+1. Cada item da fila é reenviado em segundo plano, um de cada vez, num
+   iframe oculto (mesma técnica do recurso "Ações rápidas" acima, para não
+   navegar a aba visível) — para o mesmo endereço e com os mesmos campos
+   que o formulário teria enviado naquele momento.
+2. Só depois que todos os itens da fila forem confirmados, a extensão
+   dispara um clique de verdade em "Ordenar" — agora com a fila vazia, o
+   formulário atual (o último preenchido) segue o fluxo 100% nativo do
+   Projudi: mesma validação, mesmo envio, mesma navegação de saída.
+3. Se algum item da fila for rejeitado pelo Projudi (ex.: um campo que
+   ficou inválido), a extensão avisa **qual item falhou e para** — nada
+   mais é enviado, e esse item continua na fila para revisão. Nenhum envio
+   é feito "no escuro".
+
+Clicar em **"Cancelar"** descarta a fila normalmente junto com o diálogo —
+nada do que foi só guardado chega a ser enviado.
+
+**Atenção:** como o reenvio em segundo plano depende de reconstruir a
+mesma requisição que o navegador enviaria (via `FormData` do formulário),
+ele foi construído a partir do HTML real do diálogo "Ordenar
+Cumprimentos", mas não foi validado em produção para os diálogos "Ordenar
+RPV" e "Ordenar Expedição BNMP" nem para toda a variedade de tipos de
+cumprimento. Antes de confiar nele em ordenações com prazo real,
+recomenda-se testar com um item não crítico e conferir depois, nos autos,
+se todos os itens da fila foram realmente registrados.
 
 ## Como funciona
 

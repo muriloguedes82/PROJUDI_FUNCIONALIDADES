@@ -1771,31 +1771,4 @@
 	}
 	window.addEventListener("resize", scheduleReposition);
 	window.addEventListener("scroll", scheduleReposition, true);
-
-	// -------------------------------------------------------------------
-	// API mínima exposta para outros recursos desta extensão (ver
-	// src/ordenarCumprimentos.js, botão "Nova Ordenação"): reabre um
-	// diálogo de ação pelo rótulo exato, reaproveitando a MESMA lógica já
-	// testada aqui — clique direto no link nativo quando já se está na
-	// tela de Ações, ou a cadeia oculta em segundo plano (iframe fora da
-	// tela) quando não se está. Nunca navega a aba visível para resolver a
-	// URL; só mostra o diálogo final, como já documentado acima.
-	// -------------------------------------------------------------------
-	window.__pdpQuickActions = {
-		reopenAction: function (label) {
-			try {
-				if (isOnAcoesScreen() && findActionLink(label)) {
-					openActionDialog(label);
-					return true;
-				}
-				if (findMovimentarButton() || findLatestValidEventLink()) {
-					openActionDialogViaChain(label);
-					return true;
-				}
-			} catch (err) {
-				console.error("[Projudi Ações Rápidas]", 'erro ao reabrir "' + label + '":', err);
-			}
-			return false;
-		},
-	};
 })();

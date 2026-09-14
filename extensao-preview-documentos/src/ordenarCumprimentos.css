@@ -1,15 +1,74 @@
-/* Botão "Nova Ordenação" injetado ao lado do "Ordenar" nativo dos diálogos
-   de ordenação (src/ordenarCumprimentos.js). É um clone do botão nativo
-   "Ordenar" (herda a aparência padrão do Projudi); aqui só ajustamos o
-   espaçamento e um leve destaque de cor para diferenciar dos botões
-   nativos "Ordenar"/"Cancelar" ao lado. */
+/* Botão "Nova Ordenação" e painel da fila de ordenações, injetados ao
+   lado do "Ordenar" nativo dos diálogos de ordenação
+   (src/ordenarCumprimentos.js). O botão não é mais um clone do nativo
+   (agora só guarda o preenchimento, não envia nada), então tem estilo
+   próprio aqui, parecido com a classe "button" que o Projudi já usa
+   nesses diálogos. */
 
 .pdp-nova-ordenacao-btn {
 	margin-left: 8px;
-	background-color: #eaf3ff;
-	border-color: #7fa8d9;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 11px;
+	color: #222;
+	background: linear-gradient(to bottom, #eaf3ff, #d3e6ff);
+	border: 1px solid #7fa8d9;
+	border-radius: 3px;
+	padding: 3px 8px;
+	cursor: pointer;
 }
 
 .pdp-nova-ordenacao-btn:hover {
-	background-color: #d9e9ff;
+	background: linear-gradient(to bottom, #d9e9ff, #c3d9fb);
+}
+
+.pdp-nova-ordenacao-btn:disabled {
+	opacity: 0.6;
+	cursor: default;
+}
+
+.pdp-fila-ordenacoes {
+	margin: 8px 0;
+	padding: 8px 10px;
+	background: #fbfdff;
+	border: 1px solid #b9d3f2;
+	border-radius: 4px;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 11px;
+	color: #222;
+	max-width: 480px;
+}
+
+.pdp-fila-header {
+	font-weight: bold;
+	margin-bottom: 4px;
+}
+
+.pdp-fila-lista {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.pdp-fila-lista li {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 2px 0;
+}
+
+.pdp-fila-remover {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 11px;
+	color: #a33;
+	background: none;
+	border: 1px solid #d9adad;
+	border-radius: 3px;
+	padding: 0px 5px;
+	cursor: pointer;
+	line-height: 1.6;
+}
+
+.pdp-fila-remover:hover {
+	background: #fbeaea;
 }
