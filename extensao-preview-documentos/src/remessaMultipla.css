@@ -1,0 +1,70 @@
+/* Estilos do recurso "Remessas múltiplas" (src/remessaMultipla.js) */
+
+.pdp-rm-hint {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	color: #444;
+	background: #fff7d9;
+	border: 1px solid #e0c34c;
+	border-radius: 3px;
+	padding: 6px 10px;
+	margin: 0 0 8px 0;
+}
+
+.pdp-rm-block-active {
+	background-color: #f2f8ff;
+}
+
+.pdp-rm-results-backdrop {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.45);
+	z-index: 2147483647;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.pdp-rm-results-box {
+	background: #fff;
+	border-radius: 4px;
+	box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+	width: min(560px, 92vw);
+	max-height: 80vh;
+	overflow: auto;
+	padding: 16px 18px;
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+.pdp-rm-results-box h4 {
+	margin: 0 0 10px 0;
+	font-size: 15px;
+}
+
+.pdp-rm-results-box ul {
+	list-style: none;
+	margin: 0 0 12px 0;
+	padding: 0;
+}
+
+.pdp-rm-results-box li {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 8px 10px;
+	margin-bottom: 8px;
+	font-size: 12px;
+}
+
+.pdp-rm-results-response {
+	margin-top: 4px;
+	color: #555;
+	font-size: 11px;
+	white-space: pre-wrap;
+}
+
+.pdp-rm-results-close {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	padding: 6px 14px;
+	cursor: pointer;
+}

@@ -411,6 +411,33 @@ própria extensão, não enviado a nenhum servidor), organizadas por ação —
 ex.: as preferências de "Ordenar Cumprimentos" não aparecem em "Ordenar
 RPV".
 
+## Remessas múltiplas na tela "Realizar Remessa"
+
+Só no Projudi. A tela nativa **Realizar Remessa** (aberta pelo painel Ações,
+grupo Remessa) usa bolinhas seletoras — só uma opção entre "Enviar à
+Delegacia", "Autos ao Distribuidor", "Enviar ao Ministério Público" e
+"Outras Remessas" pode ser escolhida por vez, obrigando a repetir a tela
+inteira uma vez para cada remessa que o processo precise.
+
+A extensão troca essas bolinhas por **checkboxes**: marque quantas opções
+forem necessárias, preencha os campos de cada uma normalmente e clique em
+**"Realizar Remessa"** uma única vez — as remessas marcadas são enviadas em
+sequência, sem sair da tela. Ao final, um painel mostra o resultado de cada
+uma (o texto visível da resposta do Projudi para aquela remessa, ou o erro,
+caso alguma não tenha sido confirmada — por exemplo, por falta de um campo
+obrigatório).
+
+Com **apenas uma** opção marcada, a tela se comporta exatamente como antes
+(nenhuma automação extra entra em ação). Com duas ou mais, cada remessa é
+submetida individualmente através do mesmo botão/validação nativos do
+Projudi, então diálogos de confirmação nativos (se existirem) podem
+aparecer uma vez para cada remessa selecionada.
+
+Como com as demais ações rápidas, a extensão não tem acesso ao código-fonte
+desta tela — a localização de cada opção e de seus campos é heurística, pelo
+texto literal dos rótulos. **Sempre confira o painel de resultado ao final**
+antes de considerar as remessas concluídas.
+
 ## Como funciona
 
 1. Os content scripts (`src/content.js` e `src/email.js`) são injetados nas
@@ -807,3 +834,12 @@ irmão desta mesma extensão, o envio por e-mail):
   estiver configurado para **perguntar onde salvar cada arquivo**
   (em vez de salvar direto na pasta Downloads), o usuário verá um diálogo
   de salvar por arquivo baixado.
+- **Remessas múltiplas:** depende de cada opção da tela "Realizar Remessa"
+  aparecer com o texto exato "Enviar à Delegacia", "Autos ao Distribuidor",
+  "Enviar ao Ministério Público" ou "Outras Remessas", e de os campos de
+  cada opção ficarem, no HTML, dentro da mesma "linha" do radio ou em
+  linhas-irmãs logo em seguida (até a opção seguinte) — o layout observado
+  na tela usada como referência. Não foi validado ao vivo no Projudi; se a
+  estrutura de algum Tribunal for diferente, a extensão simplesmente não
+  ativa o recurso nessa tela (a tela nativa, com as bolinhas originais,
+  continua funcionando normalmente).
