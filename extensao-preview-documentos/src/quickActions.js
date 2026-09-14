@@ -120,6 +120,81 @@
 	let captureToolbar = null;
 	let confirmBar = null;
 	let activeModalIframe = null;
+	const ROW_EXPANDED_KEY = "pdpQuickActionsExpanded";
+	let rowExpanded = false;
+	let rowPreferenceLoaded = false;
+	let rowPreferenceSave = Promise.resolve();
+
+	function applyRowExpandedState() {
+		if (!row) return;
+
+		const optionsBtn = row.querySelector("#pdp-qa-options");
+		if (optionsBtn) {
+			optionsBtn.disabled = !rowPreferenceLoaded;
+			optionsBtn.setAttribute("aria-expanded", String(rowExpanded));
+			optionsBtn.textContent = rowExpanded ? "▾ Opções" : "▸ Opções";
+			optionsBtn.title = rowExpanded
+				? "Recolher atalhos"
+				: "Mostrar atalhos";
+		}
+
+		row.querySelectorAll("[data-group-id]").forEach(function (btn) {
+			btn.hidden = !rowExpanded;
+			if (rowExpanded) {
+				btn.style.removeProperty("display");
+			} else {
+				// Garante o recolhimento mesmo se o CSS definir display.
+				btn.style.setProperty("display", "none", "important");
+			}
+		});
+
+		if (!rowExpanded) closePanel();
+		repositionRow();
+	}
+
+	function toggleRowExpanded() {
+		if (!rowPreferenceLoaded) return;
+
+		rowExpanded = !rowExpanded;
+		applyRowExpandedState();
+
+		const expandedToSave = rowExpanded;
+
+		// Mantém a ordem de gravação mesmo com vários cliques rápidos.
+		rowPreferenceSave = rowPreferenceSave
+			.then(function () {
+				return chrome.storage.local.set({
+					[ROW_EXPANDED_KEY]: expandedToSave,
+				});
+			})
+			.catch(function (err) {
+				console.error(
+					"[Projudi Ações Rápidas] Erro ao salvar estado dos atalhos:",
+					err
+				);
+				alert(
+					"Não foi possível salvar a preferência dos atalhos. " +
+					"A alteração continua válida nesta tela."
+				);
+			});
+	}
+
+	function loadRowExpandedPreference() {
+		chrome.storage.local.get([ROW_EXPANDED_KEY])
+			.then(function (data) {
+				rowExpanded = data[ROW_EXPANDED_KEY] === true;
+			})
+			.catch(function (err) {
+				console.error(
+					"[Projudi Ações Rápidas] Erro ao carregar estado dos atalhos:",
+					err
+				);
+			})
+			.finally(function () {
+				rowPreferenceLoaded = true;
+				applyRowExpandedState();
+			});
+	}
 
 	// O shim de window.close()/window.opener (src/closeShim.js,
 	// "document_start", roda ANTES de qualquer script da própria página do
@@ -1341,6 +1416,8 @@
 		if (row && row.isConnected) return;
 		if (!isOnProcessScreen()) return;
 
+		closePanel();
+
 		row = document.createElement("div");
 		row.id = "pdp-qa-row";
 		row.className = "pdp-qa-row";
@@ -1350,7 +1427,9 @@
 			btn.type = "button";
 			btn.className = "pdp-qa-group-btn";
 			btn.dataset.groupId = group.id;
-			btn.innerHTML = '<span class="pdp-qa-icon">' + group.icon + "</span><span>" + group.title + "</span>";
+			btn.innerHTML =
+				'<span class="pdp-qa-icon">' + group.icon +
+				"</span><span>" + group.title + "</span>";
 			btn.title = "Ações de " + group.title;
 			btn.addEventListener("click", function () {
 				togglePanel(group);
@@ -1358,7 +1437,18 @@
 			row.appendChild(btn);
 		});
 
+		const optionsBtn = document.createElement("button");
+		optionsBtn.type = "button";
+		optionsBtn.id = "pdp-qa-options";
+		optionsBtn.className = "pdp-qa-group-btn";
+		optionsBtn.addEventListener("click", toggleRowExpanded);
+		row.appendChild(optionsBtn);
+
+		// Aplica o estado antes de exibir, evitando mostrar os atalhos
+		// por um instante quando a preferência é mantê-los recolhidos.
+		applyRowExpandedState();
 		document.body.appendChild(row);
+		repositionRow();
 	}
 
 	function closePanel() {
@@ -1653,6 +1743,7 @@
 		}
 	}
 
+	loadRowExpandedPreference();
 	setInterval(reconcile, 700);
 	reconcile();
 
