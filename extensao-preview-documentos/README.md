@@ -234,7 +234,12 @@ desejada.
 A extensão adiciona **um botão flutuante por grupo de ações** — Concluso,
 Remessa, Ordenações, Partes, Suspender, Transitar, Arquivar, Outras —
 lado a lado, no mesmo canto da tela dos botões de WhatsApp/e-mail
-(posicionando-se ao lado deles quando presentes):
+(posicionando-se ao lado deles quando presentes). Por padrão, com a tela
+no topo, todos esses botões ficam visíveis; ao rolar a página para baixo
+eles se recolhem atrás de um único botão **"▸ Ações"**, para não poluir o
+canto da tela sobre o conteúdo — clicar nele reabre a fileira mesmo
+rolado. Voltando ao topo da tela, todos os botões reaparecem
+automaticamente.
 
 - **Concluso**: Enviar Concluso
 - **Remessa**: Realizar Remessa, Remessa Eletrônica para o Tribunal de

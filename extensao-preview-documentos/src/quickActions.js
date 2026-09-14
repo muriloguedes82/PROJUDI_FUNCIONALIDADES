@@ -105,10 +105,14 @@
 		"Voltar",
 	];
 	const BUTTON_SCREEN_MARGIN = 12;
-	// Fica à esquerda do botão de WhatsApp e dos botões de e-mail, quando
-	// existirem, para os grupos de botões desta extensão ficarem juntos sem
-	// se sobrepor (mesma técnica usada entre WhatsApp e e-mail).
-	const OTHER_BUTTON_SELECTOR = "#pdp-wa-launcher, .pdp-email-visible";
+	// Fica à esquerda do botão de WhatsApp e do botão "Enviar por e-mail",
+	// quando existirem, para os grupos de botões desta extensão ficarem
+	// juntos, na mesma linha, sem se sobrepor (mesma técnica usada entre
+	// WhatsApp e e-mail). Só o topo da pilha de e-mail
+	// (#pdp-email-button) entra na conta — "Remetente" e "Destinatários"
+	// ficam empilhados abaixo dele (ver repositionButtons() em email.js) e
+	// não devem puxar esta fileira para uma linha mais baixa.
+	const OTHER_BUTTON_SELECTOR = "#pdp-wa-launcher, #pdp-email-button";
 	const PREFERENCES_KEY = "pdpActionPreferences"; // { [actionLabel]: [{id, name, fields, createdAt}] }
 	const DIALOG_WAIT_TIMEOUT_MS = 6000;
 	const DIALOG_WAIT_INTERVAL_MS = 150;
@@ -125,6 +129,55 @@
 	// não deve mais acompanhar o scroll depois disso.
 	let rowPositionLocked = false;
 	let activeModalIframe = null;
+	// Regra padrão: no topo da tela, todos os botões de grupo ficam
+	// visíveis; ao rolar a tela para baixo, eles se recolhem atrás do
+	// botão "Ações" (evitando poluir o canto da tela sobre o conteúdo);
+	// voltando ao topo, todos reaparecem automaticamente. Não é uma
+	// preferência salva — é sempre recalculada a partir da posição atual
+	// de rolagem (ver updateRowExpandedFromScroll).
+	const SCROLL_TOP_THRESHOLD = 8;
+	let rowExpanded = true;
+
+	function updateRowExpandedFromScroll() {
+		const shouldExpand = window.scrollY <= SCROLL_TOP_THRESHOLD;
+		if (shouldExpand === rowExpanded) return;
+		rowExpanded = shouldExpand;
+		applyRowExpandedState();
+	}
+
+	function applyRowExpandedState() {
+		if (!row) return;
+
+		const actionsBtn = row.querySelector("#pdp-qa-options");
+		if (actionsBtn) {
+			actionsBtn.setAttribute("aria-expanded", String(rowExpanded));
+			actionsBtn.textContent = rowExpanded ? "▾ Ações" : "▸ Ações";
+			actionsBtn.title = rowExpanded
+				? "Recolher os botões de ações"
+				: "Mostrar os botões de ações";
+		}
+
+		row.querySelectorAll("[data-group-id]").forEach(function (btn) {
+			btn.hidden = !rowExpanded;
+			if (rowExpanded) {
+				btn.style.removeProperty("display");
+			} else {
+				// Garante o recolhimento mesmo se o CSS definir display.
+				btn.style.setProperty("display", "none", "important");
+			}
+		});
+
+		if (!rowExpanded) closePanel();
+		repositionRow();
+	}
+
+	// Clicar no botão "Ações" alterna manualmente a fileira (por exemplo,
+	// para abrir os botões mesmo tendo rolado a tela); rolar a página de
+	// novo reaplica a regra padrão acima (updateRowExpandedFromScroll).
+	function toggleRowExpanded() {
+		rowExpanded = !rowExpanded;
+		applyRowExpandedState();
+	}
 
 	// O shim de window.close()/window.opener (src/closeShim.js,
 	// "document_start", roda ANTES de qualquer script da própria página do
@@ -1354,6 +1407,8 @@
 		if (row && row.isConnected) return;
 		if (!isOnProcessScreen()) return;
 
+		closePanel();
+
 		row = document.createElement("div");
 		row.id = "pdp-qa-row";
 		row.className = "pdp-qa-row";
@@ -1366,7 +1421,9 @@
 			btn.type = "button";
 			btn.className = "pdp-qa-group-btn";
 			btn.dataset.groupId = group.id;
-			btn.innerHTML = '<span class="pdp-qa-icon">' + group.icon + "</span><span>" + group.title + "</span>";
+			btn.innerHTML =
+				'<span class="pdp-qa-icon">' + group.icon +
+				"</span><span>" + group.title + "</span>";
 			btn.title = "Ações de " + group.title;
 			btn.addEventListener("click", function () {
 				togglePanel(group);
@@ -1374,7 +1431,20 @@
 			row.appendChild(btn);
 		});
 
+		const optionsBtn = document.createElement("button");
+		optionsBtn.type = "button";
+		optionsBtn.id = "pdp-qa-options";
+		optionsBtn.className = "pdp-qa-group-btn";
+		optionsBtn.addEventListener("click", toggleRowExpanded);
+		row.appendChild(optionsBtn);
+
+		// Parte do estado que combina com a posição de rolagem atual
+		// (ex.: script injetado depois de a página já estar rolada), em
+		// vez de sempre assumir "expandido" por um instante.
+		rowExpanded = window.scrollY <= SCROLL_TOP_THRESHOLD;
+		applyRowExpandedState();
 		document.body.appendChild(row);
+		repositionRow();
 	}
 
 	function closePanel() {
@@ -1708,6 +1778,7 @@
 		repositionScheduled = true;
 		requestAnimationFrame(function () {
 			repositionScheduled = false;
+			updateRowExpandedFromScroll();
 			repositionRow();
 		});
 	}
