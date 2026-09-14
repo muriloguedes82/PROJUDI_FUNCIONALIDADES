@@ -46,6 +46,11 @@
 	line-height: 1;
 }
 
+#pdp-qa-options {
+	font-weight: bold;
+	color: #333;
+}
+
 .pdp-qa-panel {
 	position: fixed;
 	z-index: 2147483647;
