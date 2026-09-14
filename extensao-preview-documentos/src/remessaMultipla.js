@@ -220,18 +220,18 @@
 			// exclusivo (só uma marcada por vez), mesmo com type="checkbox".
 			radio.name = "__pdpRemessaMulti_" + index;
 			radio.type = "checkbox";
-			// Remove o onclick/onchange nativo do radio: ele foi escrito
-			// para semântica de radio (ao selecionar uma opção, desliga os
-			// campos de TODAS as outras) — se deixado, marcar uma segunda
-			// opção reativa essa lógica e desliga de novo os campos da
-			// primeira opção já marcada (foi o bug relatado: o campo
-			// "Prazo" ficando cinza/indisponível ao marcar outra opção).
-			// A partir daqui, applyBlockEnabledState (abaixo) é a única
-			// responsável por habilitar/desabilitar campos.
-			radio.removeAttribute("onclick");
-			radio.onclick = null;
-			radio.removeAttribute("onchange");
-			radio.onchange = null;
+			// IMPORTANTE: o onclick/onchange nativo do radio é mantido de
+			// propósito (uma tentativa anterior removia esses handlers para
+			// impedir que selecionar uma opção desligasse os campos de
+			// todas as outras — mas esse mesmo handler nativo também é
+			// quem HABILITA os campos da própria opção escolhida, às vezes
+			// por um mecanismo que vai além do atributo `disabled`
+			// (populando comboboxes, aplicando classes CSS etc. — como
+			// visto no bug em que Destino/Finalidade/Prazo ficaram cinza
+			// mesmo com a única opção marcada, depois de remover esse
+			// handler). Em vez de removê-lo, deixamos que ele rode
+			// normalmente, e corrigimos o efeito colateral de exclusão
+			// mútua DEPOIS dele, em wireBlockToggling/resyncAll.
 			block.elements.forEach(function (el) {
 				el.classList.add("pdp-rm-block");
 			});
