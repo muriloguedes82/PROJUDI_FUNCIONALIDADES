@@ -124,10 +124,6 @@
 	let processScreenEligible = false;
 	let captureToolbar = null;
 	let confirmBar = null;
-	// Trava a posição da fileira assim que ela é calculada pela primeira vez
-	// nesta tela/aba — ver comentário em repositionRow() sobre por que ela
-	// não deve mais acompanhar o scroll depois disso.
-	let rowPositionLocked = false;
 	let activeModalIframe = null;
 	// Regra padrão: no topo da tela, todos os botões de grupo ficam
 	// visíveis; ao rolar a tela para baixo, eles se recolhem atrás do
@@ -1412,9 +1408,6 @@
 		row = document.createElement("div");
 		row.id = "pdp-qa-row";
 		row.className = "pdp-qa-row";
-		// Nova fileira nesta tela/aba: recalcula a posição uma vez a partir do
-		// zero (ver repositionRow()).
-		rowPositionLocked = false;
 
 		ACTION_GROUPS.forEach(function (group) {
 			const btn = document.createElement("button");
@@ -1438,11 +1431,10 @@
 		optionsBtn.addEventListener("click", toggleRowExpanded);
 		row.appendChild(optionsBtn);
 
-		// Precisa estar no documento ANTES do primeiro cálculo de posição:
-		// como essa posição agora é travada assim que calculada (ver
-		// repositionRow()), calculá-la com a fileira ainda desconectada do
-		// DOM (offsetHeight sempre 0) travaria numa altura de fallback em
-		// vez da altura real dos botões.
+		// Anexa ao documento ANTES do cálculo de posição: repositionRow() usa
+		// row.offsetHeight (ramo em que a fileira fica ao lado do WhatsApp/
+		// e-mail), que é sempre 0 enquanto o elemento está desconectado do
+		// DOM.
 		document.body.appendChild(row);
 
 		// Parte do estado que combina com a posição de rolagem atual
@@ -1685,19 +1677,6 @@
 	function repositionRow() {
 		if (!row) return;
 
-		// Diferente do botão de WhatsApp e dos de e-mail (que devem mesmo
-		// acompanhar o scroll, ancorados à barra de ações nativa do Projudi),
-		// a fileira de Ações Rápidas fica plantada onde apareceu pela primeira
-		// vez nesta tela/aba. Recalcular a cada scroll (via findProcessToolbarElement)
-		// podia jogá-la para o meio da tabela de movimentações quando o
-		// elemento usado como referência não era mais o topo real da barra —
-		// por isso, uma vez posicionada, ela não se move mais sozinha; só uma
-		// fileira nova (ensureRow() recriando o elemento numa troca de tela)
-		// dispara um novo cálculo.
-		if (rowPositionLocked) {
-			return;
-		}
-
 		const otherButtons = Array.prototype.slice.call(document.querySelectorAll(OTHER_BUTTON_SELECTOR));
 		if (otherButtons.length) {
 			let minLeft = null;
@@ -1716,17 +1695,15 @@
 			row.style.bottom = Math.max(BUTTON_SCREEN_MARGIN, Math.round(bottom)) + "px";
 			row.style.right = Math.round(window.innerWidth - minLeft + 8) + "px";
 			if (activeGroupId) positionPanel(activeGroupId);
-			rowPositionLocked = true;
 			return;
 		}
 
 		let bottom = BUTTON_SCREEN_MARGIN;
 		const toolbarButton = findProcessToolbarElement();
-		let toolbarVisible = false;
 		if (toolbarButton) {
 			const toolbarRow = toolbarButton.closest("tr, div, td") || toolbarButton.parentElement || toolbarButton;
 			const rect = toolbarRow.getBoundingClientRect();
-			toolbarVisible = rect.bottom > 0 && rect.top < window.innerHeight;
+			const toolbarVisible = rect.bottom > 0 && rect.top < window.innerHeight;
 			if (toolbarVisible) {
 				const offset = Math.round(window.innerHeight - rect.top + BUTTON_SCREEN_MARGIN);
 				bottom = Math.min(Math.max(BUTTON_SCREEN_MARGIN, offset), window.innerHeight - BUTTON_SCREEN_MARGIN);
@@ -1735,12 +1712,6 @@
 		row.style.bottom = bottom + "px";
 		row.style.right = BUTTON_SCREEN_MARGIN + "px";
 		if (activeGroupId) positionPanel(activeGroupId);
-		// Só trava com uma referência confiável (a barra de ações nativa
-		// visível). Sem isso, tenta de novo nas próximas reconciliações em
-		// vez de travar no valor-padrão de rodapé.
-		if (toolbarVisible) {
-			rowPositionLocked = true;
-		}
 	}
 
 	// -------------------------------------------------------------------
