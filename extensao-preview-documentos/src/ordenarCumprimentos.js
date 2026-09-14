@@ -50,6 +50,24 @@
 	// Tempo máximo esperando a resposta de cada item da fila reenviado em
 	// segundo plano antes de considerar que falhou.
 	const BACKGROUND_SUBMIT_TIMEOUT_MS = 20000;
+	const LOG_PREFIX = "[Projudi Nova Ordenação]";
+
+	// -------------------------------------------------------------------
+	// Log de diagnóstico - guarda cada passo (o que foi guardado na fila,
+	// o que cada reenvio em segundo plano mandou e recebeu de volta) num
+	// array acessível pelo console (F12), para investigar uma causa raiz
+	// real em vez de adivinhar. No console, depois de reproduzir o
+	// problema:
+	//   copy(JSON.stringify(window.__pdpNovaOrdenacaoLog, null, 2))
+	// cola o log inteiro na área de transferência para compartilhar.
+	// -------------------------------------------------------------------
+	const diagnosticLog = [];
+	window.__pdpNovaOrdenacaoLog = diagnosticLog;
+	function logEvent(type, data) {
+		const entry = Object.assign({ t: new Date().toISOString(), url: window.location.href, type: type }, data || {});
+		diagnosticLog.push(entry);
+		console.info(LOG_PREFIX, type, data || "");
+	}
 
 	function normalizeText(el) {
 		return (el.textContent || "").replace(/\s+/g, " ").trim();
@@ -211,6 +229,31 @@
 	// sessão/cookies do usuário).
 	// -------------------------------------------------------------------
 
+	// O Projudi mostra erros (de validação OU erros internos genéricos,
+	// tipo "Erro geral") numa caixa `<div id="errorMessages">` com uma
+	// lista `#ulMensErros` e, geralmente, um número de protocolo - visto
+	// ao vivo numa resposta real deste mesmo formulário. Essa caixa NÃO
+	// tem os botões "Ordenar"/"Cancelar" (a tela de erro só tem um botão
+	// "Voltar"), então checar só a ausência do diálogo original (como a
+	// primeira versão deste recurso fazia) confundia essa tela de erro
+	// com sucesso - o item era dado como enviado e tirado da fila, mas na
+	// verdade nunca tinha sido de fato ordenado. Por isso a checagem
+	// principal de falha é a presença desta caixa de erro; a ausência do
+	// diálogo original é só um sinal auxiliar (ex.: formulário
+	// reapresentado com a mesma tela, sem a caixa de erro visível).
+	function readErrorMessages(doc) {
+		const box = doc.getElementById("errorMessages");
+		if (!box) return null;
+		const items = Array.prototype.map.call(box.querySelectorAll("#ulMensErros li, ul li"), function (li) {
+			return normalizeText(li);
+		});
+		const protocolMatch = box.textContent.match(/PROTOCOLO:\s*([0-9]+)/i);
+		return {
+			mensagens: items,
+			protocolo: protocolMatch ? protocolMatch[1] : null,
+		};
+	}
+
 	function submitItemInBackground(item) {
 		return new Promise(function (resolve) {
 			const frameName = "pdp-fila-" + Date.now() + "-" + Math.random().toString(36).slice(2);
@@ -235,12 +278,21 @@
 				form.appendChild(input);
 			});
 
+			logEvent("flush-item-start", {
+				label: item.label,
+				action: item.action,
+				method: item.method,
+				fields: item.fields,
+			});
+
 			let settled = false;
 			const timeout = setTimeout(function () {
 				if (settled) return;
 				settled = true;
 				cleanup();
-				resolve({ ok: false, reason: "tempo esgotado aguardando resposta do Projudi" });
+				const result = { ok: false, reason: "tempo esgotado aguardando resposta do Projudi" };
+				logEvent("flush-item-result", { label: item.label, result: result });
+				resolve(result);
 			}, BACKGROUND_SUBMIT_TIMEOUT_MS);
 
 			function cleanup() {
@@ -252,29 +304,53 @@
 			iframe.addEventListener("load", function () {
 				if (settled) return;
 				settled = true;
-				let stillHasForm = false;
+
+				let finalUrl = null;
+				let errorInfo = null;
+				let stillHasDialog = false;
+				let htmlSnippet = null;
 				try {
-					// Mesma checagem usada para achar o diálogo originalmente
-					// (par de botões "Ordenar"/"Cancelar" visível): se ainda
-					// aparece na resposta, o Projudi reapresentou o formulário
-					// em vez de seguir adiante - sinal de que rejeitou o
-					// preenchimento.
-					stillHasForm = !!(iframe.contentDocument && findOrdenacaoDialog(iframe.contentDocument));
+					const doc = iframe.contentDocument;
+					finalUrl = iframe.contentWindow.location.href;
+					if (doc) {
+						errorInfo = readErrorMessages(doc);
+						stillHasDialog = !!findOrdenacaoDialog(doc);
+						htmlSnippet = (doc.body ? doc.body.textContent : "").replace(/\s+/g, " ").trim().slice(0, 1000);
+					}
 				} catch (err) {
 					cleanup();
-					resolve({ ok: false, reason: "não consegui ler a resposta do Projudi (" + err.message + ")" });
+					const result = { ok: false, reason: "não consegui ler a resposta do Projudi (" + err.message + ")" };
+					logEvent("flush-item-result", { label: item.label, result: result });
+					resolve(result);
 					return;
 				}
 				cleanup();
-				if (stillHasForm) {
-					// O Projudi reapresentou o MESMO formulário - sinal de que a
-					// ordenação foi rejeitada (ex.: campo obrigatório), igual ao
-					// que aconteceria clicando "Ordenar" manualmente com esse
-					// preenchimento.
-					resolve({ ok: false, reason: "o Projudi não aceitou este preenchimento" });
+
+				let result;
+				if (errorInfo) {
+					// Caixa de erro do Projudi presente na resposta - o motivo
+					// exato (mensagens + protocolo, quando houver) vai no log
+					// para investigar a causa raiz em vez de adivinhar.
+					result = {
+						ok: false,
+						reason: (errorInfo.mensagens.join("; ") || "erro não identificado") + (errorInfo.protocolo ? " (protocolo " + errorInfo.protocolo + ")" : ""),
+					};
+				} else if (stillHasDialog) {
+					// O Projudi reapresentou o MESMO formulário sem uma caixa de
+					// erro visível - normalmente sinal de validação client-side
+					// que não fez o formulário ser enviado de verdade.
+					result = { ok: false, reason: "o Projudi reapresentou o formulário (sem mensagem de erro explícita)" };
 				} else {
-					resolve({ ok: true });
+					result = { ok: true };
 				}
+				logEvent("flush-item-result", {
+					label: item.label,
+					result: result,
+					finalUrl: finalUrl,
+					errorInfo: errorInfo,
+					htmlSnippet: htmlSnippet,
+				});
+				resolve(result);
 			});
 
 			document.body.appendChild(iframe);
@@ -284,6 +360,7 @@
 	}
 
 	async function flushQueue(queue) {
+		logEvent("flush-start", { totalItens: queue.getItems().length });
 		// Sempre processa o item da FRENTE da fila (índice 0) e só o remove
 		// depois de confirmado - nunca percorre por índice crescente, já que
 		// remover um item desloca os seguintes (removeAt(0) reindexaria tudo
@@ -292,17 +369,19 @@
 			const item = queue.getItems()[0];
 			const result = await submitItemInBackground(item);
 			if (!result.ok) {
+				logEvent("flush-abort", { label: item.label, reason: result.reason });
 				alert(
 					'Não consegui ordenar o item da fila ("' +
 						item.label +
 						'"): ' +
 						result.reason +
-						".\n\nNada mais foi enviado. Revise esse item (ele continua na fila) e tente novamente."
+						'.\n\nNada mais foi enviado. Revise esse item (ele continua na fila) e tente novamente.\n\nDetalhes técnicos deste e de todos os itens ficam salvos em window.__pdpNovaOrdenacaoLog (console, F12) - copy(JSON.stringify(window.__pdpNovaOrdenacaoLog, null, 2)) copia tudo para compartilhar.'
 				);
 				return false;
 			}
 			queue.removeAt(0);
 		}
+		logEvent("flush-complete", {});
 		return true;
 	}
 
@@ -343,6 +422,7 @@
 			// inclui esse par manualmente para o reenvio em segundo plano se
 			// comportar como um clique de verdade no "Ordenar".
 			if (dialog.button.name) fields.push([dialog.button.name, dialog.button.value || ""]);
+			logEvent("queued", { fields: fields, action: dialog.form.action, method: dialog.form.method });
 			queue.push(fields, dialog.form.action, dialog.form.method);
 			dialog.form.reset();
 			// form.reset() não dispara 'change' - sem isso, qualquer JS do
@@ -369,11 +449,15 @@
 				flushQueue(queue)
 					.then(function (allOk) {
 						queue.setFlushing(false);
-						if (allOk) dialog.button.click();
+						if (allOk) {
+							logEvent("final-click", {});
+							dialog.button.click();
+						}
 					})
 					.catch(function (err) {
 						queue.setFlushing(false);
-						console.error("[Projudi Nova Ordenação]", "erro ao esvaziar a fila:", err);
+						logEvent("flush-exception", { message: err && err.message });
+						console.error(LOG_PREFIX, "erro ao esvaziar a fila:", err);
 					});
 			},
 			true
@@ -390,7 +474,7 @@
 			const dialog = findOrdenacaoDialog(document);
 			if (dialog) setupDialog(dialog);
 		} catch (err) {
-			console.error("[Projudi Nova Ordenação]", "erro ao reconciliar:", err);
+			console.error(LOG_PREFIX, "erro ao reconciliar:", err);
 		}
 	}
 
@@ -401,7 +485,7 @@
 		try {
 			reconcile();
 		} catch (err) {
-			console.error("[Projudi Nova Ordenação]", "erro no MutationObserver:", err);
+			console.error(LOG_PREFIX, "erro no MutationObserver:", err);
 		}
 	});
 	observer.observe(document.documentElement, { childList: true, subtree: true });

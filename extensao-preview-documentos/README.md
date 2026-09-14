@@ -463,6 +463,20 @@ cumprimento. Antes de confiar nele em ordenações com prazo real,
 recomenda-se testar com um item não crítico e conferir depois, nos autos,
 se todos os itens da fila foram realmente registrados.
 
+**Diagnóstico:** cada passo (o que cada item guardou, o que cada reenvio
+em segundo plano mandou e recebeu de volta do Projudi — inclusive a
+mensagem de erro e o número de protocolo, quando o Projudi mostrar uma
+tela de erro) fica registrado em `window.__pdpNovaOrdenacaoLog`, acessível
+pelo console do navegador (F12) enquanto o diálogo estiver aberto. Depois
+de reproduzir um problema, rodar no console:
+
+```js
+copy(JSON.stringify(window.__pdpNovaOrdenacaoLog, null, 2))
+```
+
+copia o log inteiro para a área de transferência, pronto para compartilhar
+e investigar a causa raiz em vez de adivinhar.
+
 ## Como funciona
 
 1. Os content scripts (`src/content.js` e `src/email.js`) são injetados nas
