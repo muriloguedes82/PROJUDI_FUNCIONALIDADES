@@ -1438,12 +1438,18 @@
 		optionsBtn.addEventListener("click", toggleRowExpanded);
 		row.appendChild(optionsBtn);
 
+		// Precisa estar no documento ANTES do primeiro cálculo de posição:
+		// como essa posição agora é travada assim que calculada (ver
+		// repositionRow()), calculá-la com a fileira ainda desconectada do
+		// DOM (offsetHeight sempre 0) travaria numa altura de fallback em
+		// vez da altura real dos botões.
+		document.body.appendChild(row);
+
 		// Parte do estado que combina com a posição de rolagem atual
 		// (ex.: script injetado depois de a página já estar rolada), em
 		// vez de sempre assumir "expandido" por um instante.
 		rowExpanded = window.scrollY <= SCROLL_TOP_THRESHOLD;
 		applyRowExpandedState();
-		document.body.appendChild(row);
 		repositionRow();
 	}
 
