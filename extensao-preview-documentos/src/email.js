@@ -192,31 +192,14 @@
 	function repositionButtons() {
 		if (!recipientsButton) return;
 
-		let baseBottom = BUTTON_MARGIN;
-		const toolbarButton = findActionToolbarElement();
-		if (toolbarButton) {
-			// Sobe até um ancestral que representa a linha/barra inteira (tr,
-			// div ou td), para medir o topo da barra como um todo, não só do
-			// botão individual encontrado.
-			const row = toolbarButton.closest("tr, div, td") || toolbarButton.parentElement || toolbarButton;
-			const rect = row.getBoundingClientRect();
-
-			// A barra de ações normalmente rola junto com o conteúdo (não é
-			// fixa). Se ela estiver fora da área visível no momento (usuário
-			// rolou para além dela, pra cima ou pra baixo), "rect.top" pode
-			// ficar negativo ou muito grande, o que jogaria os botões para
-			// fora da tela caso apenas subtraíssemos os valores. Nesse caso,
-			// mantemos os botões simplesmente ancorados ao rodapé da janela —
-			// o comportamento normal de um elemento fixo — em vez de
-			// perseguir uma barra que não está à vista.
-			const toolbarVisible = rect.bottom > 0 && rect.top < window.innerHeight;
-			if (toolbarVisible) {
-				const offset = Math.round(window.innerHeight - rect.top + BUTTON_MARGIN);
-				baseBottom = Math.min(Math.max(BUTTON_MARGIN, offset), window.innerHeight - BUTTON_MARGIN);
-			}
-		}
-
-		let cursor = baseBottom;
+		// Fica sempre no canto da tela, sem tentar "seguir" a barra de ações
+		// nativa: em várias telas do Projudi essa barra fica embutida no
+		// meio do conteúdo (ex.: logo abaixo de uma tabela de arquivos), sem
+		// folga segura acima dela — ancorar ali em cima fazia estes botões
+		// pousarem sobre o próprio conteúdo da tela. O canto é a única
+		// posição que não depende de onde a barra nativa está nesta tela em
+		// particular.
+		let cursor = BUTTON_MARGIN;
 		recipientsButton.style.bottom = cursor + "px";
 		cursor += (recipientsButton.offsetHeight || 36) + BUTTON_GAP;
 
