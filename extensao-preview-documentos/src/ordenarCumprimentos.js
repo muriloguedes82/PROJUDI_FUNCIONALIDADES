@@ -68,6 +68,10 @@
 		diagnosticLog.push(entry);
 		console.info(LOG_PREFIX, type, data || "");
 	}
+	// Log incondicional, só pra confirmar que o script está mesmo ativo
+	// neste frame antes de qualquer interação - igual ao "content script
+	// carregado em ..." que os outros recursos desta extensão já logam.
+	logEvent("script-loaded", {});
 
 	function normalizeText(el) {
 		return (el.textContent || "").replace(/\s+/g, " ").trim();
@@ -401,6 +405,7 @@
 	function setupDialog(dialog) {
 		if (dialog.button.dataset[DONE_MARKER]) return;
 		dialog.button.dataset[DONE_MARKER] = "1";
+		logEvent("dialog-detected", { formAction: dialog.form.action, formMethod: dialog.form.method, formId: dialog.form.id });
 
 		dialog.novoBtn = makeNovaOrdenacaoButton();
 		dialog.button.insertAdjacentElement("afterend", dialog.novoBtn);
