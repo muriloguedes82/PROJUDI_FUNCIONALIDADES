@@ -1708,18 +1708,15 @@
 			return;
 		}
 
-		let bottom = BUTTON_SCREEN_MARGIN;
-		const toolbarButton = findProcessToolbarElement();
-		if (toolbarButton) {
-			const toolbarRow = toolbarButton.closest("tr, div, td") || toolbarButton.parentElement || toolbarButton;
-			const rect = toolbarRow.getBoundingClientRect();
-			const toolbarVisible = rect.bottom > 0 && rect.top < window.innerHeight;
-			if (toolbarVisible) {
-				const offset = Math.round(window.innerHeight - rect.top + BUTTON_SCREEN_MARGIN);
-				bottom = Math.min(Math.max(BUTTON_SCREEN_MARGIN, offset), window.innerHeight - BUTTON_SCREEN_MARGIN);
-			}
-		}
-		row.style.bottom = bottom + "px";
+		// Sem WhatsApp/e-mail para se alinhar: fica no canto da tela, sem
+		// tentativa de "seguir" a barra de ações nativa. Em várias telas do
+		// Projudi essa barra fica embutida no meio do conteúdo (ex.: logo
+		// abaixo da tabela de Arquivos, numa tela de Recursos), sem nenhuma
+		// folga segura acima dela — ancorar ali em cima fazia esta fileira
+		// pousar sobre a própria tabela. O canto da tela é a única posição
+		// que não depende de onde a barra nativa está nesta tela em
+		// particular.
+		row.style.bottom = BUTTON_SCREEN_MARGIN + "px";
 		row.style.right = BUTTON_SCREEN_MARGIN + "px";
 		if (activeGroupId) positionPanel(activeGroupId);
 	}

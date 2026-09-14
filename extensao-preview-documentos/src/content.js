@@ -1080,21 +1080,14 @@
 			return;
 		}
 
-		let bottom = BUTTON_SCREEN_MARGIN;
-		const toolbarButton = findProcessToolbarElement();
-		if (toolbarButton) {
-			// Sobe até um ancestral que representa a linha/barra inteira (tr,
-			// div ou td), para medir o topo da barra como um todo, não só do
-			// botão individual encontrado.
-			const row = toolbarButton.closest("tr, div, td") || toolbarButton.parentElement || toolbarButton;
-			const rect = row.getBoundingClientRect();
-			const toolbarVisible = rect.bottom > 0 && rect.top < window.innerHeight;
-			if (toolbarVisible) {
-				const offset = Math.round(window.innerHeight - rect.top + BUTTON_SCREEN_MARGIN);
-				bottom = Math.min(Math.max(BUTTON_SCREEN_MARGIN, offset), window.innerHeight - BUTTON_SCREEN_MARGIN);
-			}
-		}
-		launcher.style.bottom = bottom + "px";
+		// Sem botões de e-mail para se alinhar: fica no canto da tela, sem
+		// tentativa de "seguir" a barra de ações nativa. Em várias telas do
+		// Projudi essa barra fica embutida no meio do conteúdo (ex.: logo
+		// abaixo de uma tabela de arquivos), sem folga segura acima dela —
+		// ancorar ali em cima fazia este botão pousar sobre o próprio
+		// conteúdo da tela. O canto é a única posição que não depende de
+		// onde a barra nativa está nesta tela em particular.
+		launcher.style.bottom = BUTTON_SCREEN_MARGIN + "px";
 		launcher.style.right = BUTTON_SCREEN_MARGIN + "px";
 	}
 
