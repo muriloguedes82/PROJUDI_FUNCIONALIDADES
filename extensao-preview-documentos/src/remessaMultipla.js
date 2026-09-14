@@ -197,9 +197,14 @@
 	// Transformação visual: radio -> checkbox, independentes entre si
 	// -------------------------------------------------------------------
 
+	// Inclui tanto os campos aninhados dentro de cada elemento do bloco
+	// quanto um campo que porventura SEJA, ele mesmo, um dos elementos do
+	// bloco (linha própria, sem um wrapper em volta) — querySelectorAll()
+	// sozinho só acha descendentes, nunca o próprio elemento.
 	function fieldsOf(block) {
 		const fields = [];
 		block.elements.forEach(function (el) {
+			if (el !== block.radio && /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName)) fields.push(el);
 			el.querySelectorAll("input, select, textarea").forEach(function (f) {
 				if (f !== block.radio) fields.push(f);
 			});
@@ -215,6 +220,18 @@
 			// exclusivo (só uma marcada por vez), mesmo com type="checkbox".
 			radio.name = "__pdpRemessaMulti_" + index;
 			radio.type = "checkbox";
+			// Remove o onclick/onchange nativo do radio: ele foi escrito
+			// para semântica de radio (ao selecionar uma opção, desliga os
+			// campos de TODAS as outras) — se deixado, marcar uma segunda
+			// opção reativa essa lógica e desliga de novo os campos da
+			// primeira opção já marcada (foi o bug relatado: o campo
+			// "Prazo" ficando cinza/indisponível ao marcar outra opção).
+			// A partir daqui, applyBlockEnabledState (abaixo) é a única
+			// responsável por habilitar/desabilitar campos.
+			radio.removeAttribute("onclick");
+			radio.onclick = null;
+			radio.removeAttribute("onchange");
+			radio.onchange = null;
 			block.elements.forEach(function (el) {
 				el.classList.add("pdp-rm-block");
 			});
@@ -232,16 +249,24 @@
 	}
 
 	function wireBlockToggling(blocks) {
+		// Reaplica o estado de TODOS os blocos a cada mudança (não só o que
+		// disparou o evento): reforça a seleção múltipla contra qualquer
+		// script nativo que ainda reaja ao clique (ex.: um handler ligado
+		// no formulário/documento como um todo, não no próprio radio) e
+		// tente desligar os campos de opções que deveriam continuar
+		// marcadas.
+		function resyncAll() {
+			blocks.forEach(applyBlockEnabledState);
+		}
 		blocks.forEach(function (block) {
 			// Nenhuma opção começa marcada: a tela nativa também abre sem
 			// nenhuma bolinha pré-selecionada, e assim evita enviar uma
 			// remessa que o usuário não chegou a revisar.
 			block.radio.checked = false;
-			applyBlockEnabledState(block);
-			block.radio.addEventListener("change", function () {
-				applyBlockEnabledState(block);
-			});
+			block.radio.addEventListener("change", resyncAll);
+			block.radio.addEventListener("click", resyncAll);
 		});
+		resyncAll();
 	}
 
 	function installMultiSelectionHint(blocks) {
