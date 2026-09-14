@@ -51,11 +51,6 @@
 	color: #333;
 }
 
-#pdp-qa-options:disabled {
-	cursor: default;
-	opacity: 0.6;
-}
-
 .pdp-qa-panel {
 	position: fixed;
 	z-index: 2147483647;

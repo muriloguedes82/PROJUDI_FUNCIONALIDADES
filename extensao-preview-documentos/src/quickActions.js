@@ -120,22 +120,32 @@
 	let captureToolbar = null;
 	let confirmBar = null;
 	let activeModalIframe = null;
-	const ROW_EXPANDED_KEY = "pdpQuickActionsExpanded";
-	let rowExpanded = false;
-	let rowPreferenceLoaded = false;
-	let rowPreferenceSave = Promise.resolve();
+	// Regra padrão: no topo da tela, todos os botões de grupo ficam
+	// visíveis; ao rolar a tela para baixo, eles se recolhem atrás do
+	// botão "Ações" (evitando poluir o canto da tela sobre o conteúdo);
+	// voltando ao topo, todos reaparecem automaticamente. Não é uma
+	// preferência salva — é sempre recalculada a partir da posição atual
+	// de rolagem (ver updateRowExpandedFromScroll).
+	const SCROLL_TOP_THRESHOLD = 8;
+	let rowExpanded = true;
+
+	function updateRowExpandedFromScroll() {
+		const shouldExpand = window.scrollY <= SCROLL_TOP_THRESHOLD;
+		if (shouldExpand === rowExpanded) return;
+		rowExpanded = shouldExpand;
+		applyRowExpandedState();
+	}
 
 	function applyRowExpandedState() {
 		if (!row) return;
 
-		const optionsBtn = row.querySelector("#pdp-qa-options");
-		if (optionsBtn) {
-			optionsBtn.disabled = !rowPreferenceLoaded;
-			optionsBtn.setAttribute("aria-expanded", String(rowExpanded));
-			optionsBtn.textContent = rowExpanded ? "▾ Opções" : "▸ Opções";
-			optionsBtn.title = rowExpanded
-				? "Recolher atalhos"
-				: "Mostrar atalhos";
+		const actionsBtn = row.querySelector("#pdp-qa-options");
+		if (actionsBtn) {
+			actionsBtn.setAttribute("aria-expanded", String(rowExpanded));
+			actionsBtn.textContent = rowExpanded ? "▾ Ações" : "▸ Ações";
+			actionsBtn.title = rowExpanded
+				? "Recolher os botões de ações"
+				: "Mostrar os botões de ações";
 		}
 
 		row.querySelectorAll("[data-group-id]").forEach(function (btn) {
@@ -152,48 +162,12 @@
 		repositionRow();
 	}
 
+	// Clicar no botão "Ações" alterna manualmente a fileira (por exemplo,
+	// para abrir os botões mesmo tendo rolado a tela); rolar a página de
+	// novo reaplica a regra padrão acima (updateRowExpandedFromScroll).
 	function toggleRowExpanded() {
-		if (!rowPreferenceLoaded) return;
-
 		rowExpanded = !rowExpanded;
 		applyRowExpandedState();
-
-		const expandedToSave = rowExpanded;
-
-		// Mantém a ordem de gravação mesmo com vários cliques rápidos.
-		rowPreferenceSave = rowPreferenceSave
-			.then(function () {
-				return chrome.storage.local.set({
-					[ROW_EXPANDED_KEY]: expandedToSave,
-				});
-			})
-			.catch(function (err) {
-				console.error(
-					"[Projudi Ações Rápidas] Erro ao salvar estado dos atalhos:",
-					err
-				);
-				alert(
-					"Não foi possível salvar a preferência dos atalhos. " +
-					"A alteração continua válida nesta tela."
-				);
-			});
-	}
-
-	function loadRowExpandedPreference() {
-		chrome.storage.local.get([ROW_EXPANDED_KEY])
-			.then(function (data) {
-				rowExpanded = data[ROW_EXPANDED_KEY] === true;
-			})
-			.catch(function (err) {
-				console.error(
-					"[Projudi Ações Rápidas] Erro ao carregar estado dos atalhos:",
-					err
-				);
-			})
-			.finally(function () {
-				rowPreferenceLoaded = true;
-				applyRowExpandedState();
-			});
 	}
 
 	// O shim de window.close()/window.opener (src/closeShim.js,
@@ -1444,8 +1418,10 @@
 		optionsBtn.addEventListener("click", toggleRowExpanded);
 		row.appendChild(optionsBtn);
 
-		// Aplica o estado antes de exibir, evitando mostrar os atalhos
-		// por um instante quando a preferência é mantê-los recolhidos.
+		// Parte do estado que combina com a posição de rolagem atual
+		// (ex.: script injetado depois de a página já estar rolada), em
+		// vez de sempre assumir "expandido" por um instante.
+		rowExpanded = window.scrollY <= SCROLL_TOP_THRESHOLD;
 		applyRowExpandedState();
 		document.body.appendChild(row);
 		repositionRow();
@@ -1743,7 +1719,6 @@
 		}
 	}
 
-	loadRowExpandedPreference();
 	setInterval(reconcile, 700);
 	reconcile();
 
@@ -1762,6 +1737,7 @@
 		repositionScheduled = true;
 		requestAnimationFrame(function () {
 			repositionScheduled = false;
+			updateRowExpandedFromScroll();
 			repositionRow();
 		});
 	}
