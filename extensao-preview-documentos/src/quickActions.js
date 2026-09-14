@@ -104,10 +104,14 @@
 		"Voltar",
 	];
 	const BUTTON_SCREEN_MARGIN = 12;
-	// Fica à esquerda do botão de WhatsApp e dos botões de e-mail, quando
-	// existirem, para os grupos de botões desta extensão ficarem juntos sem
-	// se sobrepor (mesma técnica usada entre WhatsApp e e-mail).
-	const OTHER_BUTTON_SELECTOR = "#pdp-wa-launcher, .pdp-email-visible";
+	// Fica à esquerda do botão de WhatsApp e do botão "Enviar por e-mail",
+	// quando existirem, para os grupos de botões desta extensão ficarem
+	// juntos, na mesma linha, sem se sobrepor (mesma técnica usada entre
+	// WhatsApp e e-mail). Só o topo da pilha de e-mail
+	// (#pdp-email-button) entra na conta — "Remetente" e "Destinatários"
+	// ficam empilhados abaixo dele (ver repositionButtons() em email.js) e
+	// não devem puxar esta fileira para uma linha mais baixa.
+	const OTHER_BUTTON_SELECTOR = "#pdp-wa-launcher, #pdp-email-button";
 	const PREFERENCES_KEY = "pdpActionPreferences"; // { [actionLabel]: [{id, name, fields, createdAt}] }
 	const DIALOG_WAIT_TIMEOUT_MS = 6000;
 	const DIALOG_WAIT_INTERVAL_MS = 150;
