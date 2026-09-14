@@ -207,7 +207,11 @@ async function notifyOrInjectContentScript(tabId) {
 // ---------------------------------------------------------------------------
 
 const GRAPH_BASE = "https://graph.microsoft.com/v1.0";
-const GRAPH_SCOPES = "openid profile offline_access Mail.ReadWrite";
+// Mail.ReadWrite.Shared é o que permite criar o rascunho diretamente na
+// caixa do remetente padrão (ex.: caixa da secretaria), em vez de sempre em
+// "/me" — ver getDefaultFromEmail()/mailboxBasePath() logo abaixo sobre por
+// que isso é necessário para o "Enviado" ficar na pasta certa.
+const GRAPH_SCOPES = "openid profile offline_access Mail.ReadWrite Mail.ReadWrite.Shared";
 const INLINE_ATTACHMENT_LIMIT = 3 * 1024 * 1024; // limite recomendado pela Graph para anexos "inline"
 const UPLOAD_CHUNK_SIZE = 320 * 1024 * 10; // ~3.1MB, múltiplo de 320KiB exigido pela Graph
 const DOWNLOAD_INFO_TTL_MS = 10 * 60 * 1000; // tempo máximo para o pop-up do Outlook mostrar o aviso de arquivos baixados
@@ -361,7 +365,36 @@ async function graphFetch(token, path, options) {
 	return resp;
 }
 
-async function createDraft(token, subject, recipients, bodyText) {
+// Remetente padrão cadastrado no botão "✉️ Remetente" (mesma configuração
+// usada por src/owa-attach.js no modo sem Azure AD) — em modo Graph, ele
+// decide em QUAL caixa o rascunho é criado (ver mailboxBasePath()), não
+// apenas qual conta selecionar depois numa lista.
+async function getDefaultFromEmail() {
+	const { pdpFromAccounts, pdpDefaultFromId } = await chrome.storage.local.get(["pdpFromAccounts", "pdpDefaultFromId"]);
+	const accounts = pdpFromAccounts || [];
+	const defaultAccount = accounts.find(function (a) {
+		return a.id === pdpDefaultFromId;
+	});
+	return defaultAccount ? defaultAccount.email : null;
+}
+
+// Caminho base da Graph API para as chamadas de rascunho/anexo: "/me" (caixa
+// do usuário autenticado) ou "/users/{email}" (caixa de outro remetente,
+// quando um "Remetente padrão" está configurado). Isso é o que corrige o
+// e-mail salvo na pasta "Enviados" errada: antes, o rascunho era SEMPRE
+// criado em "/me/messages", então ele pertencia à caixa pessoal do usuário
+// autenticado mesmo quando o e-mail era enviado com outro endereço no campo
+// "De" — e o Outlook salva a cópia enviada na caixa dona da mensagem, não na
+// do endereço "De" escolhido na hora de enviar. Criando o rascunho direto em
+// "/users/{email}", ele já nasce na caixa do remetente da secretaria, então
+// o "Enviado" fica lá. Requer que o usuário autenticado tenha permissão
+// delegada ("Enviar como"/acesso total) nessa caixa e que o app Azure AD
+// tenha consentimento para o escopo Mail.ReadWrite.Shared (ver README).
+function mailboxBasePath(fromEmail) {
+	return fromEmail ? "/users/" + encodeURIComponent(fromEmail) : "/me";
+}
+
+async function createDraft(token, basePath, subject, recipients, bodyText) {
 	const toRecipients = (recipients || []).map(function (email) {
 		return { emailAddress: { address: email } };
 	});
@@ -369,7 +402,7 @@ async function createDraft(token, subject, recipients, bodyText) {
 	// para HTML só trocando quebras de linha por <br>, para preservar o
 	// espaçamento no corpo HTML do rascunho.
 	const bodyHtml = (bodyText || "").replace(/\n/g, "<br>");
-	const resp = await graphFetch(token, "/me/messages", {
+	const resp = await graphFetch(token, basePath + "/messages", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
@@ -385,8 +418,8 @@ async function createDraft(token, subject, recipients, bodyText) {
 	return data;
 }
 
-async function addInlineAttachment(token, messageId, file) {
-	const resp = await graphFetch(token, "/me/messages/" + messageId + "/attachments", {
+async function addInlineAttachment(token, basePath, messageId, file) {
+	const resp = await graphFetch(token, basePath + "/messages/" + messageId + "/attachments", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
@@ -402,8 +435,8 @@ async function addInlineAttachment(token, messageId, file) {
 	}
 }
 
-async function addLargeAttachment(token, messageId, file, bytes) {
-	const sessionResp = await graphFetch(token, "/me/messages/" + messageId + "/attachments/createUploadSession", {
+async function addLargeAttachment(token, basePath, messageId, file, bytes) {
+	const sessionResp = await graphFetch(token, basePath + "/messages/" + messageId + "/attachments/createUploadSession", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
@@ -461,14 +494,16 @@ async function openComposeWindow(webLink) {
 
 async function handleSendEmailGraph(message) {
 	const token = await acquireAccessToken();
-	const draft = await createDraft(token, message.subject, message.recipients, message.body);
+	const fromEmail = await getDefaultFromEmail();
+	const basePath = mailboxBasePath(fromEmail);
+	const draft = await createDraft(token, basePath, message.subject, message.recipients, message.body);
 
 	for (const file of message.attachments) {
 		const bytes = base64ToBytes(file.base64);
 		if (bytes.byteLength <= INLINE_ATTACHMENT_LIMIT) {
-			await addInlineAttachment(token, draft.id, file);
+			await addInlineAttachment(token, basePath, draft.id, file);
 		} else {
-			await addLargeAttachment(token, draft.id, file, bytes);
+			await addLargeAttachment(token, basePath, draft.id, file, bytes);
 		}
 	}
 
