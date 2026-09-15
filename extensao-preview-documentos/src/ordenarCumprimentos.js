@@ -329,7 +329,6 @@
 
 			iframe.addEventListener("load", function () {
 				if (settled) return;
-				settled = true;
 
 				let finalUrl = null;
 				let errorInfo = null;
@@ -338,12 +337,23 @@
 				try {
 					const doc = iframe.contentDocument;
 					finalUrl = iframe.contentWindow.location.href;
+					// Inserir o iframe (ou trocar seu alvo via form.target) já
+					// dispara um "load" para a página em branco inicial
+					// (about:blank), ANTES mesmo do POST navegar de verdade -
+					// mesma armadilha documentada em fetchDoc() (quickActions.js).
+					// Sem esta checagem, a Promise resolvia com sucesso cedo
+					// demais, sem o POST ter sido processado pelo Projudi - a
+					// causa raiz real de itens da fila que pareciam confirmados
+					// mas nunca chegavam a ser ordenados de fato.
+					if (finalUrl === "about:blank") return;
+					settled = true;
 					if (doc) {
 						errorInfo = readErrorMessages(doc);
 						stillHasDialog = !!findOrdenacaoDialog(doc);
 						htmlSnippet = (doc.body ? doc.body.textContent : "").replace(/\s+/g, " ").trim().slice(0, 1000);
 					}
 				} catch (err) {
+					settled = true;
 					cleanup();
 					const result = { ok: false, reason: "não consegui ler a resposta do Projudi (" + err.message + ")" };
 					logEvent("flush-item-result", { label: item.label, result: result });
@@ -437,11 +447,17 @@
 			evt.preventDefault();
 			if (queue.isFlushing()) return;
 			if (!dialog.form.reportValidity()) return; // mostra a validação nativa do navegador e para aqui
-			const fields = Array.prototype.slice
-				.call(new FormData(dialog.form).entries())
-				.filter(function (pair) {
-					return !(pair[1] instanceof File); // não há como reenviar arquivos num form de campos ocultos
-				});
+			// `FormData.entries()` devolve um ITERATOR, não um array - usar
+			// Array.prototype.slice.call() nele (como uma versão anterior
+			// fazia) sempre resultava em `[]` (slice espera um array-like com
+			// `.length`), então nenhum campo real do formulário era
+			// capturado, só o que era adicionado manualmente depois (o botão)
+			// - causa raiz real de reenvios em segundo plano sem quase nenhum
+			// dado, confirmada no log de diagnóstico. Array.from() converte o
+			// iterator corretamente.
+			const fields = Array.from(new FormData(dialog.form).entries()).filter(function (pair) {
+				return !(pair[1] instanceof File); // não há como reenviar arquivos num form de campos ocultos
+			});
 			// `new FormData(form)` NÃO inclui o nome/valor do botão de envio
 			// (só aconteceria numa submissão de verdade) - como aplicações
 			// Java/Struts como o Projudi costumam decidir o que fazer no
