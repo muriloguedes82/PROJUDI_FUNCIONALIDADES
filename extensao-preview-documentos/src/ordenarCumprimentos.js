@@ -19,38 +19,52 @@
 // 3. Limpa o formulário (`form.reset()`) para a próxima ordenação, no
 //    MESMO diálogo já aberto - sem navegar, sem reabrir nada.
 //
-// Só quando o usuário clica no botão "Ordenar" nativo de verdade (o
-// último, encerrando o fluxo) é que tudo é enviado ao Projudi:
-// 1. Cada item da fila é reenviado em segundo plano, um de cada vez, num
-//    <iframe> oculto (mesma técnica já usada pelo recurso "Ações
-//    rápidas" em quickActions.js para não navegar a aba visível).
-// 2. Só depois que todos os itens da fila forem confirmados, o clique
-//    real em "Ordenar" é disparado no diálogo VISÍVEL - agora com a fila
-//    vazia, o formulário atual (o último preenchido) segue o fluxo 100%
-//    nativo do Projudi (mesma validação, mesmo envio, mesma navegação de
-//    saída).
-// 3. Se algum item da fila falhar (ex.: um campo obrigatório que o
-//    Projudi rejeitou), a extensão avisa qual item falhou e PARA - nada
-//    mais é enviado, o diálogo continua aberto para o usuário revisar.
+// Quando o usuário clica no botão "Ordenar" nativo de verdade (o último,
+// encerrando o fluxo), o item preenchido na tela NESSE momento entra
+// para a fila também (como último item) e TUDO - fila inteira, incluindo
+// esse último - é reenviado em segundo plano, um de cada vez, num
+// <iframe> oculto (mesma técnica já usada pelo recurso "Ações rápidas" em
+// quickActions.js para não navegar a aba visível). O clique nativo em si
+// NUNCA chega a ser disparado de verdade - ver "Por que nunca enviar o
+// formulário visível nativamente" abaixo. Se todos os itens forem
+// confirmados, o diálogo é substituído por uma mensagem de sucesso. Se
+// algum item falhar, a extensão avisa qual e PARA - nada mais é enviado,
+// os itens já confirmados são removidos da fila e o restante (incluindo o
+// que estava sendo preenchido na tela) continua disponível para revisão.
 //
 // Clicar em "Cancelar" descarta a fila normalmente junto com o diálogo -
 // nada do que foi só guardado chega a ser enviado.
 //
-// Por que reabrir um diálogo NOVO para cada item da fila (em vez de só
-// reenviar os mesmos campos para o mesmo endereço): testes ao vivo
-// mostraram um item da fila "confirmado" (sem erro nenhum, tela de
-// sucesso normal) mas que não aparecia nos autos depois. A explicação
-// mais provável, típica de aplicações Java/Struts como o Projudi: um
-// campo oculto de sessão/token de uso único no formulário, que o
-// primeiro envio consome - reenviar o MESMO token guardado (de uma
-// página que o usuário ainda está vendo) arrisca reaproveitar um token
-// já gasto, e o Projudi pode aceitar a requisição sem indicar erro
-// algum, mas sem repetir a ação de fato. Por isso cada item da fila
-// resolve e carrega um diálogo NOVO (mesma cadeia já usada e testada em
-// quickActions.js/resolveDialogUrl, que gera um diálogo com token novo a
-// cada chamada) e só aplica em cima dele os campos que o usuário
-// preencheu de verdade - nunca os campos ocultos, que ficam com o valor
-// (o token novo) que esse diálogo já trouxe.
+// Por que reabrir um diálogo NOVO para cada item, inclusive o último (em
+// vez de só reenviar os mesmos campos para o mesmo endereço, ou deixar o
+// envio final seguir 100% nativo): testes ao vivo mostraram um item
+// "confirmado" (sem erro nenhum, tela de sucesso normal) mas que não
+// aparecia nos autos depois. A explicação mais provável, típica de
+// aplicações Java/Struts como o Projudi: um campo oculto de sessão/token
+// de uso único no formulário, que o primeiro envio consome - reenviar o
+// MESMO token guardado (de uma página que o usuário ainda está vendo)
+// arrisca reaproveitar um token já gasto, e o Projudi pode aceitar a
+// requisição sem indicar erro algum, mas sem repetir a ação de fato. Por
+// isso cada item resolve e carrega um diálogo NOVO (mesma cadeia já usada
+// e testada em quickActions.js/resolveDialogUrl, que gera um diálogo com
+// token novo a cada chamada) e só aplica em cima dele os campos que o
+// usuário preencheu de verdade - nunca os campos ocultos, que ficam com o
+// valor (o token novo) que esse diálogo já trouxe.
+//
+// Por que nunca enviar o formulário VISÍVEL nativamente, nem depois de
+// tentar atualizar seu token: já tentamos duas formas de "renovar" o
+// token do diálogo visível antes do clique final (copiando campos ocultos
+// de um diálogo novo resolvido via resolveDialogUrl; depois, recarregando
+// a própria URL do diálogo visível) - as duas vezes o log confirmou o
+// token como renovado com sucesso, mas o envio final nativo ainda assim
+// não registrava a ordenação nos autos (a tela voltava a mostrar o mesmo
+// diálogo, sinal de token/sessão ainda inválido para aquele envio
+// específico). Isso indica que o problema não é só o valor do token, e
+// sim o próprio formulário visível estar de alguma forma "contaminado"
+// pelas cargas em segundo plano que aconteceram nesse meio-tempo (mesma
+// sessão do navegador). Por isso o último item também é resolvido e
+// enviado por um diálogo NOVO em segundo plano, exatamente como os
+// demais - nunca mais dependendo do envio nativo do formulário visível.
 
 (function () {
 	"use strict";
@@ -240,34 +254,6 @@
 	}
 
 	// -------------------------------------------------------------------
-	// Campos OCULTOS (token de sessão incluído) - o inverso de
-	// captureFormFields/applyFormFields acima. Necessário para o diálogo
-	// VISÍVEL original (aberto antes de qualquer item entrar na fila): cada
-	// diálogo novo resolvido em segundo plano para um item da fila
-	// (submitItemInBackground) faz o Projudi emitir um token de sessão
-	// novo, invalidando o token que o diálogo visível já carregava desde
-	// que foi aberto (padrão clássico de token de transação única, tipo
-	// Struts: só o token mais recente emitido pro processo é aceito). Sem
-	// isto, o clique final em "Ordenar" do diálogo visível é rejeitado
-	// (token velho) mesmo com os itens da fila todos confirmados.
-	// -------------------------------------------------------------------
-	function captureHiddenFields(form) {
-		const fields = [];
-		form.querySelectorAll('input[type="hidden"]').forEach(function (el) {
-			if (!el.name) return;
-			fields.push({ name: el.name, value: el.value });
-		});
-		return fields;
-	}
-
-	function applyHiddenFields(form, fields) {
-		fields.forEach(function (f) {
-			const el = form.querySelector('input[type="hidden"][name="' + cssEscapeAttr(f.name) + '"]');
-			if (el) el.value = f.value;
-		});
-	}
-
-	// -------------------------------------------------------------------
 	// Rótulo amigável de cada item da fila, para o usuário reconhecer o
 	// que guardou (ex.: "AUTO DE ARREMATAÇÃO"). Heurística: primeiro
 	// <select> do formulário cujo id/name mencione "tipo" (cobre pelo
@@ -294,6 +280,7 @@
 	function createQueueController(dialog) {
 		const items = []; // { label, dialogTitle, fields: [{name,type,value[,checked]}, ...] }
 		let flushing = false;
+		let succeeded = false;
 
 		const panel = document.createElement("div");
 		panel.className = "pdp-fila-ordenacoes";
@@ -358,9 +345,32 @@
 		}
 
 		function setFlushing(value) {
+			if (succeeded) return; // depois do sucesso final, os botões ficam desabilitados para sempre
 			flushing = value;
 			dialog.novoBtn.disabled = value;
 			dialog.button.disabled = value;
+		}
+
+		// Chamado quando TODOS os itens (fila + o que estava na tela) foram
+		// confirmados em segundo plano - nunca envia nada pelo formulário
+		// visível de verdade (ver comentário no topo do arquivo), então é
+		// esta mensagem, e não uma navegação nativa, que avisa o usuário do
+		// resultado. Desabilita tudo permanentemente para evitar reenvios
+		// duplicados por engano.
+		function showSuccess(totalCount) {
+			succeeded = true;
+			items.length = 0;
+			dialog.novoBtn.disabled = true;
+			dialog.button.disabled = true;
+			Array.prototype.forEach.call(dialog.form.querySelectorAll("input, select, textarea, button"), function (el) {
+				el.disabled = true;
+			});
+			panel.hidden = false;
+			panel.innerHTML = "";
+			const banner = document.createElement("div");
+			banner.className = "pdp-fila-sucesso";
+			banner.textContent = "✅ " + totalCount + " ordenaç" + (totalCount === 1 ? "ão registrada" : "ões registradas") + " com sucesso nos autos. Você já pode fechar esta janela e atualizar a tela do processo.";
+			panel.appendChild(banner);
 		}
 
 		return {
@@ -374,6 +384,7 @@
 			},
 			setFlushing: setFlushing,
 			removeAt: removeAt,
+			showSuccess: showSuccess,
 		};
 	}
 
@@ -577,101 +588,24 @@
 		return result;
 	}
 
-	// Recarrega a URL da PRÓPRIA página atual (a mesma que gerou este
-	// diálogo visível) num iframe oculto, só para colher seus campos
-	// ocultos regenerados (token de sessão em dia) e aplicá-los no diálogo
-	// visível - nunca toca nos campos que o usuário preencheu de verdade.
-	//
-	// Importante: NÃO usa resolveDialogUrl (a cadeia de "Ações Rápidas")
-	// aqui - essa cadeia existe para abrir um diálogo NOVO nascendo dentro
-	// do popup de ações rápidas, com seu próprio contexto/destino de
-	// retorno pós-envio. Testes ao vivo mostraram que copiar os campos
-	// ocultos de um diálogo aberto por essa cadeia trocava o destino do
-	// diálogo visível: em vez de voltar para a tela do processo depois do
-	// envio final, ele passava a recarregar o próprio formulário de
-	// ordenação. Recarregar a MESMA URL do diálogo visível (window.location
-	// deste próprio frame) preserva o destino de retorno original, porque
-	// esse destino é determinado pelo processo/movimentação por trás da
-	// URL, não pela cadeia de navegação usada para chegar até ela.
-	async function refreshVisibleToken(dialog) {
-		logEvent("refresh-token-start", { dialogTitle: dialog.title, url: window.location.href });
-
-		const iframe = document.createElement("iframe");
-		iframe.style.position = "absolute";
-		iframe.style.top = "-9999px";
-		iframe.style.left = "-9999px";
-		iframe.style.width = "1024px";
-		iframe.style.height = "768px";
-		document.body.appendChild(iframe);
-
-		function cleanup() {
-			if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-		}
-
-		try {
-			const loadPromise = waitForIframeEvent(iframe, { skipAboutBlank: true, timeoutMessage: "tempo esgotado recarregando a página atual" });
-			iframe.src = window.location.href;
-			await loadPromise;
-		} catch (err) {
-			cleanup();
-			const result = { ok: false, reason: err.message };
-			logEvent("refresh-token-result", { result: result });
-			return result;
-		}
-
-		let freshDialog;
-		try {
-			freshDialog = findOrdenacaoDialog(iframe.contentDocument);
-		} catch (err) {
-			freshDialog = null;
-		}
-		if (!freshDialog) {
-			cleanup();
-			const result = { ok: false, reason: "a página recarregada não tinha o formulário esperado" };
-			logEvent("refresh-token-result", { result: result });
-			return result;
-		}
-
-		applyHiddenFields(dialog.form, captureHiddenFields(freshDialog.form));
-		cleanup();
-		const result = { ok: true };
-		logEvent("refresh-token-result", { result: result });
-		return result;
-	}
-
-	async function flushQueue(queue) {
-		logEvent("flush-start", { totalItens: queue.getItems().length });
-
-		const api = findQuickActionsApi();
-		if (!api || typeof api.resolveDialogUrl !== "function") {
-			const reason = "não encontrei o recurso \"Ações rápidas\" (quickActions.js) necessário para reabrir diálogos novos em segundo plano";
-			logEvent("flush-abort", { reason: reason });
-			alert("Não consegui esvaziar a fila: " + reason + ".\n\nNada foi enviado. Recarregue a página e tente novamente.");
-			return false;
-		}
-
-		// Sempre processa o item da FRENTE da fila (índice 0) e só o remove
-		// depois de confirmado - nunca percorre por índice crescente, já que
-		// remover um item desloca os seguintes (removeAt(0) reindexaria tudo
-		// e faria um `for` com índice fixo pular o próximo item).
-		while (!queue.isEmpty()) {
-			const item = queue.getItems()[0];
+	// Reenvia uma lista de itens (fila + o item que está na tela no momento
+	// do clique final, se houver) em segundo plano, um de cada vez, cada
+	// um por um diálogo NOVO (submitItemInBackground) - nunca envia nada
+	// pelo formulário visível. Para no primeiro item que falhar; retorna
+	// quantos itens (a partir do início da lista) foram confirmados, para
+	// o chamador saber quais remover da fila persistente.
+	async function flushAll(items, api) {
+		logEvent("flush-start", { totalItens: items.length });
+		for (let i = 0; i < items.length; i++) {
+			const item = items[i];
 			const result = await submitItemInBackground(item, api);
 			if (!result.ok) {
 				logEvent("flush-abort", { label: item.label, reason: result.reason });
-				alert(
-					'Não consegui ordenar o item da fila ("' +
-						item.label +
-						'"): ' +
-						result.reason +
-						'.\n\nNada mais foi enviado. Revise esse item (ele continua na fila) e tente novamente.\n\nDetalhes técnicos deste e de todos os itens ficam salvos em window.__pdpNovaOrdenacaoLog (console, F12) - copy(JSON.stringify(window.__pdpNovaOrdenacaoLog, null, 2)) copia tudo para compartilhar.'
-				);
-				return false;
+				return { ok: false, confirmedCount: i, item: item, reason: result.reason };
 			}
-			queue.removeAt(0);
 		}
 		logEvent("flush-complete", {});
-		return true;
+		return { ok: true, confirmedCount: items.length };
 	}
 
 	// -------------------------------------------------------------------
@@ -716,46 +650,71 @@
 			if (tipoSelect) tipoSelect.dispatchEvent(new Event("change", { bubbles: true }));
 		});
 
-		// Intercepta o clique real em "Ordenar": se a fila tiver itens
-		// pendentes, primeiro reenvia todos em segundo plano; só depois
-		// dispara um clique de verdade no botão (agora com a fila vazia),
-		// deixando o Projudi processar o envio final exatamente como
-		// sempre processou - validação, submissão e navegação de saída
-		// 100% nativas, sem nenhum atalho.
+		// Intercepta o clique real em "Ordenar" sempre que houver algo na
+		// fila: o item preenchido na tela NESTE momento entra para a fila
+		// como último item, e TUDO (fila inteira) é reenviado em segundo
+		// plano, cada item por um diálogo NOVO - nunca envia nada pelo
+		// formulário visível de verdade (ver comentário no topo do arquivo,
+		// "Por que nunca enviar o formulário VISÍVEL nativamente"). Sem
+		// nada na fila (uso normal, de um item só), não intercepta nada -
+		// segue 100% nativo, exatamente como sempre funcionou.
 		dialog.button.addEventListener(
 			"click",
 			function (evt) {
 				if (queue.isEmpty() || queue.isFlushing()) return;
 				evt.preventDefault();
 				evt.stopImmediatePropagation();
+				if (!dialog.form.reportValidity()) return; // mostra a validação nativa do navegador e para aqui
+
+				const finalFields = captureFormFields(dialog.form);
+				const finalItem = { label: describeSelection(dialog.form, queue.getItems().length), dialogTitle: dialog.title, fields: finalFields };
+				logEvent("queued-final", { fields: finalFields, dialogTitle: dialog.title });
+				const queuedItems = queue.getItems().slice();
+				const allItems = queuedItems.concat([finalItem]);
+
 				queue.setFlushing(true);
 				(async function () {
-					const allOk = await flushQueue(queue);
-					if (!allOk) return;
+					const api = findQuickActionsApi();
+					if (!api || typeof api.resolveDialogUrl !== "function") {
+						const reason = 'não encontrei o recurso "Ações rápidas" (quickActions.js) necessário para reenviar em segundo plano';
+						logEvent("flush-abort", { reason: reason });
+						alert("Não consegui enviar as ordenações: " + reason + ".\n\nNada foi enviado. Recarregue a página e tente novamente.");
+						return;
+					}
 
-					// Cada diálogo novo resolvido acima para os itens da fila fez
-					// o Projudi emitir um token de sessão novo, invalidando o
-					// token que ESTE diálogo visível carrega desde que foi
-					// aberto - por isso, antes do clique final de verdade, busca
-					// um token em dia (sem tocar nos campos que o usuário
-					// preencheu) ou o envio final seria rejeitado mesmo com a
-					// fila inteira confirmada.
-					const refreshResult = await refreshVisibleToken(dialog);
-					if (!refreshResult.ok) {
+					const result = await flushAll(allItems, api);
+
+					// Remove da fila persistente só os itens da FILA (não o
+					// último, que nunca chegou a entrar nela) que foram
+					// confirmados - min() porque, numa falha, confirmedCount
+					// pode ser menor que queuedItems.length (o item que falhou
+					// era um dos da fila) ou igual a queuedItems.length (a
+					// fila inteira confirmou, só o último item falhou).
+					const confirmedFromQueue = Math.min(result.confirmedCount, queuedItems.length);
+					for (let removed = 0; removed < confirmedFromQueue; removed++) queue.removeAt(0);
+
+					if (!result.ok) {
+						const isFinalItem = result.confirmedCount >= queuedItems.length;
 						alert(
-							"Não consegui atualizar o token de sessão do formulário antes do envio final: " +
-								refreshResult.reason +
-								'.\n\nNada foi enviado. Recarregue a página e tente novamente (os itens já confirmados da fila permanecem registrados nos autos).\n\nDetalhes técnicos ficam salvos em window.__pdpNovaOrdenacaoLog (console, F12) - copy(JSON.stringify(window.__pdpNovaOrdenacaoLog, null, 2)) copia tudo para compartilhar.'
+							'Não consegui ordenar "' +
+								result.item.label +
+								'": ' +
+								result.reason +
+								".\n\n" +
+								(isFinalItem
+									? 'Os itens da fila já confirmados foram removidos. Revise os campos preenchidos nesta tela e clique em "Ordenar" novamente.'
+									: "Revise esse item (ele continua na fila) e tente novamente.") +
+								'\n\nDetalhes técnicos ficam salvos em window.__pdpNovaOrdenacaoLog (console, F12) - copy(JSON.stringify(window.__pdpNovaOrdenacaoLog, null, 2)) copia tudo para compartilhar.'
 						);
 						return;
 					}
 
-					logEvent("final-click", {});
-					dialog.button.click();
+					logEvent("all-confirmed", { totalItens: allItems.length });
+					queue.showSuccess(allItems.length);
 				})()
 					.catch(function (err) {
 						logEvent("flush-exception", { message: err && err.message });
-						console.error(LOG_PREFIX, "erro ao esvaziar a fila:", err);
+						console.error(LOG_PREFIX, "erro ao enviar as ordenações:", err);
 					})
 					.finally(function () {
 						queue.setFlushing(false);

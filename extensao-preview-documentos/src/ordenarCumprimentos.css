@@ -72,3 +72,8 @@
 .pdp-fila-remover:hover {
 	background: #fbeaea;
 }
+
+.pdp-fila-sucesso {
+	font-weight: bold;
+	color: #1a6b1a;
+}
