@@ -433,6 +433,13 @@ submetida individualmente através do mesmo botão/validação nativos do
 Projudi, então diálogos de confirmação nativos (se existirem) podem
 aparecer uma vez para cada remessa selecionada.
 
+A extensão não tenta adivinhar quais campos "pertencem" a qual opção para
+ligar/desligá-los durante o preenchimento — só marca visualmente (fundo
+azulado) o bloco de cada opção marcada. Os campos ficam exatamente como a
+própria tela nativa os deixa; só no instante de enviar cada remessa é que
+os campos das outras opções são desligados, de forma temporária, para não
+serem enviados junto.
+
 Como com as demais ações rápidas, a extensão não tem acesso ao código-fonte
 desta tela — a localização de cada opção e de seus campos é heurística, pelo
 texto literal dos rótulos. **Sempre confira o painel de resultado ao final**

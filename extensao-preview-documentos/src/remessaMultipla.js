@@ -220,53 +220,48 @@
 			// exclusivo (só uma marcada por vez), mesmo com type="checkbox".
 			radio.name = "__pdpRemessaMulti_" + index;
 			radio.type = "checkbox";
-			// IMPORTANTE: o onclick/onchange nativo do radio é mantido de
-			// propósito (uma tentativa anterior removia esses handlers para
-			// impedir que selecionar uma opção desligasse os campos de
-			// todas as outras — mas esse mesmo handler nativo também é
-			// quem HABILITA os campos da própria opção escolhida, às vezes
-			// por um mecanismo que vai além do atributo `disabled`
-			// (populando comboboxes, aplicando classes CSS etc. — como
-			// visto no bug em que Destino/Finalidade/Prazo ficaram cinza
-			// mesmo com a única opção marcada, depois de remover esse
-			// handler). Em vez de removê-lo, deixamos que ele rode
-			// normalmente, e corrigimos o efeito colateral de exclusão
-			// mútua DEPOIS dele, em wireBlockToggling/resyncAll.
+			// O onclick/onchange nativo do radio é mantido: ele é quem
+			// habilita/preenche os campos da opção escolhida (e desliga os
+			// das demais, do jeito que a tela nativa sempre fez para um
+			// grupo de radios). Não tentamos mais reproduzir esse
+			// liga/desliga por conta própria (ver applyBlockHighlight
+			// abaixo) — duas tentativas anteriores nessa direção só
+			// trocaram um bug (campos de uma opção desligando ao marcar
+			// outra) por outro (campos de uma única opção marcada
+			// ficando cinza/travados, inclusive "Orientações", que não
+			// tem por que ficar bloqueado), porque a heurística de "quais
+			// campos pertencem a qual opção" nem sempre bate com a
+			// estrutura real da tela.
 			block.elements.forEach(function (el) {
 				el.classList.add("pdp-rm-block");
 			});
 		});
 	}
 
-	function applyBlockEnabledState(block) {
+	// Só o destaque visual (fundo levemente azulado) do bloco marcado — sem
+	// mexer no atributo `disabled` de nenhum campo durante o preenchimento
+	// normal. Os campos ficam exatamente como a própria tela nativa os
+	// deixa; só na hora de enviar (isolateBlockForSubmission, mais abaixo)
+	// é que campos de outras opções são desligados, de forma temporária,
+	// pra cada remessa ser enviada separadamente.
+	function applyBlockHighlight(block) {
 		const enabled = block.radio.checked;
 		block.elements.forEach(function (el) {
 			el.classList.toggle("pdp-rm-block-active", enabled);
 		});
-		fieldsOf(block).forEach(function (field) {
-			field.disabled = !enabled;
-		});
 	}
 
 	function wireBlockToggling(blocks) {
-		// Reaplica o estado de TODOS os blocos a cada mudança (não só o que
-		// disparou o evento): reforça a seleção múltipla contra qualquer
-		// script nativo que ainda reaja ao clique (ex.: um handler ligado
-		// no formulário/documento como um todo, não no próprio radio) e
-		// tente desligar os campos de opções que deveriam continuar
-		// marcadas.
-		function resyncAll() {
-			blocks.forEach(applyBlockEnabledState);
-		}
 		blocks.forEach(function (block) {
 			// Nenhuma opção começa marcada: a tela nativa também abre sem
 			// nenhuma bolinha pré-selecionada, e assim evita enviar uma
 			// remessa que o usuário não chegou a revisar.
 			block.radio.checked = false;
-			block.radio.addEventListener("change", resyncAll);
-			block.radio.addEventListener("click", resyncAll);
+			applyBlockHighlight(block);
+			block.radio.addEventListener("change", function () {
+				applyBlockHighlight(block);
+			});
 		});
-		resyncAll();
 	}
 
 	function installMultiSelectionHint(blocks) {
@@ -318,13 +313,17 @@
 	}
 
 	// Desfaz isolateBlockForSubmission, devolvendo a tela ao estado de
-	// seleção múltipla (cada opção com seu próprio nome exclusivo,
-	// habilitada conforme o checkbox de cada uma).
+	// seleção múltipla (cada opção com seu próprio nome exclusivo, e todos
+	// os campos de volta a habilitados — isolateBlockForSubmission só os
+	// desliga durante o instante do envio de cada remessa).
 	function restoreAfterSubmission(blocks) {
 		blocks.forEach(function (block, index) {
 			block.radio.disabled = false;
 			block.radio.name = "__pdpRemessaMulti_" + index;
-			applyBlockEnabledState(block);
+			fieldsOf(block).forEach(function (field) {
+				field.disabled = false;
+			});
+			applyBlockHighlight(block);
 		});
 	}
 
