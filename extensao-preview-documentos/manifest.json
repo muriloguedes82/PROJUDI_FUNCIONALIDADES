@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Projudi/SEEU - Documentos: Pré-visualização, WhatsApp e E-mail",
-  "version": "2.5.0",
+  "version": "2.6.1",
   "description": "Ao passar o mouse sobre um documento na tela de Movimentações (Projudi ou SEEU), ou sobre uma pendência de análise de juntada/conclusão do Projudi, exibe a íntegra do(s) arquivo(s) em janela(s) sobreposta(s), sem precisar abri-los em outra aba. Também permite selecionar arquivos do processo e enviá-los por WhatsApp Web ou por e-mail via Outlook.",
   "permissions": [
     "identity",
@@ -10,7 +10,8 @@
     "tabs",
     "scripting",
     "windows",
-    "downloads"
+    "downloads",
+    "clipboardRead"
   ],
   "host_permissions": [
     "*://*.tjpr.jus.br/*",
@@ -44,6 +45,7 @@
         "*://seeu.pje.jus.br/seeu/*"
       ],
       "js": [
+        "src/clipboardProcess.js",
         "src/documentSelection.js",
         "src/content.js",
         "src/email.js",

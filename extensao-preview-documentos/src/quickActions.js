@@ -1438,6 +1438,16 @@
 			row.appendChild(btn);
 		});
 
+		if (location.pathname.startsWith("/projudi/")) {
+			const clipboardBtn = document.createElement("button");
+			clipboardBtn.type = "button";
+			clipboardBtn.className = "pdp-qa-group-btn";
+			clipboardBtn.textContent = "📋 Processo copiado";
+			clipboardBtn.title = "Pesquisar em nova aba o número de processo da área de transferência";
+			clipboardBtn.addEventListener("click", function () { window.__pdpClipboardProcess(); });
+			row.appendChild(clipboardBtn);
+		}
+
 		const optionsBtn = document.createElement("button");
 		optionsBtn.type = "button";
 		optionsBtn.id = "pdp-qa-options";
