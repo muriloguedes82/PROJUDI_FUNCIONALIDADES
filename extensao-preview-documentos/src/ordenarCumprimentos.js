@@ -111,7 +111,21 @@
 			// funcionando só em memória (window.__pdpNovaOrdenacaoLog) para
 			// esta página, mesmo que não sobreviva a uma navegação.
 		}
-		console.info(LOG_PREFIX, type, data || "");
+		// Loga como texto puro (JSON já serializado), não como objeto vivo do
+		// console — objetos vivos aparecem como "[object Object]" quando o
+		// texto do console é selecionado/colado sem clicar em cada um pra
+		// expandir, o que já causou várias rodadas de log inútil. Com texto
+		// puro, um simples selecionar-tudo-e-copiar do painel Console (em
+		// QUALQUER frame, o Chrome já mostra logs de todo frame na aba
+		// "top") já traz o conteúdo completo, sem precisar trocar de
+		// contexto no seletor de frame.
+		let dataText = "";
+		try {
+			dataText = JSON.stringify(data || {});
+		} catch (err) {
+			dataText = String(data);
+		}
+		console.info(LOG_PREFIX, type, "|", dataText);
 	}
 	// Log incondicional, só pra confirmar que o script está mesmo ativo
 	// neste frame antes de qualquer interação - igual ao "content script
