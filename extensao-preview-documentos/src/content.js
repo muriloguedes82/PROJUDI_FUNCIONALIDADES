@@ -135,6 +135,7 @@
 	}
 
 	function findPendenciaLink(target) {
+		if (window.__pdpJuntadaDragging) return null;
 		if (!(target instanceof Element)) return null;
 		const link = target.closest("a.link");
 		return isPendenciaLink(link) ? link : null;
@@ -276,6 +277,12 @@
 		pendenciaPanels = [];
 		activePendenciaLink = null;
 	}
+
+	window.addEventListener("pdp-juntada-drag-start", function () {
+		cancelOpen();
+		cleanupPendenciaLoader();
+		closeAllPendenciaPanels();
+	});
 
 	function scheduleClosePendencia() {
 		cancelOpen();
@@ -520,44 +527,13 @@
 	// mensagem em si continua sendo manual, para o usuário revisar antes.
 
 	const WA_DOC_ATTR = "data-pdp-wa";
-	const selectedDocs = new Map();
+	const selectedDocs = window.__pdpDocumentSelection.docs;
+	window.__pdpDocumentSelection.subscribe(function () { updateWaLauncherCount(); refreshWaPanelList(); });
 	let waPanel = null;
 
 	function decorateDocLinkForWhatsapp(link) {
-		if (link.hasAttribute(WA_DOC_ATTR)) return;
+		window.__pdpDocumentSelection.decorate(link);
 		link.setAttribute(WA_DOC_ATTR, "1");
-
-		const href = link.getAttribute("href");
-		let absolute;
-		try {
-			absolute = new URL(href, document.baseURI).href;
-		} catch (e) {
-			absolute = href;
-		}
-		const name = (link.textContent || "documento").trim();
-
-		const checkbox = document.createElement("input");
-		checkbox.type = "checkbox";
-		checkbox.className = "pdp-wa-checkbox";
-		checkbox.title = "Selecionar para enviar por WhatsApp";
-		// Se a página recriou este link (ex.: ao voltar para a aba de
-		// Movimentações) e o documento já estava selecionado antes, mantém a
-		// caixinha marcada em vez de "perder" a seleção visualmente.
-		checkbox.checked = selectedDocs.has(absolute);
-		checkbox.addEventListener("click", function (e) {
-			e.stopPropagation();
-		});
-		checkbox.addEventListener("change", function () {
-			if (checkbox.checked) {
-				selectedDocs.set(absolute, { href: absolute, name: name });
-			} else {
-				selectedDocs.delete(absolute);
-			}
-			updateWaLauncherCount();
-			refreshWaPanelList();
-		});
-
-		link.parentNode.insertBefore(checkbox, link);
 	}
 
 	function scanDocLinksForWhatsapp(root) {
@@ -981,18 +957,12 @@
 		"Exportar Processo",
 		"Pedido Incidental",
 		"Navegar",
-		"Concluir Movimento",
 		"Voltar",
 	];
 
 	function findProcessToolbarElement() {
 		const candidates = document.querySelectorAll('button, a, input[type="button"], input[type="submit"]');
-		// Varre de trás para frente: prefere o ÚLTIMO elemento com um desses
-		// rótulos (a barra de ações real, no rodapé do conteúdo), não o
-		// primeiro — um "Voltar" solto mais acima na página (breadcrumb, menu)
-		// faria o botão flutuante pousar no lugar errado. Mesma técnica usada
-		// em quickActions.js.
-		for (let i = candidates.length - 1; i >= 0; i--) {
+		for (let i = 0; i < candidates.length; i++) {
 			const el = candidates[i];
 			const text = (el.textContent || el.value || "").trim();
 			if (PROCESS_TOOLBAR_LABELS.indexOf(text) !== -1) return el;
@@ -1046,14 +1016,13 @@
 	//    à barra). Se a barra sair da área visível (usuário rolou além
 	//    dela), o botão simplesmente fica ancorado ao rodapé da janela, em
 	//    vez de tentar perseguir uma barra que não está mais à vista.
-	// 2. Se houver o botão "Enviar por e-mail" (#pdp-email-button) no canto
-	//    da tela, o launcher se posiciona à ESQUERDA dele, na mesma altura
-	//    — para os dois grupos de botões ficarem juntos na mesma linha,
-	//    sem se sobrepor. Só esse botão (o topo da pilha de e-mail) entra
-	//    na conta — "Remetente" e "Destinatários" ficam empilhados abaixo
-	//    dele (ver repositionButtons() em email.js) e não devem puxar o
-	//    launcher/a fileira de ações para uma linha mais baixa.
-	const EMAIL_BUTTON_SELECTOR = "#pdp-email-button";
+	// 2. Se houver botões de outra funcionalidade desta extensão no canto
+	//    da tela (ex.: envio por e-mail — mesmos ids/classes
+	//    "pdp-email-button"/"pdp-recipients-button"/".pdp-email-visible"),
+	//    o launcher se posiciona à ESQUERDA deles, na mesma altura, em vez
+	//    de seguir a barra de ações — para os dois grupos de botões
+	//    ficarem visualmente juntos, sem se sobrepor.
+	const EMAIL_BUTTON_SELECTOR = "#pdp-email-button, #pdp-recipients-button, .pdp-email-visible";
 	const BUTTON_SCREEN_MARGIN = 12;
 
 	function repositionLauncher() {
@@ -1080,14 +1049,21 @@
 			return;
 		}
 
-		// Sem botões de e-mail para se alinhar: fica no canto da tela, sem
-		// tentativa de "seguir" a barra de ações nativa. Em várias telas do
-		// Projudi essa barra fica embutida no meio do conteúdo (ex.: logo
-		// abaixo de uma tabela de arquivos), sem folga segura acima dela —
-		// ancorar ali em cima fazia este botão pousar sobre o próprio
-		// conteúdo da tela. O canto é a única posição que não depende de
-		// onde a barra nativa está nesta tela em particular.
-		launcher.style.bottom = BUTTON_SCREEN_MARGIN + "px";
+		let bottom = BUTTON_SCREEN_MARGIN;
+		const toolbarButton = findProcessToolbarElement();
+		if (toolbarButton) {
+			// Sobe até um ancestral que representa a linha/barra inteira (tr,
+			// div ou td), para medir o topo da barra como um todo, não só do
+			// botão individual encontrado.
+			const row = toolbarButton.closest("tr, div, td") || toolbarButton.parentElement || toolbarButton;
+			const rect = row.getBoundingClientRect();
+			const toolbarVisible = rect.bottom > 0 && rect.top < window.innerHeight;
+			if (toolbarVisible) {
+				const offset = Math.round(window.innerHeight - rect.top + BUTTON_SCREEN_MARGIN);
+				bottom = Math.min(Math.max(BUTTON_SCREEN_MARGIN, offset), window.innerHeight - BUTTON_SCREEN_MARGIN);
+			}
+		}
+		launcher.style.bottom = bottom + "px";
 		launcher.style.right = BUTTON_SCREEN_MARGIN + "px";
 	}
 
