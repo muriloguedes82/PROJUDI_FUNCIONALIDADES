@@ -710,3 +710,34 @@ chrome.runtime.onMessage.addListener((message,sender,reply) => {
     return true;
   } catch (error) { reply({ok:false,error:error.message}); return false; }
 });
+
+// Leitura alternativa fora do documento/iframe do Projudi. Sem guardar o conteúdo.
+let pdpClipboardDocumentCreating;
+async function ensurePdpClipboardDocument() {
+  if (!chrome.offscreen) throw new Error('Este Chrome não oferece suporte à leitura auxiliar (Chrome 109 ou superior).');
+  if (pdpClipboardDocumentCreating) return pdpClipboardDocumentCreating;
+  pdpClipboardDocumentCreating = (async () => {
+    const url = chrome.runtime.getURL('src/clipboardOffscreen.html');
+    const exists = chrome.runtime.getContexts
+      ? (await chrome.runtime.getContexts({ contextTypes: ['OFFSCREEN_DOCUMENT'], documentUrls: [url] })).length > 0
+      : (await clients.matchAll()).some(client => client.url === url);
+    if (!exists) await chrome.offscreen.createDocument({
+      url: 'src/clipboardOffscreen.html', reasons: ['CLIPBOARD'],
+      justification: 'Ler o número copiado quando o usuário clica em Processo copiado.'
+    });
+  })();
+  try { await pdpClipboardDocumentCreating; }
+  finally { pdpClipboardDocumentCreating = null; }
+}
+chrome.runtime.onMessage.addListener((message, sender, reply) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'clipboard-process-read') return false;
+  try {
+    const origin = new URL(sender.url);
+    if (!sender.tab || !/^https?:$/.test(origin.protocol) || !/(^|\.)tjpr\.jus\.br$/.test(origin.hostname) || !origin.pathname.startsWith('/projudi/')) throw new Error('Origem da leitura inválida.');
+  } catch (error) { reply({ ok: false, error: error.message }); return false; }
+  ensurePdpClipboardDocument()
+    .then(() => chrome.runtime.sendMessage({ target: 'pdp-clipboard-offscreen', type: 'read-text' }))
+    .then(result => reply(result || { ok: false, error: 'O leitor auxiliar não respondeu.' }))
+    .catch(error => reply({ ok: false, error: error.message }));
+  return true;
+});
