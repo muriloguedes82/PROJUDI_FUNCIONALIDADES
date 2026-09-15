@@ -86,6 +86,10 @@
 	// do envio) de um item da fila em segundo plano antes de considerar que
 	// falhou.
 	const BACKGROUND_STEP_TIMEOUT_MS = 20000;
+	// Tempo de exibição da mensagem de sucesso antes de fechar a janela
+	// sozinha - só para dar tempo de ler a confirmação antes do fechamento
+	// automático.
+	const AUTO_CLOSE_DELAY_MS = 1500;
 	const LOG_PREFIX = "[Projudi Nova Ordenação]";
 
 	// -------------------------------------------------------------------
@@ -369,8 +373,23 @@
 			panel.innerHTML = "";
 			const banner = document.createElement("div");
 			banner.className = "pdp-fila-sucesso";
-			banner.textContent = "✅ " + totalCount + " ordenaç" + (totalCount === 1 ? "ão registrada" : "ões registradas") + " com sucesso nos autos. Você já pode fechar esta janela e atualizar a tela do processo.";
+			banner.textContent = "✅ " + totalCount + " ordenaç" + (totalCount === 1 ? "ão registrada" : "ões registradas") + " com sucesso nos autos. Fechando esta janela...";
 			panel.appendChild(banner);
+
+			// Fecha a janela sozinha, igual ao "Ordenar" nativo faria depois
+			// de um envio bem-sucedido (window.close(), interceptado por
+			// closeShim.js quando este diálogo está aninhado num iframe desta
+			// extensão em vez de ser uma janela de verdade). Se não fechar
+			// (ex.: aba comum, sem shim nenhum funcionando), o usuário ainda
+			// tem a mensagem de sucesso acima para fechar manualmente.
+			setTimeout(function () {
+				logEvent("auto-close", {});
+				try {
+					window.close();
+				} catch (err) {
+					logEvent("auto-close-error", { message: err && err.message });
+				}
+			}, AUTO_CLOSE_DELAY_MS);
 		}
 
 		return {
