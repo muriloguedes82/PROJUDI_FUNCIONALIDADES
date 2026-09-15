@@ -438,14 +438,17 @@ adicionado por engano).
 Só quando você clica no botão **"Ordenar" nativo de verdade** (o último,
 para encerrar o fluxo) é que tudo é enviado ao Projudi:
 
-1. Cada item da fila é reenviado em segundo plano, um de cada vez, num
-   iframe oculto (mesma técnica do recurso "Ações rápidas" acima, para não
-   navegar a aba visível) — para o mesmo endereço e com os mesmos campos
-   que o formulário teria enviado naquele momento.
+1. Cada item da fila **resolve e carrega um diálogo NOVO do mesmo tipo**
+   em segundo plano, num iframe oculto — reaproveitando a mesma cadeia já
+   usada pelo recurso "Ações rápidas" acima (`resolveDialogUrl`) para não
+   navegar a aba visível. Só os campos que você preencheu de verdade
+   (nunca campos ocultos) são aplicados nesse diálogo novo, e só então o
+   "Ordenar" dele é clicado.
 2. Só depois que todos os itens da fila forem confirmados, a extensão
-   dispara um clique de verdade em "Ordenar" — agora com a fila vazia, o
-   formulário atual (o último preenchido) segue o fluxo 100% nativo do
-   Projudi: mesma validação, mesmo envio, mesma navegação de saída.
+   dispara um clique de verdade em "Ordenar" no diálogo **visível** —
+   agora com a fila vazia, o formulário atual (o último preenchido) segue
+   o fluxo 100% nativo do Projudi: mesma validação, mesmo envio, mesma
+   navegação de saída.
 3. Se algum item da fila for rejeitado pelo Projudi (ex.: um campo que
    ficou inválido), a extensão avisa **qual item falhou e para** — nada
    mais é enviado, e esse item continua na fila para revisão. Nenhum envio
@@ -454,14 +457,22 @@ para encerrar o fluxo) é que tudo é enviado ao Projudi:
 Clicar em **"Cancelar"** descarta a fila normalmente junto com o diálogo —
 nada do que foi só guardado chega a ser enviado.
 
-**Atenção:** como o reenvio em segundo plano depende de reconstruir a
-mesma requisição que o navegador enviaria (via `FormData` do formulário),
-ele foi construído a partir do HTML real do diálogo "Ordenar
-Cumprimentos", mas não foi validado em produção para os diálogos "Ordenar
-RPV" e "Ordenar Expedição BNMP" nem para toda a variedade de tipos de
-cumprimento. Antes de confiar nele em ordenações com prazo real,
-recomenda-se testar com um item não crítico e conferir depois, nos autos,
-se todos os itens da fila foram realmente registrados.
+**Por que um diálogo novo por item, em vez de reenviar os mesmos campos
+para o mesmo endereço:** testes ao vivo mostraram um item "confirmado" sem
+erro nenhum, mas que não aparecia nos autos depois. A explicação mais
+provável (padrão comum em aplicações Java/Struts como o Projudi): um campo
+oculto de sessão/token de uso único no formulário — reenviar o MESMO token
+de uma página que o usuário ainda está vendo arrisca reaproveitar um token
+já consumido pelo primeiro envio, e o Projudi pode aceitar a requisição
+sem indicar erro algum, mas sem repetir a ação de fato. Resolver um
+diálogo novo a cada item evita isso: cada um chega com seu próprio token,
+nunca reaproveitado.
+
+**Atenção:** ainda assim, isso não foi validado em produção para os
+diálogos "Ordenar RPV" e "Ordenar Expedição BNMP" nem para toda a
+variedade de tipos de cumprimento. Antes de confiar nele em ordenações com
+prazo real, recomenda-se testar com um item não crítico e conferir depois,
+nos autos, se todos os itens da fila foram realmente registrados.
 
 **Diagnóstico:** cada passo (o script carregando, o diálogo sendo
 reconhecido, o que cada item guardou, o que cada reenvio em segundo plano

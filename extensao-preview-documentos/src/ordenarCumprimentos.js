@@ -13,10 +13,9 @@
 // nativo "Ordenar". Em vez de enviar o formulário, ele:
 // 1. Valida o preenchimento atual (validação nativa do navegador, a
 //    mesma que os campos "required" já disparam ao tentar enviar).
-// 2. GUARDA os dados preenchidos (todos os campos do formulário, via
-//    FormData - nada é reinterpretado nem uma lista fixa de nomes de
-//    campo, já que o Projudi não documenta esse HTML) numa fila, em
-//    memória, sem enviar nada ao Projudi ainda.
+// 2. GUARDA os campos que o usuário preencheu de verdade (nunca campos
+//    ocultos - ver "Por que reabrir um diálogo novo" abaixo) numa fila,
+//    em memória, sem enviar nada ao Projudi ainda.
 // 3. Limpa o formulário (`form.reset()`) para a próxima ordenação, no
 //    MESMO diálogo já aberto - sem navegar, sem reabrir nada.
 //
@@ -24,19 +23,34 @@
 // último, encerrando o fluxo) é que tudo é enviado ao Projudi:
 // 1. Cada item da fila é reenviado em segundo plano, um de cada vez, num
 //    <iframe> oculto (mesma técnica já usada pelo recurso "Ações
-//    rápidas" em quickActions.js para não navegar a aba visível) - para
-//    o MESMO endereço (`action`) e com o MESMO método do formulário
-//    original.
+//    rápidas" em quickActions.js para não navegar a aba visível).
 // 2. Só depois que todos os itens da fila forem confirmados, o clique
-//    real em "Ordenar" é disparado - agora com a fila vazia, o
-//    formulário atual (o último preenchido) segue o fluxo 100% nativo do
-//    Projudi (mesma validação, mesmo envio, mesma navegação de saída).
+//    real em "Ordenar" é disparado no diálogo VISÍVEL - agora com a fila
+//    vazia, o formulário atual (o último preenchido) segue o fluxo 100%
+//    nativo do Projudi (mesma validação, mesmo envio, mesma navegação de
+//    saída).
 // 3. Se algum item da fila falhar (ex.: um campo obrigatório que o
 //    Projudi rejeitou), a extensão avisa qual item falhou e PARA - nada
 //    mais é enviado, o diálogo continua aberto para o usuário revisar.
 //
 // Clicar em "Cancelar" descarta a fila normalmente junto com o diálogo -
 // nada do que foi só guardado chega a ser enviado.
+//
+// Por que reabrir um diálogo NOVO para cada item da fila (em vez de só
+// reenviar os mesmos campos para o mesmo endereço): testes ao vivo
+// mostraram um item da fila "confirmado" (sem erro nenhum, tela de
+// sucesso normal) mas que não aparecia nos autos depois. A explicação
+// mais provável, típica de aplicações Java/Struts como o Projudi: um
+// campo oculto de sessão/token de uso único no formulário, que o
+// primeiro envio consome - reenviar o MESMO token guardado (de uma
+// página que o usuário ainda está vendo) arrisca reaproveitar um token
+// já gasto, e o Projudi pode aceitar a requisição sem indicar erro
+// algum, mas sem repetir a ação de fato. Por isso cada item da fila
+// resolve e carrega um diálogo NOVO (mesma cadeia já usada e testada em
+// quickActions.js/resolveDialogUrl, que gera um diálogo com token novo a
+// cada chamada) e só aplica em cima dele os campos que o usuário
+// preencheu de verdade - nunca os campos ocultos, que ficam com o valor
+// (o token novo) que esse diálogo já trouxe.
 
 (function () {
 	"use strict";
@@ -44,12 +58,20 @@
 	if (window.__pdpNovaOrdenacaoInjected) return;
 	window.__pdpNovaOrdenacaoInjected = true;
 
+	// Rótulos exatos dos diálogos de ordenação (mesmos rótulos do grupo
+	// "Ordenações" em quickActions.js) - usados tanto para identificar QUAL
+	// diálogo está aberto quanto para pedir um diálogo novo do mesmo tipo
+	// via resolveDialogUrl(label).
+	const DIALOG_TITLES = ["Ordenar Cumprimentos", "Ordenar RPV", "Ordenar Expedição BNMP"];
+
 	const NEW_BUTTON_CLASS = "pdp-nova-ordenacao-btn";
 	const DONE_MARKER = "pdpNovaOrdenacaoFeito";
 	const RECONCILE_INTERVAL_MS = 500;
-	// Tempo máximo esperando a resposta de cada item da fila reenviado em
-	// segundo plano antes de considerar que falhou.
-	const BACKGROUND_SUBMIT_TIMEOUT_MS = 20000;
+	const MAX_ANCESTOR_HOPS = 8;
+	// Tempo máximo esperando cada etapa (carregar o diálogo novo, resposta
+	// do envio) de um item da fila em segundo plano antes de considerar que
+	// falhou.
+	const BACKGROUND_STEP_TIMEOUT_MS = 20000;
 	const LOG_PREFIX = "[Projudi Nova Ordenação]";
 
 	// -------------------------------------------------------------------
@@ -65,7 +87,8 @@
 	// "Ordenar" NAVEGA de verdade para a tela seguinte (sucesso ou erro),
 	// o que destrói e reinicia este script do zero - um array só em
 	// memória se perderia antes de dar tempo de copiá-lo. sessionStorage
-	// sobrevive a essa navegação (mesma aba, mesma origem).
+	// sobrevive a essa navegação (mesma aba, mesma origem, inclusive para
+	// uma aba nova aberta a partir da original).
 	// -------------------------------------------------------------------
 	const LOG_STORAGE_KEY = "pdpNovaOrdenacaoLog";
 	const LOG_MAX_ENTRIES = 300;
@@ -107,6 +130,11 @@
 		return style.display !== "none" && style.visibility !== "hidden";
 	}
 
+	function cssEscapeAttr(value) {
+		if (window.CSS && CSS.escape) return CSS.escape(value);
+		return String(value).replace(/["\\]/g, "\\$&");
+	}
+
 	// Acha o botão "Ordenar" visível cujo botão "Cancelar" fica logo ao
 	// lado (mesmo container imediato) — o par de botões do rodapé desses
 	// diálogos, como visto na tela "Ordenar Cumprimentos"
@@ -137,6 +165,66 @@
 		return { button: button, form: button.form };
 	}
 
+	// Identifica QUAL dos diálogos de ordenação está aberto, subindo alguns
+	// níveis a partir do botão "Ordenar" até achar um container cujo texto
+	// inclua um dos títulos esperados. Necessário para pedir um diálogo NOVO
+	// do mesmo tipo via resolveDialogUrl(label) ao reenviar em segundo
+	// plano.
+	function findDialogTitle(button) {
+		let node = button;
+		for (let i = 0; i < MAX_ANCESTOR_HOPS && node; i++) {
+			const text = node.textContent || "";
+			for (let j = 0; j < DIALOG_TITLES.length; j++) {
+				if (text.indexOf(DIALOG_TITLES[j]) !== -1) return DIALOG_TITLES[j];
+			}
+			node = node.parentElement;
+		}
+		return null;
+	}
+
+	// -------------------------------------------------------------------
+	// Captura/aplicação de campos do formulário - só campos que o usuário
+	// preenche de verdade (nunca hidden/submit/button/reset/file/password),
+	// mesmo padrão já usado para "preferências" em quickActions.js. Cada
+	// checkbox/radio é capturado com seu estado marcado/desmarcado (não só
+	// os marcados), para que aplicar num formulário novo desmarque
+	// corretamente o que não deveria ficar marcado.
+	// -------------------------------------------------------------------
+	function captureFormFields(form) {
+		const fields = [];
+		const elements = form.querySelectorAll("input, select, textarea");
+		elements.forEach(function (el) {
+			if (!el.name) return;
+			const type = (el.type || el.tagName || "").toLowerCase();
+			if (type === "hidden" || type === "submit" || type === "button" || type === "reset" || type === "file" || type === "password") return;
+			if (type === "checkbox" || type === "radio") {
+				fields.push({ name: el.name, type: type, value: el.value, checked: el.checked });
+			} else {
+				fields.push({ name: el.name, type: type, value: el.value });
+			}
+		});
+		return fields;
+	}
+
+	function applyFormFields(form, fields) {
+		fields.forEach(function (f) {
+			if (f.type === "checkbox" || f.type === "radio") {
+				const el = form.querySelector('[name="' + cssEscapeAttr(f.name) + '"][value="' + cssEscapeAttr(f.value) + '"]');
+				if (el) {
+					el.checked = f.checked;
+					el.dispatchEvent(new Event("change", { bubbles: true }));
+				}
+			} else {
+				const el = form.querySelector('[name="' + cssEscapeAttr(f.name) + '"]');
+				if (el) {
+					el.value = f.value;
+					el.dispatchEvent(new Event("input", { bubbles: true }));
+					el.dispatchEvent(new Event("change", { bubbles: true }));
+				}
+			}
+		});
+	}
+
 	// -------------------------------------------------------------------
 	// Rótulo amigável de cada item da fila, para o usuário reconhecer o
 	// que guardou (ex.: "AUTO DE ARREMATAÇÃO"). Heurística: primeiro
@@ -162,7 +250,7 @@
 	// -------------------------------------------------------------------
 
 	function createQueueController(dialog) {
-		const items = []; // { label, action, method, fields: [[name, value], ...] }
+		const items = []; // { label, dialogTitle, fields: [{name,type,value[,checked]}, ...] }
 		let flushing = false;
 
 		const panel = document.createElement("div");
@@ -207,11 +295,10 @@
 			dialog.novoBtn.textContent = items.length ? "🔁 Nova Ordenação (" + items.length + " na fila)" : "🔁 Nova Ordenação";
 		}
 
-		function push(fields, action, method) {
+		function push(fields) {
 			items.push({
 				label: describeSelection(dialog.form, items.length),
-				action: action,
-				method: method,
+				dialogTitle: dialog.title,
 				fields: fields,
 			});
 			renderPanel();
@@ -249,24 +336,39 @@
 	}
 
 	// -------------------------------------------------------------------
-	// Reenvio de um item da fila em segundo plano, num iframe oculto -
-	// mesma técnica de fetchDoc em quickActions.js (um <iframe> fora da
-	// área visível da tela, mas uma navegação de verdade, com a MESMA
-	// sessão/cookies do usuário).
+	// API de quickActions.js (src/quickActions.js), que expõe
+	// resolveDialogUrl(label) - a mesma cadeia já usada e testada pelo
+	// recurso "Ações rápidas" para achar a URL de um diálogo de ação,
+	// gerando um diálogo (e token de sessão) NOVO a cada chamada. Pode
+	// estar neste frame ou num frame acima (o diálogo de ordenação, quando
+	// aberto via a cadeia "hop", fica dentro do popup que quickActions.js
+	// cria no frame da tela de Ações/Movimentações).
 	// -------------------------------------------------------------------
+	function findQuickActionsApi() {
+		if (window.__pdpQuickActions) return window.__pdpQuickActions;
+		try {
+			if (window.parent && window.parent !== window && window.parent.__pdpQuickActions) return window.parent.__pdpQuickActions;
+		} catch (err) {
+			// acesso entre frames bloqueado - ignora
+		}
+		try {
+			if (window.top && window.top !== window && window.top.__pdpQuickActions) return window.top.__pdpQuickActions;
+		} catch (err) {
+			// acesso entre frames bloqueado - ignora
+		}
+		return null;
+	}
 
 	// O Projudi mostra erros (de validação OU erros internos genéricos,
 	// tipo "Erro geral") numa caixa `<div id="errorMessages">` com uma
 	// lista `#ulMensErros` e, geralmente, um número de protocolo - visto
 	// ao vivo numa resposta real deste mesmo formulário. Essa caixa NÃO
 	// tem os botões "Ordenar"/"Cancelar" (a tela de erro só tem um botão
-	// "Voltar"), então checar só a ausência do diálogo original (como a
-	// primeira versão deste recurso fazia) confundia essa tela de erro
-	// com sucesso - o item era dado como enviado e tirado da fila, mas na
-	// verdade nunca tinha sido de fato ordenado. Por isso a checagem
-	// principal de falha é a presença desta caixa de erro; a ausência do
-	// diálogo original é só um sinal auxiliar (ex.: formulário
-	// reapresentado com a mesma tela, sem a caixa de erro visível).
+	// "Voltar"), então checar só a ausência do diálogo original confundia
+	// essa tela de erro com sucesso. Por isso a checagem principal de
+	// falha é a presença desta caixa de erro; a ausência do diálogo
+	// original é só um sinal auxiliar (ex.: formulário reapresentado com a
+	// mesma tela, sem a caixa de erro visível).
 	function readErrorMessages(doc) {
 		const box = doc.getElementById("errorMessages");
 		if (!box) return null;
@@ -280,130 +382,168 @@
 		};
 	}
 
-	function submitItemInBackground(item) {
-		return new Promise(function (resolve) {
-			const frameName = "pdp-fila-" + Date.now() + "-" + Math.random().toString(36).slice(2);
-			const iframe = document.createElement("iframe");
-			iframe.name = frameName;
-			iframe.style.position = "absolute";
-			iframe.style.top = "-9999px";
-			iframe.style.left = "-9999px";
-			iframe.style.width = "1024px";
-			iframe.style.height = "768px";
+	// -------------------------------------------------------------------
+	// Reenvio de um item da fila em segundo plano: resolve um diálogo NOVO
+	// do mesmo tipo (token de sessão novo - ver comentário no topo do
+	// arquivo), aplica os campos guardados nele, e clica no "Ordenar" DESSE
+	// diálogo novo - tudo dentro de um <iframe> oculto (mesma técnica de
+	// fetchDoc em quickActions.js), sem navegar a aba visível.
+	// -------------------------------------------------------------------
 
-			const form = document.createElement("form");
-			form.action = item.action;
-			form.method = item.method || "post";
-			form.target = frameName;
-			form.style.display = "none";
-			item.fields.forEach(function (pair) {
-				const input = document.createElement("input");
-				input.type = "hidden";
-				input.name = pair[0];
-				input.value = pair[1];
-				form.appendChild(input);
-			});
-
-			logEvent("flush-item-start", {
-				label: item.label,
-				action: item.action,
-				method: item.method,
-				fields: item.fields,
-			});
-
+	function waitForIframeEvent(iframe, options) {
+		options = options || {};
+		return new Promise(function (resolve, reject) {
 			let settled = false;
 			const timeout = setTimeout(function () {
 				if (settled) return;
 				settled = true;
-				cleanup();
-				const result = { ok: false, reason: "tempo esgotado aguardando resposta do Projudi" };
-				logEvent("flush-item-result", { label: item.label, result: result });
-				resolve(result);
-			}, BACKGROUND_SUBMIT_TIMEOUT_MS);
-
-			function cleanup() {
-				clearTimeout(timeout);
-				if (form.parentNode) form.parentNode.removeChild(form);
-				if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-			}
-
-			iframe.addEventListener("load", function () {
+				iframe.removeEventListener("load", onLoad);
+				reject(new Error(options.timeoutMessage || "tempo esgotado"));
+			}, BACKGROUND_STEP_TIMEOUT_MS);
+			function onLoad() {
 				if (settled) return;
-
-				let finalUrl = null;
-				let errorInfo = null;
-				let stillHasDialog = false;
-				let htmlSnippet = null;
-				try {
-					const doc = iframe.contentDocument;
-					finalUrl = iframe.contentWindow.location.href;
-					// Inserir o iframe (ou trocar seu alvo via form.target) já
-					// dispara um "load" para a página em branco inicial
-					// (about:blank), ANTES mesmo do POST navegar de verdade -
-					// mesma armadilha documentada em fetchDoc() (quickActions.js).
-					// Sem esta checagem, a Promise resolvia com sucesso cedo
-					// demais, sem o POST ter sido processado pelo Projudi - a
-					// causa raiz real de itens da fila que pareciam confirmados
-					// mas nunca chegavam a ser ordenados de fato.
-					if (finalUrl === "about:blank") return;
-					settled = true;
-					if (doc) {
-						errorInfo = readErrorMessages(doc);
-						stillHasDialog = !!findOrdenacaoDialog(doc);
-						htmlSnippet = (doc.body ? doc.body.textContent : "").replace(/\s+/g, " ").trim().slice(0, 1000);
+				if (options.skipAboutBlank) {
+					let href;
+					try {
+						href = iframe.contentWindow.location.href;
+					} catch (err) {
+						href = null;
 					}
-				} catch (err) {
-					settled = true;
-					cleanup();
-					const result = { ok: false, reason: "não consegui ler a resposta do Projudi (" + err.message + ")" };
-					logEvent("flush-item-result", { label: item.label, result: result });
-					resolve(result);
-					return;
+					// Inserir o iframe (ou navegá-lo pela 1ª vez) já dispara um
+					// "load" para a página em branco inicial (about:blank), ANTES
+					// mesmo da navegação de verdade começar - mesma armadilha
+					// documentada em fetchDoc() (quickActions.js). Ignora esse load
+					// e continua esperando o load seguinte, que é o de verdade.
+					if (href === "about:blank") return;
 				}
-				cleanup();
-
-				let result;
-				if (errorInfo) {
-					// Caixa de erro do Projudi presente na resposta - o motivo
-					// exato (mensagens + protocolo, quando houver) vai no log
-					// para investigar a causa raiz em vez de adivinhar.
-					result = {
-						ok: false,
-						reason: (errorInfo.mensagens.join("; ") || "erro não identificado") + (errorInfo.protocolo ? " (protocolo " + errorInfo.protocolo + ")" : ""),
-					};
-				} else if (stillHasDialog) {
-					// O Projudi reapresentou o MESMO formulário sem uma caixa de
-					// erro visível - normalmente sinal de validação client-side
-					// que não fez o formulário ser enviado de verdade.
-					result = { ok: false, reason: "o Projudi reapresentou o formulário (sem mensagem de erro explícita)" };
-				} else {
-					result = { ok: true };
-				}
-				logEvent("flush-item-result", {
-					label: item.label,
-					result: result,
-					finalUrl: finalUrl,
-					errorInfo: errorInfo,
-					htmlSnippet: htmlSnippet,
-				});
-				resolve(result);
-			});
-
-			document.body.appendChild(iframe);
-			document.body.appendChild(form);
-			form.submit();
+				settled = true;
+				clearTimeout(timeout);
+				iframe.removeEventListener("load", onLoad);
+				resolve();
+			}
+			iframe.addEventListener("load", onLoad);
 		});
+	}
+
+	async function submitItemInBackground(item, api) {
+		logEvent("flush-item-start", { label: item.label, dialogTitle: item.dialogTitle, fields: item.fields });
+
+		let resolved;
+		try {
+			resolved = await api.resolveDialogUrl(item.dialogTitle);
+		} catch (err) {
+			const result = { ok: false, reason: "erro ao resolver diálogo novo: " + (err && err.message) };
+			logEvent("flush-item-result", { label: item.label, result: result });
+			return result;
+		}
+		if (!resolved || resolved.failed || !resolved.url) {
+			const result = { ok: false, reason: 'não consegui abrir um diálogo novo de "' + item.dialogTitle + '" em segundo plano' };
+			logEvent("flush-item-result", { label: item.label, result: result });
+			return result;
+		}
+
+		const iframe = document.createElement("iframe");
+		iframe.style.position = "absolute";
+		iframe.style.top = "-9999px";
+		iframe.style.left = "-9999px";
+		iframe.style.width = "1024px";
+		iframe.style.height = "768px";
+		document.body.appendChild(iframe);
+
+		function cleanup() {
+			if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+		}
+
+		try {
+			const loadPromise = waitForIframeEvent(iframe, { skipAboutBlank: true, timeoutMessage: "tempo esgotado carregando o diálogo novo" });
+			iframe.src = resolved.url;
+			await loadPromise;
+		} catch (err) {
+			cleanup();
+			const result = { ok: false, reason: err.message };
+			logEvent("flush-item-result", { label: item.label, result: result });
+			return result;
+		}
+
+		let freshDialog;
+		try {
+			freshDialog = findOrdenacaoDialog(iframe.contentDocument);
+		} catch (err) {
+			freshDialog = null;
+		}
+		if (!freshDialog) {
+			cleanup();
+			const result = { ok: false, reason: "o diálogo novo carregado não tinha o formulário esperado" };
+			logEvent("flush-item-result", { label: item.label, result: result });
+			return result;
+		}
+
+		applyFormFields(freshDialog.form, item.fields);
+
+		try {
+			const submitPromise = waitForIframeEvent(iframe, { timeoutMessage: "tempo esgotado aguardando resposta do Projudi" });
+			freshDialog.button.click();
+			await submitPromise;
+		} catch (err) {
+			cleanup();
+			const result = { ok: false, reason: err.message };
+			logEvent("flush-item-result", { label: item.label, result: result });
+			return result;
+		}
+
+		let finalUrl = null;
+		let errorInfo = null;
+		let stillHasDialog = false;
+		let htmlSnippet = null;
+		try {
+			const doc = iframe.contentDocument;
+			finalUrl = iframe.contentWindow.location.href;
+			if (doc) {
+				errorInfo = readErrorMessages(doc);
+				stillHasDialog = !!findOrdenacaoDialog(doc);
+				htmlSnippet = (doc.body ? doc.body.textContent : "").replace(/\s+/g, " ").trim().slice(0, 1000);
+			}
+		} catch (err) {
+			cleanup();
+			const result = { ok: false, reason: "não consegui ler a resposta do Projudi (" + err.message + ")" };
+			logEvent("flush-item-result", { label: item.label, result: result });
+			return result;
+		}
+		cleanup();
+
+		let result;
+		if (errorInfo) {
+			result = {
+				ok: false,
+				reason: (errorInfo.mensagens.join("; ") || "erro não identificado") + (errorInfo.protocolo ? " (protocolo " + errorInfo.protocolo + ")" : ""),
+			};
+		} else if (stillHasDialog) {
+			result = { ok: false, reason: "o Projudi reapresentou o formulário (sem mensagem de erro explícita)" };
+		} else {
+			result = { ok: true };
+		}
+		logEvent("flush-item-result", { label: item.label, result: result, finalUrl: finalUrl, errorInfo: errorInfo, htmlSnippet: htmlSnippet });
+		return result;
 	}
 
 	async function flushQueue(queue) {
 		logEvent("flush-start", { totalItens: queue.getItems().length });
+
+		const api = findQuickActionsApi();
+		if (!api || typeof api.resolveDialogUrl !== "function") {
+			const reason = "não encontrei o recurso \"Ações rápidas\" (quickActions.js) necessário para reabrir diálogos novos em segundo plano";
+			logEvent("flush-abort", { reason: reason });
+			alert("Não consegui esvaziar a fila: " + reason + ".\n\nNada foi enviado. Recarregue a página e tente novamente.");
+			return false;
+		}
+
 		// Sempre processa o item da FRENTE da fila (índice 0) e só o remove
 		// depois de confirmado - nunca percorre por índice crescente, já que
 		// remover um item desloca os seguintes (removeAt(0) reindexaria tudo
 		// e faria um `for` com índice fixo pular o próximo item).
 		while (!queue.isEmpty()) {
 			const item = queue.getItems()[0];
-			const result = await submitItemInBackground(item);
+			const result = await submitItemInBackground(item, api);
 			if (!result.ok) {
 				logEvent("flush-abort", { label: item.label, reason: result.reason });
 				alert(
@@ -437,7 +577,11 @@
 	function setupDialog(dialog) {
 		if (dialog.button.dataset[DONE_MARKER]) return;
 		dialog.button.dataset[DONE_MARKER] = "1";
-		logEvent("dialog-detected", { formAction: dialog.form.action, formMethod: dialog.form.method, formId: dialog.form.id });
+
+		dialog.title = findDialogTitle(dialog.button);
+		if (!dialog.title) return; // não é um dos diálogos de ordenação conhecidos - não injeta nada
+
+		logEvent("dialog-detected", { title: dialog.title, formAction: dialog.form.action, formMethod: dialog.form.method, formId: dialog.form.id });
 
 		dialog.novoBtn = makeNovaOrdenacaoButton();
 		dialog.button.insertAdjacentElement("afterend", dialog.novoBtn);
@@ -447,26 +591,9 @@
 			evt.preventDefault();
 			if (queue.isFlushing()) return;
 			if (!dialog.form.reportValidity()) return; // mostra a validação nativa do navegador e para aqui
-			// `FormData.entries()` devolve um ITERATOR, não um array - usar
-			// Array.prototype.slice.call() nele (como uma versão anterior
-			// fazia) sempre resultava em `[]` (slice espera um array-like com
-			// `.length`), então nenhum campo real do formulário era
-			// capturado, só o que era adicionado manualmente depois (o botão)
-			// - causa raiz real de reenvios em segundo plano sem quase nenhum
-			// dado, confirmada no log de diagnóstico. Array.from() converte o
-			// iterator corretamente.
-			const fields = Array.from(new FormData(dialog.form).entries()).filter(function (pair) {
-				return !(pair[1] instanceof File); // não há como reenviar arquivos num form de campos ocultos
-			});
-			// `new FormData(form)` NÃO inclui o nome/valor do botão de envio
-			// (só aconteceria numa submissão de verdade) - como aplicações
-			// Java/Struts como o Projudi costumam decidir o que fazer no
-			// servidor pelo nome do botão clicado (`request.getParameter(...)`),
-			// inclui esse par manualmente para o reenvio em segundo plano se
-			// comportar como um clique de verdade no "Ordenar".
-			if (dialog.button.name) fields.push([dialog.button.name, dialog.button.value || ""]);
-			logEvent("queued", { fields: fields, action: dialog.form.action, method: dialog.form.method });
-			queue.push(fields, dialog.form.action, dialog.form.method);
+			const fields = captureFormFields(dialog.form);
+			logEvent("queued", { fields: fields, dialogTitle: dialog.title });
+			queue.push(fields);
 			dialog.form.reset();
 			// form.reset() não dispara 'change' - sem isso, qualquer JS do
 			// próprio Projudi que mostra/esconde campos conforme o "Tipo de
