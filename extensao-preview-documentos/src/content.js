@@ -135,7 +135,6 @@
 	}
 
 	function findPendenciaLink(target) {
-		if (window.__pdpJuntadaDragging) return null;
 		if (!(target instanceof Element)) return null;
 		const link = target.closest("a.link");
 		return isPendenciaLink(link) ? link : null;
@@ -278,7 +277,7 @@
 		activePendenciaLink = null;
 	}
 
-	window.addEventListener("pdp-juntada-drag-start", function () {
+	window.addEventListener("pdp-juntada-action-start", function () {
 		cancelOpen();
 		cleanupPendenciaLoader();
 		closeAllPendenciaPanels();

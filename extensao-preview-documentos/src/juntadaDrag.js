@@ -1,12 +1,9 @@
-// Implementação própria: gesto de dispensa de juntadas no Projudi.
-// Seleciona a página atual e clica uma vez no controle nativo; preserva a confirmação.
+// Botão ao lado da pendência: dispensa de juntadas em segundo plano.
 (function () {
   "use strict";
   if (window.__pdpJuntadaDrag || !location.pathname.startsWith('/projudi/')) return;
   window.__pdpJuntadaDrag = true;
-  const DIAGNOSTIC_ONLY = false; // Seletores confirmados no diagnóstico do Projudi.
   const normalize = text => String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
-  const outside = (x, y, rect) => x < rect.left || x > rect.right || y < rect.top || y > rect.bottom;
   function eligible(link) {
     if (!link || !link.matches('a.link') || !link.closest('#quadroPendencias')) return null;
     try {
@@ -46,25 +43,6 @@
         (/(?:juntadas?|pendencias?).{0,100}dispensad[ao]s?.{0,50}(?:sucesso|exito)/.test(text) ||
          /dispensa.{0,80}(?:sucesso|exito)/.test(text)));
   }
-  function describeControls(doc) {
-    // Somente estrutura de controles; não lê URLs, valores, textos de linhas ou argumentos JS.
-    const token = value => /^[a-zA-Z_$][a-zA-Z0-9_$.[\]-]{0,99}$/.test(value || '')
-      ? value.replace(/[0-9]+/g, '#') : (value ? '[omitido]' : '(vazio)');
-    const tables = [...doc.querySelectorAll('table')];
-    const controls = [...doc.querySelectorAll('input[type="checkbox"]')];
-    const report = controls.map((el, index) => ({
-      controle: index + 1,
-      nome: token(el.name), id: token(el.id),
-      tabela: tables.indexOf(el.closest('table')) + 1,
-      tabelaPai: tables.indexOf(el.closest('table')?.parentElement?.closest('table')) + 1,
-      cabecalho: !!el.closest('thead,th'),
-      marcado: el.checked, desabilitado: el.disabled,
-      visivel: !!el.getClientRects().length,
-      funcoesClique: [...(el.getAttribute('onclick') || '').matchAll(/([A-Za-z_$][\w$]*)\s*\(/g)].map(match => token(match[1])),
-      funcoesMudanca: [...(el.getAttribute('onchange') || '').matchAll(/([A-Za-z_$][\w$]*)\s*\(/g)].map(match => token(match[1]))
-    }));
-    return 'Diagnóstico J-04 (estrutura e seleção manual)\n' + JSON.stringify(report, null, 2);
-  }
   function selectCandidates(result) {
     // Usa o evento nativo do cabeçalho para respeitar a seleção da página.
     if (result.master && !result.master.checked) result.master.click();
@@ -72,19 +50,7 @@
     if (!result.master) result.boxes.forEach(box => { if (!box.checked) box.click(); });
   }
 
-  let gesture = null, badge = null, modal = null, blockedLink = null, blockTimer;
-  function blockClick(link) {
-    blockedLink = link;
-    clearTimeout(blockTimer);
-    blockTimer = setTimeout(() => { blockedLink = null; }, 500);
-  }
-  function finish() {
-    if (badge) badge.remove();
-    badge = null;
-    if (gesture?.dragging) blockClick(gesture.link);
-    gesture = null;
-    window.__pdpJuntadaDragging = false;
-  }
+  let modal = null;
   function review(url, source) {
     if (modal) return;
     const token = crypto.randomUUID();
@@ -108,7 +74,7 @@
     const deadline = Date.now() + 60000;
     function cleanup() {
       if (closed) return;
-      closed = true; clearTimeout(timer); frame.remove(); modal.remove(); modal = null;
+      closed = true; clearTimeout(timer); frame.remove(); modal.remove(); modal = null; scanButtons();
     }
     function fail(message) {
       if (closed) return;
@@ -161,44 +127,34 @@
     timer = setTimeout(poll,250);
     frame.src = url;
   }
-  document.addEventListener('mousedown', event => {
-    if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || modal) return;
-    const link = event.target.closest?.('a.link');
-    const url = eligible(link);
-    if (!url) return;
-    gesture = { link, url, x: event.clientX, y: event.clientY, area: link.closest('#quadroPendencias'), dragging: false };
-  }, true);
-  document.addEventListener('mousemove', event => {
-    if (!gesture) return;
-    if (!gesture.dragging && Math.hypot(event.clientX - gesture.x,event.clientY - gesture.y) < 5) return;
-    if (!gesture.link.isConnected) { finish(); return; }
-    if (!gesture.dragging) {
-      gesture.dragging = true;
-      window.__pdpJuntadaDragging = true;
-      window.dispatchEvent(new Event('pdp-juntada-drag-start'));
-      badge = document.createElement('div'); badge.className = 'pdp-juntada-drag-badge';
-      document.body.append(badge);
+  const buttons = new Map();
+  function scanButtons() {
+    for (const [link,button] of buttons) {
+      if (!link.isConnected || !eligible(link)) { button.remove(); buttons.delete(link); }
     }
-    event.preventDefault();
-    const out = outside(event.clientX,event.clientY,gesture.area.getBoundingClientRect());
-    badge.textContent = out ? '🗑 Solte para dispensar as juntadas desta página' : 'Solte aqui ou pressione Esc para cancelar';
-    badge.dataset.outside = String(out);
-    badge.style.left = Math.max(8,Math.min(event.clientX + 14,window.innerWidth - badge.offsetWidth - 8)) + 'px';
-    badge.style.top = Math.max(8,Math.min(event.clientY + 14,window.innerHeight - badge.offsetHeight - 8)) + 'px';
-  }, true);
-  document.addEventListener('mouseup', event => {
-    if (!gesture || event.button !== 0) return;
-    const current = gesture;
-    const execute = current.dragging && current.area.isConnected && outside(event.clientX,event.clientY,current.area.getBoundingClientRect());
-    finish();
-    if (execute) review(current.url,current.link);
-  }, true);
-  document.addEventListener('dragstart', event => { if (gesture) event.preventDefault(); },true);
-  document.addEventListener('click', event => {
-    if (blockedLink && (event.target === blockedLink || blockedLink.contains(event.target))) {
-      event.preventDefault(); event.stopImmediatePropagation(); blockedLink = null;
-    }
-  },true);
-  document.addEventListener('keydown', event => { if (event.key === 'Escape') finish(); },true);
-  window.addEventListener('blur',finish);
+    document.querySelectorAll('#quadroPendencias a.link').forEach(link => {
+      if (!eligible(link)) return;
+      let button = buttons.get(link);
+      if (!button || !button.isConnected) {
+        button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'pdp-dispensar-juntadas';
+        button.textContent = 'Dispensar juntadas';
+        button.title = 'Dispensar todas as juntadas selecionáveis da página, em segundo plano';
+        button.addEventListener('click', event => {
+          event.preventDefault(); event.stopPropagation();
+          const url = eligible(link);
+          if (!url || modal) return;
+          window.dispatchEvent(new Event('pdp-juntada-action-start'));
+          review(url,link);
+          scanButtons();
+        });
+        link.insertAdjacentElement('afterend',button);
+        buttons.set(link,button);
+      }
+      button.disabled = !!modal;
+    });
+  }
+  scanButtons();
+  new MutationObserver(scanButtons).observe(document.documentElement, { childList:true, subtree:true, attributes:true, attributeFilter:['href'] });
 })();

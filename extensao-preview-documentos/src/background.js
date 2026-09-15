@@ -699,3 +699,14 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
     .catch(error => reply({ ok: false, error: error.message }));
   return true;
 });
+
+chrome.runtime.onMessage.addListener((message,sender,reply) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'clipboard-process-open') return false;
+  try {
+    const origin = new URL(sender.url);
+    if (!sender.tab || !/^https?:$/.test(origin.protocol) || !/(^|\.)tjpr\.jus\.br$/.test(origin.hostname) || !origin.pathname.startsWith('/projudi/') || !/^\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}$/.test(message.number || '')) throw new Error('Origem ou número de processo inválido.');
+    const url = origin.origin + '/projudi/processo/buscaProcesso.do?actionType=iniciarSimples#pdp-search=' + encodeURIComponent(message.number);
+    chrome.tabs.create({url,active:true}).then(() => reply({ok:true})).catch(error => reply({ok:false,error:error.message}));
+    return true;
+  } catch (error) { reply({ok:false,error:error.message}); return false; }
+});

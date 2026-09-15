@@ -1,11 +1,7 @@
-# Dispensa em segundo plano — 2.4.0
+# Botão Dispensar juntadas — versão 2.6.1
 
-Atualize os arquivos, recarregue a extensão e atualize o Projudi.
+Atualize a extensão e a página do Projudi. O botão Dispensar juntadas aparece imediatamente ao lado do link de análise no quadro Pendências. Ele substitui o arrasto.
 
-Arrastar o link de análise de juntadas para fora do quadro executa a seleção e a dispensa em segundo plano. São selecionados somente campos idJuntadas habilitados da página atual, sem percorrer outras páginas. O painel PiP não aparece durante o fluxo normal.
+O botão dispensa todas as juntadas selecionáveis da página em segundo plano, com a confirmação específica automática já validada na versão anterior. O aviso informa andamento e sucesso; em falha oferece Ver detalhes. A seleção não percorre outras páginas. O botão fica desabilitado durante a operação. O clique normal no link permanece disponível.
 
-A confirmação nativa é aceita automaticamente somente durante o clique no botão marcado para esta operação e somente se a mensagem perguntar sobre dispensa. A função original de confirmação é restaurada imediatamente após o clique, inclusive em erro. Outras confirmações e uma segunda confirmação são rejeitadas por esta operação. Não há alterações permanentes nas confirmações do Projudi.
-
-Um aviso mostra o andamento e o sucesso reconhecido pelo mesmo detector da versão anterior. Se a seleção falhar, a confirmação for diferente ou o sucesso não for identificado em 60 segundos, o aviso oferece Ver detalhes. A extensão não repete a ação automaticamente. Confira o resultado antes de tentar novamente após uma falha ou demora.
-
-Testes locais: reconhecimento de sucesso, confirmação específica, rejeição de confirmação de outra ação, restauração após erro, isolamento por token de operação e clique único. Não houve dispensa real durante o desenvolvimento. O fluxo em segundo plano ainda depende do teste no Projudi.
+Testes simulados: posicionamento junto ao link, criação sem duplicatas, bloqueio de cliques repetidos, remoção de controles órfãos, ausência de handlers de arrasto e confirmação específica. Nenhuma dispensa real foi executada no desenvolvimento.
