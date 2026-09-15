@@ -132,7 +132,7 @@
 		if (optionsBtn) {
 			optionsBtn.disabled = !rowPreferenceLoaded;
 			optionsBtn.setAttribute("aria-expanded", String(rowExpanded));
-			optionsBtn.textContent = rowExpanded ? "▾ Opções" : "▸ Opções";
+			optionsBtn.textContent = rowExpanded ? "▾ Ações" : "▸ Ações";
 			optionsBtn.title = rowExpanded
 				? "Recolher atalhos"
 				: "Mostrar atalhos";
