@@ -15,7 +15,15 @@
     try {
       let text;
       try { text = await navigator.clipboard.readText(); }
-      catch (_) { throw new Error('Não foi possível ler a área de transferência. Confira a permissão da extensão e tente novamente.'); }
+      catch (pageError) {
+        try {
+          const response = await chrome.runtime.sendMessage({ source: 'projudi-preview', type: 'clipboard-process-read' });
+          if (!response?.ok || typeof response.text !== 'string') throw new Error(response?.error || 'A extensão não respondeu.');
+          text = response.text;
+        } catch (extensionError) {
+          throw new Error('Não foi possível ler a área de transferência. Recarregue a extensão e a página do Projudi e tente novamente.\n\nDetalhes: página: ' + (pageError.name || 'Erro') + ': ' + pageError.message + '; extensão: ' + extensionError.message);
+        }
+      }
       const number = extractNumber(text);
       const result = await chrome.runtime.sendMessage({ source:'projudi-preview',type:'clipboard-process-open',number });
       if (!result?.ok) throw new Error(result?.error || 'Não foi possível abrir a busca.');
