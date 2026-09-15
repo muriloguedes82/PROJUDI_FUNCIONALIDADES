@@ -577,26 +577,24 @@
 		return result;
 	}
 
-	// Abre um diálogo novo do mesmo tipo só para colher seus campos ocultos
-	// (token de sessão em dia) e aplicá-los no diálogo VISÍVEL - nunca toca
-	// nos campos que o usuário preencheu de verdade. Mesmo mecanismo de
-	// iframe oculto de submitItemInBackground, mas sem submeter nada.
-	async function refreshVisibleToken(dialog, api) {
-		logEvent("refresh-token-start", { dialogTitle: dialog.title });
-
-		let resolved;
-		try {
-			resolved = await api.resolveDialogUrl(dialog.title);
-		} catch (err) {
-			const result = { ok: false, reason: "erro ao resolver diálogo novo: " + (err && err.message) };
-			logEvent("refresh-token-result", { result: result });
-			return result;
-		}
-		if (!resolved || resolved.failed || !resolved.url) {
-			const result = { ok: false, reason: 'não consegui abrir um diálogo novo de "' + dialog.title + '" em segundo plano' };
-			logEvent("refresh-token-result", { result: result });
-			return result;
-		}
+	// Recarrega a URL da PRÓPRIA página atual (a mesma que gerou este
+	// diálogo visível) num iframe oculto, só para colher seus campos
+	// ocultos regenerados (token de sessão em dia) e aplicá-los no diálogo
+	// visível - nunca toca nos campos que o usuário preencheu de verdade.
+	//
+	// Importante: NÃO usa resolveDialogUrl (a cadeia de "Ações Rápidas")
+	// aqui - essa cadeia existe para abrir um diálogo NOVO nascendo dentro
+	// do popup de ações rápidas, com seu próprio contexto/destino de
+	// retorno pós-envio. Testes ao vivo mostraram que copiar os campos
+	// ocultos de um diálogo aberto por essa cadeia trocava o destino do
+	// diálogo visível: em vez de voltar para a tela do processo depois do
+	// envio final, ele passava a recarregar o próprio formulário de
+	// ordenação. Recarregar a MESMA URL do diálogo visível (window.location
+	// deste próprio frame) preserva o destino de retorno original, porque
+	// esse destino é determinado pelo processo/movimentação por trás da
+	// URL, não pela cadeia de navegação usada para chegar até ela.
+	async function refreshVisibleToken(dialog) {
+		logEvent("refresh-token-start", { dialogTitle: dialog.title, url: window.location.href });
 
 		const iframe = document.createElement("iframe");
 		iframe.style.position = "absolute";
@@ -611,8 +609,8 @@
 		}
 
 		try {
-			const loadPromise = waitForIframeEvent(iframe, { skipAboutBlank: true, timeoutMessage: "tempo esgotado carregando o diálogo novo" });
-			iframe.src = resolved.url;
+			const loadPromise = waitForIframeEvent(iframe, { skipAboutBlank: true, timeoutMessage: "tempo esgotado recarregando a página atual" });
+			iframe.src = window.location.href;
 			await loadPromise;
 		} catch (err) {
 			cleanup();
@@ -629,7 +627,7 @@
 		}
 		if (!freshDialog) {
 			cleanup();
-			const result = { ok: false, reason: "o diálogo novo carregado não tinha o formulário esperado" };
+			const result = { ok: false, reason: "a página recarregada não tinha o formulário esperado" };
 			logEvent("refresh-token-result", { result: result });
 			return result;
 		}
@@ -742,13 +740,7 @@
 					// um token em dia (sem tocar nos campos que o usuário
 					// preencheu) ou o envio final seria rejeitado mesmo com a
 					// fila inteira confirmada.
-					const api = findQuickActionsApi();
-					if (!api || typeof api.resolveDialogUrl !== "function") {
-						logEvent("refresh-token-abort", { reason: "quickActions.js não encontrado" });
-						alert('Não consegui atualizar o token de sessão do formulário antes do envio final.\n\nNada foi enviado. Recarregue a página e tente novamente (os itens já confirmados da fila permanecem registrados nos autos).');
-						return;
-					}
-					const refreshResult = await refreshVisibleToken(dialog, api);
+					const refreshResult = await refreshVisibleToken(dialog);
 					if (!refreshResult.ok) {
 						alert(
 							"Não consegui atualizar o token de sessão do formulário antes do envio final: " +
