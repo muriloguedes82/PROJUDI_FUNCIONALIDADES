@@ -15,29 +15,9 @@
 // SEMPRE reaproveitamos uma aba de web.whatsapp.com já aberta em vez de
 // criar uma aba nova a cada envio.
 //
-// Sobre COMO abrir a conversa certa: a extensão já tentou simular o fluxo
-// manual (clicar em "Nova conversa", digitar o número na busca e clicar no
-// resultado) para evitar recarregar a aba reaproveitada — mas isso se
-// mostrou pouco confiável (a estrutura da tela do WhatsApp Web muda entre
-// versões, e um seletor errado já chegou a abrir a conversa de OUTRA
-// pessoa, ou a clicar em elementos sem relação com o resultado da busca).
-// Enviar um documento de processo para o destinatário errado é muito pior
-// do que uma aba recarregando, então a extensão usa sempre o link oficial
-// "send?phone=<número>" (o "clique para conversar" do próprio WhatsApp
-// Web) para abrir a conversa — é a única forma 100% confiável de garantir
-// que o destinatário é o número informado. Isso recarrega a página ao
-// trocar de conversa, mas SÓ nesse caso: se a aba já estiver exatamente
-// nessa mesma conversa (reenvio para o mesmo número), ela não é recarregada
-// de novo, só é avisada para buscar e anexar o novo arquivo.
-//
-// Outro detalhe: content scripts declarados no manifest só são injetados
-// quando a página carrega/navega. Uma aba do WhatsApp Web que já estava
-// aberta ANTES desta extensão existir (ou antes de uma atualização dela)
-// pode não ter o content script mais recente rodando (ou pode estar órfã —
-// o canal com chrome.runtime é cortado depois que a extensão recarrega).
-// Por isso, ao avisar uma aba sem navegar (mesma conversa de novo), se isso
-// falhar reinjetamos src/whatsapp.js nela por conta própria com
-// chrome.scripting, sem precisar de F5 manual.
+// Abre a conversa por número dentro da aba existente, sem navegar/recarregar.
+// As funções internas podem mudar: se indisponíveis, retorna erro sem anexar.
+// Referência de compatibilidade: https://github.com/wppconnect-team/wa-js
 
 "use strict";
 
@@ -61,15 +41,40 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 
 	if (message.type === "whatsapp-fetch-pending") {
 		chrome.storage.local.get(PENDING_KEY, function (data) {
-			sendResponse({ pending: (data && data[PENDING_KEY]) || null });
+			const pending = data && data[PENDING_KEY];
+			sendResponse({ pending: pending && pending.tabId === sender.tab?.id ? pending : null });
 		});
 		return true;
 	}
 
+	if (message.type === "whatsapp-open-pending" || message.type === "whatsapp-verify-pending") {
+		(async () => {
+			const data = await chrome.storage.local.get(PENDING_KEY);
+			const pending = data[PENDING_KEY];
+			if (!pending || pending.id !== message.id || pending.tabId !== sender.tab?.id) throw new Error("Envio pendente não corresponde a esta aba.");
+			const results = await chrome.scripting.executeScript({
+				target: { tabId: sender.tab.id }, world: "MAIN",
+				func: openWhatsappConversation,
+				args: [pending.phone, message.type === "whatsapp-verify-pending", pending.openedChatId || null],
+			});
+			const result = results[0]?.result || { ok: false, error: "WhatsApp não respondeu." };
+			if (result.ok && message.type === "whatsapp-open-pending") {
+				const latest = (await chrome.storage.local.get(PENDING_KEY))[PENDING_KEY];
+				if (!latest || latest.id !== pending.id) return { ok: false, error: "O envio pendente mudou." };
+				await chrome.storage.local.set({ [PENDING_KEY]: { ...latest, openedChatId: result.chatId } });
+			}
+			return result;
+		})().then(sendResponse).catch(err => sendResponse({ ok: false, error: err.message }));
+		return true;
+	}
 	if (message.type === "whatsapp-clear-pending") {
-		chrome.storage.local.remove(PENDING_KEY, function () {
+		(async () => {
+			const data = await chrome.storage.local.get(PENDING_KEY);
+			if (data[PENDING_KEY]?.id === message.id && data[PENDING_KEY]?.tabId === sender.tab?.id) {
+				await chrome.storage.local.remove(PENDING_KEY);
+			}
 			sendResponse({ ok: true });
-		});
+		})();
 		return true;
 	}
 
@@ -84,13 +89,16 @@ async function handleShare(message) {
 	const files = await Promise.all(message.docs.map(downloadDocAsPayload));
 
 	const payload = {
-		phone: message.phone,
+		phone: String(message.phone).replace(/\D/g, ""),
+		id: crypto.randomUUID(),
 		files: files,
 		createdAt: Date.now(),
 	};
 
+	const tab = await openOrReuseWhatsappTab(payload.phone);
+	payload.tabId = tab.id;
 	await chrome.storage.local.set({ [PENDING_KEY]: payload });
-	await openOrReuseWhatsappTab(message.phone);
+	await notifyOrInjectContentScript(tab.id);
 }
 
 function ensureFileName(name, mime) {
@@ -129,50 +137,82 @@ async function downloadDocAsPayload(doc) {
 	return { name: ensureFileName(doc.name, blob.type), type: blob.type, dataUrl: dataUrl };
 }
 
-function extractPhoneFromUrl(url) {
+// Executada no contexto da página. Não envia mensagens nem documentos.
+async function openWhatsappConversation(phone, verifyOnly, openedChatId) {
+	let stage = "preparar conversa";
 	try {
-		return new URL(url).searchParams.get("phone");
-	} catch (e) {
-		return null;
+		if (!/^\d{8,15}$/.test(phone)) throw new Error("Número inválido; informe DDI e DDD.");
+		if (typeof window.require !== "function") throw new Error("WhatsApp ainda não está pronto.");
+		// Testa cada capacidade separadamente para apontar a falha exata.
+		function readModule(name) {
+			try { return window.require(name); } catch (_) { return null; }
+		}
+		const factory = readModule("WAWebWidFactory");
+		const chats = readModule("WAWebCollections")?.Chat;
+		const cmd = readModule("WAWebCmd")?.Cmd;
+		const finder = readModule("WAWebFindChatAction");
+		const query = readModule("WAWebQueryExistsJob");
+		const capabilities = {
+			"QueryExistsJob.queryWidExists": typeof query?.queryWidExists === "function",
+			"WidFactory.createWid": typeof factory?.createWid === "function",
+			"Chat.get": typeof chats?.get === "function",
+			"Chat.findFirst": typeof chats?.findFirst === "function",
+			"Chat.active": typeof chats?.active === "function",
+			"Chat.getModelsArray": typeof chats?.getModelsArray === "function",
+			"Cmd.openChatBottom": typeof cmd?.openChatBottom === "function",
+			"FindChatAction.findOrCreateLatestChat": typeof finder?.findOrCreateLatestChat === "function",
+		};
+		const missing = (verifyOnly ? [] : ["WidFactory.createWid", "Chat.get", "Cmd.openChatBottom", "FindChatAction.findOrCreateLatestChat", "QueryExistsJob.queryWidExists"]).filter(key => !capabilities[key]);
+		if (!capabilities["Chat.findFirst"] && !capabilities["Chat.active"] && !capabilities["Chat.getModelsArray"]) missing.push("leitura da conversa ativa");
+		if (missing.length) {
+			return { ok: false, error: "Diagnóstico WA-02: faltam " + missing.join(", ") + ".", diagnostic: capabilities };
+		}
+		function activeChat() {
+			// O fluxo atual identifica o modelo marcado como ativo.
+			if (capabilities["Chat.findFirst"]) return chats.findFirst(chat => chat.active === true);
+			if (capabilities["Chat.getModelsArray"]) return chats.getModelsArray().find(chat => chat.active === true);
+			return chats.active();
+		}
+		const id = value => value?.id?._serialized || value?.id?.toString();
+		let expected = openedChatId;
+		if (!verifyOnly) {
+			stage = "consultar número e carregar LID";
+			const requestedWid = factory.createWid(phone + "@c.us");
+			// A consulta nativa carrega a associação número/LID antes da abertura.
+			const registration = await query.queryWidExists(requestedWid);
+			if (!registration?.wid) throw new Error("WhatsApp não confirmou o cadastro deste número.");
+			stage = "localizar conversa";
+			const resolved = await finder.findOrCreateLatestChat(registration.wid, "createChat");
+			const chat = resolved?.chat?.id && chats.get(resolved.chat.id);
+			if (!chat) throw new Error("Não foi possível localizar a conversa pelo número.");
+			expected = id(chat);
+			if (!expected) throw new Error("Conversa sem identificador.");
+			stage = "abrir conversa";
+			await cmd.openChatBottom({ chat });
+		}
+		stage = "conferir conversa ativa";
+		if (!expected) throw new Error("Identificador da conversa aberta não foi registrado.");
+		const deadline = Date.now() + (verifyOnly ? 0 : 10000);
+		do {
+			if (id(activeChat()) === expected && document.querySelector('#main [contenteditable="true"][data-tab]')) return { ok: true, chatId: expected };
+			if (verifyOnly) break;
+			await new Promise(resolve => setTimeout(resolve, 150));
+		} while (Date.now() < deadline);
+		throw new Error("A conversa ativa não corresponde ao destinatário solicitado.");
+	} catch (error) {
+		return { ok: false, error: stage + ": " + error.message };
 	}
 }
 
 async function openOrReuseWhatsappTab(phone) {
 	const existingTabs = await chrome.tabs.query({ url: "https://web.whatsapp.com/*" });
-	console.info(LOG_PREFIX, "abas do WhatsApp Web encontradas:", existingTabs.length, existingTabs.map((t) => t.id));
-
-	const url = "https://web.whatsapp.com/send?phone=" + encodeURIComponent(phone);
-
 	if (existingTabs.length) {
-		const tab = existingTabs[0];
-
-		if (extractPhoneFromUrl(tab.url) === phone) {
-			// A aba já está exatamente nessa conversa: não precisa navegar de
-			// novo, só focar nela e avisar o content script a buscar o novo
-			// arquivo pendente.
-			console.info(LOG_PREFIX, "aba", tab.id, "já está na conversa certa, sem recarregar.");
-			await chrome.tabs.update(tab.id, { active: true });
-			if (tab.windowId != null) {
-				await chrome.windows.update(tab.windowId, { focused: true });
-			}
-			await notifyOrInjectContentScript(tab.id);
-			return tab;
-		}
-
-		// Reaproveita a mesma aba, navegando-a para a conversa certa — isso
-		// recarrega a página do WhatsApp Web, mas é o único jeito confiável
-		// de garantir que abre no destinatário certo (ver comentário no topo
-		// do arquivo). A sessão/login do WhatsApp Web continua a mesma.
-		console.info(LOG_PREFIX, "reaproveitando a aba", tab.id, "e navegando para a conversa certa.");
-		await chrome.tabs.update(tab.id, { url: url, active: true });
-		if (tab.windowId != null) {
-			await chrome.windows.update(tab.windowId, { focused: true });
-		}
+		const tab = existingTabs.find(tab => tab.active) || existingTabs[0];
+		await chrome.tabs.update(tab.id, { active: true });
+		if (tab.windowId != null) await chrome.windows.update(tab.windowId, { focused: true });
 		return tab;
 	}
-
-	console.info(LOG_PREFIX, "nenhuma aba do WhatsApp Web aberta, criando uma nova.");
-	return chrome.tabs.create({ url: url, active: true });
+	return chrome.tabs.create({ url: "https://web.whatsapp.com/send?phone=" + encodeURIComponent(phone), active: true });
 }
 
 // Tenta avisar o content script já injetado na aba; se isso falhar (script
@@ -194,6 +234,7 @@ async function notifyOrInjectContentScript(tabId) {
 		console.info(LOG_PREFIX, "content script reinjetado na aba", tabId, "com sucesso.");
 	} catch (err) {
 		console.error(LOG_PREFIX, "falha ao reinjetar o content script na aba", tabId, ":", err);
+		throw err;
 	}
 }
 
@@ -207,11 +248,7 @@ async function notifyOrInjectContentScript(tabId) {
 // ---------------------------------------------------------------------------
 
 const GRAPH_BASE = "https://graph.microsoft.com/v1.0";
-// Mail.ReadWrite.Shared é o que permite criar o rascunho diretamente na
-// caixa do remetente padrão (ex.: caixa da secretaria), em vez de sempre em
-// "/me" — ver getDefaultFromEmail()/mailboxBasePath() logo abaixo sobre por
-// que isso é necessário para o "Enviado" ficar na pasta certa.
-const GRAPH_SCOPES = "openid profile offline_access Mail.ReadWrite Mail.ReadWrite.Shared";
+const GRAPH_SCOPES = "openid profile offline_access Mail.ReadWrite";
 const INLINE_ATTACHMENT_LIMIT = 3 * 1024 * 1024; // limite recomendado pela Graph para anexos "inline"
 const UPLOAD_CHUNK_SIZE = 320 * 1024 * 10; // ~3.1MB, múltiplo de 320KiB exigido pela Graph
 const DOWNLOAD_INFO_TTL_MS = 10 * 60 * 1000; // tempo máximo para o pop-up do Outlook mostrar o aviso de arquivos baixados
@@ -365,36 +402,7 @@ async function graphFetch(token, path, options) {
 	return resp;
 }
 
-// Remetente padrão cadastrado no botão "✉️ Remetente" (mesma configuração
-// usada por src/owa-attach.js no modo sem Azure AD) — em modo Graph, ele
-// decide em QUAL caixa o rascunho é criado (ver mailboxBasePath()), não
-// apenas qual conta selecionar depois numa lista.
-async function getDefaultFromEmail() {
-	const { pdpFromAccounts, pdpDefaultFromId } = await chrome.storage.local.get(["pdpFromAccounts", "pdpDefaultFromId"]);
-	const accounts = pdpFromAccounts || [];
-	const defaultAccount = accounts.find(function (a) {
-		return a.id === pdpDefaultFromId;
-	});
-	return defaultAccount ? defaultAccount.email : null;
-}
-
-// Caminho base da Graph API para as chamadas de rascunho/anexo: "/me" (caixa
-// do usuário autenticado) ou "/users/{email}" (caixa de outro remetente,
-// quando um "Remetente padrão" está configurado). Isso é o que corrige o
-// e-mail salvo na pasta "Enviados" errada: antes, o rascunho era SEMPRE
-// criado em "/me/messages", então ele pertencia à caixa pessoal do usuário
-// autenticado mesmo quando o e-mail era enviado com outro endereço no campo
-// "De" — e o Outlook salva a cópia enviada na caixa dona da mensagem, não na
-// do endereço "De" escolhido na hora de enviar. Criando o rascunho direto em
-// "/users/{email}", ele já nasce na caixa do remetente da secretaria, então
-// o "Enviado" fica lá. Requer que o usuário autenticado tenha permissão
-// delegada ("Enviar como"/acesso total) nessa caixa e que o app Azure AD
-// tenha consentimento para o escopo Mail.ReadWrite.Shared (ver README).
-function mailboxBasePath(fromEmail) {
-	return fromEmail ? "/users/" + encodeURIComponent(fromEmail) : "/me";
-}
-
-async function createDraft(token, basePath, subject, recipients, bodyText) {
+async function createDraft(token, subject, recipients, bodyText) {
 	const toRecipients = (recipients || []).map(function (email) {
 		return { emailAddress: { address: email } };
 	});
@@ -402,7 +410,7 @@ async function createDraft(token, basePath, subject, recipients, bodyText) {
 	// para HTML só trocando quebras de linha por <br>, para preservar o
 	// espaçamento no corpo HTML do rascunho.
 	const bodyHtml = (bodyText || "").replace(/\n/g, "<br>");
-	const resp = await graphFetch(token, basePath + "/messages", {
+	const resp = await graphFetch(token, "/me/messages", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
@@ -418,8 +426,8 @@ async function createDraft(token, basePath, subject, recipients, bodyText) {
 	return data;
 }
 
-async function addInlineAttachment(token, basePath, messageId, file) {
-	const resp = await graphFetch(token, basePath + "/messages/" + messageId + "/attachments", {
+async function addInlineAttachment(token, messageId, file) {
+	const resp = await graphFetch(token, "/me/messages/" + messageId + "/attachments", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
@@ -435,8 +443,8 @@ async function addInlineAttachment(token, basePath, messageId, file) {
 	}
 }
 
-async function addLargeAttachment(token, basePath, messageId, file, bytes) {
-	const sessionResp = await graphFetch(token, basePath + "/messages/" + messageId + "/attachments/createUploadSession", {
+async function addLargeAttachment(token, messageId, file, bytes) {
+	const sessionResp = await graphFetch(token, "/me/messages/" + messageId + "/attachments/createUploadSession", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
@@ -494,16 +502,14 @@ async function openComposeWindow(webLink) {
 
 async function handleSendEmailGraph(message) {
 	const token = await acquireAccessToken();
-	const fromEmail = await getDefaultFromEmail();
-	const basePath = mailboxBasePath(fromEmail);
-	const draft = await createDraft(token, basePath, message.subject, message.recipients, message.body);
+	const draft = await createDraft(token, message.subject, message.recipients, message.body);
 
 	for (const file of message.attachments) {
 		const bytes = base64ToBytes(file.base64);
 		if (bytes.byteLength <= INLINE_ATTACHMENT_LIMIT) {
-			await addInlineAttachment(token, basePath, draft.id, file);
+			await addInlineAttachment(token, draft.id, file);
 		} else {
-			await addLargeAttachment(token, basePath, draft.id, file, bytes);
+			await addLargeAttachment(token, draft.id, file, bytes);
 		}
 	}
 
@@ -657,4 +663,39 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 		consumeDownloadInfo(message.id).then(sendResponse);
 		return true;
 	}
+});
+
+// Executa somente o botão previamente marcado no iframe desta operação.
+function clickJuntadaWithConfirmation(token) {
+  if (!window.frameElement || window.frameElement.getAttribute('data-pdp-dispensa') !== token) return null;
+  if (!/^\/projudi\/.*\/analisarJuntada\.do$/.test(location.pathname)) return { ok: false, error: 'Página de análise inesperada.' };
+  const button = document.querySelector('[data-pdp-dispensa-button="' + token + '"]');
+  if (!button || button.disabled) return { ok: false, error: 'Botão de dispensa indisponível.' };
+  button.removeAttribute('data-pdp-dispensa-button');
+  const originalConfirm = window.confirm;
+  let accepted = false, rejected = false;
+  window.confirm = function (message) {
+    const text = String(message || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    // Não aceita confirmações de outras ações, nem uma segunda confirmação.
+    const specific = /dispens(?:a|ar)/.test(text) && /confirm|deseja|certeza/.test(text) && !/exclu|arquiv|remess|envi|conclus/.test(text);
+    if (!accepted && specific) { accepted = true; return true; }
+    rejected = true;
+    return false;
+  };
+  try {
+    button.click();
+    return rejected ? { ok: false, error: 'A confirmação recebida não correspondeu à dispensa esperada. Operação interrompida.' } : { ok: true };
+  } catch (error) { return { ok: false, error: String(error.message || error) }; }
+  finally { window.confirm = originalConfirm; }
+}
+
+chrome.runtime.onMessage.addListener((message, sender, reply) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'juntada-dispense-marked') return false;
+  if (!sender.tab || !/^https?:\/\/[^/]+\.tjpr\.jus\.br\/projudi\//.test(sender.url || '') || !/^[a-f0-9-]{36}$/.test(message.token || '')) {
+    reply({ ok: false, error: 'Origem da operação inválida.' }); return false;
+  }
+  chrome.scripting.executeScript({ target: { tabId: sender.tab.id, allFrames: true }, world: 'MAIN', func: clickJuntadaWithConfirmation, args: [message.token] })
+    .then(results => reply(results.map(entry => entry.result).find(Boolean) || { ok: false, error: 'Não foi localizado o iframe da dispensa.' }))
+    .catch(error => reply({ ok: false, error: error.message }));
+  return true;
 });

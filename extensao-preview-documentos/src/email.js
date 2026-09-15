@@ -1,6 +1,6 @@
 // Projudi/SEEU - Envio de Documentos por E-mail (Outlook)
 //
-// Injeta uma checkbox ao lado de cada link de arquivo da tela de
+// Compartilha a seleção de documentos com o WhatsApp na tela de
 // Movimentações (mesmo padrão usado por content.js: <a class="link"
 // href=".../arquivo.do?...">, igual no Projudi e no SEEU). Dois botões
 // flutuantes ficam sempre visíveis sobre a tela: "Destinatários"
@@ -45,13 +45,13 @@
 		"Exportar Processo",
 		"Pedido Incidental",
 		"Navegar",
-		"Concluir Movimento",
 		"Voltar",
 	];
 	const BUTTON_MARGIN = 12;
 	const BUTTON_GAP = 8;
 
-	const selected = new Map(); // href -> { href, name }
+	const selected = window.__pdpDocumentSelection.docs;
+	window.__pdpDocumentSelection.subscribe(function () { updateSendButton(); }); // href -> { href, name }
 	let sendButton = null;
 	let recipientsButton = null;
 	let fromButton = null;
@@ -62,36 +62,8 @@
 	// ---------------------------------------------------------------------
 
 	function injectCheckbox(link) {
-		if (link.dataset.pdpEmailChecked !== undefined) return;
+		window.__pdpDocumentSelection.decorate(link);
 		link.dataset.pdpEmailChecked = "";
-
-		const checkbox = document.createElement("input");
-		checkbox.type = "checkbox";
-		checkbox.className = "pdp-email-checkbox";
-		checkbox.title = "Selecionar para enviar por e-mail";
-
-		checkbox.addEventListener("click", function (e) {
-			e.stopPropagation();
-		});
-
-		checkbox.addEventListener("change", function () {
-			// Usa a propriedade "href" (sempre absoluta), não getAttribute
-			// ("href") (pode ser relativa, ex.: "arquivo.do?_tj=..." no
-			// Projudi) — o link é enviado ao background script para o
-			// download, e uma URL relativa não teria como ser resolvida
-			// corretamente lá (o "base" do background é a extensão, não a
-			// página do Projudi/SEEU).
-			const href = link.href;
-			const name = (link.textContent || "documento").trim();
-			if (checkbox.checked) {
-				selected.set(href, { href: href, name: name });
-			} else {
-				selected.delete(href);
-			}
-			updateSendButton();
-		});
-
-		link.parentNode.insertBefore(checkbox, link);
 	}
 
 	function scan(root) {
@@ -165,13 +137,7 @@
 
 	function findActionToolbarElement() {
 		const candidates = document.querySelectorAll('button, a, input[type="button"], input[type="submit"]');
-		// Varre de trás para frente: prefere o ÚLTIMO elemento com um desses
-		// rótulos (a barra de ações real, no rodapé do conteúdo), não o
-		// primeiro — um "Voltar" solto mais acima na página (breadcrumb, menu)
-		// faria os botões flutuantes pousarem no lugar errado. Mesma técnica
-		// usada em quickActions.js/content.js.
-		for (let i = candidates.length - 1; i >= 0; i--) {
-			const el = candidates[i];
+		for (const el of candidates) {
 			const text = (el.textContent || el.value || "").trim();
 			if (TOOLBAR_LABELS.indexOf(text) !== -1) return el;
 		}
@@ -192,14 +158,31 @@
 	function repositionButtons() {
 		if (!recipientsButton) return;
 
-		// Fica sempre no canto da tela, sem tentar "seguir" a barra de ações
-		// nativa: em várias telas do Projudi essa barra fica embutida no
-		// meio do conteúdo (ex.: logo abaixo de uma tabela de arquivos), sem
-		// folga segura acima dela — ancorar ali em cima fazia estes botões
-		// pousarem sobre o próprio conteúdo da tela. O canto é a única
-		// posição que não depende de onde a barra nativa está nesta tela em
-		// particular.
-		let cursor = BUTTON_MARGIN;
+		let baseBottom = BUTTON_MARGIN;
+		const toolbarButton = findActionToolbarElement();
+		if (toolbarButton) {
+			// Sobe até um ancestral que representa a linha/barra inteira (tr,
+			// div ou td), para medir o topo da barra como um todo, não só do
+			// botão individual encontrado.
+			const row = toolbarButton.closest("tr, div, td") || toolbarButton.parentElement || toolbarButton;
+			const rect = row.getBoundingClientRect();
+
+			// A barra de ações normalmente rola junto com o conteúdo (não é
+			// fixa). Se ela estiver fora da área visível no momento (usuário
+			// rolou para além dela, pra cima ou pra baixo), "rect.top" pode
+			// ficar negativo ou muito grande, o que jogaria os botões para
+			// fora da tela caso apenas subtraíssemos os valores. Nesse caso,
+			// mantemos os botões simplesmente ancorados ao rodapé da janela —
+			// o comportamento normal de um elemento fixo — em vez de
+			// perseguir uma barra que não está à vista.
+			const toolbarVisible = rect.bottom > 0 && rect.top < window.innerHeight;
+			if (toolbarVisible) {
+				const offset = Math.round(window.innerHeight - rect.top + BUTTON_MARGIN);
+				baseBottom = Math.min(Math.max(BUTTON_MARGIN, offset), window.innerHeight - BUTTON_MARGIN);
+			}
+		}
+
+		let cursor = baseBottom;
 		recipientsButton.style.bottom = cursor + "px";
 		cursor += (recipientsButton.offsetHeight || 36) + BUTTON_GAP;
 
@@ -283,13 +266,9 @@
 
 	// ---------------------------------------------------------------------
 	// Remetentes salvos (chrome.storage.local) — o favorito ("padrão") é
-	// lido em dois lugares: por src/owa-attach.js, no modo sem Azure AD,
-	// que tenta selecioná-lo no campo "De" toda vez que o Outlook abre pela
-	// extensão; e por src/background.js, no modo Graph, que cria o
-	// rascunho diretamente na caixa desse remetente (em vez de sempre na
-	// caixa pessoal do usuário) para que o e-mail enviado seja salvo na
-	// pasta "Enviados" certa. Em ambos os modos só funciona se o usuário
-	// já tiver permissão ("Enviar como"/acesso delegado) na conta desejada
+	// lido diretamente por src/owa-attach.js, que tenta selecioná-lo no
+	// campo "De" toda vez que o Outlook abre pela extensão. Só funciona se
+	// o usuário já tiver permissão de "Enviar como" na conta desejada
 	// (configuração do Exchange/TI, fora do controle da extensão).
 	// ---------------------------------------------------------------------
 

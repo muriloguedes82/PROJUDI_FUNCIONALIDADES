@@ -1,0 +1,8 @@
+.pdp-juntada-drag-badge { position:fixed;z-index:2147483647;pointer-events:none;background:#273447;color:white;padding:10px 14px;border-radius:6px;font:13px Arial;box-shadow:0 3px 12px #0004;max-width:80vw; }
+.pdp-juntada-drag-badge[data-outside="true"] { background:#9e2929; }
+.pdp-juntada-review { position:fixed;inset:3vh 3vw;z-index:2147483647;background:white;border:2px solid #536478;border-radius:8px;box-shadow:0 0 0 100vmax #0007;display:flex;flex-direction:column;font:13px Arial;color:#222; }
+.pdp-juntada-review > div { display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:12px;background:#edf2f7; }
+.pdp-juntada-review strong { flex:1; }
+.pdp-juntada-review button { padding:7px 10px;cursor:pointer; }
+.pdp-juntada-review p { padding:0 12px; }
+.pdp-juntada-review iframe { flex:1;min-height:0;width:100%;border:0;background:white; }
