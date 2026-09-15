@@ -240,6 +240,34 @@
 	}
 
 	// -------------------------------------------------------------------
+	// Campos OCULTOS (token de sessão incluído) - o inverso de
+	// captureFormFields/applyFormFields acima. Necessário para o diálogo
+	// VISÍVEL original (aberto antes de qualquer item entrar na fila): cada
+	// diálogo novo resolvido em segundo plano para um item da fila
+	// (submitItemInBackground) faz o Projudi emitir um token de sessão
+	// novo, invalidando o token que o diálogo visível já carregava desde
+	// que foi aberto (padrão clássico de token de transação única, tipo
+	// Struts: só o token mais recente emitido pro processo é aceito). Sem
+	// isto, o clique final em "Ordenar" do diálogo visível é rejeitado
+	// (token velho) mesmo com os itens da fila todos confirmados.
+	// -------------------------------------------------------------------
+	function captureHiddenFields(form) {
+		const fields = [];
+		form.querySelectorAll('input[type="hidden"]').forEach(function (el) {
+			if (!el.name) return;
+			fields.push({ name: el.name, value: el.value });
+		});
+		return fields;
+	}
+
+	function applyHiddenFields(form, fields) {
+		fields.forEach(function (f) {
+			const el = form.querySelector('input[type="hidden"][name="' + cssEscapeAttr(f.name) + '"]');
+			if (el) el.value = f.value;
+		});
+	}
+
+	// -------------------------------------------------------------------
 	// Rótulo amigável de cada item da fila, para o usuário reconhecer o
 	// que guardou (ex.: "AUTO DE ARREMATAÇÃO"). Heurística: primeiro
 	// <select> do formulário cujo id/name mencione "tipo" (cobre pelo
@@ -549,6 +577,70 @@
 		return result;
 	}
 
+	// Abre um diálogo novo do mesmo tipo só para colher seus campos ocultos
+	// (token de sessão em dia) e aplicá-los no diálogo VISÍVEL - nunca toca
+	// nos campos que o usuário preencheu de verdade. Mesmo mecanismo de
+	// iframe oculto de submitItemInBackground, mas sem submeter nada.
+	async function refreshVisibleToken(dialog, api) {
+		logEvent("refresh-token-start", { dialogTitle: dialog.title });
+
+		let resolved;
+		try {
+			resolved = await api.resolveDialogUrl(dialog.title);
+		} catch (err) {
+			const result = { ok: false, reason: "erro ao resolver diálogo novo: " + (err && err.message) };
+			logEvent("refresh-token-result", { result: result });
+			return result;
+		}
+		if (!resolved || resolved.failed || !resolved.url) {
+			const result = { ok: false, reason: 'não consegui abrir um diálogo novo de "' + dialog.title + '" em segundo plano' };
+			logEvent("refresh-token-result", { result: result });
+			return result;
+		}
+
+		const iframe = document.createElement("iframe");
+		iframe.style.position = "absolute";
+		iframe.style.top = "-9999px";
+		iframe.style.left = "-9999px";
+		iframe.style.width = "1024px";
+		iframe.style.height = "768px";
+		document.body.appendChild(iframe);
+
+		function cleanup() {
+			if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+		}
+
+		try {
+			const loadPromise = waitForIframeEvent(iframe, { skipAboutBlank: true, timeoutMessage: "tempo esgotado carregando o diálogo novo" });
+			iframe.src = resolved.url;
+			await loadPromise;
+		} catch (err) {
+			cleanup();
+			const result = { ok: false, reason: err.message };
+			logEvent("refresh-token-result", { result: result });
+			return result;
+		}
+
+		let freshDialog;
+		try {
+			freshDialog = findOrdenacaoDialog(iframe.contentDocument);
+		} catch (err) {
+			freshDialog = null;
+		}
+		if (!freshDialog) {
+			cleanup();
+			const result = { ok: false, reason: "o diálogo novo carregado não tinha o formulário esperado" };
+			logEvent("refresh-token-result", { result: result });
+			return result;
+		}
+
+		applyHiddenFields(dialog.form, captureHiddenFields(freshDialog.form));
+		cleanup();
+		const result = { ok: true };
+		logEvent("refresh-token-result", { result: result });
+		return result;
+	}
+
 	async function flushQueue(queue) {
 		logEvent("flush-start", { totalItens: queue.getItems().length });
 
@@ -639,18 +731,42 @@
 				evt.preventDefault();
 				evt.stopImmediatePropagation();
 				queue.setFlushing(true);
-				flushQueue(queue)
-					.then(function (allOk) {
-						queue.setFlushing(false);
-						if (allOk) {
-							logEvent("final-click", {});
-							dialog.button.click();
-						}
-					})
+				(async function () {
+					const allOk = await flushQueue(queue);
+					if (!allOk) return;
+
+					// Cada diálogo novo resolvido acima para os itens da fila fez
+					// o Projudi emitir um token de sessão novo, invalidando o
+					// token que ESTE diálogo visível carrega desde que foi
+					// aberto - por isso, antes do clique final de verdade, busca
+					// um token em dia (sem tocar nos campos que o usuário
+					// preencheu) ou o envio final seria rejeitado mesmo com a
+					// fila inteira confirmada.
+					const api = findQuickActionsApi();
+					if (!api || typeof api.resolveDialogUrl !== "function") {
+						logEvent("refresh-token-abort", { reason: "quickActions.js não encontrado" });
+						alert('Não consegui atualizar o token de sessão do formulário antes do envio final.\n\nNada foi enviado. Recarregue a página e tente novamente (os itens já confirmados da fila permanecem registrados nos autos).');
+						return;
+					}
+					const refreshResult = await refreshVisibleToken(dialog, api);
+					if (!refreshResult.ok) {
+						alert(
+							"Não consegui atualizar o token de sessão do formulário antes do envio final: " +
+								refreshResult.reason +
+								'.\n\nNada foi enviado. Recarregue a página e tente novamente (os itens já confirmados da fila permanecem registrados nos autos).\n\nDetalhes técnicos ficam salvos em window.__pdpNovaOrdenacaoLog (console, F12) - copy(JSON.stringify(window.__pdpNovaOrdenacaoLog, null, 2)) copia tudo para compartilhar.'
+						);
+						return;
+					}
+
+					logEvent("final-click", {});
+					dialog.button.click();
+				})()
 					.catch(function (err) {
-						queue.setFlushing(false);
 						logEvent("flush-exception", { message: err && err.message });
 						console.error(LOG_PREFIX, "erro ao esvaziar a fila:", err);
+					})
+					.finally(function () {
+						queue.setFlushing(false);
 					});
 			},
 			true
