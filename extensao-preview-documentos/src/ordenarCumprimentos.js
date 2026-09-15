@@ -345,7 +345,15 @@
 	// cria no frame da tela de Ações/Movimentações).
 	// -------------------------------------------------------------------
 	function findQuickActionsApi() {
-		if (window.__pdpQuickActions) return window.__pdpQuickActions;
+		// quickActions.js roda em TODO frame (all_frames: true), inclusive
+		// dentro do próprio diálogo - então window.__pdpQuickActions também
+		// existe AQUI, mas essa instância local não tem a lista de
+		// movimentações/eventos do processo que resolveDialogUrl precisa (ela
+		// só existe na tela do processo, no frame ACIMA deste diálogo). Por
+		// isso, quando este diálogo está aninhado (é o caso normal - ver
+		// README, "Ações rápidas"), sempre prefere o frame pai/topo; só usa a
+		// instância local como último recurso, para o caso (improvável) deste
+		// script não estar aninhado em nada.
 		try {
 			if (window.parent && window.parent !== window && window.parent.__pdpQuickActions) return window.parent.__pdpQuickActions;
 		} catch (err) {
@@ -356,6 +364,7 @@
 		} catch (err) {
 			// acesso entre frames bloqueado - ignora
 		}
+		if (window.__pdpQuickActions) return window.__pdpQuickActions;
 		return null;
 	}
 
