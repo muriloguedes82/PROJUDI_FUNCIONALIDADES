@@ -235,6 +235,20 @@
 
 	const MODAL_ID = "pdp-mv-config-modal";
 
+	// Paleta fixa de cores para associar aos tipos de usuário. Cada cor só
+	// pode estar associada a um tipo por vez — ao escolher uma cor já usada
+	// por outro tipo, os dois trocam de cor entre si.
+	const COLOR_PALETTE = [
+		"#f6a3a3", // salmão
+		"#a3e6a3", // verde
+		"#a3c9f6", // azul
+		"#f6d9a3", // âmbar
+		"#d9a3f6", // roxo
+		"#a3f6e6", // turquesa
+		"#f6a3d9", // rosa
+		"#c9c9c9", // cinza
+	];
+
 	function escapeHtml(text) {
 		const div = document.createElement("div");
 		div.textContent = text == null ? "" : String(text);
@@ -246,21 +260,51 @@
 		if (el) el.remove();
 	}
 
+	function swatchButtonsHtml(role, currentColor) {
+		return COLOR_PALETTE.map(function (color) {
+			const selected = color.toLowerCase() === currentColor.toLowerCase();
+			return (
+				'<button type="button" class="pdp-mv-swatch' + (selected ? " pdp-mv-swatch-selected" : "") + '"' +
+				' data-role="' + role.key + '" data-color="' + color + '"' +
+				' style="background:' + color + '"' +
+				' title="' + escapeHtml(color) + '" aria-label="Usar ' + escapeHtml(color) + " para " + escapeHtml(role.label) + '">' +
+				(selected ? "✓" : "") +
+				"</button>"
+			);
+		}).join("");
+	}
+
+	function renderPalettes(backdrop, colorByRole) {
+		ROLE_DEFS.forEach(function (role) {
+			const holder = backdrop.querySelector('.pdp-mv-palette[data-role="' + role.key + '"]');
+			if (holder) holder.innerHTML = swatchButtonsHtml(role, colorByRole[role.key]);
+		});
+	}
+
 	function openConfigModal() {
 		closeConfigModal();
+
+		// Cor de trabalho de cada tipo enquanto o popup está aberto — só é
+		// gravada em chrome.storage.sync ao clicar em "Salvar".
+		const colorByRole = {};
+		ROLE_DEFS.forEach(function (role) {
+			colorByRole[role.key] = (prefs[role.key] && prefs[role.key].color) || role.defaultColor;
+		});
 
 		const backdrop = document.createElement("div");
 		backdrop.id = MODAL_ID;
 		backdrop.className = "pdp-mv-backdrop";
 
 		const rowsHtml = ROLE_DEFS.map(function (role) {
-			const pref = prefs[role.key] || { enabled: false, color: role.defaultColor };
+			const pref = prefs[role.key] || { enabled: false };
 			return (
+				'<div class="pdp-mv-role">' +
 				'<label class="pdp-mv-row">' +
 				'<input type="checkbox" class="pdp-mv-enabled" data-role="' + role.key + '"' + (pref.enabled ? " checked" : "") + ">" +
 				'<span class="pdp-mv-role-label">' + escapeHtml(role.label) + "</span>" +
-				'<input type="color" class="pdp-mv-color" data-role="' + role.key + '" value="' + escapeHtml(pref.color) + '" title="Escolher a cor de destaque para ' + escapeHtml(role.label) + '">' +
-				"</label>"
+				"</label>" +
+				'<div class="pdp-mv-palette" data-role="' + role.key + '"></div>' +
+				"</div>"
 			);
 		}).join("");
 
@@ -269,7 +313,7 @@
 			'<div class="pdp-mv-header"><span>Destacar movimentações por tipo de usuário</span>' +
 			'<button type="button" class="pdp-mv-close">✕ Fechar</button></div>' +
 			'<div class="pdp-mv-body">' +
-			'<p class="pdp-mv-help">Marque os tipos de usuário cujas movimentações você quer destacar e escolha a cor de cada um clicando na amostra de cor. A preferência vale para todos os processos, assim que você salvar.</p>' +
+			'<p class="pdp-mv-help">Marque os tipos de usuário cujas movimentações você quer destacar e escolha a cor de cada um na paleta. Cada cor só pode estar associada a um tipo — escolher uma cor já usada troca as cores entre os dois tipos. A preferência vale para todos os processos, assim que você salvar.</p>' +
 			rowsHtml +
 			"</div>" +
 			'<div class="pdp-mv-footer">' +
@@ -279,9 +323,22 @@
 			"</div>";
 
 		document.body.appendChild(backdrop);
+		renderPalettes(backdrop, colorByRole);
 
 		backdrop.addEventListener("click", function (event) {
 			if (event.target === backdrop) closeConfigModal();
+
+			const swatch = event.target.closest(".pdp-mv-swatch");
+			if (swatch) {
+				const role = swatch.dataset.role;
+				const newColor = swatch.dataset.color;
+				const previousOwnerKey = Object.keys(colorByRole).find(function (key) {
+					return key !== role && colorByRole[key].toLowerCase() === newColor.toLowerCase();
+				});
+				if (previousOwnerKey) colorByRole[previousOwnerKey] = colorByRole[role];
+				colorByRole[role] = newColor;
+				renderPalettes(backdrop, colorByRole);
+			}
 		});
 		backdrop.querySelector(".pdp-mv-close").addEventListener("click", closeConfigModal);
 
@@ -290,8 +347,8 @@
 			backdrop.querySelectorAll(".pdp-mv-enabled").forEach(function (input) {
 				newPrefs[input.dataset.role].enabled = input.checked;
 			});
-			backdrop.querySelectorAll(".pdp-mv-color").forEach(function (input) {
-				newPrefs[input.dataset.role].color = input.value;
+			ROLE_DEFS.forEach(function (role) {
+				newPrefs[role.key].color = colorByRole[role.key];
 			});
 			savePrefs(newPrefs).then(function () {
 				clearAllHighlights();

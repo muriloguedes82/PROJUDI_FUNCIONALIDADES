@@ -48,8 +48,10 @@ precisar configurar de novo a cada um.
    sem trocar de aba;
 2. marque um ou mais tipos — **Magistrado / Magistrada**, **Ministério
    Público** e/ou **Advogado / Advogada**;
-3. clique na amostra de cor ao lado de cada tipo marcado para escolher a
-   cor de destaque dele;
+3. escolha a cor de cada tipo clicando numa das amostras da paleta
+   abaixo dele (a cor já usada por outro tipo fica marcada com um ✓;
+   escolher essa mesma cor para outro tipo troca as cores entre os
+   dois — assim nunca dois tipos ficam com a mesma cor);
 4. clique em "Salvar".
 
 A partir daí, toda linha de movimentação feita por um dos tipos marcados
@@ -286,11 +288,13 @@ lado a lado, no mesmo canto da tela dos botões de WhatsApp/e-mail
 - **Outras**: Interromper Prazo, Declínio de competência para a Segunda
   Instância, Apensar, Desapensar
 
-Ao lado desses grupos, o botão **"🖍️ Destacar movimentações"** abre um
-popup (sobreposto à própria tela, sem trocar de aba) para escolher quais
-tipos de usuário (Magistrado, Ministério Público, Advogado) destacar na
-aba Movimentações, e com qual cor — veja "Destaque de movimentações por
-tipo de usuário" mais acima.
+Numa segunda linha, logo abaixo do botão **"▸/▾ Ações"** (que recolhe ou
+mostra os botões dos grupos acima), ficam o botão **"📋 Processo
+copiado"** e o botão **"🖍️ Destacar movimentações"**, que abre um popup
+(sobreposto à própria tela, sem trocar de aba) para escolher quais tipos
+de usuário (Magistrado, Ministério Público, Advogado) destacar na aba
+Movimentações, e com qual cor — veja "Destaque de movimentações por tipo
+de usuário" mais acima.
 
 Cada botão abre um painel com as ações daquele grupo — o conteúdo do
 painel depende de qual tela do processo você está vendo, já que o painel
