@@ -46,9 +46,11 @@ Esta extensão elimina esse trabalho repetitivo: você configura uma vez, e
 ela marca essas mesmas caixinhas do quadro "Realces" automaticamente em
 qualquer processo, assim que a aba Movimentações é aberta.
 
-1. abra a página de opções da extensão (clique com o botão direito no
-   ícone da extensão → "Opções", ou acesse `chrome://extensions`, procure a
-   extensão e clique em "Detalhes" → "Opções da extensão");
+1. abra a página de opções da extensão — pelo botão **"🖍️ Destacar
+   movimentações"** no painel de Ações Rápidas (veja "Ações rápidas"
+   abaixo), ou clicando com o botão direito no ícone da extensão →
+   "Opções", ou acessando `chrome://extensions`, procurando a extensão e
+   clicando em "Detalhes" → "Opções da extensão";
 2. na seção "Destacar movimentações por tipo de usuário", marque um ou
    mais tipos — **Magistrado / Magistrada**, **Ministério Público** e/ou
    **Advogado / Advogada**;
@@ -281,6 +283,12 @@ lado a lado, no mesmo canto da tela dos botões de WhatsApp/e-mail
 - **Arquivar**: Arquivar Processo
 - **Outras**: Interromper Prazo, Declínio de competência para a Segunda
   Instância, Apensar, Desapensar
+
+Ao lado desses grupos, o botão **"🖍️ Destacar movimentações"** é um atalho
+que abre direto a página de opções da extensão, na seção onde se escolhe
+quais tipos de usuário (Magistrado, Ministério Público, Advogado) destacar
+na aba Movimentações — veja "Destaque de movimentações por tipo de
+usuário" mais acima.
 
 Cada botão abre um painel com as ações daquele grupo — o conteúdo do
 painel depende de qual tela do processo você está vendo, já que o painel

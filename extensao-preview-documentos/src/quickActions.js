@@ -1448,6 +1448,16 @@
 			row.appendChild(clipboardBtn);
 		}
 
+		const highlightPrefsBtn = document.createElement("button");
+		highlightPrefsBtn.type = "button";
+		highlightPrefsBtn.className = "pdp-qa-group-btn";
+		highlightPrefsBtn.innerHTML = '<span class="pdp-qa-icon">🖍️</span><span>Destacar movimentações</span>';
+		highlightPrefsBtn.title = "Abrir as opções da extensão para escolher quais tipos de usuário destacar nas Movimentações (Magistrado, Ministério Público, Advogado)";
+		highlightPrefsBtn.addEventListener("click", function () {
+			chrome.runtime.sendMessage({ source: "projudi-preview", type: "open-options-page" });
+		});
+		row.appendChild(highlightPrefsBtn);
+
 		const optionsBtn = document.createElement("button");
 		optionsBtn.type = "button";
 		optionsBtn.id = "pdp-qa-options";
