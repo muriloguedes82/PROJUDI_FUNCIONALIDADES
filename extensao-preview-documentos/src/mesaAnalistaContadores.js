@@ -9,8 +9,20 @@
 // muda, reexibindo a linha assim que o total voltar a ser maior que zero.
 (function () {
   "use strict";
-  if (window.__pdpMesaAnalistaContadores || !/^\/projudi\/usuario\/mesaAnalista/.test(location.pathname)) return;
+  const TAG = "[Projudi Contadores Zero]";
+
+  if (window.__pdpMesaAnalistaContadores) {
+    console.log(TAG, "já estava carregado neste frame, ignorando nova injeção — url:", location.href);
+    return;
+  }
   window.__pdpMesaAnalistaContadores = true;
+
+  if (!/^\/projudi\/usuario\/mesaAnalista/.test(location.pathname)) {
+    console.log(TAG, "script injetado mas pathname não corresponde, nada será feito — pathname:", location.pathname, "| url:", location.href);
+    return;
+  }
+
+  console.log(TAG, "ativo nesta página — url:", location.href);
 
   const HIDDEN_ATTR = "data-pdp-contador-zero";
 
@@ -18,22 +30,35 @@
     return span.closest("tr");
   }
 
+  function labelOf(row) {
+    const label = row.querySelector("td.label");
+    return label ? label.textContent.trim() : "(sem label)";
+  }
+
   function updateRow(span) {
     const row = rowOf(span);
-    if (!row) return;
+    if (!row) {
+      console.log(TAG, "span.contador sem <tr> ancestral, ignorado:", span);
+      return;
+    }
     const value = parseInt(String(span.textContent).replace(/\D+/g, ""), 10);
     const isZero = Number.isFinite(value) && value === 0;
-    if (isZero) {
+    const wasHidden = row.hasAttribute(HIDDEN_ATTR);
+    if (isZero && !wasHidden) {
       row.style.display = "none";
       row.setAttribute(HIDDEN_ATTR, "");
-    } else if (row.hasAttribute(HIDDEN_ATTR)) {
+      console.log(TAG, "ocultando linha (total = 0):", labelOf(row));
+    } else if (!isZero && wasHidden) {
       row.style.display = "";
       row.removeAttribute(HIDDEN_ATTR);
+      console.log(TAG, "reexibindo linha (total = " + value + "):", labelOf(row));
     }
   }
 
   function scan(root) {
-    root.querySelectorAll("span.contador").forEach(updateRow);
+    const spans = root.querySelectorAll("span.contador");
+    console.log(TAG, "varredura — " + spans.length + " contador(es) encontrado(s)");
+    spans.forEach(updateRow);
   }
 
   scan(document);
