@@ -35,6 +35,7 @@ documento. Versão atual: `2.9.2`.
 | 11 | Convivência com a extensão AzFlow, sem conflito | SEEU |
 | 12 | Ordenações simultâneas (botão "Nova Ordenação") | Projudi |
 | 13 | Destaque de movimentações por tipo de usuário | Projudi |
+| 14 | Ocultar itens zerados na aba de Juntadas | Projudi |
 
 ### 1. Pré-visualização de documentos
 Ao passar o mouse sobre o nome de um arquivo numa movimentação, a íntegra do
@@ -87,7 +88,10 @@ a aparecer sozinhos assim que surgir uma pendência.
 
 ### 10. Reposicionamento dos botões flutuantes
 Os botões da extensão (WhatsApp, e-mail, ações rápidas) podem ser arrastados
-verticalmente para a posição mais confortável na tela.
+verticalmente para a posição mais confortável na tela. Esse grupo de botões
+acompanha a rolagem da página (fica sempre visível, "flutuando" com a tela),
+respeitando os limites superior e inferior da janela — nunca fica preso fora
+da área visível.
 
 ### 11. Convivência com o AzFlow
 Para quem já usa a extensão AzFlow no SEEU, esta extensão detecta isso
@@ -115,6 +119,12 @@ qual cor (a extensão impede escolher a mesma cor para dois tipos). A partir
 daí, o destaque é aplicado automaticamente em **todos os processos**, sempre
 que a aba Movimentações é aberta, sem precisar configurar de novo a cada
 processo. A preferência pode ser editada depois, reabrindo o mesmo popup.
+
+### 14. Ocultar itens zerados na aba de Juntadas
+Na aba de Juntadas do processo, itens sem nenhuma pendência (contador
+zerado) ficam ocultos automaticamente, e reaparecem sozinhos assim que
+surgir uma pendência — mesmo comportamento do item 9, mas aplicado também
+nessa aba.
 
 ## Limitações conhecidas
 
