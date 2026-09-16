@@ -99,7 +99,7 @@
         if (message) {
           if (message !== stable) { stable = message; stableAt = Date.now(); }
           if (Date.now() - stableAt >= 500) {
-            frame.remove(); note.textContent = 'Juntadas dispensadas com sucesso.';
+            frame.remove(); note.textContent = 'Juntada(s) já dispensada(s) - Movimentação permitida.';
             close.hidden = false; timer = setTimeout(cleanup, 5000); return;
           }
         } else stable = null;
