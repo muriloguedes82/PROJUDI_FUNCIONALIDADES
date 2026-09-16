@@ -78,16 +78,6 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 		return true;
 	}
 
-	if (message.type === "open-options-page") {
-		// chrome.runtime.openOptionsPage() só existe no contexto do
-		// service worker/páginas da extensão, não nos content scripts —
-		// por isso o atalho no painel de Ações Rápidas manda esta
-		// mensagem em vez de chamar a API diretamente.
-		chrome.runtime.openOptionsPage();
-		sendResponse({ ok: true });
-		return false;
-	}
-
 	return false;
 });
 

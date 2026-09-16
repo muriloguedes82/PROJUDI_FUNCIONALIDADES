@@ -34,34 +34,36 @@ AzFlow.
 
 ## Destaque de movimentações por tipo de usuário
 
-Na tela **Movimentações** do Projudi, o quadro **"Realces"** já permite
-marcar "Realçar Movimentos de: Magistrado, Servidor, Advogado, Ministério
-Público, Defensor, Procurador, Outros, Audiência" para destacar, na hora
-(sem recarregar a página), as linhas feitas por cada tipo de usuário —
-identificado a partir da mesma informação da coluna "Movimentado Por". O
-problema é que essas caixinhas não são lembradas: é preciso marcá-las de
-novo toda vez que se abre outro processo.
+Na tela **Movimentações**, cada linha mostra na coluna "Movimentado Por"
+quem fez aquela movimentação e, logo abaixo do nome, o papel dessa pessoa
+no processo (ex.: "Magistrada", "Membro(a) do Ministério Público",
+"Advogado"). Esta extensão deixa você escolher, uma vez só, quais desses
+tipos destacar e com qual cor — e aplica esse destaque automaticamente
+em **todos os processos**, sempre que a aba Movimentações é aberta, sem
+precisar configurar de novo a cada um.
 
-Esta extensão elimina esse trabalho repetitivo: você configura uma vez, e
-ela marca essas mesmas caixinhas do quadro "Realces" automaticamente em
-qualquer processo, assim que a aba Movimentações é aberta.
+1. na tela de Movimentações, clique no botão **"🖍️ Destacar
+   movimentações"** do painel de Ações Rápidas (veja "Ações rápidas"
+   abaixo) — abre um popup de configuração sobreposto à própria tela,
+   sem trocar de aba;
+2. marque um ou mais tipos — **Magistrado / Magistrada**, **Ministério
+   Público** e/ou **Advogado / Advogada**;
+3. clique na amostra de cor ao lado de cada tipo marcado para escolher a
+   cor de destaque dele;
+4. clique em "Salvar".
 
-1. abra a página de opções da extensão — pelo botão **"🖍️ Destacar
-   movimentações"** no painel de Ações Rápidas (veja "Ações rápidas"
-   abaixo), ou clicando com o botão direito no ícone da extensão →
-   "Opções", ou acessando `chrome://extensions`, procurando a extensão e
-   clicando em "Detalhes" → "Opções da extensão";
-2. na seção "Destacar movimentações por tipo de usuário", marque um ou
-   mais tipos — **Magistrado / Magistrada**, **Ministério Público** e/ou
-   **Advogado / Advogada**;
-3. clique em "Salvar destaques".
+A partir daí, toda linha de movimentação feita por um dos tipos marcados
+aparece com o fundo na cor escolhida — em qualquer processo, não só no
+que estava aberto ao salvar. Para editar a preferência depois (mudar
+cores, marcar ou desmarcar tipos), é só abrir o mesmo popup de novo; ele
+já vem preenchido com o que estava salvo.
 
-A partir daí, toda vez que a aba Movimentações de um processo (qualquer
-processo) for aberta, a extensão marca automaticamente as caixinhas
-correspondentes no quadro "Realces" do Projudi, que aplica seu próprio
-destaque visual às linhas da tabela — sem precisar configurar de novo a
-cada processo. Desmarcar um tipo na tela de opções também desmarca a
-caixinha correspondente da próxima vez.
+O destaque é identificado a partir da mesma informação usada pelo quadro
+nativo "Realces" do Projudi (que também existe na tela, mas com cores
+fixas e sem lembrar a preferência entre processos) — por isso é preciso
+estar na aba Movimentações de um processo real para o botão funcionar;
+esta extensão não usa aquele quadro, apenas a mesma forma de identificar
+o tipo de cada movimentação.
 
 ## Envio por E-mail (Outlook)
 
@@ -284,11 +286,11 @@ lado a lado, no mesmo canto da tela dos botões de WhatsApp/e-mail
 - **Outras**: Interromper Prazo, Declínio de competência para a Segunda
   Instância, Apensar, Desapensar
 
-Ao lado desses grupos, o botão **"🖍️ Destacar movimentações"** é um atalho
-que abre direto a página de opções da extensão, na seção onde se escolhe
-quais tipos de usuário (Magistrado, Ministério Público, Advogado) destacar
-na aba Movimentações — veja "Destaque de movimentações por tipo de
-usuário" mais acima.
+Ao lado desses grupos, o botão **"🖍️ Destacar movimentações"** abre um
+popup (sobreposto à própria tela, sem trocar de aba) para escolher quais
+tipos de usuário (Magistrado, Ministério Público, Advogado) destacar na
+aba Movimentações, e com qual cor — veja "Destaque de movimentações por
+tipo de usuário" mais acima.
 
 Cada botão abre um painel com as ações daquele grupo — o conteúdo do
 painel depende de qual tela do processo você está vendo, já que o painel
