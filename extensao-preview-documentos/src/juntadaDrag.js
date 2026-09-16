@@ -50,11 +50,10 @@
     if (!result.master) result.boxes.forEach(box => { if (!box.checked) box.click(); });
   }
 
-  // Uma dispensa por pendência, mas pendências diferentes rodam em paralelo.
-  const busyLinks = new Set();
-  function review(url, button, link) {
-    if (busyLinks.has(link)) return;
-    busyLinks.add(link);
+  let busy = false;
+  function review(url, button) {
+    if (busy) return;
+    busy = true;
     const token = crypto.randomUUID();
     const frame = document.createElement('iframe');
     frame.setAttribute('data-pdp-dispensa', token);
@@ -79,7 +78,7 @@
     const deadline = Date.now() + 60000;
     function cleanup() {
       if (closed) return;
-      closed = true; busyLinks.delete(link); clearTimeout(timer); frame.remove(); status.remove();
+      closed = true; busy = false; clearTimeout(timer); frame.remove(); status.remove();
       button.hidden = false; scanButtons();
     }
     function fail(message) {
@@ -150,13 +149,14 @@
         button.addEventListener('click', event => {
           event.preventDefault(); event.stopPropagation();
           const url = eligible(link);
-          if (!url || busyLinks.has(link)) return;
+          if (!url || busy) return;
           window.dispatchEvent(new Event('pdp-juntada-action-start'));
-          review(url,button,link);
+          review(url,button);
         });
         link.insertAdjacentElement('afterend',button);
         buttons.set(link,button);
       }
+      button.disabled = busy;
     });
   }
   scanButtons();
