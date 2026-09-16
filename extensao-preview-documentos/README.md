@@ -19,6 +19,10 @@ extensão funciona da mesma forma nos dois sistemas:
    Cumprimentos, Realizar Remessa, Enviar Concluso, Apensar, etc.) fica
    comprido e é preciso rolar a tela para achar a ação desejada (veja
    "Ações rápidas" abaixo).
+5. na tela **Movimentações**, é difícil identificar rapidamente quais
+   movimentações foram feitas por Magistrado(a), Ministério Público ou
+   Advogado(a) — é preciso ler a coluna "Movimentado Por" linha a linha
+   (veja "Destaque de movimentações por tipo de usuário" abaixo).
 
 ## Pré-visualização de Documentos
 
@@ -27,6 +31,33 @@ Com a extensão instalada, basta **passar o mouse sobre o nome do arquivo**
 painel flutuante sobreposto à própria tela de movimentações — sem precisar
 trocar de aba. A ideia é a mesma já oferecida pelo eproc e pela extensão
 AzFlow.
+
+## Destaque de movimentações por tipo de usuário
+
+Na tela **Movimentações**, cada linha mostra na coluna "Movimentado Por"
+quem fez aquela movimentação e, logo abaixo do nome, o papel dessa pessoa
+no processo (ex.: "Magistrada", "Ministério Público", "Advogado").
+
+Para destacar visualmente as movimentações feitas por um determinado tipo
+de usuário:
+
+1. abra a página de opções da extensão (clique com o botão direito no
+   ícone da extensão → "Opções", ou acesse `chrome://extensions`, procure a
+   extensão e clique em "Detalhes" → "Opções da extensão");
+2. na seção "Destacar movimentações por tipo de usuário", marque um ou
+   mais tipos — **Magistrado / Magistrada**, **Ministério Público** e/ou
+   **Advogado / Advogada** — e, se quiser, ajuste a cor de destaque de cada
+   um;
+3. clique em "Salvar destaques".
+
+A partir daí, toda linha da tabela de Movimentações cuja coluna
+"Movimentado Por" mencionar um dos tipos marcados passa a ter uma barra
+colorida à esquerda, na cor escolhida. A preferência é única para a
+extensão: uma vez salva, vale automaticamente para **todos os processos**,
+sem precisar configurar de novo a cada um. Quando uma movimentação envolve
+mais de um dos tipos marcados (ex.: uma linha que lista tanto um Advogado
+quanto um Magistrado), todas as barras correspondentes aparecem lado a
+lado na mesma linha.
 
 ## Envio por E-mail (Outlook)
 
