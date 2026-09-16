@@ -14,7 +14,6 @@
 	#status, #statusHighlight { margin-top: 10px; font-size: 12px; color: #2b6b2b; }
 	.pdp-highlight-option { display: flex; align-items: center; gap: 8px; font-weight: normal; }
 	.pdp-highlight-option input[type="checkbox"] { width: auto; margin: 0; }
-	.pdp-highlight-option input[type="color"] { width: 36px; padding: 0; margin: 0 0 0 auto; height: 24px; }
 </style>
 </head>
 <body>
@@ -57,25 +56,25 @@
 	<fieldset>
 		<legend>Destacar movimentações por tipo de usuário</legend>
 		<p class="help">
-			Marque os tipos de usuário cujas movimentações você quer destacar
-			na tela de Movimentações do processo (coluna "Movimentado Por").
-			O destaque é aplicado a todos os processos, assim que a
-			preferência é salva.
+			O Projudi já tem, na aba Movimentações, o quadro "Realces" com
+			opções para realçar as movimentações de Magistrado, Advogado,
+			Ministério Público, etc. — só que é preciso marcar as caixinhas
+			de novo toda vez que se abre um processo. Marque abaixo os tipos
+			de usuário que você quer realçar automaticamente: a extensão
+			marca essas mesmas caixinhas do Projudi assim que a aba
+			Movimentações é aberta, em qualquer processo.
 		</p>
 		<label class="pdp-highlight-option">
 			<input id="hlMagistrado" type="checkbox" />
 			Magistrado / Magistrada
-			<input id="hlMagistradoCor" type="color" value="#1d5fa8" />
 		</label>
 		<label class="pdp-highlight-option">
 			<input id="hlMinisterioPublico" type="checkbox" />
 			Ministério Público
-			<input id="hlMinisterioPublicoCor" type="color" value="#7a1fa2" />
 		</label>
 		<label class="pdp-highlight-option">
 			<input id="hlAdvogado" type="checkbox" />
 			Advogado / Advogada
-			<input id="hlAdvogadoCor" type="color" value="#c77700" />
 		</label>
 		<button id="saveHighlight" type="button">Salvar destaques</button>
 		<div id="statusHighlight"></div>

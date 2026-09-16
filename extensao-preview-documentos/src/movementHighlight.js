@@ -1,36 +1,46 @@
-// Projudi/SEEU - Destaque de movimentações por tipo de usuário
+// Projudi - Destaque automático de movimentações por tipo de usuário
 //
-// Na aba "Movimentações" do processo, a tabela tem uma coluna "Movimentado
-// Por" com o nome de quem fez a movimentação e, logo abaixo, o papel dessa
-// pessoa no processo (ex.: "Magistrada", "Ministério Público", "Advogado").
-// Este script lê a preferência salva em chrome.storage.sync (configurada na
-// tela de opções da extensão) e, quando habilitada para um papel, destaca
-// (com uma cor à esquerda) toda linha da tabela cuja coluna "Movimentado
-// Por" mencione esse papel — para qualquer processo, sem precisar repetir a
-// configuração.
+// Na aba "Movimentações" do processo, o próprio Projudi já tem um quadro
+// "Realces" ("Realçar Movimentos de: Magistrado, Servidor, Advogado,
+// Ministério Público, ...") que, ao marcar a caixinha correspondente,
+// destaca (client-side, sem recarregar a página) as linhas da tabela cujo
+// autor pertence àquele grupo — confirmado inspecionando o HTML real: cada
+// linha da tabela tem um id no formato "mov1Grau,GRUPO,,,,," (ex.:
+// "mov1Grau,ADVOGADO,,,,,", "mov1Grau,JUIZ,,,,,", "mov1Grau,PROMOTOR,,,,,")
+// e as caixinhas de realce têm exatamente esses mesmos valores
+// (gruposRealceFiltroJUIZ, gruposRealceFiltroADVOGADO,
+// gruposRealceFiltroPROMOTOR, etc.).
+//
+// O problema é que essas caixinhas não são lembradas: é preciso marcá-las
+// de novo toda vez que se abre um processo. Este script lê a preferência
+// salva em chrome.storage.sync (configurada na tela de opções da extensão)
+// e marca/desmarca essas mesmas caixinhas nativas do Projudi assim que a
+// aba Movimentações é exibida — reaproveitando o realce e o estilo do
+// próprio Projudi, em vez de reimplementar o destaque visual.
 
 (function () {
 	"use strict";
 
-	// Não faz sentido (e pode até confundir o usuário) destacar linhas
-	// dentro do iframe oculto usado por content.js para varrer pendências —
-	// ele não é exibido, então evitamos processá-lo.
+	// Evita rodar dentro do iframe oculto usado por content.js para varrer
+	// pendências — ele não é exibido ao usuário, então não há o que marcar.
 	if (window.frameElement && window.frameElement.hasAttribute("data-pdp-loader")) return;
 
 	if (window.__pdpMovementHighlightInjected) return;
 	window.__pdpMovementHighlightInjected = true;
 
 	const STORAGE_KEY = "movementHighlightPrefs";
-	const HEADER_TEXT = /^movimentado\s+por$/i;
-	const ROW_SIGNATURE_ATTR = "data-pdp-mv-sig";
 
-	const ROLE_DEFS = [
-		{ key: "magistrado", pattern: /\bmagistrad[oa]\b/i },
-		{ key: "ministerioPublico", pattern: /minist[ée]rio\s+p[uú]blico/i },
-		{ key: "advogado", pattern: /\badvogad[oa]\b/i },
-	];
+	// Mapeia nossa preferência para o id da caixinha nativa "Realces" do
+	// Projudi (valor do checkbox == grupo usado no id da linha da tabela).
+	const ROLE_CHECKBOX_IDS = {
+		magistrado: "gruposRealceFiltroJUIZ",
+		ministerioPublico: "gruposRealceFiltroPROMOTOR",
+		advogado: "gruposRealceFiltroADVOGADO",
+	};
 
-	let prefs = null; // carregado de chrome.storage.sync
+	const PROCESSED_ATTR = "data-pdp-mv-applied";
+
+	let prefs = {};
 
 	function loadPrefs() {
 		return chrome.storage.sync.get([STORAGE_KEY]).then(function (data) {
@@ -41,112 +51,55 @@
 	chrome.storage.onChanged.addListener(function (changes, area) {
 		if (area !== "sync" || !changes[STORAGE_KEY]) return;
 		prefs = changes[STORAGE_KEY].newValue || {};
-		clearAllHighlights();
-		highlightAll();
+		// Preferência mudou: força reaplicação mesmo nas caixinhas já
+		// processadas com o valor antigo.
+		document.querySelectorAll("[" + PROCESSED_ATTR + "]").forEach(function (el) {
+			el.removeAttribute(PROCESSED_ATTR);
+		});
+		scheduleApply();
 	});
 
-	function activeRoles() {
-		if (!prefs) return [];
-		return ROLE_DEFS.filter(function (role) {
-			const pref = prefs[role.key];
-			return pref && pref.enabled;
-		});
-	}
-
-	function roleColor(key) {
-		const pref = prefs && prefs[key];
-		return (pref && pref.color) || "#888";
-	}
-
-	// Encontra, em cada tabela da página, a célula de cabeçalho "Movimentado
-	// Por" e devolve {table, headerRow, columnIndex}. Não assume classes ou
-	// ids específicos — só o texto do cabeçalho, que é estável entre telas.
-	function findMovimentacoesColumns() {
-		const results = [];
-		const cells = document.querySelectorAll("table th, table td");
-		cells.forEach(function (cell) {
-			const text = (cell.textContent || "").trim();
-			if (!HEADER_TEXT.test(text)) return;
-			const row = cell.parentElement;
-			const table = cell.closest("table");
-			if (!row || !table) return;
-			const columnIndex = Array.prototype.indexOf.call(row.children, cell);
-			if (columnIndex < 0) return;
-			results.push({ table: table, headerRow: row, columnIndex: columnIndex });
-		});
-		return results;
-	}
-
-	function clearRowHighlight(row) {
-		row.style.removeProperty("box-shadow");
-		row.removeAttribute(ROW_SIGNATURE_ATTR);
-	}
-
-	function clearAllHighlights() {
-		document.querySelectorAll("[" + ROW_SIGNATURE_ATTR + "]").forEach(clearRowHighlight);
-	}
-
-	function applyRowHighlight(row, matchedRoles) {
-		const signature = matchedRoles.map(function (r) { return r.key; }).join(",");
-		if (!signature) {
-			if (row.hasAttribute(ROW_SIGNATURE_ATTR)) clearRowHighlight(row);
-			return;
+	// Marca/desmarca a caixinha nativa disparando um clique de verdade
+	// (não só o atributo "checked"), para que o próprio JS do Projudi que
+	// escuta esse clique aplique o realce nas linhas da tabela.
+	function applyToCheckbox(checkbox, shouldBeChecked) {
+		if (checkbox.hasAttribute(PROCESSED_ATTR)) return;
+		if (checkbox.checked !== shouldBeChecked) {
+			checkbox.click();
 		}
-		if (row.getAttribute(ROW_SIGNATURE_ATTR) === signature) return;
-
-		const shadows = matchedRoles.map(function (role, index) {
-			const offset = 4 + index * 4;
-			return "inset " + offset + "px 0 0 0 " + roleColor(role.key);
-		});
-		row.style.setProperty("box-shadow", shadows.join(", "), "important");
-		row.setAttribute(ROW_SIGNATURE_ATTR, signature);
+		checkbox.setAttribute(PROCESSED_ATTR, "1");
 	}
 
-	function highlightAll() {
-		const roles = activeRoles();
-		if (!roles.length) {
-			clearAllHighlights();
-			return;
-		}
-
-		const columns = findMovimentacoesColumns();
-		columns.forEach(function (info) {
-			const rows = Array.prototype.filter.call(info.table.rows, function (row) {
-				return row !== info.headerRow;
-			});
-			rows.forEach(function (row) {
-				const cell = row.children[info.columnIndex];
-				if (!cell) return;
-				const text = cell.textContent || "";
-				const matched = roles.filter(function (role) {
-					return role.pattern.test(text);
-				});
-				applyRowHighlight(row, matched);
-			});
+	function applyAll() {
+		Object.keys(ROLE_CHECKBOX_IDS).forEach(function (key) {
+			const checkbox = document.getElementById(ROLE_CHECKBOX_IDS[key]);
+			if (!checkbox) return;
+			applyToCheckbox(checkbox, !!prefs[key]);
 		});
 	}
 
 	let scheduled = false;
-	function scheduleHighlight() {
+	function scheduleApply() {
 		if (scheduled) return;
 		scheduled = true;
 		requestAnimationFrame(function () {
 			scheduled = false;
 			try {
-				highlightAll();
+				applyAll();
 			} catch (err) {
-				console.error("[Projudi Destaque de Movimentações]", "erro ao destacar:", err);
+				console.error("[Projudi Destaque de Movimentações]", "erro ao aplicar preferência:", err);
 			}
 		});
 	}
 
-	loadPrefs().then(scheduleHighlight);
+	loadPrefs().then(scheduleApply);
 
 	// A tela troca de aba (Movimentações → Partes → Movimentações de novo)
-	// substituindo trechos do DOM via AJAX, então reavaliamos a cada
-	// mudança relevante — igual ao padrão já usado pelos demais scripts
-	// desta extensão para sobreviver a essas trocas.
-	const observer = new MutationObserver(scheduleHighlight);
+	// substituindo trechos do DOM via AJAX — o quadro "Realces" e suas
+	// caixinhas são recriados do zero, então reavaliamos a cada mudança
+	// relevante, igual ao padrão já usado pelos demais scripts desta
+	// extensão para sobreviver a essas trocas.
+	const observer = new MutationObserver(scheduleApply);
 	observer.observe(document.documentElement, { childList: true, subtree: true });
-	setInterval(scheduleHighlight, 1000);
+	setInterval(scheduleApply, 1000);
 })();

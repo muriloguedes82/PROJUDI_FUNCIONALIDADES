@@ -34,30 +34,32 @@ AzFlow.
 
 ## Destaque de movimentações por tipo de usuário
 
-Na tela **Movimentações**, cada linha mostra na coluna "Movimentado Por"
-quem fez aquela movimentação e, logo abaixo do nome, o papel dessa pessoa
-no processo (ex.: "Magistrada", "Ministério Público", "Advogado").
+Na tela **Movimentações** do Projudi, o quadro **"Realces"** já permite
+marcar "Realçar Movimentos de: Magistrado, Servidor, Advogado, Ministério
+Público, Defensor, Procurador, Outros, Audiência" para destacar, na hora
+(sem recarregar a página), as linhas feitas por cada tipo de usuário —
+identificado a partir da mesma informação da coluna "Movimentado Por". O
+problema é que essas caixinhas não são lembradas: é preciso marcá-las de
+novo toda vez que se abre outro processo.
 
-Para destacar visualmente as movimentações feitas por um determinado tipo
-de usuário:
+Esta extensão elimina esse trabalho repetitivo: você configura uma vez, e
+ela marca essas mesmas caixinhas do quadro "Realces" automaticamente em
+qualquer processo, assim que a aba Movimentações é aberta.
 
 1. abra a página de opções da extensão (clique com o botão direito no
    ícone da extensão → "Opções", ou acesse `chrome://extensions`, procure a
    extensão e clique em "Detalhes" → "Opções da extensão");
 2. na seção "Destacar movimentações por tipo de usuário", marque um ou
    mais tipos — **Magistrado / Magistrada**, **Ministério Público** e/ou
-   **Advogado / Advogada** — e, se quiser, ajuste a cor de destaque de cada
-   um;
+   **Advogado / Advogada**;
 3. clique em "Salvar destaques".
 
-A partir daí, toda linha da tabela de Movimentações cuja coluna
-"Movimentado Por" mencionar um dos tipos marcados passa a ter uma barra
-colorida à esquerda, na cor escolhida. A preferência é única para a
-extensão: uma vez salva, vale automaticamente para **todos os processos**,
-sem precisar configurar de novo a cada um. Quando uma movimentação envolve
-mais de um dos tipos marcados (ex.: uma linha que lista tanto um Advogado
-quanto um Magistrado), todas as barras correspondentes aparecem lado a
-lado na mesma linha.
+A partir daí, toda vez que a aba Movimentações de um processo (qualquer
+processo) for aberta, a extensão marca automaticamente as caixinhas
+correspondentes no quadro "Realces" do Projudi, que aplica seu próprio
+destaque visual às linhas da tabela — sem precisar configurar de novo a
+cada processo. Desmarcar um tipo na tela de opções também desmarca a
+caixinha correspondente da próxima vez.
 
 ## Envio por E-mail (Outlook)
 
