@@ -89,7 +89,7 @@
 	// Tempo de exibição da mensagem de sucesso antes de fechar a janela
 	// sozinha - só para dar tempo de ler a confirmação antes do fechamento
 	// automático.
-	const AUTO_CLOSE_DELAY_MS = 1500;
+	const AUTO_CLOSE_DELAY_MS = 500;
 	const LOG_PREFIX = "[Projudi Nova Ordenação]";
 
 	// -------------------------------------------------------------------
