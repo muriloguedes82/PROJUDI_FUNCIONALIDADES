@@ -4,14 +4,21 @@
 
 .pdp-qa-row {
 	display: flex;
-	flex-wrap: wrap;
-	justify-content: flex-end;
+	flex-direction: column;
+	align-items: flex-end;
 	gap: 6px;
 	position: fixed;
 	bottom: 12px;
 	right: 14px;
 	z-index: 2147483647;
 	max-width: 70vw;
+}
+
+.pdp-qa-row-line {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 6px;
 }
 
 .pdp-qa-group-btn {
