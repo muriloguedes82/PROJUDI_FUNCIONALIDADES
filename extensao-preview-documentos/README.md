@@ -19,6 +19,10 @@ extensão funciona da mesma forma nos dois sistemas:
    Cumprimentos, Realizar Remessa, Enviar Concluso, Apensar, etc.) fica
    comprido e é preciso rolar a tela para achar a ação desejada (veja
    "Ações rápidas" abaixo).
+5. na tela **Movimentações**, é difícil identificar rapidamente quais
+   movimentações foram feitas por Magistrado(a), Ministério Público ou
+   Advogado(a) — é preciso ler a coluna "Movimentado Por" linha a linha
+   (veja "Destaque de movimentações por tipo de usuário" abaixo).
 
 ## Pré-visualização de Documentos
 
@@ -27,6 +31,41 @@ Com a extensão instalada, basta **passar o mouse sobre o nome do arquivo**
 painel flutuante sobreposto à própria tela de movimentações — sem precisar
 trocar de aba. A ideia é a mesma já oferecida pelo eproc e pela extensão
 AzFlow.
+
+## Destaque de movimentações por tipo de usuário
+
+Na tela **Movimentações**, cada linha mostra na coluna "Movimentado Por"
+quem fez aquela movimentação e, logo abaixo do nome, o papel dessa pessoa
+no processo (ex.: "Magistrada", "Membro(a) do Ministério Público",
+"Advogado"). Esta extensão deixa você escolher, uma vez só, quais desses
+tipos destacar e com qual cor — e aplica esse destaque automaticamente
+em **todos os processos**, sempre que a aba Movimentações é aberta, sem
+precisar configurar de novo a cada um.
+
+1. na tela de Movimentações, clique no botão **"🖍️ Destacar
+   movimentações"** do painel de Ações Rápidas (veja "Ações rápidas"
+   abaixo) — abre um popup de configuração sobreposto à própria tela,
+   sem trocar de aba;
+2. marque um ou mais tipos — **Magistrado / Magistrada**, **Ministério
+   Público** e/ou **Advogado / Advogada**;
+3. escolha a cor de cada tipo clicando numa das amostras da paleta
+   abaixo dele (a cor já usada por outro tipo fica marcada com um ✓;
+   escolher essa mesma cor para outro tipo troca as cores entre os
+   dois — assim nunca dois tipos ficam com a mesma cor);
+4. clique em "Salvar".
+
+A partir daí, toda linha de movimentação feita por um dos tipos marcados
+aparece com o fundo na cor escolhida — em qualquer processo, não só no
+que estava aberto ao salvar. Para editar a preferência depois (mudar
+cores, marcar ou desmarcar tipos), é só abrir o mesmo popup de novo; ele
+já vem preenchido com o que estava salvo.
+
+O destaque é identificado a partir da mesma informação usada pelo quadro
+nativo "Realces" do Projudi (que também existe na tela, mas com cores
+fixas e sem lembrar a preferência entre processos) — por isso é preciso
+estar na aba Movimentações de um processo real para o botão funcionar;
+esta extensão não usa aquele quadro, apenas a mesma forma de identificar
+o tipo de cada movimentação.
 
 ## Envio por E-mail (Outlook)
 
@@ -248,6 +287,14 @@ lado a lado, no mesmo canto da tela dos botões de WhatsApp/e-mail
 - **Arquivar**: Arquivar Processo
 - **Outras**: Interromper Prazo, Declínio de competência para a Segunda
   Instância, Apensar, Desapensar
+
+Numa segunda linha, logo abaixo do botão **"▸/▾ Ações"** (que recolhe ou
+mostra os botões dos grupos acima), ficam o botão **"📋 Processo
+copiado"** e o botão **"🖍️ Destacar movimentações"**, que abre um popup
+(sobreposto à própria tela, sem trocar de aba) para escolher quais tipos
+de usuário (Magistrado, Ministério Público, Advogado) destacar na aba
+Movimentações, e com qual cor — veja "Destaque de movimentações por tipo
+de usuário" mais acima.
 
 Cada botão abre um painel com as ações daquele grupo — o conteúdo do
 painel depende de qual tela do processo você está vendo, já que o painel

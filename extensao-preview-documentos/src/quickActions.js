@@ -1423,6 +1423,11 @@
 		row.id = "pdp-qa-row";
 		row.className = "pdp-qa-row";
 
+		const mainLine = document.createElement("div");
+		mainLine.className = "pdp-qa-row-line";
+		const secondLine = document.createElement("div");
+		secondLine.className = "pdp-qa-row-line";
+
 		ACTION_GROUPS.forEach(function (group) {
 			const btn = document.createElement("button");
 			btn.type = "button";
@@ -1435,8 +1440,15 @@
 			btn.addEventListener("click", function () {
 				togglePanel(group);
 			});
-			row.appendChild(btn);
+			mainLine.appendChild(btn);
 		});
+
+		const optionsBtn = document.createElement("button");
+		optionsBtn.type = "button";
+		optionsBtn.id = "pdp-qa-options";
+		optionsBtn.className = "pdp-qa-group-btn";
+		optionsBtn.addEventListener("click", toggleRowExpanded);
+		mainLine.appendChild(optionsBtn);
 
 		if (location.pathname.startsWith("/projudi/")) {
 			const clipboardBtn = document.createElement("button");
@@ -1445,15 +1457,21 @@
 			clipboardBtn.textContent = "📋 Processo copiado";
 			clipboardBtn.title = "Pesquisar em nova aba o número de processo da área de transferência";
 			clipboardBtn.addEventListener("click", function () { window.__pdpClipboardProcess(); });
-			row.appendChild(clipboardBtn);
+			secondLine.appendChild(clipboardBtn);
 		}
 
-		const optionsBtn = document.createElement("button");
-		optionsBtn.type = "button";
-		optionsBtn.id = "pdp-qa-options";
-		optionsBtn.className = "pdp-qa-group-btn";
-		optionsBtn.addEventListener("click", toggleRowExpanded);
-		row.appendChild(optionsBtn);
+		const highlightPrefsBtn = document.createElement("button");
+		highlightPrefsBtn.type = "button";
+		highlightPrefsBtn.className = "pdp-qa-group-btn";
+		highlightPrefsBtn.innerHTML = '<span class="pdp-qa-icon">🖍️</span><span>Destacar movimentações</span>';
+		highlightPrefsBtn.title = "Escolher a cor de destaque de cada tipo de usuário na aba Movimentações";
+		highlightPrefsBtn.addEventListener("click", function () {
+			if (window.__pdpOpenMovementHighlightConfig) window.__pdpOpenMovementHighlightConfig();
+		});
+		secondLine.appendChild(highlightPrefsBtn);
+
+		row.appendChild(mainLine);
+		row.appendChild(secondLine);
 
 		// Aplica o estado antes de exibir, evitando mostrar os atalhos
 		// por um instante quando a preferência é mantê-los recolhidos.
