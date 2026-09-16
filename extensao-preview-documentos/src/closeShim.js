@@ -43,6 +43,21 @@
 	if (window.__pdpCloseShimInjected) return;
 	window.__pdpCloseShimInjected = true;
 
+	// Iframe oculto de reenvio em segundo plano do recurso "Nova Ordenação"
+	// (ver src/ordenarCumprimentos.js) - não é o popup de Ações Rápidas, é
+	// só um formulário reenviado silenciosamente. Sem esta checagem, este
+	// shim tratava esse iframe como se fosse o popup de verdade e avisava
+	// quickActions.js sobre "flagClosePopup"/erros dele - que então recarregava
+	// ou fechava a tela VISÍVEL (onde o usuário podia estar no meio do
+	// preenchimento de outra ordenação), mesmo o evento sendo só do reenvio
+	// em segundo plano.
+	try {
+		if (window.frameElement && /^pdp-fila-/.test(window.frameElement.name || "")) return;
+	} catch (err) {
+		// acesso ao frameElement bloqueado (não deveria acontecer, mesma
+		// origem) - segue normalmente
+	}
+
 	function notifyParent(payload) {
 		try {
 			const message = { __pdpShim: true };
