@@ -7,23 +7,20 @@
   style.textContent = "#pdp-wa-launcher[data-pdp-movable], .pdp-email-visible[data-pdp-movable], #pdp-qa-row[data-pdp-movable] { bottom: auto !important; }";
   style.textContent += "html[data-pdp-buttons-hidden] #pdp-wa-launcher, html[data-pdp-buttons-hidden] .pdp-email-visible, html[data-pdp-buttons-hidden] #pdp-qa-row { visibility: hidden !important; pointer-events: none !important; }";
   document.documentElement.appendChild(style);
-  const KEY = "pdpButtonsTop";
+  // O deslocamento manual vale apenas nesta página; cada abertura realinha o grupo.
   const HIDDEN_KEY = "pdpButtonsHidden";
   let buttonsHidden = false;
   let toggle = null;
   const MARGIN = 8;
-  let preferredTop = null;
+  let manualOffset = 0;
+  let referenceTop = 0;
+  let fallbackPageTop = null;
+  let groupHeight = 30;
   let loaded = false;
   let handle = null;
   let drag = null;
   let scheduled = false;
   let saveQueue = Promise.resolve();
-
-  function save() {
-    const value = preferredTop;
-    saveQueue = saveQueue.then(() => chrome.storage.local.set({ [KEY]: value }))
-      .catch(error => console.error("[Projudi] Não foi possível salvar a posição dos botões:", error));
-  }
 
   function applyVisibility() {
     document.documentElement.toggleAttribute("data-pdp-buttons-hidden", buttonsHidden);
@@ -63,14 +60,13 @@
       });
       handle.addEventListener("pointermove", event => {
         if (!drag || drag.id !== event.pointerId) return;
-        preferredTop = drag.top + event.clientY - drag.y;
+        manualOffset = Math.max(MARGIN, Math.min(drag.top + event.clientY - drag.y, window.innerHeight - groupHeight - MARGIN)) - referenceTop;
         layout();
       });
       function finish(event) {
         if (!drag || drag.id !== event.pointerId) return;
         drag = null;
-        preferredTop = parseFloat(handle.style.top);
-        save();
+        manualOffset = parseFloat(handle.style.top) - referenceTop;
       }
       handle.addEventListener("pointerup", finish);
       handle.addEventListener("pointercancel", finish);
@@ -78,10 +74,9 @@
       handle.addEventListener("keydown", event => {
         if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
         event.preventDefault();
-        preferredTop = parseFloat(handle.style.top) + (event.key === "ArrowUp" ? -1 : 1) * (event.shiftKey ? 1 : 10);
+        manualOffset = Math.max(MARGIN, Math.min(parseFloat(handle.style.top) + (event.key === "ArrowUp" ? -1 : 1) * (event.shiftKey ? 1 : 10), window.innerHeight - groupHeight - MARGIN)) - referenceTop;
         layout();
-        preferredTop = parseFloat(handle.style.top);
-        save();
+        manualOffset = parseFloat(handle.style.top) - referenceTop;
       });
       document.body.appendChild(handle);
     }
@@ -107,7 +102,24 @@
     const emailHeight = emails.reduce((sum, el) => sum + el.offsetHeight, 0) + Math.max(0, emails.length - 1) * 6;
     const height = Math.max(emailHeight, ...peers.map(el => el.offsetHeight), 0);
     const total = height + 30;
-    const top = Math.max(MARGIN, Math.min(preferredTop === null ? window.innerHeight - total - 12 : preferredTop, window.innerHeight - total - MARGIN));
+    groupHeight = total;
+    const reference = document.getElementById('pdp-expand-movements');
+    if (reference && reference.getClientRects().length) {
+      const rect = reference.getBoundingClientRect();
+      let cursor = 30 + (height + emailHeight) / 2;
+      let recipientCenter = 30 + height / 2;
+      emails.forEach(el => {
+        cursor -= el.offsetHeight;
+        if (el.id === 'pdp-recipients-button') recipientCenter = cursor + el.offsetHeight / 2;
+        cursor -= 6;
+      });
+      referenceTop = rect.top + rect.height / 2 - recipientCenter;
+    } else {
+      if (fallbackPageTop === null) fallbackPageTop = window.scrollY + window.innerHeight - total - 12;
+      referenceTop = fallbackPageTop - window.scrollY;
+    }
+    // Mantém o conjunto inteiro entre as bordas, inclusive ao voltar para cima.
+    const top = Math.max(MARGIN, Math.min(referenceTop + manualOffset, window.innerHeight - total - MARGIN));
     handle.style.top = top + "px";
     toggle.style.top = top + "px";
     function place(el, y) {
@@ -129,14 +141,14 @@
     scheduled = true;
     requestAnimationFrame(layout);
   }
-  chrome.storage.local.get([KEY, HIDDEN_KEY]).then(data => {
+  chrome.storage.local.get([HIDDEN_KEY]).then(data => {
     buttonsHidden = data[HIDDEN_KEY] === true;
     applyVisibility();
-    if (typeof data[KEY] === "number" && Number.isFinite(data[KEY])) preferredTop = data[KEY];
   }).catch(error => console.error("[Projudi] Erro ao carregar posição:", error))
     .finally(() => { loaded = true; schedule(); });
   new MutationObserver(schedule).observe(document.documentElement, { childList: true, subtree: true });
   window.addEventListener("resize", schedule);
+  window.addEventListener("scroll", schedule, { passive: true });
   window.addEventListener("pdp-buttons-layout", schedule);
   setInterval(schedule, 700);
 })();
