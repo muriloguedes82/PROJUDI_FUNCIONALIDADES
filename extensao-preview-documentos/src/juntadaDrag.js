@@ -50,35 +50,53 @@
     if (!result.master) result.boxes.forEach(box => { if (!box.checked) box.click(); });
   }
 
-  let modal = null;
-  function review(url, source) {
-    if (modal) return;
+  let busy = false;
+  // Pendências já confirmadas como dispensadas: nunca mais oferece o botão
+  // para o mesmo link, mesmo depois do aviso ser fechado. Só volta a
+  // aparecer se a linha inteira for recriada pela própria tela do Projudi.
+  const dispensed = new WeakSet();
+  // Aviso (progresso, sucesso ou falha) atualmente exibido no lugar do
+  // botão de cada pendência.
+  const cards = new Map();
+  function review(url, button, link) {
+    if (busy) return;
+    busy = true;
     const token = crypto.randomUUID();
     const frame = document.createElement('iframe');
     frame.setAttribute('data-pdp-dispensa', token);
     frame.title = 'Dispensa de juntadas em segundo plano';
     frame.style.cssText = 'position:fixed;left:-15000px;top:0;width:1200px;height:850px;border:0;';
-    modal = document.createElement('div');
-    modal.style.cssText = 'position:fixed;right:16px;top:16px;z-index:2147483647;background:white;color:#222;border:1px solid #aaa;border-radius:6px;padding:12px;box-shadow:0 3px 14px #0004;font:13px Arial;max-width:380px;';
-    modal.setAttribute('role','status');
-    const note = document.createElement('div');
+    document.body.append(frame);
+    // Mensagem inline, num card no lugar do próprio botão, em vez de um aviso solto na tela.
+    const status = document.createElement('span');
+    status.className = 'pdp-dispensar-status';
+    status.setAttribute('role','status');
+    const note = document.createElement('span');
+    note.className = 'pdp-dispensar-card';
     note.textContent = 'Dispensando juntadas selecionáveis desta página…';
     const details = document.createElement('button');
     details.type = 'button'; details.textContent = 'Ver detalhes'; details.hidden = true;
     const close = document.createElement('button');
     close.type = 'button'; close.textContent = 'Fechar aviso'; close.hidden = true;
-    modal.append(note,details,close);
-    document.body.append(modal,frame);
-    let closed = false, attempted = false, submitted = false, timer;
+    status.append(note,details,close);
+    button.remove();
+    buttons.delete(link);
+    link.insertAdjacentElement('afterend',status);
+    cards.set(link,status);
+    let closed = false, attempted = false, submitted = false, succeeded = false, timer;
     let oldSuccess = new Set(), stable = null, stableAt = 0;
     const deadline = Date.now() + 60000;
+    // Some sozinho só se o usuário fechar, ou se a própria linha desaparecer
+    // da tela (troca de aba, remessa, ordenação, conclusão etc.), nunca por
+    // tempo: scanButtons() cuida da segunda parte.
     function cleanup() {
       if (closed) return;
-      closed = true; clearTimeout(timer); frame.remove(); modal.remove(); modal = null; scanButtons();
+      closed = true; clearTimeout(timer); frame.remove(); status.remove(); cards.delete(link);
+      if (!succeeded) scanButtons(); // dispensa não confirmada: permite tentar de novo
     }
     function fail(message) {
       if (closed) return;
-      clearTimeout(timer);
+      busy = false; clearTimeout(timer);
       note.textContent = message;
       details.hidden = false; close.hidden = false;
     }
@@ -94,8 +112,10 @@
         if (message) {
           if (message !== stable) { stable = message; stableAt = Date.now(); }
           if (Date.now() - stableAt >= 500) {
-            frame.remove(); note.textContent = 'Juntadas dispensadas com sucesso.';
-            close.hidden = false; timer = setTimeout(cleanup, 5000); return;
+            frame.remove(); busy = false; succeeded = true; dispensed.add(link);
+            note.textContent = 'Juntada(s) já dispensada(s) - Movimentação permitida.';
+            note.classList.add('pdp-dispensar-card-ok');
+            close.hidden = false; return;
           }
         } else stable = null;
       } catch (_) { /* Não presume resultado quando a página não está acessível. */ }
@@ -132,8 +152,11 @@
     for (const [link,button] of buttons) {
       if (!link.isConnected || !eligible(link)) { button.remove(); buttons.delete(link); }
     }
+    for (const [link,card] of cards) {
+      if (!link.isConnected) { card.remove(); cards.delete(link); }
+    }
     document.querySelectorAll('#quadroPendencias a.link').forEach(link => {
-      if (!eligible(link)) return;
+      if (!eligible(link) || dispensed.has(link) || cards.has(link)) return;
       let button = buttons.get(link);
       if (!button || !button.isConnected) {
         button = document.createElement('button');
@@ -144,15 +167,14 @@
         button.addEventListener('click', event => {
           event.preventDefault(); event.stopPropagation();
           const url = eligible(link);
-          if (!url || modal) return;
+          if (!url || busy) return;
           window.dispatchEvent(new Event('pdp-juntada-action-start'));
-          review(url,link);
-          scanButtons();
+          review(url,button,link);
         });
         link.insertAdjacentElement('afterend',button);
         buttons.set(link,button);
       }
-      button.disabled = !!modal;
+      button.disabled = busy;
     });
   }
   scanButtons();
