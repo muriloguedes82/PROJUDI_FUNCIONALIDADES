@@ -40,7 +40,7 @@
       .map(el => normalize(el.innerText || ''))
       .filter(text => text.length > 0 && text.length < 500 &&
         !/nao|erro|falh|cancel|confirma|deseja|\?/.test(text) &&
-        (/(?:juntadas?|pendencias?).{0,100}dispensad[ao]s?.{0,50}(?:sucesso|exito)/.test(text) ||
+        (/(?:juntadas?|pendencias?).{0,100}dispensad[ao]s?.{0,50}(?:sucesso|exito|movimenta[a-z]*.{0,20}permitida)/.test(text) ||
          /dispensa.{0,80}(?:sucesso|exito)/.test(text)));
   }
   function selectCandidates(result) {
