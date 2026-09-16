@@ -1803,4 +1803,20 @@
 	});
 	window.addEventListener("resize", scheduleReposition);
 	window.addEventListener("scroll", scheduleReposition, true);
+
+	// -------------------------------------------------------------------
+	// API mínima exposta para outros recursos desta extensão (ver
+	// src/ordenarCumprimentos.js, botão "Nova Ordenação"): resolve a URL de
+	// um diálogo de ação pelo rótulo exato, reaproveitando a MESMA cadeia
+	// já usada e testada aqui - cada chamada gera um diálogo (e token de
+	// sessão) NOVO, nunca reaproveitando uma URL já usada. Necessário
+	// porque reenviar um formulário com o token de uma página já carregada
+	// antes (ex.: a mesma página que o usuário ainda está vendo) corre o
+	// risco de reaproveitar um token de uso único já consumido por outro
+	// envio - o Projudi pode aceitar a requisição sem indicar erro algum,
+	// mas sem de fato repetir a ação.
+	// -------------------------------------------------------------------
+	window.__pdpQuickActions = {
+		resolveDialogUrl: resolveDialogUrl,
+	};
 })();

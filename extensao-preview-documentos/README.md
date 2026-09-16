@@ -423,6 +423,89 @@ própria extensão, não enviado a nenhum servidor), organizadas por ação —
 ex.: as preferências de "Ordenar Cumprimentos" não aparecem em "Ordenar
 RPV".
 
+### "Nova Ordenação" (ordenar vários cumprimentos em seguida)
+
+Depois que o script de triagem roda num processo, é comum precisar ordenar
+mais de um cumprimento seguido (um ofício, um mandado, um edital, uma
+requisição de laudo, etc.). O diálogo nativo só ordena UM cumprimento por
+envio: ao clicar em "Ordenar", o Projudi encerra o fluxo e leva de volta
+para a tela do processo — correto para uma única ação, mas obriga a
+reabrir manualmente o diálogo do zero a cada nova ordenação.
+
+A extensão adiciona um botão **"🔁 Nova Ordenação"** ao lado do botão
+nativo "Ordenar" desses diálogos. Em vez de enviar o formulário, ele:
+
+1. Confere o preenchimento atual (validação nativa do navegador).
+2. **Guarda** os dados preenchidos numa fila, em memória — nada é enviado
+   ao Projudi ainda.
+3. Limpa o formulário (`Tipo de Cumprimento`, partes, prazo, orientações
+   etc.) para a próxima ordenação, no **mesmo diálogo já aberto**, sem
+   navegar nem reabrir nada.
+
+O botão mostra quantos itens já estão na fila (ex.: "🔁 Nova Ordenação (2
+na fila)"), com um pequeno painel logo abaixo listando cada um (é possível
+remover um item da fila clicando no ✕ ao lado dele, caso tenha sido
+adicionado por engano).
+
+Só quando você clica no botão **"Ordenar" nativo de verdade** (o último,
+para encerrar o fluxo) é que tudo é enviado ao Projudi:
+
+1. Cada item da fila **resolve e carrega um diálogo NOVO do mesmo tipo**
+   em segundo plano, num iframe oculto — reaproveitando a mesma cadeia já
+   usada pelo recurso "Ações rápidas" acima (`resolveDialogUrl`) para não
+   navegar a aba visível. Só os campos que você preencheu de verdade
+   (nunca campos ocultos) são aplicados nesse diálogo novo, e só então o
+   "Ordenar" dele é clicado.
+2. Só depois que todos os itens da fila forem confirmados, a extensão
+   dispara um clique de verdade em "Ordenar" no diálogo **visível** —
+   agora com a fila vazia, o formulário atual (o último preenchido) segue
+   o fluxo 100% nativo do Projudi: mesma validação, mesmo envio, mesma
+   navegação de saída.
+3. Se algum item da fila for rejeitado pelo Projudi (ex.: um campo que
+   ficou inválido), a extensão avisa **qual item falhou e para** — nada
+   mais é enviado, e esse item continua na fila para revisão. Nenhum envio
+   é feito "no escuro".
+
+Clicar em **"Cancelar"** descarta a fila normalmente junto com o diálogo —
+nada do que foi só guardado chega a ser enviado.
+
+**Por que um diálogo novo por item, em vez de reenviar os mesmos campos
+para o mesmo endereço:** testes ao vivo mostraram um item "confirmado" sem
+erro nenhum, mas que não aparecia nos autos depois. A explicação mais
+provável (padrão comum em aplicações Java/Struts como o Projudi): um campo
+oculto de sessão/token de uso único no formulário — reenviar o MESMO token
+de uma página que o usuário ainda está vendo arrisca reaproveitar um token
+já consumido pelo primeiro envio, e o Projudi pode aceitar a requisição
+sem indicar erro algum, mas sem repetir a ação de fato. Resolver um
+diálogo novo a cada item evita isso: cada um chega com seu próprio token,
+nunca reaproveitado.
+
+**Atenção:** ainda assim, isso não foi validado em produção para os
+diálogos "Ordenar RPV" e "Ordenar Expedição BNMP" nem para toda a
+variedade de tipos de cumprimento. Antes de confiar nele em ordenações com
+prazo real, recomenda-se testar com um item não crítico e conferir depois,
+nos autos, se todos os itens da fila foram realmente registrados.
+
+**Diagnóstico:** cada passo (o script carregando, o diálogo sendo
+reconhecido, o que cada item guardou, o que cada reenvio em segundo plano
+mandou e recebeu de volta do Projudi — inclusive a mensagem de erro e o
+número de protocolo, quando o Projudi mostrar uma tela de erro) fica
+registrado em `window.__pdpNovaOrdenacaoLog`, acessível pelo console do
+navegador (F12). O log é salvo em `sessionStorage` (não só em memória),
+então sobrevive à navegação de saída que o "Ordenar" final sempre faz —
+inclusive se essa navegação abrir **outra aba** (nesse caso o log
+acompanha, já que o navegador copia o `sessionStorage` da aba de origem
+para uma aba aberta a partir dela). Depois de reproduzir um problema, na
+aba/tela final (onde o erro apareceu), com o console no frame certo
+(dropdown de contexto, não "top"), rodar:
+
+```js
+copy(JSON.stringify(window.__pdpNovaOrdenacaoLog, null, 2))
+```
+
+copia o log inteiro para a área de transferência, pronto para compartilhar
+e investigar a causa raiz em vez de adivinhar.
+
 ## Como funciona
 
 1. Os content scripts (`src/content.js` e `src/email.js`) são injetados nas
