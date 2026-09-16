@@ -16,7 +16,7 @@ componente de código do projeto.
 
 Extensão de navegador (Chrome/Edge, Manifest V3) para as telas de processo do
 **Projudi** (TJPR) e do **SEEU**, que compartilham o mesmo padrão de link de
-documento. Versão atual: `2.8.2`.
+documento. Versão atual: `2.9.2`.
 
 ## O que a extensão faz (resumo para o usuário final)
 
@@ -34,6 +34,7 @@ documento. Versão atual: `2.8.2`.
 | 10 | Reposicionamento (arrastar) dos botões flutuantes na tela | Projudi + SEEU |
 | 11 | Convivência com a extensão AzFlow, sem conflito | SEEU |
 | 12 | Ordenações simultâneas (botão "Nova Ordenação") | Projudi |
+| 13 | Destaque de movimentações por tipo de usuário | Projudi |
 
 ### 1. Pré-visualização de documentos
 Ao passar o mouse sobre o nome de um arquivo numa movimentação, a íntegra do
@@ -104,6 +105,16 @@ tudo é enviado ao Projudi, um item por vez; se algum item da fila for
 rejeitado, a extensão avisa qual falhou e interrompe o restante, sem enviar
 nada "no escuro". Clicar em "Cancelar" descarta a fila inteira, junto com o
 diálogo.
+
+### 13. Destaque de movimentações por tipo de usuário
+Na aba Movimentações, cada linha mostra quem fez a movimentação e o papel
+dessa pessoa no processo (Magistrado/Magistrada, Ministério Público,
+Advogado/Advogada). Pelo botão **"🖍️ Destacar movimentações"** do painel de
+Ações Rápidas, é possível escolher uma vez quais desses tipos destacar e com
+qual cor (a extensão impede escolher a mesma cor para dois tipos). A partir
+daí, o destaque é aplicado automaticamente em **todos os processos**, sempre
+que a aba Movimentações é aberta, sem precisar configurar de novo a cada
+processo. A preferência pode ser editada depois, reabrindo o mesmo popup.
 
 ## Limitações conhecidas
 
