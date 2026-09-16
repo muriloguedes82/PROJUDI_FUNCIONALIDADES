@@ -5,16 +5,8 @@
 // verifica se há um envio pendente (arquivos selecionados no Projudi,
 // guardados em chrome.storage.local). Se houver:
 //
-// 1. Espera a conversa certa terminar de carregar. Quem garante que é a
-//    conversa certa é o próprio WhatsApp Web: src/background.js sempre abre
-//    a aba (ou navega a já aberta) para a URL oficial
-//    "send?phone=<número>", que é o link "clique para conversar" que o
-//    próprio WhatsApp Web disponibiliza — sem depender de nenhuma
-//    automação de clique/busca por conta desta extensão, que já se provou
-//    não confiável (chegou a abrir a conversa errada e a clicar em
-//    elementos da interface sem relação nenhuma com o resultado da busca).
-//    O único caso em que a aba não é navegada é quando ela já estava
-//    exatamente nessa mesma conversa — nesse caso não há nada a abrir.
+// 1. Pede ao background para abrir a conversa por número, sem recarregar,
+//    e confirmar o identificador da conversa ativa antes de anexar.
 // 2. Anexa os arquivos à conversa, tentando dois mecanismos que o próprio
 //    WhatsApp Web já suporta manualmente: "colar" (paste, como quando se
 //    copia um arquivo e aperta Ctrl+V no chat) e, se isso falhar, "arrastar
@@ -32,6 +24,11 @@
 (function () {
 	"use strict";
 
+	try {
+		if (window.__pdpWhatsappRuntime?.getManifest()) return;
+	} catch (_) { /* Contexto anterior invalidado ao atualizar a extensão. */ }
+	window.__pdpWhatsappRuntime = chrome.runtime;
+	let processing = false;
 	const MESSAGE_SOURCE = "projudi-preview";
 	const PENDING_MAX_AGE_MS = 3 * 60 * 1000;
 	const POLL_INTERVAL_MS = 700;
@@ -114,6 +111,10 @@
 	// A caixa de mensagem (contenteditable) só existe no DOM quando uma
 	// conversa está realmente aberta (não na tela de espera do QR Code, nem
 	// na tela de conflito de sessão "usado em outra janela/aba").
+	function findComposerOrReady() {
+		return document.querySelector("#pane-side") || findComposer();
+	}
+
 	function findComposer() {
 		const main = document.querySelector("#main");
 		if (!main) return null;
@@ -196,29 +197,39 @@
 	// Fluxo principal
 	// ---------------------------------------------------------------------
 
-	function clearPending() {
+	function clearPending(id) {
 		try {
-			chrome.runtime.sendMessage({ source: MESSAGE_SOURCE, type: "whatsapp-clear-pending" });
+			chrome.runtime.sendMessage({ source: MESSAGE_SOURCE, type: "whatsapp-clear-pending", id: id });
 		} catch (e) {
 			/* aba pode ter sido fechada; sem problema */
 		}
 	}
 
 	function processPending(pending) {
-		if (!pending) return;
+		if (!pending || processing) return;
 		if (Date.now() - pending.createdAt > PENDING_MAX_AGE_MS) {
 			log("envio pendente expirado, ignorando.");
-			clearPending();
+			clearPending(pending.id);
 			return;
 		}
 
+		processing = true;
 		const fileNames = pending.files.map(function (f) {
 			return f.name;
 		});
 		log("envio pendente encontrado, aguardando a conversa carregar…", fileNames);
 		showBanner("aguardando a conversa carregar…");
 
-		waitFor(findComposer, POLL_TIMEOUT_MS, POLL_INTERVAL_MS)
+		waitFor(findComposerOrReady, POLL_TIMEOUT_MS, POLL_INTERVAL_MS)
+			.then(async function () {
+				const opened = await chrome.runtime.sendMessage({ source: MESSAGE_SOURCE, type: "whatsapp-open-pending", id: pending.id });
+				if (!opened?.ok) {
+					if (opened?.diagnostic) log("Diagnóstico de funções (sem dados de conversas):", opened.diagnostic);
+					throw new Error(opened?.error || "Não foi possível abrir a conversa.");
+				}
+				const verified = await chrome.runtime.sendMessage({ source: MESSAGE_SOURCE, type: "whatsapp-verify-pending", id: pending.id });
+				if (!verified?.ok) throw new Error(verified?.error || "Destinatário não confirmado.");
+			})
 			.then(function () {
 				log("conversa pronta.");
 				const files = pending.files.map(function (f) {
@@ -236,9 +247,9 @@
 				// pendente), ou a conversa não carregou a tempo (ex.: tela de
 				// conflito de sessão porque havia mais de uma aba aberta).
 				warn("não foi possível anexar automaticamente:", err);
-				showBanner("não anexou automaticamente — anexe manualmente (veja o console).", true);
+				showBanner("não anexou: " + err.message, true);
 			})
-			.then(clearPending);
+			.finally(function () { clearPending(pending.id); processing = false; });
 	}
 
 	function checkPendingNow() {
@@ -249,7 +260,7 @@
 	}
 
 	// Quando a extensão reaproveita esta mesma aba sem navegar (o número de
-	// destino já era o da conversa aberta), não há recarregamento de página
+	// destino será aberto dentro da página), não há recarregamento de página
 	// para reinjetar este content script — o background nos avisa
 	// diretamente por mensagem.
 	chrome.runtime.onMessage.addListener(function (message) {

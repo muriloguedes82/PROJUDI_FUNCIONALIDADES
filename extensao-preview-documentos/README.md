@@ -110,56 +110,30 @@ sincronizados entre computadores nem enviados a nenhum servidor).
 
 ### Remetentes salvos (campo "De")
 
-O botão **"✉️ Remetente"** abre uma tela para cadastrar até **20** contas
-remetentes (Nome + E-mail), editar (✏️), remover (🗑) e marcar uma delas
-com a estrela (☆ → ★) como **padrão**. O que acontece com esse remetente
-padrão depende do modo de envio:
+No modo **"Outlook Web (sem Azure AD)"**, o botão **"✉️ Remetente"** abre
+uma tela para cadastrar até **20** contas remetentes (Nome + E-mail),
+editar (✏️), remover (🗑) e marcar uma delas com a estrela (☆ → ★) como
+**padrão**. Toda vez que o Outlook abrir pela extensão:
 
-- **Modo Graph (com Azure AD):** o rascunho é criado **diretamente na
-  caixa do remetente padrão** (`/users/{email}/messages` da Microsoft
-  Graph, em vez de `/me/messages`), então o e-mail enviado fica salvo na
-  pasta **Enviados dessa caixa** — não na do usuário que fez login. Exige
-  a permissão delegada `Mail.ReadWrite.Shared` (ver "Configuração
-  necessária" acima) e que o usuário autenticado já tenha acesso a essa
-  caixa (permissão de "Enviar como" ou acesso completo, configuração do
-  Exchange/TI). Sem remetente padrão configurado, continua usando a caixa
-  pessoal (`/me`) como antes.
-- **Modo Outlook Web (sem Azure AD):** toda vez que o Outlook abrir pela
-  extensão, o script (`src/owa-attach.js`) revela o campo **"De"**
-  automaticamente, clicando na guia **Opções** da faixa de opções e
-  marcando a caixinha **"Mostrar de"** (só se ainda não estiver marcada),
-  e em seguida tenta selecionar nele o remetente marcado como padrão.
-  Nesse modo, se a pasta "Enviados" salvar o e-mail na caixa errada mesmo
-  com o remetente certo selecionado, o problema é uma configuração do
-  Exchange (fora do controle da extensão) — veja a nota logo abaixo.
+1. O script (`src/owa-attach.js`) revela o campo **"De"** automaticamente,
+   clicando na guia **Opções** da faixa de opções e marcando a caixinha
+   **"Mostrar de"** (só se ainda não estiver marcada).
+2. Em seguida, tenta selecionar nele o remetente marcado como padrão.
 
-**Pré-requisito obrigatório, fora do controle da extensão, em ambos os
-modos:** a conta autenticada precisa já ter a permissão **"Enviar como"**
-(ou acesso delegado equivalente) na caixa marcada como padrão — sem isso,
-o Graph recusa criar o rascunho na caixa alheia (modo Graph) e o Outlook
-nem oferece essa conta na lista para escolher (modo Outlook Web).
+**Pré-requisito obrigatório, fora do controle da extensão:** a conta
+autenticada precisa já ter a permissão **"Enviar como"** (configuração do
+Exchange/TI) na caixa marcada como padrão — sem isso, o Outlook nem
+oferece essa conta na lista para escolher, e a seleção automática não tem
+efeito (o campo "De" continua revelado, só não muda o remetente).
 
-**Nota sobre o modo Outlook Web (fallback):** mesmo com o remetente certo
-selecionado manualmente no campo "De", o Exchange Online, por padrão,
-salva a cópia do e-mail enviado na caixa do usuário autenticado, não na
-caixa do remetente escolhido, a menos que o administrador do Exchange
-tenha habilitado `MessageCopyForSentAsEnabled` (e, se for "Enviar em
-nome de", também `MessageCopyForSendOnBehalfEnabled`) naquela caixa
-compartilhada (`Set-Mailbox -Identity "<caixa>" -MessageCopyForSentAsEnabled
-$true`). Isso é uma configuração do servidor, não algo que a extensão
-consiga controlar pelo navegador — por isso o **modo Graph** (que cria o
-rascunho já na caixa certa, como descrito acima) é a forma recomendada de
-evitar esse problema por completo quando o cadastro no Azure AD for
-possível.
-
-A etapa de **selecionar** o remetente no campo "De" (modo Outlook Web) é
-experimental: ao contrário de revelar a caixinha "Mostrar de" (testado e
-funcionando), não temos o HTML real do controle "De" nem da lista de
-contas que ele abre, só um palpite razoável de seletores
-(`src/owa-attach.js`, `findFromControl()`/`findFromOption()`). Se não
-funcionar, inspecione o campo "De" no Outlook Web (botão direito →
-Inspecionar) e ajuste esses seletores — o console do navegador (F12,
-filtro "Projudi") mostra em qual etapa a automação parou.
+A etapa de **selecionar** o remetente no campo "De" é experimental: ao
+contrário de revelar a caixinha "Mostrar de" (testado e funcionando), não
+temos o HTML real do controle "De" nem da lista de contas que ele abre, só
+um palpite razoável de seletores (`src/owa-attach.js`,
+`findFromControl()`/`findFromOption()`). Se não funcionar, inspecione o
+campo "De" no Outlook Web (botão direito → Inspecionar) e ajuste esses
+seletores — o console do navegador (F12, filtro "Projudi") mostra em qual
+etapa a automação parou.
 
 ### Configuração necessária (feita uma única vez pelo TI)
 
@@ -178,13 +152,9 @@ no Azure AD / Microsoft Entra ID do Tribunal:
    "Detalhes" → "Inspecionar visualizações" → console → digite
    `chrome.identity.getRedirectURL()`), ou é fixo se a extensão for
    publicada/fixada com uma chave.
-4. Em **Permissões de API**, adicione as permissões **delegadas**
-   `Mail.ReadWrite` e `Mail.ReadWrite.Shared` (Microsoft Graph) e conceda
-   **consentimento do administrador**. A segunda (`Mail.ReadWrite.Shared`)
-   só é necessária se algum usuário for usar um "Remetente padrão" (veja
-   "Remetentes salvos" abaixo) diferente da própria caixa — sem ela, o
-   rascunho não pode ser criado na caixa de outro remetente e a extensão
-   volta a usar a caixa pessoal do usuário autenticado.
+4. Em **Permissões de API**, adicione a permissão **delegada**
+   `Mail.ReadWrite` (Microsoft Graph) e conceda **consentimento do
+   administrador**.
 5. Copie o **Client ID (Application ID)** gerado.
 6. Na extensão, acesse `chrome://extensions` → "Detalhes" → "Opções da
    extensão" e informe o Client ID (e o Tenant ID, se a organização exigir
@@ -264,12 +234,7 @@ desejada.
 A extensão adiciona **um botão flutuante por grupo de ações** — Concluso,
 Remessa, Ordenações, Partes, Suspender, Transitar, Arquivar, Outras —
 lado a lado, no mesmo canto da tela dos botões de WhatsApp/e-mail
-(posicionando-se ao lado deles quando presentes). Por padrão, com a tela
-no topo, todos esses botões ficam visíveis; ao rolar a página para baixo
-eles se recolhem atrás de um único botão **"▸ Ações"**, para não poluir o
-canto da tela sobre o conteúdo — clicar nele reabre a fileira mesmo
-rolado. Voltando ao topo da tela, todos os botões reaparecem
-automaticamente.
+(posicionando-se ao lado deles quando presentes):
 
 - **Concluso**: Enviar Concluso
 - **Remessa**: Realizar Remessa, Remessa Eletrônica para o Tribunal de
@@ -865,10 +830,9 @@ irmão desta mesma extensão, o envio por e-mail):
   "nenhum documento encontrado" (ou expira após alguns segundos) e o link
   original continua funcionando normalmente, sem nenhum efeito colateral.
 - O envio por e-mail depende do cadastro prévio de um aplicativo no Azure
-  AD pelo TI (Client ID com permissão `Mail.ReadWrite`, e
-  `Mail.ReadWrite.Shared` se algum "Remetente padrão" for usado) — veja a
-  seção "Envio por E-mail" acima. Sem essa configuração, o botão exibirá
-  um erro pedindo para configurar as opções da extensão.
+  AD pelo TI (Client ID com permissão `Mail.ReadWrite`) — veja a seção
+  "Envio por E-mail" acima. Sem essa configuração, o botão exibirá um erro
+  pedindo para configurar as opções da extensão.
 - A janela do Outlook é aberta como um pop-up separado (não um `<iframe>`),
   pois o Outlook Web bloqueia ser exibido dentro de outra página
   (cabeçalhos `X-Frame-Options`/CSP). O pop-up é posicionado e dimensionado

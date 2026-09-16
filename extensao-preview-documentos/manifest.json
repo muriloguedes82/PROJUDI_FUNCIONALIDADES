@@ -10,7 +10,9 @@
     "tabs",
     "scripting",
     "windows",
-    "downloads"
+    "downloads",
+    "clipboardRead",
+    "offscreen"
   ],
   "host_permissions": [
     "*://*.tjpr.jus.br/*",
@@ -32,7 +34,9 @@
         "*://*.tjpr.jus.br/projudi/*",
         "*://seeu.pje.jus.br/seeu/*"
       ],
-      "js": ["src/closeShim.js"],
+      "js": [
+        "src/closeShim.js"
+      ],
       "run_at": "document_start",
       "all_frames": true
     },
@@ -41,8 +45,24 @@
         "*://*.tjpr.jus.br/projudi/*",
         "*://seeu.pje.jus.br/seeu/*"
       ],
-      "js": ["src/content.js", "src/email.js", "src/quickActions.js", "src/ordenarCumprimentos.js"],
-      "css": ["src/content.css", "src/email.css", "src/quickActions.css", "src/ordenarCumprimentos.css"],
+      "js": [
+        "src/clipboardProcess.js",
+        "src/documentSelection.js",
+        "src/content.js",
+        "src/email.js",
+        "src/quickActions.js",
+        "src/buttonDrag.js",
+        "src/juntadaDrag.js",
+        "src/mesaAnalistaContadores.js",
+        "src/ordenarCumprimentos.js"
+      ],
+      "css": [
+        "src/content.css",
+        "src/email.css",
+        "src/quickActions.css",
+        "src/juntadaDrag.css",
+        "src/ordenarCumprimentos.css"
+      ],
       "run_at": "document_idle",
       "all_frames": true
     },
@@ -51,14 +71,22 @@
         "https://outlook.office.com/mail/*",
         "https://outlook.office365.com/mail/*"
       ],
-      "js": ["src/owa-attach.js"],
-      "css": ["src/owa-attach.css"],
+      "js": [
+        "src/owa-attach.js"
+      ],
+      "css": [
+        "src/owa-attach.css"
+      ],
       "run_at": "document_idle",
       "all_frames": true
     },
     {
-      "matches": ["https://web.whatsapp.com/*"],
-      "js": ["src/whatsapp.js"],
+      "matches": [
+        "https://web.whatsapp.com/*"
+      ],
+      "js": [
+        "src/whatsapp.js"
+      ],
       "run_at": "document_idle"
     }
   ]
