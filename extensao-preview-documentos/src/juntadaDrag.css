@@ -7,3 +7,5 @@
 .pdp-dispensar-status button { padding:2px 7px;border:1px solid #a5ac9a;border-radius:4px;background:#f5f7ef;color:#35412b;font:12px Arial,sans-serif;cursor:pointer; }
 .pdp-dispensar-status button:hover { background:#e7edda; }
 .pdp-dispensar-status button:focus-visible { outline:2px solid #526b32;outline-offset:2px; }
+.pdp-dispensar-card { padding:4px 9px;border:1px solid #a5ac9a;border-radius:4px;background:#f5f7ef;color:#35412b; }
+.pdp-dispensar-card.pdp-dispensar-card-ok { border-color:#8fae72;background:#eaf3df;color:#2f4a1d;font-weight:bold; }
