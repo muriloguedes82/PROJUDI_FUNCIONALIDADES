@@ -16,7 +16,7 @@ componente de código do projeto.
 
 Extensão de navegador (Chrome/Edge, Manifest V3) para as telas de processo do
 **Projudi** (TJPR) e do **SEEU**, que compartilham o mesmo padrão de link de
-documento. Versão atual: `2.7.0`.
+documento. Versão atual: `2.8.2`.
 
 ## O que a extensão faz (resumo para o usuário final)
 
@@ -33,6 +33,7 @@ documento. Versão atual: `2.7.0`.
 | 9 | Ocultar itens zerados na Mesa do Analista/Escrivão | Projudi |
 | 10 | Reposicionamento (arrastar) dos botões flutuantes na tela | Projudi + SEEU |
 | 11 | Convivência com a extensão AzFlow, sem conflito | SEEU |
+| 12 | Ordenações simultâneas (botão "Nova Ordenação") | Projudi |
 
 ### 1. Pré-visualização de documentos
 Ao passar o mouse sobre o nome de um arquivo numa movimentação, a íntegra do
@@ -92,6 +93,18 @@ Para quem já usa a extensão AzFlow no SEEU, esta extensão detecta isso
 automaticamente e evita duplicar a pré-visualização de documentos, mantendo
 as duas funcionando sem conflito.
 
+### 12. Ordenações simultâneas (botão "Nova Ordenação")
+Nos diálogos de ordenação (Ordenar Cumprimentos, Ordenar RPV, Ordenar
+Expedição BNMP), um botão **"🔁 Nova Ordenação"** ao lado do "Ordenar"
+nativo permite preencher e enfileirar várias ordenações seguidas, sem sair
+do diálogo nem reabri-lo do zero a cada uma. O botão mostra quantos itens já
+estão na fila, com um painel para revisar ou remover algum item adicionado
+por engano. Só ao clicar no "Ordenar" nativo de verdade (o último) é que
+tudo é enviado ao Projudi, um item por vez; se algum item da fila for
+rejeitado, a extensão avisa qual falhou e interrompe o restante, sem enviar
+nada "no escuro". Clicar em "Cancelar" descarta a fila inteira, junto com o
+diálogo.
+
 ## Limitações conhecidas
 
 - Só funciona para documentos exibíveis pelo navegador (ex.: PDF); alguns
@@ -104,6 +117,10 @@ as duas funcionando sem conflito.
 - O preenchimento automático de preferências das ações rápidas é uma
   facilidade "best effort": sempre confira os campos antes de confirmar uma
   ação.
+- As ordenações simultâneas ("Nova Ordenação") ainda não foram validadas em
+  produção para os diálogos "Ordenar RPV" e "Ordenar Expedição BNMP" nem
+  para toda a variedade de tipos de cumprimento; recomenda-se testar
+  primeiro com um item não crítico e conferir depois nos autos.
 
 Para o funcionamento técnico interno (arquitetura, arquivos envolvidos,
 tratamento de CORS, autenticação, etc.), veja o
