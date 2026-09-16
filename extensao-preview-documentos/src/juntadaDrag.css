@@ -2,3 +2,8 @@
 .pdp-dispensar-juntadas:hover { background:#e7edda; }
 .pdp-dispensar-juntadas:focus-visible { outline:2px solid #526b32;outline-offset:2px; }
 .pdp-dispensar-juntadas:disabled { opacity:.55;cursor:wait; }
+
+.pdp-dispensar-status { margin-left:10px;display:inline-flex;align-items:center;gap:6px;font:12px Arial,sans-serif;color:#35412b;vertical-align:middle; }
+.pdp-dispensar-status button { padding:2px 7px;border:1px solid #a5ac9a;border-radius:4px;background:#f5f7ef;color:#35412b;font:12px Arial,sans-serif;cursor:pointer; }
+.pdp-dispensar-status button:hover { background:#e7edda; }
+.pdp-dispensar-status button:focus-visible { outline:2px solid #526b32;outline-offset:2px; }
