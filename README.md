@@ -26,3 +26,11 @@ uma extensão de navegador que resolve os três casos:
 
 Veja o README da pasta para detalhes de funcionamento, instalação e
 configuração.
+
+## Catálogo de funcionalidades
+
+O arquivo [`FUNCIONALIDADES.md`](./FUNCIONALIDADES.md) sintetiza e sumariza
+**todas** as funcionalidades existentes no repositório, com um índice rápido
+e o detalhamento de cada uma. **Sempre que o código principal for
+atualizado** (arquivos em `extensao-preview-documentos/src/` ou
+`manifest.json`), atualize também esse catálogo no mesmo commit/PR.
