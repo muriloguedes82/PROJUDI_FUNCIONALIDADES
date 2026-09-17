@@ -443,39 +443,51 @@ própria extensão, não enviado a nenhum servidor), organizadas por ação —
 ex.: as preferências de "Ordenar Cumprimentos" não aparecem em "Ordenar
 RPV".
 
-## Remessas múltiplas na tela "Realizar Remessa"
+## "Nova Remessa" (realizar mais de uma remessa em seguida)
 
-Só no Projudi. A tela nativa **Realizar Remessa** (aberta pelo painel Ações,
-grupo Remessa) usa bolinhas seletoras — só uma opção entre "Enviar à
-Delegacia", "Autos ao Distribuidor", "Enviar ao Ministério Público" e
-"Outras Remessas" pode ser escolhida por vez, obrigando a repetir a tela
-inteira uma vez para cada remessa que o processo precise.
+Só no Projudi. A tela nativa **Realizar Remessa** só permite escolher UMA
+opção por vez — "Enviar à Delegacia", "Autos ao Distribuidor", "Enviar ao
+Ministério Público" ou "Outras Remessas" — e, ao clicar em "Realizar
+Remessa", encerra o fluxo e volta para a tela do processo: correto para uma
+única remessa, mas obriga a reabrir a tela do zero para cada remessa que o
+processo precise.
 
-A extensão troca essas bolinhas por **checkboxes**: marque quantas opções
-forem necessárias, preencha os campos de cada uma normalmente e clique em
-**"Realizar Remessa"** uma única vez — as remessas marcadas são enviadas em
-sequência, sem sair da tela. Ao final, um painel mostra o resultado de cada
-uma (o texto visível da resposta do Projudi para aquela remessa, ou o erro,
-caso alguma não tenha sido confirmada — por exemplo, por falta de um campo
-obrigatório).
+A extensão adiciona um botão **"🔁 Nova Remessa"** ao lado do botão nativo
+"Realizar Remessa", com o mesmo mecanismo de fila já usado por "🔁 Nova
+Ordenação" (veja a seção logo abaixo para o raciocínio completo — vale a
+pena ler, porque explica por que essa abordagem foi escolhida). Em vez de
+enviar o formulário, ele:
 
-Com **apenas uma** opção marcada, a tela se comporta exatamente como antes
-(nenhuma automação extra entra em ação). Com duas ou mais, cada remessa é
-submetida individualmente através do mesmo botão/validação nativos do
-Projudi, então diálogos de confirmação nativos (se existirem) podem
-aparecer uma vez para cada remessa selecionada.
+1. Confere o preenchimento atual (validação nativa do navegador).
+2. **Guarda** os dados preenchidos numa fila, em memória — nada é enviado
+   ao Projudi ainda.
+3. Limpa o formulário (opção escolhida, Destino, Finalidade, Prazo,
+   Urgente, Orientações etc.) para a próxima remessa, na **mesma tela já
+   aberta**, sem navegar nem reabrir nada.
 
-A extensão não tenta adivinhar quais campos "pertencem" a qual opção para
-ligar/desligá-los durante o preenchimento — só marca visualmente (fundo
-azulado) o bloco de cada opção marcada. Os campos ficam exatamente como a
-própria tela nativa os deixa; só no instante de enviar cada remessa é que
-os campos das outras opções são desligados, de forma temporária, para não
-serem enviados junto.
+O botão mostra quantos itens já estão na fila (ex.: "🔁 Nova Remessa (2 na
+fila)"), com um pequeno painel logo abaixo listando cada um pelo nome da
+opção escolhida (ex.: "1. Enviar à Delegacia", "2. Enviar ao Ministério
+Público") — é possível remover um item da fila clicando no ✕ ao lado dele.
 
-Como com as demais ações rápidas, a extensão não tem acesso ao código-fonte
-desta tela — a localização de cada opção e de seus campos é heurística, pelo
-texto literal dos rótulos. **Sempre confira o painel de resultado ao final**
-antes de considerar as remessas concluídas.
+Só quando você clica no botão **"Realizar Remessa" nativo de verdade** (o
+último, para encerrar o fluxo) é que tudo é enviado ao Projudi: cada item da
+fila (inclusive o que você acabou de preencher na tela) resolve e carrega um
+diálogo **novo** de "Realizar Remessa" em segundo plano, aplica os campos
+guardados e clica no botão desse diálogo novo — a tela visível nunca chega a
+enviar nada nativamente. Se todos forem confirmados, uma mensagem de sucesso
+substitui o diálogo. Se algum item falhar (ex.: um campo que ficou
+inválido), a extensão avisa **qual item falhou e para** — nada mais é
+enviado, e esse item continua na fila para revisão.
+
+Como a tela nativa nunca é modificada enquanto você preenche (sempre uma
+bolinha por vez, exatamente como o Projudi já faz — inclusive os campos que
+ele mesmo habilita/desabilita conforme a opção escolhida), este recurso não
+depende de nenhuma heurística sobre "quais campos pertencem a qual opção".
+Duas tentativas anteriores tentavam justamente isso (trocar as bolinhas por
+checkboxes e ligar/desligar campos por conta própria) e acabaram travando
+campos que deveriam continuar editáveis, porque a extensão não tem acesso ao
+código-fonte da tela para saber com certeza a estrutura real dela.
 
 ### "Nova Ordenação" (ordenar vários cumprimentos em seguida)
 
@@ -955,12 +967,11 @@ irmão desta mesma extensão, o envio por e-mail):
   estiver configurado para **perguntar onde salvar cada arquivo**
   (em vez de salvar direto na pasta Downloads), o usuário verá um diálogo
   de salvar por arquivo baixado.
-- **Remessas múltiplas:** depende de cada opção da tela "Realizar Remessa"
-  aparecer com o texto exato "Enviar à Delegacia", "Autos ao Distribuidor",
-  "Enviar ao Ministério Público" ou "Outras Remessas", e de os campos de
-  cada opção ficarem, no HTML, dentro da mesma "linha" do radio ou em
-  linhas-irmãs logo em seguida (até a opção seguinte) — o layout observado
-  na tela usada como referência. Não foi validado ao vivo no Projudi; se a
-  estrutura de algum Tribunal for diferente, a extensão simplesmente não
-  ativa o recurso nessa tela (a tela nativa, com as bolinhas originais,
-  continua funcionando normalmente).
+- **"Nova Remessa":** depende do botão nativo ter o texto exato "Realizar
+  Remessa" e de a tela usar a mesma caixa de erro genérica do Projudi
+  (`#errorMessages`) já usada por "Nova Ordenação" para detectar falha num
+  item da fila. O nome de cada item na fila (ex.: "Enviar à Delegacia") é só
+  cosmético, pelo texto do rótulo mais próximo da opção marcada — se não
+  bater com nenhum dos rótulos esperados, o item aparece como "Remessa N",
+  sem afetar o envio. Como em "Nova Ordenação", isso não foi validado ao
+  vivo no Projudi.
