@@ -23,6 +23,11 @@ extensão funciona da mesma forma nos dois sistemas:
    movimentações foram feitas por Magistrado(a), Ministério Público ou
    Advogado(a) — é preciso ler a coluna "Movimentado Por" linha a linha
    (veja "Destaque de movimentações por tipo de usuário" abaixo).
+6. num processo apenso, o número **Sequencial** do processo principal
+   (útil para localizá-lo por esse número em outras telas) só aparece na
+   aba "Informações Gerais" do próprio processo principal — é preciso
+   abrir o processo principal só para consultá-lo (veja "Sequencial do
+   processo principal nos processos apensos" abaixo).
 
 ## Pré-visualização de Documentos
 
@@ -66,6 +71,21 @@ fixas e sem lembrar a preferência entre processos) — por isso é preciso
 estar na aba Movimentações de um processo real para o botão funcionar;
 esta extensão não usa aquele quadro, apenas a mesma forma de identificar
 o tipo de cada movimentação.
+
+## Sequencial do processo principal nos processos apensos
+
+Na aba **Informações Gerais** de um processo apenso (ex.: um incidente
+processual apensado a uma Ação Penal), o Projudi já mostra o campo
+"Processo Principal:" com o link/número do processo principal, mas não
+mostra o **Sequencial** dele — um identificador numérico (ex.: `45054`)
+que só aparece na aba Informações Gerais daquele outro processo.
+
+A extensão busca esse número automaticamente em segundo plano (sem abrir
+nem trocar de aba) e insere uma linha **"Sequencial do Processo
+Principal:"** logo abaixo do campo "Processo Principal:" já existente,
+preenchida assim que a busca termina. Esse campo só aparece nos processos
+que já têm "Processo Principal:" preenchido, ou seja, nos processos
+apensos — o processo principal em si não ganha essa linha extra.
 
 ## Envio por E-mail (Outlook)
 
