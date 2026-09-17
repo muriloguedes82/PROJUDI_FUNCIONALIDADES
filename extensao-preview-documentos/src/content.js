@@ -979,6 +979,7 @@
 	let processScreenEligible = false;
 
 	function isOnProcessScreen() {
+		if (location.pathname === "/projudi/processo/criminal/antecedentesCriminais.do") return false;
 		if (processScreenEligible) return true;
 		if (findProcessToolbarElement() || document.querySelector('a.link[href*="' + DOC_LINK_HREF_MARKER + '"]')) {
 			processScreenEligible = true;

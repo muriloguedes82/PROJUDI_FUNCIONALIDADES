@@ -1,6 +1,8 @@
 // Posição vertical compartilhada dos atalhos, WhatsApp e e-mail.
 (function () {
   "use strict";
+  // A janela do Oráculo mantém apenas os controles nativos.
+  if (location.pathname === '/projudi/processo/criminal/antecedentesCriminais.do') return;
   if (window.__pdpButtonDrag) return;
   window.__pdpButtonDrag = true;
   const style = document.createElement("style");

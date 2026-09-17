@@ -345,3 +345,17 @@
 	border: none;
 	display: block;
 }
+
+/* O gerenciador nativo de janelas do Projudi inicia acima da camada 10.
+   Mantém os atalhos e seus menus abaixo dos diálogos e da máscara modal.
+   Os diálogos da própria extensão conservam suas camadas superiores. */
+#pdp-qa-row,
+.pdp-qa-panel,
+#pdp-wa-launcher,
+#pdp-email-button,
+#pdp-recipients-button,
+#pdp-from-button,
+#pdp-buttons-drag,
+#pdp-buttons-toggle {
+	z-index: 9 !important;
+}
