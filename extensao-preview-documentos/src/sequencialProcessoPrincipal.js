@@ -39,6 +39,24 @@
 		return null;
 	}
 
+	// O campo "Sequencial" fica dentro do conteúdo da aba "Informações
+	// Gerais" (div#tabprefix0), que o Projudi carrega via uma requisição
+	// AJAX própria assim que a página termina de montar — não vem pronto no
+	// HTML inicial. Por isso o "load" do iframe (fetchDoc) não é garantia de
+	// que o campo já esteja no documento: é preciso esperar por ele
+	// aparecer, tentando de novo por alguns segundos.
+	function waitForRow(doc, labelText, timeoutMs) {
+		return new Promise(function (resolve) {
+			const deadline = Date.now() + timeoutMs;
+			(function tick() {
+				const row = findRowByLabel(doc, labelText);
+				if (row) return resolve(row);
+				if (Date.now() >= deadline) return resolve(null);
+				setTimeout(tick, 250);
+			})();
+		});
+	}
+
 	function fetchDoc(url) {
 		return new Promise(function (resolve, reject) {
 			const iframe = document.createElement("iframe");
@@ -109,11 +127,12 @@
 
 		fetchDoc(principalUrl)
 			.then(function (doc) {
-				const sequencialRow = findRowByLabel(doc, "Sequencial");
-				const valueCell = sequencialRow && sequencialRow.querySelectorAll("td")[1];
-				const sequencial = valueCell && valueCell.textContent.trim();
-				valueEl.textContent = sequencial || "não encontrado";
-				if (!sequencial) console.warn(TAG, "campo Sequencial não encontrado na página do processo principal:", principalUrl);
+				return waitForRow(doc, "Sequencial", 10000).then(function (sequencialRow) {
+					const valueCell = sequencialRow && sequencialRow.querySelectorAll("td")[1];
+					const sequencial = valueCell && valueCell.textContent.trim();
+					valueEl.textContent = sequencial || "não encontrado";
+					if (!sequencial) console.warn(TAG, "campo Sequencial não encontrado na página do processo principal:", principalUrl);
+				});
 			})
 			.catch(function (err) {
 				valueEl.textContent = "não foi possível buscar";
