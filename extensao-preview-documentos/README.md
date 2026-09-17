@@ -19,6 +19,15 @@ extensão funciona da mesma forma nos dois sistemas:
    Cumprimentos, Realizar Remessa, Enviar Concluso, Apensar, etc.) fica
    comprido e é preciso rolar a tela para achar a ação desejada (veja
    "Ações rápidas" abaixo).
+5. na tela **Movimentações**, é difícil identificar rapidamente quais
+   movimentações foram feitas por Magistrado(a), Ministério Público ou
+   Advogado(a) — é preciso ler a coluna "Movimentado Por" linha a linha
+   (veja "Destaque de movimentações por tipo de usuário" abaixo).
+6. num processo apenso, o número **Sequencial** do processo principal
+   (útil para localizá-lo por esse número em outras telas) só aparece na
+   aba "Informações Gerais" do próprio processo principal — é preciso
+   abrir o processo principal só para consultá-lo (veja "Sequencial do
+   processo principal nos processos apensos" abaixo).
 
 ## Pré-visualização de Documentos
 
@@ -27,6 +36,56 @@ Com a extensão instalada, basta **passar o mouse sobre o nome do arquivo**
 painel flutuante sobreposto à própria tela de movimentações — sem precisar
 trocar de aba. A ideia é a mesma já oferecida pelo eproc e pela extensão
 AzFlow.
+
+## Destaque de movimentações por tipo de usuário
+
+Na tela **Movimentações**, cada linha mostra na coluna "Movimentado Por"
+quem fez aquela movimentação e, logo abaixo do nome, o papel dessa pessoa
+no processo (ex.: "Magistrada", "Membro(a) do Ministério Público",
+"Advogado"). Esta extensão deixa você escolher, uma vez só, quais desses
+tipos destacar e com qual cor — e aplica esse destaque automaticamente
+em **todos os processos**, sempre que a aba Movimentações é aberta, sem
+precisar configurar de novo a cada um.
+
+1. na tela de Movimentações, clique no botão **"🖍️ Destacar
+   movimentações"** do painel de Ações Rápidas (veja "Ações rápidas"
+   abaixo) — abre um popup de configuração sobreposto à própria tela,
+   sem trocar de aba;
+2. marque um ou mais tipos — **Magistrado / Magistrada**, **Ministério
+   Público** e/ou **Advogado / Advogada**;
+3. escolha a cor de cada tipo clicando numa das amostras da paleta
+   abaixo dele (a cor já usada por outro tipo fica marcada com um ✓;
+   escolher essa mesma cor para outro tipo troca as cores entre os
+   dois — assim nunca dois tipos ficam com a mesma cor);
+4. clique em "Salvar".
+
+A partir daí, toda linha de movimentação feita por um dos tipos marcados
+aparece com o fundo na cor escolhida — em qualquer processo, não só no
+que estava aberto ao salvar. Para editar a preferência depois (mudar
+cores, marcar ou desmarcar tipos), é só abrir o mesmo popup de novo; ele
+já vem preenchido com o que estava salvo.
+
+O destaque é identificado a partir da mesma informação usada pelo quadro
+nativo "Realces" do Projudi (que também existe na tela, mas com cores
+fixas e sem lembrar a preferência entre processos) — por isso é preciso
+estar na aba Movimentações de um processo real para o botão funcionar;
+esta extensão não usa aquele quadro, apenas a mesma forma de identificar
+o tipo de cada movimentação.
+
+## Sequencial do processo principal nos processos apensos
+
+Na aba **Informações Gerais** de um processo apenso (ex.: um incidente
+processual apensado a uma Ação Penal), o Projudi já mostra o campo
+"Processo Principal:" com o link/número do processo principal, mas não
+mostra o **Sequencial** dele — um identificador numérico (ex.: `45054`)
+que só aparece na aba Informações Gerais daquele outro processo.
+
+A extensão busca esse número automaticamente em segundo plano (sem abrir
+nem trocar de aba) e insere uma linha **"Sequencial do Processo
+Principal:"** logo abaixo do campo "Processo Principal:" já existente,
+preenchida assim que a busca termina. Esse campo só aparece nos processos
+que já têm "Processo Principal:" preenchido, ou seja, nos processos
+apensos — o processo principal em si não ganha essa linha extra.
 
 ## Envio por E-mail (Outlook)
 
@@ -291,9 +350,9 @@ Concluso, Apensar, etc. — que obriga a rolar a página até achar a ação
 desejada.
 
 A extensão adiciona **um botão flutuante por grupo de ações** — Concluso,
-Remessa, Ordenações, Partes, Outras — lado a lado, no mesmo canto da tela
-dos botões de WhatsApp/e-mail (posicionando-se ao lado deles quando
-presentes):
+Remessa, Ordenações, Partes, Suspender, Transitar, Arquivar, Outras —
+lado a lado, no mesmo canto da tela dos botões de WhatsApp/e-mail
+(posicionando-se ao lado deles quando presentes):
 
 - **Concluso**: Enviar Concluso
 - **Remessa**: Realizar Remessa, Remessa Eletrônica para o Tribunal de
@@ -302,9 +361,19 @@ presentes):
   BNMP
 - **Partes**: Intimar Partes, Notificar Partes, Citar Partes, Intimar
   Peritos e Auxiliares da Justiça
-- **Outras**: Interromper Prazo, Suspender ou Sobrestar Processo,
-  Transitar em Julgado, Declínio de competência para a Segunda Instância,
-  Arquivar Processo, Apensar, Desapensar
+- **Suspender**: Suspender ou Sobrestar Processo
+- **Transitar**: Transitar em Julgado
+- **Arquivar**: Arquivar Processo
+- **Outras**: Interromper Prazo, Declínio de competência para a Segunda
+  Instância, Apensar, Desapensar
+
+Numa segunda linha, logo abaixo do botão **"▸/▾ Ações"** (que recolhe ou
+mostra os botões dos grupos acima), ficam o botão **"📋 Processo
+copiado"** e o botão **"🖍️ Destacar movimentações"**, que abre um popup
+(sobreposto à própria tela, sem trocar de aba) para escolher quais tipos
+de usuário (Magistrado, Ministério Público, Advogado) destacar na aba
+Movimentações, e com qual cor — veja "Destaque de movimentações por tipo
+de usuário" mais acima.
 
 Cada botão abre um painel com as ações daquele grupo — o conteúdo do
 painel depende de qual tela do processo você está vendo, já que o painel
@@ -346,7 +415,22 @@ painel depende de qual tela do processo você está vendo, já que o painel
   4. Com a URL em mãos, descarta o iframe oculto e abre um **popup**
      visível (sobreposto à tela atual, com um "✕ Fechar") com um NOVO
      iframe carregando só essa URL — esse é o único iframe que o usuário
-     chega a ver.
+     chega a ver. Algumas ações (ex.: Ordenar Cumprimentos) terminam numa
+     tela nativa "Aguarde..." que o próprio Projudi normalmente fecha
+     sozinha: um campo oculto `flagClosePopup` no formulário da tela final
+     vem `"true"` quando a ação termina, e um script nativo (`checkClosePopup()`)
+     usa isso para submeter, na JANELA PAI, um formulário que volta para a
+     tela de Ações — o diálogo foi desenhado pra rodar como um iframe
+     dentro da própria tela de Ações, não como uma janela separada. Como
+     aqui a "janela pai" é a página onde esta extensão criou o popup (não
+     a tela de Ações, que não existe nesse fluxo), aquele formulário nunca
+     é encontrado e nada acontece — a tela ficava presa em "Aguarde..." até
+     um clique manual em "✕ Fechar" (a ação em si já havia sido registrada
+     normalmente mesmo antes dessa correção). A extensão agora lê esse
+     mesmo campo `flagClosePopup` diretamente e, quando ele vier `"true"`,
+     recarrega a aba real por trás e fecha o popup por conta própria — sem
+     depender do formulário nativo, que nunca existe no contexto do popup
+     desta extensão.
 
   **Nada disso pratica qualquer ato processual por conta própria** — os
   passos 1-3 só leem páginas dentro do iframe oculto, sem exibi-las ao
@@ -417,6 +501,135 @@ As preferências ficam em `chrome.storage.local` (armazenamento local da
 própria extensão, não enviado a nenhum servidor), organizadas por ação —
 ex.: as preferências de "Ordenar Cumprimentos" não aparecem em "Ordenar
 RPV".
+
+## "Nova Remessa" (realizar mais de uma remessa em seguida)
+
+Só no Projudi. A tela nativa **Realizar Remessa** só permite escolher UMA
+opção por vez — "Enviar à Delegacia", "Autos ao Distribuidor", "Enviar ao
+Ministério Público" ou "Outras Remessas" — e, ao clicar em "Realizar
+Remessa", encerra o fluxo e volta para a tela do processo: correto para uma
+única remessa, mas obriga a reabrir a tela do zero para cada remessa que o
+processo precise.
+
+A extensão adiciona um botão **"🔁 Nova Remessa"** ao lado do botão nativo
+"Realizar Remessa", com o mesmo mecanismo de fila já usado por "🔁 Nova
+Ordenação" (veja a seção logo abaixo para o raciocínio completo — vale a
+pena ler, porque explica por que essa abordagem foi escolhida). Em vez de
+enviar o formulário, ele:
+
+1. Confere o preenchimento atual (validação nativa do navegador).
+2. **Guarda** os dados preenchidos numa fila, em memória — nada é enviado
+   ao Projudi ainda.
+3. Limpa o formulário (opção escolhida, Destino, Finalidade, Prazo,
+   Urgente, Orientações etc.) para a próxima remessa, na **mesma tela já
+   aberta**, sem navegar nem reabrir nada.
+
+O botão mostra quantos itens já estão na fila (ex.: "🔁 Nova Remessa (2 na
+fila)"), com um pequeno painel logo abaixo listando cada um pelo nome da
+opção escolhida (ex.: "1. Enviar à Delegacia", "2. Enviar ao Ministério
+Público") — é possível remover um item da fila clicando no ✕ ao lado dele.
+
+Só quando você clica no botão **"Realizar Remessa" nativo de verdade** (o
+último, para encerrar o fluxo) é que tudo é enviado ao Projudi: cada item da
+fila (inclusive o que você acabou de preencher na tela) resolve e carrega um
+diálogo **novo** de "Realizar Remessa" em segundo plano, aplica os campos
+guardados e clica no botão desse diálogo novo — a tela visível nunca chega a
+enviar nada nativamente. Se todos forem confirmados, uma mensagem de sucesso
+substitui o diálogo. Se algum item falhar (ex.: um campo que ficou
+inválido), a extensão avisa **qual item falhou e para** — nada mais é
+enviado, e esse item continua na fila para revisão.
+
+Como a tela nativa nunca é modificada enquanto você preenche (sempre uma
+bolinha por vez, exatamente como o Projudi já faz — inclusive os campos que
+ele mesmo habilita/desabilita conforme a opção escolhida), este recurso não
+depende de nenhuma heurística sobre "quais campos pertencem a qual opção".
+Duas tentativas anteriores tentavam justamente isso (trocar as bolinhas por
+checkboxes e ligar/desligar campos por conta própria) e acabaram travando
+campos que deveriam continuar editáveis, porque a extensão não tem acesso ao
+código-fonte da tela para saber com certeza a estrutura real dela.
+
+### "Nova Ordenação" (ordenar vários cumprimentos em seguida)
+
+Depois que o script de triagem roda num processo, é comum precisar ordenar
+mais de um cumprimento seguido (um ofício, um mandado, um edital, uma
+requisição de laudo, etc.). O diálogo nativo só ordena UM cumprimento por
+envio: ao clicar em "Ordenar", o Projudi encerra o fluxo e leva de volta
+para a tela do processo — correto para uma única ação, mas obriga a
+reabrir manualmente o diálogo do zero a cada nova ordenação.
+
+A extensão adiciona um botão **"🔁 Nova Ordenação"** ao lado do botão
+nativo "Ordenar" desses diálogos. Em vez de enviar o formulário, ele:
+
+1. Confere o preenchimento atual (validação nativa do navegador).
+2. **Guarda** os dados preenchidos numa fila, em memória — nada é enviado
+   ao Projudi ainda.
+3. Limpa o formulário (`Tipo de Cumprimento`, partes, prazo, orientações
+   etc.) para a próxima ordenação, no **mesmo diálogo já aberto**, sem
+   navegar nem reabrir nada.
+
+O botão mostra quantos itens já estão na fila (ex.: "🔁 Nova Ordenação (2
+na fila)"), com um pequeno painel logo abaixo listando cada um (é possível
+remover um item da fila clicando no ✕ ao lado dele, caso tenha sido
+adicionado por engano).
+
+Só quando você clica no botão **"Ordenar" nativo de verdade** (o último,
+para encerrar o fluxo) é que tudo é enviado ao Projudi:
+
+1. Cada item da fila **resolve e carrega um diálogo NOVO do mesmo tipo**
+   em segundo plano, num iframe oculto — reaproveitando a mesma cadeia já
+   usada pelo recurso "Ações rápidas" acima (`resolveDialogUrl`) para não
+   navegar a aba visível. Só os campos que você preencheu de verdade
+   (nunca campos ocultos) são aplicados nesse diálogo novo, e só então o
+   "Ordenar" dele é clicado.
+2. Só depois que todos os itens da fila forem confirmados, a extensão
+   dispara um clique de verdade em "Ordenar" no diálogo **visível** —
+   agora com a fila vazia, o formulário atual (o último preenchido) segue
+   o fluxo 100% nativo do Projudi: mesma validação, mesmo envio, mesma
+   navegação de saída.
+3. Se algum item da fila for rejeitado pelo Projudi (ex.: um campo que
+   ficou inválido), a extensão avisa **qual item falhou e para** — nada
+   mais é enviado, e esse item continua na fila para revisão. Nenhum envio
+   é feito "no escuro".
+
+Clicar em **"Cancelar"** descarta a fila normalmente junto com o diálogo —
+nada do que foi só guardado chega a ser enviado.
+
+**Por que um diálogo novo por item, em vez de reenviar os mesmos campos
+para o mesmo endereço:** testes ao vivo mostraram um item "confirmado" sem
+erro nenhum, mas que não aparecia nos autos depois. A explicação mais
+provável (padrão comum em aplicações Java/Struts como o Projudi): um campo
+oculto de sessão/token de uso único no formulário — reenviar o MESMO token
+de uma página que o usuário ainda está vendo arrisca reaproveitar um token
+já consumido pelo primeiro envio, e o Projudi pode aceitar a requisição
+sem indicar erro algum, mas sem repetir a ação de fato. Resolver um
+diálogo novo a cada item evita isso: cada um chega com seu próprio token,
+nunca reaproveitado.
+
+**Atenção:** ainda assim, isso não foi validado em produção para os
+diálogos "Ordenar RPV" e "Ordenar Expedição BNMP" nem para toda a
+variedade de tipos de cumprimento. Antes de confiar nele em ordenações com
+prazo real, recomenda-se testar com um item não crítico e conferir depois,
+nos autos, se todos os itens da fila foram realmente registrados.
+
+**Diagnóstico:** cada passo (o script carregando, o diálogo sendo
+reconhecido, o que cada item guardou, o que cada reenvio em segundo plano
+mandou e recebeu de volta do Projudi — inclusive a mensagem de erro e o
+número de protocolo, quando o Projudi mostrar uma tela de erro) fica
+registrado em `window.__pdpNovaOrdenacaoLog`, acessível pelo console do
+navegador (F12). O log é salvo em `sessionStorage` (não só em memória),
+então sobrevive à navegação de saída que o "Ordenar" final sempre faz —
+inclusive se essa navegação abrir **outra aba** (nesse caso o log
+acompanha, já que o navegador copia o `sessionStorage` da aba de origem
+para uma aba aberta a partir dela). Depois de reproduzir um problema, na
+aba/tela final (onde o erro apareceu), com o console no frame certo
+(dropdown de contexto, não "top"), rodar:
+
+```js
+copy(JSON.stringify(window.__pdpNovaOrdenacaoLog, null, 2))
+```
+
+copia o log inteiro para a área de transferência, pronto para compartilhar
+e investigar a causa raiz em vez de adivinhar.
 
 ## Como funciona
 
@@ -813,3 +1026,11 @@ irmão desta mesma extensão, o envio por e-mail):
   estiver configurado para **perguntar onde salvar cada arquivo**
   (em vez de salvar direto na pasta Downloads), o usuário verá um diálogo
   de salvar por arquivo baixado.
+- **"Nova Remessa":** depende do botão nativo ter o texto exato "Realizar
+  Remessa" e de a tela usar a mesma caixa de erro genérica do Projudi
+  (`#errorMessages`) já usada por "Nova Ordenação" para detectar falha num
+  item da fila. O nome de cada item na fila (ex.: "Enviar à Delegacia") é só
+  cosmético, pelo texto do rótulo mais próximo da opção marcada — se não
+  bater com nenhum dos rótulos esperados, o item aparece como "Remessa N",
+  sem afetar o envio. Como em "Nova Ordenação", isso não foi validado ao
+  vivo no Projudi.

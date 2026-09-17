@@ -4,14 +4,21 @@
 
 .pdp-qa-row {
 	display: flex;
-	flex-wrap: wrap;
-	justify-content: flex-end;
+	flex-direction: column;
+	align-items: flex-end;
 	gap: 6px;
 	position: fixed;
 	bottom: 12px;
 	right: 14px;
 	z-index: 2147483647;
 	max-width: 70vw;
+}
+
+.pdp-qa-row-line {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 6px;
 }
 
 .pdp-qa-group-btn {
@@ -337,4 +344,18 @@
 	height: 100%;
 	border: none;
 	display: block;
+}
+
+/* O gerenciador nativo de janelas do Projudi inicia acima da camada 10.
+   Mantém os atalhos e seus menus abaixo dos diálogos e da máscara modal.
+   Os diálogos da própria extensão conservam suas camadas superiores. */
+#pdp-qa-row,
+.pdp-qa-panel,
+#pdp-wa-launcher,
+#pdp-email-button,
+#pdp-recipients-button,
+#pdp-from-button,
+#pdp-buttons-drag,
+#pdp-buttons-toggle {
+	z-index: 9 !important;
 }

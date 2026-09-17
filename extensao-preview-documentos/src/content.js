@@ -277,6 +277,12 @@
 		activePendenciaLink = null;
 	}
 
+	window.addEventListener("pdp-juntada-action-start", function () {
+		cancelOpen();
+		cleanupPendenciaLoader();
+		closeAllPendenciaPanels();
+	});
+
 	function scheduleClosePendencia() {
 		cancelOpen();
 		clearTimeout(closeTimerPendencia);
@@ -520,44 +526,13 @@
 	// mensagem em si continua sendo manual, para o usuário revisar antes.
 
 	const WA_DOC_ATTR = "data-pdp-wa";
-	const selectedDocs = new Map();
+	const selectedDocs = window.__pdpDocumentSelection.docs;
+	window.__pdpDocumentSelection.subscribe(function () { updateWaLauncherCount(); refreshWaPanelList(); });
 	let waPanel = null;
 
 	function decorateDocLinkForWhatsapp(link) {
-		if (link.hasAttribute(WA_DOC_ATTR)) return;
+		window.__pdpDocumentSelection.decorate(link);
 		link.setAttribute(WA_DOC_ATTR, "1");
-
-		const href = link.getAttribute("href");
-		let absolute;
-		try {
-			absolute = new URL(href, document.baseURI).href;
-		} catch (e) {
-			absolute = href;
-		}
-		const name = (link.textContent || "documento").trim();
-
-		const checkbox = document.createElement("input");
-		checkbox.type = "checkbox";
-		checkbox.className = "pdp-wa-checkbox";
-		checkbox.title = "Selecionar para enviar por WhatsApp";
-		// Se a página recriou este link (ex.: ao voltar para a aba de
-		// Movimentações) e o documento já estava selecionado antes, mantém a
-		// caixinha marcada em vez de "perder" a seleção visualmente.
-		checkbox.checked = selectedDocs.has(absolute);
-		checkbox.addEventListener("click", function (e) {
-			e.stopPropagation();
-		});
-		checkbox.addEventListener("change", function () {
-			if (checkbox.checked) {
-				selectedDocs.set(absolute, { href: absolute, name: name });
-			} else {
-				selectedDocs.delete(absolute);
-			}
-			updateWaLauncherCount();
-			refreshWaPanelList();
-		});
-
-		link.parentNode.insertBefore(checkbox, link);
 	}
 
 	function scanDocLinksForWhatsapp(root) {
@@ -1004,6 +979,7 @@
 	let processScreenEligible = false;
 
 	function isOnProcessScreen() {
+		if (location.pathname === "/projudi/processo/criminal/antecedentesCriminais.do") return false;
 		if (processScreenEligible) return true;
 		if (findProcessToolbarElement() || document.querySelector('a.link[href*="' + DOC_LINK_HREF_MARKER + '"]')) {
 			processScreenEligible = true;
