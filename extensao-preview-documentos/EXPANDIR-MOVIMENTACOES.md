@@ -7,3 +7,17 @@ Usa ícones iPlus.gif/iMinus.gif vinculados a showDetail ou linkArquivos, reconh
 Preserva o fallback offscreen de Processo copiado, a seleção única de documentos e o aviso verde após dispensa. Testes simulados de alternância, lista mista e bloqueio de cliques concorrentes passaram.
 
 Na listagem analisarJuntada.do, sem quadroPendencias, o botão é inserido na primeira célula da linha do controle nativo Filtrar. Não usa o token da URL. A localização foi validada em simulação; depende de a barra nativa usar uma linha de tabela.
+
+## Só com processo aberto — 2.9.11
+
+Antes de mostrar qualquer um dos dois botões, a extensão confirma que há um processo realmente aberto na tela — mesmo critério já usado pelo lançador do WhatsApp em `content.js` (`isOnProcessScreen`): existe a barra de ações do processo (Peticionar, Juntar Documento, Patronato, Exportar Processo, Pedido Incidental, Navegar ou Voltar) ou algum link de arquivo (`/arquivo.do`) na página. Sem isso, os botões não aparecem — mesmo que a página tenha um `#quadroPendencias` ou um botão "Filtrar" (ex.: listas/mesas que resumem pendências de vários processos, não de um processo aberto).
+
+## Ocultar sem arquivo — 2.9.11
+
+Ao lado do botão Expandir/Recolher movimentações, o botão "(Des)ocultar sem arquivo (+)" oculta/mostra as linhas da mesma tabela que não têm nenhum controle nativo de anexo (nem iPlus.gif fechado nem iMinus.gif aberto) — ou seja, movimentações/pendências sem arquivo. Clicar no botão alterna a exibição só da página atual.
+
+Dentro do próprio botão, separada por uma linha vertical, fica a caixa "sempre": marcá-la grava a preferência `hideMovementsWithoutFilePrefs` (chrome.storage.sync, chave `alwaysHide`) para que o ocultamento já venha ativado da próxima vez que a tela abrir, em qualquer processo. A preferência pode ser ligada ou desligada a qualquer momento por essa mesma caixa (clicar nela não aciona o botão) e muda em todas as abas abertas via `chrome.storage.onChanged`, no mesmo padrão usado pelo Destaque de movimentações.
+
+As movimentações da aba "Movimentações e Eventos" (tr id="mov1Grau,...", o mesmo id usado pelo Realces nativo e por movementHighlight.js) ficam numa tabela separada do quadro Pendências onde o botão fica — por isso a busca de linhas é pela página inteira (por esse id), e só cai para a tabela dos controles de anexo (showDetail/linkArquivos) quando esse id não existe (quadro Pendências, analisarJuntada.do). Só conta como candidata a linha que estiver visível agora (a aba realmente aberta) ou que a própria extensão já tenha ocultado antes — assim o recurso nunca mexe em linhas de outra aba escondida no DOM, e ainda consegue mostrar de volta o que ele mesmo ocultou.
+
+Todas as decisões (linhas encontradas por id ou por fallback, quantas têm/não têm arquivo, quantas foram ocultadas, preferência carregada/gravada, cliques) são logadas no console com o prefixo `[PDP expandMovements]`, para diagnosticar sem precisar adivinhar quando a tela do Projudi tiver uma estrutura inesperada.
