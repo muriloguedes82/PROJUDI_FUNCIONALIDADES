@@ -10,6 +10,8 @@ Na listagem analisarJuntada.do, sem quadroPendencias, o botão é inserido na pr
 
 ## Ocultar sem arquivo — 2.9.11
 
-Ao lado do botão Expandir/Recolher movimentações, um segundo botão ("Ocultar sem arquivo (+)" / "Mostrar sem arquivo") oculta as linhas da mesma tabela que não têm nenhum controle nativo de anexo (nem iPlus.gif fechado nem iMinus.gif aberto) — ou seja, movimentações/pendências sem arquivo. O botão apenas alterna a exibição da página atual.
+Ao lado do botão Expandir/Recolher movimentações, o botão "(Des)ocultar sem arquivo (+)" oculta/mostra as linhas da mesma tabela que não têm nenhum controle nativo de anexo (nem iPlus.gif fechado nem iMinus.gif aberto) — ou seja, movimentações/pendências sem arquivo. Clicar no botão alterna a exibição só da página atual.
 
-Uma caixa "sempre", ao lado, grava a preferência `hideMovementsWithoutFilePrefs` (chrome.storage.sync, chave `alwaysHide`) para que o ocultamento já venha ativado da próxima vez que a tela abrir, em qualquer processo. A preferência pode ser ligada ou desligada a qualquer momento pela mesma caixa; muda em todas as abas abertas via `chrome.storage.onChanged`, no mesmo padrão usado pelo Destaque de movimentações.
+Dentro do próprio botão, separada por uma linha vertical, fica a caixa "sempre": marcá-la grava a preferência `hideMovementsWithoutFilePrefs` (chrome.storage.sync, chave `alwaysHide`) para que o ocultamento já venha ativado da próxima vez que a tela abrir, em qualquer processo. A preferência pode ser ligada ou desligada a qualquer momento por essa mesma caixa (clicar nela não aciona o botão) e muda em todas as abas abertas via `chrome.storage.onChanged`, no mesmo padrão usado pelo Destaque de movimentações.
+
+Todas as decisões (host encontrado, tabela usada, linhas ocultadas, preferência carregada/gravada, cliques) são logadas no console com o prefixo `[PDP expandMovements]`, para diagnosticar sem precisar adivinhar quando a tela do Projudi tiver uma estrutura inesperada.

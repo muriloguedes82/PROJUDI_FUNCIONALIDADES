@@ -1,18 +1,22 @@
 // Expande/recolhe os controles nativos de anexos da página atual, e permite
 // ocultar as movimentações/pendências que não têm nenhum controle de anexo
-// (ou seja, sem arquivo). Uma preferência opcional ("Sempre") faz esse
-// ocultamento já vir ativado ao abrir a tela; ela pode ser ligada/desligada
-// a qualquer momento pela caixa ao lado do botão.
+// (ou seja, sem arquivo). O próprio botão "(Des)ocultar sem arquivo" traz
+// embutida a caixa "sempre", que grava a preferência para o ocultamento já
+// vir ativado da próxima vez; essa preferência pode ser ligada/desligada a
+// qualquer momento pela mesma caixa.
 (function () {
   'use strict';
   if (window.__pdpExpandMovements) return;
   window.__pdpExpandMovements = true;
 
+  const LOG_PREFIX = '[PDP expandMovements]';
+  function log() { console.log(LOG_PREFIX, ...arguments); }
+
   const HIDE_STORAGE_KEY = 'hideMovementsWithoutFilePrefs';
   const HIDDEN_ROW_ATTR = 'data-pdp-hidden-no-file';
 
   let button = null, footer = null, running = false, scheduled = false;
-  let hideButton = null, alwaysWrap = null, alwaysCheckbox = null;
+  let hideGroup = null, alwaysCheckbox = null;
   let hideNoFile = false, alwaysHide = false;
 
   function defaultHidePrefs() {
@@ -24,18 +28,25 @@
       const prefs = Object.assign(defaultHidePrefs(), data[HIDE_STORAGE_KEY]);
       alwaysHide = !!prefs.alwaysHide;
       if (alwaysHide) hideNoFile = true;
+      log('preferência carregada', { alwaysHide, hideNoFile });
+    }).catch(function (err) {
+      log('erro ao carregar preferência', err);
     });
   }
 
   function saveAlwaysHide(value) {
     alwaysHide = value;
-    return chrome.storage.sync.set({ [HIDE_STORAGE_KEY]: { alwaysHide: value } });
+    log('gravando preferência "sempre"', value);
+    return chrome.storage.sync.set({ [HIDE_STORAGE_KEY]: { alwaysHide: value } }).catch(function (err) {
+      log('erro ao gravar preferência', err);
+    });
   }
 
   chrome.storage.onChanged.addListener(function (changes, area) {
     if (area !== 'sync' || !changes[HIDE_STORAGE_KEY]) return;
     const prefs = Object.assign(defaultHidePrefs(), changes[HIDE_STORAGE_KEY].newValue);
     alwaysHide = !!prefs.alwaysHide;
+    log('preferência alterada em outra aba/tela', { alwaysHide });
     if (alwaysCheckbox) alwaysCheckbox.checked = alwaysHide;
     if (alwaysHide) hideNoFile = true;
     refresh();
@@ -58,25 +69,35 @@
   }
   function movementRows(host, footer, filterRow) {
     const table = host.tagName === 'TABLE' ? host : host.closest('table');
-    if (!table) return [];
+    if (!table) {
+      log('movementRows: nenhuma tabela encontrada a partir do host', host);
+      return [];
+    }
     return [...table.rows].filter(row =>
       row !== footer && row !== filterRow && row.parentElement && row.parentElement.tagName !== 'THEAD' &&
       row.cells.length && ![...row.cells].every(cell => cell.tagName === 'TH') &&
       !row.closest('.pdp-overlay,.pdp-qa-modal-backdrop,.pdp-juntada-review'));
   }
   function applyHideNoFile(host, footer, filterRow) {
-    movementRows(host, footer, filterRow).forEach(row => {
+    const rows = movementRows(host, footer, filterRow);
+    let hiddenCount = 0, changed = 0;
+    rows.forEach(row => {
       const shouldHide = hideNoFile && !rowHasFile(row);
+      if (shouldHide) hiddenCount++;
       if (shouldHide) {
         if (!row.hasAttribute(HIDDEN_ROW_ATTR)) {
           row.setAttribute(HIDDEN_ROW_ATTR, '1');
           row.style.setProperty('display', 'none', 'important');
+          changed++;
         }
       } else if (row.hasAttribute(HIDDEN_ROW_ATTR)) {
         row.removeAttribute(HIDDEN_ROW_ATTR);
         row.style.removeProperty('display');
+        changed++;
       }
     });
+    if (changed) log('applyHideNoFile', { hideNoFile, totalLinhas: rows.length, ocultas: hiddenCount, alteradas: changed });
+    return rows;
   }
   function refresh() {
     scheduled = false;
@@ -88,8 +109,12 @@
       if (filters.length === 1) filterRow = filters[0].closest('tr');
     }
     const host = panel || filterRow;
-    if (!host) { if (footer) footer.remove(); return; }
+    if (!host) {
+      if (footer) { log('refresh: host sumiu, removendo footer'); footer.remove(); }
+      return;
+    }
     if (!footer || !footer.isConnected || !host.contains(footer)) {
+      log('refresh: (re)criando footer', { temPanel: !!panel, temFilterRow: !!filterRow });
       if (filterRow) {
         if (footer) footer.remove();
         footer = document.createElement('td');
@@ -116,43 +141,64 @@
     }
     const row = footer.tagName === 'TR' ? footer.firstElementChild : footer;
     if (!button || !button.isConnected) {
+      log('refresh: criando botão Expandir/Recolher movimentações');
       button = document.createElement('button');
       button.type = 'button'; button.id = 'pdp-expand-movements';
       button.className = 'pdp-qa-group-btn';
       button.addEventListener('click', toggle);
       row.appendChild(button);
     }
-    if (!hideButton || !hideButton.isConnected) {
-      hideButton = document.createElement('button');
-      hideButton.type = 'button'; hideButton.id = 'pdp-hide-no-file-movements';
-      hideButton.className = 'pdp-qa-group-btn';
-      hideButton.style.marginLeft = '6px';
-      hideButton.addEventListener('click', function () {
-        hideNoFile = !hideNoFile;
-        refresh();
-      });
-      row.appendChild(hideButton);
-    }
-    if (!alwaysWrap || !alwaysWrap.isConnected) {
-      alwaysWrap = document.createElement('label');
-      alwaysWrap.className = 'pdp-qa-group-btn';
-      alwaysWrap.style.marginLeft = '6px';
-      alwaysWrap.style.cursor = 'pointer';
+    if (!hideGroup || !hideGroup.isConnected) {
+      log('refresh: criando botão (Des)ocultar sem arquivo');
+      // Não pode ser um <button> real: precisa hospedar um checkbox
+      // interativo dentro dele, e a especificação HTML não permite
+      // controles de formulário aninhados num <button>.
+      hideGroup = document.createElement('span');
+      hideGroup.id = 'pdp-hide-no-file-movements';
+      hideGroup.setAttribute('role', 'button');
+      hideGroup.setAttribute('tabindex', '0');
+      hideGroup.className = 'pdp-qa-group-btn';
+      hideGroup.style.marginLeft = '6px';
+
+      const label = document.createElement('span');
+      label.className = 'pdp-hide-no-file-label';
+      label.textContent = '(Des)ocultar sem arquivo (+)';
+      hideGroup.appendChild(label);
+
+      const alwaysWrap = document.createElement('label');
+      alwaysWrap.className = 'pdp-hide-no-file-always';
+      alwaysWrap.style.cssText = 'margin-left:6px;padding-left:6px;border-left:1px solid #adadad;cursor:pointer;display:inline-flex;align-items:center;gap:3px;';
+      alwaysWrap.title = 'Ocultar automaticamente, sempre que a tela abrir, as movimentações sem arquivo';
       alwaysCheckbox = document.createElement('input');
       alwaysCheckbox.type = 'checkbox'; alwaysCheckbox.id = 'pdp-hide-no-file-always';
       alwaysCheckbox.style.margin = '0';
       alwaysCheckbox.checked = alwaysHide;
+      // Clicar na caixa "sempre" não deve também disparar o clique do botão.
+      alwaysWrap.addEventListener('click', function (event) { event.stopPropagation(); });
       alwaysCheckbox.addEventListener('change', function () {
+        log('checkbox "sempre" alterada pelo usuário', alwaysCheckbox.checked);
         saveAlwaysHide(alwaysCheckbox.checked).then(function () {
           if (alwaysCheckbox.checked) { hideNoFile = true; refresh(); }
         });
       });
       const alwaysText = document.createElement('span');
       alwaysText.textContent = 'sempre';
-      alwaysWrap.title = 'Ocultar automaticamente, sempre que a tela abrir, as movimentações sem arquivo';
       alwaysWrap.appendChild(alwaysCheckbox);
       alwaysWrap.appendChild(alwaysText);
-      row.appendChild(alwaysWrap);
+      hideGroup.appendChild(alwaysWrap);
+
+      function activateHideToggle(event) {
+        if (alwaysWrap.contains(event.target)) return;
+        if (hideGroup.getAttribute('aria-disabled') === 'true') return;
+        hideNoFile = !hideNoFile;
+        log('botão (Des)ocultar sem arquivo acionado', { hideNoFile });
+        refresh();
+      }
+      hideGroup.addEventListener('click', activateHideToggle);
+      hideGroup.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); activateHideToggle(event); }
+      });
+      row.appendChild(hideGroup);
     }
     if (running) return;
     const items = controls();
@@ -162,12 +208,13 @@
     button.disabled = !items.length;
     button.title = items.length ? 'Abrir ou fechar os detalhes com anexos das movimentações desta página' : 'Nenhum controle de anexos reconhecido nesta página';
 
-    applyHideNoFile(host, footer, filterRow);
-    const rows = movementRows(host, footer, filterRow);
+    const rows = applyHideNoFile(host, footer, filterRow);
     const withoutFile = rows.filter(r => !rowHasFile(r));
-    hideButton.textContent = hideNoFile ? 'Mostrar sem arquivo' : 'Ocultar sem arquivo (+)';
-    hideButton.disabled = !withoutFile.length && !hideNoFile;
-    hideButton.title = withoutFile.length || hideNoFile
+    hideGroup.classList.toggle('pdp-qa-active', hideNoFile);
+    const hideDisabled = !withoutFile.length && !hideNoFile;
+    hideGroup.setAttribute('aria-disabled', String(hideDisabled));
+    hideGroup.classList.toggle('pdp-qa-btn-disabled', hideDisabled);
+    hideGroup.title = withoutFile.length || hideNoFile
       ? 'Oculta ou mostra as movimentações/pendências desta página que não têm nenhum arquivo anexado'
       : 'Nenhuma movimentação sem arquivo nesta página';
     if (alwaysCheckbox.checked !== alwaysHide) alwaysCheckbox.checked = alwaysHide;
