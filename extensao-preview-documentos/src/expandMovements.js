@@ -14,6 +14,7 @@
 
   const HIDE_STORAGE_KEY = 'hideMovementsWithoutFilePrefs';
   const HIDDEN_ROW_ATTR = 'data-pdp-hidden-no-file';
+  const ROW_ID_PREFIX = 'mov1Grau,';
 
   let button = null, footer = null, running = false, scheduled = false;
   let hideGroup = null, alwaysCheckbox = null;
@@ -64,22 +65,44 @@
     return null;
   }
   function rowHasFile(row) {
-    return [...row.querySelectorAll('img[onclick*="showDetail"], a[id^="linkArquivos"] img')]
-      .some(img => state(img));
+    if ([...row.querySelectorAll('img[onclick*="showDetail"], a[id^="linkArquivos"] img')].some(img => state(img))) return true;
+    // Fallback: o ícone pode não bater com iPlus.gif/iMinus.gif (variação de
+    // tema/URL), mas o link "Arquivos" (linkArquivosNNN) ou um link já
+    // expandido para /arquivo.do dentro da linha ainda indicam que há arquivo.
+    if (row.querySelector('a[id^="linkArquivos"]')) return true;
+    if (row.querySelector('a.link[href*="/arquivo.do"]')) return true;
+    return false;
   }
-  function movementRows(host, footer, filterRow) {
-    const table = host.tagName === 'TABLE' ? host : host.closest('table');
+  function isCandidateRow(row, footer, filterRow) {
+    return row !== footer && row !== filterRow && row.parentElement && row.parentElement.tagName !== 'THEAD' &&
+      row.cells.length && ![...row.cells].every(cell => cell.tagName === 'TH') &&
+      !row.closest('.pdp-overlay,.pdp-qa-modal-backdrop,.pdp-juntada-review');
+  }
+  // As movimentações da aba "Movimentações" do processo (tr id="mov1Grau,...",
+  // o mesmo id usado pelo Realces nativo e por movementHighlight.js) ficam
+  // numa tabela à parte do quadro Pendências onde o botão é inserido — por
+  // isso a busca é pela página inteira, e não dentro do host do botão.
+  function movementRows(footer, filterRow) {
+    const byId = [...document.querySelectorAll('tr[id^="' + ROW_ID_PREFIX + '"]')]
+      .filter(row => isCandidateRow(row, footer, filterRow));
+    if (byId.length) {
+      log('movementRows: usando linhas por id "' + ROW_ID_PREFIX + '"', byId.length);
+      return byId;
+    }
+    // Sem esse id (quadro Pendências, analisarJuntada.do): usa a tabela que
+    // contém os controles de anexo reconhecidos (showDetail/linkArquivos).
+    const items = controls();
+    const table = items.length && items[0].closest('table');
     if (!table) {
-      log('movementRows: nenhuma tabela encontrada a partir do host', host);
+      log('movementRows: nenhuma linha de movimentação nem tabela de controles encontrada');
       return [];
     }
-    return [...table.rows].filter(row =>
-      row !== footer && row !== filterRow && row.parentElement && row.parentElement.tagName !== 'THEAD' &&
-      row.cells.length && ![...row.cells].every(cell => cell.tagName === 'TH') &&
-      !row.closest('.pdp-overlay,.pdp-qa-modal-backdrop,.pdp-juntada-review'));
+    const rows = [...table.rows].filter(row => isCandidateRow(row, footer, filterRow));
+    log('movementRows: usando tabela dos controles de anexo (fallback)', rows.length);
+    return rows;
   }
-  function applyHideNoFile(host, footer, filterRow) {
-    const rows = movementRows(host, footer, filterRow);
+  function applyHideNoFile(footer, filterRow) {
+    const rows = movementRows(footer, filterRow);
     let hiddenCount = 0, changed = 0;
     rows.forEach(row => {
       const shouldHide = hideNoFile && !rowHasFile(row);
@@ -96,7 +119,7 @@
         changed++;
       }
     });
-    if (changed) log('applyHideNoFile', { hideNoFile, totalLinhas: rows.length, ocultas: hiddenCount, alteradas: changed });
+    log('applyHideNoFile', { hideNoFile, totalLinhas: rows.length, semArquivo: rows.filter(r => !rowHasFile(r)).length, ocultasAgora: hiddenCount, alteradas: changed });
     return rows;
   }
   function refresh() {
@@ -122,6 +145,7 @@
         footer.style.cssText = 'text-align:left;vertical-align:middle;white-space:nowrap;padding:0 8px 0 0;';
         filterRow.insertBefore(footer, filterRow.firstChild);
         if (button) footer.appendChild(button);
+        if (hideGroup) footer.appendChild(hideGroup);
       } else {
       if (footer) footer.remove();
       const table = /^(TABLE|TBODY|THEAD|TFOOT)$/.test(panel.tagName);
@@ -137,6 +161,7 @@
       const parent = panel.tagName === 'TABLE' ? (panel.tBodies[0] || panel.createTBody()) : panel;
       parent.appendChild(footer);
       if (button) container.appendChild(button);
+      if (hideGroup) container.appendChild(hideGroup);
       }
     }
     const row = footer.tagName === 'TR' ? footer.firstElementChild : footer;
@@ -208,7 +233,7 @@
     button.disabled = !items.length;
     button.title = items.length ? 'Abrir ou fechar os detalhes com anexos das movimentações desta página' : 'Nenhum controle de anexos reconhecido nesta página';
 
-    const rows = applyHideNoFile(host, footer, filterRow);
+    const rows = applyHideNoFile(footer, filterRow);
     const withoutFile = rows.filter(r => !rowHasFile(r));
     hideGroup.classList.toggle('pdp-qa-active', hideNoFile);
     const hideDisabled = !withoutFile.length && !hideNoFile;
