@@ -152,6 +152,20 @@
 			if (type === "hidden" || type === "submit" || type === "button" || type === "reset" || type === "file" || type === "password") return;
 			if (type === "checkbox" || type === "radio") {
 				fields.push({ name: el.name, type: type, value: el.value, checked: el.checked });
+			} else if (type === "select-one" && el.selectedIndex >= 0) {
+				// Guarda também o TEXTO da opção escolhida - alguns desses
+				// combobox são "select2" alimentados por busca (ex.: o
+				// "Destino" de "Outras Remessas", que começa vazio e só
+				// ganha a opção escolhida por AJAX enquanto o usuário
+				// digita/seleciona). No diálogo novo resolvido em segundo
+				// plano, esse <select> nasce sem nenhuma <option> além do
+				// placeholder - só atribuir `.value` não faz nada, porque a
+				// opção escolhida simplesmente não existe ali ainda (visto
+				// ao vivo: "Destino da remessa não informado" mesmo com o
+				// valor certo capturado). applyFormFields (abaixo) usa esse
+				// texto para recriar a <option> que faltar antes de aplicar
+				// o valor.
+				fields.push({ name: el.name, type: type, value: el.value, text: normalizeText(el.options[el.selectedIndex]) });
 			} else {
 				fields.push({ name: el.name, type: type, value: el.value });
 			}
@@ -170,6 +184,9 @@
 			} else {
 				const el = form.querySelector('[name="' + cssEscapeAttr(f.name) + '"]');
 				if (el) {
+					if (f.type === "select-one" && f.value && !el.querySelector('option[value="' + cssEscapeAttr(f.value) + '"]')) {
+						el.add(new Option(f.text || f.value, f.value));
+					}
 					el.value = f.value;
 					el.dispatchEvent(new Event("input", { bubbles: true }));
 					el.dispatchEvent(new Event("change", { bubbles: true }));
