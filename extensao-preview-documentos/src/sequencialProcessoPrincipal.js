@@ -133,8 +133,8 @@
 		const newRow = document.createElement("tr");
 		newRow.setAttribute(ROW_ATTR, "");
 		newRow.innerHTML =
-			'<td class="label" style="color:#e08a1e"><label style="color:#e08a1e">Sequencial do Processo Principal:</label></td>' +
-			'<td colspan="4" style="color:#e08a1e"><span class="pdp-seq-principal-valor">Buscando…</span></td>';
+			'<td class="label" style="color:#ff6a00"><label style="color:#ff6a00">Sequencial do Processo Principal:</label></td>' +
+			'<td colspan="4" style="color:#ff6a00"><span class="pdp-seq-principal-valor">Buscando…</span></td>';
 		principalRow.insertAdjacentElement("afterend", newRow);
 		const valueEl = newRow.querySelector(".pdp-seq-principal-valor");
 
