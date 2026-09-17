@@ -302,44 +302,84 @@ relevantes de um processo criminal:
 ### Como usar
 
 1. Clique em **"📜 Certidão Explicativa"** e depois em **"🔍 Coletar desta
-   tela"** — a extensão lê todas as movimentações válidas (não tachadas) já
-   carregadas na tela atual (mesmo padrão de link `a.link[id^="LNKmov"]` usado
-   pelas Ações rápidas), com data, texto completo do evento e os documentos
-   anexados a cada uma.
+   tela"** — a extensão localiza a própria tabela de Movimentações pelo
+   cabeçalho ("Seq.", "Data", "Evento", "Movimentado Por") e lê **todas** as
+   linhas válidas (não tachadas), não só as que viram link clicável. Quando
+   uma linha tem o indicador "Arquivos N", a extensão expande automaticamente
+   (clique programático, só leitura) para coletar os documentos anexados a
+   ela.
 2. **Se o processo tiver movimentações em mais de uma aba/grau** (ex.: 1º e
    2º grau, um apenso com movimentação própria), mude para cada uma dessas
    telas e clique em "Coletar desta tela" de novo — os eventos vão se
    somando (mostrados no contador do painel), sem duplicar (cada evento é
-   identificado pelo `id` único que o próprio Projudi já usa).
-3. Clique em **"📄 Gerar minuta da certidão"**. Para cada evento de
-   **denúncia/aditamento** com documento anexado, a extensão baixa o PDF
-   (reaproveitando a sessão logada, do mesmo jeito que os recursos de
-   WhatsApp/e-mail) e usa a biblioteca **pdf.js** (vendorizada em
-   `src/vendor/`, sem sair da máquina do usuário) para extrair o texto do
-   documento e tentar localizar automaticamente:
-   - referências a artigos de lei (capitulação penal — ex.: "art. 33 da Lei
-     nº 11.343/2006"), por expressão regular;
-   - o trecho inicial do documento (onde a denúncia normalmente qualifica o
-     réu/a ré), copiado literalmente para revisão.
-4. O resultado abre em **uma aba nova**, como uma minuta com todo o texto
+   identificado pela combinação de data/hora/"Seq.").
+3. **Se o processo tiver mais de um réu/indiciado(a)/denunciado(a)**, clique
+   em **"🔎 Identificar réu(s)/indiciado(s)"** — a extensão lê a aba "Partes e
+   Outros" (heuristicamente, procurando papéis como "Réu", "Indiciado(a)",
+   "Denunciado(a)", "Noticiado(a)" e o nome ao lado) e mostra uma lista para
+   escolher **a quem esta certidão deve se referir**. A partir daí:
+   - toda movimentação que mencionar **outra** pessoa do processo (e não a
+     selecionada) é **omitida** da certidão;
+   - o mesmo vale para o conteúdo dos documentos lidos — se o texto de um PDF
+     falar de outro réu/indiciado(a) e não citar o(a) selecionado(a), ele é
+     descartado da minuta;
+   - movimentações que não citam ninguém especificamente (atos cartorários
+     genéricos) continuam entrando normalmente.
+   - Com só um réu/indiciado(a) identificado, esse passo é automático (sem
+     precisar escolher nada); sem nenhum identificado, a certidão segue sem
+     filtro, trazendo tudo o que foi coletado.
+4. Clique em **"📄 Gerar minuta da certidão"**. A extensão baixa (reaproveitando
+   a sessão logada, do mesmo jeito que os recursos de WhatsApp/e-mail) e lê,
+   com a biblioteca **pdf.js** (vendorizada em `src/vendor/`, sem sair da
+   máquina do usuário), o **inteiro teor de todo documento** anexado às
+   movimentações coletadas — não só denúncia/aditamento —, até um limite de
+   60 documentos por geração (para não travar o navegador em processos
+   grandes; quando uma movimentação tem mais de um arquivo, só o primeiro é
+   lido). Com o conteúdo de cada documento, tenta localizar automaticamente:
+   - para **denúncia/aditamento**: referências a artigos de lei (capitulação
+     penal — ex.: "art. 33 da Lei nº 11.343/2006"), por expressão regular, e
+     o trecho inicial do documento (onde normalmente vem a qualificação do
+     réu/a ré);
+   - para **audiência, sentença, acórdão, recurso, trânsito em julgado e
+     arquivamento**: o trecho do documento mais próximo de palavras-chave da
+     categoria (ex.: "dispositivo"/"condeno"/"absolvo" numa sentença;
+     "acordam"/"deram provimento" num acórdão) — sem essas palavras, mostra o
+     início do documento.
+   Em nenhum caso o texto é reescrito ou resumido automaticamente — é sempre
+   um recorte literal do documento, para o usuário revisar e sintetizar à mão
+   antes de usar.
+5. O resultado abre em **uma aba nova**, como uma minuta com todo o texto
    **editável** (clique e digite normalmente) — incluindo os trechos
-   extraídos do PDF, que devem sempre ser revisados/completados manualmente
+   extraídos dos PDFs, que devem sempre ser revisados/completados manualmente
    antes de virarem a certidão oficial — e um botão "🖨 Imprimir/Salvar PDF".
+   Quando há um réu/indiciado(a) selecionado(a), a minuta abre com um aviso
+   no topo identificando a quem ela se refere e quantas movimentações/
+   documentos de outras pessoas foram omitidos.
 
 ### Limitações
 
-- A extração da qualificação/capitulação penal é **heurística**: localiza
-  padrões de texto prováveis (menções a "art. ... da Lei/Código Penal") e
-  mostra o início do documento para revisão, mas não "entende" o conteúdo —
+- A extração de qualquer trecho de documento é **heurística**: localiza
+  padrões de texto prováveis (artigo de lei, palavras-chave da categoria) e
+  mostra um recorte para revisão, mas não "entende" nem resume o conteúdo —
   sempre confira e complete manualmente antes de expedir a certidão.
 - Só documentos em **PDF** têm o texto extraído automaticamente; outros
   formatos mostram um aviso pedindo preenchimento manual.
+- A identificação de réus/indiciados na aba "Partes e Outros" também é
+  heurística (procura por rótulos de papel processual e o nome ao lado) —
+  se o Projudi/SEEU usar um layout muito diferente do esperado nessa tela, a
+  extensão avisa que não conseguiu identificar ninguém e a certidão segue
+  sem filtro por réu.
+- O filtro por réu/indiciado(a) compara **nomes** (sem acento, maiúsculas)
+  contra a lista lida da aba Partes — como qualquer comparação de texto, não
+  é infalível para homônimos ou grafias muito divergentes; sempre revise a
+  minuta antes de usar.
 - A extensão nunca gera nem envia a certidão oficial sozinha — o resultado é
   sempre uma minuta de apoio, aberta numa aba separada para revisão.
-- A coleta lê apenas o que já está carregado na tela (mesma técnica das
-  Ações rápidas); ela não navega nem clica em nada sozinha além de ler o
-  DOM atual, por isso a necessidade de repetir "Coletar desta tela" em cada
-  aba/grau do processo.
+- A coleta lê apenas o que já está carregado na tela (clicando só nos
+  indicadores "Arquivos N" para expandir anexos); ela não navega para outras
+  telas do processo sozinha (exceto, brevemente, para ler a aba Partes ao
+  identificar réus — ver acima), por isso a necessidade de repetir "Coletar
+  desta tela" em cada aba/grau do processo.
 
 ## Ações rápidas (painel "Ações" do Projudi)
 

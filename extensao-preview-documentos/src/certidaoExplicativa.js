@@ -33,19 +33,34 @@
 	const BUTTON_SCREEN_MARGIN = 12;
 	const OTHER_BUTTON_SELECTOR = "#pdp-qa-row, #pdp-wa-launcher, .pdp-email-visible";
 	const MAX_PDF_PAGES = 40;
+	// Quantos documentos, no máximo, são baixados e lidos por geração de
+	// minuta — ler "todos os arquivos do processo" pode significar dezenas
+	// de PDFs; sem um teto, o navegador travaria em processos grandes.
+	const MAX_DOCS_TO_READ = 60;
 	const PROCESS_TOOLBAR_LABELS = ["Peticionar", "Juntar Documento", "Patronato", "Exportar Processo", "Pedido Incidental", "Navegar", "Voltar"];
 
 	// Ordem importa: regras mais específicas primeiro (ex.: "aditamento" antes
 	// de "denúncia", já que "aditamento à denúncia" contém as duas palavras).
+	// `extractDoc: true` faz a extensão ler o PDF anexado ao evento (não só
+	// denúncia/aditamento); `crimeExtraction: true` aciona a heurística
+	// específica de capitulação penal (ver extractHeuristics); os demais usam
+	// `excerptKeywords` para localizar o trecho mais provável do documento
+	// (ver pickRelevantExcerpt).
 	const HIGHLIGHT_RULES = [
-		{ id: "aditamento", label: "Aditamento à Denúncia", re: /aditament/i, extractDoc: true },
-		{ id: "denuncia", label: "Denúncia", re: /den[uú]ncia/i, extractDoc: true },
-		{ id: "audiencia", label: "Audiência", re: /audi[eê]ncia/i },
-		{ id: "sentenca", label: "Sentença", re: /senten[çc]a/i },
-		{ id: "acordao", label: "Acórdão", re: /ac[oó]rd[ãa]o/i },
-		{ id: "recurso", label: "Recurso", re: /recurso|apela[çc][ãa]o|embargos de declara/i },
-		{ id: "transito", label: "Trânsito em Julgado", re: /tr[aâ]nsito em julgado/i },
-		{ id: "arquivamento", label: "Arquivamento", re: /arquivad|arquivamento/i },
+		{ id: "aditamento", label: "Aditamento à Denúncia", re: /aditament/i, extractDoc: true, crimeExtraction: true },
+		{ id: "denuncia", label: "Denúncia", re: /den[uú]ncia/i, extractDoc: true, crimeExtraction: true },
+		{ id: "audiencia", label: "Audiência", re: /audi[eê]ncia/i, extractDoc: true },
+		{
+			id: "sentenca",
+			label: "Sentença",
+			re: /senten[çc]a/i,
+			extractDoc: true,
+			excerptKeywords: [/disposit[ií]vo/i, /julgo\s+(?:procedente|improcedente)/i, /condeno\b/i, /absolvo\b/i],
+		},
+		{ id: "acordao", label: "Acórdão", re: /ac[oó]rd[ãa]o/i, extractDoc: true, excerptKeywords: [/acordam\b/i, /deram\s+provimento/i, /negaram\s+provimento/i] },
+		{ id: "recurso", label: "Recurso", re: /recurso|apela[çc][ãa]o|embargos de declara/i, extractDoc: true },
+		{ id: "transito", label: "Trânsito em Julgado", re: /tr[aâ]nsito em julgado/i, extractDoc: true },
+		{ id: "arquivamento", label: "Arquivamento", re: /arquivad|arquivamento/i, extractDoc: true },
 		{ id: "distribuicao", label: "Distribuição", re: /distribu[íi]d/i },
 	];
 
@@ -88,6 +103,212 @@
 		}
 		const match = document.title.match(/([\d.\-]{15,})/);
 		return match ? match[1] : "processo-desconhecido";
+	}
+
+	// -------------------------------------------------------------------
+	// Identificação de réus/indiciados (aba "Partes e Outros")
+	// -------------------------------------------------------------------
+	//
+	// Quando o processo tem mais de um réu/indiciado(a), a certidão precisa
+	// se restringir a UM deles por vez — nunca misturar informações de
+	// pessoas diferentes. Para isso a extensão precisa ler a aba "Partes e
+	// Outros" e identificar quem tem papel de réu/indiciado(a)/denunciado(a)/
+	// noticiado(a)/investigado(a) no processo.
+	//
+	// Como não temos o HTML real dessa tela, a leitura é heurística em dois
+	// níveis: (1) se a aba tiver uma URL própria navegável (mesmo padrão de
+	// outras telas do processo), carrega num iframe oculto, sem tocar na
+	// tela visível; (2) se for uma aba controlada só por JavaScript (sem URL
+	// própria), clica nela de verdade — é só leitura, nenhum dado é
+	// enviado — e volta para a aba de Movimentações em seguida, para não
+	// atrapalhar o que o usuário já tinha coletado.
+
+	const PARTIES_TAB_LABELS = ["Partes e Outros", "Partes"];
+	const DEFENDANT_ROLE_LABEL_RE = /^(r[ée]us?|indiciad[oa]s?|denunciad[oa]s?|noticiad[oa]s?|investigad[oa]s?|acusad[oa]s?)\)?\s*:?$/i;
+	const DEFENDANT_ROLE_INLINE_RE = /\b(r[ée]us?|indiciad[oa]s?|denunciad[oa]s?|noticiad[oa]s?|investigad[oa]s?|acusad[oa]s?)\)?\s*:\s*([A-ZÀ-Ú][^\n:;]{3,90})/gi;
+
+	function findLabeledTab(labels) {
+		const candidates = document.querySelectorAll("a, button, li, span");
+		for (let i = 0; i < candidates.length; i++) {
+			const text = (candidates[i].textContent || "").replace(/\s+/g, " ").trim();
+			if (labels.indexOf(text) !== -1) return candidates[i];
+		}
+		return null;
+	}
+
+	// Extrai a URL de um link/aba, seja por `href` normal ou por um
+	// `onclick` no mesmo padrão já usado em Ações Rápidas
+	// (document.location.href='...'/openDialog(...)). Devolve null quando a
+	// aba não tem URL própria navegável (controlada só por JS).
+	function resolveTabUrl(el) {
+		if (!el) return null;
+		if (el.tagName === "A") {
+			const href = el.getAttribute("href");
+			if (href && href !== "#" && !/^javascript:/i.test(href)) {
+				try {
+					return new URL(href, window.location.href).href;
+				} catch (err) {
+					/* ignore */
+				}
+			}
+		}
+		const onclick = el.getAttribute && el.getAttribute("onclick");
+		if (onclick) {
+			const match = onclick.match(/(?:document\.location\.href\s*=\s*|open(?:DialogMaximized|Dialog)\(|location\.replace\()\s*'([^']+)'/);
+			if (match) {
+				try {
+					return new URL(match[1], window.location.href).href;
+				} catch (err) {
+					/* ignore */
+				}
+			}
+		}
+		return null;
+	}
+
+	// Mesma técnica de iframe oculto já usada em quickActions.js (fetchDoc) —
+	// uma navegação de verdade, só que fora da área visível da tela.
+	function fetchScreenDoc(url) {
+		return new Promise(function (resolve, reject) {
+			const iframe = document.createElement("iframe");
+			iframe.style.position = "absolute";
+			iframe.style.top = "-9999px";
+			iframe.style.left = "-9999px";
+			iframe.style.width = "1024px";
+			iframe.style.height = "768px";
+
+			let settled = false;
+			const timeout = setTimeout(function () {
+				if (settled) return;
+				settled = true;
+				cleanup();
+				reject(new Error("tempo esgotado carregando " + url));
+			}, 12000);
+
+			function cleanup() {
+				clearTimeout(timeout);
+				if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+			}
+
+			iframe.addEventListener("load", function () {
+				if (settled) return;
+				let doc, finalUrl;
+				try {
+					doc = iframe.contentDocument;
+					finalUrl = iframe.contentWindow.location.href;
+				} catch (err) {
+					settled = true;
+					cleanup();
+					reject(err);
+					return;
+				}
+				if (finalUrl === "about:blank") return;
+				settled = true;
+				cleanup();
+				resolve({ doc: doc, url: finalUrl });
+			});
+
+			document.body.appendChild(iframe);
+			iframe.src = url;
+		});
+	}
+
+	// Localiza pares "papel processual" + "nome" num documento (a própria
+	// página, ou a tela de Partes carregada no iframe oculto). Dois padrões:
+	// (A) linha de tabela com uma célula = rótulo do papel, outra = nome;
+	// (B) rótulo solto no texto corrido, ex. "Réu: FULANO DE TAL". Sempre
+	// heurístico — nunca inventa nome nenhum, só reconhece o que já está
+	// escrito na tela.
+	function parseDefendantsFromDoc(scopeDoc) {
+		const found = [];
+		const seen = Object.create(null);
+
+		function cellText(el) {
+			return (el.textContent || "").replace(/\s+/g, " ").trim();
+		}
+
+		function addDefendant(name, role) {
+			name = (name || "").replace(/\s+/g, " ").trim();
+			if (name.length < 4 || name.length > 120) return;
+			if (!/[A-ZÀ-Ú]/.test(name)) return;
+			const key = name.toUpperCase();
+			if (seen[key]) return;
+			seen[key] = true;
+			found.push({ name: name, role: (role || "").trim() });
+		}
+
+		if (scopeDoc.querySelectorAll) {
+			scopeDoc.querySelectorAll("tr").forEach(function (row) {
+				const cells = Array.prototype.slice.call(row.cells || []);
+				if (cells.length < 2) return;
+				for (let i = 0; i < cells.length; i++) {
+					const label = cellText(cells[i]);
+					if (!DEFENDANT_ROLE_LABEL_RE.test(label)) continue;
+					for (let j = 0; j < cells.length; j++) {
+						if (j === i) continue;
+						const candidate = cellText(cells[j]);
+						if (candidate && !DEFENDANT_ROLE_LABEL_RE.test(candidate)) {
+							addDefendant(candidate, label);
+							break;
+						}
+					}
+				}
+			});
+		}
+
+		const bodyText = (scopeDoc.body ? scopeDoc.body.textContent : "") || "";
+		DEFENDANT_ROLE_INLINE_RE.lastIndex = 0;
+		let m;
+		while ((m = DEFENDANT_ROLE_INLINE_RE.exec(bodyText))) {
+			addDefendant(m[2], m[1]);
+		}
+
+		return found;
+	}
+
+	// Ponto de entrada: devolve { defendants, reason } — `reason` só é
+	// preenchido quando não foi possível identificar ninguém (tela sem aba
+	// de Partes reconhecível, ou sem nenhum papel de réu/indiciado nela).
+	async function loadDefendants(onProgress) {
+		const tabLink = findLabeledTab(PARTIES_TAB_LABELS);
+		if (!tabLink) {
+			return { defendants: [], reason: 'Não encontrei a aba "Partes e Outros" nesta tela.' };
+		}
+
+		const resolvedUrl = resolveTabUrl(tabLink);
+		if (resolvedUrl) {
+			if (onProgress) onProgress("Lendo a aba Partes e Outros…");
+			try {
+				const result = await fetchScreenDoc(resolvedUrl);
+				const found = parseDefendantsFromDoc(result.doc);
+				return { defendants: found, reason: found.length ? null : "Não identifiquei réu/indiciado(a) na aba Partes e Outros." };
+			} catch (err) {
+				return { defendants: [], reason: "Não consegui carregar a aba Partes e Outros (" + String((err && err.message) || err) + ")." };
+			}
+		}
+
+		// Sem URL própria: a aba é trocada só por JavaScript (o mesmo padrão
+		// já observado nas abas de Movimentações/Partes — ver content.js).
+		// Clica nela de verdade (só leitura) e volta para Movimentações
+		// depois, para não atrapalhar a coleta já feita pelo usuário.
+		if (onProgress) onProgress("Abrindo a aba Partes e Outros para leitura…");
+		const movementsTabLink = findLabeledTab(["Movimentações"]);
+		try {
+			tabLink.click();
+		} catch (err) {
+			return { defendants: [], reason: "Não consegui abrir a aba Partes e Outros." };
+		}
+		await wait(1200);
+		const found = parseDefendantsFromDoc(document);
+		if (movementsTabLink) {
+			try {
+				movementsTabLink.click();
+			} catch (err) {
+				/* ignore */
+			}
+			await wait(600);
+		}
+		return { defendants: found, reason: found.length ? null : "Não identifiquei réu/indiciado(a) na aba Partes e Outros." };
 	}
 
 	// -------------------------------------------------------------------
@@ -352,6 +573,57 @@
 	// -------------------------------------------------------------------
 
 	const collected = new Map(); // id -> evento
+	let defendants = []; // [{ name, role }] — ver loadDefendants()
+	let selectedDefendantName = null; // null = sem filtro, traz todo mundo
+
+	// -------------------------------------------------------------------
+	// Filtro por réu/indiciado(a) selecionado(a)
+	// -------------------------------------------------------------------
+	//
+	// Quando há mais de um réu/indiciado(a) e um deles é escolhido no
+	// painel, nenhuma movimentação nem trecho de documento referente
+	// EXCLUSIVAMENTE a outra pessoa pode entrar na certidão. A comparação é
+	// por nome (normalizado, sem acento, maiúsculas) contra a lista lida da
+	// aba Partes — nunca por suposição.
+
+	function stripDiacritics(text) {
+		try {
+			return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+		} catch (err) {
+			return text;
+		}
+	}
+
+	function normalizeNameForMatch(text) {
+		return stripDiacritics((text || "").toUpperCase()).replace(/\s+/g, " ").trim();
+	}
+
+	function textMentionsName(text, name) {
+		if (!text || !name) return false;
+		return normalizeNameForMatch(text).indexOf(normalizeNameForMatch(name)) !== -1;
+	}
+
+	function otherDefendantNames() {
+		return defendants
+			.filter(function (d) {
+				return d.name !== selectedDefendantName;
+			})
+			.map(function (d) {
+				return d.name;
+			});
+	}
+
+	// Verdadeiro quando o texto menciona outro(a) réu/indiciado(a) e NÃO
+	// menciona o(a) selecionado(a) — ou seja, é assunto de outra pessoa e
+	// deve ficar de fora desta certidão. Se o texto não citar ninguém (um
+	// ato meramente cartorário, por exemplo), continua entrando normalmente.
+	function isAboutOtherDefendant(text) {
+		if (!selectedDefendantName || defendants.length < 2) return false;
+		if (textMentionsName(text, selectedDefendantName)) return false;
+		return otherDefendantNames().some(function (name) {
+			return textMentionsName(text, name);
+		});
+	}
 
 	function addEvents(events) {
 		events.forEach(function (ev) {
@@ -519,8 +791,9 @@
 			'<div class="pdp-certidao-panel-header"><span>📜 Certidão Explicativa dos Autos</span>' +
 			'<button type="button" class="pdp-certidao-close">✕</button></div>' +
 			'<div class="pdp-certidao-panel-body">' +
-			'<p class="pdp-certidao-hint">Lê as movimentações desta tela e monta uma minuta narrativa, destacando denúncia, ' +
-			"aditamento, audiências, sentença, acórdão, trânsito em julgado e arquivamento. A minuta abre em uma aba nova, " +
+			'<p class="pdp-certidao-hint">Lê as movimentações desta tela e o inteiro teor dos documentos anexados a elas ' +
+			"(até um limite, para processos grandes), e monta uma minuta narrativa, destacando denúncia, aditamento, " +
+			"audiências, sentença, acórdão, recursos, trânsito em julgado e arquivamento. A minuta abre em uma aba nova, " +
 			"editável, para revisão antes de virar a certidão oficial.</p>" +
 			'<p class="pdp-certidao-hint pdp-certidao-warn">Se o processo tiver movimentações em mais de uma aba/grau (ex.: ' +
 			'1º e 2º grau, apensos), mude para cada uma delas e clique em "Coletar desta tela" outra vez antes de gerar — ' +
@@ -530,6 +803,8 @@
 			'<button type="button" class="pdp-certidao-collect">🔍 Coletar desta tela</button>' +
 			'<button type="button" class="pdp-certidao-clear">🗑 Limpar coletados</button>' +
 			"</div>" +
+			'<button type="button" class="pdp-certidao-find-defendants">🔎 Identificar réu(s)/indiciado(s)</button>' +
+			'<div class="pdp-certidao-defendants" hidden></div>' +
 			'<button type="button" class="pdp-certidao-generate" disabled>📄 Gerar minuta da certidão</button>' +
 			"</div>";
 		document.body.appendChild(panel);
@@ -537,10 +812,82 @@
 		panel.querySelector(".pdp-certidao-close").addEventListener("click", closePanel);
 		panel.querySelector(".pdp-certidao-collect").addEventListener("click", onCollectClick);
 		panel.querySelector(".pdp-certidao-clear").addEventListener("click", onClearClick);
+		panel.querySelector(".pdp-certidao-find-defendants").addEventListener("click", onFindDefendantsClick);
 		panel.querySelector(".pdp-certidao-generate").addEventListener("click", onGenerateClick);
 
 		positionPanel();
 		refreshStatus();
+		if (defendants.length) renderDefendants(null);
+	}
+
+	async function onFindDefendantsClick() {
+		const btn = panel.querySelector(".pdp-certidao-find-defendants");
+		btn.disabled = true;
+		const original = btn.textContent;
+		try {
+			const result = await loadDefendants(function (msg) {
+				btn.textContent = msg;
+			});
+			defendants = result.defendants;
+			renderDefendants(result.reason);
+		} catch (err) {
+			defendants = [];
+			renderDefendants("Erro ao identificar as partes: " + String((err && err.message) || err));
+		} finally {
+			btn.textContent = original;
+			btn.disabled = false;
+		}
+	}
+
+	function renderDefendants(reason) {
+		if (!panel) return;
+		const wrap = panel.querySelector(".pdp-certidao-defendants");
+		if (!wrap) return;
+		wrap.innerHTML = "";
+
+		if (!defendants.length) {
+			selectedDefendantName = null;
+			wrap.hidden = false;
+			const msg = document.createElement("p");
+			msg.className = "pdp-certidao-hint";
+			msg.textContent = reason || "Nenhum réu/indiciado(a) identificado — a certidão trará todas as movimentações coletadas.";
+			wrap.appendChild(msg);
+			return;
+		}
+
+		if (defendants.length === 1) {
+			selectedDefendantName = defendants[0].name;
+			wrap.hidden = true;
+			return;
+		}
+
+		wrap.hidden = false;
+		const intro = document.createElement("p");
+		intro.className = "pdp-certidao-hint";
+		intro.textContent = "Mais de um(a) réu/indiciado(a) encontrado(a). Escolha a quem esta certidão deve se referir — informações sobre as demais pessoas serão omitidas:";
+		wrap.appendChild(intro);
+
+		if (!selectedDefendantName || !defendants.some(function (d) { return d.name === selectedDefendantName; })) {
+			selectedDefendantName = defendants[0].name;
+		}
+
+		defendants.forEach(function (d) {
+			const label = document.createElement("label");
+			label.className = "pdp-certidao-defendant-option";
+			const radio = document.createElement("input");
+			radio.type = "radio";
+			radio.name = "pdp-certidao-defendant";
+			radio.value = d.name;
+			radio.checked = selectedDefendantName === d.name;
+			radio.addEventListener("change", function () {
+				selectedDefendantName = d.name;
+			});
+			label.appendChild(radio);
+			const text = document.createElement("span");
+			text.textContent = d.name + (d.role ? " (" + d.role + ")" : "");
+			label.appendChild(text);
+			wrap.appendChild(label);
+		});
 	}
 
 	function positionPanel() {
@@ -586,42 +933,73 @@
 	}
 
 	async function onGenerateClick() {
-		const events = sortedEvents();
+		let events = sortedEvents();
 		if (!events.length) return;
+
+		// Filtro por réu/indiciado(a): remove de saída qualquer movimentação
+		// que mencione outra pessoa do processo e não mencione a selecionada
+		// — nunca o contrário (na dúvida, o evento entra e é o texto do
+		// documento, mais abaixo, que decide se ele fica de fora).
+		let omittedCount = 0;
+		if (selectedDefendantName && defendants.length > 1) {
+			const kept = [];
+			events.forEach(function (ev) {
+				if (isAboutOtherDefendant(ev.text)) {
+					omittedCount++;
+				} else {
+					kept.push(ev);
+				}
+			});
+			events = kept;
+		}
 
 		const generateBtn = panel.querySelector(".pdp-certidao-generate");
 		generateBtn.disabled = true;
 		const originalLabel = generateBtn.textContent;
 
-		const enriched = [];
+		// Lê o inteiro teor de TODOS os documentos anexados aos eventos que
+		// restaram — não só denúncia/aditamento —, até MAX_DOCS_TO_READ, para
+		// não travar o navegador em processos com muitos anexos. Quando um
+		// evento tem mais de um arquivo, só o primeiro é lido.
+		const docTotal = Math.min(
+			events.filter(function (ev) {
+				return ev.docs.length > 0;
+			}).length,
+			MAX_DOCS_TO_READ
+		);
 		let docIndex = 0;
-		let docTotal = 0;
-		events.forEach(function (ev) {
-			const rule = classify(ev.text);
-			if (rule && rule.extractDoc && ev.docs.length) docTotal += 1;
-		});
 
+		const enriched = [];
 		for (let i = 0; i < events.length; i++) {
 			const ev = events[i];
 			const rule = classify(ev.text);
-			const item = { event: ev, rule: rule, extraction: null, extractionError: null };
-			if (rule && rule.extractDoc && ev.docs.length) {
+			const item = { event: ev, rule: rule, extraction: null, extractionError: null, docText: null };
+			let omittedForOtherDefendant = false;
+
+			if (ev.docs.length && docIndex < MAX_DOCS_TO_READ) {
 				docIndex++;
 				generateBtn.textContent = "Lendo documento " + docIndex + "/" + docTotal + "…";
 				try {
 					const text = await extractPdfText(ev.docs[0].href);
-					item.extraction = extractHeuristics(text);
+					if (isAboutOtherDefendant(text)) {
+						omittedForOtherDefendant = true;
+						omittedCount++;
+					} else {
+						item.docText = text;
+						if (rule && rule.crimeExtraction) item.extraction = extractHeuristics(text);
+					}
 				} catch (err) {
 					item.extractionError = String((err && err.message) || err);
 				}
 			}
-			enriched.push(item);
+
+			if (!omittedForOtherDefendant) enriched.push(item);
 		}
 
 		generateBtn.textContent = originalLabel;
 		generateBtn.disabled = false;
 
-		openDraftTab(enriched);
+		openDraftTab(enriched, omittedCount);
 	}
 
 	// -------------------------------------------------------------------
@@ -671,13 +1049,35 @@
 		return enriched.map(formatEventoFrase).join("; ") + ".";
 	}
 
-	// Bloco separado (fora da narrativa corrida) com o que foi extraído
-	// automaticamente do PDF de cada denúncia/aditamento — mantém a
-	// narrativa principal fluida, sem interromper a leitura no meio da
-	// frase com o texto bruto extraído do documento.
+	// Dado o texto integral de um documento, localiza o trecho mais provável
+	// de interessar à certidão: procura pela primeira ocorrência de uma das
+	// palavras-chave da categoria (ex.: "dispositivo"/"condeno" numa
+	// sentença) e devolve uma janela de texto ao redor dela; sem nenhuma
+	// palavra-chave encontrada, cai para o início do documento. Nunca
+	// reescreve nem resume o texto — só recorta um trecho para o usuário
+	// revisar e sintetizar manualmente.
+	function pickRelevantExcerpt(text, rule) {
+		if (!text) return "";
+		const keywords = (rule && rule.excerptKeywords) || [];
+		for (let i = 0; i < keywords.length; i++) {
+			const match = keywords[i].exec(text);
+			if (match) {
+				const start = Math.max(0, match.index - 200);
+				return text.slice(start, start + 1400).trim();
+			}
+		}
+		return text.slice(0, 1400).trim();
+	}
+
+	// Bloco separado (fora da narrativa corrida) com o que foi extraído do
+	// PDF de cada evento relevante — mantém a narrativa principal fluida,
+	// sem interromper a leitura no meio da frase com texto bruto extraído do
+	// documento. Denúncia/aditamento usam a heurística de capitulação penal;
+	// os demais mostram o trecho mais provável do documento (ver
+	// pickRelevantExcerpt), sempre para revisão antes de usar.
 	function buildExtractionSections(enriched) {
 		const withDoc = enriched.filter(function (item) {
-			return item.rule && item.rule.extractDoc && item.event.docs.length;
+			return item.rule && item.rule.extractDoc && item.event.docs.length && (item.docText || item.extractionError);
 		});
 		if (!withDoc.length) return "";
 
@@ -701,8 +1101,8 @@
 						"<p><em>Não foi possível extrair automaticamente o texto deste documento (" +
 						escapeHtml(item.extractionError) +
 						"). Abra-o manualmente e preencha abaixo:</em></p>";
-					html += '<div contenteditable="true" class="pdp-cert-editable">[qualificação do(a) denunciado(a) e capitulação penal — preencher manualmente]</div>';
-				} else {
+					html += '<div contenteditable="true" class="pdp-cert-editable">[preencher manualmente após revisar o documento]</div>';
+				} else if (item.rule.crimeExtraction) {
 					const extraction = item.extraction;
 					html += "<p>Capitulação penal identificada automaticamente (revise antes de usar):</p>";
 					html +=
@@ -713,19 +1113,22 @@
 						"</div>";
 					html += "<p>Trecho inicial do documento (geralmente traz a qualificação do(a) denunciado(a) — revise e recorte o necessário):</p>";
 					html += '<div contenteditable="true" class="pdp-cert-editable pdp-cert-editable-long">' + escapeHtml(extraction.qualificationExcerpt) + "</div>";
+				} else {
+					html += "<p>Trecho do documento (revise e resuma o necessário antes de usar):</p>";
+					html +=
+						'<div contenteditable="true" class="pdp-cert-editable pdp-cert-editable-long">' +
+						escapeHtml(pickRelevantExcerpt(item.docText, item.rule)) +
+						"</div>";
 				}
 				html += "</div>";
 				return html;
 			})
 			.join("");
 
-		return (
-			'<p contenteditable="true"><strong>Qualificação e capitulação penal identificadas nos documentos de denúncia/aditamento:</strong></p>' +
-			blocks
-		);
+		return '<p contenteditable="true"><strong>Trechos relevantes extraídos dos documentos:</strong></p>' + blocks;
 	}
 
-	function buildDraftHtml(enriched) {
+	function buildDraftHtml(enriched, omittedCount) {
 		const processNumber = extractProcessNumber();
 		const highlightedItems = enriched.filter(function (item) {
 			return !!item.rule;
@@ -738,6 +1141,17 @@
 
 		const narrativeParagraph = buildNarrativeParagraph(enriched);
 		const extractionSections = buildExtractionSections(enriched);
+
+		const scopeNote =
+			selectedDefendantName && defendants.length > 1
+				? '<p class="pdp-cert-scope" contenteditable="true">Certidão restrita às informações referentes a <strong>' +
+					escapeHtml(selectedDefendantName) +
+					"</strong>." +
+					(omittedCount
+						? " Foram omitidas " + omittedCount + " movimentação(ões)/documento(s) referentes a outra(s) pessoa(s) do processo."
+						: "") +
+					"</p>"
+				: "";
 
 		return (
 			"<!doctype html><html><head><meta charset=\"utf-8\"><title>Minuta de Certidão Explicativa</title>" +
@@ -756,6 +1170,7 @@
 			".pdp-cert-editable-long{max-height:260px; overflow:auto;}" +
 			".pdp-cert-editable:focus{outline:2px solid #6c93d6;}" +
 			"[contenteditable]:focus{outline:2px solid #6c93d6;}" +
+			".pdp-cert-scope{font-family:Arial, sans-serif; font-size:12px; color:#8a5a00; background:#fff3d6; border:1px solid #e8cf8a; border-radius:4px; padding:8px 12px; margin:0 0 20px;}" +
 			"@media print{.pdp-cert-toolbar{display:none;} .pdp-cert-editable{border:none; padding:0;}}" +
 			"</style></head><body>" +
 			'<div class="pdp-cert-toolbar">' +
@@ -768,6 +1183,7 @@
 			"</strong> apresenta, a partir das movimentações e documentos constantes dos autos, o resumo a seguir, com destaque para os " +
 			"principais atos processuais (denúncia, aditamento, audiências, sentença, acórdão, trânsito em julgado e arquivamento, " +
 			"quando existentes):</p>" +
+			scopeNote +
 			(summaryList
 				? '<div class="pdp-cert-summary"><strong>Principais eventos identificados:</strong><ul>' + summaryList + "</ul></div>"
 				: "") +
@@ -778,8 +1194,8 @@
 		);
 	}
 
-	function openDraftTab(enriched) {
-		const html = buildDraftHtml(enriched);
+	function openDraftTab(enriched, omittedCount) {
+		const html = buildDraftHtml(enriched, omittedCount);
 		const blob = new Blob([html], { type: "text/html" });
 		const url = URL.createObjectURL(blob);
 		window.open(url, "_blank");
