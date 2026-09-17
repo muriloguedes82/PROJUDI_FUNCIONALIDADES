@@ -328,42 +328,31 @@ relevantes de um processo criminal:
    - Com só um réu/indiciado(a) identificado, esse passo é automático (sem
      precisar escolher nada); sem nenhum identificado, a certidão segue sem
      filtro, trazendo tudo o que foi coletado.
-4. Clique em **"📄 Gerar minuta da certidão"**. A extensão baixa (reaproveitando
-   a sessão logada, do mesmo jeito que os recursos de WhatsApp/e-mail) e lê,
-   com a biblioteca **pdf.js** (vendorizada em `src/vendor/`, sem sair da
-   máquina do usuário), o **inteiro teor de todo documento** anexado às
-   movimentações coletadas — não só denúncia/aditamento —, até um limite de
-   60 documentos por geração (para não travar o navegador em processos
-   grandes; quando uma movimentação tem mais de um arquivo, só o primeiro é
-   lido). Com o conteúdo de cada documento, tenta localizar automaticamente:
-   - para **denúncia/aditamento**: referências a artigos de lei (capitulação
-     penal — ex.: "art. 33 da Lei nº 11.343/2006"), por expressão regular, e
-     o trecho inicial do documento (onde normalmente vem a qualificação do
-     réu/a ré);
-   - para **audiência, sentença, acórdão, recurso, trânsito em julgado e
-     arquivamento**: o trecho do documento mais próximo de palavras-chave da
-     categoria (ex.: "dispositivo"/"condeno"/"absolvo" numa sentença;
-     "acordam"/"deram provimento" num acórdão) — sem essas palavras, mostra o
-     início do documento.
-   Em nenhum caso o texto é reescrito ou resumido automaticamente — é sempre
-   um recorte literal do documento, para o usuário revisar e sintetizar à mão
-   antes de usar.
+4. Clique em **"📄 Gerar minuta da certidão"**. A certidão traz só a **síntese
+   processual**: um parágrafo corrido, com data por extenso, unindo todos os
+   eventos coletados na ordem em que aconteceram, com os eventos-chave
+   destacados. Quando há um réu/indiciado(a) selecionado(a) (passo anterior),
+   a extensão baixa (reaproveitando a sessão logada) e lê, com a biblioteca
+   **pdf.js** (vendorizada em `src/vendor/`, sem sair da máquina do usuário),
+   o inteiro teor dos documentos anexados aos eventos coletados — só para
+   decidir se cada um deles fala de outra pessoa do processo e deve ser
+   omitido (ver acima) —, até um limite de 60 documentos por geração, para
+   não travar o navegador em processos grandes. Sem réu selecionado, nenhum
+   PDF é baixado: a minuta é montada só com o texto das próprias
+   movimentações.
 5. O resultado abre em **uma aba nova**, como uma minuta com todo o texto
-   **editável** (clique e digite normalmente) — incluindo os trechos
-   extraídos dos PDFs, que devem sempre ser revisados/completados manualmente
-   antes de virarem a certidão oficial — e um botão "🖨 Imprimir/Salvar PDF".
-   Quando há um réu/indiciado(a) selecionado(a), a minuta abre com um aviso
-   no topo identificando a quem ela se refere e quantas movimentações/
-   documentos de outras pessoas foram omitidos.
+   **editável** (clique e digite normalmente) antes de virar a certidão
+   oficial — e um botão "🖨 Imprimir/Salvar PDF". Quando há um réu/
+   indiciado(a) selecionado(a), a minuta abre com um aviso no topo
+   identificando a quem ela se refere e quantas movimentações/documentos de
+   outras pessoas foram omitidos.
 
 ### Limitações
 
-- A extração de qualquer trecho de documento é **heurística**: localiza
-  padrões de texto prováveis (artigo de lei, palavras-chave da categoria) e
-  mostra um recorte para revisão, mas não "entende" nem resume o conteúdo —
-  sempre confira e complete manualmente antes de expedir a certidão.
-- Só documentos em **PDF** têm o texto extraído automaticamente; outros
-  formatos mostram um aviso pedindo preenchimento manual.
+- A minuta traz o texto das próprias movimentações (o "Evento" do Projudi),
+  não um resumo do conteúdo dos documentos — a extensão não reescreve nem
+  sintetiza o teor de nenhum PDF automaticamente; ela só o lê para decidir
+  se um evento fala de outra pessoa do processo, quando há filtro por réu.
 - A identificação de réus/indiciados na aba "Partes e Outros" também é
   heurística (procura por rótulos de papel processual e o nome ao lado) —
   se o Projudi/SEEU usar um layout muito diferente do esperado nessa tela, a

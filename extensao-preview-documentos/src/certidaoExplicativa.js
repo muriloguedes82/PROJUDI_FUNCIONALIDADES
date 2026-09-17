@@ -42,31 +42,44 @@
 	// Ordem importa: regras mais específicas primeiro (ex.: "aditamento" antes
 	// de "denúncia", já que "aditamento à denúncia" contém as duas palavras).
 	// `extractDoc: true` faz a extensão ler o PDF anexado ao evento (não só
-	// denúncia/aditamento); `crimeExtraction: true` aciona a heurística
-	// específica de capitulação penal (ver extractHeuristics); os demais usam
-	// `excerptKeywords` para localizar o trecho mais provável do documento
-	// (ver pickRelevantExcerpt).
+	// denúncia/aditamento) — o texto lido é usado só para decidir se o
+	// evento fala de outro réu/indiciado(a) (ver isAboutOtherDefendant), não
+	// para gerar nenhum trecho exibido na certidão.
 	const HIGHLIGHT_RULES = [
-		{ id: "aditamento", label: "Aditamento à Denúncia", re: /aditament/i, extractDoc: true, crimeExtraction: true },
-		{ id: "denuncia", label: "Denúncia", re: /den[uú]ncia/i, extractDoc: true, crimeExtraction: true },
+		{ id: "aditamento", label: "Aditamento à Denúncia", re: /aditament/i, extractDoc: true },
+		{ id: "denuncia", label: "Denúncia", re: /den[uú]ncia/i, extractDoc: true },
 		{ id: "audiencia", label: "Audiência", re: /audi[eê]ncia/i, extractDoc: true },
-		{
-			id: "sentenca",
-			label: "Sentença",
-			re: /senten[çc]a/i,
-			extractDoc: true,
-			excerptKeywords: [/disposit[ií]vo/i, /julgo\s+(?:procedente|improcedente)/i, /condeno\b/i, /absolvo\b/i],
-		},
-		{ id: "acordao", label: "Acórdão", re: /ac[oó]rd[ãa]o/i, extractDoc: true, excerptKeywords: [/acordam\b/i, /deram\s+provimento/i, /negaram\s+provimento/i] },
+		{ id: "sentenca", label: "Sentença", re: /senten[çc]a/i, extractDoc: true },
+		{ id: "acordao", label: "Acórdão", re: /ac[oó]rd[ãa]o/i, extractDoc: true },
 		{ id: "recurso", label: "Recurso", re: /recurso|apela[çc][ãa]o|embargos de declara/i, extractDoc: true },
 		{ id: "transito", label: "Trânsito em Julgado", re: /tr[aâ]nsito em julgado/i, extractDoc: true },
 		{ id: "arquivamento", label: "Arquivamento", re: /arquivad|arquivamento/i, extractDoc: true },
-		{ id: "distribuicao", label: "Distribuição", re: /distribu[íi]d/i },
+		// Restrito a "(re)distribuído" (o ato de distribuição em si) — sem
+		// isso, "distribuidor"/"distribuição" batia também em atos de rotina
+		// que só citam a palavra de passagem (ex.: "REMETIDOS OS AUTOS PARA
+		// DISTRIBUIDOR", "JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO").
+		{ id: "distribuicao", label: "Distribuição", re: /\b(?:re)?distribu[íi]d[oa]\b/i },
 	];
 
+	// O texto de uma movimentação frequentemente cita OUTRO evento só como
+	// referência cruzada (ex.: "EXPEDIÇÃO DE MANDADO ... Referente ao evento
+	// (seq. 62) RECEBIDA A DENÚNCIA/REPRESENTAÇÃO(...)" ou "TRANSITADO EM
+	// JULGADO ... (referente à sentença: ...)"). Classificar pelo texto
+	// inteiro fazia qualquer mandado, intimação ou comunicação que citasse a
+	// denúncia/sentença de passagem ser rotulado como se fosse uma NOVA
+	// denúncia/sentença — daí a mesma categoria aparecer repetida dezenas de
+	// vezes. A classificação agora olha só para o trecho ANTES da primeira
+	// referência cruzada, que é a parte que realmente descreve o ato desta
+	// movimentação.
+	function classificationHead(text) {
+		const idx = text.search(/\breferente\s+a[oàs]?\b/i);
+		return idx === -1 ? text : text.slice(0, idx);
+	}
+
 	function classify(text) {
+		const head = classificationHead(text);
 		for (let i = 0; i < HIGHLIGHT_RULES.length; i++) {
-			if (HIGHLIGHT_RULES[i].re.test(text)) return HIGHLIGHT_RULES[i];
+			if (HIGHLIGHT_RULES[i].re.test(head)) return HIGHLIGHT_RULES[i];
 		}
 		return null;
 	}
@@ -691,32 +704,6 @@
 		return fullText.replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim();
 	}
 
-	// Heurística: não tenta "entender" o documento, só localiza trechos com
-	// grande probabilidade de conter a capitulação penal (referências a
-	// artigo de lei) e devolve também o início do texto (onde a denúncia
-	// normalmente qualifica o(a) denunciado(a)), para o usuário revisar e
-	// completar manualmente antes de usar na certidão final.
-	const CRIME_ARTICLE_RE =
-		/art(?:igo)?s?\.?\s*\d+[ºo°]?(?:[-,]\s*(?:§\s*\d+[ºo°]?|par[aá]grafo\s*[uú]nico|inciso\s*[IVXLCDM]+))*(?:,?\s*(?:c\/c|combinado\s+com)\s*(?:o\s*)?art(?:igo)?s?\.?\s*\d+[ºo°]?)*\s*,?\s*(?:d[oa]s?)\s*(?:C[óo]digo\s+Penal|CP|Lei\s*(?:federal\s*)?n[ºo°]?\.?\s*[\d.]+\/\d{2,4}|Lei\s+de\s+[A-ZÀ-Ú][a-zà-ú]+(?:\s+[A-ZÀ-Úa-zà-ú]+)*)/gi;
-
-	function extractHeuristics(text) {
-		const crimesFound = [];
-		const seen = Object.create(null);
-		let match;
-		CRIME_ARTICLE_RE.lastIndex = 0;
-		while ((match = CRIME_ARTICLE_RE.exec(text))) {
-			const clean = match[0].replace(/\s+/g, " ").trim();
-			const key = clean.toLowerCase();
-			if (!seen[key]) {
-				seen[key] = true;
-				crimesFound.push(clean);
-			}
-			if (crimesFound.length >= 15) break;
-		}
-		const qualificationExcerpt = text.slice(0, 2500).trim();
-		return { crimes: crimesFound, qualificationExcerpt: qualificationExcerpt };
-	}
-
 	// -------------------------------------------------------------------
 	// Botão flutuante e painel
 	// -------------------------------------------------------------------
@@ -791,10 +778,9 @@
 			'<div class="pdp-certidao-panel-header"><span>📜 Certidão Explicativa dos Autos</span>' +
 			'<button type="button" class="pdp-certidao-close">✕</button></div>' +
 			'<div class="pdp-certidao-panel-body">' +
-			'<p class="pdp-certidao-hint">Lê as movimentações desta tela e o inteiro teor dos documentos anexados a elas ' +
-			"(até um limite, para processos grandes), e monta uma minuta narrativa, destacando denúncia, aditamento, " +
-			"audiências, sentença, acórdão, recursos, trânsito em julgado e arquivamento. A minuta abre em uma aba nova, " +
-			"editável, para revisão antes de virar a certidão oficial.</p>" +
+			'<p class="pdp-certidao-hint">Lê as movimentações desta tela e monta uma síntese processual corrida, destacando ' +
+			"denúncia, aditamento, audiências, sentença, acórdão, recursos, trânsito em julgado e arquivamento. A minuta abre " +
+			"em uma aba nova, editável, para revisão antes de virar a certidão oficial.</p>" +
 			'<p class="pdp-certidao-hint pdp-certidao-warn">Se o processo tiver movimentações em mais de uma aba/grau (ex.: ' +
 			'1º e 2º grau, apensos), mude para cada uma delas e clique em "Coletar desta tela" outra vez antes de gerar — ' +
 			"os eventos coletados vão se somando.</p>" +
@@ -936,12 +922,14 @@
 		let events = sortedEvents();
 		if (!events.length) return;
 
+		const filterActive = !!selectedDefendantName && defendants.length > 1;
+
 		// Filtro por réu/indiciado(a): remove de saída qualquer movimentação
 		// que mencione outra pessoa do processo e não mencione a selecionada
 		// — nunca o contrário (na dúvida, o evento entra e é o texto do
 		// documento, mais abaixo, que decide se ele fica de fora).
 		let omittedCount = 0;
-		if (selectedDefendantName && defendants.length > 1) {
+		if (filterActive) {
 			const kept = [];
 			events.forEach(function (ev) {
 				if (isAboutOtherDefendant(ev.text)) {
@@ -957,26 +945,30 @@
 		generateBtn.disabled = true;
 		const originalLabel = generateBtn.textContent;
 
-		// Lê o inteiro teor de TODOS os documentos anexados aos eventos que
-		// restaram — não só denúncia/aditamento —, até MAX_DOCS_TO_READ, para
-		// não travar o navegador em processos com muitos anexos. Quando um
-		// evento tem mais de um arquivo, só o primeiro é lido.
-		const docTotal = Math.min(
-			events.filter(function (ev) {
-				return ev.docs.length > 0;
-			}).length,
-			MAX_DOCS_TO_READ
-		);
+		// A certidão só mostra a síntese processual (a narrativa corrida) —
+		// o inteiro teor dos documentos só precisa ser lido quando há um
+		// filtro por réu/indiciado(a) ativo, para decidir se um evento com
+		// anexo fala exclusivamente de outra pessoa do processo. Sem filtro,
+		// não há por que baixar nenhum PDF. Quando um evento tem mais de um
+		// arquivo, só o primeiro é lido; até MAX_DOCS_TO_READ no total, para
+		// não travar o navegador em processos com muitos anexos.
+		const docTotal = filterActive
+			? Math.min(
+					events.filter(function (ev) {
+						return ev.docs.length > 0;
+					}).length,
+					MAX_DOCS_TO_READ
+				)
+			: 0;
 		let docIndex = 0;
 
 		const enriched = [];
 		for (let i = 0; i < events.length; i++) {
 			const ev = events[i];
 			const rule = classify(ev.text);
-			const item = { event: ev, rule: rule, extraction: null, extractionError: null, docText: null };
 			let omittedForOtherDefendant = false;
 
-			if (ev.docs.length && docIndex < MAX_DOCS_TO_READ) {
+			if (filterActive && ev.docs.length && docIndex < MAX_DOCS_TO_READ) {
 				docIndex++;
 				generateBtn.textContent = "Lendo documento " + docIndex + "/" + docTotal + "…";
 				try {
@@ -984,16 +976,13 @@
 					if (isAboutOtherDefendant(text)) {
 						omittedForOtherDefendant = true;
 						omittedCount++;
-					} else {
-						item.docText = text;
-						if (rule && rule.crimeExtraction) item.extraction = extractHeuristics(text);
 					}
 				} catch (err) {
-					item.extractionError = String((err && err.message) || err);
+					/* documento ilegível não impede o evento de entrar na certidão */
 				}
 			}
 
-			if (!omittedForOtherDefendant) enriched.push(item);
+			if (!omittedForOtherDefendant) enriched.push({ event: ev, rule: rule });
 		}
 
 		generateBtn.textContent = originalLabel;
@@ -1049,98 +1038,9 @@
 		return enriched.map(formatEventoFrase).join("; ") + ".";
 	}
 
-	// Dado o texto integral de um documento, localiza o trecho mais provável
-	// de interessar à certidão: procura pela primeira ocorrência de uma das
-	// palavras-chave da categoria (ex.: "dispositivo"/"condeno" numa
-	// sentença) e devolve uma janela de texto ao redor dela; sem nenhuma
-	// palavra-chave encontrada, cai para o início do documento. Nunca
-	// reescreve nem resume o texto — só recorta um trecho para o usuário
-	// revisar e sintetizar manualmente.
-	function pickRelevantExcerpt(text, rule) {
-		if (!text) return "";
-		const keywords = (rule && rule.excerptKeywords) || [];
-		for (let i = 0; i < keywords.length; i++) {
-			const match = keywords[i].exec(text);
-			if (match) {
-				const start = Math.max(0, match.index - 200);
-				return text.slice(start, start + 1400).trim();
-			}
-		}
-		return text.slice(0, 1400).trim();
-	}
-
-	// Bloco separado (fora da narrativa corrida) com o que foi extraído do
-	// PDF de cada evento relevante — mantém a narrativa principal fluida,
-	// sem interromper a leitura no meio da frase com texto bruto extraído do
-	// documento. Denúncia/aditamento usam a heurística de capitulação penal;
-	// os demais mostram o trecho mais provável do documento (ver
-	// pickRelevantExcerpt), sempre para revisão antes de usar.
-	function buildExtractionSections(enriched) {
-		const withDoc = enriched.filter(function (item) {
-			return item.rule && item.rule.extractDoc && item.event.docs.length && (item.docText || item.extractionError);
-		});
-		if (!withDoc.length) return "";
-
-		const blocks = withDoc
-			.map(function (item, index) {
-				const ev = item.event;
-				let html =
-					'<div class="pdp-cert-extract">' +
-					"<strong>" +
-					(index + 1) +
-					". " +
-					escapeHtml(item.rule.label) +
-					" de " +
-					escapeHtml(dateExtenso(ev.date)) +
-					' — documento "' +
-					escapeHtml(ev.docs[0].name) +
-					'":</strong>';
-
-				if (item.extractionError) {
-					html +=
-						"<p><em>Não foi possível extrair automaticamente o texto deste documento (" +
-						escapeHtml(item.extractionError) +
-						"). Abra-o manualmente e preencha abaixo:</em></p>";
-					html += '<div contenteditable="true" class="pdp-cert-editable">[preencher manualmente após revisar o documento]</div>';
-				} else if (item.rule.crimeExtraction) {
-					const extraction = item.extraction;
-					html += "<p>Capitulação penal identificada automaticamente (revise antes de usar):</p>";
-					html +=
-						'<div contenteditable="true" class="pdp-cert-editable">' +
-						(extraction.crimes.length
-							? escapeHtml(extraction.crimes.join("; "))
-							: "[nenhuma referência a artigo de lei identificada automaticamente — preencher manualmente]") +
-						"</div>";
-					html += "<p>Trecho inicial do documento (geralmente traz a qualificação do(a) denunciado(a) — revise e recorte o necessário):</p>";
-					html += '<div contenteditable="true" class="pdp-cert-editable pdp-cert-editable-long">' + escapeHtml(extraction.qualificationExcerpt) + "</div>";
-				} else {
-					html += "<p>Trecho do documento (revise e resuma o necessário antes de usar):</p>";
-					html +=
-						'<div contenteditable="true" class="pdp-cert-editable pdp-cert-editable-long">' +
-						escapeHtml(pickRelevantExcerpt(item.docText, item.rule)) +
-						"</div>";
-				}
-				html += "</div>";
-				return html;
-			})
-			.join("");
-
-		return '<p contenteditable="true"><strong>Trechos relevantes extraídos dos documentos:</strong></p>' + blocks;
-	}
-
 	function buildDraftHtml(enriched, omittedCount) {
 		const processNumber = extractProcessNumber();
-		const highlightedItems = enriched.filter(function (item) {
-			return !!item.rule;
-		});
-		const summaryList = highlightedItems
-			.map(function (item) {
-				return "<li>" + escapeHtml(dateExtenso(item.event.date)) + " — " + escapeHtml(item.rule.label) + "</li>";
-			})
-			.join("");
-
 		const narrativeParagraph = buildNarrativeParagraph(enriched);
-		const extractionSections = buildExtractionSections(enriched);
 
 		const scopeNote =
 			selectedDefendantName && defendants.length > 1
@@ -1160,18 +1060,11 @@
 			"h1{font-size:16px; text-align:center; text-transform:uppercase; letter-spacing:.03em;}" +
 			".pdp-cert-toolbar{position:sticky; top:0; background:#fffbe6; border:1px solid #e8cf8a; border-radius:4px; padding:8px 12px; margin-bottom:20px; font-family:Arial, sans-serif; font-size:12.5px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;}" +
 			".pdp-cert-toolbar button{font-size:12px; padding:5px 10px; cursor:pointer;}" +
-			".pdp-cert-summary{background:#f4f7fb; border:1px solid #d5e2f2; border-radius:4px; padding:10px 16px; margin-bottom:20px; font-family:Arial, sans-serif; font-size:13px;}" +
-			".pdp-cert-summary li{margin:2px 0;}" +
 			".pdp-cert-narrative{text-align:justify;}" +
 			".pdp-cert-highlight{background:#fff3b0; padding:0 1px;}" +
-			".pdp-cert-extract{margin:10px 0 18px; padding:10px 14px; background:#f7fcf7; border:1px dashed #9bcf9b; border-radius:4px; font-family:Arial, sans-serif; font-size:12.5px;}" +
-			".pdp-cert-extract p{margin:8px 0 2px;}" +
-			".pdp-cert-editable{border:1px solid #cfe3cf; background:#fff; border-radius:3px; padding:6px 8px; margin:4px 0 2px; min-height:1.4em; white-space:pre-wrap;}" +
-			".pdp-cert-editable-long{max-height:260px; overflow:auto;}" +
-			".pdp-cert-editable:focus{outline:2px solid #6c93d6;}" +
 			"[contenteditable]:focus{outline:2px solid #6c93d6;}" +
 			".pdp-cert-scope{font-family:Arial, sans-serif; font-size:12px; color:#8a5a00; background:#fff3d6; border:1px solid #e8cf8a; border-radius:4px; padding:8px 12px; margin:0 0 20px;}" +
-			"@media print{.pdp-cert-toolbar{display:none;} .pdp-cert-editable{border:none; padding:0;}}" +
+			"@media print{.pdp-cert-toolbar{display:none;}}" +
 			"</style></head><body>" +
 			'<div class="pdp-cert-toolbar">' +
 			"<strong>Minuta — revise todo o conteúdo antes de expedir a certidão oficial.</strong>" +
@@ -1180,15 +1073,9 @@
 			"<h1 contenteditable=\"true\">Certidão Explicativa dos Autos</h1>" +
 			'<p contenteditable="true">Certifico, para os fins de direito, que o processo nº <strong>' +
 			escapeHtml(processNumber) +
-			"</strong> apresenta, a partir das movimentações e documentos constantes dos autos, o resumo a seguir, com destaque para os " +
-			"principais atos processuais (denúncia, aditamento, audiências, sentença, acórdão, trânsito em julgado e arquivamento, " +
-			"quando existentes):</p>" +
+			"</strong> apresenta, a partir das movimentações constantes dos autos, a síntese processual a seguir:</p>" +
 			scopeNote +
-			(summaryList
-				? '<div class="pdp-cert-summary"><strong>Principais eventos identificados:</strong><ul>' + summaryList + "</ul></div>"
-				: "") +
 			'<p contenteditable="true" class="pdp-cert-narrative">' + narrativeParagraph + "</p>" +
-			extractionSections +
 			'<p contenteditable="true">Nada mais havendo a certificar, encerro a presente certidão, que segue assinada digitalmente.</p>' +
 			"</body></html>"
 		);
