@@ -175,12 +175,29 @@
 
 	function applyFormFields(form, fields) {
 		fields.forEach(function (f) {
-			if (f.type === "checkbox" || f.type === "radio") {
+			if (f.type === "radio") {
+				// Só age nos itens marcados: clicar num radio "desmarcado"
+				// selecionaria ele por engano (radios não desmarcam ao
+				// clicar de novo) - deixar o grupo nativo (mesmo `name`)
+				// desmarcar os outros sozinho, como qualquer clique real
+				// faria.
+				if (!f.checked) return;
 				const el = form.querySelector('[name="' + cssEscapeAttr(f.name) + '"][value="' + cssEscapeAttr(f.value) + '"]');
-				if (el) {
-					el.checked = f.checked;
-					el.dispatchEvent(new Event("change", { bubbles: true }));
-				}
+				// Usa .click() (não só setar `.checked` + disparar um
+				// 'change' sintético): a tela costuma ligar/desligar os
+				// campos de cada opção pelo `onclick` do radio, não por
+				// `onchange` - um evento sintético não dispara esse
+				// `onclick`, então o bloco da opção continuava desabilitado
+				// e o valor aplicado depois (ex.: o "Destino" de "Outras
+				// Remessas") acabava de fora do envio, mesmo já preenchido
+				// no <select> (visto ao vivo: "Destino da remessa não
+				// informado" mesmo com o valor certo aplicado). .click()
+				// dispara o onclick nativo de verdade, igual a um clique
+				// real do usuário.
+				if (el && !el.checked) el.click();
+			} else if (f.type === "checkbox") {
+				const el = form.querySelector('[name="' + cssEscapeAttr(f.name) + '"][value="' + cssEscapeAttr(f.value) + '"]');
+				if (el && el.checked !== f.checked) el.click();
 			} else {
 				const el = form.querySelector('[name="' + cssEscapeAttr(f.name) + '"]');
 				if (el) {
