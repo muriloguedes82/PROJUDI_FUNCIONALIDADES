@@ -20,6 +20,23 @@
   let hideGroup = null, alwaysCheckbox = null;
   let hideNoFile = false, alwaysHide = false;
 
+  // Mesmo critério usado pelo lançador do WhatsApp em content.js
+  // (isOnProcessScreen): só considera que há um processo aberto (e não uma
+  // lista/mesa que também possa ter um quadro de pendências ou um botão
+  // "Filtrar") quando acha a barra de ações do processo ou um link de
+  // arquivo. Uma vez achado, continua elegível para sobreviver a uma troca
+  // de aba em que a AJAX ainda não repôs o conteúdo.
+  const PROCESS_TOOLBAR_LABELS = ['Peticionar', 'Juntar Documento', 'Patronato', 'Exportar Processo', 'Pedido Incidental', 'Navegar', 'Voltar'];
+  let processScreenEligible = false;
+  function isOnProcessScreen() {
+    if (location.pathname === '/projudi/processo/criminal/antecedentesCriminais.do') return false;
+    if (processScreenEligible) return true;
+    const hasToolbar = [...document.querySelectorAll('button, a, input[type="button"], input[type="submit"]')]
+      .some(el => PROCESS_TOOLBAR_LABELS.indexOf((el.textContent || el.value || '').trim()) !== -1);
+    if (hasToolbar || document.querySelector('a.link[href*="/arquivo.do"]')) processScreenEligible = true;
+    return processScreenEligible;
+  }
+
   function defaultHidePrefs() {
     return { alwaysHide: false };
   }
@@ -133,6 +150,10 @@
   }
   function refresh() {
     scheduled = false;
+    if (!isOnProcessScreen()) {
+      if (footer) { log('refresh: sem processo aberto, removendo footer'); footer.remove(); }
+      return;
+    }
     const panel = document.getElementById('quadroPendencias');
     let filterRow = null;
     if (!panel && location.pathname === '/projudi/processo/analisarJuntada.do') {

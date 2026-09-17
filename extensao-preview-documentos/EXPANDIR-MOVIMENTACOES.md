@@ -8,6 +8,10 @@ Preserva o fallback offscreen de Processo copiado, a seleção única de documen
 
 Na listagem analisarJuntada.do, sem quadroPendencias, o botão é inserido na primeira célula da linha do controle nativo Filtrar. Não usa o token da URL. A localização foi validada em simulação; depende de a barra nativa usar uma linha de tabela.
 
+## Só com processo aberto — 2.9.11
+
+Antes de mostrar qualquer um dos dois botões, a extensão confirma que há um processo realmente aberto na tela — mesmo critério já usado pelo lançador do WhatsApp em `content.js` (`isOnProcessScreen`): existe a barra de ações do processo (Peticionar, Juntar Documento, Patronato, Exportar Processo, Pedido Incidental, Navegar ou Voltar) ou algum link de arquivo (`/arquivo.do`) na página. Sem isso, os botões não aparecem — mesmo que a página tenha um `#quadroPendencias` ou um botão "Filtrar" (ex.: listas/mesas que resumem pendências de vários processos, não de um processo aberto).
+
 ## Ocultar sem arquivo — 2.9.11
 
 Ao lado do botão Expandir/Recolher movimentações, o botão "(Des)ocultar sem arquivo (+)" oculta/mostra as linhas da mesma tabela que não têm nenhum controle nativo de anexo (nem iPlus.gif fechado nem iMinus.gif aberto) — ou seja, movimentações/pendências sem arquivo. Clicar no botão alterna a exibição só da página atual.
