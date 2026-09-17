@@ -48,6 +48,20 @@
 	border-color: #6c93d6;
 }
 
+.pdp-qa-group-btn.pdp-qa-btn-disabled {
+	opacity: 0.5;
+	cursor: default;
+	pointer-events: none;
+}
+
+/* A caixa "sempre" continua clicável mesmo com o grupo esmaecido: o
+   estado "desabilitado" só indica que não há nada para ocultar agora,
+   não impede escolher a preferência para quando houver. */
+.pdp-qa-group-btn.pdp-qa-btn-disabled .pdp-hide-no-file-always {
+	pointer-events: auto;
+	cursor: pointer;
+}
+
 .pdp-qa-icon {
 	font-size: 14px;
 	line-height: 1;
