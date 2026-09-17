@@ -74,14 +74,23 @@
     return false;
   }
   function isCandidateRow(row, footer, filterRow) {
-    return row !== footer && row !== filterRow && row.parentElement && row.parentElement.tagName !== 'THEAD' &&
-      row.cells.length && ![...row.cells].every(cell => cell.tagName === 'TH') &&
-      !row.closest('.pdp-overlay,.pdp-qa-modal-backdrop,.pdp-juntada-review');
+    if (row === footer || row === filterRow || !row.parentElement || row.parentElement.tagName === 'THEAD') return false;
+    if (!row.cells.length || [...row.cells].every(cell => cell.tagName === 'TH')) return false;
+    if (row.closest('.pdp-overlay,.pdp-qa-modal-backdrop,.pdp-juntada-review')) return false;
+    // Só mexe em linhas da aba realmente ativa/visível agora (evita ocultar
+    // linhas de outra aba escondida no DOM, ex. Partes, que também poderiam
+    // ter esse id se o Projudi as mantiver renderizadas). Linhas que a
+    // própria extensão já ocultou continuam sendo candidatas, senão nunca
+    // conseguiríamos mostrá-las de novo.
+    return row.getClientRects().length > 0 || row.hasAttribute(HIDDEN_ROW_ATTR);
   }
-  // As movimentações da aba "Movimentações" do processo (tr id="mov1Grau,...",
-  // o mesmo id usado pelo Realces nativo e por movementHighlight.js) ficam
-  // numa tabela à parte do quadro Pendências onde o botão é inserido — por
-  // isso a busca é pela página inteira, e não dentro do host do botão.
+  // As movimentações da aba "Movimentações e Eventos" do processo
+  // (tr id="mov1Grau,...", o mesmo id usado pelo Realces nativo e por
+  // movementHighlight.js) ficam numa tabela à parte do quadro Pendências
+  // onde o botão é inserido — por isso a busca é pela página inteira, e
+  // não dentro do host do botão; o filtro de visibilidade acima garante
+  // que só linhas dessa aba (a única visível quando ela está ativa) sejam
+  // afetadas.
   function movementRows(footer, filterRow) {
     const byId = [...document.querySelectorAll('tr[id^="' + ROW_ID_PREFIX + '"]')]
       .filter(row => isCandidateRow(row, footer, filterRow));
