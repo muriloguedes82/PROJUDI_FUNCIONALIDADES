@@ -711,6 +711,72 @@ chrome.runtime.onMessage.addListener((message,sender,reply) => {
   } catch (error) { reply({ok:false,error:error.message}); return false; }
 });
 
+// Executada no contexto nativo do frame que recebeu o clique.
+function openCurrentPartyOraculo() {
+  const candidates = [];
+  const visited = new Set();
+  function collect(win) {
+    if (visited.has(win)) return;
+    visited.add(win);
+    try {
+      if (win.location.origin !== window.location.origin || !win.location.pathname.startsWith('/projudi/')) return;
+      const doc = win.document;
+      const button = doc.getElementById('btPesqOraculo');
+      if (button && !button.disabled && button.getClientRects().length &&
+          win.getComputedStyle(button).visibility !== 'hidden' &&
+          doc.forms.namedItem('parteProcessoForm') && typeof win.pesquisarOraculo === 'function') {
+        candidates.push({win, button});
+      }
+      for (const frame of doc.querySelectorAll('iframe,frame')) {
+        if (frame.getClientRects().length && win.getComputedStyle(frame).visibility !== 'hidden') collect(frame.contentWindow);
+      }
+    } catch (_) { /* Frames de outra origem não são consultados. */ }
+  }
+  collect(window);
+  if (candidates.length === 0) return {ok:false, error:'Abra a ficha da parte onde aparece o botão nativo Oráculo e use o atalho novamente. Esta página ainda não disponibiliza a consulta dessa parte.'};
+  if (candidates.length !== 1) return {ok:false, error:'Há mais de uma ficha de parte aberta. Use o botão Oráculo dentro da ficha da parte desejada.'};
+  try {
+    candidates[0].win.pesquisarOraculo();
+    return {ok:true};
+  } catch (error) { return {ok:false, error:String(error.message || error)}; }
+}
+
+chrome.runtime.onMessage.addListener((message, sender, reply) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'oraculo-open') return false;
+  try {
+    const url = new URL(sender.url);
+    if (!sender.tab || url.protocol !== 'https:' || !/(^|\.)tjpr\.jus\.br$/.test(url.hostname) || !url.pathname.startsWith('/projudi/')) throw new Error('Origem da consulta inválida.');
+  } catch (error) { reply({ok:false, error:error.message}); return false; }
+  chrome.scripting.executeScript({
+    target:{tabId:sender.tab.id, frameIds:[sender.frameId ?? 0]},
+    world:'MAIN', func:openCurrentPartyOraculo
+  }).then(results => reply(results[0]?.result || {ok:false, error:'A página não respondeu à abertura do Oráculo.'}))
+    .catch(error => reply({ok:false, error:error.message}));
+  return true;
+});
+
+// O endereço vem da ficha consultada agora; não é persistido nem reutilizado.
+chrome.runtime.onMessage.addListener((message, sender, reply) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'oraculo-open-url') return false;
+  let url;
+  try {
+    const origin = new URL(sender.url);
+    url = new URL(message.url);
+    if (!sender.tab || origin.protocol !== 'https:' || !/(^|\.)tjpr\.jus\.br$/.test(origin.hostname) ||
+        !origin.pathname.startsWith('/projudi/') || url.origin !== origin.origin ||
+        url.pathname !== '/projudi/processo/criminal/antecedentesCriminais.do' || !url.searchParams.get('_tj')) throw new Error('Endereço do Oráculo inválido.');
+  } catch (error) { reply({ok:false, error:error.message}); return false; }
+  chrome.scripting.executeScript({target:{tabId:sender.tab.id, frameIds:[sender.frameId ?? 0]}, world:'MAIN',
+    func: url => {
+      if (typeof window.openDialog !== 'function') return {ok:false, error:'A página atual não disponibiliza a abertura da janela nativa.'};
+      window.openDialog(url, 'Antecedentes Criminais - Oráculo', 0, 0);
+      return {ok:true};
+    }, args:[url.href]
+  }).then(results => reply(results[0]?.result || {ok:false, error:'A janela não respondeu.'}))
+    .catch(error => reply({ok:false, error:error.message}));
+  return true;
+});
+
 // Leitura alternativa fora do documento/iframe do Projudi. Sem guardar o conteúdo.
 let pdpClipboardDocumentCreating;
 async function ensurePdpClipboardDocument() {
