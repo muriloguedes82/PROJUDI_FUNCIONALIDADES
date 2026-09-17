@@ -30,18 +30,11 @@
 
 (function () {
 	"use strict";
+	// A janela do Oráculo mantém apenas os controles nativos.
+	if (location.pathname === "/projudi/processo/criminal/antecedentesCriminais.do") return;
 
 	if (window.__pdpQuickActionsInjected) return;
 	window.__pdpQuickActionsInjected = true;
-
-	// Este recurso ("Ações rápidas") lê o painel "Ações" do Projudi, que não
-	// existe no SEEU — os rótulos em ACTION_GROUPS/PROCESS_TOOLBAR_LABELS são
-	// específicos do Projudi. hasProcessNumberMarker() (usada por
-	// isOnProcessScreen) reconhece o marcador de processo do SEEU também
-	// (mesma função usada pelo recurso irmão de e-mail), o que fazia a
-	// fileira de botões aparecer no SEEU sem nenhuma ação funcionar de fato.
-	// Por isso o recurso inteiro fica desativado nesse domínio.
-	const IS_SEEU = /(^|\.)seeu\.pje\.jus\.br$/i.test(window.location.hostname);
 
 	// Rótulos exatos dos links do painel Ações/Outras Ações, agrupados como
 	// aparecem para o usuário. Comparados com o texto do link já "limpo"
@@ -110,18 +103,13 @@
 		"Exportar Processo",
 		"Pedido Incidental",
 		"Navegar",
-		"Concluir Movimento",
 		"Voltar",
 	];
 	const BUTTON_SCREEN_MARGIN = 12;
-	// Fica à esquerda do botão de WhatsApp e do botão "Enviar por e-mail",
-	// quando existirem, para os grupos de botões desta extensão ficarem
-	// juntos, na mesma linha, sem se sobrepor (mesma técnica usada entre
-	// WhatsApp e e-mail). Só o topo da pilha de e-mail
-	// (#pdp-email-button) entra na conta — "Remetente" e "Destinatários"
-	// ficam empilhados abaixo dele (ver repositionButtons() em email.js) e
-	// não devem puxar esta fileira para uma linha mais baixa.
-	const OTHER_BUTTON_SELECTOR = "#pdp-wa-launcher, #pdp-email-button";
+	// Fica à esquerda do botão de WhatsApp e dos botões de e-mail, quando
+	// existirem, para os grupos de botões desta extensão ficarem juntos sem
+	// se sobrepor (mesma técnica usada entre WhatsApp e e-mail).
+	const OTHER_BUTTON_SELECTOR = "#pdp-wa-launcher, .pdp-email-visible";
 	const PREFERENCES_KEY = "pdpActionPreferences"; // { [actionLabel]: [{id, name, fields, createdAt}] }
 	const DIALOG_WAIT_TIMEOUT_MS = 6000;
 	const DIALOG_WAIT_INTERVAL_MS = 150;
@@ -134,32 +122,22 @@
 	let captureToolbar = null;
 	let confirmBar = null;
 	let activeModalIframe = null;
-	// Regra padrão: no topo da tela, todos os botões de grupo ficam
-	// visíveis; ao rolar a tela para baixo, eles se recolhem atrás do
-	// botão "Ações" (evitando poluir o canto da tela sobre o conteúdo);
-	// voltando ao topo, todos reaparecem automaticamente. Não é uma
-	// preferência salva — é sempre recalculada a partir da posição atual
-	// de rolagem (ver updateRowExpandedFromScroll).
-	const SCROLL_TOP_THRESHOLD = 8;
-	let rowExpanded = true;
-
-	function updateRowExpandedFromScroll() {
-		const shouldExpand = window.scrollY <= SCROLL_TOP_THRESHOLD;
-		if (shouldExpand === rowExpanded) return;
-		rowExpanded = shouldExpand;
-		applyRowExpandedState();
-	}
+	const ROW_EXPANDED_KEY = "pdpQuickActionsExpanded";
+	let rowExpanded = false;
+	let rowPreferenceLoaded = false;
+	let rowPreferenceSave = Promise.resolve();
 
 	function applyRowExpandedState() {
 		if (!row) return;
 
-		const actionsBtn = row.querySelector("#pdp-qa-options");
-		if (actionsBtn) {
-			actionsBtn.setAttribute("aria-expanded", String(rowExpanded));
-			actionsBtn.textContent = rowExpanded ? "▾ Ações" : "▸ Ações";
-			actionsBtn.title = rowExpanded
-				? "Recolher os botões de ações"
-				: "Mostrar os botões de ações";
+		const optionsBtn = row.querySelector("#pdp-qa-options");
+		if (optionsBtn) {
+			optionsBtn.disabled = !rowPreferenceLoaded;
+			optionsBtn.setAttribute("aria-expanded", String(rowExpanded));
+			optionsBtn.textContent = rowExpanded ? "▾ Ações" : "▸ Ações";
+			optionsBtn.title = rowExpanded
+				? "Recolher atalhos"
+				: "Mostrar atalhos";
 		}
 
 		row.querySelectorAll("[data-group-id]").forEach(function (btn) {
@@ -172,16 +150,53 @@
 			}
 		});
 
+		window.dispatchEvent(new Event("pdp-buttons-layout"));
 		if (!rowExpanded) closePanel();
 		repositionRow();
 	}
 
-	// Clicar no botão "Ações" alterna manualmente a fileira (por exemplo,
-	// para abrir os botões mesmo tendo rolado a tela); rolar a página de
-	// novo reaplica a regra padrão acima (updateRowExpandedFromScroll).
 	function toggleRowExpanded() {
+		if (!rowPreferenceLoaded) return;
+
 		rowExpanded = !rowExpanded;
 		applyRowExpandedState();
+
+		const expandedToSave = rowExpanded;
+
+		// Mantém a ordem de gravação mesmo com vários cliques rápidos.
+		rowPreferenceSave = rowPreferenceSave
+			.then(function () {
+				return chrome.storage.local.set({
+					[ROW_EXPANDED_KEY]: expandedToSave,
+				});
+			})
+			.catch(function (err) {
+				console.error(
+					"[Projudi Ações Rápidas] Erro ao salvar estado dos atalhos:",
+					err
+				);
+				alert(
+					"Não foi possível salvar a preferência dos atalhos. " +
+					"A alteração continua válida nesta tela."
+				);
+			});
+	}
+
+	function loadRowExpandedPreference() {
+		chrome.storage.local.get([ROW_EXPANDED_KEY])
+			.then(function (data) {
+				rowExpanded = data[ROW_EXPANDED_KEY] === true;
+			})
+			.catch(function (err) {
+				console.error(
+					"[Projudi Ações Rápidas] Erro ao carregar estado dos atalhos:",
+					err
+				);
+			})
+			.finally(function () {
+				rowPreferenceLoaded = true;
+				applyRowExpandedState();
+			});
 	}
 
 	// O shim de window.close()/window.opener (src/closeShim.js,
@@ -223,15 +238,7 @@
 
 	function findProcessToolbarElement() {
 		const candidates = document.querySelectorAll('button, a, input[type="button"], input[type="submit"]');
-		// Varre de trás para frente: a barra de ações real do processo fica no
-		// rodapé do conteúdo, mas rótulos como "Voltar" podem aparecer antes
-		// dela também (breadcrumb, menu, link solto no topo da tela). Pegando
-		// o ÚLTIMO elemento com um desses rótulos, em vez do primeiro,
-		// ancoramos na barra de verdade — evitando que os botões flutuantes
-		// desta extensão pousem no meio do conteúdo (ex.: sobre a tabela de
-		// arquivos da tela de Recursos) por terem se guiado por um link
-		// homônimo mais acima na página.
-		for (let i = candidates.length - 1; i >= 0; i--) {
+		for (let i = 0; i < candidates.length; i++) {
 			const el = candidates[i];
 			const text = (el.textContent || el.value || "").trim();
 			if (PROCESS_TOOLBAR_LABELS.indexOf(text) !== -1) return el;
@@ -275,7 +282,6 @@
 	// exigência extra, pois é o mesmo sinal (comprovadamente confiável) usado
 	// pelo recurso irmão de WhatsApp.
 	function isOnProcessScreen() {
-		if (IS_SEEU) return false;
 		if (processScreenEligible) return true;
 		if (findProcessToolbarElement()) {
 			processScreenEligible = true;
@@ -1419,6 +1425,11 @@
 		row.id = "pdp-qa-row";
 		row.className = "pdp-qa-row";
 
+		const mainLine = document.createElement("div");
+		mainLine.className = "pdp-qa-row-line";
+		const secondLine = document.createElement("div");
+		secondLine.className = "pdp-qa-row-line";
+
 		ACTION_GROUPS.forEach(function (group) {
 			const btn = document.createElement("button");
 			btn.type = "button";
@@ -1431,7 +1442,7 @@
 			btn.addEventListener("click", function () {
 				togglePanel(group);
 			});
-			row.appendChild(btn);
+			mainLine.appendChild(btn);
 		});
 
 		const optionsBtn = document.createElement("button");
@@ -1439,19 +1450,35 @@
 		optionsBtn.id = "pdp-qa-options";
 		optionsBtn.className = "pdp-qa-group-btn";
 		optionsBtn.addEventListener("click", toggleRowExpanded);
-		row.appendChild(optionsBtn);
+		mainLine.appendChild(optionsBtn);
 
-		// Anexa ao documento ANTES do cálculo de posição: repositionRow() usa
-		// row.offsetHeight (ramo em que a fileira fica ao lado do WhatsApp/
-		// e-mail), que é sempre 0 enquanto o elemento está desconectado do
-		// DOM.
-		document.body.appendChild(row);
+		if (location.pathname.startsWith("/projudi/")) {
+			const clipboardBtn = document.createElement("button");
+			clipboardBtn.type = "button";
+			clipboardBtn.className = "pdp-qa-group-btn";
+			clipboardBtn.textContent = "📋 Processo copiado";
+			clipboardBtn.title = "Pesquisar em nova aba o número de processo da área de transferência";
+			clipboardBtn.addEventListener("click", function () { window.__pdpClipboardProcess(); });
+			secondLine.appendChild(clipboardBtn);
+		}
 
-		// Parte do estado que combina com a posição de rolagem atual
-		// (ex.: script injetado depois de a página já estar rolada), em
-		// vez de sempre assumir "expandido" por um instante.
-		rowExpanded = window.scrollY <= SCROLL_TOP_THRESHOLD;
+		const highlightPrefsBtn = document.createElement("button");
+		highlightPrefsBtn.type = "button";
+		highlightPrefsBtn.className = "pdp-qa-group-btn";
+		highlightPrefsBtn.innerHTML = '<span class="pdp-qa-icon">🖍️</span><span>Destacar movimentações</span>';
+		highlightPrefsBtn.title = "Escolher a cor de destaque de cada tipo de usuário na aba Movimentações";
+		highlightPrefsBtn.addEventListener("click", function () {
+			if (window.__pdpOpenMovementHighlightConfig) window.__pdpOpenMovementHighlightConfig();
+		});
+		secondLine.appendChild(highlightPrefsBtn);
+
+		row.appendChild(mainLine);
+		row.appendChild(secondLine);
+
+		// Aplica o estado antes de exibir, evitando mostrar os atalhos
+		// por um instante quando a preferência é mantê-los recolhidos.
 		applyRowExpandedState();
+		document.body.appendChild(row);
 		repositionRow();
 	}
 
@@ -1672,10 +1699,13 @@
 		if (!btn) return;
 		const rect = btn.getBoundingClientRect();
 
-		const bottom = window.innerHeight - rect.top + 6;
-		const maxHeight = rect.top - BUTTON_SCREEN_MARGIN * 2;
-		activePanel.style.bottom = Math.round(bottom) + "px";
-		activePanel.style.maxHeight = Math.max(140, Math.round(maxHeight)) + "px";
+		const above = rect.top - BUTTON_SCREEN_MARGIN - 6;
+		const below = window.innerHeight - rect.bottom - BUTTON_SCREEN_MARGIN - 6;
+		const openAbove = above >= below;
+		activePanel.style.boxSizing = "border-box";
+		activePanel.style.maxHeight = Math.max(0, openAbove ? above : below) + "px";
+		activePanel.style.top = openAbove ? "auto" : (rect.bottom + 6) + "px";
+		activePanel.style.bottom = openAbove ? (window.innerHeight - rect.top + 6) + "px" : "auto";
 
 		const panelRect = activePanel.getBoundingClientRect();
 		let right = window.innerWidth - rect.right;
@@ -1747,6 +1777,7 @@
 		}
 	}
 
+	loadRowExpandedPreference();
 	setInterval(reconcile, 700);
 	reconcile();
 
@@ -1765,10 +1796,29 @@
 		repositionScheduled = true;
 		requestAnimationFrame(function () {
 			repositionScheduled = false;
-			updateRowExpandedFromScroll();
 			repositionRow();
 		});
 	}
+	window.addEventListener("pdp-buttons-hide", closePanel);
+	window.addEventListener("pdp-buttons-moved", function () {
+		if (activeGroupId) positionPanel(activeGroupId);
+	});
 	window.addEventListener("resize", scheduleReposition);
 	window.addEventListener("scroll", scheduleReposition, true);
+
+	// -------------------------------------------------------------------
+	// API mínima exposta para outros recursos desta extensão (ver
+	// src/ordenarCumprimentos.js, botão "Nova Ordenação"): resolve a URL de
+	// um diálogo de ação pelo rótulo exato, reaproveitando a MESMA cadeia
+	// já usada e testada aqui - cada chamada gera um diálogo (e token de
+	// sessão) NOVO, nunca reaproveitando uma URL já usada. Necessário
+	// porque reenviar um formulário com o token de uma página já carregada
+	// antes (ex.: a mesma página que o usuário ainda está vendo) corre o
+	// risco de reaproveitar um token de uso único já consumido por outro
+	// envio - o Projudi pode aceitar a requisição sem indicar erro algum,
+	// mas sem de fato repetir a ação.
+	// -------------------------------------------------------------------
+	window.__pdpQuickActions = {
+		resolveDialogUrl: resolveDialogUrl,
+	};
 })();

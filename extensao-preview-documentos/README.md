@@ -19,6 +19,15 @@ extensão funciona da mesma forma nos dois sistemas:
    Cumprimentos, Realizar Remessa, Enviar Concluso, Apensar, etc.) fica
    comprido e é preciso rolar a tela para achar a ação desejada (veja
    "Ações rápidas" abaixo).
+5. na tela **Movimentações**, é difícil identificar rapidamente quais
+   movimentações foram feitas por Magistrado(a), Ministério Público ou
+   Advogado(a) — é preciso ler a coluna "Movimentado Por" linha a linha
+   (veja "Destaque de movimentações por tipo de usuário" abaixo).
+6. num processo apenso, o número **Sequencial** do processo principal
+   (útil para localizá-lo por esse número em outras telas) só aparece na
+   aba "Informações Gerais" do próprio processo principal — é preciso
+   abrir o processo principal só para consultá-lo (veja "Sequencial do
+   processo principal nos processos apensos" abaixo).
 
 ## Pré-visualização de Documentos
 
@@ -27,6 +36,56 @@ Com a extensão instalada, basta **passar o mouse sobre o nome do arquivo**
 painel flutuante sobreposto à própria tela de movimentações — sem precisar
 trocar de aba. A ideia é a mesma já oferecida pelo eproc e pela extensão
 AzFlow.
+
+## Destaque de movimentações por tipo de usuário
+
+Na tela **Movimentações**, cada linha mostra na coluna "Movimentado Por"
+quem fez aquela movimentação e, logo abaixo do nome, o papel dessa pessoa
+no processo (ex.: "Magistrada", "Membro(a) do Ministério Público",
+"Advogado"). Esta extensão deixa você escolher, uma vez só, quais desses
+tipos destacar e com qual cor — e aplica esse destaque automaticamente
+em **todos os processos**, sempre que a aba Movimentações é aberta, sem
+precisar configurar de novo a cada um.
+
+1. na tela de Movimentações, clique no botão **"🖍️ Destacar
+   movimentações"** do painel de Ações Rápidas (veja "Ações rápidas"
+   abaixo) — abre um popup de configuração sobreposto à própria tela,
+   sem trocar de aba;
+2. marque um ou mais tipos — **Magistrado / Magistrada**, **Ministério
+   Público** e/ou **Advogado / Advogada**;
+3. escolha a cor de cada tipo clicando numa das amostras da paleta
+   abaixo dele (a cor já usada por outro tipo fica marcada com um ✓;
+   escolher essa mesma cor para outro tipo troca as cores entre os
+   dois — assim nunca dois tipos ficam com a mesma cor);
+4. clique em "Salvar".
+
+A partir daí, toda linha de movimentação feita por um dos tipos marcados
+aparece com o fundo na cor escolhida — em qualquer processo, não só no
+que estava aberto ao salvar. Para editar a preferência depois (mudar
+cores, marcar ou desmarcar tipos), é só abrir o mesmo popup de novo; ele
+já vem preenchido com o que estava salvo.
+
+O destaque é identificado a partir da mesma informação usada pelo quadro
+nativo "Realces" do Projudi (que também existe na tela, mas com cores
+fixas e sem lembrar a preferência entre processos) — por isso é preciso
+estar na aba Movimentações de um processo real para o botão funcionar;
+esta extensão não usa aquele quadro, apenas a mesma forma de identificar
+o tipo de cada movimentação.
+
+## Sequencial do processo principal nos processos apensos
+
+Na aba **Informações Gerais** de um processo apenso (ex.: um incidente
+processual apensado a uma Ação Penal), o Projudi já mostra o campo
+"Processo Principal:" com o link/número do processo principal, mas não
+mostra o **Sequencial** dele — um identificador numérico (ex.: `45054`)
+que só aparece na aba Informações Gerais daquele outro processo.
+
+A extensão busca esse número automaticamente em segundo plano (sem abrir
+nem trocar de aba) e insere uma linha **"Sequencial do Processo
+Principal:"** logo abaixo do campo "Processo Principal:" já existente,
+preenchida assim que a busca termina. Esse campo só aparece nos processos
+que já têm "Processo Principal:" preenchido, ou seja, nos processos
+apensos — o processo principal em si não ganha essa linha extra.
 
 ## Envio por E-mail (Outlook)
 
@@ -110,56 +169,30 @@ sincronizados entre computadores nem enviados a nenhum servidor).
 
 ### Remetentes salvos (campo "De")
 
-O botão **"✉️ Remetente"** abre uma tela para cadastrar até **20** contas
-remetentes (Nome + E-mail), editar (✏️), remover (🗑) e marcar uma delas
-com a estrela (☆ → ★) como **padrão**. O que acontece com esse remetente
-padrão depende do modo de envio:
+No modo **"Outlook Web (sem Azure AD)"**, o botão **"✉️ Remetente"** abre
+uma tela para cadastrar até **20** contas remetentes (Nome + E-mail),
+editar (✏️), remover (🗑) e marcar uma delas com a estrela (☆ → ★) como
+**padrão**. Toda vez que o Outlook abrir pela extensão:
 
-- **Modo Graph (com Azure AD):** o rascunho é criado **diretamente na
-  caixa do remetente padrão** (`/users/{email}/messages` da Microsoft
-  Graph, em vez de `/me/messages`), então o e-mail enviado fica salvo na
-  pasta **Enviados dessa caixa** — não na do usuário que fez login. Exige
-  a permissão delegada `Mail.ReadWrite.Shared` (ver "Configuração
-  necessária" acima) e que o usuário autenticado já tenha acesso a essa
-  caixa (permissão de "Enviar como" ou acesso completo, configuração do
-  Exchange/TI). Sem remetente padrão configurado, continua usando a caixa
-  pessoal (`/me`) como antes.
-- **Modo Outlook Web (sem Azure AD):** toda vez que o Outlook abrir pela
-  extensão, o script (`src/owa-attach.js`) revela o campo **"De"**
-  automaticamente, clicando na guia **Opções** da faixa de opções e
-  marcando a caixinha **"Mostrar de"** (só se ainda não estiver marcada),
-  e em seguida tenta selecionar nele o remetente marcado como padrão.
-  Nesse modo, se a pasta "Enviados" salvar o e-mail na caixa errada mesmo
-  com o remetente certo selecionado, o problema é uma configuração do
-  Exchange (fora do controle da extensão) — veja a nota logo abaixo.
+1. O script (`src/owa-attach.js`) revela o campo **"De"** automaticamente,
+   clicando na guia **Opções** da faixa de opções e marcando a caixinha
+   **"Mostrar de"** (só se ainda não estiver marcada).
+2. Em seguida, tenta selecionar nele o remetente marcado como padrão.
 
-**Pré-requisito obrigatório, fora do controle da extensão, em ambos os
-modos:** a conta autenticada precisa já ter a permissão **"Enviar como"**
-(ou acesso delegado equivalente) na caixa marcada como padrão — sem isso,
-o Graph recusa criar o rascunho na caixa alheia (modo Graph) e o Outlook
-nem oferece essa conta na lista para escolher (modo Outlook Web).
+**Pré-requisito obrigatório, fora do controle da extensão:** a conta
+autenticada precisa já ter a permissão **"Enviar como"** (configuração do
+Exchange/TI) na caixa marcada como padrão — sem isso, o Outlook nem
+oferece essa conta na lista para escolher, e a seleção automática não tem
+efeito (o campo "De" continua revelado, só não muda o remetente).
 
-**Nota sobre o modo Outlook Web (fallback):** mesmo com o remetente certo
-selecionado manualmente no campo "De", o Exchange Online, por padrão,
-salva a cópia do e-mail enviado na caixa do usuário autenticado, não na
-caixa do remetente escolhido, a menos que o administrador do Exchange
-tenha habilitado `MessageCopyForSentAsEnabled` (e, se for "Enviar em
-nome de", também `MessageCopyForSendOnBehalfEnabled`) naquela caixa
-compartilhada (`Set-Mailbox -Identity "<caixa>" -MessageCopyForSentAsEnabled
-$true`). Isso é uma configuração do servidor, não algo que a extensão
-consiga controlar pelo navegador — por isso o **modo Graph** (que cria o
-rascunho já na caixa certa, como descrito acima) é a forma recomendada de
-evitar esse problema por completo quando o cadastro no Azure AD for
-possível.
-
-A etapa de **selecionar** o remetente no campo "De" (modo Outlook Web) é
-experimental: ao contrário de revelar a caixinha "Mostrar de" (testado e
-funcionando), não temos o HTML real do controle "De" nem da lista de
-contas que ele abre, só um palpite razoável de seletores
-(`src/owa-attach.js`, `findFromControl()`/`findFromOption()`). Se não
-funcionar, inspecione o campo "De" no Outlook Web (botão direito →
-Inspecionar) e ajuste esses seletores — o console do navegador (F12,
-filtro "Projudi") mostra em qual etapa a automação parou.
+A etapa de **selecionar** o remetente no campo "De" é experimental: ao
+contrário de revelar a caixinha "Mostrar de" (testado e funcionando), não
+temos o HTML real do controle "De" nem da lista de contas que ele abre, só
+um palpite razoável de seletores (`src/owa-attach.js`,
+`findFromControl()`/`findFromOption()`). Se não funcionar, inspecione o
+campo "De" no Outlook Web (botão direito → Inspecionar) e ajuste esses
+seletores — o console do navegador (F12, filtro "Projudi") mostra em qual
+etapa a automação parou.
 
 ### Configuração necessária (feita uma única vez pelo TI)
 
@@ -178,13 +211,9 @@ no Azure AD / Microsoft Entra ID do Tribunal:
    "Detalhes" → "Inspecionar visualizações" → console → digite
    `chrome.identity.getRedirectURL()`), ou é fixo se a extensão for
    publicada/fixada com uma chave.
-4. Em **Permissões de API**, adicione as permissões **delegadas**
-   `Mail.ReadWrite` e `Mail.ReadWrite.Shared` (Microsoft Graph) e conceda
-   **consentimento do administrador**. A segunda (`Mail.ReadWrite.Shared`)
-   só é necessária se algum usuário for usar um "Remetente padrão" (veja
-   "Remetentes salvos" abaixo) diferente da própria caixa — sem ela, o
-   rascunho não pode ser criado na caixa de outro remetente e a extensão
-   volta a usar a caixa pessoal do usuário autenticado.
+4. Em **Permissões de API**, adicione a permissão **delegada**
+   `Mail.ReadWrite` (Microsoft Graph) e conceda **consentimento do
+   administrador**.
 5. Copie o **Client ID (Application ID)** gerado.
 6. Na extensão, acesse `chrome://extensions` → "Detalhes" → "Opções da
    extensão" e informe o Client ID (e o Tenant ID, se a organização exigir
@@ -264,12 +293,7 @@ desejada.
 A extensão adiciona **um botão flutuante por grupo de ações** — Concluso,
 Remessa, Ordenações, Partes, Suspender, Transitar, Arquivar, Outras —
 lado a lado, no mesmo canto da tela dos botões de WhatsApp/e-mail
-(posicionando-se ao lado deles quando presentes). Por padrão, com a tela
-no topo, todos esses botões ficam visíveis; ao rolar a página para baixo
-eles se recolhem atrás de um único botão **"▸ Ações"**, para não poluir o
-canto da tela sobre o conteúdo — clicar nele reabre a fileira mesmo
-rolado. Voltando ao topo da tela, todos os botões reaparecem
-automaticamente.
+(posicionando-se ao lado deles quando presentes):
 
 - **Concluso**: Enviar Concluso
 - **Remessa**: Realizar Remessa, Remessa Eletrônica para o Tribunal de
@@ -283,6 +307,14 @@ automaticamente.
 - **Arquivar**: Arquivar Processo
 - **Outras**: Interromper Prazo, Declínio de competência para a Segunda
   Instância, Apensar, Desapensar
+
+Numa segunda linha, logo abaixo do botão **"▸/▾ Ações"** (que recolhe ou
+mostra os botões dos grupos acima), ficam o botão **"📋 Processo
+copiado"** e o botão **"🖍️ Destacar movimentações"**, que abre um popup
+(sobreposto à própria tela, sem trocar de aba) para escolher quais tipos
+de usuário (Magistrado, Ministério Público, Advogado) destacar na aba
+Movimentações, e com qual cor — veja "Destaque de movimentações por tipo
+de usuário" mais acima.
 
 Cada botão abre um painel com as ações daquele grupo — o conteúdo do
 painel depende de qual tela do processo você está vendo, já que o painel
@@ -444,6 +476,89 @@ Como com as demais ações rápidas, a extensão não tem acesso ao código-font
 desta tela — a localização de cada opção e de seus campos é heurística, pelo
 texto literal dos rótulos. **Sempre confira o painel de resultado ao final**
 antes de considerar as remessas concluídas.
+
+### "Nova Ordenação" (ordenar vários cumprimentos em seguida)
+
+Depois que o script de triagem roda num processo, é comum precisar ordenar
+mais de um cumprimento seguido (um ofício, um mandado, um edital, uma
+requisição de laudo, etc.). O diálogo nativo só ordena UM cumprimento por
+envio: ao clicar em "Ordenar", o Projudi encerra o fluxo e leva de volta
+para a tela do processo — correto para uma única ação, mas obriga a
+reabrir manualmente o diálogo do zero a cada nova ordenação.
+
+A extensão adiciona um botão **"🔁 Nova Ordenação"** ao lado do botão
+nativo "Ordenar" desses diálogos. Em vez de enviar o formulário, ele:
+
+1. Confere o preenchimento atual (validação nativa do navegador).
+2. **Guarda** os dados preenchidos numa fila, em memória — nada é enviado
+   ao Projudi ainda.
+3. Limpa o formulário (`Tipo de Cumprimento`, partes, prazo, orientações
+   etc.) para a próxima ordenação, no **mesmo diálogo já aberto**, sem
+   navegar nem reabrir nada.
+
+O botão mostra quantos itens já estão na fila (ex.: "🔁 Nova Ordenação (2
+na fila)"), com um pequeno painel logo abaixo listando cada um (é possível
+remover um item da fila clicando no ✕ ao lado dele, caso tenha sido
+adicionado por engano).
+
+Só quando você clica no botão **"Ordenar" nativo de verdade** (o último,
+para encerrar o fluxo) é que tudo é enviado ao Projudi:
+
+1. Cada item da fila **resolve e carrega um diálogo NOVO do mesmo tipo**
+   em segundo plano, num iframe oculto — reaproveitando a mesma cadeia já
+   usada pelo recurso "Ações rápidas" acima (`resolveDialogUrl`) para não
+   navegar a aba visível. Só os campos que você preencheu de verdade
+   (nunca campos ocultos) são aplicados nesse diálogo novo, e só então o
+   "Ordenar" dele é clicado.
+2. Só depois que todos os itens da fila forem confirmados, a extensão
+   dispara um clique de verdade em "Ordenar" no diálogo **visível** —
+   agora com a fila vazia, o formulário atual (o último preenchido) segue
+   o fluxo 100% nativo do Projudi: mesma validação, mesmo envio, mesma
+   navegação de saída.
+3. Se algum item da fila for rejeitado pelo Projudi (ex.: um campo que
+   ficou inválido), a extensão avisa **qual item falhou e para** — nada
+   mais é enviado, e esse item continua na fila para revisão. Nenhum envio
+   é feito "no escuro".
+
+Clicar em **"Cancelar"** descarta a fila normalmente junto com o diálogo —
+nada do que foi só guardado chega a ser enviado.
+
+**Por que um diálogo novo por item, em vez de reenviar os mesmos campos
+para o mesmo endereço:** testes ao vivo mostraram um item "confirmado" sem
+erro nenhum, mas que não aparecia nos autos depois. A explicação mais
+provável (padrão comum em aplicações Java/Struts como o Projudi): um campo
+oculto de sessão/token de uso único no formulário — reenviar o MESMO token
+de uma página que o usuário ainda está vendo arrisca reaproveitar um token
+já consumido pelo primeiro envio, e o Projudi pode aceitar a requisição
+sem indicar erro algum, mas sem repetir a ação de fato. Resolver um
+diálogo novo a cada item evita isso: cada um chega com seu próprio token,
+nunca reaproveitado.
+
+**Atenção:** ainda assim, isso não foi validado em produção para os
+diálogos "Ordenar RPV" e "Ordenar Expedição BNMP" nem para toda a
+variedade de tipos de cumprimento. Antes de confiar nele em ordenações com
+prazo real, recomenda-se testar com um item não crítico e conferir depois,
+nos autos, se todos os itens da fila foram realmente registrados.
+
+**Diagnóstico:** cada passo (o script carregando, o diálogo sendo
+reconhecido, o que cada item guardou, o que cada reenvio em segundo plano
+mandou e recebeu de volta do Projudi — inclusive a mensagem de erro e o
+número de protocolo, quando o Projudi mostrar uma tela de erro) fica
+registrado em `window.__pdpNovaOrdenacaoLog`, acessível pelo console do
+navegador (F12). O log é salvo em `sessionStorage` (não só em memória),
+então sobrevive à navegação de saída que o "Ordenar" final sempre faz —
+inclusive se essa navegação abrir **outra aba** (nesse caso o log
+acompanha, já que o navegador copia o `sessionStorage` da aba de origem
+para uma aba aberta a partir dela). Depois de reproduzir um problema, na
+aba/tela final (onde o erro apareceu), com o console no frame certo
+(dropdown de contexto, não "top"), rodar:
+
+```js
+copy(JSON.stringify(window.__pdpNovaOrdenacaoLog, null, 2))
+```
+
+copia o log inteiro para a área de transferência, pronto para compartilhar
+e investigar a causa raiz em vez de adivinhar.
 
 ## Como funciona
 
@@ -816,10 +931,9 @@ irmão desta mesma extensão, o envio por e-mail):
   "nenhum documento encontrado" (ou expira após alguns segundos) e o link
   original continua funcionando normalmente, sem nenhum efeito colateral.
 - O envio por e-mail depende do cadastro prévio de um aplicativo no Azure
-  AD pelo TI (Client ID com permissão `Mail.ReadWrite`, e
-  `Mail.ReadWrite.Shared` se algum "Remetente padrão" for usado) — veja a
-  seção "Envio por E-mail" acima. Sem essa configuração, o botão exibirá
-  um erro pedindo para configurar as opções da extensão.
+  AD pelo TI (Client ID com permissão `Mail.ReadWrite`) — veja a seção
+  "Envio por E-mail" acima. Sem essa configuração, o botão exibirá um erro
+  pedindo para configurar as opções da extensão.
 - A janela do Outlook é aberta como um pop-up separado (não um `<iframe>`),
   pois o Outlook Web bloqueia ser exibido dentro de outra página
   (cabeçalhos `X-Frame-Options`/CSP). O pop-up é posicionado e dimensionado
