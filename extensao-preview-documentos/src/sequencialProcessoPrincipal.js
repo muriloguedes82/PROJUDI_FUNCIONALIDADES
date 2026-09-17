@@ -114,8 +114,21 @@
 		if (principalRow.nextElementSibling && principalRow.nextElementSibling.hasAttribute(ROW_ATTR)) return;
 
 		const principalLink = principalRow.querySelector("a.link");
-		const principalUrl = principalLink && principalLink.href;
-		if (!principalUrl) return;
+		if (!principalLink || !principalLink.href) return;
+
+		// Sem indicar a aba, o Projudi abre a página do processo principal na
+		// última aba que a sessão do usuário deixou selecionada (pode não ser
+		// "Informações Gerais", onde fica o Sequencial) — o mesmo parâmetro já
+		// é usado nativamente pelo Projudi noutros links da própria página
+		// (ex.: "selectedIcon=tabAcoesVinculadas" para abrir na aba Vínculos).
+		let principalUrl;
+		try {
+			const url = new URL(principalLink.href, window.location.href);
+			url.searchParams.set("selectedIcon", "tabDadosProcesso");
+			principalUrl = url.href;
+		} catch (err) {
+			principalUrl = principalLink.href;
+		}
 
 		const newRow = document.createElement("tr");
 		newRow.setAttribute(ROW_ATTR, "");
@@ -125,18 +138,47 @@
 		principalRow.insertAdjacentElement("afterend", newRow);
 		const valueEl = newRow.querySelector(".pdp-seq-principal-valor");
 
+		console.log(TAG, "iniciando busca", { paginaAtual: window.location.href, principalUrl: principalUrl });
+
 		fetchDoc(principalUrl)
 			.then(function (doc) {
+				console.log(TAG, "iframe carregado", {
+					finalUrl: doc.location && doc.location.href,
+					title: doc.title,
+					temTabelaInformacoesProcessuais: !!doc.getElementById("informacoesProcessuais"),
+					temAbaInformacoesGeraisAtiva: !!doc.querySelector("#tabItemprefix0.currentTab"),
+				});
 				return waitForRow(doc, "Sequencial", 10000).then(function (sequencialRow) {
 					const valueCell = sequencialRow && sequencialRow.querySelectorAll("td")[1];
 					const sequencial = valueCell && valueCell.textContent.trim();
 					valueEl.textContent = sequencial || "não encontrado";
-					if (!sequencial) console.warn(TAG, "campo Sequencial não encontrado na página do processo principal:", principalUrl);
+					if (!sequencial) {
+						// Diagnóstico: sem isso, uma falha aqui não dá nenhuma pista de
+						// qual foi o problema (aba errada, sessão/redirecionamento,
+						// rótulo diferente do esperado etc.) — lista os rótulos que
+						// realmente vieram na página buscada, para comparar com
+						// "Sequencial" à mão no console (F12) sem precisar adivinhar.
+						const rotulosEncontrados = Array.prototype.slice
+							.call(doc.querySelectorAll("td.label label, td.labelRadio label"))
+							.map(function (label) {
+								return label.textContent.trim();
+							})
+							.filter(Boolean);
+						console.warn(TAG, "campo Sequencial não encontrado na página do processo principal", {
+							principalUrl: principalUrl,
+							finalUrl: doc.location && doc.location.href,
+							title: doc.title,
+							rotulosEncontrados: rotulosEncontrados,
+							bodySnippet: (doc.body ? doc.body.textContent || "" : "").replace(/\s+/g, " ").trim().slice(0, 300),
+						});
+					} else {
+						console.log(TAG, "Sequencial encontrado:", sequencial);
+					}
 				});
 			})
 			.catch(function (err) {
 				valueEl.textContent = "não foi possível buscar";
-				console.warn(TAG, "falha ao buscar o Sequencial do processo principal:", principalUrl, err);
+				console.warn(TAG, "falha ao buscar o Sequencial do processo principal:", { principalUrl: principalUrl, erro: err && (err.stack || err.message || err) });
 			});
 	}
 
