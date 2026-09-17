@@ -72,7 +72,13 @@
       rows.get(row).push(span);
     });
     console.log(TAG, "varredura — " + spans.length + " contador(es) em " + rows.size + " linha(s)");
-    rows.forEach(updateRow);
+    rows.forEach((rowSpans, row) => {
+      try {
+        updateRow(row, rowSpans);
+      } catch (err) {
+        console.error(TAG, "erro ao avaliar linha:", err, row);
+      }
+    });
   }
 
   scan(document);
