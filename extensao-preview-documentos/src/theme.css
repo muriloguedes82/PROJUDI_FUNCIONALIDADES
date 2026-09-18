@@ -7,67 +7,37 @@
    As cores "restritas" do manual (rosa/roxo, uso exclusivo da
    Coordenadoria da Mulher/CEVID) não são usadas aqui.
 
-   Cada tema define variáveis CSS num escopo `html[data-pdp-theme="..."]`.
-   Os elementos desta própria extensão (botão/painel do seletor) sempre
-   usam essas variáveis com exatidão. Os ajustes ao restante da tela do
-   Projudi (fora do controle desta extensão) são propositalmente mais
-   conservadores — seletores genéricos, sem depender de classes
-   específicas de cada tela — já que não há garantia de que toda tela do
-   sistema use a mesma estrutura HTML. */
+   Cada tema define variáveis CSS num escopo `html[data-pdp-theme="..."]`,
+   usadas pelo botão/painel do seletor (elementos desta extensão,
+   totalmente controlados) e pela faixa fina de indicação no topo da tela.
 
-html[data-pdp-theme] {
-	--pdp-accent: #3a72c4;
-	--pdp-accent-dark: #002a3a;
-	--pdp-header-bg: #002a3a;
-	--pdp-header-fg: #ffffff;
-	--pdp-link: #1a5fb4;
-	--pdp-page-bg: #f4f7f9;
-	--pdp-btn-bg: #002a3a;
-	--pdp-btn-fg: #ffffff;
-}
+   IMPORTANTE: uma primeira versão deste arquivo tentava recolorir também o
+   restante da tela do Projudi (botões, cabeçalhos de tabela, links) com
+   seletores genéricos (`th`, `button`, `input[type=button]`,
+   `td[bgcolor]`, `body *` no Alto Contraste). Na prática, sem conhecer a
+   estrutura real de cada tela, isso pegou elementos que não deveriam ser
+   tocados — inclusive botões desta própria extensão — e deixou a tela com
+   blocos escuros sem harmonia com o visual nativo (ver captura de tela
+   relatada pelo usuário). Por isso essa recolorização ampla foi removida:
+   por enquanto o tema só muda elementos que a extensão controla por
+   completo, mais a faixa indicadora. Uma recolorização de fato do Projudi
+   exigiria as classes/IDs reais de cada tela (via F12 no navegador), não
+   suposições. */
 
 html[data-pdp-theme="azul"] {
 	--pdp-accent: #008c95;
-	--pdp-accent-dark: #002a3a;
-	--pdp-header-bg: #002a3a;
-	--pdp-header-fg: #ffffff;
-	--pdp-link: #006d75;
-	--pdp-page-bg: #e9f5f6;
-	--pdp-btn-bg: #002a3a;
-	--pdp-btn-fg: #ffffff;
 }
 
 html[data-pdp-theme="verde"] {
 	--pdp-accent: #49c5b1;
-	--pdp-accent-dark: #002a3a;
-	--pdp-header-bg: #002a3a;
-	--pdp-header-fg: #ffffff;
-	--pdp-link: #157f6e;
-	--pdp-page-bg: #eafaf6;
-	--pdp-btn-bg: #002a3a;
-	--pdp-btn-fg: #ffffff;
 }
 
 html[data-pdp-theme="ambar"] {
 	--pdp-accent: #eeb134;
-	--pdp-accent-dark: #5a4310;
-	--pdp-header-bg: #002a3a;
-	--pdp-header-fg: #ffffff;
-	--pdp-link: #8a6300;
-	--pdp-page-bg: #fdf6e6;
-	--pdp-btn-bg: #002a3a;
-	--pdp-btn-fg: #ffffff;
 }
 
 html[data-pdp-theme="contraste"] {
 	--pdp-accent: #eeb134;
-	--pdp-accent-dark: #eeb134;
-	--pdp-header-bg: #000000;
-	--pdp-header-fg: #ffffff;
-	--pdp-link: #ffd873;
-	--pdp-page-bg: #000000;
-	--pdp-btn-bg: #eeb134;
-	--pdp-btn-fg: #002a3a;
 }
 
 /* ---------------------------------------------------------------------
@@ -161,81 +131,18 @@ html[data-pdp-theme="contraste"] {
 	flex: 1;
 }
 
-/* ---------------------------------------------------------------------
-   Recolorização (best-effort) do restante da tela do Projudi. Só entra em
-   vigor quando um tema diferente do padrão está ativo. Usa seletores
-   genéricos propositalmente, para não depender de classes específicas de
-   cada tela do sistema.
-   --------------------------------------------------------------------- */
-
-html[data-pdp-theme]:not([data-pdp-theme="padrao"]) body {
-	background-color: var(--pdp-page-bg) !important;
-}
-
-html[data-pdp-theme]:not([data-pdp-theme="padrao"]) a:not([class*="pdp-"]) {
-	color: var(--pdp-link) !important;
-}
-
-html[data-pdp-theme]:not([data-pdp-theme="padrao"]) input[type="submit"],
-html[data-pdp-theme]:not([data-pdp-theme="padrao"]) input[type="button"],
-html[data-pdp-theme]:not([data-pdp-theme="padrao"]) button:not([class*="pdp-"]) {
-	background: var(--pdp-btn-bg) !important;
-	color: var(--pdp-btn-fg) !important;
-	border-color: var(--pdp-accent-dark) !important;
-}
-
-html[data-pdp-theme]:not([data-pdp-theme="padrao"]) th,
-html[data-pdp-theme]:not([data-pdp-theme="padrao"]) .tituloTela,
-html[data-pdp-theme]:not([data-pdp-theme="padrao"]) td[bgcolor],
-html[data-pdp-theme]:not([data-pdp-theme="padrao"]) tr[bgcolor] {
-	background: var(--pdp-header-bg) !important;
-	color: var(--pdp-header-fg) !important;
-	border-color: var(--pdp-accent) !important;
-}
-
-html[data-pdp-theme]:not([data-pdp-theme="padrao"]) h1,
-html[data-pdp-theme]:not([data-pdp-theme="padrao"]) h2,
-html[data-pdp-theme]:not([data-pdp-theme="padrao"]) h3 {
-	color: var(--pdp-accent-dark) !important;
-	border-color: var(--pdp-accent) !important;
-}
-
-/* Alto Contraste: fundo escuro com texto claro em toda a página, para
-   quem precisa de mais contraste do que qualquer um dos outros temas
-   oferece — mesma ideia do modo "Alto Contraste" já existente no SEEU. */
-html[data-pdp-theme="contraste"] body,
-html[data-pdp-theme="contraste"] body :not(input):not(select):not(textarea):not([class*="pdp-"]) {
-	background-color: #000000 !important;
-	color: #ffffff !important;
-	border-color: #4a4a4a !important;
-}
-
-html[data-pdp-theme="contraste"] a:not([class*="pdp-"]) {
-	color: #ffd873 !important;
-	text-decoration: underline !important;
-}
-
-html[data-pdp-theme="contraste"] th,
-html[data-pdp-theme="contraste"] .tituloTela,
-html[data-pdp-theme="contraste"] td[bgcolor],
-html[data-pdp-theme="contraste"] tr[bgcolor] {
-	background: #000000 !important;
-	color: #eeb134 !important;
-	border: 1px solid #eeb134 !important;
-}
-
-html[data-pdp-theme="contraste"] input[type="submit"],
-html[data-pdp-theme="contraste"] input[type="button"],
-html[data-pdp-theme="contraste"] button:not([class*="pdp-"]) {
-	background: #eeb134 !important;
-	color: #002a3a !important;
-	border: 1px solid #002a3a !important;
-}
-
-html[data-pdp-theme="contraste"] input:not([type="submit"]):not([type="button"]),
-html[data-pdp-theme="contraste"] select,
-html[data-pdp-theme="contraste"] textarea {
-	background: #101010 !important;
-	color: #ffffff !important;
-	border: 1px solid #eeb134 !important;
+/* Faixa fina no topo da janela, só para indicar visualmente qual tema
+   está ativo (o "Padrão" não tem faixa nenhuma). É um elemento próprio
+   desta extensão — `pointer-events: none` para nunca atrapalhar cliques
+   em nada da tela por baixo — em vez de tentar recolorir elementos
+   nativos do Projudi (ver nota no topo deste arquivo). */
+.pdp-theme-strip {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 4px;
+	z-index: 2147483647;
+	pointer-events: none;
+	background: var(--pdp-accent);
 }

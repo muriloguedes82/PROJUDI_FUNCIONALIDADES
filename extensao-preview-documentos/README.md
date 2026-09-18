@@ -40,29 +40,33 @@ Projudi. Clicar nele abre uma lista com os temas disponíveis (marca de
 seleção ✓ ao lado do tema ativo):
 
 - **Padrão (Projudi)** — visual original, sem nenhuma alteração.
-- **Azul TJPR** — azul-petróleo (`#008c95`) com cabeçalhos em
-  azul-marinho (`#002a3a`).
-- **Verde-Água TJPR** — verde-água (`#49c5b1`) com cabeçalhos em
-  azul-marinho.
-- **Âmbar TJPR** — âmbar (`#eeb134`) com cabeçalhos em azul-marinho.
-- **Alto Contraste** — fundo preto com texto e realces em âmbar, para
-  quem precisa de mais contraste do que os outros temas oferecem.
+- **Azul TJPR** — azul-petróleo institucional (`#008c95`).
+- **Verde-Água TJPR** — verde-água institucional (`#49c5b1`).
+- **Âmbar TJPR** — âmbar institucional (`#eeb134`).
+- **Alto Contraste** — mesma cor de indicação em âmbar, para quem quer
+  deixar claro (visualmente) que está no modo de atenção redobrada.
 
-Todas as cores usadas vêm do Manual de Uso da Marca do TJPR (cores
-institucionais e as gradações das cores secundárias). As cores "restritas"
-do manual (rosa/roxo, de uso exclusivo de materiais da Coordenadoria
-Estadual da Mulher/CEVID) não são usadas aqui.
+As cores usadas vêm das Cores Institucionais do Manual de Uso da Marca do
+TJPR. As cores "restritas" do manual (rosa/roxo, de uso exclusivo de
+materiais da Coordenadoria Estadual da Mulher/CEVID) não são usadas aqui.
 
 O tema escolhido fica salvo (`chrome.storage.local`) e é aplicado
-automaticamente em qualquer tela do Projudi depois disso.
+automaticamente em qualquer tela do Projudi depois disso: uma faixa fina
+da cor do tema aparece no topo da janela (sem interferir em nenhum
+clique) e o botão/painel do seletor usam a cor exata do tema escolhido.
 
-**Limitação conhecida:** como o Projudi é um sistema legado e esta
-extensão não tem acesso ao código-fonte de cada tela, a recolorização do
-próprio Projudi (fora do botão/painel desta extensão, que sempre usam a
-cor exata do tema) é feita com seletores genéricos (links, botões,
-cabeçalhos de tabela, títulos) — pode não cobrir 100% dos elementos de
-toda tela do sistema. Trocar de volta para "Padrão (Projudi)" a qualquer
-momento remove todas as alterações.
+**Limitação conhecida:** uma primeira versão deste recurso tentava também
+recolorir o restante da tela nativa do Projudi (botões, cabeçalhos de
+tabela, links) com seletores CSS genéricos, sem conhecer a estrutura real
+de cada tela — na prática isso pegou elementos que não deveriam ser
+tocados (inclusive botões de outros recursos desta própria extensão) e
+deixou a tela feia/inconsistente. Por isso, por enquanto, o tema só muda
+o que esta extensão controla de verdade (botão, painel e a faixa
+indicadora) — o restante da tela do Projudi continua com o visual nativo.
+Uma recolorização de fato do conteúdo do Projudi exigiria as
+classes/IDs reais de cada tela (via F12 no navegador) em vez de
+suposições. Trocar de volta para "Padrão (Projudi)" a qualquer momento
+remove a faixa indicadora.
 
 ## Pré-visualização de Documentos
 

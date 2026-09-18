@@ -43,6 +43,20 @@
 	let launcher = null;
 	let panel = null;
 
+	function updateStrip(id) {
+		let strip = document.getElementById("pdp-theme-strip");
+		if (id === "padrao") {
+			if (strip) strip.remove();
+			return;
+		}
+		if (!strip) {
+			strip = document.createElement("div");
+			strip.id = "pdp-theme-strip";
+			strip.className = "pdp-theme-strip";
+			document.body.appendChild(strip);
+		}
+	}
+
 	function applyTheme(id) {
 		currentTheme = id;
 		if (id === "padrao") {
@@ -50,6 +64,7 @@
 		} else {
 			document.documentElement.setAttribute("data-pdp-theme", id);
 		}
+		if (document.body) updateStrip(id);
 	}
 
 	function saveTheme(id) {
