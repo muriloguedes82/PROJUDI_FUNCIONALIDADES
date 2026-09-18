@@ -93,10 +93,11 @@ apensos — o processo principal em si não ganha essa linha extra.
 
 ## Indicador de suspensão ativa
 
-Ao lado do **número único do processo**, no topo da tela, a extensão
-insere um pequeno **card** ("Suspenso: ...") sempre que identifica, na
-aba **"Informações Adicionais"** do próprio processo, um dos motivos de
-suspensão mais comuns:
+No cabeçalho do processo, logo depois do texto "(N dia(s) em
+tramitação)" — ao lado do número único do processo —, a extensão insere
+um pequeno **card** ("Suspenso: ...") sempre que encontra, no campo
+**"Suspensões:"** da aba **"Informações Adicionais"**, um item com
+status **ATIVA** e um dos motivos mais comuns:
 
 - Art. 366, CPP
 - Art. 89, L. 9099/95
@@ -104,11 +105,15 @@ suspensão mais comuns:
 - ANPP
 - Transação Penal
 
-O card já mostra o motivo identificado no próprio texto (ex.: "Suspenso:
-Art. 366, CPP"), e passar o mouse sobre ele reforça a informação como
-tooltip. Se nenhum desses motivos for encontrado preenchido na aba,
-nenhum card é exibido — o recurso não tenta adivinhar se o processo está
-suspenso por outro motivo qualquer, só sinaliza os cinco listados acima.
+Esse campo lista cada suspensão do processo no formato usado pelo
+próprio Projudi, ex.: "Art. 366 do CPP - NOME DO INVESTIGADO - ATIVA".
+O card mostra o motivo (e o nome, quando presente) no próprio texto —
+ex.: "Suspenso: Art. 366 do CPP - RENATO AVELINO DA SILVA" —, e passar o
+mouse sobre ele reforça a informação como tooltip. Um item cujo status
+não seja "ATIVA" (ex.: encerrado) é ignorado, e se nenhum item ativo com
+um dos cinco motivos for encontrado, nenhum card é exibido — o recurso
+não tenta adivinhar se o processo está suspenso por outro motivo
+qualquer, só sinaliza os cinco listados acima.
 
 A busca acontece automaticamente ao abrir o processo, esperando a aba
 "Informações Adicionais" terminar de carregar (o Projudi carrega o
@@ -117,16 +122,17 @@ mais que o resto da página) e é refeita periodicamente, para lidar com
 trocas de aba que substituem trechos da tela (ver "Troca de abas do
 processo" mais abaixo).
 
-**Atenção:** como o layout da aba "Informações Adicionais" é
-personalizável por Tribunal/Vara e não foi validado ao vivo no Projudi
-(só a partir do padrão já usado por outros campos desta extensão), a
-identificação do motivo é propositalmente ampla — procura o texto de cada
-motivo em rótulos/valores de campos, em `<select>` e em checkboxes/radios
-marcados dentro da aba. Se a aba usada no seu Tribunal tiver uma
-estrutura diferente e o card não aparecer com um processo suspenso, abra
-o console (F12, mensagens com o prefixo `[Projudi Suspensão Ativa]`) para
-ver o que foi encontrado e ajuste `findMotivoSuspensao` em
-`src/suspensaoAtiva.js`.
+A estrutura da aba "Informações Adicionais" e do campo "Suspensões:" foi
+confirmada a partir de uma página real do Projudi (TJPR) — inclusive um
+detalhe importante: o `id` da aba (`tabItemprefixN`) fica no item da
+lista de abas (`<li>`), não no link (`<a>`) dentro dele, diferente do que
+outras partes desta extensão assumiam. Ainda assim, o texto exato de
+cada item de suspensão pode variar por Tribunal/Vara, então a extensão
+registra no console (F12, mensagens com o prefixo `[Projudi Suspensão
+Ativa]`) cada item da lista avaliado e o motivo do descarte (status
+diferente de "ATIVA", ou motivo não reconhecido) — útil para ajustar
+`findMotivoSuspensaoAtiva` em `src/suspensaoAtiva.js` caso o card não
+apareça com um processo suspenso.
 
 ## Envio por E-mail (Outlook)
 
