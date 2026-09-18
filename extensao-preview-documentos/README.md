@@ -115,6 +115,15 @@ um dos cinco motivos for encontrado, nenhum card é exibido — o recurso
 não tenta adivinhar se o processo está suspenso por outro motivo
 qualquer, só sinaliza os cinco listados acima.
 
+Cada item de "Suspensões:" também é um link para uma tela de detalhe
+daquela suspensão específica (`transacaoPenal.do`), que tem a **Data de
+Início**. A extensão busca essa data automaticamente em segundo plano
+(iframe oculto, mesma técnica já usada em "Sequencial do processo
+principal") e a acrescenta ao card assim que a busca termina, ex.:
+"Suspenso: Art. 366 do CPP - RENATO AVELINO DA SILVA (desde
+14/05/2010)". Enquanto a busca não termina, o card já aparece sem a
+data, que é adicionada depois sem precisar recarregar nada.
+
 A busca acontece automaticamente ao abrir o processo, esperando a aba
 "Informações Adicionais" terminar de carregar (o Projudi carrega o
 conteúdo das abas via uma requisição própria, que pode demorar um pouco
