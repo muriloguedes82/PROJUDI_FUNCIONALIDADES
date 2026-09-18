@@ -48,6 +48,19 @@
 		return null;
 	}
 
+	// O primeiro processo listado na árvore de "Apensamentos:" é sempre o
+	// processo principal — inclusive na própria página dele, onde ele
+	// aparece como o primeiro item da própria árvore (em negrito, por ser
+	// "este processo"). Diferente do link do campo "Processo Principal:"
+	// (que só existe nos apensos), os links dessa árvore não têm classe
+	// "link", então são buscados por href mesmo.
+	function primeiroLinkApensamentos(root) {
+		const apensamentosRow = findRowByLabel(root, "Apensamentos");
+		if (!apensamentosRow) return null;
+		const link = apensamentosRow.querySelector(".tree a[href]");
+		return link && link.href ? link : null;
+	}
+
 	// O campo "Sequencial" fica dentro do conteúdo da aba "Informações
 	// Gerais" (div#tabprefix0), que o Projudi carrega via uma requisição
 	// AJAX própria assim que a página termina de montar — não vem pronto no
@@ -203,13 +216,22 @@
 		}
 
 		// Processo principal (ou um processo qualquer que não é apenso de
-		// ninguém): mostra o próprio Sequencial, no fim do mesmo quadro de
-		// informações — buscado do próprio endereço da página, forçando a
-		// aba "Informações Gerais", para não depender de qual aba o usuário
-		// tem aberta no momento.
-		const ultimaLinha = table.rows.length ? table.rows[table.rows.length - 1] : null;
-		if (!ultimaLinha) return;
-		inserirLinhaSequencial(ultimaLinha, "Sequencial", comAbaInformacoesGerais(window.location.href));
+		// ninguém): mostra o próprio Sequencial, no mesmo lugar em que a
+		// linha aparece nos apensos — logo abaixo de "Nível de Sigilo:", já
+		// que aqui não existe o campo "Processo Principal:" para servir de
+		// referência.
+		//
+		// Importante: NÃO reabre a própria window.location.href — essa URL
+		// costuma ser resultado de um POST (o formulário "processoForm" da
+		// própria página), e reabri-la como GET num iframe não navega para o
+		// mesmo lugar. Em vez disso, usa o link de "este processo" dentro da
+		// própria árvore de Apensamentos — o mesmo tipo de link (com token de
+		// sessão válido) que já funciona para os apensos.
+		const anchorRow = findRowByLabel(table, "Nível de Sigilo") || table.rows[table.rows.length - 1];
+		if (!anchorRow) return;
+		const link = primeiroLinkApensamentos(table);
+		if (!link) return;
+		inserirLinhaSequencial(anchorRow, "Sequencial", comAbaInformacoesGerais(link.href));
 	}
 
 	init();
