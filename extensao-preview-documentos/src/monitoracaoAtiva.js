@@ -1,0 +1,677 @@
+// Projudi - Indicador de monitoração eletrônica ativa ao lado do número
+// único do processo
+//
+// A aba "Informações Adicionais" do processo tem, na mesma seção
+// "Benefícios/Medidas/Suspensões" usada pelo indicador de suspensão ativa
+// (veja suspensaoAtiva.js), um campo com a lista de medidas do tipo
+// "Monitoração Eletrônica" do processo — cada item no formato "<algo> -
+// <status>" ou "<algo> - <nome> - <status>", com status "ATIVA" quando em
+// vigor. Cada item é também um link (`a.link`) para a tela de detalhe da
+// medida (`medidaAlternativa.do`), que tem os campos "Status:" e "Data
+// Início:" (confirmados a partir de um .mhtml real dessa tela — ver
+// estrutura abaixo).
+//
+// Este recurso lê esse campo e, para CADA item reconhecido como
+// "Monitoração Eletrônica" com status "ATIVA", insere um pequeno card logo
+// depois do "(N dia(s) em tramitação)" no cabeçalho do processo (<h3
+// id="barraTituloStatusProcessual">) — um card por item, lado a lado, com
+// a "Data Início" assim que a busca em segundo plano (na tela de detalhe)
+// termina.
+//
+// Mesma técnica de leitura/busca/persistência já usada em
+// suspensaoAtiva.js: leitura direta da aba "Informações Adicionais" se ela
+// já estiver na página, senão busca em segundo plano (POST para
+// #processoForm com selectedIcon=tabDadosAdicionais); busca da "Data
+// Início" de cada item num iframe oculto apontando para
+// `medidaAlternativa.do`; e estado espelhado em sessionStorage (por
+// número único do processo) para os cards sobreviverem à navegação entre
+// abas do processo, que recarrega a página inteira.
+//
+// Estrutura real confirmada a partir de um .mhtml salvo do Projudi (TJPR),
+// tela de detalhe (medidaAlternativa.do, aberta a partir de um link na aba
+// "Informações Adicionais"):
+// <form name="medidaAlternativaForm" id="medidaAlternativaForm" ...>
+//   <h3>Monitoração eletrônica</h3>
+//   <table class="form"><tbody>
+//     <tr><td class="label">Status:</td><td>ATIVA</td></tr>
+//     <tr><td class="label">Data Provável de Término:</td><td>...</td></tr>
+//     <tr><td class="label">Data de Término Efetiva:</td><td> </td></tr>
+//     <tr><td class="label"><label for="medida.cautelar.data.inicio">
+//       Data Início:</label></td><td>20/07/2024</td></tr>
+//     <tr><td class="label"><label for="valor">Prazo de
+//       monitoramento:</label></td><td>450 dia(s)</td></tr>
+//     ...
+//   </tbody></table></form>
+// — igual a transacaoPenal.do (suspensaoAtiva.js), "Status:" fica direto
+// no texto do <td class="label">, sem <label> dentro; já "Data Início:"
+// tem um <label> dentro do <td class="label">, então a leitura do campo
+// usa o texto do <td> inteiro (funciona nos dois casos).
+//
+// A estrutura exata do campo com a lista de medidas na aba "Informações
+// Adicionais" (rótulo, e se cada item vem com nome do réu ou só o status)
+// não foi confirmada a partir de uma página real — só a tela de detalhe
+// acima. Por isso o campo é localizado por uma lista de rótulos candidatos
+// (normalizados) e cada item avaliado é registrado no console (F12,
+// mensagens com o prefixo "[Projudi Monitoração Ativa]") para ajudar a
+// ajustar `CAMPO_LABELS`/`MOTIVOS_REGEX` abaixo caso o card não apareça
+// com um processo em monitoração eletrônica ativa.
+(function () {
+	"use strict";
+
+	// Evita rodar dentro de iframes ocultos usados por esta ou outras
+	// funcionalidades desta extensão para carregar páginas em segundo plano.
+	if (window.frameElement && window.frameElement.hasAttribute("data-pdp-loader")) return;
+
+	if (window.__pdpMonitoracaoAtiva) return;
+	window.__pdpMonitoracaoAtiva = true;
+
+	const TAG = "[Projudi Monitoração Ativa]";
+	const CARD_ATTR = "data-pdp-monitoracao-card";
+	const LOADER_ATTR = "data-pdp-loader";
+	const ABA_LABEL = "Informações Adicionais";
+	const ABA_SELECTED_ICON = "tabDadosAdicionais";
+	const CAMPO_LABELS = [
+		"monitoracoes eletronicas",
+		"monitoracao eletronica",
+		"monitoracoes",
+		"monitoracao",
+		"medidas alternativas",
+		"medida alternativa",
+	]; // já normalizados (sem acento/caixa)
+	const STATUS_ATIVA = ["ativa", "ativo"];
+	const MOTIVOS_REGEX = [{ nome: "Monitoração Eletrônica", re: /monitora(c|ç)ao\s+eletr(o|ô)nica/ }];
+
+	function normalize(text) {
+		return String(text || "")
+			.normalize("NFD")
+			.replace(/[̀-ͯ]/g, "")
+			.replace(/\s+/g, " ")
+			.trim()
+			.toLowerCase();
+	}
+
+	function collapseWhitespace(text) {
+		return String(text || "").replace(/\s+/g, " ").trim();
+	}
+
+	// O texto de cada item vem como "<algo> - <status>" ou "<algo> - <nome>
+	// - <status>" (com espaços/quebras de linha irregulares entre os
+	// trechos). O status é o último segmento depois do último " - ".
+	function extractStatus(text) {
+		const collapsed = collapseWhitespace(text);
+		const parts = collapsed.split(" - ").map((p) => p.trim()).filter(Boolean);
+		return parts.length ? normalize(parts[parts.length - 1]) : "";
+	}
+
+	// Texto para exibir no card: o mesmo texto do item, sem repetir o status
+	// no final (já indicado pelo próprio card existir).
+	function displayText(text) {
+		const collapsed = collapseWhitespace(text);
+		return collapsed.replace(/-\s*(ativa|ativo)\s*$/i, "").replace(/-\s*$/, "").trim() || collapsed;
+	}
+
+	// Retorna o nome canônico do motivo reconhecido (para log) ou null.
+	function matchMotivo(text) {
+		const normalized = normalize(text);
+		if (!normalized) return null;
+		const found = MOTIVOS_REGEX.find((m) => m.re.test(normalized));
+		return found ? found.nome : null;
+	}
+
+	// O id da aba fica no <li> (ex.: <li id="tabItemprefix1">), não no <a>
+	// interno — por isso a busca é por qualquer elemento com esse prefixo de
+	// id, não só por <a>. `root` permite buscar tanto no documento atual
+	// quanto num documento buscado em segundo plano (iframe oculto).
+	function findTabAnchorByLabel(root, labelText, silent) {
+		const candidates = root.querySelectorAll('[id^="tabItemprefix"]');
+		for (const el of candidates) {
+			if (normalize(el.textContent) === normalize(labelText)) return el;
+		}
+		if (!silent) console.log(TAG, "nenhum elemento com id tabItemprefix* casou com o rótulo da aba", { labelText: labelText });
+		return null;
+	}
+
+	// `silent` evita poluir o console nas reconciliações periódicas, em que
+	// a aba não estar disponível agora é esperado (usuário está em outra
+	// aba do processo) — não é um erro a cada 1.5s.
+	function findTabContent(root, labelText, silent) {
+		const anchor = findTabAnchorByLabel(root, labelText, silent);
+		if (!anchor) return null;
+		const match = /tabItemprefix(\d+)/.exec(anchor.id);
+		if (!match) return null;
+		const content = root.getElementById ? root.getElementById("tabprefix" + match[1]) : null;
+		if (!content && !silent) console.log(TAG, "aba encontrada mas #tabprefix" + match[1] + " não existe no documento");
+		return content;
+	}
+
+	function tabContentReady(content) {
+		return !!(content && content.querySelector("td.label, td.labelRadio"));
+	}
+
+	// Espera o conteúdo da aba terminar de carregar via AJAX (o Projudi
+	// carrega o conteúdo de cada aba numa requisição própria, que só
+	// termina um pouco depois do resto da página montar — mesmo
+	// comportamento já documentado em sequencialProcessoPrincipal.js).
+	function waitForTabContent(root, labelText, timeoutMs) {
+		return new Promise(function (resolve) {
+			const deadline = Date.now() + timeoutMs;
+			(function tick() {
+				const content = findTabContent(root, labelText, /* silent */ true);
+				if (tabContentReady(content)) return resolve(content);
+				if (Date.now() >= deadline) {
+					if (!content) console.log(TAG, "aba '" + labelText + "' não encontrada após " + timeoutMs + "ms de espera");
+					return resolve(content);
+				}
+				setTimeout(tick, 250);
+			})();
+		});
+	}
+
+	function findLabelCell(tabContent, wantedLabels) {
+		const labelCells = tabContent.querySelectorAll("td.label label, td.labelRadio label");
+		for (const label of labelCells) {
+			const text = normalize(label.textContent).replace(/:\s*$/, "");
+			if (wantedLabels.indexOf(text) !== -1) return label;
+		}
+		return null;
+	}
+
+	// Procura, dentro do campo de medidas de monitoração, TODOS os itens de
+	// lista reconhecidos como "Monitoração Eletrônica" com status "ATIVA" —
+	// um processo com mais de um réu pode ter mais de um item ativo ao
+	// mesmo tempo. Retorna um array de { texto, href } (href = link para a
+	// tela de detalhe daquela medida, ou null se o item não tiver link);
+	// array vazio se nenhum item ativo reconhecido for encontrado.
+	function findMonitoracoesAtivas(tabContent) {
+		const label = findLabelCell(tabContent, CAMPO_LABELS);
+		if (!label) {
+			console.log(TAG, "campo de monitoração eletrônica não encontrado na aba '" + ABA_LABEL + "'", {
+				rotulosEncontrados: Array.prototype.slice
+					.call(tabContent.querySelectorAll("td.label label, td.labelRadio label"))
+					.map((l) => l.textContent.trim())
+					.filter(Boolean),
+			});
+			return [];
+		}
+
+		const row = label.closest("tr");
+		const items = row ? Array.prototype.slice.call(row.querySelectorAll("li")) : [];
+		const candidates = items.length ? items : row ? Array.prototype.slice.call(row.querySelectorAll("td")).slice(1) : [];
+
+		console.log(TAG, "campo de monitoração eletrônica encontrado, avaliando itens:", candidates.map((c) => collapseWhitespace(c.textContent)));
+
+		const encontrados = [];
+		for (const item of candidates) {
+			const text = collapseWhitespace(item.textContent);
+			if (!text) continue;
+			const status = extractStatus(text);
+			if (status && STATUS_ATIVA.indexOf(status) === -1) {
+				console.log(TAG, "item ignorado (status não é ativa):", { texto: text, status: status });
+				continue;
+			}
+			const motivo = matchMotivo(text) || (candidates.length === 1 ? "Monitoração Eletrônica" : null);
+			if (!motivo) {
+				console.log(TAG, "item ignorado (não reconhecido como Monitoração Eletrônica):", text);
+				continue;
+			}
+			console.log(TAG, "item de monitoração eletrônica ativa reconhecido:", { texto: text, motivo: motivo });
+			const link = item.querySelector ? item.querySelector("a.link, a[href]") : null;
+			let href = null;
+			if (link && link.getAttribute("href")) {
+				try {
+					href = new URL(link.getAttribute("href"), window.location.href).href;
+				} catch (err) {
+					href = link.getAttribute("href");
+				}
+			}
+			encontrados.push({ texto: displayText(text), href: href });
+		}
+
+		return encontrados;
+	}
+
+	// ---------------------------------------------------------------------
+	// Busca em segundo plano (iframe oculto): tanto da própria aba
+	// "Informações Adicionais" (quando a página atual não é essa aba) quanto
+	// da "Data Início" de cada medida, na tela de detalhe
+	// (medidaAlternativa.do). Mesma técnica já usada em suspensaoAtiva.js.
+	// ---------------------------------------------------------------------
+
+	function fetchDoc(url) {
+		return new Promise(function (resolve, reject) {
+			const iframe = document.createElement("iframe");
+			iframe.setAttribute(LOADER_ATTR, "pdp-monit-" + Date.now() + "-" + Math.random().toString(36).slice(2));
+			iframe.style.position = "absolute";
+			iframe.style.top = "-9999px";
+			iframe.style.left = "-9999px";
+			iframe.style.width = "1024px";
+			iframe.style.height = "768px";
+
+			let settled = false;
+			const timeout = setTimeout(function () {
+				if (settled) return;
+				settled = true;
+				cleanup();
+				reject(new Error("tempo esgotado carregando " + url));
+			}, 12000);
+
+			function cleanup() {
+				clearTimeout(timeout);
+				if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+			}
+
+			iframe.addEventListener("load", function () {
+				if (settled) return;
+				let doc, finalUrl;
+				try {
+					doc = iframe.contentDocument;
+					finalUrl = iframe.contentWindow.location.href;
+				} catch (err) {
+					settled = true;
+					cleanup();
+					reject(err);
+					return;
+				}
+				// Inserir o iframe já dispara um "load" para about:blank antes da
+				// navegação de verdade começar; ignora esse primeiro evento.
+				if (finalUrl === "about:blank") return;
+				settled = true;
+				cleanup();
+				resolve(doc);
+			});
+
+			document.body.appendChild(iframe);
+			iframe.src = url;
+		});
+	}
+
+	// Busca a aba "Informações Adicionais" da MESMA página/processo em
+	// segundo plano — POST para a própria action do formulário
+	// `#processoForm`, com um campo oculto `selectedIcon` no corpo (mesma
+	// técnica de oraculoDirect.js/suspensaoAtiva.js).
+	async function fetchAbaInformacoesAdicionaisPOST() {
+		const form = document.getElementById("processoForm");
+		if (!form) {
+			console.warn(TAG, "#processoForm não encontrado nesta página — não é possível buscar a aba em segundo plano aqui");
+			return null;
+		}
+
+		let actionUrl;
+		try {
+			actionUrl = new URL(form.getAttribute("action") || form.action, window.location.href);
+		} catch (err) {
+			console.warn(TAG, "action do #processoForm inválida:", err);
+			return null;
+		}
+		if (actionUrl.origin !== window.location.origin) {
+			console.warn(TAG, "action do #processoForm aponta para outra origem, abortando busca em segundo plano:", actionUrl.href);
+			return null;
+		}
+
+		const body = new URLSearchParams();
+		for (const [name, value] of new FormData(form)) {
+			if (typeof value === "string") body.append(name, value);
+		}
+		body.set("selectedIcon", ABA_SELECTED_ICON);
+
+		console.log(TAG, "buscando aba '" + ABA_LABEL + "' em segundo plano (POST):", actionUrl.href);
+
+		const controller = new AbortController();
+		const timeout = setTimeout(function () {
+			controller.abort();
+		}, 20000);
+		try {
+			const response = await fetch(actionUrl.href, {
+				method: "POST",
+				body: body,
+				credentials: "same-origin",
+				signal: controller.signal,
+			});
+			if (!response.ok) throw new Error("Projudi respondeu " + response.status + " " + response.statusText);
+			const bytes = await response.arrayBuffer();
+			// O Projudi serve em windows-1252; lê o <meta charset> da própria
+			// resposta (ou do cabeçalho HTTP) em vez de assumir um valor fixo,
+			// mesma técnica usada em oraculoDirect.js.
+			const preview = new TextDecoder("windows-1252").decode(bytes.slice(0, 4096));
+			const charsetMatch =
+				/charset\s*=\s*["']?([\w-]+)/i.exec(response.headers.get("content-type") || "") || /charset\s*=\s*["']?([\w-]+)/i.exec(preview);
+			const charset = (charsetMatch && charsetMatch[1]) || "windows-1252";
+			const html = new TextDecoder(charset).decode(bytes);
+			return new DOMParser().parseFromString(html, "text/html");
+		} finally {
+			clearTimeout(timeout);
+		}
+	}
+
+	// Para diagnóstico: qual aba veio marcada como ativa numa resposta —
+	// ajuda a confirmar se o POST realmente trocou de aba ou se voltou
+	// para a padrão (Movimentações).
+	function abaAtivaEm(root) {
+		const ativa = root.querySelector('[id^="tabItemprefix"].currentTab, [id^="tabItemprefix"][class*="currentTab"]');
+		return ativa ? collapseWhitespace(ativa.textContent) : "(nenhuma aba marcada como atual)";
+	}
+
+	// Na tela de detalhe (medidaAlternativa.do), tanto "Status:" quanto
+	// "Data Início:" ficam num <td class="label"> seguido do valor no <td>
+	// seguinte — só que "Data Início:" tem um <label> dentro do
+	// <td class="label"> (diferente de "Status:", que não tem); por isso a
+	// leitura usa o texto do <td> inteiro (funciona nos dois casos), não só
+	// de um eventual <label> dentro dele.
+	function findDetailField(doc, wantedNormalizedLabel) {
+		const labelCells = doc.querySelectorAll("td.label");
+		for (const td of labelCells) {
+			const text = normalize(td.textContent).replace(/:\s*$/, "");
+			if (text !== wantedNormalizedLabel) continue;
+			const valueCell = td.nextElementSibling;
+			const value = valueCell ? collapseWhitespace(valueCell.textContent) : "";
+			return value || null;
+		}
+		return null;
+	}
+
+	function findDataInicio(doc) {
+		return findDetailField(doc, "data inicio");
+	}
+
+	// href -> "pending" | string (data) | null (buscado, não encontrado)
+	const dataInicioPorHref = new Map();
+
+	function buscarDataInicio(href) {
+		if (!href || dataInicioPorHref.has(href)) return;
+		dataInicioPorHref.set(href, "pending");
+		console.log(TAG, "buscando Data Início em segundo plano:", href);
+		fetchDoc(href)
+			.then(function (doc) {
+				const data = findDataInicio(doc);
+				dataInicioPorHref.set(href, data);
+				console.log(TAG, data ? "Data Início encontrada: " + data : "campo 'Data Início' não encontrado na tela de detalhe", { href: href });
+				atualizarDataInicio(href, data);
+			})
+			.catch(function (err) {
+				dataInicioPorHref.set(href, null);
+				console.warn(TAG, "falha ao buscar Data Início:", { href: href, erro: err && (err.stack || err.message || err) });
+			});
+	}
+
+	// ---------------------------------------------------------------------
+	// Cards no cabeçalho (um por medida de monitoração ativa reconhecida)
+	// ---------------------------------------------------------------------
+
+	// Cabeçalho do processo: no Projudi (tela visualizacaoProcesso.do) é
+	// <h3 id="barraTituloStatusProcessual">, terminando em "(N dia(s) em
+	// tramitação)" — é logo depois desse texto que os cards devem aparecer.
+	// Em telas/sistemas sem esse cabeçalho (ex.: SEEU), cai para os mesmos
+	// elementos já usados em email.js (extractProcessNumber).
+	function headerContainer() {
+		const barra = document.getElementById("barraTituloStatusProcessual");
+		if (barra && barra.textContent.trim()) return barra;
+		const projudiEl = document.querySelector("em.attention");
+		if (projudiEl && projudiEl.textContent.trim()) return projudiEl.parentElement || projudiEl;
+		const seeuEl = document.querySelector("div.titulo.processo");
+		if (seeuEl && seeuEl.textContent.trim()) return seeuEl;
+		return null;
+	}
+
+	function textoItem(item) {
+		return item.dataInicio ? item.texto + " (desde " + item.dataInicio + ")" : item.texto;
+	}
+
+	function criarCardElemento(chave) {
+		const card = document.createElement("span");
+		card.setAttribute(CARD_ATTR, chave);
+		card.style.display = "inline-flex";
+		card.style.alignItems = "center";
+		card.style.gap = "4px";
+		card.style.marginLeft = "8px";
+		card.style.padding = "1px 8px";
+		card.style.borderRadius = "10px";
+		card.style.border = "1px solid #1a73e8";
+		card.style.background = "#e8f0fe";
+		card.style.color = "#174ea6";
+		card.style.fontSize = "11px";
+		card.style.fontWeight = "bold";
+		card.style.verticalAlign = "middle";
+		card.style.cursor = "help";
+
+		const textEl = document.createElement("span");
+		textEl.className = "pdp-monitoracao-card-texto";
+		card.appendChild(textEl);
+		return card;
+	}
+
+	// Insere/atualiza um card por item de `items` (array de { href, texto
+	// já formatado }), preservando os elementos existentes (por href, para
+	// não perder o hover/posição à toa a cada reconciliação) e removendo os
+	// que não estão mais na lista.
+	function insertCards(items) {
+		const container = headerContainer();
+		if (!container) return false;
+
+		const existentes = new Map();
+		container.querySelectorAll("[" + CARD_ATTR + "]").forEach(function (el) {
+			existentes.set(el.getAttribute(CARD_ATTR), el);
+		});
+
+		const chavesDesejadas = [];
+		let ultimoInserido = null;
+		items.forEach(function (item, idx) {
+			const chave = item.href || "idx:" + idx;
+			chavesDesejadas.push(chave);
+			let card = existentes.get(chave);
+			if (!card) {
+				card = criarCardElemento(chave);
+				if (ultimoInserido) ultimoInserido.insertAdjacentElement("afterend", card);
+				else container.appendChild(card);
+			}
+			card.title = "Monitoração eletrônica ativa: " + item.texto;
+			card.querySelector(".pdp-monitoracao-card-texto").textContent = "Monitorado eletronicamente: " + item.texto;
+			ultimoInserido = card;
+		});
+
+		existentes.forEach(function (el, chave) {
+			if (chavesDesejadas.indexOf(chave) === -1) el.remove();
+		});
+
+		return true;
+	}
+
+	function removeCards() {
+		document.querySelectorAll("[" + CARD_ATTR + "]").forEach(function (el) {
+			el.remove();
+		});
+	}
+
+	// ---------------------------------------------------------------------
+	// Persistência entre abas do processo (ver justificativa detalhada em
+	// suspensaoAtiva.js, "Persistência entre abas do processo").
+	// ---------------------------------------------------------------------
+
+	const STORAGE_PREFIX = "pdpMonitoracaoAtiva:";
+
+	function numeroProcesso() {
+		const header = document.getElementById("barraTituloStatusProcessual");
+		const fontes = [header && header.textContent, document.title, window.location.href];
+		for (const fonte of fontes) {
+			if (!fonte) continue;
+			const match = /(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/.exec(fonte);
+			if (match) return match[1];
+		}
+		return null;
+	}
+
+	function storageKey() {
+		const numero = numeroProcesso();
+		return numero ? STORAGE_PREFIX + numero : null;
+	}
+
+	function salvarEstado(estado) {
+		const key = storageKey();
+		if (!key) return;
+		try {
+			if (estado && estado.length) sessionStorage.setItem(key, JSON.stringify(estado));
+			else sessionStorage.removeItem(key);
+		} catch (err) {
+			console.warn(TAG, "não foi possível salvar o estado em sessionStorage:", err);
+		}
+	}
+
+	function carregarEstado() {
+		const key = storageKey();
+		if (!key) return undefined;
+		try {
+			const raw = sessionStorage.getItem(key);
+			return raw ? JSON.parse(raw) : null;
+		} catch (err) {
+			console.warn(TAG, "não foi possível ler o estado salvo em sessionStorage:", err);
+			return undefined;
+		}
+	}
+
+	// Estado guardado em memória nesta carga de página, espelhado em
+	// `sessionStorage` (ver acima). `undefined` = ainda não avaliado nem
+	// restaurado; `null`/array vazio = avaliado, sem monitoração ativa
+	// reconhecida. Quando há monitorações: array de { texto, href,
+	// dataInicio } — um item por réu/medida ativa.
+	let estadoAtual;
+
+	function sincronizarCards() {
+		if (estadoAtual && estadoAtual.length) {
+			insertCards(estadoAtual.map(function (item) {
+				return { href: item.href, texto: textoItem(item) };
+			}));
+		} else {
+			removeCards();
+		}
+	}
+
+	// Aplica uma nova leitura da aba "Informações Adicionais" (local ou
+	// buscada em segundo plano): atualiza o estado, salva em
+	// sessionStorage, dispara a busca da Data Início de cada item novo e
+	// sincroniza os cards.
+	function aplicarMonitoracoes(encontrados) {
+		const anterior = estadoAtual ? estadoAtual.map((e) => e.texto).sort().join(" | ") : "";
+		const novo = encontrados.map((e) => e.texto).sort().join(" | ");
+		if (novo !== anterior) {
+			console.log(TAG, "estado de monitoração eletrônica atualizado:", { anterior: anterior || "(nenhuma)", novo: novo || "(nenhuma)" });
+		}
+
+		estadoAtual = encontrados.map(function (item) {
+			const dataConhecida = item.href ? dataInicioPorHref.get(item.href) : undefined;
+			return {
+				texto: item.texto,
+				href: item.href,
+				dataInicio: dataConhecida && dataConhecida !== "pending" ? dataConhecida : null,
+			};
+		});
+		salvarEstado(estadoAtual);
+
+		estadoAtual.forEach(function (item) {
+			if (item.href) buscarDataInicio(item.href);
+		});
+
+		sincronizarCards();
+	}
+
+	// Callback de `buscarDataInicio`: atualiza a data de início do item
+	// correspondente (por href), se ele ainda fizer parte do estado atual.
+	function atualizarDataInicio(href, data) {
+		if (!estadoAtual) return;
+		const idx = estadoAtual.findIndex(function (item) {
+			return item.href === href;
+		});
+		if (idx === -1) return;
+		estadoAtual = estadoAtual.slice();
+		estadoAtual[idx] = Object.assign({}, estadoAtual[idx], { dataInicio: data });
+		salvarEstado(estadoAtual);
+		sincronizarCards();
+	}
+
+	// Se a aba "Informações Adicionais" já estiver disponível na própria
+	// página agora (usuário está nela), lê direto — sem gastar nenhuma
+	// requisição extra — e retorna true. Senão, retorna false (chamador
+	// decide se busca em segundo plano).
+	function lerSeDisponivelLocalmente() {
+		const tabContent = findTabContent(document, ABA_LABEL, /* silent */ true);
+		if (!tabContentReady(tabContent)) return false;
+		aplicarMonitoracoes(findMonitoracoesAtivas(tabContent));
+		return true;
+	}
+
+	// Busca a aba "Informações Adicionais" em segundo plano (POST para o
+	// próprio #processoForm, ver `fetchAbaInformacoesAdicionaisPOST` acima)
+	// — usado quando o processo abre em outra aba (o padrão, já que ele
+	// sempre abre em "Movimentações") e essa aba não está disponível na
+	// página atual.
+	let buscaEmSegundoPlanoFeita = false;
+	function buscarEmSegundoPlano() {
+		if (buscaEmSegundoPlanoFeita) return;
+		buscaEmSegundoPlanoFeita = true;
+		console.log(TAG, "aba '" + ABA_LABEL + "' não está na página atual — buscando em segundo plano (POST)");
+		fetchAbaInformacoesAdicionaisPOST()
+			.then(function (doc) {
+				if (!doc) {
+					buscaEmSegundoPlanoFeita = false;
+					return;
+				}
+				const tabContent = findTabContent(doc, ABA_LABEL, false);
+				if (!tabContentReady(tabContent)) {
+					console.log(TAG, "busca em segundo plano (POST) não encontrou o conteúdo da aba '" + ABA_LABEL + "' pronto na resposta — aba que veio ativa na resposta:", abaAtivaEm(doc));
+					buscaEmSegundoPlanoFeita = false;
+					return;
+				}
+				aplicarMonitoracoes(findMonitoracoesAtivas(tabContent));
+			})
+			.catch(function (err) {
+				console.warn(TAG, "falha ao buscar a aba 'Informações Adicionais' em segundo plano:", err && (err.stack || err.message || err));
+				// Permite tentar de novo na próxima reconciliação, se ainda não
+				// houver nenhum estado conhecido (nem local, nem restaurado).
+				buscaEmSegundoPlanoFeita = false;
+			});
+	}
+
+	// Restaura, antes de qualquer outra coisa, o que já se sabia sobre este
+	// processo (salvo por uma leitura anterior nesta mesma aba do
+	// navegador) — assim os cards aparecem imediatamente em QUALQUER aba
+	// do processo, mesmo antes de qualquer leitura/busca terminar nesta
+	// carga de página.
+	const restaurado = carregarEstado();
+	if (restaurado !== undefined) {
+		estadoAtual = restaurado;
+		console.log(TAG, "estado restaurado do sessionStorage:", restaurado);
+		sincronizarCards();
+	}
+
+	// Garante uma leitura atualizada assim que a página termina de montar:
+	// usa a aba local se ela já estiver disponível (ex.: usuário abriu
+	// direto em "Informações Adicionais", ou está nela agora); senão, como
+	// o processo normalmente abre em "Movimentações", busca a aba em
+	// segundo plano — sem depender do usuário clicar nela.
+	waitForTabContent(document, ABA_LABEL, 4000).then(function (tabContent) {
+		if (tabContentReady(tabContent)) {
+			aplicarMonitoracoes(findMonitoracoesAtivas(tabContent));
+		} else {
+			buscarEmSegundoPlano();
+		}
+	});
+
+	// A tela do processo pode trocar de aba/recarregar trechos via AJAX, ou
+	// navegar para uma URL diferente (ver "Troca de abas do processo" no
+	// README) — em qualquer um dos dois casos, os cards podem precisar ser
+	// reinseridos (ou restaurados do zero, se a página recarregou).
+	// Reconcilia periodicamente: reaplica o último estado conhecido sempre
+	// (cobre o cabeçalho ter sido recriado), relê a aba "Informações
+	// Adicionais" quando ela estiver disponível localmente (usuário
+	// navegou para ela, dado mais atual que qualquer busca em segundo
+	// plano), e tenta a busca em segundo plano de novo se ainda não tiver
+	// nenhum estado conhecido nem local nem restaurado.
+	setInterval(function () {
+		try {
+			if (!lerSeDisponivelLocalmente()) {
+				sincronizarCards();
+				if (estadoAtual === undefined) buscarEmSegundoPlano();
+			}
+		} catch (err) {
+			console.error(TAG, "erro na reconciliação periódica:", err);
+		}
+	}, 1500);
+})();
