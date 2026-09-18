@@ -28,6 +28,10 @@ extensão funciona da mesma forma nos dois sistemas:
    aba "Informações Gerais" do próprio processo principal — é preciso
    abrir o processo principal só para consultá-lo (veja "Sequencial do
    processo principal nos processos apensos" abaixo).
+7. não há como saber, olhando só o número único do processo no topo da
+   tela, se ele está com uma suspensão ativa — é preciso abrir a aba
+   "Informações Adicionais" para conferir (veja "Indicador de suspensão
+   ativa" abaixo).
 
 ## Pré-visualização de Documentos
 
@@ -86,6 +90,43 @@ Principal:"** logo abaixo do campo "Processo Principal:" já existente,
 preenchida assim que a busca termina. Esse campo só aparece nos processos
 que já têm "Processo Principal:" preenchido, ou seja, nos processos
 apensos — o processo principal em si não ganha essa linha extra.
+
+## Indicador de suspensão ativa
+
+Ao lado do **número único do processo**, no topo da tela, a extensão
+insere um ícone **⏸️** sempre que identifica, na aba **"Informações
+Adicionais"** do próprio processo, um dos motivos de suspensão mais
+comuns:
+
+- Art. 366, CPP
+- Art. 89, L. 9099/95
+- Insanidade Mental
+- ANPP
+- Transação Penal
+
+Passar o mouse sobre o ícone mostra o motivo identificado, como tooltip
+("Suspensão ativa: ..."). Se nenhum desses motivos for encontrado
+preenchido na aba, nenhum ícone é exibido — o recurso não tenta adivinhar
+se o processo está suspenso por outro motivo qualquer, só sinaliza os
+cinco listados acima.
+
+A busca acontece automaticamente ao abrir o processo, esperando a aba
+"Informações Adicionais" terminar de carregar (o Projudi carrega o
+conteúdo das abas via uma requisição própria, que pode demorar um pouco
+mais que o resto da página) e é refeita periodicamente, para lidar com
+trocas de aba que substituem trechos da tela (ver "Troca de abas do
+processo" mais abaixo).
+
+**Atenção:** como o layout da aba "Informações Adicionais" é
+personalizável por Tribunal/Vara e não foi validado ao vivo no Projudi
+(só a partir do padrão já usado por outros campos desta extensão), a
+identificação do motivo é propositalmente ampla — procura o texto de cada
+motivo em rótulos/valores de campos, em `<select>` e em checkboxes/radios
+marcados dentro da aba. Se a aba usada no seu Tribunal tiver uma
+estrutura diferente e o ícone não aparecer com um processo suspenso, abra
+o console (F12, mensagens com o prefixo `[Projudi Suspensão Ativa]`) para
+ver o que foi encontrado e ajuste `findMotivoSuspensao` em
+`src/suspensaoAtiva.js`.
 
 ## Envio por E-mail (Outlook)
 

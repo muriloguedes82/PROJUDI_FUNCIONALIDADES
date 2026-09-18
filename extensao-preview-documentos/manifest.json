@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Projudi/SEEU - Documentos: Pré-visualização, WhatsApp e E-mail",
-  "version": "2.9.15",
+  "version": "2.9.16",
   "description": "Ao passar o mouse sobre um documento na tela de Movimentações (Projudi ou SEEU), ou sobre uma pendência de análise de juntada/conclusão do Projudi, exibe a íntegra do(s) arquivo(s) em janela(s) sobreposta(s), sem precisar abri-los em outra aba. Também permite selecionar arquivos do processo e enviá-los por WhatsApp Web ou por e-mail via Outlook.",
   "permissions": [
     "identity",
@@ -59,6 +59,7 @@
         "src/movementHighlight.js",
         "src/expandMovements.js",
         "src/sequencialProcessoPrincipal.js",
+        "src/suspensaoAtiva.js",
         "src/oraculoDirect.js",
         "src/oraculo.js"
       ],
