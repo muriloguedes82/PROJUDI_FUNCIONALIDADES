@@ -95,9 +95,9 @@ apensos — o processo principal em si não ganha essa linha extra.
 
 No cabeçalho do processo, logo depois do texto "(N dia(s) em
 tramitação)" — ao lado do número único do processo —, a extensão insere
-um pequeno **card** ("Suspenso: ...") sempre que encontra, no campo
-**"Suspensões:"** da aba **"Informações Adicionais"**, um item com
-status **ATIVA** e um dos motivos mais comuns:
+um pequeno **card** ("Suspenso: ...") para cada item com status
+**ATIVA** e um dos motivos mais comuns encontrado no campo
+**"Suspensões:"** da aba **"Informações Adicionais"**:
 
 - Art. 366, CPP
 - Art. 89, L. 9099/95
@@ -107,45 +107,60 @@ status **ATIVA** e um dos motivos mais comuns:
 
 Esse campo lista cada suspensão do processo no formato usado pelo
 próprio Projudi, ex.: "Art. 366 do CPP - NOME DO INVESTIGADO - ATIVA".
-O card mostra o motivo (e o nome, quando presente) no próprio texto —
+Cada card mostra o motivo (e o nome, quando presente) no próprio texto —
 ex.: "Suspenso: Art. 366 do CPP - RENATO AVELINO DA SILVA" —, e passar o
 mouse sobre ele reforça a informação como tooltip. Um item cujo status
 não seja "ATIVA" (ex.: encerrado) é ignorado, e se nenhum item ativo com
 um dos cinco motivos for encontrado, nenhum card é exibido — o recurso
 não tenta adivinhar se o processo está suspenso por outro motivo
-qualquer, só sinaliza os cinco listados acima.
+qualquer, só sinaliza os cinco listados acima. **Num processo com mais
+de um réu, cada suspensão ativa reconhecida ganha o seu próprio card**,
+lado a lado — não só a primeira.
 
 Cada item de "Suspensões:" também é um link para uma tela de detalhe
 daquela suspensão específica (`transacaoPenal.do`), que tem a **Data de
 Início**. A extensão busca essa data automaticamente em segundo plano
 (iframe oculto, mesma técnica já usada em "Sequencial do processo
-principal") e a acrescenta ao card assim que a busca termina, ex.:
-"Suspenso: Art. 366 do CPP - RENATO AVELINO DA SILVA (desde
-14/05/2010)". Enquanto a busca não termina, o card já aparece sem a
-data, que é adicionada depois sem precisar recarregar nada.
+principal") e a acrescenta ao card correspondente assim que a busca
+termina, ex.: "Suspenso: Art. 366 do CPP - RENATO AVELINO DA SILVA
+(desde 14/05/2010)". Enquanto a busca não termina, o card já aparece
+sem a data, que é adicionada depois sem precisar recarregar nada.
 
-A busca acontece automaticamente ao abrir o processo, esperando a aba
-"Informações Adicionais" terminar de carregar (o Projudi carrega o
-conteúdo das abas via uma requisição própria, que pode demorar um pouco
-mais que o resto da página). Uma vez identificado o estado (suspenso ou
-não, e com qual motivo), o card **fica fixo no cabeçalho do processo
-mesmo navegando por outras abas** (Movimentações, Partes e Outros,
-etc.).
+### Funciona mesmo sem visitar a aba "Informações Adicionais"
 
-Algumas abas do processo (ex.: Movimentações) não são só uma troca de
-conteúdo via AJAX — o Projudi navega para uma URL de verdade, recarregando
-a página inteira (o mesmo comportamento já documentado logo abaixo, em
-"Troca de abas do processo", para outros recursos desta extensão). Isso
-descartaria qualquer estado guardado só em memória, e nessas abas a
-"Informações Adicionais" nem chega a existir no HTML para ser relida. Por
-isso o estado (motivo e data de início) também é salvo em
-`sessionStorage`, associado ao número único do processo: ao entrar em
-qualquer aba do processo, o card aparece **imediatamente**, restaurado do
-que foi salvo da última vez que a aba "Informações Adicionais" foi lida
-— nesta mesma aba do navegador, sem persistir entre processos diferentes
-nem sair do navegador. O estado só é reavaliado de novo (e o
-`sessionStorage` atualizado) quando a aba "Informações Adicionais" volta
-a estar disponível no DOM (ex.: ao reabri-la).
+O processo sempre abre na aba **Movimentações**, não em "Informações
+Adicionais" — então os cards não podem depender do usuário clicar nela.
+Ao abrir qualquer processo (ou trocar de aba), a extensão:
+
+1. Usa direto o conteúdo da aba "Informações Adicionais" se ela já
+   estiver na própria página (ex.: você está nela, ou acabou de
+   carregar);
+2. Senão — o caso mais comum, já que o processo abre em Movimentações —
+   busca essa aba **em segundo plano**, num iframe oculto apontando
+   para a própria URL do processo, só trocando a aba selecionada
+   (`selectedIcon=tabDadosAdicionais`), a mesma técnica já usada em
+   "Sequencial do processo principal". Nenhuma aba nova é aberta nem
+   nada muda na tela visível — o card simplesmente aparece assim que a
+   busca termina, tipicamente em poucos segundos após abrir o processo.
+
+Uma vez identificado o estado (quais suspensões, e com qual motivo), os
+cards **ficam fixos no cabeçalho do processo mesmo navegando por outras
+abas** depois (Movimentações, Partes e Outros, etc.). Algumas dessas
+abas não são só uma troca de conteúdo via AJAX — o Projudi navega para
+uma URL de verdade, recarregando a página inteira (o mesmo comportamento
+já documentado logo abaixo, em "Troca de abas do processo", para outros
+recursos desta extensão). Isso descartaria qualquer estado guardado só
+em memória, e nessas abas a "Informações Adicionais" nem chega a existir
+no HTML para ser relida em segundo plano de novo. Por isso o estado
+(motivos, hrefs e datas de início) também é salvo em `sessionStorage`,
+associado ao número único do processo: ao entrar em qualquer aba do
+processo, os cards aparecem **imediatamente**, restaurados do que foi
+salvo da última leitura — nesta mesma aba do navegador, sem persistir
+entre processos diferentes nem sair do navegador. O estado só é
+reavaliado de novo (e o `sessionStorage` atualizado) quando a aba
+"Informações Adicionais" volta a estar disponível localmente (ex.: ao
+reabri-la) — a busca em segundo plano só acontece uma vez por carga de
+página, para não gerar uma requisição extra a cada reconciliação.
 
 A estrutura da aba "Informações Adicionais" e do campo "Suspensões:" foi
 confirmada a partir de uma página real do Projudi (TJPR) — inclusive um

@@ -6,33 +6,37 @@
 // "Art. 366 do CPP - RENATO AVELINO DA SILVA - ATIVA" ou "Art. 89 da Lei
 // 9.099/95 - PAULO CESAR GAÇA - ATIVA". Os motivos mais comuns são:
 // "Art. 366, CPP", "Art. 89, L. 9.099/95", "Insanidade Mental", "ANPP" e
-// "Transação Penal".
+// "Transação Penal". Um processo com mais de um réu pode ter mais de um
+// item ativo ao mesmo tempo (um por réu).
 //
-// Este recurso lê esse campo (esperando a aba terminar de carregar via
-// AJAX, como já ocorre com "Informações Gerais" — ver
-// sequencialProcessoPrincipal.js) e, se encontrar um item com um desses
-// motivos e status "ATIVA", insere um pequeno card logo depois do
-// "(N dia(s) em tramitação)" no cabeçalho do processo
-// (<h3 id="barraTituloStatusProcessual">), já com o motivo identificado
-// escrito nele. Cada item da lista é também um link (`a.link`) para uma
-// tela de detalhe da suspensão (`transacaoPenal.do`) com a "Data de
-// Início" dela — o card busca essa data em segundo plano, num iframe
-// oculto (mesma técnica de sequencialProcessoPrincipal.js), e a inclui no
-// texto assim que a busca termina.
+// Este recurso lê esse campo e, para CADA item com um desses motivos e
+// status "ATIVA", insere um pequeno card logo depois do "(N dia(s) em
+// tramitação)" no cabeçalho do processo (<h3
+// id="barraTituloStatusProcessual">) — um card por item, lado a lado.
+// Cada item da lista é também um link (`a.link`) para uma tela de
+// detalhe da suspensão (`transacaoPenal.do`) com a "Data de Início"
+// dela — cada card busca essa data em segundo plano, num iframe oculto
+// (mesma técnica de sequencialProcessoPrincipal.js), e a inclui no texto
+// assim que a busca termina.
 //
-// O card precisa continuar visível mesmo navegando por outras abas do
-// processo (Movimentações, Partes e Outros, etc.), mas o conteúdo da aba
-// "Informações Adicionais" (div#tabprefix1) só fica disponível no DOM
-// enquanto ela é a aba ativa — ao trocar de aba, o Projudi pode substituir
-// o trecho da página onde ela estava (ver "Troca de abas do processo" no
-// README) e o card, se fosse filho daquele trecho, sumiria junto. Por
-// isso o estado (suspenso ou não, com qual motivo e data de início) é
-// guardado em memória (`estadoAtual`) assim que lido, e cada
-// reconciliação periódica reaplica esse estado guardado no cabeçalho
-// atual — sem depender da aba "Informações Adicionais" estar acessível
-// naquele momento. O estado só é reavaliado quando a aba volta a estar
-// disponível no DOM (normalmente ao reabri-la, ou na carga inicial da
-// página).
+// O processo sempre abre na aba "Movimentações", não em "Informações
+// Adicionais" — por isso os cards não podem depender do usuário visitar
+// essa aba manualmente. Ao abrir qualquer aba do processo, se a aba
+// "Informações Adicionais" já estiver disponível na própria página (ela
+// está aberta agora), lê direto; senão, busca essa aba em segundo plano,
+// num iframe oculto apontando para a mesma URL do processo com
+// `selectedIcon=tabDadosAdicionais` (mesma técnica de
+// sequencialProcessoPrincipal.js) — sem precisar o usuário clicar nela.
+//
+// Os cards também precisam continuar visíveis mesmo navegando por outras
+// abas do processo depois. Pelo menos uma delas (Movimentações) navega
+// para uma URL de verdade (ver "Troca de abas do processo" no README),
+// recarregando a página inteira e descartando qualquer estado em
+// memória — por isso o estado (motivos, hrefs e datas de início) também
+// é salvo em `sessionStorage`, associado ao número único do processo:
+// ao entrar em qualquer aba, os cards aparecem imediatamente a partir do
+// que foi salvo da última leitura, e são atualizados de novo assim que
+// a aba "Informações Adicionais" for lida (local ou em segundo plano).
 //
 // Estrutura real confirmada a partir de dois .mhtml salvos do Projudi
 // (TJPR):
@@ -65,6 +69,7 @@
 	const CARD_ATTR = "data-pdp-suspensao-card";
 	const LOADER_ATTR = "data-pdp-loader";
 	const ABA_LABEL = "Informações Adicionais";
+	const ABA_SELECTED_ICON = "tabDadosAdicionais";
 	const CAMPO_LABELS = ["suspensoes", "suspensao"]; // já normalizados (sem acento/caixa)
 	const STATUS_ATIVA = ["ativa", "ativo"];
 
@@ -124,9 +129,10 @@
 
 	// O id da aba fica no <li> (ex.: <li id="tabItemprefix1">), não no <a>
 	// interno — por isso a busca é por qualquer elemento com esse prefixo de
-	// id, não só por <a>.
-	function findTabAnchorByLabel(labelText, silent) {
-		const candidates = document.querySelectorAll('[id^="tabItemprefix"]');
+	// id, não só por <a>. `root` permite buscar tanto no documento atual
+	// quanto num documento buscado em segundo plano (iframe oculto).
+	function findTabAnchorByLabel(root, labelText, silent) {
+		const candidates = root.querySelectorAll('[id^="tabItemprefix"]');
 		for (const el of candidates) {
 			if (normalize(el.textContent) === normalize(labelText)) return el;
 		}
@@ -137,24 +143,32 @@
 	// `silent` evita poluir o console nas reconciliações periódicas, em que
 	// a aba não estar disponível agora é esperado (usuário está em outra
 	// aba do processo) — não é um erro a cada 1.5s.
-	function findTabContent(labelText, silent) {
-		const anchor = findTabAnchorByLabel(labelText, silent);
+	function findTabContent(root, labelText, silent) {
+		const anchor = findTabAnchorByLabel(root, labelText, silent);
 		if (!anchor) return null;
 		const match = /tabItemprefix(\d+)/.exec(anchor.id);
 		if (!match) return null;
-		const content = document.getElementById("tabprefix" + match[1]);
+		const content = root.getElementById ? root.getElementById("tabprefix" + match[1]) : null;
 		if (!content && !silent) console.log(TAG, "aba encontrada mas #tabprefix" + match[1] + " não existe no documento");
 		return content;
 	}
 
-	function waitForTabContent(labelText, timeoutMs) {
+	function tabContentReady(content) {
+		return !!(content && content.querySelector("td.label, td.labelRadio"));
+	}
+
+	// Espera o conteúdo da aba terminar de carregar via AJAX (o Projudi
+	// carrega o conteúdo de cada aba numa requisição própria, que só
+	// termina um pouco depois do resto da página montar — mesmo
+	// comportamento já documentado em sequencialProcessoPrincipal.js).
+	function waitForTabContent(root, labelText, timeoutMs) {
 		return new Promise(function (resolve) {
 			const deadline = Date.now() + timeoutMs;
 			(function tick() {
-				const content = findTabContent(labelText, /* silent */ true);
-				if (content && content.querySelector("td.label, td.labelRadio")) return resolve(content);
+				const content = findTabContent(root, labelText, /* silent */ true);
+				if (tabContentReady(content)) return resolve(content);
 				if (Date.now() >= deadline) {
-					if (!content) console.log(TAG, "aba '" + labelText + "' não encontrada após " + timeoutMs + "ms de espera na carga inicial");
+					if (!content) console.log(TAG, "aba '" + labelText + "' não encontrada após " + timeoutMs + "ms de espera");
 					return resolve(content);
 				}
 				setTimeout(tick, 250);
@@ -171,12 +185,13 @@
 		return null;
 	}
 
-	// Procura, dentro do campo "Suspensões:", um item de lista com um dos
-	// motivos reconhecidos e status "ATIVA". Retorna { texto, href } (href
-	// = link para a tela de detalhe daquela suspensão, ou null se o item
-	// não tiver link) ou null se não encontrar nenhum item ativo
-	// reconhecido.
-	function findSuspensaoAtiva(tabContent) {
+	// Procura, dentro do campo "Suspensões:", TODOS os itens de lista com
+	// um dos motivos reconhecidos e status "ATIVA" — um processo com mais
+	// de um réu pode ter mais de um item ativo ao mesmo tempo. Retorna um
+	// array de { texto, href } (href = link para a tela de detalhe daquela
+	// suspensão, ou null se o item não tiver link); array vazio se nenhum
+	// item ativo reconhecido for encontrado.
+	function findSuspensoesAtivas(tabContent) {
 		const label = findLabelCell(tabContent, CAMPO_LABELS);
 		if (!label) {
 			console.log(TAG, "campo 'Suspensões' não encontrado na aba '" + ABA_LABEL + "'", {
@@ -185,7 +200,7 @@
 					.map((l) => l.textContent.trim())
 					.filter(Boolean),
 			});
-			return null;
+			return [];
 		}
 
 		const row = label.closest("tr");
@@ -194,6 +209,7 @@
 
 		console.log(TAG, "campo 'Suspensões' encontrado, avaliando itens:", candidates.map((c) => collapseWhitespace(c.textContent)));
 
+		const encontrados = [];
 		for (const item of candidates) {
 			const text = collapseWhitespace(item.textContent);
 			if (!text) continue;
@@ -217,16 +233,18 @@
 					href = link.getAttribute("href");
 				}
 			}
-			return { texto: displayText(text), href: href };
+			encontrados.push({ texto: displayText(text), href: href });
 		}
 
-		return null;
+		return encontrados;
 	}
 
 	// ---------------------------------------------------------------------
-	// Busca em segundo plano da "Data de Início" na tela de detalhe da
-	// suspensão (transacaoPenal.do), mesma técnica de iframe oculto já usada
-	// em sequencialProcessoPrincipal.js.
+	// Busca em segundo plano (iframe oculto): tanto da própria aba
+	// "Informações Adicionais" (quando a página atual não é essa aba) quanto
+	// da "Data de Início" de cada suspensão, na tela de detalhe
+	// (transacaoPenal.do). Mesma técnica já usada em
+	// sequencialProcessoPrincipal.js.
 	// ---------------------------------------------------------------------
 
 	function fetchDoc(url) {
@@ -277,6 +295,20 @@
 		});
 	}
 
+	// URL da própria página do processo, trocando a aba selecionada para
+	// "Informações Adicionais" (mesmo parâmetro nativo do Projudi usado em
+	// sequencialProcessoPrincipal.js para abrir direto em "Informações
+	// Gerais": `selectedIcon`).
+	function urlAbaInformacoesAdicionais() {
+		try {
+			const url = new URL(window.location.href);
+			url.searchParams.set("selectedIcon", ABA_SELECTED_ICON);
+			return url.href;
+		} catch (err) {
+			return null;
+		}
+	}
+
 	// Na tela de detalhe (transacaoPenal.do), "Data de Início:" fica direto
 	// no texto do <td class="label"> (sem <label> dentro, diferente do
 	// padrão usado noutras telas), com o valor no <td> seguinte.
@@ -304,11 +336,7 @@
 				const data = findDataInicio(doc);
 				dataInicioPorHref.set(href, data);
 				console.log(TAG, data ? "Data de Início encontrada: " + data : "campo 'Data de Início' não encontrado na tela de detalhe", { href: href });
-				if (estadoAtual && estadoAtual.href === href) {
-					estadoAtual = Object.assign({}, estadoAtual, { dataInicio: data });
-					salvarEstado(estadoAtual);
-					sincronizarCard();
-				}
+				atualizarDataInicio(href, data);
 			})
 			.catch(function (err) {
 				dataInicioPorHref.set(href, null);
@@ -317,13 +345,13 @@
 	}
 
 	// ---------------------------------------------------------------------
-	// Card no cabeçalho
+	// Cards no cabeçalho (um por suspensão ativa reconhecida)
 	// ---------------------------------------------------------------------
 
 	// Cabeçalho do processo: no Projudi (tela visualizacaoProcesso.do) é
 	// <h3 id="barraTituloStatusProcessual">, terminando em "(N dia(s) em
-	// tramitação)" — é logo depois desse texto que o card deve aparecer. Em
-	// telas/sistemas sem esse cabeçalho (ex.: SEEU), cai para os mesmos
+	// tramitação)" — é logo depois desse texto que os cards devem aparecer.
+	// Em telas/sistemas sem esse cabeçalho (ex.: SEEU), cai para os mesmos
 	// elementos já usados em email.js (extractProcessNumber).
 	function headerContainer() {
 		const barra = document.getElementById("barraTituloStatusProcessual");
@@ -335,25 +363,13 @@
 		return null;
 	}
 
-	function textoCompleto(estado) {
-		if (!estado) return null;
-		if (estado.dataInicio) return estado.texto + " (desde " + estado.dataInicio + ")";
-		return estado.texto;
+	function textoItem(item) {
+		return item.dataInicio ? item.texto + " (desde " + item.dataInicio + ")" : item.texto;
 	}
 
-	function insertCard(texto) {
-		const container = headerContainer();
-		if (!container) return false;
-		const already = container.querySelector("[" + CARD_ATTR + "]");
-		if (already) {
-			const textEl = already.querySelector(".pdp-suspensao-card-texto");
-			if (textEl) textEl.textContent = "Suspenso: " + texto;
-			already.title = "Suspensão ativa: " + texto;
-			return true;
-		}
+	function criarCardElemento(chave) {
 		const card = document.createElement("span");
-		card.setAttribute(CARD_ATTR, "");
-		card.title = "Suspensão ativa: " + texto;
+		card.setAttribute(CARD_ATTR, chave);
 		card.style.display = "inline-flex";
 		card.style.alignItems = "center";
 		card.style.gap = "4px";
@@ -370,17 +386,47 @@
 
 		const textEl = document.createElement("span");
 		textEl.className = "pdp-suspensao-card-texto";
-		textEl.textContent = "Suspenso: " + texto;
 		card.appendChild(textEl);
+		return card;
+	}
 
-		// Insere como último filho do cabeçalho, logo depois de "(N dia(s) em
-		// tramitação)", que é sempre o último conteúdo do elemento.
-		container.appendChild(card);
-		console.log(TAG, "card de suspensão ativa inserido —", texto);
+	// Insere/atualiza um card por item de `items` (array de { href, texto
+	// já formatado }), preservando os elementos existentes (por href, para
+	// não perder o hover/posição à toa a cada reconciliação) e removendo os
+	// que não estão mais na lista.
+	function insertCards(items) {
+		const container = headerContainer();
+		if (!container) return false;
+
+		const existentes = new Map();
+		container.querySelectorAll("[" + CARD_ATTR + "]").forEach(function (el) {
+			existentes.set(el.getAttribute(CARD_ATTR), el);
+		});
+
+		const chavesDesejadas = [];
+		let ultimoInserido = null;
+		items.forEach(function (item, idx) {
+			const chave = item.href || "idx:" + idx;
+			chavesDesejadas.push(chave);
+			let card = existentes.get(chave);
+			if (!card) {
+				card = criarCardElemento(chave);
+				if (ultimoInserido) ultimoInserido.insertAdjacentElement("afterend", card);
+				else container.appendChild(card);
+			}
+			card.title = "Suspensão ativa: " + item.texto;
+			card.querySelector(".pdp-suspensao-card-texto").textContent = "Suspenso: " + item.texto;
+			ultimoInserido = card;
+		});
+
+		existentes.forEach(function (el, chave) {
+			if (chavesDesejadas.indexOf(chave) === -1) el.remove();
+		});
+
 		return true;
 	}
 
-	function removeCard() {
+	function removeCards() {
 		document.querySelectorAll("[" + CARD_ATTR + "]").forEach(function (el) {
 			el.remove();
 		});
@@ -392,16 +438,16 @@
 	// A princípio o estado em memória (`estadoAtual`) bastaria, já que o
 	// script continua carregado enquanto o usuário troca de aba dentro da
 	// mesma página (guarda `window.__pdpSuspensaoAtiva` no topo). Só que,
-	// na prática, algumas abas do processo (ex.: Movimentações) navegam
-	// para uma URL de verdade (o mesmo comportamento já documentado em
-	// "Troca de abas do processo" no README, para outros recursos desta
-	// extensão) — o que recarrega a página, descarta esse estado em
-	// memória, e nessas abas a "Informações Adicionais" nem está no DOM
-	// para ser relida. Por isso o estado também é salvo em
-	// `sessionStorage`, associado ao número único do processo: ao carregar
-	// qualquer aba do processo, o card aparece imediatamente a partir do
-	// que foi salvo da última vez que a aba "Informações Adicionais" foi
-	// lida — nesta mesma aba do navegador, sem persistir entre processos
+	// na prática, pelo menos a aba Movimentações navega para uma URL de
+	// verdade (o mesmo comportamento já documentado em "Troca de abas do
+	// processo" no README, para outros recursos desta extensão) — o que
+	// recarrega a página, descarta esse estado em memória, e nessas abas a
+	// "Informações Adicionais" nem está no DOM para ser relida. Por isso o
+	// estado também é salvo em `sessionStorage`, associado ao número único
+	// do processo: ao carregar qualquer aba do processo, os cards aparecem
+	// imediatamente a partir do que foi salvo da última vez que a aba
+	// "Informações Adicionais" foi lida (local ou em segundo plano) —
+	// nesta mesma aba do navegador, sem persistir entre processos
 	// diferentes nem enviar nada a lugar nenhum.
 	// ---------------------------------------------------------------------
 
@@ -427,7 +473,7 @@
 		const key = storageKey();
 		if (!key) return;
 		try {
-			if (estado) sessionStorage.setItem(key, JSON.stringify(estado));
+			if (estado && estado.length) sessionStorage.setItem(key, JSON.stringify(estado));
 			else sessionStorage.removeItem(key);
 		} catch (err) {
 			console.warn(TAG, "não foi possível salvar o estado em sessionStorage:", err);
@@ -448,88 +494,150 @@
 
 	// Estado guardado em memória nesta carga de página, espelhado em
 	// `sessionStorage` (ver acima). `undefined` = ainda não avaliado nem
-	// restaurado; `null` = avaliado, sem suspensão ativa reconhecida.
-	// Quando não-nulo: { texto, href, dataInicio }.
+	// restaurado; `null`/array vazio = avaliado, sem suspensão ativa
+	// reconhecida. Quando há suspensões: array de { texto, href,
+	// dataInicio } — um item por réu/motivo ativo.
 	let estadoAtual;
 
-	// Só reavalia o estado quando a aba "Informações Adicionais" está
-	// mesmo disponível agora no DOM — do contrário mantém (e mostra) o
-	// último estado conhecido, restaurado do sessionStorage se necessário,
-	// para o card não sumir enquanto o usuário navega por outra aba do
-	// processo.
-	function reavaliarSeDisponivel() {
-		const tabContent = findTabContent(ABA_LABEL, /* silent */ true);
-		if (!tabContent || !tabContent.querySelector("td.label, td.labelRadio")) return;
+	function sincronizarCards() {
+		if (estadoAtual && estadoAtual.length) {
+			insertCards(estadoAtual.map(function (item) {
+				return { href: item.href, texto: textoItem(item) };
+			}));
+		} else {
+			removeCards();
+		}
+	}
 
-		const encontrado = findSuspensaoAtiva(tabContent);
-		const textoAnterior = estadoAtual ? estadoAtual.texto : null;
-		const textoNovo = encontrado ? encontrado.texto : null;
-		if (textoNovo !== textoAnterior) {
-			console.log(TAG, "estado de suspensão atualizado:", { anterior: textoAnterior, novo: textoNovo });
+	// Aplica uma nova leitura da aba "Informações Adicionais" (local ou
+	// buscada em segundo plano): atualiza o estado, salva em
+	// sessionStorage, dispara a busca da Data de Início de cada item novo e
+	// sincroniza os cards.
+	function aplicarSuspensoes(encontrados) {
+		const anterior = estadoAtual ? estadoAtual.map((e) => e.texto).sort().join(" | ") : "";
+		const novo = encontrados.map((e) => e.texto).sort().join(" | ");
+		if (novo !== anterior) {
+			console.log(TAG, "estado de suspensão atualizado:", { anterior: anterior || "(nenhuma)", novo: novo || "(nenhuma)" });
 		}
 
-		if (!encontrado) {
-			estadoAtual = null;
-			salvarEstado(null);
-			return;
-		}
-
-		const dataConhecida = encontrado.href ? dataInicioPorHref.get(encontrado.href) : undefined;
-		estadoAtual = {
-			texto: encontrado.texto,
-			href: encontrado.href,
-			dataInicio: dataConhecida && dataConhecida !== "pending" ? dataConhecida : null,
-		};
+		estadoAtual = encontrados.map(function (item) {
+			const dataConhecida = item.href ? dataInicioPorHref.get(item.href) : undefined;
+			return {
+				texto: item.texto,
+				href: item.href,
+				dataInicio: dataConhecida && dataConhecida !== "pending" ? dataConhecida : null,
+			};
+		});
 		salvarEstado(estadoAtual);
 
-		if (encontrado.href) buscarDataInicio(encontrado.href);
+		estadoAtual.forEach(function (item) {
+			if (item.href) buscarDataInicio(item.href);
+		});
+
+		sincronizarCards();
 	}
 
-	function sincronizarCard() {
-		const texto = textoCompleto(estadoAtual);
-		if (texto) {
-			insertCard(texto);
-		} else {
-			removeCard();
+	// Callback de `buscarDataInicio`: atualiza a data de início do item
+	// correspondente (por href), se ele ainda fizer parte do estado atual.
+	function atualizarDataInicio(href, data) {
+		if (!estadoAtual) return;
+		const idx = estadoAtual.findIndex(function (item) {
+			return item.href === href;
+		});
+		if (idx === -1) return;
+		estadoAtual = estadoAtual.slice();
+		estadoAtual[idx] = Object.assign({}, estadoAtual[idx], { dataInicio: data });
+		salvarEstado(estadoAtual);
+		sincronizarCards();
+	}
+
+	// Se a aba "Informações Adicionais" já estiver disponível na própria
+	// página agora (usuário está nela), lê direto — sem gastar nenhuma
+	// requisição extra — e retorna true. Senão, retorna false (chamador
+	// decide se busca em segundo plano).
+	function lerSeDisponivelLocalmente() {
+		const tabContent = findTabContent(document, ABA_LABEL, /* silent */ true);
+		if (!tabContentReady(tabContent)) return false;
+		aplicarSuspensoes(findSuspensoesAtivas(tabContent));
+		return true;
+	}
+
+	// Busca a aba "Informações Adicionais" em segundo plano (iframe oculto
+	// apontando para a própria URL do processo, só trocando a aba
+	// selecionada) — usado quando o processo abre em outra aba (o padrão,
+	// já que ele sempre abre em "Movimentações") e essa aba não está
+	// disponível na página atual.
+	let buscaEmSegundoPlanoFeita = false;
+	function buscarEmSegundoPlano() {
+		if (buscaEmSegundoPlanoFeita) return;
+		buscaEmSegundoPlanoFeita = true;
+		const url = urlAbaInformacoesAdicionais();
+		if (!url) {
+			console.warn(TAG, "não foi possível montar a URL da aba 'Informações Adicionais' a partir de", window.location.href);
+			return;
 		}
-	}
-
-	function tick() {
-		reavaliarSeDisponivel();
-		sincronizarCard();
+		console.log(TAG, "aba 'Informações Adicionais' não está na página atual — buscando em segundo plano:", url);
+		fetchDoc(url)
+			.then(function (doc) {
+				return waitForTabContent(doc, ABA_LABEL, 10000);
+			})
+			.then(function (tabContent) {
+				if (!tabContentReady(tabContent)) {
+					console.log(TAG, "busca em segundo plano não encontrou a aba '" + ABA_LABEL + "' pronta");
+					buscaEmSegundoPlanoFeita = false;
+					return;
+				}
+				aplicarSuspensoes(findSuspensoesAtivas(tabContent));
+			})
+			.catch(function (err) {
+				console.warn(TAG, "falha ao buscar a aba 'Informações Adicionais' em segundo plano:", err && (err.stack || err.message || err));
+				// Permite tentar de novo na próxima reconciliação, se ainda não
+				// houver nenhum estado conhecido (nem local, nem restaurado).
+				buscaEmSegundoPlanoFeita = false;
+			});
 	}
 
 	// Restaura, antes de qualquer outra coisa, o que já se sabia sobre este
-	// processo (salvo por uma visita anterior à aba "Informações
-	// Adicionais" nesta mesma aba do navegador) — assim o card aparece
-	// imediatamente em QUALQUER aba do processo, mesmo que esta carga de
-	// página específica nunca tenha acesso ao conteúdo de "Informações
-	// Adicionais".
+	// processo (salvo por uma leitura anterior nesta mesma aba do
+	// navegador) — assim os cards aparecem imediatamente em QUALQUER aba
+	// do processo, mesmo antes de qualquer leitura/busca terminar nesta
+	// carga de página.
 	const restaurado = carregarEstado();
 	if (restaurado !== undefined) {
 		estadoAtual = restaurado;
-		console.log(TAG, "estado restaurado do sessionStorage (aba atual pode não ter 'Informações Adicionais' disponível):", restaurado);
-		sincronizarCard();
+		console.log(TAG, "estado restaurado do sessionStorage:", restaurado);
+		sincronizarCards();
 	}
 
-	// Carga inicial: espera a aba "Informações Adicionais" terminar de
-	// carregar via AJAX (pode demorar mais que o resto da página) antes da
-	// primeira avaliação "de verdade" (que também atualiza o
-	// sessionStorage acima, se o estado tiver mudado).
-	waitForTabContent(ABA_LABEL, 10000).then(function () {
-		tick();
+	// Garante uma leitura atualizada assim que a página termina de montar:
+	// usa a aba local se ela já estiver disponível (ex.: usuário abriu
+	// direto em "Informações Adicionais", ou está nela agora); senão, como
+	// o processo normalmente abre em "Movimentações", busca a aba em
+	// segundo plano — sem depender do usuário clicar nela.
+	waitForTabContent(document, ABA_LABEL, 4000).then(function (tabContent) {
+		if (tabContentReady(tabContent)) {
+			aplicarSuspensoes(findSuspensoesAtivas(tabContent));
+		} else {
+			buscarEmSegundoPlano();
+		}
 	});
 
 	// A tela do processo pode trocar de aba/recarregar trechos via AJAX, ou
 	// navegar para uma URL diferente (ver "Troca de abas do processo" no
-	// README) — em qualquer um dos dois casos, o card pode precisar ser
-	// reinserido (ou restaurado do zero, se a página recarregou). Reconcilia
-	// periodicamente: reaplica o último estado conhecido sempre, e reavalia
-	// o estado quando a aba "Informações Adicionais" estiver disponível —
-	// o mesmo padrão já usado por outros elementos desta extensão.
+	// README) — em qualquer um dos dois casos, os cards podem precisar ser
+	// reinseridos (ou restaurados do zero, se a página recarregou).
+	// Reconcilia periodicamente: reaplica o último estado conhecido sempre
+	// (cobre o cabeçalho ter sido recriado), relê a aba "Informações
+	// Adicionais" quando ela estiver disponível localmente (usuário
+	// navegou para ela, dado mais atual que qualquer busca em segundo
+	// plano), e tenta a busca em segundo plano de novo se ainda não tiver
+	// nenhum estado conhecido nem local nem restaurado.
 	setInterval(function () {
 		try {
-			tick();
+			if (!lerSeDisponivelLocalmente()) {
+				sincronizarCards();
+				if (estadoAtual === undefined) buscarEmSegundoPlano();
+			}
 		} catch (err) {
 			console.error(TAG, "erro na reconciliação periódica:", err);
 		}
