@@ -295,18 +295,82 @@
 		});
 	}
 
-	// URL da própria página do processo, trocando a aba selecionada para
-	// "Informações Adicionais" (mesmo parâmetro nativo do Projudi usado em
-	// sequencialProcessoPrincipal.js para abrir direto em "Informações
-	// Gerais": `selectedIcon`).
-	function urlAbaInformacoesAdicionais() {
-		try {
-			const url = new URL(window.location.href);
-			url.searchParams.set("selectedIcon", ABA_SELECTED_ICON);
-			return url.href;
-		} catch (err) {
+	// Busca a aba "Informações Adicionais" da MESMA página/processo em
+	// segundo plano.
+	//
+	// Uma tentativa anterior fazia isso navegando um iframe oculto para a
+	// própria URL da página, só trocando a query string (`?selectedIcon=
+	// tabDadosAdicionais`) — não funcionou: o Projudi não decide a aba pela
+	// URL nessa tela, e uma navegação nova sempre volta para a aba padrão
+	// (Movimentações, a mesma que abre na primeira vez que o processo é
+	// aberto). A troca de aba de verdade é um **POST** para a própria
+	// action do formulário `#processoForm`, com um campo oculto
+	// `selectedIcon` no corpo — confirmado a partir de
+	// `oraculoDirect.js` (`window.__pdpOpenOraculoDirect`), que já usa
+	// exatamente essa técnica para acessar a aba "Partes e Outros"
+	// (`selectedIcon=tabPartes`) em segundo plano, via `fetch()` (sem
+	// iframe) com o restante dos campos do formulário reaproveitados via
+	// `FormData`. Aqui é a mesma ideia, com `selectedIcon=tabDadosAdicionais`.
+	async function fetchAbaInformacoesAdicionaisPOST() {
+		const form = document.getElementById("processoForm");
+		if (!form) {
+			console.warn(TAG, "#processoForm não encontrado nesta página — não é possível buscar a aba em segundo plano aqui");
 			return null;
 		}
+
+		let actionUrl;
+		try {
+			actionUrl = new URL(form.getAttribute("action") || form.action, window.location.href);
+		} catch (err) {
+			console.warn(TAG, "action do #processoForm inválida:", err);
+			return null;
+		}
+		if (actionUrl.origin !== window.location.origin) {
+			console.warn(TAG, "action do #processoForm aponta para outra origem, abortando busca em segundo plano:", actionUrl.href);
+			return null;
+		}
+
+		const body = new URLSearchParams();
+		for (const [name, value] of new FormData(form)) {
+			if (typeof value === "string") body.append(name, value);
+		}
+		body.set("selectedIcon", ABA_SELECTED_ICON);
+
+		console.log(TAG, "buscando aba '" + ABA_LABEL + "' em segundo plano (POST):", actionUrl.href);
+
+		const controller = new AbortController();
+		const timeout = setTimeout(function () {
+			controller.abort();
+		}, 20000);
+		try {
+			const response = await fetch(actionUrl.href, {
+				method: "POST",
+				body: body,
+				credentials: "same-origin",
+				signal: controller.signal,
+			});
+			if (!response.ok) throw new Error("Projudi respondeu " + response.status + " " + response.statusText);
+			const bytes = await response.arrayBuffer();
+			// O Projudi serve em windows-1252; lê o <meta charset> da própria
+			// resposta (ou do cabeçalho HTTP) em vez de assumir um valor fixo,
+			// mesma técnica usada em oraculoDirect.js.
+			const preview = new TextDecoder("windows-1252").decode(bytes.slice(0, 4096));
+			const charsetMatch =
+				/charset\s*=\s*["']?([\w-]+)/i.exec(response.headers.get("content-type") || "") || /charset\s*=\s*["']?([\w-]+)/i.exec(preview);
+			const charset = (charsetMatch && charsetMatch[1]) || "windows-1252";
+			const html = new TextDecoder(charset).decode(bytes);
+			return new DOMParser().parseFromString(html, "text/html");
+		} finally {
+			clearTimeout(timeout);
+		}
+	}
+
+	// Para diagnóstico: qual aba veio marcada como ativa numa resposta —
+	// ajuda a confirmar se o POST realmente trocou de aba ou se voltou
+	// para a padrão (Movimentações).
+	function abaAtivaEm(root) {
+		const ativa = root.querySelector('[id^="tabItemprefix"].currentTab, [id^="tabItemprefix"][class*="currentTab"]');
+		return ativa ? collapseWhitespace(ativa.textContent) : "(nenhuma aba marcada como atual)";
 	}
 
 	// Na tela de detalhe (transacaoPenal.do), "Data de Início:" fica direto
@@ -562,28 +626,25 @@
 		return true;
 	}
 
-	// Busca a aba "Informações Adicionais" em segundo plano (iframe oculto
-	// apontando para a própria URL do processo, só trocando a aba
-	// selecionada) — usado quando o processo abre em outra aba (o padrão,
-	// já que ele sempre abre em "Movimentações") e essa aba não está
-	// disponível na página atual.
+	// Busca a aba "Informações Adicionais" em segundo plano (POST para o
+	// próprio #processoForm, ver `fetchAbaInformacoesAdicionaisPOST` acima)
+	// — usado quando o processo abre em outra aba (o padrão, já que ele
+	// sempre abre em "Movimentações") e essa aba não está disponível na
+	// página atual.
 	let buscaEmSegundoPlanoFeita = false;
 	function buscarEmSegundoPlano() {
 		if (buscaEmSegundoPlanoFeita) return;
 		buscaEmSegundoPlanoFeita = true;
-		const url = urlAbaInformacoesAdicionais();
-		if (!url) {
-			console.warn(TAG, "não foi possível montar a URL da aba 'Informações Adicionais' a partir de", window.location.href);
-			return;
-		}
-		console.log(TAG, "aba 'Informações Adicionais' não está na página atual — buscando em segundo plano:", url);
-		fetchDoc(url)
+		console.log(TAG, "aba '" + ABA_LABEL + "' não está na página atual — buscando em segundo plano (POST)");
+		fetchAbaInformacoesAdicionaisPOST()
 			.then(function (doc) {
-				return waitForTabContent(doc, ABA_LABEL, 10000);
-			})
-			.then(function (tabContent) {
+				if (!doc) {
+					buscaEmSegundoPlanoFeita = false;
+					return;
+				}
+				const tabContent = findTabContent(doc, ABA_LABEL, false);
 				if (!tabContentReady(tabContent)) {
-					console.log(TAG, "busca em segundo plano não encontrou a aba '" + ABA_LABEL + "' pronta");
+					console.log(TAG, "busca em segundo plano (POST) não encontrou o conteúdo da aba '" + ABA_LABEL + "' pronto na resposta — aba que veio ativa na resposta:", abaAtivaEm(doc));
 					buscaEmSegundoPlanoFeita = false;
 					return;
 				}

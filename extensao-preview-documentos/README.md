@@ -136,12 +136,19 @@ Ao abrir qualquer processo (ou trocar de aba), a extensão:
    estiver na própria página (ex.: você está nela, ou acabou de
    carregar);
 2. Senão — o caso mais comum, já que o processo abre em Movimentações —
-   busca essa aba **em segundo plano**, num iframe oculto apontando
-   para a própria URL do processo, só trocando a aba selecionada
-   (`selectedIcon=tabDadosAdicionais`), a mesma técnica já usada em
-   "Sequencial do processo principal". Nenhuma aba nova é aberta nem
-   nada muda na tela visível — o card simplesmente aparece assim que a
-   busca termina, tipicamente em poucos segundos após abrir o processo.
+   busca essa aba **em segundo plano**. Uma primeira tentativa fazia
+   isso só trocando a aba pela URL (`?selectedIcon=tabDadosAdicionais`)
+   num iframe oculto, mas o Projudi não decide a aba por aí nesta
+   tela — uma navegação nova sempre volta para a aba padrão
+   (Movimentações), por isso só funcionava depois de o usuário clicar
+   manualmente na aba pelo menos uma vez. A troca de aba de verdade é
+   um **POST** para a própria action do formulário `#processoForm`, com
+   um campo `selectedIcon` no corpo — confirmado a partir de
+   `oraculoDirect.js` (recurso "Oráculo" desta mesma extensão), que já
+   usa exatamente essa técnica para acessar a aba "Partes e Outros" em
+   segundo plano. Nenhuma aba nova é aberta nem nada muda na tela
+   visível — o card simplesmente aparece assim que a busca termina,
+   tipicamente em poucos segundos após abrir o processo.
 
 Uma vez identificado o estado (quais suspensões, e com qual motivo), os
 cards **ficam fixos no cabeçalho do processo mesmo navegando por outras
