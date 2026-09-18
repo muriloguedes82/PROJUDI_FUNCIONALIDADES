@@ -474,17 +474,22 @@
 		return ativa ? collapseWhitespace(ativa.textContent) : "(nenhuma aba marcada como atual)";
 	}
 
-	// Na tela de detalhe (medidaAlternativa.do), tanto "Status:" quanto
-	// "Data Início:" ficam num <td class="label"> seguido do valor no <td>
-	// seguinte — só que "Data Início:" tem um <label> dentro do
-	// <td class="label"> (diferente de "Status:", que não tem); por isso a
-	// leitura usa o texto do <td> inteiro (funciona nos dois casos), não só
-	// de um eventual <label> dentro dele.
-	function findDetailField(doc, wantedNormalizedLabel) {
+	// Em telas de detalhe (medidaAlternativa.do, transacaoPenal.do/"Medida
+	// Cautelar"), tanto "Status:" quanto "Data (de) Início:" ficam num
+	// <td class="label"> seguido do valor no <td> seguinte — só que "Data
+	// (de) Início:" às vezes tem um <label> dentro do <td class="label">
+	// (diferente de "Status:", que não tem); por isso a leitura usa o texto
+	// do <td> inteiro (funciona nos dois casos), não só de um eventual
+	// <label> dentro dele. O rótulo varia por tela: "Data Início:" em
+	// `medidaAlternativa.do`, "Data de Início:" (com "de") na tela "Medida
+	// Cautelar" — por isso `wantedNormalizedLabels` aceita mais de uma
+	// variante.
+	function findDetailField(doc, wantedNormalizedLabels) {
+		const wanted = Array.isArray(wantedNormalizedLabels) ? wantedNormalizedLabels : [wantedNormalizedLabels];
 		const labelCells = doc.querySelectorAll("td.label");
 		for (const td of labelCells) {
 			const text = normalize(td.textContent).replace(/:\s*$/, "");
-			if (text !== wantedNormalizedLabel) continue;
+			if (wanted.indexOf(text) === -1) continue;
 			const valueCell = td.nextElementSibling;
 			const value = valueCell ? collapseWhitespace(valueCell.textContent) : "";
 			return value || null;
@@ -493,7 +498,7 @@
 	}
 
 	function findDataInicio(doc) {
-		return findDetailField(doc, "data inicio");
+		return findDetailField(doc, ["data inicio", "data de inicio"]);
 	}
 
 	// href -> "pending" | string (data) | null (buscado, não encontrado)
@@ -550,49 +555,64 @@
 	}
 
 	// Avalia a página de detalhe buscada a partir do link de "Medidas
-	// Cautelares": reconhece tanto o caso confirmado (uma única medida,
-	// página com <h3>Monitoração eletrônica</h3> e campo "Status:" — mesma
-	// estrutura de `medidaAlternativa.do`) quanto, por precaução, uma
-	// eventual lista de várias medidas (uma <tr>/<li> por medida, cada uma
-	// com seu próprio texto/link) — cai para essa busca ampla (mesma lógica
-	// de `matchMotivo`/`extractStatus` usada na aba "Informações
-	// Adicionais") se não achar um <h3> de medida única.
+	// Cautelares" — estrutura real confirmada a partir de um .mhtml de uma
+	// página dessas (TJPR): <h3>Medida Cautelar - <processo></h3>, com
+	// "Status:" e "Data de Início:" no nível da página inteira (aplicam-se
+	// ao registro de medida cautelar como um todo, não a um tipo
+	// específico), e um campo "Medida Cautelar:" (<td class="labelRadio">)
+	// com uma tabela (<table class="resultTable">, colunas "Tipo de
+	// Medida"/"Data de Término Efetiva") listando um tipo por linha — ex.:
+	// "Monitoração eletrônica" — cada um um link (`a.link`) para
+	// `medidaAlternativa.do`. Uma linha com a coluna "Data de Término
+	// Efetiva" preenchida indica que aquele tipo específico já encerrou
+	// (mesmo com o registro geral ainda "Status: ATIVA" por causa de outro
+	// tipo).
 	function avaliarPaginaDeMedida(doc, url) {
-		const h3s = Array.prototype.slice.call(doc.querySelectorAll("h3"));
-		for (const h3 of h3s) {
-			const motivo = matchMotivo(h3.textContent);
-			if (!motivo) continue;
-			const status = normalize(findDetailField(doc, "status") || "");
-			if (STATUS_ATIVA.indexOf(status) === -1) {
-				console.log(TAG, "página de detalhe da medida reconhecida como '" + motivo + "', mas status não é ativa:", { status: status, url: url });
-				continue;
-			}
-			const dataInicio = findDataInicio(doc);
-			console.log(TAG, "medida cautelar confirmada como '" + motivo + "' ativa na página de detalhe:", { dataInicio: dataInicio, url: url });
-			return [{ texto: collapseWhitespace(h3.textContent), href: url, dataInicio: dataInicio }];
+		const status = normalize(findDetailField(doc, "status") || "");
+		if (STATUS_ATIVA.indexOf(status) === -1) {
+			console.log(TAG, "página de detalhe de 'Medida Cautelar' não está com status ativo:", { status: status, url: url });
+			return [];
+		}
+		const dataInicioGeral = findDataInicio(doc);
+
+		const achados = [];
+		const labelCells = doc.querySelectorAll("td.label, td.labelRadio");
+		for (const cell of labelCells) {
+			const text = normalize(cell.textContent).replace(/:\s*$/, "").trim();
+			if (text !== "medida cautelar") continue;
+			const row = cell.closest("tr");
+			const tabela = row ? row.querySelector("table") : null;
+			if (!tabela) break;
+			Array.prototype.slice.call(tabela.querySelectorAll("tbody tr")).forEach(function (tr) {
+				const colunas = tr.querySelectorAll("td");
+				if (!colunas.length) return;
+				const tipoTexto = collapseWhitespace(colunas[0].textContent);
+				if (!matchMotivo(tipoTexto)) return;
+				const terminoTexto = colunas[1] ? collapseWhitespace(colunas[1].textContent) : "";
+				if (terminoTexto) {
+					console.log(TAG, "tipo de medida 'Monitoração Eletrônica' encontrado, mas já com Data de Término Efetiva preenchida — não é mais ativo:", { terminoTexto: terminoTexto, url: url });
+					return;
+				}
+				const link = colunas[0].querySelector("a.link, a[href]");
+				let subHref = url;
+				if (link && link.getAttribute("href")) {
+					try {
+						subHref = new URL(link.getAttribute("href"), url).href;
+					} catch (err) {
+						subHref = url;
+					}
+				}
+				achados.push({ texto: tipoTexto, href: subHref, dataInicio: dataInicioGeral });
+			});
+			break;
 		}
 
-		// Fallback: página com uma lista/tabela de várias medidas cautelares
-		// em vez de uma única — não confirmado a partir de uma página real.
-		const achados = [];
-		Array.prototype.slice.call(doc.querySelectorAll("tr, li")).forEach(function (linha) {
-			const text = collapseWhitespace(linha.textContent);
-			if (!matchMotivo(text)) return;
-			const status = extractStatus(text);
-			if (status && STATUS_ATIVA.indexOf(status) === -1) return;
-			const link = linha.querySelector ? linha.querySelector("a.link, a[href]") : null;
-			let subHref = url;
-			if (link && link.getAttribute("href")) {
-				try {
-					subHref = new URL(link.getAttribute("href"), url).href;
-				} catch (err) {
-					subHref = url;
-				}
-			}
-			achados.push({ texto: displayText(text), href: subHref, dataInicio: null });
-		});
+		if (achados.length) {
+			console.log(TAG, "medida cautelar 'Monitoração Eletrônica' confirmada como ativa na página de detalhe:", { dataInicio: dataInicioGeral, url: url });
+			return achados;
+		}
 
-		if (!achados.length) {
+		{
 			// Diagnóstico completo (JSON.stringify, sobrevive a copiar/colar —
 			// ver mesma justificativa no diagnóstico da aba "Informações
 			// Adicionais" acima): título(s) da página, todos os campos

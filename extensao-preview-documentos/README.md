@@ -205,13 +205,16 @@ rótulo do campo — pode ser outra coisa, ex.: prisão domiciliar). Só a
 tela de detalhe desse link diz do que se trata. Por isso, quando esse
 campo indica a presença de alguma medida, a extensão busca essa tela em
 segundo plano (iframe oculto, mesma técnica já usada nos outros recursos
-desta extensão) e só cria o card se a tela confirmar **"Monitoração
-Eletrônica"** com **"Status:" ATIVA** — essa tela de detalhe
-(`medidaAlternativa.do`) também tem o campo **"Data Início:"**, que a
-extensão já aproveita nessa mesma busca (sem precisar de uma segunda
-requisição), ex.: "Monitorado eletronicamente: Monitoração eletrônica
-(desde 20/07/2024)". Enquanto a busca não termina, nenhum card aparece
-ainda — ele surge assim que ela confirma a medida.
+desta extensão) — a tela **"Medida Cautelar"** (`transacaoPenal.do`), com
+**"Status:"** e **"Data de Início:"** do registro como um todo, e um
+campo **"Medida Cautelar:"** com uma tabela listando um **tipo** por
+linha (ex.: "Monitoração eletrônica", "Recolhimento domiciliar
+noturno") — só cria o card se essa tabela tiver uma linha "Monitoração
+Eletrônica" **sem** "Data de Término Efetiva" preenchida (ou seja, esse
+tipo específico ainda em vigor) e o registro geral estiver com "Status:"
+ATIVA, ex.: "Monitorado eletronicamente: Monitoração eletrônica (desde
+20/07/2024)". Enquanto a busca não termina, nenhum card aparece ainda —
+ele surge assim que ela confirma a medida.
 
 Funciona pela mesma mecânica descrita acima em "Indicador de suspensão
 ativa" (Funciona mesmo sem visitar a aba "Informações Adicionais",
