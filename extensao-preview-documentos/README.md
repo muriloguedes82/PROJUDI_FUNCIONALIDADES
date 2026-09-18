@@ -28,6 +28,41 @@ extensão funciona da mesma forma nos dois sistemas:
    aba "Informações Gerais" do próprio processo principal — é preciso
    abrir o processo principal só para consultá-lo (veja "Sequencial do
    processo principal nos processos apensos" abaixo).
+7. no Projudi, diferente do SEEU, não há como trocar o tema/cor da tela
+   (veja "Tema/cor da tela (só no Projudi)" abaixo).
+
+## Tema/cor da tela (só no Projudi)
+
+O SEEU já tem um seletor de tema nativo (Azul, Alto Contraste, Lilas,
+Verde). Este recurso adiciona o mesmo tipo de opção ao Projudi: um botão
+flutuante **"🎨 Tema"** no canto inferior esquerdo de qualquer tela do
+Projudi. Clicar nele abre uma lista com os temas disponíveis (marca de
+seleção ✓ ao lado do tema ativo):
+
+- **Padrão (Projudi)** — visual original, sem nenhuma alteração.
+- **Azul TJPR** — azul-petróleo (`#008c95`) com cabeçalhos em
+  azul-marinho (`#002a3a`).
+- **Verde-Água TJPR** — verde-água (`#49c5b1`) com cabeçalhos em
+  azul-marinho.
+- **Âmbar TJPR** — âmbar (`#eeb134`) com cabeçalhos em azul-marinho.
+- **Alto Contraste** — fundo preto com texto e realces em âmbar, para
+  quem precisa de mais contraste do que os outros temas oferecem.
+
+Todas as cores usadas vêm do Manual de Uso da Marca do TJPR (cores
+institucionais e as gradações das cores secundárias). As cores "restritas"
+do manual (rosa/roxo, de uso exclusivo de materiais da Coordenadoria
+Estadual da Mulher/CEVID) não são usadas aqui.
+
+O tema escolhido fica salvo (`chrome.storage.local`) e é aplicado
+automaticamente em qualquer tela do Projudi depois disso.
+
+**Limitação conhecida:** como o Projudi é um sistema legado e esta
+extensão não tem acesso ao código-fonte de cada tela, a recolorização do
+próprio Projudi (fora do botão/painel desta extensão, que sempre usam a
+cor exata do tema) é feita com seletores genéricos (links, botões,
+cabeçalhos de tabela, títulos) — pode não cobrir 100% dos elementos de
+toda tela do sistema. Trocar de volta para "Padrão (Projudi)" a qualquer
+momento remove todas as alterações.
 
 ## Pré-visualização de Documentos
 
