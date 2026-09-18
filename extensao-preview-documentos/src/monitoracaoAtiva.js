@@ -79,7 +79,11 @@
 		"medida alternativa",
 	]; // já normalizados (sem acento/caixa)
 	const STATUS_ATIVA = ["ativa", "ativo"];
-	const MOTIVOS_REGEX = [{ nome: "Monitoração Eletrônica", re: /monitora(c|ç)ao\s+eletr(o|ô)nica/ }];
+	const MOTIVOS_REGEX = [
+		{ nome: "Monitoração Eletrônica", re: /monitora(c|ç)(a|ã)o\s+eletr(o|ô)nica/ },
+		{ nome: "Monitoramento Eletrônico", re: /monitoramento\s+eletr(o|ô)nic[oa]/ },
+		{ nome: "Tornozeleira Eletrônica", re: /tornozeleira\s+eletr(o|ô)nica/ },
+	];
 
 	function normalize(text) {
 		return String(text || "")
@@ -167,13 +171,66 @@
 		});
 	}
 
+	// Ao contrário do campo "Suspensões:" (que tem um <label> dentro do
+	// <td class="label">), nem todo campo do Projudi segue esse padrão —
+	// por isso este busca tanto em <label> aninhado quanto no texto do
+	// próprio <td class="label">/<td class="labelRadio"> (sem <label>
+	// dentro), como a tela de detalhe da medida (`findDetailField` abaixo)
+	// já precisa fazer com o campo "Status:".
 	function findLabelCell(tabContent, wantedLabels) {
-		const labelCells = tabContent.querySelectorAll("td.label label, td.labelRadio label");
-		for (const label of labelCells) {
+		const labels = tabContent.querySelectorAll("td.label label, td.labelRadio label");
+		for (const label of labels) {
 			const text = normalize(label.textContent).replace(/:\s*$/, "");
 			if (wantedLabels.indexOf(text) !== -1) return label;
 		}
+		const cells = tabContent.querySelectorAll("td.label, td.labelRadio");
+		for (const cell of cells) {
+			if (cell.querySelector("label")) continue; // já coberto acima
+			const text = normalize(cell.textContent).replace(/:\s*$/, "");
+			if (wantedLabels.indexOf(text) !== -1) return cell;
+		}
 		return null;
+	}
+
+	// Extrai os itens candidatos (um por <li>, ou por <td> de valor se não
+	// houver lista) da linha (<tr>) de um campo já localizado.
+	function itensDaLinha(row) {
+		if (!row) return [];
+		const items = Array.prototype.slice.call(row.querySelectorAll("li"));
+		return items.length ? items : Array.prototype.slice.call(row.querySelectorAll("td")).slice(1);
+	}
+
+	// Avalia um elemento candidato (item de lista, célula de valor, etc.):
+	// retorna { texto, href } se reconhecido como "Monitoração Eletrônica"
+	// ativa, ou null caso contrário (registrando o motivo do descarte).
+	// `motivoImplicito` = true quando o próprio rótulo do campo (ex.:
+	// "Monitorações Eletrônicas:") já garante o motivo, dispensando o
+	// texto do item repetir "Monitoração Eletrônica" (pode trazer só
+	// "<nome> - ATIVA", por exemplo).
+	function avaliarCandidato(item, motivoImplicito) {
+		const text = collapseWhitespace(item.textContent);
+		if (!text) return null;
+		const status = extractStatus(text);
+		if (status && STATUS_ATIVA.indexOf(status) === -1) {
+			console.log(TAG, "item ignorado (status não é ativa):", { texto: text, status: status });
+			return null;
+		}
+		const motivo = matchMotivo(text) || (motivoImplicito ? "Monitoração Eletrônica" : null);
+		if (!motivo) {
+			console.log(TAG, "item ignorado (não reconhecido como Monitoração Eletrônica):", text);
+			return null;
+		}
+		console.log(TAG, "item de monitoração eletrônica ativa reconhecido:", { texto: text, motivo: motivo });
+		const link = item.querySelector ? item.querySelector("a.link, a[href]") : null;
+		let href = null;
+		if (link && link.getAttribute("href")) {
+			try {
+				href = new URL(link.getAttribute("href"), window.location.href).href;
+			} catch (err) {
+				href = link.getAttribute("href");
+			}
+		}
+		return { texto: displayText(text), href: href };
 	}
 
 	// Procura, dentro do campo de medidas de monitoração, TODOS os itens de
@@ -182,50 +239,55 @@
 	// mesmo tempo. Retorna um array de { texto, href } (href = link para a
 	// tela de detalhe daquela medida, ou null se o item não tiver link);
 	// array vazio se nenhum item ativo reconhecido for encontrado.
+	//
+	// O rótulo exato desse campo na aba "Informações Adicionais" não foi
+	// confirmado a partir de uma página real, então a busca é em duas
+	// etapas: primeiro tenta achar o campo por um dos rótulos candidatos
+	// (`CAMPO_LABELS`, rápido e preciso quando acerta); se isso falhar,
+	// cai para uma busca ampla por QUALQUER item (<li> em qualquer lista,
+	// ou link "a.link"/"a[href]" solto) na aba inteira cujo texto já bata
+	// com `MOTIVOS_REGEX` — não depende de acertar o rótulo do campo, só
+	// do texto do próprio item (que é o dado mais estável).
 	function findMonitoracoesAtivas(tabContent) {
 		const label = findLabelCell(tabContent, CAMPO_LABELS);
-		if (!label) {
-			console.log(TAG, "campo de monitoração eletrônica não encontrado na aba '" + ABA_LABEL + "'", {
+		const encontrados = [];
+		const vistos = new Set();
+
+		if (label) {
+			const motivoImplicito = /eletr(o|ô)nica/.test(normalize(label.textContent));
+			const candidates = itensDaLinha(label.closest("tr"));
+			console.log(TAG, "campo de monitoração eletrônica encontrado pelo rótulo, avaliando itens:", candidates.map((c) => collapseWhitespace(c.textContent)));
+			candidates.forEach(function (item) {
+				const achado = avaliarCandidato(item, motivoImplicito);
+				if (achado) {
+					encontrados.push(achado);
+					vistos.add(item);
+				}
+			});
+		} else {
+			console.log(TAG, "campo de monitoração eletrônica não encontrado por rótulo na aba '" + ABA_LABEL + "' — tentando busca ampla por texto", {
 				rotulosEncontrados: Array.prototype.slice
-					.call(tabContent.querySelectorAll("td.label label, td.labelRadio label"))
-					.map((l) => l.textContent.trim())
+					.call(tabContent.querySelectorAll("td.label, td.labelRadio"))
+					.map((l) => collapseWhitespace(l.textContent))
 					.filter(Boolean),
 			});
-			return [];
 		}
 
-		const row = label.closest("tr");
-		const items = row ? Array.prototype.slice.call(row.querySelectorAll("li")) : [];
-		const candidates = items.length ? items : row ? Array.prototype.slice.call(row.querySelectorAll("td")).slice(1) : [];
-
-		console.log(TAG, "campo de monitoração eletrônica encontrado, avaliando itens:", candidates.map((c) => collapseWhitespace(c.textContent)));
-
-		const encontrados = [];
-		for (const item of candidates) {
-			const text = collapseWhitespace(item.textContent);
-			if (!text) continue;
-			const status = extractStatus(text);
-			if (status && STATUS_ATIVA.indexOf(status) === -1) {
-				console.log(TAG, "item ignorado (status não é ativa):", { texto: text, status: status });
-				continue;
+		// Busca ampla (sempre feita, mesmo com rótulo encontrado, para não
+		// perder réus/itens que estejam fora da linha do campo por algum
+		// motivo de layout) — evita duplicar itens já capturados acima.
+		const candidatosAmplos = Array.prototype.slice
+			.call(tabContent.querySelectorAll("li"))
+			.concat(Array.prototype.slice.call(tabContent.querySelectorAll("a.link, a[href]")).filter((a) => !a.closest("li")));
+		candidatosAmplos.forEach(function (item) {
+			if (vistos.has(item)) return;
+			if (!matchMotivo(item.textContent)) return;
+			const achado = avaliarCandidato(item);
+			if (achado) {
+				encontrados.push(achado);
+				vistos.add(item);
 			}
-			const motivo = matchMotivo(text) || (candidates.length === 1 ? "Monitoração Eletrônica" : null);
-			if (!motivo) {
-				console.log(TAG, "item ignorado (não reconhecido como Monitoração Eletrônica):", text);
-				continue;
-			}
-			console.log(TAG, "item de monitoração eletrônica ativa reconhecido:", { texto: text, motivo: motivo });
-			const link = item.querySelector ? item.querySelector("a.link, a[href]") : null;
-			let href = null;
-			if (link && link.getAttribute("href")) {
-				try {
-					href = new URL(link.getAttribute("href"), window.location.href).href;
-				} catch (err) {
-					href = link.getAttribute("href");
-				}
-			}
-			encontrados.push({ texto: displayText(text), href: href });
-		}
+		});
 
 		return encontrados;
 	}
