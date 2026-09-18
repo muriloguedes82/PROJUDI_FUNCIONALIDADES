@@ -37,6 +37,11 @@ extensão funciona da mesma forma nos dois sistemas:
    (nem desde quando) sem abrir a aba "Informações Adicionais" e depois
    a tela de detalhe da medida (veja "Indicador de monitoração
    eletrônica ativa" abaixo).
+9. no quadro **Pendências** da capa do processo, finalizar uma conclusão
+   pendente exige abrir a tela de análise, clicar no botão nativo
+   "Finalizar Conclusão Pendente" e aguardar o recarregamento da página
+   — é preciso repetir isso pendência por pendência (veja "Finalizar
+   conclusão pendente" abaixo).
 
 ## Pré-visualização de Documentos
 
@@ -801,6 +806,51 @@ Se nenhum documento for encontrado (ou a tela demorar demais para
 responder), um aviso é exibido com um atalho para abrir a análise
 completa em nova aba — o comportamento original do link nunca é
 removido.
+
+## Finalizar conclusão pendente
+
+No mesmo quadro **Pendências** da capa do processo, quando o item é uma
+**Conclusão** (não uma Análise de Juntada), a extensão insere um botão
+**"Finalizar conclusão"** logo ao lado do link nativo, ex.:
+
+```html
+<td class="labelRadio"><label>Análise de Conclusão:</label></td>
+<td>
+  <a href=".../processo/conclusao.do?_tj=..." class="link">
+    Há 1 pendência(s) de conclusão
+  </a>
+  <button class="pdp-finalizar-conclusao">Finalizar conclusão</button>
+</td>
+```
+
+Ao clicar nesse botão, a extensão:
+
+1. Carrega a tela de análise da conclusão (`conclusao.do`) em segundo
+   plano, via `fetch` autenticado com a sessão do próprio navegador —
+   sem abrir aba nem iframe visível.
+2. Confirma, na página retornada, que existe o botão nativo **"Finalizar
+   Conclusão Pendente"** habilitado (`#extraButton`, valor
+   `finalizar.conclusao.pendente`) dentro do formulário
+   `#movimentarProcessoForm`, junto com um `idMovimentacao` numérico. Se
+   a pendência já não estiver mais nesse estado (ex.: foi finalizada por
+   outra aba, ou não é uma conclusão simples), a operação é cancelada com
+   um aviso — nenhuma tentativa é feita "no escuro".
+3. Reenvia esse mesmo formulário (`POST`, mesmos campos que o clique no
+   botão nativo enviaria) para a URL de finalização indicada pela própria
+   página. Se o formulário tiver algum campo de arquivo, a extensão
+   também cancela a operação — esse caso exige o fluxo manual.
+4. Confere, na resposta, a mensagem de sucesso nativa do Projudi
+   ("Conclusão pendente finalizada com sucesso!"). Se a finalização não
+   puder ser confirmada (erro de rede, mensagem inesperada), o botão
+   fica com o aviso **"Verifique a conclusão"** e um alerta pede para
+   conferir manualmente no Projudi antes de repetir a operação — evita
+   reenviar duas vezes a mesma finalização.
+
+O botão fica desabilitado durante a operação e mostra o resultado
+("Finalizando…", "Conclusão finalizada" ou "Verifique a conclusão")
+diretamente nele; a lista de pendências não é recarregada
+automaticamente, já que o Projudi não faz isso sozinho. Apenas uma
+finalização é processada por vez.
 
 ## Envio de documentos por WhatsApp Web
 
