@@ -54,11 +54,19 @@
 	// "este processo"). Diferente do link do campo "Processo Principal:"
 	// (que só existe nos apensos), os links dessa árvore não têm classe
 	// "link", então são buscados por href mesmo.
-	function primeiroLinkApensamentos(root) {
-		const apensamentosRow = findRowByLabel(root, "Apensamentos");
-		if (!apensamentosRow) return null;
-		const link = apensamentosRow.querySelector(".tree a[href]");
-		return link && link.href ? link : null;
+	//
+	// Quando o processo não tem NENHUM apensamento (nem o de si mesmo), a
+	// linha "Apensamentos:" nem aparece — nesse caso cai para a árvore de
+	// "Vínculos:", que sempre existe e sempre lista "este processo" como
+	// primeiro item, servindo igualmente como link de volta para a própria
+	// página com um token de sessão válido.
+	function linkParaEstaMesmaPagina(root) {
+		for (const rotulo of ["Apensamentos", "Vínculos"]) {
+			const row = findRowByLabel(root, rotulo);
+			const link = row && row.querySelector(".tree a[href]");
+			if (link && link.href) return link;
+		}
+		return null;
 	}
 
 	// O campo "Sequencial" fica dentro do conteúdo da aba "Informações
@@ -229,7 +237,7 @@
 		// sessão válido) que já funciona para os apensos.
 		const anchorRow = findRowByLabel(table, "Nível de Sigilo") || table.rows[table.rows.length - 1];
 		if (!anchorRow) return;
-		const link = primeiroLinkApensamentos(table);
+		const link = linkParaEstaMesmaPagina(table);
 		if (!link) return;
 		inserirLinhaSequencial(anchorRow, "Sequencial", comAbaInformacoesGerais(link.href));
 	}
