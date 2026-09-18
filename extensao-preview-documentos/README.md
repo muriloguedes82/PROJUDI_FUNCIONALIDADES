@@ -212,9 +212,18 @@ linha (ex.: "Monitoração eletrônica", "Recolhimento domiciliar
 noturno") — só cria o card se essa tabela tiver uma linha "Monitoração
 Eletrônica" **sem** "Data de Término Efetiva" preenchida (ou seja, esse
 tipo específico ainda em vigor) e o registro geral estiver com "Status:"
-ATIVA, ex.: "Monitorado eletronicamente: Monitoração eletrônica (desde
+ATIVA. O texto do card é o **nome da parte** (campo "Parte:" dessa
+mesma tela), ex.: "Monitorado eletronicamente: ANDREIA DA SILVA (desde
 20/07/2024)". Enquanto a busca não termina, nenhum card aparece ainda —
 ele surge assim que ela confirma a medida.
+
+Um processo pode ter **mais de uma parte** com medida cautelar — nesse
+caso a tela "Medida Cautelar" tem um combo **"Partes:"** para trocar de
+réu/parte (cada um com seu próprio "Status:"/"Data de Início:"/tabela de
+tipos). A extensão detecta esse combo e, quando ele tem mais de uma
+opção, busca a tela de novo para CADA parte (em paralelo, em segundo
+plano) — assim, cada parte com Monitoração Eletrônica ativa ganha o seu
+próprio card, lado a lado, um por pessoa.
 
 Funciona pela mesma mecânica descrita acima em "Indicador de suspensão
 ativa" (Funciona mesmo sem visitar a aba "Informações Adicionais",
