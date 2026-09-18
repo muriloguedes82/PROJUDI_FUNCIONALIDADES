@@ -94,9 +94,9 @@ apensos — o processo principal em si não ganha essa linha extra.
 ## Indicador de suspensão ativa
 
 Ao lado do **número único do processo**, no topo da tela, a extensão
-insere um ícone **⏸️** sempre que identifica, na aba **"Informações
-Adicionais"** do próprio processo, um dos motivos de suspensão mais
-comuns:
+insere um pequeno **card** ("Suspenso: ...") sempre que identifica, na
+aba **"Informações Adicionais"** do próprio processo, um dos motivos de
+suspensão mais comuns:
 
 - Art. 366, CPP
 - Art. 89, L. 9099/95
@@ -104,11 +104,11 @@ comuns:
 - ANPP
 - Transação Penal
 
-Passar o mouse sobre o ícone mostra o motivo identificado, como tooltip
-("Suspensão ativa: ..."). Se nenhum desses motivos for encontrado
-preenchido na aba, nenhum ícone é exibido — o recurso não tenta adivinhar
-se o processo está suspenso por outro motivo qualquer, só sinaliza os
-cinco listados acima.
+O card já mostra o motivo identificado no próprio texto (ex.: "Suspenso:
+Art. 366, CPP"), e passar o mouse sobre ele reforça a informação como
+tooltip. Se nenhum desses motivos for encontrado preenchido na aba,
+nenhum card é exibido — o recurso não tenta adivinhar se o processo está
+suspenso por outro motivo qualquer, só sinaliza os cinco listados acima.
 
 A busca acontece automaticamente ao abrir o processo, esperando a aba
 "Informações Adicionais" terminar de carregar (o Projudi carrega o
@@ -123,7 +123,7 @@ personalizável por Tribunal/Vara e não foi validado ao vivo no Projudi
 identificação do motivo é propositalmente ampla — procura o texto de cada
 motivo em rótulos/valores de campos, em `<select>` e em checkboxes/radios
 marcados dentro da aba. Se a aba usada no seu Tribunal tiver uma
-estrutura diferente e o ícone não aparecer com um processo suspenso, abra
+estrutura diferente e o card não aparecer com um processo suspenso, abra
 o console (F12, mensagens com o prefixo `[Projudi Suspensão Ativa]`) para
 ver o que foi encontrado e ajuste `findMotivoSuspensao` em
 `src/suspensaoAtiva.js`.

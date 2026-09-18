@@ -8,9 +8,9 @@
 // Este recurso lê essa aba (esperando ela terminar de carregar via AJAX,
 // como já ocorre com "Informações Gerais" — ver
 // sequencialProcessoPrincipal.js) e, se encontrar um desses motivos
-// preenchido em algum campo, insere um ícone de alerta logo ao lado do
-// número único do processo no cabeçalho da página, com o motivo
-// identificado como título (tooltip) do ícone.
+// preenchido em algum campo, insere um pequeno card (badge) logo ao lado
+// do número único do processo no cabeçalho da página, já com o motivo
+// identificado escrito nele.
 //
 // Atenção: como não há acesso a uma instância real do Projudi para validar
 // o HTML exato da aba "Informações Adicionais" (que é customizável por
@@ -31,7 +31,7 @@
 	window.__pdpSuspensaoAtiva = true;
 
 	const TAG = "[Projudi Suspensão Ativa]";
-	const ICON_ATTR = "data-pdp-suspensao-icone";
+	const CARD_ATTR = "data-pdp-suspensao-card";
 	const ABA_LABEL = "Informações Adicionais";
 
 	const MOTIVOS_SUSPENSAO = [
@@ -148,24 +148,43 @@
 		return null;
 	}
 
-	function insertIcon(motivo) {
+	function insertCard(motivo) {
 		const anchor = processNumberAnchor();
 		if (!anchor) {
-			console.warn(TAG, "número único do processo não encontrado na página, ícone não inserido");
+			console.warn(TAG, "número único do processo não encontrado na página, card não inserido");
 			return;
 		}
 		const already = anchor.nextElementSibling;
-		if (already && already.hasAttribute(ICON_ATTR)) {
+		if (already && already.hasAttribute(CARD_ATTR)) {
+			const textEl = already.querySelector(".pdp-suspensao-card-texto");
+			if (textEl) textEl.textContent = "Suspenso: " + motivo;
 			already.title = "Suspensão ativa: " + motivo;
 			return;
 		}
-		const icon = document.createElement("span");
-		icon.setAttribute(ICON_ATTR, "");
-		icon.textContent = " ⏸️";
-		icon.title = "Suspensão ativa: " + motivo;
-		icon.style.cursor = "help";
-		anchor.insertAdjacentElement("afterend", icon);
-		console.log(TAG, "ícone de suspensão ativa inserido —", motivo);
+		const card = document.createElement("span");
+		card.setAttribute(CARD_ATTR, "");
+		card.title = "Suspensão ativa: " + motivo;
+		card.style.display = "inline-flex";
+		card.style.alignItems = "center";
+		card.style.gap = "4px";
+		card.style.marginLeft = "6px";
+		card.style.padding = "1px 8px";
+		card.style.borderRadius = "10px";
+		card.style.border = "1px solid #d99400";
+		card.style.background = "#fff4d9";
+		card.style.color = "#8a5800";
+		card.style.fontSize = "11px";
+		card.style.fontWeight = "bold";
+		card.style.verticalAlign = "middle";
+		card.style.cursor = "help";
+
+		const textEl = document.createElement("span");
+		textEl.className = "pdp-suspensao-card-texto";
+		textEl.textContent = "Suspenso: " + motivo;
+		card.appendChild(textEl);
+
+		anchor.insertAdjacentElement("afterend", card);
+		console.log(TAG, "card de suspensão ativa inserido —", motivo);
 	}
 
 	function init() {
@@ -179,14 +198,14 @@
 				console.log(TAG, "nenhum motivo de suspensão reconhecido na aba '" + ABA_LABEL + "'");
 				return;
 			}
-			insertIcon(motivo);
+			insertCard(motivo);
 		});
 	}
 
 	init();
 
 	// A tela do processo pode trocar de aba/recarregar trechos via AJAX (ver
-	// content.js), o que pode remover o ícone junto com o cabeçalho antigo.
+	// content.js), o que pode remover o card junto com o cabeçalho antigo.
 	// Reconcilia periodicamente, como já é feito para outros elementos desta
 	// extensão.
 	setInterval(function () {
