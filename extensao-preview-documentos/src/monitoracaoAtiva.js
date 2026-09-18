@@ -15,8 +15,12 @@
 // "Monitoração Eletrônica" com status "ATIVA", insere um pequeno card logo
 // depois do "(N dia(s) em tramitação)" no cabeçalho do processo (<h3
 // id="barraTituloStatusProcessual">) — um card por item, lado a lado, com
-// a "Data Início" assim que a busca em segundo plano (na tela de detalhe)
-// termina.
+// o NOME DA PARTE e a "Data Início" assim que a busca em segundo plano (na
+// tela de detalhe) termina, ex.: "Monitorado eletronicamente: ANDREIA DA
+// SILVA (desde 20/07/2024)". Um processo com mais de uma parte em
+// monitoração eletrônica ativa (a tela "Medida Cautelar" tem um combo
+// "Partes:" nesse caso) ganha um card por parte — ver
+// `listarOpcoesPartes`/`avaliarPaginaDeMedida` mais abaixo.
 //
 // Mesma técnica de leitura/busca/persistência já usada em
 // suspensaoAtiva.js: leitura direta da aba "Informações Adicionais" se ela
@@ -554,26 +558,106 @@
 		return null;
 	}
 
-	// Avalia a página de detalhe buscada a partir do link de "Medidas
-	// Cautelares" — estrutura real confirmada a partir de um .mhtml de uma
-	// página dessas (TJPR): <h3>Medida Cautelar - <processo></h3>, com
-	// "Status:" e "Data de Início:" no nível da página inteira (aplicam-se
-	// ao registro de medida cautelar como um todo, não a um tipo
-	// específico), e um campo "Medida Cautelar:" (<td class="labelRadio">)
-	// com uma tabela (<table class="resultTable">, colunas "Tipo de
-	// Medida"/"Data de Término Efetiva") listando um tipo por linha — ex.:
-	// "Monitoração eletrônica" — cada um um link (`a.link`) para
-	// `medidaAlternativa.do`. Uma linha com a coluna "Data de Término
-	// Efetiva" preenchida indica que aquele tipo específico já encerrou
-	// (mesmo com o registro geral ainda "Status: ATIVA" por causa de outro
-	// tipo).
-	function avaliarPaginaDeMedida(doc, url) {
+	// Lista as partes disponíveis no seletor "Partes:" da tela "Medida
+	// Cautelar" (<select id="codParteProcessoFiltro">) — um processo com
+	// mais de um réu/parte pode ter esse seletor com mais de uma opção
+	// (além do placeholder "-- CLIQUE AQUI PARA SELECIONAR --", com
+	// value="", descartado aqui). Cada opção é uma parte distinta, cuja
+	// própria medida cautelar (e status/tabela de tipos) só aparece na
+	// página filtrada para ELA — por isso, com mais de uma parte, é preciso
+	// buscar a página de novo, uma vez por parte (ver `avaliarPaginaDeMedida`
+	// abaixo).
+	function listarOpcoesPartes(doc) {
+		const select = doc.getElementById("codParteProcessoFiltro");
+		if (!select) return [];
+		return Array.prototype.slice
+			.call(select.querySelectorAll("option"))
+			.map(function (opt) {
+				return { valor: opt.value, nome: collapseWhitespace(opt.textContent), selecionada: !!opt.selected };
+			})
+			.filter(function (opt) {
+				return opt.valor;
+			});
+	}
+
+	// Busca a página "Medida Cautelar" filtrada para UMA parte específica —
+	// mesma técnica de POST em segundo plano já usada em
+	// `fetchAbaInformacoesAdicionaisPOST`, replicando o que o próprio
+	// Projudi faz ao trocar a seleção no combo "Partes:" (função
+	// `filtrarParteProcesso` da própria tela: reenvia o formulário
+	// `transacaoPenalForm` para `actionType=visualizar&codParteProcessoFiltro=
+	// <valor>`). `doc` é a página já buscada (para outra parte, ou a
+	// primeira lida), de onde vem o formulário/action a reenviar.
+	async function fetchMedidaCautelarPorParte(doc, baseUrl, valorParte) {
+		const form = doc.getElementById("transacaoPenalForm");
+		if (!form) {
+			console.warn(TAG, "#transacaoPenalForm não encontrado na página de 'Medida Cautelar' — não é possível filtrar por parte");
+			return null;
+		}
+		let actionUrl;
+		try {
+			actionUrl = new URL(form.getAttribute("action") || form.action, baseUrl);
+		} catch (err) {
+			console.warn(TAG, "action do #transacaoPenalForm inválida:", err);
+			return null;
+		}
+		actionUrl.searchParams.set("actionType", "visualizar");
+		actionUrl.searchParams.set("codParteProcessoFiltro", valorParte);
+
+		const body = new URLSearchParams();
+		for (const [name, value] of new FormData(form)) {
+			if (typeof value === "string") body.append(name, value);
+		}
+		body.set("codParteProcessoFiltro", valorParte);
+
+		console.log(TAG, "buscando 'Medida Cautelar' filtrada por parte em segundo plano (POST):", { url: actionUrl.href, parte: valorParte });
+
+		const controller = new AbortController();
+		const timeout = setTimeout(function () {
+			controller.abort();
+		}, 20000);
+		try {
+			const response = await fetch(actionUrl.href, {
+				method: "POST",
+				body: body,
+				credentials: "same-origin",
+				signal: controller.signal,
+			});
+			if (!response.ok) throw new Error("Projudi respondeu " + response.status + " " + response.statusText);
+			const bytes = await response.arrayBuffer();
+			const preview = new TextDecoder("windows-1252").decode(bytes.slice(0, 4096));
+			const charsetMatch =
+				/charset\s*=\s*["']?([\w-]+)/i.exec(response.headers.get("content-type") || "") || /charset\s*=\s*["']?([\w-]+)/i.exec(preview);
+			const charset = (charsetMatch && charsetMatch[1]) || "windows-1252";
+			const html = new TextDecoder(charset).decode(bytes);
+			return new DOMParser().parseFromString(html, "text/html");
+		} finally {
+			clearTimeout(timeout);
+		}
+	}
+
+	// Extrai os achados de UMA página "Medida Cautelar" já carregada
+	// (de uma única parte, já filtrada) — estrutura real confirmada a
+	// partir de um .mhtml dessa tela (TJPR): <h3>Medida Cautelar -
+	// <processo></h3>, com "Status:", "Parte:" e "Data de Início:" no
+	// nível da página inteira (aplicam-se à parte selecionada como um
+	// todo, não a um tipo específico), e um campo "Medida Cautelar:"
+	// (<td class="labelRadio">) com uma tabela (<table class="resultTable">,
+	// colunas "Tipo de Medida"/"Data de Término Efetiva") listando um tipo
+	// por linha — ex.: "Monitoração eletrônica" — cada um um link
+	// (`a.link`) para `medidaAlternativa.do`. Uma linha com a coluna "Data
+	// de Término Efetiva" preenchida indica que aquele tipo específico já
+	// encerrou (mesmo com "Status:" geral ainda ATIVA por causa de outro
+	// tipo). `nomeParteConhecido` (opcional) evita reler o campo "Parte:" —
+	// útil quando o nome já veio do próprio combo "Partes:".
+	function extrairAchadosDeDoc(doc, url, nomeParteConhecido) {
 		const status = normalize(findDetailField(doc, "status") || "");
 		if (STATUS_ATIVA.indexOf(status) === -1) {
-			console.log(TAG, "página de detalhe de 'Medida Cautelar' não está com status ativo:", { status: status, url: url });
+			console.log(TAG, "página de detalhe de 'Medida Cautelar' não está com status ativo:", { status: status, url: url, parte: nomeParteConhecido });
 			return [];
 		}
 		const dataInicioGeral = findDataInicio(doc);
+		const nomeParte = nomeParteConhecido || findDetailField(doc, "parte");
 
 		const achados = [];
 		const labelCells = doc.querySelectorAll("td.label, td.labelRadio");
@@ -590,7 +674,7 @@
 				if (!matchMotivo(tipoTexto)) return;
 				const terminoTexto = colunas[1] ? collapseWhitespace(colunas[1].textContent) : "";
 				if (terminoTexto) {
-					console.log(TAG, "tipo de medida 'Monitoração Eletrônica' encontrado, mas já com Data de Término Efetiva preenchida — não é mais ativo:", { terminoTexto: terminoTexto, url: url });
+					console.log(TAG, "tipo de medida 'Monitoração Eletrônica' encontrado, mas já com Data de Término Efetiva preenchida — não é mais ativo:", { terminoTexto: terminoTexto, url: url, parte: nomeParte });
 					return;
 				}
 				const link = colunas[0].querySelector("a.link, a[href]");
@@ -602,13 +686,18 @@
 						subHref = url;
 					}
 				}
-				achados.push({ texto: tipoTexto, href: subHref, dataInicio: dataInicioGeral });
+				// O nome da parte é o texto principal do card (ver
+				// `criarCardElemento`/`textoItem` mais abaixo) — cai para o
+				// próprio nome do tipo de medida só se a parte não puder ser
+				// identificada (não deveria acontecer nas telas reais já
+				// confirmadas, mas evita um card sem texto nenhum).
+				achados.push({ texto: nomeParte || tipoTexto, href: subHref, dataInicio: dataInicioGeral });
 			});
 			break;
 		}
 
 		if (achados.length) {
-			console.log(TAG, "medida cautelar 'Monitoração Eletrônica' confirmada como ativa na página de detalhe:", { dataInicio: dataInicioGeral, url: url });
+			console.log(TAG, "medida cautelar 'Monitoração Eletrônica' confirmada como ativa na página de detalhe:", { dataInicio: dataInicioGeral, parte: nomeParte, url: url });
 			return achados;
 		}
 
@@ -627,12 +716,46 @@
 			const itens = Array.prototype.slice.call(doc.querySelectorAll("li")).map((li) => collapseWhitespace(li.textContent)).filter(Boolean);
 			console.log(
 				TAG,
-				"DIAGNÓSTICO — página de 'Medidas Cautelares' (" + url + ") não trouxe nenhuma Monitoração Eletrônica ativa reconhecida. " +
+				"DIAGNÓSTICO — página de 'Medidas Cautelares' (" + url + ", parte: " + (nomeParte || "?") + ") não trouxe nenhuma Monitoração Eletrônica ativa reconhecida. " +
 					"Copie a linha abaixo (JSON) e envie para ajustar a extensão:\n" +
 					JSON.stringify({ titulos: titulos, campos: campos, itens: itens }, null, 2)
 			);
 		}
 		return achados;
+	}
+
+	// Avalia a página de detalhe buscada a partir do link de "Medidas
+	// Cautelares". Com uma parte só (o caso mais comum), a página já
+	// carregada já reflete essa parte — extrai direto. Com mais de uma
+	// parte (`listarOpcoesPartes`), a tabela "Medida Cautelar:" e os campos
+	// "Status:"/"Data de Início:" só valem para a parte selecionada no
+	// combo — por isso busca a página de novo, uma vez por parte (em
+	// paralelo), para que CADA parte com Monitoração Eletrônica ativa
+	// ganhe seu próprio achado (e, no fim, seu próprio card).
+	async function avaliarPaginaDeMedida(doc, url) {
+		const opcoesPartes = listarOpcoesPartes(doc);
+		if (opcoesPartes.length <= 1) {
+			return extrairAchadosDeDoc(doc, url);
+		}
+
+		console.log(TAG, "processo com mais de uma parte com medida cautelar — avaliando cada uma em segundo plano:", opcoesPartes.map((o) => o.nome));
+
+		const porParte = await Promise.all(
+			opcoesPartes.map(async function (opcao) {
+				try {
+					const docParte = opcao.selecionada ? doc : await fetchMedidaCautelarPorParte(doc, url, opcao.valor);
+					if (!docParte) return [];
+					return extrairAchadosDeDoc(docParte, url, opcao.nome);
+				} catch (err) {
+					console.warn(TAG, "falha ao buscar medida cautelar da parte '" + opcao.nome + "':", err && (err.stack || err.message || err));
+					return [];
+				}
+			})
+		);
+
+		return porParte.reduce(function (acc, arr) {
+			return acc.concat(arr);
+		}, []);
 	}
 
 	// href do link de "Medidas Cautelares" -> array de achados (cache, para
@@ -658,7 +781,7 @@
 		try {
 			console.log(TAG, "buscando página de 'Medidas Cautelares' em segundo plano:", href);
 			const doc = await fetchDoc(href);
-			const daPagina = avaliarPaginaDeMedida(doc, href);
+			const daPagina = await avaliarPaginaDeMedida(doc, href);
 			medidaCautelarPorHref.set(href, daPagina);
 			return diretos.concat(daPagina);
 		} catch (err) {
