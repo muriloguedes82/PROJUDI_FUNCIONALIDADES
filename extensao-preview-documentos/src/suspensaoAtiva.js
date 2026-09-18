@@ -15,6 +15,19 @@
 // (<h3 id="barraTituloStatusProcessual">), já com o motivo identificado
 // escrito nele.
 //
+// O card precisa continuar visível mesmo navegando por outras abas do
+// processo (Movimentações, Partes e Outros, etc.), mas o conteúdo da aba
+// "Informações Adicionais" (div#tabprefix1) só fica disponível no DOM
+// enquanto ela é a aba ativa — ao trocar de aba, o Projudi pode substituir
+// o trecho da página onde ela estava (ver "Troca de abas do processo" no
+// README) e o card, se fosse filho daquele trecho, sumiria junto. Por
+// isso o estado (suspenso ou não, e com qual motivo) é guardado em
+// memória (`estadoAtual`) assim que lido, e cada reconciliação periódica
+// reaplica esse estado guardado no cabeçalho atual — sem depender da aba
+// "Informações Adicionais" estar acessível naquele momento. O estado só é
+// reavaliado quando a aba volta a estar disponível no DOM (normalmente ao
+// reabri-la, ou na carga inicial da página).
+//
 // Estrutura real confirmada a partir de um .mhtml salvo de
 // visualizacaoProcesso.do (Projudi/TJPR):
 // - aba: <li id="tabItemprefix1" class="currentTab"><...><a>Informações
@@ -96,24 +109,25 @@
 	// O id da aba fica no <li> (ex.: <li id="tabItemprefix1">), não no <a>
 	// interno — por isso a busca é por qualquer elemento com esse prefixo de
 	// id, não só por <a>.
-	function findTabAnchorByLabel(labelText) {
+	function findTabAnchorByLabel(labelText, silent) {
 		const candidates = document.querySelectorAll('[id^="tabItemprefix"]');
 		for (const el of candidates) {
 			if (normalize(el.textContent) === normalize(labelText)) return el;
 		}
+		if (!silent) console.log(TAG, "nenhum elemento com id tabItemprefix* casou com o rótulo da aba", { labelText: labelText });
 		return null;
 	}
 
-	function findTabContent(labelText) {
-		const anchor = findTabAnchorByLabel(labelText);
-		if (!anchor) {
-			console.log(TAG, "nenhum elemento com id tabItemprefix* casou com o rótulo da aba", { labelText: labelText });
-			return null;
-		}
+	// `silent` evita poluir o console nas reconciliações periódicas, em que
+	// a aba não estar disponível agora é esperado (usuário está em outra
+	// aba do processo) — não é um erro a cada 1.5s.
+	function findTabContent(labelText, silent) {
+		const anchor = findTabAnchorByLabel(labelText, silent);
+		if (!anchor) return null;
 		const match = /tabItemprefix(\d+)/.exec(anchor.id);
 		if (!match) return null;
 		const content = document.getElementById("tabprefix" + match[1]);
-		if (!content) console.log(TAG, "aba encontrada mas #tabprefix" + match[1] + " não existe no documento");
+		if (!content && !silent) console.log(TAG, "aba encontrada mas #tabprefix" + match[1] + " não existe no documento");
 		return content;
 	}
 
@@ -121,9 +135,12 @@
 		return new Promise(function (resolve) {
 			const deadline = Date.now() + timeoutMs;
 			(function tick() {
-				const content = findTabContent(labelText);
+				const content = findTabContent(labelText, /* silent */ true);
 				if (content && content.querySelector("td.label, td.labelRadio")) return resolve(content);
-				if (Date.now() >= deadline) return resolve(content);
+				if (Date.now() >= deadline) {
+					if (!content) console.log(TAG, "aba '" + labelText + "' não encontrada após " + timeoutMs + "ms de espera na carga inicial");
+					return resolve(content);
+				}
 				setTimeout(tick, 250);
 			})();
 		});
@@ -194,16 +211,13 @@
 
 	function insertCard(motivo) {
 		const container = headerContainer();
-		if (!container) {
-			console.warn(TAG, "cabeçalho do processo (#barraTituloStatusProcessual) não encontrado na página, card não inserido");
-			return;
-		}
+		if (!container) return false;
 		const already = container.querySelector("[" + CARD_ATTR + "]");
 		if (already) {
 			const textEl = already.querySelector(".pdp-suspensao-card-texto");
 			if (textEl) textEl.textContent = "Suspenso: " + motivo;
 			already.title = "Suspensão ativa: " + motivo;
-			return;
+			return true;
 		}
 		const card = document.createElement("span");
 		card.setAttribute(CARD_ATTR, "");
@@ -231,34 +245,68 @@
 		// tramitação)", que é sempre o último conteúdo do elemento.
 		container.appendChild(card);
 		console.log(TAG, "card de suspensão ativa inserido —", motivo);
+		return true;
 	}
 
-	function init() {
-		waitForTabContent(ABA_LABEL, 10000).then(function (tabContent) {
-			if (!tabContent) {
-				console.log(TAG, "aba '" + ABA_LABEL + "' não encontrada nesta tela — nada a fazer");
-				return;
-			}
-			const motivo = findMotivoSuspensaoAtiva(tabContent);
-			if (!motivo) {
-				console.log(TAG, "nenhuma suspensão ativa com motivo reconhecido na aba '" + ABA_LABEL + "'");
-				return;
-			}
-			insertCard(motivo);
+	function removeCard() {
+		document.querySelectorAll("[" + CARD_ATTR + "]").forEach(function (el) {
+			el.remove();
 		});
 	}
 
-	init();
+	// Estado guardado em memória: sobrevive a trocas de aba do processo
+	// (script continua carregado na mesma página, ver guarda
+	// `window.__pdpSuspensaoAtiva` no topo) mesmo quando a aba "Informações
+	// Adicionais" sai do DOM. `undefined` = ainda não avaliado nesta carga
+	// de página; `null` = avaliado, sem suspensão ativa reconhecida.
+	let estadoAtual;
+
+	// Só reavalia o estado quando a aba "Informações Adicionais" está
+	// mesmo disponível agora no DOM — do contrário mantém o último estado
+	// conhecido, para o card não sumir enquanto o usuário navega por outra
+	// aba do processo.
+	function reavaliarSeDisponivel() {
+		const tabContent = findTabContent(ABA_LABEL, /* silent */ true);
+		if (!tabContent || !tabContent.querySelector("td.label, td.labelRadio")) return;
+		const motivo = findMotivoSuspensaoAtiva(tabContent);
+		if (motivo !== estadoAtual) {
+			console.log(TAG, "estado de suspensão atualizado:", { anterior: estadoAtual, novo: motivo });
+		}
+		estadoAtual = motivo;
+	}
+
+	function sincronizarCard() {
+		if (estadoAtual) {
+			insertCard(estadoAtual);
+		} else {
+			removeCard();
+		}
+	}
+
+	function tick() {
+		reavaliarSeDisponivel();
+		sincronizarCard();
+	}
+
+	// Carga inicial: espera a aba "Informações Adicionais" terminar de
+	// carregar via AJAX (pode demorar mais que o resto da página) antes da
+	// primeira avaliação.
+	waitForTabContent(ABA_LABEL, 10000).then(function () {
+		tick();
+	});
 
 	// A tela do processo pode trocar de aba/recarregar trechos via AJAX (ver
-	// content.js), o que pode remover o card junto com o cabeçalho antigo.
-	// Reconcilia periodicamente, como já é feito para outros elementos desta
-	// extensão.
+	// "Troca de abas do processo" no README), o que pode remover o card
+	// junto com o cabeçalho antigo (ou a própria aba "Informações
+	// Adicionais" do DOM). Reconcilia periodicamente: reaplica o último
+	// estado conhecido sempre, e reavalia o estado quando a aba estiver
+	// disponível — o mesmo padrão já usado por outros elementos desta
+	// extensão (ver "Troca de abas do processo" no README).
 	setInterval(function () {
 		try {
-			init();
+			tick();
 		} catch (err) {
 			console.error(TAG, "erro na reconciliação periódica:", err);
 		}
-	}, 3000);
+	}, 1500);
 })();

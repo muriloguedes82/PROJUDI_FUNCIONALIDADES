@@ -118,9 +118,15 @@ qualquer, só sinaliza os cinco listados acima.
 A busca acontece automaticamente ao abrir o processo, esperando a aba
 "Informações Adicionais" terminar de carregar (o Projudi carrega o
 conteúdo das abas via uma requisição própria, que pode demorar um pouco
-mais que o resto da página) e é refeita periodicamente, para lidar com
-trocas de aba que substituem trechos da tela (ver "Troca de abas do
-processo" mais abaixo).
+mais que o resto da página). Uma vez identificado o estado (suspenso ou
+não, e com qual motivo), o card **fica fixo no cabeçalho do processo
+mesmo navegando por outras abas** (Movimentações, Partes e Outros,
+etc.) — o estado fica guardado em memória e é reaplicado a cada
+reconciliação periódica (a cada 1,5s), então mesmo que o Projudi
+substitua o cabeçalho por um novo elemento ao trocar de aba (ver "Troca
+de abas do processo" mais abaixo), o card volta a aparecer sem precisar
+reabrir a aba "Informações Adicionais". O estado só é reavaliado de novo
+quando essa aba volta a estar disponível no DOM (ex.: ao reabri-la).
 
 A estrutura da aba "Informações Adicionais" e do campo "Suspensões:" foi
 confirmada a partir de uma página real do Projudi (TJPR) — inclusive um
