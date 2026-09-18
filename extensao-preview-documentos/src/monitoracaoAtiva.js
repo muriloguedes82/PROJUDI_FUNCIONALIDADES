@@ -265,12 +265,7 @@
 				}
 			});
 		} else {
-			console.log(TAG, "campo de monitoração eletrônica não encontrado por rótulo na aba '" + ABA_LABEL + "' — tentando busca ampla por texto", {
-				rotulosEncontrados: Array.prototype.slice
-					.call(tabContent.querySelectorAll("td.label, td.labelRadio"))
-					.map((l) => collapseWhitespace(l.textContent))
-					.filter(Boolean),
-			});
+			console.log(TAG, "campo de monitoração eletrônica não encontrado por rótulo na aba '" + ABA_LABEL + "' — tentando busca ampla por texto");
 		}
 
 		// Busca ampla (sempre feita, mesmo com rótulo encontrado, para não
@@ -288,6 +283,31 @@
 				vistos.add(item);
 			}
 		});
+
+		// Nada encontrado (nem por rótulo, nem pela busca ampla): despeja um
+		// diagnóstico completo — com JSON.stringify, para sobreviver a um
+		// copiar/colar do console (um objeto "vivo" vira só "[object
+		// Object]"/"Object" ao ser colado como texto) — com TODOS os rótulos
+		// de campo e itens de lista da aba, para ajustar CAMPO_LABELS/
+		// MOTIVOS_REGEX a partir de uma página real.
+		if (!encontrados.length) {
+			const rotulos = Array.prototype.slice
+				.call(tabContent.querySelectorAll("td.label, td.labelRadio"))
+				.map((l) => collapseWhitespace(l.textContent))
+				.filter(Boolean);
+			const itensLista = Array.prototype.slice.call(tabContent.querySelectorAll("li")).map((li) => collapseWhitespace(li.textContent)).filter(Boolean);
+			const linksSoltos = Array.prototype.slice
+				.call(tabContent.querySelectorAll("a.link, a[href]"))
+				.filter((a) => !a.closest("li"))
+				.map((a) => collapseWhitespace(a.textContent))
+				.filter(Boolean);
+			console.log(
+				TAG,
+				"DIAGNÓSTICO — nenhum item de monitoração eletrônica reconhecido nesta leitura da aba '" + ABA_LABEL + "'. " +
+					"Copie a linha abaixo (JSON) e envie para ajustar a extensão:\n" +
+					JSON.stringify({ rotulos: rotulos, itensLista: itensLista, linksSoltos: linksSoltos }, null, 2)
+			);
+		}
 
 		return encontrados;
 	}
@@ -351,10 +371,16 @@
 	// segundo plano — POST para a própria action do formulário
 	// `#processoForm`, com um campo oculto `selectedIcon` no corpo (mesma
 	// técnica de oraculoDirect.js/suspensaoAtiva.js).
+	let avisouSemProcessoForm = false;
 	async function fetchAbaInformacoesAdicionaisPOST() {
 		const form = document.getElementById("processoForm");
 		if (!form) {
-			console.warn(TAG, "#processoForm não encontrado nesta página — não é possível buscar a aba em segundo plano aqui");
+			// Página sem #processoForm (ex.: telas de busca/listagem, não a do
+			// processo em si) — não vale a pena avisar a cada 1.5s.
+			if (!avisouSemProcessoForm) {
+				avisouSemProcessoForm = true;
+				console.warn(TAG, "#processoForm não encontrado nesta página — não é possível buscar a aba em segundo plano aqui (próximas ocorrências nesta página não serão avisadas de novo)");
+			}
 			return null;
 		}
 
