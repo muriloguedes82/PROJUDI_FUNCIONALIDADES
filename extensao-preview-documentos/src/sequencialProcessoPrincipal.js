@@ -1,4 +1,5 @@
-// Projudi - Sequencial do processo principal nos processos apensos
+// Projudi - Sequencial do processo principal nos processos apensos (e do
+// próprio processo, quando ele é o principal)
 //
 // Na aba "Informações Gerais" de um processo apenso (ex.: um incidente
 // processual apensado a uma Ação Penal), o Projudi já mostra o link do
@@ -13,8 +14,15 @@
 // necessária porque o Projudi devolve a página "capada" quando a
 // requisição não parece uma navegação de aba de verdade — e insere uma
 // linha "Sequencial do Processo Principal:" logo abaixo do campo
-// "Processo Principal:" já existente. Só faz sentido (e só aparece) em
-// processos que tenham esse campo, ou seja, processos apensos.
+// "Processo Principal:" já existente, só nos processos apensos (os que
+// têm esse campo).
+//
+// No processo principal em si (que não tem "Processo Principal:", por não
+// ser apenso de ninguém) a mesma estrutura é usada para mostrar o próprio
+// Sequencial dele, como uma linha "Sequencial:" no fim do quadro de
+// informações do processo — buscado do mesmo jeito (iframe oculto,
+// forçando a aba "Informações Gerais"), em vez de depender de qual aba o
+// usuário tem aberta no momento.
 (function () {
 	"use strict";
 
@@ -28,6 +36,7 @@
 	const TAG = "[Projudi Sequencial Processo Principal]";
 	const ROW_ATTR = "data-pdp-sequencial-principal";
 	const LOADER_ATTR = "data-pdp-loader";
+	const COR = "#ff6a00";
 
 	function findRowByLabel(root, labelText) {
 		const labels = root.querySelectorAll("td.label label, td.labelRadio label");
@@ -105,42 +114,38 @@
 		});
 	}
 
-	function init() {
-		const table = document.getElementById("informacoesProcessuais");
-		if (!table) return;
-
-		const principalRow = findRowByLabel(table, "Processo Principal");
-		if (!principalRow) return;
-		if (principalRow.nextElementSibling && principalRow.nextElementSibling.hasAttribute(ROW_ATTR)) return;
-
-		const principalLink = principalRow.querySelector("a.link");
-		if (!principalLink || !principalLink.href) return;
-
-		// Sem indicar a aba, o Projudi abre a página do processo principal na
-		// última aba que a sessão do usuário deixou selecionada (pode não ser
-		// "Informações Gerais", onde fica o Sequencial) — o mesmo parâmetro já
-		// é usado nativamente pelo Projudi noutros links da própria página
-		// (ex.: "selectedIcon=tabAcoesVinculadas" para abrir na aba Vínculos).
-		let principalUrl;
+	// Sem indicar a aba, o Projudi abre a página na última aba que a sessão
+	// do usuário deixou selecionada (pode não ser "Informações Gerais", onde
+	// fica o Sequencial) — o mesmo parâmetro já é usado nativamente pelo
+	// Projudi noutros links da própria página (ex.: "selectedIcon=
+	// tabAcoesVinculadas" para abrir na aba Vínculos).
+	function comAbaInformacoesGerais(href) {
 		try {
-			const url = new URL(principalLink.href, window.location.href);
+			const url = new URL(href, window.location.href);
 			url.searchParams.set("selectedIcon", "tabDadosProcesso");
-			principalUrl = url.href;
+			return url.href;
 		} catch (err) {
-			principalUrl = principalLink.href;
+			return href;
 		}
+	}
+
+	// Insere a linha "labelTexto:" logo depois de `anchorRow`, buscando o
+	// valor do campo "Sequencial" na página `targetUrl` (o próprio processo
+	// ou o processo principal, dependendo do chamador).
+	function inserirLinhaSequencial(anchorRow, labelTexto, targetUrl) {
+		if (anchorRow.nextElementSibling && anchorRow.nextElementSibling.hasAttribute(ROW_ATTR)) return;
 
 		const newRow = document.createElement("tr");
 		newRow.setAttribute(ROW_ATTR, "");
 		newRow.innerHTML =
-			'<td class="label" style="color:#ff6a00"><label style="color:#ff6a00">Sequencial do Processo Principal:</label></td>' +
-			'<td colspan="4" style="color:#ff6a00"><span class="pdp-seq-principal-valor">Buscando…</span></td>';
-		principalRow.insertAdjacentElement("afterend", newRow);
+			'<td class="label" style="color:' + COR + '"><label style="color:' + COR + '">' + labelTexto + ':</label></td>' +
+			'<td colspan="4" style="color:' + COR + '"><span class="pdp-seq-principal-valor">Buscando…</span></td>';
+		anchorRow.insertAdjacentElement("afterend", newRow);
 		const valueEl = newRow.querySelector(".pdp-seq-principal-valor");
 
-		console.log(TAG, "iniciando busca", { paginaAtual: window.location.href, principalUrl: principalUrl });
+		console.log(TAG, "iniciando busca", { paginaAtual: window.location.href, labelTexto: labelTexto, targetUrl: targetUrl });
 
-		fetchDoc(principalUrl)
+		fetchDoc(targetUrl)
 			.then(function (doc) {
 				console.log(TAG, "iframe carregado", {
 					finalUrl: doc.location && doc.location.href,
@@ -164,8 +169,8 @@
 								return label.textContent.trim();
 							})
 							.filter(Boolean);
-						console.warn(TAG, "campo Sequencial não encontrado na página do processo principal", {
-							principalUrl: principalUrl,
+						console.warn(TAG, "campo Sequencial não encontrado na página buscada", {
+							targetUrl: targetUrl,
 							finalUrl: doc.location && doc.location.href,
 							title: doc.title,
 							rotulosEncontrados: rotulosEncontrados,
@@ -178,8 +183,33 @@
 			})
 			.catch(function (err) {
 				valueEl.textContent = "não foi possível buscar";
-				console.warn(TAG, "falha ao buscar o Sequencial do processo principal:", { principalUrl: principalUrl, erro: err && (err.stack || err.message || err) });
+				console.warn(TAG, "falha ao buscar o Sequencial:", { targetUrl: targetUrl, erro: err && (err.stack || err.message || err) });
 			});
+	}
+
+	function init() {
+		const table = document.getElementById("informacoesProcessuais");
+		if (!table) return;
+
+		const principalRow = findRowByLabel(table, "Processo Principal");
+
+		if (principalRow) {
+			// Processo apenso: mostra o Sequencial do processo principal, logo
+			// abaixo do campo "Processo Principal:" já existente.
+			const principalLink = principalRow.querySelector("a.link");
+			if (!principalLink || !principalLink.href) return;
+			inserirLinhaSequencial(principalRow, "Sequencial do Processo Principal", comAbaInformacoesGerais(principalLink.href));
+			return;
+		}
+
+		// Processo principal (ou um processo qualquer que não é apenso de
+		// ninguém): mostra o próprio Sequencial, no fim do mesmo quadro de
+		// informações — buscado do próprio endereço da página, forçando a
+		// aba "Informações Gerais", para não depender de qual aba o usuário
+		// tem aberta no momento.
+		const ultimaLinha = table.rows.length ? table.rows[table.rows.length - 1] : null;
+		if (!ultimaLinha) return;
+		inserirLinhaSequencial(ultimaLinha, "Sequencial", comAbaInformacoesGerais(window.location.href));
 	}
 
 	init();
