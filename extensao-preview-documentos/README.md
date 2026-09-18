@@ -130,12 +130,22 @@ conteúdo das abas via uma requisição própria, que pode demorar um pouco
 mais que o resto da página). Uma vez identificado o estado (suspenso ou
 não, e com qual motivo), o card **fica fixo no cabeçalho do processo
 mesmo navegando por outras abas** (Movimentações, Partes e Outros,
-etc.) — o estado fica guardado em memória e é reaplicado a cada
-reconciliação periódica (a cada 1,5s), então mesmo que o Projudi
-substitua o cabeçalho por um novo elemento ao trocar de aba (ver "Troca
-de abas do processo" mais abaixo), o card volta a aparecer sem precisar
-reabrir a aba "Informações Adicionais". O estado só é reavaliado de novo
-quando essa aba volta a estar disponível no DOM (ex.: ao reabri-la).
+etc.).
+
+Algumas abas do processo (ex.: Movimentações) não são só uma troca de
+conteúdo via AJAX — o Projudi navega para uma URL de verdade, recarregando
+a página inteira (o mesmo comportamento já documentado logo abaixo, em
+"Troca de abas do processo", para outros recursos desta extensão). Isso
+descartaria qualquer estado guardado só em memória, e nessas abas a
+"Informações Adicionais" nem chega a existir no HTML para ser relida. Por
+isso o estado (motivo e data de início) também é salvo em
+`sessionStorage`, associado ao número único do processo: ao entrar em
+qualquer aba do processo, o card aparece **imediatamente**, restaurado do
+que foi salvo da última vez que a aba "Informações Adicionais" foi lida
+— nesta mesma aba do navegador, sem persistir entre processos diferentes
+nem sair do navegador. O estado só é reavaliado de novo (e o
+`sessionStorage` atualizado) quando a aba "Informações Adicionais" volta
+a estar disponível no DOM (ex.: ao reabri-la).
 
 A estrutura da aba "Informações Adicionais" e do campo "Suspensões:" foi
 confirmada a partir de uma página real do Projudi (TJPR) — inclusive um

@@ -306,6 +306,7 @@
 				console.log(TAG, data ? "Data de Início encontrada: " + data : "campo 'Data de Início' não encontrado na tela de detalhe", { href: href });
 				if (estadoAtual && estadoAtual.href === href) {
 					estadoAtual = Object.assign({}, estadoAtual, { dataInicio: data });
+					salvarEstado(estadoAtual);
 					sincronizarCard();
 				}
 			})
@@ -385,18 +386,77 @@
 		});
 	}
 
-	// Estado guardado em memória: sobrevive a trocas de aba do processo
-	// (script continua carregado na mesma página, ver guarda
-	// `window.__pdpSuspensaoAtiva` no topo) mesmo quando a aba "Informações
-	// Adicionais" sai do DOM. `undefined` = ainda não avaliado nesta carga
-	// de página; `null` = avaliado, sem suspensão ativa reconhecida.
+	// ---------------------------------------------------------------------
+	// Persistência entre abas do processo
+	//
+	// A princípio o estado em memória (`estadoAtual`) bastaria, já que o
+	// script continua carregado enquanto o usuário troca de aba dentro da
+	// mesma página (guarda `window.__pdpSuspensaoAtiva` no topo). Só que,
+	// na prática, algumas abas do processo (ex.: Movimentações) navegam
+	// para uma URL de verdade (o mesmo comportamento já documentado em
+	// "Troca de abas do processo" no README, para outros recursos desta
+	// extensão) — o que recarrega a página, descarta esse estado em
+	// memória, e nessas abas a "Informações Adicionais" nem está no DOM
+	// para ser relida. Por isso o estado também é salvo em
+	// `sessionStorage`, associado ao número único do processo: ao carregar
+	// qualquer aba do processo, o card aparece imediatamente a partir do
+	// que foi salvo da última vez que a aba "Informações Adicionais" foi
+	// lida — nesta mesma aba do navegador, sem persistir entre processos
+	// diferentes nem enviar nada a lugar nenhum.
+	// ---------------------------------------------------------------------
+
+	const STORAGE_PREFIX = "pdpSuspensaoAtiva:";
+
+	function numeroProcesso() {
+		const header = document.getElementById("barraTituloStatusProcessual");
+		const fontes = [header && header.textContent, document.title, window.location.href];
+		for (const fonte of fontes) {
+			if (!fonte) continue;
+			const match = /(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})/.exec(fonte);
+			if (match) return match[1];
+		}
+		return null;
+	}
+
+	function storageKey() {
+		const numero = numeroProcesso();
+		return numero ? STORAGE_PREFIX + numero : null;
+	}
+
+	function salvarEstado(estado) {
+		const key = storageKey();
+		if (!key) return;
+		try {
+			if (estado) sessionStorage.setItem(key, JSON.stringify(estado));
+			else sessionStorage.removeItem(key);
+		} catch (err) {
+			console.warn(TAG, "não foi possível salvar o estado em sessionStorage:", err);
+		}
+	}
+
+	function carregarEstado() {
+		const key = storageKey();
+		if (!key) return undefined;
+		try {
+			const raw = sessionStorage.getItem(key);
+			return raw ? JSON.parse(raw) : null;
+		} catch (err) {
+			console.warn(TAG, "não foi possível ler o estado salvo em sessionStorage:", err);
+			return undefined;
+		}
+	}
+
+	// Estado guardado em memória nesta carga de página, espelhado em
+	// `sessionStorage` (ver acima). `undefined` = ainda não avaliado nem
+	// restaurado; `null` = avaliado, sem suspensão ativa reconhecida.
 	// Quando não-nulo: { texto, href, dataInicio }.
 	let estadoAtual;
 
 	// Só reavalia o estado quando a aba "Informações Adicionais" está
-	// mesmo disponível agora no DOM — do contrário mantém o último estado
-	// conhecido, para o card não sumir enquanto o usuário navega por outra
-	// aba do processo.
+	// mesmo disponível agora no DOM — do contrário mantém (e mostra) o
+	// último estado conhecido, restaurado do sessionStorage se necessário,
+	// para o card não sumir enquanto o usuário navega por outra aba do
+	// processo.
 	function reavaliarSeDisponivel() {
 		const tabContent = findTabContent(ABA_LABEL, /* silent */ true);
 		if (!tabContent || !tabContent.querySelector("td.label, td.labelRadio")) return;
@@ -410,6 +470,7 @@
 
 		if (!encontrado) {
 			estadoAtual = null;
+			salvarEstado(null);
 			return;
 		}
 
@@ -419,6 +480,7 @@
 			href: encontrado.href,
 			dataInicio: dataConhecida && dataConhecida !== "pending" ? dataConhecida : null,
 		};
+		salvarEstado(estadoAtual);
 
 		if (encontrado.href) buscarDataInicio(encontrado.href);
 	}
@@ -437,20 +499,34 @@
 		sincronizarCard();
 	}
 
+	// Restaura, antes de qualquer outra coisa, o que já se sabia sobre este
+	// processo (salvo por uma visita anterior à aba "Informações
+	// Adicionais" nesta mesma aba do navegador) — assim o card aparece
+	// imediatamente em QUALQUER aba do processo, mesmo que esta carga de
+	// página específica nunca tenha acesso ao conteúdo de "Informações
+	// Adicionais".
+	const restaurado = carregarEstado();
+	if (restaurado !== undefined) {
+		estadoAtual = restaurado;
+		console.log(TAG, "estado restaurado do sessionStorage (aba atual pode não ter 'Informações Adicionais' disponível):", restaurado);
+		sincronizarCard();
+	}
+
 	// Carga inicial: espera a aba "Informações Adicionais" terminar de
 	// carregar via AJAX (pode demorar mais que o resto da página) antes da
-	// primeira avaliação.
+	// primeira avaliação "de verdade" (que também atualiza o
+	// sessionStorage acima, se o estado tiver mudado).
 	waitForTabContent(ABA_LABEL, 10000).then(function () {
 		tick();
 	});
 
-	// A tela do processo pode trocar de aba/recarregar trechos via AJAX (ver
-	// "Troca de abas do processo" no README), o que pode remover o card
-	// junto com o cabeçalho antigo (ou a própria aba "Informações
-	// Adicionais" do DOM). Reconcilia periodicamente: reaplica o último
-	// estado conhecido sempre, e reavalia o estado quando a aba estiver
-	// disponível — o mesmo padrão já usado por outros elementos desta
-	// extensão (ver "Troca de abas do processo" no README).
+	// A tela do processo pode trocar de aba/recarregar trechos via AJAX, ou
+	// navegar para uma URL diferente (ver "Troca de abas do processo" no
+	// README) — em qualquer um dos dois casos, o card pode precisar ser
+	// reinserido (ou restaurado do zero, se a página recarregou). Reconcilia
+	// periodicamente: reaplica o último estado conhecido sempre, e reavalia
+	// o estado quando a aba "Informações Adicionais" estiver disponível —
+	// o mesmo padrão já usado por outros elementos desta extensão.
 	setInterval(function () {
 		try {
 			tick();
