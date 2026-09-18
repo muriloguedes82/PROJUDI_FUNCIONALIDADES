@@ -32,6 +32,11 @@ extensão funciona da mesma forma nos dois sistemas:
    tela, se ele está com uma suspensão ativa — é preciso abrir a aba
    "Informações Adicionais" para conferir (veja "Indicador de suspensão
    ativa" abaixo).
+8. o mesmo vale para a monitoração eletrônica: não há como saber, no
+   topo da tela, se o processo tem uma monitoração eletrônica ativa
+   (nem desde quando) sem abrir a aba "Informações Adicionais" e depois
+   a tela de detalhe da medida (veja "Indicador de monitoração
+   eletrônica ativa" abaixo).
 
 ## Pré-visualização de Documentos
 
@@ -180,6 +185,46 @@ Ativa]`) cada item da lista avaliado e o motivo do descarte (status
 diferente de "ATIVA", ou motivo não reconhecido) — útil para ajustar
 `findMotivoSuspensaoAtiva` em `src/suspensaoAtiva.js` caso o card não
 apareça com um processo suspenso.
+
+## Indicador de monitoração eletrônica ativa
+
+No cabeçalho do processo, logo depois do texto "(N dia(s) em
+tramitação)" — ao lado do número único do processo, junto de eventuais
+cards de suspensão ativa —, a extensão insere um pequeno **card**
+("Monitorado eletronicamente: ...") para cada medida de **Monitoração
+Eletrônica** com status **ATIVA** encontrada na aba "Informações
+Adicionais" do processo, no mesmo campo de Benefícios/Medidas usado pelo
+indicador de suspensão ativa.
+
+Diferente da suspensão, a aba "Informações Adicionais" **não** lista as
+monitorações do processo diretamente — tem um campo genérico **"Medidas
+Cautelares (Ex. Monitoração Eletrônica):"**, com um único link ("Processo
+com Medida Cautelar") que cobre qualquer tipo de medida cautelar do
+processo (monitoração eletrônica é só um dos exemplos citados no próprio
+rótulo do campo — pode ser outra coisa, ex.: prisão domiciliar). Só a
+tela de detalhe desse link diz do que se trata. Por isso, quando esse
+campo indica a presença de alguma medida, a extensão busca essa tela em
+segundo plano (iframe oculto, mesma técnica já usada nos outros recursos
+desta extensão) — a tela **"Medida Cautelar"** (`transacaoPenal.do`), com
+**"Status:"** e **"Data de Início:"** do registro como um todo, e um
+campo **"Medida Cautelar:"** com uma tabela listando um **tipo** por
+linha (ex.: "Monitoração eletrônica", "Recolhimento domiciliar
+noturno") — só cria o card se essa tabela tiver uma linha "Monitoração
+Eletrônica" **sem** "Data de Término Efetiva" preenchida (ou seja, esse
+tipo específico ainda em vigor) e o registro geral estiver com "Status:"
+ATIVA, ex.: "Monitorado eletronicamente: Monitoração eletrônica (desde
+20/07/2024)". Enquanto a busca não termina, nenhum card aparece ainda —
+ele surge assim que ela confirma a medida.
+
+Funciona pela mesma mecânica descrita acima em "Indicador de suspensão
+ativa" (Funciona mesmo sem visitar a aba "Informações Adicionais",
+persistência entre abas via `sessionStorage`). A extensão registra no
+console (F12, mensagens com o prefixo `[Projudi Monitoração Ativa]`) cada
+etapa dessa busca — inclusive um bloco de diagnóstico em JSON quando
+nenhuma "Monitoração Eletrônica" é reconhecida — útil para ajustar
+`MEDIDA_CAUTELAR_LABELS`/`MOTIVOS_REGEX` em `src/monitoracaoAtiva.js`
+caso o card não apareça com um processo com monitoração eletrônica
+ativa.
 
 ## Envio por E-mail (Outlook)
 
