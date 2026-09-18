@@ -593,7 +593,24 @@
 		});
 
 		if (!achados.length) {
-			console.log(TAG, "DIAGNÓSTICO — página de 'Medidas Cautelares' não trouxe nenhuma Monitoração Eletrônica ativa reconhecida:", url);
+			// Diagnóstico completo (JSON.stringify, sobrevive a copiar/colar —
+			// ver mesma justificativa no diagnóstico da aba "Informações
+			// Adicionais" acima): título(s) da página, todos os campos
+			// rótulo/valor e itens de lista, para descobrir se esta página é de
+			// outro tipo de medida cautelar (não monitoração eletrônica — caso
+			// em que não mostrar o card está correto) ou se a extensão só não
+			// está reconhecendo a estrutura real dela.
+			const titulos = Array.prototype.slice.call(doc.querySelectorAll("h1, h2, h3, h4")).map((h) => collapseWhitespace(h.textContent)).filter(Boolean);
+			const campos = Array.prototype.slice
+				.call(doc.querySelectorAll("td.label, td.labelRadio"))
+				.map((td) => collapseWhitespace(td.textContent) + " => " + collapseWhitespace((td.nextElementSibling && td.nextElementSibling.textContent) || ""));
+			const itens = Array.prototype.slice.call(doc.querySelectorAll("li")).map((li) => collapseWhitespace(li.textContent)).filter(Boolean);
+			console.log(
+				TAG,
+				"DIAGNÓSTICO — página de 'Medidas Cautelares' (" + url + ") não trouxe nenhuma Monitoração Eletrônica ativa reconhecida. " +
+					"Copie a linha abaixo (JSON) e envie para ajustar a extensão:\n" +
+					JSON.stringify({ titulos: titulos, campos: campos, itens: itens }, null, 2)
+			);
 		}
 		return achados;
 	}
