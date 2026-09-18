@@ -47,14 +47,32 @@
 // tem um <label> dentro do <td class="label">, então a leitura do campo
 // usa o texto do <td> inteiro (funciona nos dois casos).
 //
-// A estrutura exata do campo com a lista de medidas na aba "Informações
-// Adicionais" (rótulo, e se cada item vem com nome do réu ou só o status)
-// não foi confirmada a partir de uma página real — só a tela de detalhe
-// acima. Por isso o campo é localizado por uma lista de rótulos candidatos
-// (normalizados) e cada item avaliado é registrado no console (F12,
+// A estrutura real do campo na aba "Informações Adicionais" (confirmada a
+// partir do diagnóstico desta extensão num processo real) NÃO é uma lista
+// de monitorações — é um campo genérico de "Medidas Cautelares":
+// <tr><td class="label">Medidas Cautelares (Ex. Monitoração
+// Eletrônica):</td><td><a class="link" href=".../listaMedidaCautelar.do?
+// ...">Processo com Medida Cautelar</a></td></tr>
+// (ou "Processo sem Medida Cautelar (clique para cadastrar)", sem link,
+// quando não há nenhuma). Esse único link cobre QUALQUER tipo de medida
+// cautelar do processo (monitoração eletrônica é só um exemplo, dado entre
+// parênteses no próprio rótulo do campo) — não dá para saber, só pelo
+// campo, se é uma monitoração eletrônica ou outra medida (ex.: prisão
+// domiciliar, entrega de passaporte). Por isso, quando esse campo indica a
+// presença de alguma medida, a extensão busca a página desse link em
+// segundo plano (mesma técnica de iframe oculto já usada para a Data
+// Início) e só cria o card se a página buscada confirmar "Monitoração
+// Eletrônica" com status "ATIVA" — a mesma estrutura da tela de detalhe
+// documentada acima (`medidaAlternativa.do`, com <h3>Monitoração
+// eletrônica</h3> e o campo "Status:").
+//
+// `CAMPO_LABELS`/`MOTIVOS_REGEX` abaixo continuam existindo como
+// mecanismo alternativo (para Tribunais/versões do Projudi em que o campo
+// já liste as monitorações diretamente, como no indicador de suspensão
+// ativa) — cada rótulo/item avaliado é registrado no console (F12,
 // mensagens com o prefixo "[Projudi Monitoração Ativa]") para ajudar a
-// ajustar `CAMPO_LABELS`/`MOTIVOS_REGEX` abaixo caso o card não apareça
-// com um processo em monitoração eletrônica ativa.
+// ajustar esses padrões, ou os rótulos candidatos de "Medidas Cautelares"
+// (`MEDIDA_CAUTELAR_LABELS`), caso o card ainda não apareça.
 (function () {
 	"use strict";
 
@@ -78,6 +96,11 @@
 		"medidas alternativas",
 		"medida alternativa",
 	]; // já normalizados (sem acento/caixa)
+	// Rótulo real confirmado: "Medidas Cautelares (Ex. Monitoração
+	// Eletrônica):" — comparado com o texto do rótulo já sem o trecho entre
+	// parênteses (ver `stripParens`), por isso aqui só "medidas cautelares"/
+	// "medida cautelar".
+	const MEDIDA_CAUTELAR_LABELS = ["medidas cautelares", "medida cautelar"];
 	const STATUS_ATIVA = ["ativa", "ativo"];
 	const MOTIVOS_REGEX = [
 		{ nome: "Monitoração Eletrônica", re: /monitora(c|ç)(a|ã)o\s+eletr(o|ô)nica/ },
@@ -92,6 +115,14 @@
 			.replace(/\s+/g, " ")
 			.trim()
 			.toLowerCase();
+	}
+
+	// Remove trechos entre parênteses antes de comparar rótulos de campo —
+	// ex.: "Medidas Cautelares (Ex. Monitoração Eletrônica):" não deve ser
+	// tratado como se o campo JÁ fosse sobre monitoração eletrônica (é só um
+	// exemplo do tipo de medida cautelar que pode estar ali, entre outras).
+	function stripParens(text) {
+		return String(text || "").replace(/\([^)]*\)/g, " ");
 	}
 
 	function collapseWhitespace(text) {
@@ -254,7 +285,11 @@
 		const vistos = new Set();
 
 		if (label) {
-			const motivoImplicito = /eletr(o|ô)nica/.test(normalize(label.textContent));
+			// Ignora exemplos entre parênteses no próprio rótulo (ex.: "Medidas
+			// Cautelares (Ex. Monitoração Eletrônica):" NÃO deve contar como
+			// "eletrônica" aqui — é só um exemplo do tipo de medida, tratado à
+			// parte por `findMedidaCautelarLink`/`avaliarPaginaDeMedida`).
+			const motivoImplicito = /eletr(o|ô)nica/.test(normalize(stripParens(label.textContent)));
 			const candidates = itensDaLinha(label.closest("tr"));
 			console.log(TAG, "campo de monitoração eletrônica encontrado pelo rótulo, avaliando itens:", candidates.map((c) => collapseWhitespace(c.textContent)));
 			candidates.forEach(function (item) {
@@ -482,6 +517,121 @@
 	}
 
 	// ---------------------------------------------------------------------
+	// Campo genérico "Medidas Cautelares (Ex. Monitoração Eletrônica):" —
+	// ver comentário no topo do arquivo. Um único link cobre qualquer tipo
+	// de medida cautelar do processo; só dá pra saber se é uma monitoração
+	// eletrônica ativa buscando a página desse link em segundo plano.
+	// ---------------------------------------------------------------------
+
+	// Acha o link do campo "Medidas Cautelares" na aba "Informações
+	// Adicionais", se houver alguma medida cadastrada (quando não há, o
+	// texto é "Processo sem Medida Cautelar (clique para cadastrar)", sem
+	// indicar nenhuma medida existente — ignorado aqui).
+	function findMedidaCautelarLink(tabContent) {
+		const cells = tabContent.querySelectorAll("td.label, td.labelRadio");
+		for (const cell of cells) {
+			const text = normalize(stripParens(cell.textContent)).replace(/:\s*$/, "").trim();
+			if (MEDIDA_CAUTELAR_LABELS.indexOf(text) === -1) continue;
+			const row = cell.closest("tr");
+			const link = row ? row.querySelector("a.link, a[href]") : null;
+			if (!link) return null;
+			const linkText = normalize(link.textContent);
+			if (/^sem\b/.test(linkText) || /nenhum/.test(linkText)) return null;
+			let href = null;
+			try {
+				href = new URL(link.getAttribute("href"), window.location.href).href;
+			} catch (err) {
+				href = link.getAttribute("href");
+			}
+			console.log(TAG, "campo 'Medidas Cautelares' indica processo com medida(s) cadastrada(s):", { texto: collapseWhitespace(link.textContent), href: href });
+			return href;
+		}
+		return null;
+	}
+
+	// Avalia a página de detalhe buscada a partir do link de "Medidas
+	// Cautelares": reconhece tanto o caso confirmado (uma única medida,
+	// página com <h3>Monitoração eletrônica</h3> e campo "Status:" — mesma
+	// estrutura de `medidaAlternativa.do`) quanto, por precaução, uma
+	// eventual lista de várias medidas (uma <tr>/<li> por medida, cada uma
+	// com seu próprio texto/link) — cai para essa busca ampla (mesma lógica
+	// de `matchMotivo`/`extractStatus` usada na aba "Informações
+	// Adicionais") se não achar um <h3> de medida única.
+	function avaliarPaginaDeMedida(doc, url) {
+		const h3s = Array.prototype.slice.call(doc.querySelectorAll("h3"));
+		for (const h3 of h3s) {
+			const motivo = matchMotivo(h3.textContent);
+			if (!motivo) continue;
+			const status = normalize(findDetailField(doc, "status") || "");
+			if (STATUS_ATIVA.indexOf(status) === -1) {
+				console.log(TAG, "página de detalhe da medida reconhecida como '" + motivo + "', mas status não é ativa:", { status: status, url: url });
+				continue;
+			}
+			const dataInicio = findDataInicio(doc);
+			console.log(TAG, "medida cautelar confirmada como '" + motivo + "' ativa na página de detalhe:", { dataInicio: dataInicio, url: url });
+			return [{ texto: collapseWhitespace(h3.textContent), href: url, dataInicio: dataInicio }];
+		}
+
+		// Fallback: página com uma lista/tabela de várias medidas cautelares
+		// em vez de uma única — não confirmado a partir de uma página real.
+		const achados = [];
+		Array.prototype.slice.call(doc.querySelectorAll("tr, li")).forEach(function (linha) {
+			const text = collapseWhitespace(linha.textContent);
+			if (!matchMotivo(text)) return;
+			const status = extractStatus(text);
+			if (status && STATUS_ATIVA.indexOf(status) === -1) return;
+			const link = linha.querySelector ? linha.querySelector("a.link, a[href]") : null;
+			let subHref = url;
+			if (link && link.getAttribute("href")) {
+				try {
+					subHref = new URL(link.getAttribute("href"), url).href;
+				} catch (err) {
+					subHref = url;
+				}
+			}
+			achados.push({ texto: displayText(text), href: subHref, dataInicio: null });
+		});
+
+		if (!achados.length) {
+			console.log(TAG, "DIAGNÓSTICO — página de 'Medidas Cautelares' não trouxe nenhuma Monitoração Eletrônica ativa reconhecida:", url);
+		}
+		return achados;
+	}
+
+	// href do link de "Medidas Cautelares" -> array de achados (cache, para
+	// não buscar a mesma página de novo a cada reconciliação de 1.5s).
+	const medidaCautelarPorHref = new Map();
+
+	// Combina a detecção direta na aba "Informações Adicionais"
+	// (`findMonitoracoesAtivas`, mecanismo alternativo) com a busca em
+	// segundo plano da página de "Medidas Cautelares" (o mecanismo
+	// confirmado). Assíncrono porque a segunda parte depende de uma busca de
+	// rede; resolve com o array combinado de itens encontrados.
+	async function coletarMonitoracoesAtivas(tabContent) {
+		const diretos = findMonitoracoesAtivas(tabContent);
+		const href = findMedidaCautelarLink(tabContent);
+		if (!href) return diretos;
+
+		if (medidaCautelarPorHref.has(href)) {
+			const cache = medidaCautelarPorHref.get(href);
+			return diretos.concat(cache === "pending" ? [] : cache);
+		}
+
+		medidaCautelarPorHref.set(href, "pending");
+		try {
+			console.log(TAG, "buscando página de 'Medidas Cautelares' em segundo plano:", href);
+			const doc = await fetchDoc(href);
+			const daPagina = avaliarPaginaDeMedida(doc, href);
+			medidaCautelarPorHref.set(href, daPagina);
+			return diretos.concat(daPagina);
+		} catch (err) {
+			medidaCautelarPorHref.delete(href);
+			console.warn(TAG, "falha ao buscar a página de 'Medidas Cautelares':", { href: href, erro: err && (err.stack || err.message || err) });
+			return diretos;
+		}
+	}
+
+	// ---------------------------------------------------------------------
 	// Cards no cabeçalho (um por medida de monitoração ativa reconhecida)
 	// ---------------------------------------------------------------------
 
@@ -681,7 +831,7 @@
 	function lerSeDisponivelLocalmente() {
 		const tabContent = findTabContent(document, ABA_LABEL, /* silent */ true);
 		if (!tabContentReady(tabContent)) return false;
-		aplicarMonitoracoes(findMonitoracoesAtivas(tabContent));
+		coletarMonitoracoesAtivas(tabContent).then(aplicarMonitoracoes);
 		return true;
 	}
 
@@ -707,7 +857,7 @@
 					buscaEmSegundoPlanoFeita = false;
 					return;
 				}
-				aplicarMonitoracoes(findMonitoracoesAtivas(tabContent));
+				coletarMonitoracoesAtivas(tabContent).then(aplicarMonitoracoes);
 			})
 			.catch(function (err) {
 				console.warn(TAG, "falha ao buscar a aba 'Informações Adicionais' em segundo plano:", err && (err.stack || err.message || err));
@@ -736,7 +886,7 @@
 	// segundo plano — sem depender do usuário clicar nela.
 	waitForTabContent(document, ABA_LABEL, 4000).then(function (tabContent) {
 		if (tabContentReady(tabContent)) {
-			aplicarMonitoracoes(findMonitoracoesAtivas(tabContent));
+			coletarMonitoracoesAtivas(tabContent).then(aplicarMonitoracoes);
 		} else {
 			buscarEmSegundoPlano();
 		}
