@@ -19,10 +19,15 @@
 //
 // No processo principal em si (que não tem "Processo Principal:", por não
 // ser apenso de ninguém) o próprio "Sequencial" já aparece nativamente
-// nessa mesma página (mais abaixo no quadro, perto de "Chave do
-// Processo") — sem precisar de iframe nenhum, esse valor é só repetido
-// numa linha "Sequencial:" logo abaixo de "Nível de Sigilo:", para ficar
-// tão visível quanto nos apensos.
+// nessa mesma página, só que mais abaixo no quadro (perto de "Chave do
+// Processo") e só depois que a aba "Informações Gerais" carregar — o que
+// não acontece sozinho se o processo abrir noutra aba (o padrão é
+// "Movimentações"). Por isso, quando o campo ainda não estiver disponível
+// localmente, ele é buscado em segundo plano com um POST para o próprio
+// "processoForm" da página (sem iframe, sem depender de nenhum link de
+// Apensamentos/Vínculos) — e o valor é repetido, destacado, numa linha
+// "Sequencial:" logo abaixo de "Nível de Sigilo:", para ficar tão visível
+// quanto nos apensos.
 (function () {
 	"use strict";
 
@@ -129,6 +134,71 @@
 		}
 	}
 
+	// Busca a aba "Informações Gerais" DESTA MESMA página em segundo plano —
+	// POST para a própria action do formulário #processoForm, com um campo
+	// oculto "selectedIcon" no corpo (mesma técnica já usada com sucesso em
+	// monitoracaoAtiva.js/suspensaoAtiva.js/oraculoDirect.js). Diferente de
+	// reabrir a página num iframe por GET (que não funciona aqui — essa URL
+	// costuma ser resultado de um POST do próprio "processoForm", e reabri-la
+	// como GET não navega para o mesmo lugar), este POST funciona em
+	// QUALQUER aba em que o processo tenha aberto: o Projudi normalmente abre
+	// em "Movimentações", não em "Informações Gerais", então o campo
+	// "Sequencial" só existiria no documento se o usuário já tivesse clicado
+	// nessa aba — o que não pode ser exigido aqui.
+	async function fetchAbaInformacoesGeraisPOST() {
+		const form = document.getElementById("processoForm");
+		if (!form) {
+			console.warn(TAG, "#processoForm não encontrado nesta página — não é possível buscar a aba em segundo plano aqui");
+			return null;
+		}
+
+		let actionUrl;
+		try {
+			actionUrl = new URL(form.getAttribute("action") || form.action, window.location.href);
+		} catch (err) {
+			console.warn(TAG, "action do #processoForm inválida:", err);
+			return null;
+		}
+		if (actionUrl.origin !== window.location.origin) {
+			console.warn(TAG, "action do #processoForm aponta para outra origem, abortando busca em segundo plano:", actionUrl.href);
+			return null;
+		}
+
+		const body = new URLSearchParams();
+		for (const [name, value] of new FormData(form)) {
+			if (typeof value === "string") body.append(name, value);
+		}
+		body.set("selectedIcon", "tabDadosProcesso");
+
+		console.log(TAG, "buscando a aba 'Informações Gerais' em segundo plano (POST):", actionUrl.href);
+
+		const controller = new AbortController();
+		const timeout = setTimeout(function () {
+			controller.abort();
+		}, 20000);
+		try {
+			const response = await fetch(actionUrl.href, {
+				method: "POST",
+				body: body,
+				credentials: "same-origin",
+				signal: controller.signal,
+			});
+			if (!response.ok) throw new Error("Projudi respondeu " + response.status + " " + response.statusText);
+			const bytes = await response.arrayBuffer();
+			// O Projudi serve em windows-1252; lê o <meta charset> da própria
+			// resposta (ou do cabeçalho HTTP) em vez de assumir um valor fixo,
+			// mesma técnica usada em oraculoDirect.js.
+			const preview = new TextDecoder("windows-1252").decode(bytes.slice(0, 4096));
+			const charsetMatch =
+				/charset\s*=\s*["']?([\w-]+)/i.exec(response.headers.get("content-type") || "") || /charset\s*=\s*["']?([\w-]+)/i.exec(preview);
+			const charset = (charsetMatch && charsetMatch[1]) || "windows-1252";
+			const html = new TextDecoder(charset).decode(bytes);
+			return new DOMParser().parseFromString(html, "text/html");
+		} finally {
+			clearTimeout(timeout);
+		}
+	}
+
 	// Insere a linha "labelTexto:" logo depois de `anchorRow`, buscando o
 	// valor do campo "Sequencial" na página `targetUrl` (o próprio processo
 	// ou o processo principal, dependendo do chamador).
@@ -205,28 +275,24 @@
 		// Processo principal (ou um processo qualquer que não é apenso de
 		// ninguém): o Projudi já mostra nativamente o próprio "Sequencial:"
 		// nessa mesma página, só que mais abaixo no quadro (perto de "Chave
-		// do Processo"). Em vez de buscar esse valor de novo em segundo
-		// plano — o que antes dependia de adivinhar, numa árvore de
-		// Apensamentos ou Vínculos, qual link levava de volta a "este
-		// processo", e dava número errado quando o processo não tinha
-		// apensos (a árvore de Vínculos não garante que o primeiro item
-		// seja "este processo", ao contrário da de Apensamentos) — repete
-		// aqui o valor que a própria página já confirmou, destacado, logo
-		// abaixo de "Nível de Sigilo:". Funciona sempre, com ou sem
-		// apensos/vínculos, e nunca pode mostrar o número de outro
-		// processo, pois não faz nenhuma requisição.
-		//
-		// O campo pode ainda não estar no documento quando este script
-		// roda (mesmo carregamento assíncrono da aba "Informações Gerais"
-		// descrito acima para o iframe), por isso espera por ele em vez de
-		// checar uma única vez.
+		// do Processo") — mas só depois que a aba "Informações Gerais" for
+		// carregada, o que não acontece sozinho quando o processo abre
+		// noutra aba (o padrão é "Movimentações"). Em vez de depender do
+		// usuário clicar nessa aba, ou de adivinhar — numa árvore de
+		// Apensamentos ou Vínculos — qual link leva de volta a "este
+		// processo" (o que dava número errado quando o processo não tinha
+		// apensos, já que a árvore de Vínculos não garante que o primeiro
+		// item seja "este processo", ao contrário da de Apensamentos), busca
+		// a aba em segundo plano (POST) sempre que ela ainda não estiver
+		// disponível localmente — funciona em qualquer aba em que o processo
+		// tenha aberto, com ou sem apensos/vínculos, e nunca pode mostrar o
+		// número de outro processo, pois a busca sempre volta para este
+		// mesmo #processoForm.
 		const anchorRow = findRowByLabel(table, "Nível de Sigilo") || table.rows[table.rows.length - 1];
 		if (!anchorRow) return;
 		if (anchorRow.nextElementSibling && anchorRow.nextElementSibling.hasAttribute(ROW_ATTR)) return;
 
-		waitForRow(document, "Sequencial", 10000).then(function (sequencialRow) {
-			const valorCell = sequencialRow && sequencialRow.querySelectorAll("td")[1];
-			const sequencial = valorCell && valorCell.textContent.trim();
+		function inserirValor(sequencial) {
 			if (!sequencial) return;
 			if (anchorRow.nextElementSibling && anchorRow.nextElementSibling.hasAttribute(ROW_ATTR)) return;
 
@@ -237,6 +303,34 @@
 				'<td colspan="4" style="color:' + COR + '"></td>';
 			newRow.querySelector("td:last-child").textContent = sequencial;
 			anchorRow.insertAdjacentElement("afterend", newRow);
+		}
+
+		function valorDaAba(root) {
+			const row = findRowByLabel(root, "Sequencial");
+			const cell = row && row.querySelectorAll("td")[1];
+			return cell && cell.textContent.trim();
+		}
+
+		// Espera um pouco pela aba local (cobre tanto o caso em que o
+		// usuário já está nela quanto o caso, mais raro, em que o Projudi
+		// abriu o processo direto nela e ela ainda está carregando via
+		// AJAX); se não aparecer a tempo, busca em segundo plano (POST).
+		waitForRow(document, "Sequencial", 4000).then(function (sequencialRow) {
+			const cell = sequencialRow && sequencialRow.querySelectorAll("td")[1];
+			const sequencial = cell && cell.textContent.trim();
+			if (sequencial) {
+				inserirValor(sequencial);
+				return;
+			}
+
+			fetchAbaInformacoesGeraisPOST()
+				.then(function (doc) {
+					if (!doc) return;
+					inserirValor(valorDaAba(doc));
+				})
+				.catch(function (err) {
+					console.warn(TAG, "falha ao buscar a aba 'Informações Gerais' em segundo plano:", err && (err.stack || err.message || err));
+				});
 		});
 	}
 
