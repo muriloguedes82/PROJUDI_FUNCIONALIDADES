@@ -199,10 +199,80 @@
 		}
 	}
 
-	// Insere a linha "labelTexto:" logo depois de `anchorRow`, buscando o
-	// valor do campo "Sequencial" na página `targetUrl` (o próprio processo
-	// ou o processo principal, dependendo do chamador).
-	function inserirLinhaSequencial(anchorRow, labelTexto, targetUrl) {
+	// Sobe a cadeia de apensamentos até achar a raiz — o processo que já
+	// não tem, ele mesmo, um "Processo Principal:" — e devolve o Sequencial
+	// DELA. Necessário porque um apenso pode estar apensado a outro
+	// processo que, por sua vez, também é apenso de um terceiro (ex.: uma
+	// Liberdade Provisória apensada a uma Medida Protetiva, que por sua vez
+	// está apensada ao Inquérito Policial original): o "processo principal"
+	// que interessa mostrar é sempre o da raiz, não o do primeiro nível.
+	//
+	// O campo "Processo Principal:" fica fora da aba "Informações Gerais"
+	// (não depende dela carregar via AJAX — está sempre presente assim que
+	// a página termina de montar, mesmo padrão já usado em `init()` para a
+	// página atual), por isso dá para checar cada nível assim que o iframe
+	// carrega, sem esperar. Só o "Sequencial" da raiz, que é o que
+	// realmente precisa da aba carregada, é que exige a espera.
+	async function sequencialDaRaizDaCadeia(url) {
+		const LIMITE_NIVEIS = 10;
+		let alvo = url;
+		for (let nivel = 0; nivel < LIMITE_NIVEIS; nivel++) {
+			const targetUrl = comAbaInformacoesGerais(alvo);
+			console.log(TAG, "buscando na cadeia de apensamentos", { nivel: nivel, targetUrl: targetUrl });
+			const doc = await fetchDoc(targetUrl);
+			console.log(TAG, "iframe carregado", {
+				nivel: nivel,
+				finalUrl: doc.location && doc.location.href,
+				title: doc.title,
+				temTabelaInformacoesProcessuais: !!doc.getElementById("informacoesProcessuais"),
+			});
+
+			const principalRowNesteNivel = findRowByLabel(doc, "Processo Principal");
+			const linkNesteNivel = principalRowNesteNivel && principalRowNesteNivel.querySelector("a.link");
+			if (linkNesteNivel && linkNesteNivel.href) {
+				// Este processo também é apenso de outro — sobe mais um nível.
+				alvo = linkNesteNivel.href;
+				continue;
+			}
+
+			// Achou a raiz: busca o Sequencial DELA (aqui sim é preciso esperar
+			// a aba "Informações Gerais" carregar via AJAX).
+			const sequencialRow = await waitForRow(doc, "Sequencial", 10000);
+			const valueCell = sequencialRow && sequencialRow.querySelectorAll("td")[1];
+			const sequencial = valueCell && valueCell.textContent.trim();
+			if (!sequencial) {
+				// Diagnóstico: sem isso, uma falha aqui não dá nenhuma pista de
+				// qual foi o problema (aba errada, sessão/redirecionamento,
+				// rótulo diferente do esperado etc.) — lista os rótulos que
+				// realmente vieram na página buscada, para comparar com
+				// "Sequencial" à mão no console (F12) sem precisar adivinhar.
+				const rotulosEncontrados = Array.prototype.slice
+					.call(doc.querySelectorAll("td.label label, td.labelRadio label"))
+					.map(function (label) {
+						return label.textContent.trim();
+					})
+					.filter(Boolean);
+				console.warn(TAG, "campo Sequencial não encontrado na raiz da cadeia de apensamentos", {
+					nivel: nivel,
+					targetUrl: targetUrl,
+					finalUrl: doc.location && doc.location.href,
+					title: doc.title,
+					rotulosEncontrados: rotulosEncontrados,
+					bodySnippet: (doc.body ? doc.body.textContent || "" : "").replace(/\s+/g, " ").trim().slice(0, 300),
+				});
+			} else {
+				console.log(TAG, "Sequencial da raiz da cadeia encontrado:", sequencial, { niveis: nivel + 1 });
+			}
+			return sequencial || null;
+		}
+		console.warn(TAG, "cadeia de apensamentos excedeu " + LIMITE_NIVEIS + " níveis — abortando para evitar loop infinito", { url: url });
+		return null;
+	}
+
+	// Insere a linha "labelTexto:" logo depois de `anchorRow`, com o valor
+	// resolvido de forma assíncrona por `buscarValor` (uma função que
+	// devolve uma Promise<string|null>).
+	function inserirLinhaSequencial(anchorRow, labelTexto, buscarValor) {
 		if (anchorRow.nextElementSibling && anchorRow.nextElementSibling.hasAttribute(ROW_ATTR)) return;
 
 		const newRow = document.createElement("tr");
@@ -213,47 +283,13 @@
 		anchorRow.insertAdjacentElement("afterend", newRow);
 		const valueEl = newRow.querySelector(".pdp-seq-principal-valor");
 
-		console.log(TAG, "iniciando busca", { paginaAtual: window.location.href, labelTexto: labelTexto, targetUrl: targetUrl });
-
-		fetchDoc(targetUrl)
-			.then(function (doc) {
-				console.log(TAG, "iframe carregado", {
-					finalUrl: doc.location && doc.location.href,
-					title: doc.title,
-					temTabelaInformacoesProcessuais: !!doc.getElementById("informacoesProcessuais"),
-					temAbaInformacoesGeraisAtiva: !!doc.querySelector("#tabItemprefix0.currentTab"),
-				});
-				return waitForRow(doc, "Sequencial", 10000).then(function (sequencialRow) {
-					const valueCell = sequencialRow && sequencialRow.querySelectorAll("td")[1];
-					const sequencial = valueCell && valueCell.textContent.trim();
-					valueEl.textContent = sequencial || "não encontrado";
-					if (!sequencial) {
-						// Diagnóstico: sem isso, uma falha aqui não dá nenhuma pista de
-						// qual foi o problema (aba errada, sessão/redirecionamento,
-						// rótulo diferente do esperado etc.) — lista os rótulos que
-						// realmente vieram na página buscada, para comparar com
-						// "Sequencial" à mão no console (F12) sem precisar adivinhar.
-						const rotulosEncontrados = Array.prototype.slice
-							.call(doc.querySelectorAll("td.label label, td.labelRadio label"))
-							.map(function (label) {
-								return label.textContent.trim();
-							})
-							.filter(Boolean);
-						console.warn(TAG, "campo Sequencial não encontrado na página buscada", {
-							targetUrl: targetUrl,
-							finalUrl: doc.location && doc.location.href,
-							title: doc.title,
-							rotulosEncontrados: rotulosEncontrados,
-							bodySnippet: (doc.body ? doc.body.textContent || "" : "").replace(/\s+/g, " ").trim().slice(0, 300),
-						});
-					} else {
-						console.log(TAG, "Sequencial encontrado:", sequencial);
-					}
-				});
+		buscarValor()
+			.then(function (sequencial) {
+				valueEl.textContent = sequencial || "não encontrado";
 			})
 			.catch(function (err) {
 				valueEl.textContent = "não foi possível buscar";
-				console.warn(TAG, "falha ao buscar o Sequencial:", { targetUrl: targetUrl, erro: err && (err.stack || err.message || err) });
+				console.warn(TAG, "falha ao buscar o Sequencial:", { erro: err && (err.stack || err.message || err) });
 			});
 	}
 
@@ -265,10 +301,15 @@
 
 		if (principalRow) {
 			// Processo apenso: mostra o Sequencial do processo principal, logo
-			// abaixo do campo "Processo Principal:" já existente.
+			// abaixo do campo "Processo Principal:" já existente — subindo a
+			// cadeia de apensamentos até a raiz, se este processo estiver
+			// apensado a outro que, por sua vez, também é apenso de um
+			// terceiro.
 			const principalLink = principalRow.querySelector("a.link");
 			if (!principalLink || !principalLink.href) return;
-			inserirLinhaSequencial(principalRow, "Sequencial do Processo Principal", comAbaInformacoesGerais(principalLink.href));
+			inserirLinhaSequencial(principalRow, "Sequencial do Processo Principal", function () {
+				return sequencialDaRaizDaCadeia(principalLink.href);
+			});
 			return;
 		}
 
