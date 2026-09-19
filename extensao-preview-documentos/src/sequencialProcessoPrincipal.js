@@ -18,11 +18,11 @@
 // têm esse campo).
 //
 // No processo principal em si (que não tem "Processo Principal:", por não
-// ser apenso de ninguém) a mesma estrutura é usada para mostrar o próprio
-// Sequencial dele, como uma linha "Sequencial:" no fim do quadro de
-// informações do processo — buscado do mesmo jeito (iframe oculto,
-// forçando a aba "Informações Gerais"), em vez de depender de qual aba o
-// usuário tem aberta no momento.
+// ser apenso de ninguém) o próprio "Sequencial" já aparece nativamente
+// nessa mesma página (mais abaixo no quadro, perto de "Chave do
+// Processo") — sem precisar de iframe nenhum, esse valor é só repetido
+// numa linha "Sequencial:" logo abaixo de "Nível de Sigilo:", para ficar
+// tão visível quanto nos apensos.
 (function () {
 	"use strict";
 
@@ -44,27 +44,6 @@
 			if (label.textContent.trim().replace(/:\s*$/, "").toLowerCase() === labelText.toLowerCase()) {
 				return label.closest("tr");
 			}
-		}
-		return null;
-	}
-
-	// O primeiro processo listado na árvore de "Apensamentos:" é sempre o
-	// processo principal — inclusive na própria página dele, onde ele
-	// aparece como o primeiro item da própria árvore (em negrito, por ser
-	// "este processo"). Diferente do link do campo "Processo Principal:"
-	// (que só existe nos apensos), os links dessa árvore não têm classe
-	// "link", então são buscados por href mesmo.
-	//
-	// Quando o processo não tem NENHUM apensamento (nem o de si mesmo), a
-	// linha "Apensamentos:" nem aparece — nesse caso cai para a árvore de
-	// "Vínculos:", que sempre existe e sempre lista "este processo" como
-	// primeiro item, servindo igualmente como link de volta para a própria
-	// página com um token de sessão válido.
-	function linkParaEstaMesmaPagina(root) {
-		for (const rotulo of ["Apensamentos", "Vínculos"]) {
-			const row = findRowByLabel(root, rotulo);
-			const link = row && row.querySelector(".tree a[href]");
-			if (link && link.href) return link;
 		}
 		return null;
 	}
@@ -224,22 +203,41 @@
 		}
 
 		// Processo principal (ou um processo qualquer que não é apenso de
-		// ninguém): mostra o próprio Sequencial, no mesmo lugar em que a
-		// linha aparece nos apensos — logo abaixo de "Nível de Sigilo:", já
-		// que aqui não existe o campo "Processo Principal:" para servir de
-		// referência.
+		// ninguém): o Projudi já mostra nativamente o próprio "Sequencial:"
+		// nessa mesma página, só que mais abaixo no quadro (perto de "Chave
+		// do Processo"). Em vez de buscar esse valor de novo em segundo
+		// plano — o que antes dependia de adivinhar, numa árvore de
+		// Apensamentos ou Vínculos, qual link levava de volta a "este
+		// processo", e dava número errado quando o processo não tinha
+		// apensos (a árvore de Vínculos não garante que o primeiro item
+		// seja "este processo", ao contrário da de Apensamentos) — repete
+		// aqui o valor que a própria página já confirmou, destacado, logo
+		// abaixo de "Nível de Sigilo:". Funciona sempre, com ou sem
+		// apensos/vínculos, e nunca pode mostrar o número de outro
+		// processo, pois não faz nenhuma requisição.
 		//
-		// Importante: NÃO reabre a própria window.location.href — essa URL
-		// costuma ser resultado de um POST (o formulário "processoForm" da
-		// própria página), e reabri-la como GET num iframe não navega para o
-		// mesmo lugar. Em vez disso, usa o link de "este processo" dentro da
-		// própria árvore de Apensamentos — o mesmo tipo de link (com token de
-		// sessão válido) que já funciona para os apensos.
+		// O campo pode ainda não estar no documento quando este script
+		// roda (mesmo carregamento assíncrono da aba "Informações Gerais"
+		// descrito acima para o iframe), por isso espera por ele em vez de
+		// checar uma única vez.
 		const anchorRow = findRowByLabel(table, "Nível de Sigilo") || table.rows[table.rows.length - 1];
 		if (!anchorRow) return;
-		const link = linkParaEstaMesmaPagina(table);
-		if (!link) return;
-		inserirLinhaSequencial(anchorRow, "Sequencial", comAbaInformacoesGerais(link.href));
+		if (anchorRow.nextElementSibling && anchorRow.nextElementSibling.hasAttribute(ROW_ATTR)) return;
+
+		waitForRow(document, "Sequencial", 10000).then(function (sequencialRow) {
+			const valorCell = sequencialRow && sequencialRow.querySelectorAll("td")[1];
+			const sequencial = valorCell && valorCell.textContent.trim();
+			if (!sequencial) return;
+			if (anchorRow.nextElementSibling && anchorRow.nextElementSibling.hasAttribute(ROW_ATTR)) return;
+
+			const newRow = document.createElement("tr");
+			newRow.setAttribute(ROW_ATTR, "");
+			newRow.innerHTML =
+				'<td class="label" style="color:' + COR + '"><label style="color:' + COR + '">Sequencial:</label></td>' +
+				'<td colspan="4" style="color:' + COR + '"></td>';
+			newRow.querySelector("td:last-child").textContent = sequencial;
+			anchorRow.insertAdjacentElement("afterend", newRow);
+		});
 	}
 
 	init();
