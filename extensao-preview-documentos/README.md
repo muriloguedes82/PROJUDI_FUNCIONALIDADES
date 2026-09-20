@@ -596,7 +596,7 @@ própria extensão, não enviado a nenhum servidor), organizadas por ação —
 ex.: as preferências de "Ordenar Cumprimentos" não aparecem em "Ordenar
 RPV".
 
-## (Des)Habilitar Advogado (atalho para a tela de Advogados)
+## (Des)Habilitar Advogado (popup para a tela de Advogados)
 
 Habilitar, desabilitar, adicionar ou remover um advogado hoje exige abrir
 a aba "Partes e Outros" e, na barra de botões ao final dela, clicar no
@@ -604,28 +604,34 @@ botão nativo **"Advogados"** (um único botão por processo, não por parte),
 que leva à tela onde essas ações ficam disponíveis.
 
 Ao lado do botão **"📋 Processo copiado"** (ver "Ações rápidas" acima), a
-extensão adiciona o botão **"⚖️ (Des)Habilitar Advogado"**, que pula o
-passo manual de trocar de aba: garante que a aba "Partes e Outros" esteja
-disponível — usa o conteúdo já presente na página quando o usuário já
-estiver nela, ou busca essa aba em segundo plano (mesma técnica de leitura
-via `fetch()`, sem iframe, já usada pelo Oráculo em `oraculoDirect.js` e
-documentada em "Indicador de suspensão ativa" mais acima) quando ele
-estiver em outra aba — e então navega direto para a URL que o próprio
-botão nativo "Advogados" levaria, lida do `onclick` desse botão.
+extensão adiciona o botão **"⚖️ (Des)Habilitar Advogado"**, que abre essa
+tela num **popup sobreposto à tela atual** — a MESMA janela/mecanismo já
+usado pelo painel "Ações rápidas" para diálogos como "Ordenar
+Cumprimentos" e "Realizar Remessa" (ver acima): a aba visível nunca
+navega, e o usuário habilita, desabilita, adiciona ou remove o advogado
+direto no popup, fechando com "✕ Fechar" ao terminar.
+
+Como a extensão chega até lá:
+
+1. Se a tela atual já é a aba "Partes e Outros" e o botão nativo
+   "Advogados" já vem com o endereço pronto (lido do seu `onclick`), abre
+   esse endereço direto no popup.
+2. Senão, abre a própria aba "Partes e Outros" **dentro do popup** — um
+   POST de verdade num `<iframe>` (não `fetch()`: testes anteriores desta
+   extensão mostraram o Projudi devolver telas sem os botões de ação
+   quando a requisição não "parece" uma navegação de aba real, ver
+   "Ações rápidas" acima) — e, assim que ela carregar, continua sozinha
+   para "Advogados" se o endereço já vier pronto, sem exigir um segundo
+   clique. No caso raro de não vir, o usuário só precisa clicar em
+   "Advogados" ali mesmo, dentro do popup, sem nunca sair da tela
+   principal.
 
 A existência (ou não) de um advogado já habilitado nunca impede o botão de
-funcionar: o objetivo é só levar o usuário até a tela nativa (que por si só
-já mostra a situação atual e permite adicionar o primeiro advogado, se for
-o caso). Se a busca em segundo plano trouxer a aba "Partes e Outros" mas o
-botão "Advogados" ainda não vier com o endereço pronto, a extensão não
-trava com um erro: ela navega de verdade para a aba "Partes e Outros" (a
-mesma troca de aba que aconteceria clicando nela manualmente) e deixa o
-usuário terminar com um único clique em "Advogados" ali mesmo.
-
-A navegação final é sempre uma troca de aba de verdade, igual à que o
-próprio botão nativo faria — a extensão só chega até a tela; habilitar,
-desabilitar, adicionar ou remover o advogado continua sendo feito
-manualmente pelo usuário na tela nativa do Projudi.
+funcionar: o popup mostra a tela nativa tal como ela está, inclusive
+permitindo adicionar o primeiro advogado. Nenhuma ação é praticada
+sozinha — a extensão só abre a tela; habilitar, desabilitar, adicionar ou
+remover o advogado continua sendo feito manualmente pelo usuário, dentro
+do popup.
 
 ## "Nova Remessa" (realizar mais de uma remessa em seguida)
 

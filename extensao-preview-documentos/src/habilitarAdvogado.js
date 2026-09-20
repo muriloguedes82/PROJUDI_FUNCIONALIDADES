@@ -7,32 +7,30 @@
 // advogado pode ser adicionado, alterado (inclui habilitar/desabilitar) ou
 // removido.
 //
-// Este botão pula o passo manual de trocar de aba: garante que a aba
-// "Partes e Outros" (selectedIcon=tabPartes) esteja disponível — usando o
-// conteúdo já presente na página quando o usuário já estiver nela, ou
-// buscando-a em segundo plano via POST para o próprio `#processoForm`
-// (mesma técnica, sem iframe, já usada pelo Oráculo em oraculoDirect.js e
-// documentada em suspensaoAtiva.js) quando ele estiver em outra aba — e
-// então navega direto para a URL que o próprio botão "Advogados" levaria,
-// lida do `onclick` desse botão nativo.
+// Este botão pula esses passos manuais e mostra a tela final num POPUP
+// sobreposto à tela atual — a mesma técnica (mesmo popup, inclusive) já
+// usada pelo painel "Ações rápidas" para diálogos como "Ordenar
+// Cumprimentos" e "Realizar Remessa" (ver README, "Ações rápidas", e
+// `showActionModal`/`openActionModal` em quickActions.js): a aba visível
+// NUNCA navega, o usuário faz tudo (habilitar, desabilitar, adicionar,
+// remover) dentro do popup e fecha com "✕ Fechar" quando terminar.
+//
+// Como chega até lá:
+// 1. Se a página atual já é a aba "Partes e Outros" (selectedIcon=
+//    tabPartes) e o botão nativo "Advogados" já vem com o endereço pronto
+//    (lido do seu `onclick`), abre esse endereço direto no popup.
+// 2. Senão, abre a PRÓPRIA aba "Partes e Outros" dentro do popup (POST de
+//    verdade num iframe — não `fetch()`: testes anteriores desta extensão
+//    mostraram o Projudi devolver telas sem os botões de ação quando a
+//    requisição não "parece" uma navegação de aba real, ver README) e,
+//    assim que ela carregar, continua sozinha para "Advogados" se o
+//    endereço já vier pronto — sem exigir um segundo clique. Se não vier
+//    (caso raro), o usuário só precisa clicar em "Advogados" ali mesmo,
+//    dentro do popup, sem nunca ter saído da tela principal.
 //
 // Importante: a existência (ou não) de um advogado já habilitado para a
-// parte NÃO deve impedir o botão de funcionar — o objetivo é só levar o
-// usuário até a tela nativa `advogadosParte.do` (a "última tela"), que por
-// si só já mostra a situação atual e permite adicionar o primeiro
-// advogado, se for o caso. A navegação final é sempre uma troca de aba de
-// verdade (`document.location.href`), igual à que o próprio botão nativo
-// faria — nenhuma ação é praticada sozinha; habilitar, desabilitar,
-// adicionar ou remover o advogado continua sendo feito manualmente pelo
-// usuário na tela nativa.
-//
-// Se a busca em segundo plano trouxer a aba "Partes e Outros" mas, por
-// algum motivo, o botão "Advogados" ainda não vier com o endereço pronto
-// (`onclick`) — algo só observado nessa busca em segundo plano, nunca numa
-// navegação de verdade —, a extensão não desiste com um erro: ela navega
-// de verdade para a aba "Partes e Outros" (a mesma troca de aba que
-// aconteceria clicando nela manualmente) e deixa o usuário terminar com um
-// único clique em "Advogados" ali mesmo.
+// parte NÃO impede o botão de funcionar — o popup mostra a tela nativa tal
+// como ela está, inclusive permitindo adicionar o primeiro advogado.
 (function () {
 	"use strict";
 
@@ -43,24 +41,6 @@
 		const url = new URL(value, location.href);
 		if (url.origin !== location.origin || url.pathname !== path) throw new Error("Endereço inesperado: " + value);
 		return url;
-	}
-
-	async function readPage(url, options) {
-		const controller = new AbortController();
-		const timer = setTimeout(function () { controller.abort(); }, 25000);
-		try {
-			const response = await fetch(url, Object.assign({}, options, { credentials: "same-origin", signal: controller.signal }));
-			if (!response.ok) throw new Error("O Projudi não respondeu (" + response.status + ").");
-			localURL(response.url, new URL(url, location.href).pathname);
-			const bytes = await response.arrayBuffer();
-			const preview = new TextDecoder("windows-1252").decode(bytes.slice(0, 4096));
-			const charsetMatch =
-				/charset\s*=\s*["']?([\w-]+)/i.exec(response.headers.get("content-type") || "") || /charset\s*=\s*["']?([\w-]+)/i.exec(preview);
-			const charset = (charsetMatch && charsetMatch[1]) || "windows-1252";
-			return new DOMParser().parseFromString(new TextDecoder(charset).decode(bytes), "text/html");
-		} finally {
-			clearTimeout(timer);
-		}
 	}
 
 	// O botão "Advogados" é único por processo (não por parte) — fica na
@@ -81,7 +61,7 @@
 	// Encontra a URL da própria tela do processo com a aba "Partes e Outros"
 	// selecionada, a partir do `onclick` do item de aba nativo (mesma técnica
 	// usada por oraculoDirect.js para achar `setTab('...')`).
-	function findTabPartesAction(form) {
+	function findTabPartesAction() {
 		const tab = Array.prototype.find.call(document.querySelectorAll("[onclick]"), function (el) {
 			const onclick = el.getAttribute("onclick") || "";
 			return /setTab\(/.test(onclick) && /['"]tabPartes['"]/.test(onclick);
@@ -104,14 +84,16 @@
 		return body;
 	}
 
-	// Navegação de verdade (não `fetch()`) para a aba "Partes e Outros" —
-	// usada quando a busca em segundo plano não trouxe o endereço pronto do
-	// botão "Advogados" (ver comentário no topo do arquivo). O usuário
-	// termina com um único clique manual em "Advogados" nessa aba.
-	function navigateToTabPartes(url, body) {
+	// POST de verdade DENTRO de um iframe já existente (o do popup desta
+	// extensão), pelo `name` dele como alvo do formulário — nunca navega a
+	// aba visível, só o conteúdo do iframe.
+	function postIntoIframe(iframe, url, body) {
+		const frameName = iframe.name || "pdp-habilitar-advogado-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+		iframe.name = frameName;
 		const realForm = document.createElement("form");
 		realForm.method = "POST";
-		realForm.action = url.href;
+		realForm.action = url;
+		realForm.target = frameName;
 		realForm.style.display = "none";
 		for (const [name, value] of body) {
 			const input = document.createElement("input");
@@ -122,58 +104,73 @@
 		}
 		document.body.appendChild(realForm);
 		realForm.submit();
+		realForm.remove();
 	}
 
-	function navigateToAdvogados(url) {
-		if (typeof window.disableScreen === "function") {
+	// Chama `callback` só na primeira navegação de VERDADE do iframe —
+	// inserir/apontar um iframe já dispara um "load" para o `about:blank`
+	// inicial, antes de qualquer navegação de verdade começar (mesma
+	// armadilha documentada em quickActions.js/fetchDoc e em
+	// ordenarCumprimentos.js/waitForIframeEvent).
+	function onFirstRealLoad(iframe, callback) {
+		function onLoad() {
+			let href;
 			try {
-				window.disableScreen();
+				href = iframe.contentWindow.location.href;
 			} catch (err) {
-				// Ignora — é só o efeito visual nativo de "carregando".
+				href = null;
 			}
+			if (href === "about:blank") return;
+			iframe.removeEventListener("load", onLoad);
+			callback();
 		}
-		document.location.href = url.href;
+		iframe.addEventListener("load", onLoad);
 	}
 
 	window.__pdpOpenHabilitarAdvogado = async function () {
+		const api = window.__pdpQuickActions;
+		if (!api || typeof api.openActionModal !== "function") {
+			throw new Error('Não encontrei o recurso "Ações rápidas" (quickActions.js), necessário para abrir o popup.');
+		}
+
 		const form = document.getElementById("processoForm");
 		if (!form) throw new Error("Não foi possível identificar o processo atual — abra a tela de um processo primeiro.");
 		const id = form.elements.namedItem("id") ? form.elements.namedItem("id").value : null;
 		if (!/^\d+$/.test(id || "")) throw new Error("Não foi possível identificar o processo atual.");
-
-		function checkContext() {
-			const current = form.elements.namedItem("id");
-			if (!form.isConnected || !current || current.value !== id) throw new Error("O processo mudou durante a operação. Clique novamente.");
-		}
 
 		const selectedIconField = form.elements.namedItem("selectedIcon");
 		const jaEstaNaAbaPartes = !!selectedIconField && selectedIconField.value === "tabPartes";
 
 		if (jaEstaNaAbaPartes) {
 			const url = findAdvogadosUrl(document);
-			if (!url) throw new Error('Não foi possível determinar o endereço da tela "Advogados" a partir do botão nativo.');
-			navigateToAdvogados(url);
-			return;
+			if (url) {
+				api.openActionModal("Advogados", url.href);
+				return;
+			}
+			// Raro: já está na aba certa, mas o botão nativo ainda não veio com
+			// o endereço pronto — cai para o mesmo caminho de baixo, que abre a
+			// aba dentro do popup e tenta de novo por ali.
 		}
 
-		const tabUrl = findTabPartesAction(form);
+		const tabUrl = findTabPartesAction();
 		const body = tabPartesBody(form, id);
-		const doc = await readPage(tabUrl.href, { method: "POST", body: body });
-		const responseId = doc.querySelector('#processoForm [name="id"]');
-		if (!responseId || responseId.value !== id) throw new Error('A resposta da aba "Partes e Outros" não corresponde ao processo atual.');
-		checkContext();
-
-		const url = findAdvogadosUrl(doc);
-		if (url) {
-			navigateToAdvogados(url);
-			return;
-		}
-
-		// O botão "Advogados" existe na aba, mas não veio com o endereço
-		// pronto nessa leitura em segundo plano — navega de verdade para a
-		// aba, em vez de travar com um erro (ver comentário no topo do
-		// arquivo).
-		navigateToTabPartes(tabUrl, body);
+		const iframe = api.openActionModal("Partes e Outros", null);
+		onFirstRealLoad(iframe, function () {
+			let doc;
+			try {
+				doc = iframe.contentDocument;
+			} catch (err) {
+				return;
+			}
+			if (!doc) return;
+			const url = findAdvogadosUrl(doc);
+			// Continua sozinha para "Advogados", ainda dentro do mesmo popup,
+			// se o endereço já vier pronto. Senão, deixa o usuário na aba
+			// "Partes e Outros" (já aberta no popup) para clicar em
+			// "Advogados" manualmente ali mesmo.
+			if (url) iframe.src = url.href;
+		});
+		postIntoIframe(iframe, tabUrl.href, body);
 	};
 
 	// -------------------------------------------------------------------
@@ -194,7 +191,7 @@
 			button.id = "pdp-habilitar-advogado-button";
 			button.className = "pdp-qa-group-btn";
 			button.textContent = "⚖️ (Des)Habilitar Advogado";
-			button.title = 'Abrir direto a tela "Advogados" do Réu, para habilitar, desabilitar, adicionar ou remover um advogado';
+			button.title = 'Abrir a tela "Advogados" num popup, sem sair desta tela, para habilitar, desabilitar, adicionar ou remover um advogado';
 			button.addEventListener("click", async function () {
 				if (button.disabled) return;
 				button.disabled = true;
