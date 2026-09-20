@@ -729,10 +729,22 @@
 	const MANDADO_PENDENCIA_HREF_MARKER = "/cumprimentoCartorioMandado.do";
 	const mandadoButtons = new WeakMap();
 
+	// O quadro de Pendências tem mais de uma linha cujo link aponta para
+	// cumprimentoCartorioMandado.do (ex.: "Cumprimentos Expedidos e Não
+	// Lidos:" e "Cumprimentos Aguardando Análise de Retorno:") — só a
+	// segunda tem uma tela de análise de retorno de verdade para pular;
+	// checar só o href levaria o botão a aparecer também na primeira. Por
+	// isso confirmamos o rótulo (td.labelRadio) da própria linha do link.
+	const CUMPRIMENTOS_AGUARDANDO_RETORNO_LABEL = normalizeLabel("Cumprimentos Aguardando Análise de Retorno:");
+
 	function isMandadoPendenciaLink(link) {
 		if (!isPendenciaLink(link)) return false;
 		const href = link.getAttribute("href") || "";
-		return href.indexOf(MANDADO_PENDENCIA_HREF_MARKER) !== -1;
+		if (href.indexOf(MANDADO_PENDENCIA_HREF_MARKER) === -1) return false;
+		const row = link.closest("tr");
+		const labelCell = row && row.querySelector("td.labelRadio");
+		if (!labelCell) return false;
+		return normalizeLabel(labelCell.textContent) === CUMPRIMENTOS_AGUARDANDO_RETORNO_LABEL;
 	}
 
 	// Busca independente do estado do hover (não usa/mexe em `pendenciaLoader`
