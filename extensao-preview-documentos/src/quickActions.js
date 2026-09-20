@@ -1455,6 +1455,7 @@
 		if (location.pathname.startsWith("/projudi/")) {
 			const clipboardBtn = document.createElement("button");
 			clipboardBtn.type = "button";
+			clipboardBtn.id = "pdp-clipboard-button";
 			clipboardBtn.className = "pdp-qa-group-btn";
 			clipboardBtn.textContent = "📋 Processo copiado";
 			clipboardBtn.title = "Pesquisar em nova aba o número de processo da área de transferência";

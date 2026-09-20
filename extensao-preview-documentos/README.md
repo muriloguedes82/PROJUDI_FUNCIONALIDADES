@@ -596,6 +596,28 @@ própria extensão, não enviado a nenhum servidor), organizadas por ação —
 ex.: as preferências de "Ordenar Cumprimentos" não aparecem em "Ordenar
 RPV".
 
+## (Des)Habilitar Advogado (atalho para a tela de Advogados do Réu)
+
+Habilitar, desabilitar, adicionar ou remover o advogado de um Réu hoje
+exige abrir a aba "Partes e Outros", localizar o Réu na lista, abrir a
+ficha da parte e só então clicar no botão nativo **"Advogados"**, que leva
+à tela onde essas ações ficam disponíveis.
+
+Ao lado do botão **"📋 Processo copiado"** (ver "Ações rápidas" acima), a
+extensão adiciona o botão **"⚖️ (Des)Habilitar Advogado"**, que pula esses
+passos manuais: localiza o Réu (ou Acusado/Investigado/Noticiado/Autor do
+fato/Representado) do processo, abre a ficha dessa parte em segundo plano
+e navega direto para a mesma tela que o botão nativo "Advogados" abriria —
+mesma técnica de leitura via `fetch()` (sem iframe) já usada pelo Oráculo
+(`oraculoDirect.js`) e documentada em "Indicador de suspensão ativa" mais
+acima. Havendo mais de um Réu no processo, um diálogo pede para escolher
+qual.
+
+A navegação final é sempre uma troca de aba de verdade, igual à que o
+próprio botão nativo faria — a extensão só chega até a tela; habilitar,
+desabilitar, adicionar ou remover o advogado continua sendo feito
+manualmente pelo usuário na tela nativa do Projudi.
+
 ## "Nova Remessa" (realizar mais de uma remessa em seguida)
 
 Só no Projudi. A tela nativa **Realizar Remessa** só permite escolher UMA
