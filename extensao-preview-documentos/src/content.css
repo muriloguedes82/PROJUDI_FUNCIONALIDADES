@@ -77,6 +77,43 @@ a.link[href*="/arquivo.do"]:hover,
 	opacity: 1;
 }
 
+.pdp-overlay .pdp-analisar-retorno {
+	background: #fff4d9;
+	border: 1px solid #d99400;
+	color: #8a5800;
+	font-size: 11px;
+	font-weight: bold;
+	white-space: nowrap;
+	border-radius: 4px;
+	padding: 2px 8px;
+	cursor: pointer;
+}
+
+.pdp-overlay .pdp-analisar-retorno:hover {
+	background: #ffe9b3;
+}
+
+.pdp-analisar-retorno-mandado {
+	margin-left: 12px;
+	padding: 3px 10px;
+	border: 1px solid #d99400;
+	border-radius: 4px;
+	background: #fff4d9;
+	color: #8a5800;
+	font-size: 12px;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+.pdp-analisar-retorno-mandado:hover {
+	background: #ffe9b3;
+}
+
+.pdp-analisar-retorno-mandado:disabled {
+	opacity: 0.6;
+	cursor: default;
+}
+
 .pdp-overlay .pdp-close {
 	background: transparent;
 	border: none;
