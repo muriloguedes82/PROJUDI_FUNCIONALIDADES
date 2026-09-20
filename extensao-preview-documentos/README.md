@@ -596,22 +596,31 @@ própria extensão, não enviado a nenhum servidor), organizadas por ação —
 ex.: as preferências de "Ordenar Cumprimentos" não aparecem em "Ordenar
 RPV".
 
-## (Des)Habilitar Advogado (atalho para a tela de Advogados do Réu)
+## (Des)Habilitar Advogado (atalho para a tela de Advogados)
 
-Habilitar, desabilitar, adicionar ou remover o advogado de um Réu hoje
-exige abrir a aba "Partes e Outros", localizar o Réu na lista, abrir a
-ficha da parte e só então clicar no botão nativo **"Advogados"**, que leva
-à tela onde essas ações ficam disponíveis.
+Habilitar, desabilitar, adicionar ou remover um advogado hoje exige abrir
+a aba "Partes e Outros" e, na barra de botões ao final dela, clicar no
+botão nativo **"Advogados"** (um único botão por processo, não por parte),
+que leva à tela onde essas ações ficam disponíveis.
 
 Ao lado do botão **"📋 Processo copiado"** (ver "Ações rápidas" acima), a
-extensão adiciona o botão **"⚖️ (Des)Habilitar Advogado"**, que pula esses
-passos manuais: localiza o Réu (ou Acusado/Investigado/Noticiado/Autor do
-fato/Representado) do processo, abre a ficha dessa parte em segundo plano
-e navega direto para a mesma tela que o botão nativo "Advogados" abriria —
-mesma técnica de leitura via `fetch()` (sem iframe) já usada pelo Oráculo
-(`oraculoDirect.js`) e documentada em "Indicador de suspensão ativa" mais
-acima. Havendo mais de um Réu no processo, um diálogo pede para escolher
-qual.
+extensão adiciona o botão **"⚖️ (Des)Habilitar Advogado"**, que pula o
+passo manual de trocar de aba: garante que a aba "Partes e Outros" esteja
+disponível — usa o conteúdo já presente na página quando o usuário já
+estiver nela, ou busca essa aba em segundo plano (mesma técnica de leitura
+via `fetch()`, sem iframe, já usada pelo Oráculo em `oraculoDirect.js` e
+documentada em "Indicador de suspensão ativa" mais acima) quando ele
+estiver em outra aba — e então navega direto para a URL que o próprio
+botão nativo "Advogados" levaria, lida do `onclick` desse botão.
+
+A existência (ou não) de um advogado já habilitado nunca impede o botão de
+funcionar: o objetivo é só levar o usuário até a tela nativa (que por si só
+já mostra a situação atual e permite adicionar o primeiro advogado, se for
+o caso). Se a busca em segundo plano trouxer a aba "Partes e Outros" mas o
+botão "Advogados" ainda não vier com o endereço pronto, a extensão não
+trava com um erro: ela navega de verdade para a aba "Partes e Outros" (a
+mesma troca de aba que aconteceria clicando nela manualmente) e deixa o
+usuário terminar com um único clique em "Advogados" ali mesmo.
 
 A navegação final é sempre uma troca de aba de verdade, igual à que o
 próprio botão nativo faria — a extensão só chega até a tela; habilitar,
