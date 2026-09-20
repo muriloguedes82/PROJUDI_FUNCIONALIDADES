@@ -24,6 +24,24 @@
 // abrimos um painel de pré-visualização para cada documento encontrado. Se
 // houver mais de uma juntada/conclusão pendente, abrimos uma janela de
 // pré-visualização para cada uma delas.
+//
+// A pendência "Cumprimentos Aguardando Análise de Retorno" (mandados
+// devolvidos, ex.: "Mandado: 01") segue um padrão parecido, mas o link da
+// pendência abre uma tela de LISTAGEM (cumprimentoCartorioMandado.do) sem
+// ícone "+" nem checkbox — cada linha pendente só abre a análise de
+// verdade depois de um clique na DATA da coluna "Ordenação" (<a
+// class="url">). Por isso, ao carregar essa listagem em segundo plano,
+// buscamos (via fetch(), mesma sessão) a tela de análise de cada mandado
+// pendente diretamente por essa URL, sem precisar desse clique manual
+// extra ("Mandado - Processo ..."), e coletamos só o(s) documento(s) do
+// campo "Documento(s) Retornado(s):" dessa tela — o(s) arquivo(s) que o
+// oficial de justiça anexou ao devolver o mandado. Normalmente é uma
+// certidão textual (ex.: "INTIMEI ( ) NÃO INTIMEI ( ) CITEI ( ) NÃO CITEI
+// ( ) ... PROCEDI À ..."), às vezes com o resultado assinalado por
+// checkbox, suficiente para saber se a diligência foi cumprida (e como)
+// sem precisar abrir a tela de análise manualmente. Os demais documentos
+// dessa mesma tela ("Documento(s) do Processo/Recurso", mais abaixo) não
+// têm relação com o retorno deste mandado e por isso são ignorados.
 
 (function () {
 	"use strict";
@@ -1191,7 +1209,61 @@
 	function runLoaderMode(token) {
 		const EXPAND_ICON_SELECTOR = 'a[id^="linkArquivos"] img, img[onclick*="showDetail"], img[id^="icon"]';
 
-		function collectDocsFrom(scope) {
+		// Tela de "Cumprimentos Aguardando Análise de Retorno" (mandados
+		// devolvidos, ex.: cumprimentoCartorioMandado.do?actionType=listar):
+		// diferente das telas de Análise de Juntadas/Conclusões, aqui não há
+		// ícone "+" nem checkbox — a análise de cada mandado só começa ao
+		// clicar na DATA da coluna "Ordenação" (<a class="url">), que navega
+		// para a tela de análise daquele mandado específico (confirmado a
+		// partir do .mhtml da tela de listagem: <table class="resultTable">,
+		// uma linha por mandado pendente, com <a class="url">DD/MM/AAAA
+		// HH:mm</a> na primeira coluna de dados). Sem esse clique adicional,
+		// a pré-visualização ficaria presa nesta listagem, sem nenhum
+		// documento para mostrar.
+		const MANDADO_ROW_LINK_SELECTOR = "table.resultTable a.url[href]";
+
+		function isMandadoListScreen() {
+			return !!(document.getElementById("cumprimentoCartorioMandadoForm") || document.querySelector(MANDADO_ROW_LINK_SELECTOR));
+		}
+
+		function findMandadoRowLinks() {
+			return Array.prototype.slice.call(document.querySelectorAll(MANDADO_ROW_LINK_SELECTOR));
+		}
+
+		// Busca, em segundo plano, a tela de análise de um mandado específico
+		// (destino do clique na data) e devolve o Document já decodificado —
+		// mesma técnica (fetch + detecção de charset a partir do <meta
+		// charset>/cabeçalho HTTP) já usada em suspensaoAtiva.js e
+		// oraculoDirect.js para outras telas do Projudi, que também são
+		// servidas em windows-1252.
+		function fetchMandadoAnalise(href) {
+			return fetch(href, { credentials: "same-origin" })
+				.then(function (response) {
+					if (!response.ok) throw new Error("Projudi respondeu " + response.status + " " + response.statusText);
+					return response.arrayBuffer().then(function (bytes) {
+						const preview = new TextDecoder("windows-1252").decode(bytes.slice(0, 4096));
+						const charsetMatch =
+							/charset\s*=\s*["']?([\w-]+)/i.exec(response.headers.get("content-type") || "") ||
+							/charset\s*=\s*["']?([\w-]+)/i.exec(preview);
+						const charset = (charsetMatch && charsetMatch[1]) || "windows-1252";
+						const html = new TextDecoder(charset).decode(bytes);
+						return new DOMParser().parseFromString(html, "text/html");
+					});
+				})
+				.catch(function (err) {
+					console.warn("[Projudi Preview] falha ao buscar análise do mandado:", { href: href, erro: err && (err.stack || err.message || err) });
+					return null;
+				});
+		}
+
+		// `baseURL` é necessário para `scope` vindo de um documento buscado via
+		// fetch() (ex.: a tela de análise de um mandado, ver
+		// `fetchMandadoAnalise`) — um Document criado por DOMParser não sabe a
+		// URL de onde veio, então um href relativo (ex.: "arquivo.do?...")
+		// precisa ser resolvido contra a URL que foi buscada, não contra
+		// `document.baseURI` (que aqui é a URL desta própria página/iframe,
+		// ex.: a listagem de mandados, não a tela de análise).
+		function collectDocsFrom(scope, baseURL) {
 			const anchors = Array.prototype.slice.call(scope.querySelectorAll("a.link"));
 			const docs = [];
 
@@ -1201,7 +1273,7 @@
 
 				let absolute;
 				try {
-					absolute = new URL(href, document.baseURI).href;
+					absolute = new URL(href, baseURL || document.baseURI).href;
 				} catch (e) {
 					absolute = href;
 				}
@@ -1210,6 +1282,63 @@
 			});
 
 			return docs;
+		}
+
+		// Normaliza um rótulo de campo para comparação: remove acentos, baixa
+		// caixa, colapsa espaços e ignora o sufixo "(s)" de plural opcional
+		// (ex.: "Documento(s) Retornado(s):" e "Documento Retornado:" devem
+		// casar com o mesmo padrão).
+		function normalizeLabel(text) {
+			return String(text || "")
+				.normalize("NFD")
+				.replace(/[̀-ͯ]/g, "")
+				.replace(/\(s\)/gi, "")
+				.replace(/\s+/g, " ")
+				.trim()
+				.toLowerCase()
+				.replace(/:$/, "");
+		}
+
+		// Na tela de análise de um mandado ("Mandado - Processo ..."), o
+		// campo "Documento(s) Retornado(s):" traz o(s) arquivo(s) que o
+		// oficial de justiça anexou ao devolver o mandado — normalmente uma
+		// certidão de cumprimento (às vezes com o resultado assinalado por
+		// checkbox: intimou/não intimou, citou/não citou, procedeu à
+		// diligência, etc.), texto que geralmente já basta para saber o
+		// resultado sem abrir mais nada. Essa é a informação que interessa
+		// aqui — não os demais documentos do processo, listados mais abaixo
+		// nessa mesma tela ("Documento(s) do Processo/Recurso"), que não têm
+		// relação com o retorno deste mandado específico.
+		const DOCUMENTOS_RETORNADOS_LABEL = normalizeLabel("Documento(s) Retornado(s):");
+
+		function findDocumentosRetornadosRow(doc) {
+			const candidates = doc.querySelectorAll("td, span, label, div");
+			for (const el of candidates) {
+				const ownText = Array.prototype.slice
+					.call(el.childNodes)
+					.filter(function (node) {
+						return node.nodeType === 3; // Node.TEXT_NODE
+					})
+					.map(function (node) {
+						return node.textContent;
+					})
+					.join("");
+				if (normalizeLabel(ownText) !== DOCUMENTOS_RETORNADOS_LABEL) continue;
+				const row = el.closest("tr") || el.parentElement;
+				if (row) return row;
+			}
+			return null;
+		}
+
+		// Coleta só os documentos do campo "Documento(s) Retornado(s):"
+		// (ver acima). Se o campo não for encontrado (ex.: Projudi mudou o
+		// texto do rótulo numa vara/versão diferente), cai de volta para
+		// coletar a tela de análise inteira, para não deixar de mostrar nada.
+		function collectDocumentosRetornados(doc, baseURL) {
+			const row = findDocumentosRetornadosRow(doc);
+			if (row) return collectDocsFrom(row, baseURL);
+			console.warn('[Projudi Preview] campo "Documento(s) Retornado(s)" não encontrado na tela de análise do mandado — usando a tela inteira');
+			return collectDocsFrom(doc, baseURL);
 		}
 
 		function dedupe(docs) {
@@ -1251,6 +1380,32 @@
 		}
 
 		function run() {
+			// Mandados devolvidos aguardando análise de retorno: cada linha
+			// pendente exige clicar na data (coluna "Ordenação") para abrir a
+			// tela de análise daquele mandado — buscamos cada uma em segundo
+			// plano (sem navegar esta página, para poder buscar todas em
+			// paralelo quando houver mais de um mandado pendente) e coletamos
+			// os documentos de cada tela de análise.
+			const mandadoLinks = isMandadoListScreen() ? findMandadoRowLinks() : [];
+			if (mandadoLinks.length) {
+				Promise.all(
+					mandadoLinks.map(function (link) {
+						let absolute;
+						try {
+							absolute = new URL(link.getAttribute("href"), document.baseURI).href;
+						} catch (e) {
+							absolute = link.getAttribute("href");
+						}
+						return fetchMandadoAnalise(absolute).then(function (doc) {
+							return doc ? collectDocumentosRetornados(doc, absolute) : [];
+						});
+					})
+				).then(function (docsPerMandado) {
+					finish(Array.prototype.concat.apply([], docsPerMandado));
+				});
+				return;
+			}
+
 			// A tela de análise (analisarJuntada.do e afins) normalmente lista o
 			// HISTÓRICO completo de juntadas/conclusões do processo, não só as
 			// pendentes — só as linhas com checkbox de seleção são as realmente
