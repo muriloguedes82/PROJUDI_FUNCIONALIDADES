@@ -24,6 +24,61 @@
 // abrimos um painel de pré-visualização para cada documento encontrado. Se
 // houver mais de uma juntada/conclusão pendente, abrimos uma janela de
 // pré-visualização para cada uma delas.
+//
+// A pendência "Cumprimentos Aguardando Análise de Retorno" (mandados
+// devolvidos, ex.: "Mandado: 01") segue um padrão parecido, mas o link da
+// pendência abre uma tela de LISTAGEM (cumprimentoCartorioMandado.do) sem
+// ícone "+" nem checkbox — cada linha pendente só abre a análise de
+// verdade depois de um clique na DATA da coluna "Ordenação" (<a
+// class="url">). Por isso, ao carregar essa listagem em segundo plano,
+// buscamos (via fetch(), mesma sessão) a tela de análise de cada mandado
+// pendente diretamente por essa URL, sem precisar desse clique manual
+// extra ("Mandado - Processo ..."), e coletamos só o(s) documento(s) do
+// campo "Documento(s) Retornado(s):" dessa tela — o(s) arquivo(s) que o
+// oficial de justiça anexou ao devolver o mandado. Normalmente é uma
+// certidão textual (ex.: "INTIMEI ( ) NÃO INTIMEI ( ) CITEI ( ) NÃO CITEI
+// ( ) ... PROCEDI À ..."), com o resultado assinalado à mão/por cima do
+// texto impresso — ou seja, SEM nenhum campo de formulário real no PDF, o
+// que torna a extração automática de texto pouco confiável bem nos trechos
+// que importam (a marcação embaralha com a palavra ao lado). Por isso essa
+// certidão só é mostrada para leitura humana na pré-visualização; nenhuma
+// marcação é interpretada automaticamente. Os demais documentos dessa
+// mesma tela ("Documento(s) do Processo/Recurso", mais abaixo) não têm
+// relação com o retorno deste mandado e por isso são ignorados.
+//
+// Cada painel de pré-visualização de um documento retornado ganha também
+// um botão "Analisar Retorno", que reproduz — na aba de verdade, não no
+// iframe oculto de busca — o clique no botão de mesmo nome da tela de
+// detalhe do mandado (ver `extractAnalisarRetornoAction` e
+// `submitAnalisarRetorno`), poupando os dois cliques manuais anteriores
+// (abrir a pendência, depois a data na coluna "Ordenação"). Esse botão só
+// NAVEGA para a tela seguinte ("Marcar Leitura" + "Resultado do
+// Cumprimento"); nenhum campo dela é preenchido automaticamente, pelo
+// mesmo motivo acima — quem decide o resultado é sempre o usuário, depois
+// de ler a certidão.
+//
+// Há ainda um segundo botão, "Analisar Retorno", inserido direto no quadro
+// de Pendências logo depois do próprio link (ex.: depois de "Mandado:
+// 01") — mesmo padrão de botão inline já usado para outras pendências
+// desta extensão (ver "Dispensar juntadas" em juntadaDrag.js e "Finalizar
+// conclusão" em finalizarConclusao.js). Ele dispensa até passar o mouse:
+// busca a análise em segundo plano e, havendo um único mandado pendente
+// naquele link, já navega a aba de verdade direto para a última tela.
+// Havendo mais de um mandado pendente no mesmo link, não escolhe por conta
+// própria qual analisar — pede para o usuário passar o mouse sobre o link
+// e escolher pelo painel de pré-visualização de cada mandado.
+//
+// Há ainda um terceiro botão, igual aos dois primeiros, mas na própria
+// tela de listagem de mandados (cumprimentoCartorioMandado.do?actionType=
+// listar) — a mesma que os dois botões acima acabam abrindo em segundo
+// plano, mas que também pode ser a página de verdade que o usuário está
+// vendo (ex.: um oficial de cartório que abre essa listagem direto, sem
+// passar pelo quadro de Pendências de um processo específico). Nela, cada
+// linha pendente já tem a data/hora de ordenação (<a class="url">) na
+// coluna "Ordenação" — o botão é inserido logo abaixo dessa data/hora, na
+// mesma célula (ver `scanMandadoListButtons` e `.pdp-analisar-retorno-
+// mandado-row` em content.css), e navega a aba de verdade direto para a
+// última tela daquele mandado.
 
 (function () {
 	"use strict";
@@ -31,6 +86,191 @@
 	const LOADER_ATTR = "data-pdp-loader";
 	const MESSAGE_SOURCE = "projudi-preview";
 	const DOC_LINK_HREF_MARKER = "/arquivo.do";
+
+	// ---------------------------------------------------------------------
+	// Tela de "Cumprimentos Aguardando Análise de Retorno" (mandados
+	// devolvidos, ex.: cumprimentoCartorioMandado.do?actionType=listar) —
+	// helpers compartilhados entre runLoaderMode() (busca em segundo plano,
+	// disparada pelo hover na pendência ou pelo botão do quadro de
+	// Pendências) e o botão inline da própria tela de listagem (mais abaixo,
+	// no frame de verdade — ver scanMandadoListRowButtons). Diferente das
+	// telas de Análise de Juntadas/Conclusões, aqui não há ícone "+" nem
+	// checkbox — a análise de cada mandado só começa ao clicar na DATA da
+	// coluna "Ordenação" (<a class="url">), que navega para a tela de
+	// análise daquele mandado específico (confirmado a partir do .mhtml da
+	// tela de listagem: <table class="resultTable">, uma linha por mandado
+	// pendente, com <a class="url">DD/MM/AAAA HH:mm</a> na primeira coluna
+	// de dados). Precisam ficar aqui, ANTES do `if (loaderToken)` logo
+	// abaixo — runLoaderMode() pode chamá-las de imediato quando o próprio
+	// frame já é o de busca em segundo plano, e uma `const` declarada mais
+	// abaixo no arquivo ainda não teria sido inicializada nesse momento
+	// (temporal dead zone).
+	// ---------------------------------------------------------------------
+
+	const MANDADO_ROW_LINK_SELECTOR = "table.resultTable a.url[href]";
+
+	function isMandadoListScreen() {
+		return !!(document.getElementById("cumprimentoCartorioMandadoForm") || document.querySelector(MANDADO_ROW_LINK_SELECTOR));
+	}
+
+	function findMandadoRowLinks() {
+		return Array.prototype.slice.call(document.querySelectorAll(MANDADO_ROW_LINK_SELECTOR));
+	}
+
+	// Busca a tela de análise de um mandado específico (destino do clique na
+	// data) e devolve o Document já decodificado — mesma técnica (fetch +
+	// detecção de charset a partir do <meta charset>/cabeçalho HTTP) já
+	// usada em suspensaoAtiva.js e oraculoDirect.js para outras telas do
+	// Projudi, que também são servidas em windows-1252.
+	function fetchMandadoAnalise(href) {
+		return fetch(href, { credentials: "same-origin" })
+			.then(function (response) {
+				if (!response.ok) throw new Error("Projudi respondeu " + response.status + " " + response.statusText);
+				return response.arrayBuffer().then(function (bytes) {
+					const preview = new TextDecoder("windows-1252").decode(bytes.slice(0, 4096));
+					const charsetMatch =
+						/charset\s*=\s*["']?([\w-]+)/i.exec(response.headers.get("content-type") || "") ||
+						/charset\s*=\s*["']?([\w-]+)/i.exec(preview);
+					const charset = (charsetMatch && charsetMatch[1]) || "windows-1252";
+					const html = new TextDecoder(charset).decode(bytes);
+					return new DOMParser().parseFromString(html, "text/html");
+				});
+			})
+			.catch(function (err) {
+				console.warn("[Projudi Preview] falha ao buscar análise do mandado:", { href: href, erro: err && (err.stack || err.message || err) });
+				return null;
+			});
+	}
+
+	// `baseURL` é necessário para `scope` vindo de um documento buscado via
+	// fetch() (ex.: a tela de análise de um mandado, ver
+	// `fetchMandadoAnalise`) — um Document criado por DOMParser não sabe a
+	// URL de onde veio, então um href relativo (ex.: "arquivo.do?...")
+	// precisa ser resolvido contra a URL que foi buscada, não contra
+	// `document.baseURI` (que aqui é a URL desta própria página/iframe,
+	// ex.: a listagem de mandados, não a tela de análise).
+	function collectDocsFrom(scope, baseURL) {
+		const anchors = Array.prototype.slice.call(scope.querySelectorAll("a.link"));
+		const docs = [];
+
+		anchors.forEach(function (a) {
+			const href = a.getAttribute("href") || "";
+			if (href.indexOf(DOC_LINK_HREF_MARKER) === -1) return;
+
+			let absolute;
+			try {
+				absolute = new URL(href, baseURL || document.baseURI).href;
+			} catch (e) {
+				absolute = href;
+			}
+
+			docs.push({ href: absolute, text: (a.textContent || "Documento").trim() });
+		});
+
+		return docs;
+	}
+
+	// Normaliza um rótulo de campo para comparação: remove acentos, baixa
+	// caixa, colapsa espaços e ignora o sufixo "(s)" de plural opcional
+	// (ex.: "Documento(s) Retornado(s):" e "Documento Retornado:" devem
+	// casar com o mesmo padrão).
+	function normalizeLabel(text) {
+		return String(text || "")
+			.normalize("NFD")
+			.replace(/[̀-ͯ]/g, "")
+			.replace(/\(s\)/gi, "")
+			.replace(/\s+/g, " ")
+			.trim()
+			.toLowerCase()
+			.replace(/:$/, "");
+	}
+
+	// Na tela de análise de um mandado ("Mandado - Processo ..."), o
+	// campo "Documento(s) Retornado(s):" traz o(s) arquivo(s) que o
+	// oficial de justiça anexou ao devolver o mandado — normalmente uma
+	// certidão de cumprimento (às vezes com o resultado assinalado por
+	// checkbox: intimou/não intimou, citou/não citou, procedeu à
+	// diligência, etc.), texto que geralmente já basta para saber o
+	// resultado sem abrir mais nada. Essa é a informação que interessa
+	// aqui — não os demais documentos do processo, listados mais abaixo
+	// nessa mesma tela ("Documento(s) do Processo/Recurso"), que não têm
+	// relação com o retorno deste mandado específico.
+	const DOCUMENTOS_RETORNADOS_LABEL = normalizeLabel("Documento(s) Retornado(s):");
+
+	function findDocumentosRetornadosRow(doc) {
+		const candidates = doc.querySelectorAll("td, span, label, div");
+		for (const el of candidates) {
+			const ownText = Array.prototype.slice
+				.call(el.childNodes)
+				.filter(function (node) {
+					return node.nodeType === 3; // Node.TEXT_NODE
+				})
+				.map(function (node) {
+					return node.textContent;
+				})
+				.join("");
+			if (normalizeLabel(ownText) !== DOCUMENTOS_RETORNADOS_LABEL) continue;
+			const row = el.closest("tr") || el.parentElement;
+			if (row) return row;
+		}
+		return null;
+	}
+
+	// Coleta só os documentos do campo "Documento(s) Retornado(s):"
+	// (ver acima). Se o campo não for encontrado (ex.: Projudi mudou o
+	// texto do rótulo numa vara/versão diferente), cai de volta para
+	// coletar a tela de análise inteira, para não deixar de mostrar nada.
+	function collectDocumentosRetornados(doc, baseURL) {
+		const row = findDocumentosRetornadosRow(doc);
+		if (row) return collectDocsFrom(row, baseURL);
+		console.warn('[Projudi Preview] campo "Documento(s) Retornado(s)" não encontrado na tela de análise do mandado — usando a tela inteira');
+		return collectDocsFrom(doc, baseURL);
+	}
+
+	// Na tela de análise de um mandado, o botão "Analisar Retorno" (ex.:
+	// <input type="button" id="removeButton" value="Analisar Retorno"
+	// onclick="submitPage('URL', document.cumprimentoCartorioMandadoForm)">)
+	// segue o mesmo padrão de outros botões dessa tela (ex.: "Voltar") — a
+	// função `submitPage(url, form)` do próprio Projudi troca a `action` do
+	// formulário e o submete (POST) de verdade. Para reproduzir esse
+	// clique mais tarde, na aba de verdade (ver `submitAnalisarRetorno`),
+	// extraímos aqui a URL de destino e os campos atuais do formulário (via
+	// FormData, mesma técnica de fetchAbaInformacoesAdicionaisPOST em
+	// suspensaoAtiva.js) — sem preencher nem alterar nenhum campo, só
+	// copiando o que a tela já trouxe preenchido para aquele mandado
+	// específico.
+	const ANALISAR_RETORNO_LABEL = normalizeLabel("Analisar Retorno");
+
+	function extractAnalisarRetornoAction(doc, baseURL) {
+		const form = doc.getElementById("cumprimentoCartorioMandadoForm");
+		if (!form) return null;
+
+		const button =
+			doc.getElementById("removeButton") ||
+			Array.prototype.slice
+				.call(doc.querySelectorAll('input[type="button"], input[type="submit"], button'))
+				.find(function (b) {
+					return normalizeLabel(b.value || b.textContent) === ANALISAR_RETORNO_LABEL;
+				});
+		if (!button) return null;
+
+		const match = /submitPage\(\s*['"]([^'"]+)['"]/.exec(button.getAttribute("onclick") || "");
+		if (!match) return null;
+
+		let url;
+		try {
+			url = new URL(match[1], baseURL).href;
+		} catch (e) {
+			url = match[1];
+		}
+
+		const fields = [];
+		new FormData(form).forEach(function (value, name) {
+			if (typeof value === "string") fields.push([name, value]);
+		});
+
+		return { url: url, fields: fields };
+	}
 
 	const loaderToken = (function () {
 		try {
@@ -148,6 +388,7 @@
 			'  <div class="pdp-header">' +
 			'    <span class="pdp-title">Documento</span>' +
 			'    <div class="pdp-actions">' +
+			'      <button type="button" class="pdp-analisar-retorno" hidden>Analisar Retorno ↗</button>' +
 			'      <a class="pdp-open-tab" target="_blank" rel="noopener">Abrir em nova aba ↗</a>' +
 			'      <button type="button" class="pdp-close" title="Fechar (Esc)">✕</button>' +
 			"    </div>" +
@@ -169,6 +410,7 @@
 			frame: frame,
 			title: wrap.querySelector(".pdp-title"),
 			openTab: wrap.querySelector(".pdp-open-tab"),
+			analisarRetorno: wrap.querySelector(".pdp-analisar-retorno"),
 			onClose: null,
 		};
 
@@ -176,7 +418,43 @@
 			if (panel.onClose) panel.onClose();
 		});
 
+		panel.analisarRetorno.addEventListener("click", function () {
+			if (panel.analisarRetornoAction) submitAnalisarRetorno(panel.analisarRetornoAction);
+		});
+
 		return panel;
+	}
+
+	// Reproduz, na aba de verdade (não no iframe oculto de busca), o clique no
+	// botão "Analisar Retorno" da tela de detalhe de um mandado — poupando o
+	// usuário dos dois cliques manuais anteriores (abrir a pendência, depois
+	// a data na coluna "Ordenação"). NÃO preenche nenhum campo da tela
+	// seguinte ("Marcar Leitura" + "Resultado"): a marcação de opções na
+	// certidão do oficial de justiça é feita por cima do texto impresso
+	// (sem nenhum campo de formulário real no PDF), o que torna a leitura
+	// automática dessas marcações não confiável o bastante para preencher
+	// um registro do processo sem revisão humana — por isso o preenchimento
+	// continua 100% manual, só a navegação até a tela é automática.
+	//
+	// `action.url` e `action.fields` vêm do próprio botão "Analisar Retorno"
+	// da tela de detalhe do mandado (extraído em segundo plano por
+	// `extractAnalisarRetornoAction`, dentro do iframe de busca) — mesmo
+	// destino e mesmos campos que o botão de verdade enviaria via
+	// `submitPage(url, form)`.
+	function submitAnalisarRetorno(action) {
+		const form = document.createElement("form");
+		form.method = "POST";
+		form.action = action.url;
+		form.style.display = "none";
+		action.fields.forEach(function (pair) {
+			const input = document.createElement("input");
+			input.type = "hidden";
+			input.name = pair[0];
+			input.value = pair[1];
+			form.appendChild(input);
+		});
+		document.body.appendChild(form);
+		form.submit();
 	}
 
 	function positionPanel(panel, link, cascadeIndex) {
@@ -340,6 +618,14 @@
 			panel.openTab.href = doc.href;
 			panel.frame.src = doc.href;
 
+			// Documento retornado de um mandado (ver runLoaderMode/
+			// extractAnalisarRetornoAction): oferece o atalho para pular
+			// direto para a tela "Analisar Retorno" daquele mandado.
+			if (doc.analisarRetorno) {
+				panel.analisarRetornoAction = doc.analisarRetorno;
+				panel.analisarRetorno.hidden = false;
+			}
+
 			positionPanel(panel, link, index);
 			panel.wrap.classList.add("pdp-visible");
 
@@ -420,6 +706,213 @@
 	function cancelOpen() {
 		clearTimeout(openTimer);
 	}
+
+	// ---------------------------------------------------------------------
+	// Botão "Analisar Retorno" ao lado da pendência de mandado
+	// ---------------------------------------------------------------------
+	//
+	// Mesmo padrão de botão inline já usado para outras pendências desta
+	// extensão (ex.: "Dispensar juntadas" em juntadaDrag.js, "Finalizar
+	// conclusão" em finalizarConclusao.js): inserido logo depois do link da
+	// própria pendência, dentro de #quadroPendencias — aqui, ao lado de
+	// "Mandado: NN". Ao clicar, busca em segundo plano (mesmo mecanismo do
+	// hover — iframe oculto com token, ver openPendenciaGroup/runLoaderMode)
+	// a análise de cada mandado pendente daquele link e, quando há só um
+	// mandado, navega a aba de verdade direto para a última tela ("Marcar
+	// Leitura" + "Resultado do Cumprimento" — ver submitAnalisarRetorno),
+	// poupando os dois cliques manuais anteriores (abrir a listagem, depois
+	// a data na coluna "Ordenação"). Quando há mais de um mandado pendente
+	// no mesmo link, não escolhemos por conta própria qual analisar
+	// primeiro — pedimos para o usuário passar o mouse sobre o link e usar
+	// o botão "Analisar Retorno ↗" de dentro do painel do mandado desejado.
+
+	const MANDADO_PENDENCIA_HREF_MARKER = "/cumprimentoCartorioMandado.do";
+	const mandadoButtons = new WeakMap();
+
+	function isMandadoPendenciaLink(link) {
+		if (!isPendenciaLink(link)) return false;
+		const href = link.getAttribute("href") || "";
+		return href.indexOf(MANDADO_PENDENCIA_HREF_MARKER) !== -1;
+	}
+
+	// Busca independente do estado do hover (não usa/mexe em `pendenciaLoader`
+	// nem nos painéis de pré-visualização, para o botão poder ser clicado sem
+	// depender do mouse estar sobre a pendência nem fechar uma pré-visualização
+	// já aberta por outro link).
+	function fetchMandadoDocsFor(href) {
+		return new Promise(function (resolve) {
+			const token = "pdp-btn-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+			const iframe = document.createElement("iframe");
+			iframe.setAttribute(LOADER_ATTR, token);
+			iframe.style.position = "fixed";
+			iframe.style.top = "0";
+			iframe.style.left = "-9999px";
+			iframe.style.width = "1px";
+			iframe.style.height = "1px";
+			iframe.style.opacity = "0";
+			iframe.style.pointerEvents = "none";
+			iframe.setAttribute("aria-hidden", "true");
+
+			let settled = false;
+			const timeoutId = setTimeout(function () {
+				finish([]);
+			}, PENDENCIA_TIMEOUT_MS);
+
+			function finish(docs) {
+				if (settled) return;
+				settled = true;
+				window.removeEventListener("message", onMessage);
+				clearTimeout(timeoutId);
+				if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+				resolve(docs);
+			}
+
+			function onMessage(e) {
+				if (e.origin !== window.location.origin) return;
+				const data = e.data;
+				if (!data || data.source !== MESSAGE_SOURCE || data.type !== "pendencia-docs" || data.token !== token) return;
+				finish(Array.isArray(data.docs) ? data.docs : []);
+			}
+
+			window.addEventListener("message", onMessage);
+			document.body.appendChild(iframe);
+			iframe.src = href;
+		});
+	}
+
+	function iniciarAnaliseRetornoMandado(link, button) {
+		const href = link.getAttribute("href");
+		if (!href || button.disabled) return;
+
+		const originalLabel = button.textContent;
+		button.disabled = true;
+		button.textContent = "Abrindo…";
+
+		fetchMandadoDocsFor(href).then(function (docs) {
+			const actions = [];
+			const seen = Object.create(null);
+			docs.forEach(function (doc) {
+				if (!doc.analisarRetorno || seen[doc.analisarRetorno.url]) return;
+				seen[doc.analisarRetorno.url] = true;
+				actions.push(doc.analisarRetorno);
+			});
+
+			if (actions.length === 1) {
+				submitAnalisarRetorno(actions[0]);
+				return; // a aba vai navegar; não há mais botão para restaurar
+			}
+
+			button.disabled = false;
+			button.textContent = originalLabel;
+
+			if (actions.length > 1) {
+				alert(
+					'Há mais de um mandado pendente neste link. Passe o mouse sobre "' +
+						(link.textContent || "").trim() +
+						'" e use o botão "Analisar Retorno" de dentro do painel do mandado desejado.'
+				);
+			} else {
+				alert("Não foi possível localizar a tela de análise deste mandado automaticamente. Clique no link para abrir manualmente.");
+			}
+		});
+	}
+
+	function scanMandadoButtons() {
+		document.querySelectorAll(PENDENCIA_FIELDSET_SELECTOR + " a.link[href]").forEach(function (link) {
+			if (!isMandadoPendenciaLink(link)) return;
+
+			let button = mandadoButtons.get(link);
+			if (!button || !button.isConnected) {
+				button = document.createElement("button");
+				button.type = "button";
+				button.className = "pdp-analisar-retorno-mandado";
+				button.textContent = "Analisar Retorno";
+				button.title = "Pular direto para a tela de análise de retorno deste mandado";
+				button.addEventListener("click", function (e) {
+					e.preventDefault();
+					e.stopPropagation();
+					iniciarAnaliseRetornoMandado(link, button);
+				});
+				link.insertAdjacentElement("afterend", button);
+				mandadoButtons.set(link, button);
+			}
+		});
+	}
+
+	scanMandadoButtons();
+	new MutationObserver(scanMandadoButtons).observe(document.documentElement, { childList: true, subtree: true });
+
+	// ---------------------------------------------------------------------
+	// Botão "Analisar Retorno" na própria tela de listagem de mandados
+	// ---------------------------------------------------------------------
+	//
+	// A mesma tela de listagem (cumprimentoCartorioMandado.do?actionType=
+	// listar) também pode ser a página de verdade que o usuário está vendo
+	// — não só buscada em segundo plano por runLoaderMode (ex.: um oficial
+	// de cartório que abre essa tela direto, sem passar pelo quadro de
+	// Pendências de um processo específico). Cada linha já tem, na coluna
+	// "Ordenação", a data/hora de ordenação (<a class="url">); insere-se um
+	// botão "Analisar Retorno" logo abaixo dela, na mesma célula (ver
+	// `.pdp-analisar-retorno-mandado-row` em content.css), que busca a tela
+	// de análise daquele mandado (mesmas `fetchMandadoAnalise`/
+	// `extractAnalisarRetornoAction` de runLoaderMode) e navega a aba de
+	// verdade direto para a última tela — sem preencher nenhum campo dela,
+	// pelo mesmo motivo do botão do quadro de Pendências.
+
+	const mandadoListButtons = new WeakMap();
+
+	function iniciarAnaliseRetornoMandadoRow(link, button) {
+		const href = link.getAttribute("href");
+		if (!href || button.disabled) return;
+
+		let absolute;
+		try {
+			absolute = new URL(href, document.baseURI).href;
+		} catch (e) {
+			absolute = href;
+		}
+
+		const originalLabel = button.textContent;
+		button.disabled = true;
+		button.textContent = "Abrindo…";
+
+		fetchMandadoAnalise(absolute).then(function (doc) {
+			const action = doc && extractAnalisarRetornoAction(doc, absolute);
+			if (action) {
+				submitAnalisarRetorno(action);
+				return; // a aba vai navegar; não há mais botão para restaurar
+			}
+
+			button.disabled = false;
+			button.textContent = originalLabel;
+			alert("Não foi possível localizar a tela de análise deste mandado automaticamente. Clique na data para abrir manualmente.");
+		});
+	}
+
+	function scanMandadoListButtons() {
+		if (!isMandadoListScreen()) return;
+
+		findMandadoRowLinks().forEach(function (link) {
+			let button = mandadoListButtons.get(link);
+			if (!button || !button.isConnected) {
+				button = document.createElement("button");
+				button.type = "button";
+				button.className = "pdp-analisar-retorno-mandado pdp-analisar-retorno-mandado-row";
+				button.textContent = "Analisar Retorno";
+				button.title = "Pular direto para a tela de análise de retorno deste mandado";
+				button.addEventListener("click", function (e) {
+					e.preventDefault();
+					e.stopPropagation();
+					iniciarAnaliseRetornoMandadoRow(link, button);
+				});
+				link.insertAdjacentElement("afterend", button);
+				mandadoListButtons.set(link, button);
+			}
+		});
+	}
+
+	scanMandadoListButtons();
+	new MutationObserver(scanMandadoListButtons).observe(document.documentElement, { childList: true, subtree: true });
 
 	// Importante: NÃO chamamos stopPropagation()/stopImmediatePropagation()
 	// aqui. Outras extensões (ex.: AzFlow) também escutam esses mesmos
@@ -1188,29 +1681,9 @@
 	// Modo "loader": executado dentro do <iframe> oculto criado acima.
 	// ---------------------------------------------------------------------
 
+	// ---------------------------------------------------------------------
 	function runLoaderMode(token) {
 		const EXPAND_ICON_SELECTOR = 'a[id^="linkArquivos"] img, img[onclick*="showDetail"], img[id^="icon"]';
-
-		function collectDocsFrom(scope) {
-			const anchors = Array.prototype.slice.call(scope.querySelectorAll("a.link"));
-			const docs = [];
-
-			anchors.forEach(function (a) {
-				const href = a.getAttribute("href") || "";
-				if (href.indexOf(DOC_LINK_HREF_MARKER) === -1) return;
-
-				let absolute;
-				try {
-					absolute = new URL(href, document.baseURI).href;
-				} catch (e) {
-					absolute = href;
-				}
-
-				docs.push({ href: absolute, text: (a.textContent || "Documento").trim() });
-			});
-
-			return docs;
-		}
 
 		function dedupe(docs) {
 			const seen = Object.create(null);
@@ -1251,6 +1724,40 @@
 		}
 
 		function run() {
+			// Mandados devolvidos aguardando análise de retorno: cada linha
+			// pendente exige clicar na data (coluna "Ordenação") para abrir a
+			// tela de análise daquele mandado — buscamos cada uma em segundo
+			// plano (sem navegar esta página, para poder buscar todas em
+			// paralelo quando houver mais de um mandado pendente) e coletamos
+			// os documentos de cada tela de análise.
+			const mandadoLinks = isMandadoListScreen() ? findMandadoRowLinks() : [];
+			if (mandadoLinks.length) {
+				Promise.all(
+					mandadoLinks.map(function (link) {
+						let absolute;
+						try {
+							absolute = new URL(link.getAttribute("href"), document.baseURI).href;
+						} catch (e) {
+							absolute = link.getAttribute("href");
+						}
+						return fetchMandadoAnalise(absolute).then(function (doc) {
+							if (!doc) return [];
+							const docs = collectDocumentosRetornados(doc, absolute);
+							const action = extractAnalisarRetornoAction(doc, absolute);
+							if (action) {
+								docs.forEach(function (item) {
+									item.analisarRetorno = action;
+								});
+							}
+							return docs;
+						});
+					})
+				).then(function (docsPerMandado) {
+					finish(Array.prototype.concat.apply([], docsPerMandado));
+				});
+				return;
+			}
+
 			// A tela de análise (analisarJuntada.do e afins) normalmente lista o
 			// HISTÓRICO completo de juntadas/conclusões do processo, não só as
 			// pendentes — só as linhas com checkbox de seleção são as realmente
