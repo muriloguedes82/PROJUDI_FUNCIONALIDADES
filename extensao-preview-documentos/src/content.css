@@ -123,6 +123,16 @@ a.link[href*="/arquivo.do"]:hover,
 	cursor: wait;
 }
 
+/* Botão de linha na tela de listagem de mandados (coluna "Ordenação"):
+   fica abaixo da data/hora, não ao lado — célula é align="center". */
+.pdp-analisar-retorno-mandado-row {
+	display: block;
+	margin: 5px auto 0;
+	font-size: 11px;
+	padding: 3px 7px;
+	white-space: nowrap;
+}
+
 .pdp-overlay .pdp-close {
 	background: transparent;
 	border: none;

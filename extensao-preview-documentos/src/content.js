@@ -67,6 +67,18 @@
 // Havendo mais de um mandado pendente no mesmo link, não escolhe por conta
 // própria qual analisar — pede para o usuário passar o mouse sobre o link
 // e escolher pelo painel de pré-visualização de cada mandado.
+//
+// Há ainda um terceiro botão, igual aos dois primeiros, mas na própria
+// tela de listagem de mandados (cumprimentoCartorioMandado.do?actionType=
+// listar) — a mesma que os dois botões acima acabam abrindo em segundo
+// plano, mas que também pode ser a página de verdade que o usuário está
+// vendo (ex.: um oficial de cartório que abre essa listagem direto, sem
+// passar pelo quadro de Pendências de um processo específico). Nela, cada
+// linha pendente já tem a data/hora de ordenação (<a class="url">) na
+// coluna "Ordenação" — o botão é inserido logo abaixo dessa data/hora, na
+// mesma célula (ver `scanMandadoListButtons` e `.pdp-analisar-retorno-
+// mandado-row` em content.css), e navega a aba de verdade direto para a
+// última tela daquele mandado.
 
 (function () {
 	"use strict";
@@ -74,6 +86,191 @@
 	const LOADER_ATTR = "data-pdp-loader";
 	const MESSAGE_SOURCE = "projudi-preview";
 	const DOC_LINK_HREF_MARKER = "/arquivo.do";
+
+	// ---------------------------------------------------------------------
+	// Tela de "Cumprimentos Aguardando Análise de Retorno" (mandados
+	// devolvidos, ex.: cumprimentoCartorioMandado.do?actionType=listar) —
+	// helpers compartilhados entre runLoaderMode() (busca em segundo plano,
+	// disparada pelo hover na pendência ou pelo botão do quadro de
+	// Pendências) e o botão inline da própria tela de listagem (mais abaixo,
+	// no frame de verdade — ver scanMandadoListRowButtons). Diferente das
+	// telas de Análise de Juntadas/Conclusões, aqui não há ícone "+" nem
+	// checkbox — a análise de cada mandado só começa ao clicar na DATA da
+	// coluna "Ordenação" (<a class="url">), que navega para a tela de
+	// análise daquele mandado específico (confirmado a partir do .mhtml da
+	// tela de listagem: <table class="resultTable">, uma linha por mandado
+	// pendente, com <a class="url">DD/MM/AAAA HH:mm</a> na primeira coluna
+	// de dados). Precisam ficar aqui, ANTES do `if (loaderToken)` logo
+	// abaixo — runLoaderMode() pode chamá-las de imediato quando o próprio
+	// frame já é o de busca em segundo plano, e uma `const` declarada mais
+	// abaixo no arquivo ainda não teria sido inicializada nesse momento
+	// (temporal dead zone).
+	// ---------------------------------------------------------------------
+
+	const MANDADO_ROW_LINK_SELECTOR = "table.resultTable a.url[href]";
+
+	function isMandadoListScreen() {
+		return !!(document.getElementById("cumprimentoCartorioMandadoForm") || document.querySelector(MANDADO_ROW_LINK_SELECTOR));
+	}
+
+	function findMandadoRowLinks() {
+		return Array.prototype.slice.call(document.querySelectorAll(MANDADO_ROW_LINK_SELECTOR));
+	}
+
+	// Busca a tela de análise de um mandado específico (destino do clique na
+	// data) e devolve o Document já decodificado — mesma técnica (fetch +
+	// detecção de charset a partir do <meta charset>/cabeçalho HTTP) já
+	// usada em suspensaoAtiva.js e oraculoDirect.js para outras telas do
+	// Projudi, que também são servidas em windows-1252.
+	function fetchMandadoAnalise(href) {
+		return fetch(href, { credentials: "same-origin" })
+			.then(function (response) {
+				if (!response.ok) throw new Error("Projudi respondeu " + response.status + " " + response.statusText);
+				return response.arrayBuffer().then(function (bytes) {
+					const preview = new TextDecoder("windows-1252").decode(bytes.slice(0, 4096));
+					const charsetMatch =
+						/charset\s*=\s*["']?([\w-]+)/i.exec(response.headers.get("content-type") || "") ||
+						/charset\s*=\s*["']?([\w-]+)/i.exec(preview);
+					const charset = (charsetMatch && charsetMatch[1]) || "windows-1252";
+					const html = new TextDecoder(charset).decode(bytes);
+					return new DOMParser().parseFromString(html, "text/html");
+				});
+			})
+			.catch(function (err) {
+				console.warn("[Projudi Preview] falha ao buscar análise do mandado:", { href: href, erro: err && (err.stack || err.message || err) });
+				return null;
+			});
+	}
+
+	// `baseURL` é necessário para `scope` vindo de um documento buscado via
+	// fetch() (ex.: a tela de análise de um mandado, ver
+	// `fetchMandadoAnalise`) — um Document criado por DOMParser não sabe a
+	// URL de onde veio, então um href relativo (ex.: "arquivo.do?...")
+	// precisa ser resolvido contra a URL que foi buscada, não contra
+	// `document.baseURI` (que aqui é a URL desta própria página/iframe,
+	// ex.: a listagem de mandados, não a tela de análise).
+	function collectDocsFrom(scope, baseURL) {
+		const anchors = Array.prototype.slice.call(scope.querySelectorAll("a.link"));
+		const docs = [];
+
+		anchors.forEach(function (a) {
+			const href = a.getAttribute("href") || "";
+			if (href.indexOf(DOC_LINK_HREF_MARKER) === -1) return;
+
+			let absolute;
+			try {
+				absolute = new URL(href, baseURL || document.baseURI).href;
+			} catch (e) {
+				absolute = href;
+			}
+
+			docs.push({ href: absolute, text: (a.textContent || "Documento").trim() });
+		});
+
+		return docs;
+	}
+
+	// Normaliza um rótulo de campo para comparação: remove acentos, baixa
+	// caixa, colapsa espaços e ignora o sufixo "(s)" de plural opcional
+	// (ex.: "Documento(s) Retornado(s):" e "Documento Retornado:" devem
+	// casar com o mesmo padrão).
+	function normalizeLabel(text) {
+		return String(text || "")
+			.normalize("NFD")
+			.replace(/[̀-ͯ]/g, "")
+			.replace(/\(s\)/gi, "")
+			.replace(/\s+/g, " ")
+			.trim()
+			.toLowerCase()
+			.replace(/:$/, "");
+	}
+
+	// Na tela de análise de um mandado ("Mandado - Processo ..."), o
+	// campo "Documento(s) Retornado(s):" traz o(s) arquivo(s) que o
+	// oficial de justiça anexou ao devolver o mandado — normalmente uma
+	// certidão de cumprimento (às vezes com o resultado assinalado por
+	// checkbox: intimou/não intimou, citou/não citou, procedeu à
+	// diligência, etc.), texto que geralmente já basta para saber o
+	// resultado sem abrir mais nada. Essa é a informação que interessa
+	// aqui — não os demais documentos do processo, listados mais abaixo
+	// nessa mesma tela ("Documento(s) do Processo/Recurso"), que não têm
+	// relação com o retorno deste mandado específico.
+	const DOCUMENTOS_RETORNADOS_LABEL = normalizeLabel("Documento(s) Retornado(s):");
+
+	function findDocumentosRetornadosRow(doc) {
+		const candidates = doc.querySelectorAll("td, span, label, div");
+		for (const el of candidates) {
+			const ownText = Array.prototype.slice
+				.call(el.childNodes)
+				.filter(function (node) {
+					return node.nodeType === 3; // Node.TEXT_NODE
+				})
+				.map(function (node) {
+					return node.textContent;
+				})
+				.join("");
+			if (normalizeLabel(ownText) !== DOCUMENTOS_RETORNADOS_LABEL) continue;
+			const row = el.closest("tr") || el.parentElement;
+			if (row) return row;
+		}
+		return null;
+	}
+
+	// Coleta só os documentos do campo "Documento(s) Retornado(s):"
+	// (ver acima). Se o campo não for encontrado (ex.: Projudi mudou o
+	// texto do rótulo numa vara/versão diferente), cai de volta para
+	// coletar a tela de análise inteira, para não deixar de mostrar nada.
+	function collectDocumentosRetornados(doc, baseURL) {
+		const row = findDocumentosRetornadosRow(doc);
+		if (row) return collectDocsFrom(row, baseURL);
+		console.warn('[Projudi Preview] campo "Documento(s) Retornado(s)" não encontrado na tela de análise do mandado — usando a tela inteira');
+		return collectDocsFrom(doc, baseURL);
+	}
+
+	// Na tela de análise de um mandado, o botão "Analisar Retorno" (ex.:
+	// <input type="button" id="removeButton" value="Analisar Retorno"
+	// onclick="submitPage('URL', document.cumprimentoCartorioMandadoForm)">)
+	// segue o mesmo padrão de outros botões dessa tela (ex.: "Voltar") — a
+	// função `submitPage(url, form)` do próprio Projudi troca a `action` do
+	// formulário e o submete (POST) de verdade. Para reproduzir esse
+	// clique mais tarde, na aba de verdade (ver `submitAnalisarRetorno`),
+	// extraímos aqui a URL de destino e os campos atuais do formulário (via
+	// FormData, mesma técnica de fetchAbaInformacoesAdicionaisPOST em
+	// suspensaoAtiva.js) — sem preencher nem alterar nenhum campo, só
+	// copiando o que a tela já trouxe preenchido para aquele mandado
+	// específico.
+	const ANALISAR_RETORNO_LABEL = normalizeLabel("Analisar Retorno");
+
+	function extractAnalisarRetornoAction(doc, baseURL) {
+		const form = doc.getElementById("cumprimentoCartorioMandadoForm");
+		if (!form) return null;
+
+		const button =
+			doc.getElementById("removeButton") ||
+			Array.prototype.slice
+				.call(doc.querySelectorAll('input[type="button"], input[type="submit"], button'))
+				.find(function (b) {
+					return normalizeLabel(b.value || b.textContent) === ANALISAR_RETORNO_LABEL;
+				});
+		if (!button) return null;
+
+		const match = /submitPage\(\s*['"]([^'"]+)['"]/.exec(button.getAttribute("onclick") || "");
+		if (!match) return null;
+
+		let url;
+		try {
+			url = new URL(match[1], baseURL).href;
+		} catch (e) {
+			url = match[1];
+		}
+
+		const fields = [];
+		new FormData(form).forEach(function (value, name) {
+			if (typeof value === "string") fields.push([name, value]);
+		});
+
+		return { url: url, fields: fields };
+	}
 
 	const loaderToken = (function () {
 		try {
@@ -644,6 +841,78 @@
 
 	scanMandadoButtons();
 	new MutationObserver(scanMandadoButtons).observe(document.documentElement, { childList: true, subtree: true });
+
+	// ---------------------------------------------------------------------
+	// Botão "Analisar Retorno" na própria tela de listagem de mandados
+	// ---------------------------------------------------------------------
+	//
+	// A mesma tela de listagem (cumprimentoCartorioMandado.do?actionType=
+	// listar) também pode ser a página de verdade que o usuário está vendo
+	// — não só buscada em segundo plano por runLoaderMode (ex.: um oficial
+	// de cartório que abre essa tela direto, sem passar pelo quadro de
+	// Pendências de um processo específico). Cada linha já tem, na coluna
+	// "Ordenação", a data/hora de ordenação (<a class="url">); insere-se um
+	// botão "Analisar Retorno" logo abaixo dela, na mesma célula (ver
+	// `.pdp-analisar-retorno-mandado-row` em content.css), que busca a tela
+	// de análise daquele mandado (mesmas `fetchMandadoAnalise`/
+	// `extractAnalisarRetornoAction` de runLoaderMode) e navega a aba de
+	// verdade direto para a última tela — sem preencher nenhum campo dela,
+	// pelo mesmo motivo do botão do quadro de Pendências.
+
+	const mandadoListButtons = new WeakMap();
+
+	function iniciarAnaliseRetornoMandadoRow(link, button) {
+		const href = link.getAttribute("href");
+		if (!href || button.disabled) return;
+
+		let absolute;
+		try {
+			absolute = new URL(href, document.baseURI).href;
+		} catch (e) {
+			absolute = href;
+		}
+
+		const originalLabel = button.textContent;
+		button.disabled = true;
+		button.textContent = "Abrindo…";
+
+		fetchMandadoAnalise(absolute).then(function (doc) {
+			const action = doc && extractAnalisarRetornoAction(doc, absolute);
+			if (action) {
+				submitAnalisarRetorno(action);
+				return; // a aba vai navegar; não há mais botão para restaurar
+			}
+
+			button.disabled = false;
+			button.textContent = originalLabel;
+			alert("Não foi possível localizar a tela de análise deste mandado automaticamente. Clique na data para abrir manualmente.");
+		});
+	}
+
+	function scanMandadoListButtons() {
+		if (!isMandadoListScreen()) return;
+
+		findMandadoRowLinks().forEach(function (link) {
+			let button = mandadoListButtons.get(link);
+			if (!button || !button.isConnected) {
+				button = document.createElement("button");
+				button.type = "button";
+				button.className = "pdp-analisar-retorno-mandado pdp-analisar-retorno-mandado-row";
+				button.textContent = "Analisar Retorno";
+				button.title = "Pular direto para a tela de análise de retorno deste mandado";
+				button.addEventListener("click", function (e) {
+					e.preventDefault();
+					e.stopPropagation();
+					iniciarAnaliseRetornoMandadoRow(link, button);
+				});
+				link.insertAdjacentElement("afterend", button);
+				mandadoListButtons.set(link, button);
+			}
+		});
+	}
+
+	scanMandadoListButtons();
+	new MutationObserver(scanMandadoListButtons).observe(document.documentElement, { childList: true, subtree: true });
 
 	// Importante: NÃO chamamos stopPropagation()/stopImmediatePropagation()
 	// aqui. Outras extensões (ex.: AzFlow) também escutam esses mesmos
@@ -1412,185 +1681,9 @@
 	// Modo "loader": executado dentro do <iframe> oculto criado acima.
 	// ---------------------------------------------------------------------
 
+	// ---------------------------------------------------------------------
 	function runLoaderMode(token) {
 		const EXPAND_ICON_SELECTOR = 'a[id^="linkArquivos"] img, img[onclick*="showDetail"], img[id^="icon"]';
-
-		// Tela de "Cumprimentos Aguardando Análise de Retorno" (mandados
-		// devolvidos, ex.: cumprimentoCartorioMandado.do?actionType=listar):
-		// diferente das telas de Análise de Juntadas/Conclusões, aqui não há
-		// ícone "+" nem checkbox — a análise de cada mandado só começa ao
-		// clicar na DATA da coluna "Ordenação" (<a class="url">), que navega
-		// para a tela de análise daquele mandado específico (confirmado a
-		// partir do .mhtml da tela de listagem: <table class="resultTable">,
-		// uma linha por mandado pendente, com <a class="url">DD/MM/AAAA
-		// HH:mm</a> na primeira coluna de dados). Sem esse clique adicional,
-		// a pré-visualização ficaria presa nesta listagem, sem nenhum
-		// documento para mostrar.
-		const MANDADO_ROW_LINK_SELECTOR = "table.resultTable a.url[href]";
-
-		function isMandadoListScreen() {
-			return !!(document.getElementById("cumprimentoCartorioMandadoForm") || document.querySelector(MANDADO_ROW_LINK_SELECTOR));
-		}
-
-		function findMandadoRowLinks() {
-			return Array.prototype.slice.call(document.querySelectorAll(MANDADO_ROW_LINK_SELECTOR));
-		}
-
-		// Busca, em segundo plano, a tela de análise de um mandado específico
-		// (destino do clique na data) e devolve o Document já decodificado —
-		// mesma técnica (fetch + detecção de charset a partir do <meta
-		// charset>/cabeçalho HTTP) já usada em suspensaoAtiva.js e
-		// oraculoDirect.js para outras telas do Projudi, que também são
-		// servidas em windows-1252.
-		function fetchMandadoAnalise(href) {
-			return fetch(href, { credentials: "same-origin" })
-				.then(function (response) {
-					if (!response.ok) throw new Error("Projudi respondeu " + response.status + " " + response.statusText);
-					return response.arrayBuffer().then(function (bytes) {
-						const preview = new TextDecoder("windows-1252").decode(bytes.slice(0, 4096));
-						const charsetMatch =
-							/charset\s*=\s*["']?([\w-]+)/i.exec(response.headers.get("content-type") || "") ||
-							/charset\s*=\s*["']?([\w-]+)/i.exec(preview);
-						const charset = (charsetMatch && charsetMatch[1]) || "windows-1252";
-						const html = new TextDecoder(charset).decode(bytes);
-						return new DOMParser().parseFromString(html, "text/html");
-					});
-				})
-				.catch(function (err) {
-					console.warn("[Projudi Preview] falha ao buscar análise do mandado:", { href: href, erro: err && (err.stack || err.message || err) });
-					return null;
-				});
-		}
-
-		// `baseURL` é necessário para `scope` vindo de um documento buscado via
-		// fetch() (ex.: a tela de análise de um mandado, ver
-		// `fetchMandadoAnalise`) — um Document criado por DOMParser não sabe a
-		// URL de onde veio, então um href relativo (ex.: "arquivo.do?...")
-		// precisa ser resolvido contra a URL que foi buscada, não contra
-		// `document.baseURI` (que aqui é a URL desta própria página/iframe,
-		// ex.: a listagem de mandados, não a tela de análise).
-		function collectDocsFrom(scope, baseURL) {
-			const anchors = Array.prototype.slice.call(scope.querySelectorAll("a.link"));
-			const docs = [];
-
-			anchors.forEach(function (a) {
-				const href = a.getAttribute("href") || "";
-				if (href.indexOf(DOC_LINK_HREF_MARKER) === -1) return;
-
-				let absolute;
-				try {
-					absolute = new URL(href, baseURL || document.baseURI).href;
-				} catch (e) {
-					absolute = href;
-				}
-
-				docs.push({ href: absolute, text: (a.textContent || "Documento").trim() });
-			});
-
-			return docs;
-		}
-
-		// Normaliza um rótulo de campo para comparação: remove acentos, baixa
-		// caixa, colapsa espaços e ignora o sufixo "(s)" de plural opcional
-		// (ex.: "Documento(s) Retornado(s):" e "Documento Retornado:" devem
-		// casar com o mesmo padrão).
-		function normalizeLabel(text) {
-			return String(text || "")
-				.normalize("NFD")
-				.replace(/[̀-ͯ]/g, "")
-				.replace(/\(s\)/gi, "")
-				.replace(/\s+/g, " ")
-				.trim()
-				.toLowerCase()
-				.replace(/:$/, "");
-		}
-
-		// Na tela de análise de um mandado ("Mandado - Processo ..."), o
-		// campo "Documento(s) Retornado(s):" traz o(s) arquivo(s) que o
-		// oficial de justiça anexou ao devolver o mandado — normalmente uma
-		// certidão de cumprimento (às vezes com o resultado assinalado por
-		// checkbox: intimou/não intimou, citou/não citou, procedeu à
-		// diligência, etc.), texto que geralmente já basta para saber o
-		// resultado sem abrir mais nada. Essa é a informação que interessa
-		// aqui — não os demais documentos do processo, listados mais abaixo
-		// nessa mesma tela ("Documento(s) do Processo/Recurso"), que não têm
-		// relação com o retorno deste mandado específico.
-		const DOCUMENTOS_RETORNADOS_LABEL = normalizeLabel("Documento(s) Retornado(s):");
-
-		function findDocumentosRetornadosRow(doc) {
-			const candidates = doc.querySelectorAll("td, span, label, div");
-			for (const el of candidates) {
-				const ownText = Array.prototype.slice
-					.call(el.childNodes)
-					.filter(function (node) {
-						return node.nodeType === 3; // Node.TEXT_NODE
-					})
-					.map(function (node) {
-						return node.textContent;
-					})
-					.join("");
-				if (normalizeLabel(ownText) !== DOCUMENTOS_RETORNADOS_LABEL) continue;
-				const row = el.closest("tr") || el.parentElement;
-				if (row) return row;
-			}
-			return null;
-		}
-
-		// Coleta só os documentos do campo "Documento(s) Retornado(s):"
-		// (ver acima). Se o campo não for encontrado (ex.: Projudi mudou o
-		// texto do rótulo numa vara/versão diferente), cai de volta para
-		// coletar a tela de análise inteira, para não deixar de mostrar nada.
-		function collectDocumentosRetornados(doc, baseURL) {
-			const row = findDocumentosRetornadosRow(doc);
-			if (row) return collectDocsFrom(row, baseURL);
-			console.warn('[Projudi Preview] campo "Documento(s) Retornado(s)" não encontrado na tela de análise do mandado — usando a tela inteira');
-			return collectDocsFrom(doc, baseURL);
-		}
-
-		// Na tela de análise de um mandado, o botão "Analisar Retorno" (ex.:
-		// <input type="button" id="removeButton" value="Analisar Retorno"
-		// onclick="submitPage('URL', document.cumprimentoCartorioMandadoForm)">)
-		// segue o mesmo padrão de outros botões dessa tela (ex.: "Voltar") — a
-		// função `submitPage(url, form)` do próprio Projudi troca a `action` do
-		// formulário e o submete (POST) de verdade. Para reproduzir esse
-		// clique mais tarde, na aba de verdade (ver `submitAnalisarRetorno` em
-		// content.js), extraímos aqui a URL de destino e os campos atuais do
-		// formulário (via FormData, mesma técnica de
-		// fetchAbaInformacoesAdicionaisPOST em suspensaoAtiva.js) — sem
-		// preencher nem alterar nenhum campo, só copiando o que a tela já
-		// trouxe preenchido para aquele mandado específico.
-		const ANALISAR_RETORNO_LABEL = normalizeLabel("Analisar Retorno");
-
-		function extractAnalisarRetornoAction(doc, baseURL) {
-			const form = doc.getElementById("cumprimentoCartorioMandadoForm");
-			if (!form) return null;
-
-			const button =
-				doc.getElementById("removeButton") ||
-				Array.prototype.slice
-					.call(doc.querySelectorAll('input[type="button"], input[type="submit"], button'))
-					.find(function (b) {
-						return normalizeLabel(b.value || b.textContent) === ANALISAR_RETORNO_LABEL;
-					});
-			if (!button) return null;
-
-			const match = /submitPage\(\s*['"]([^'"]+)['"]/.exec(button.getAttribute("onclick") || "");
-			if (!match) return null;
-
-			let url;
-			try {
-				url = new URL(match[1], baseURL).href;
-			} catch (e) {
-				url = match[1];
-			}
-
-			const fields = [];
-			new FormData(form).forEach(function (value, name) {
-				if (typeof value === "string") fields.push([name, value]);
-			});
-
-			return { url: url, fields: fields };
-		}
 
 		function dedupe(docs) {
 			const seen = Object.create(null);
