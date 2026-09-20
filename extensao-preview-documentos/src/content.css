@@ -77,11 +77,15 @@ a.link[href*="/arquivo.do"]:hover,
 	opacity: 1;
 }
 
+/* Mesma paleta olive já usada em "Dispensar juntadas" (juntadaDrag.css) e
+   "Finalizar conclusão" (finalizarConclusao.js), para os botões de
+   "Analisar Retorno" (painel de pré-visualização e quadro de Pendências)
+   seguirem o mesmo padrão visual já estabelecido nesta extensão. */
 .pdp-overlay .pdp-analisar-retorno {
-	background: #fff4d9;
-	border: 1px solid #d99400;
-	color: #8a5800;
-	font-size: 11px;
+	background: #f5f7ef;
+	border: 1px solid #a5ac9a;
+	color: #35412b;
+	font: 11px Arial, sans-serif;
 	font-weight: bold;
 	white-space: nowrap;
 	border-radius: 4px;
@@ -90,28 +94,33 @@ a.link[href*="/arquivo.do"]:hover,
 }
 
 .pdp-overlay .pdp-analisar-retorno:hover {
-	background: #ffe9b3;
+	background: #e7edda;
 }
 
 .pdp-analisar-retorno-mandado {
-	margin-left: 12px;
-	padding: 3px 10px;
-	border: 1px solid #d99400;
+	margin-left: 10px;
+	padding: 4px 9px;
+	border: 1px solid #a5ac9a;
 	border-radius: 4px;
-	background: #fff4d9;
-	color: #8a5800;
-	font-size: 12px;
-	font-weight: bold;
+	background: #f5f7ef;
+	color: #35412b;
+	font: 12px Arial, sans-serif;
 	cursor: pointer;
+	vertical-align: middle;
 }
 
 .pdp-analisar-retorno-mandado:hover {
-	background: #ffe9b3;
+	background: #e7edda;
+}
+
+.pdp-analisar-retorno-mandado:focus-visible {
+	outline: 2px solid #526b32;
+	outline-offset: 2px;
 }
 
 .pdp-analisar-retorno-mandado:disabled {
-	opacity: 0.6;
-	cursor: default;
+	opacity: 0.55;
+	cursor: wait;
 }
 
 .pdp-overlay .pdp-close {
