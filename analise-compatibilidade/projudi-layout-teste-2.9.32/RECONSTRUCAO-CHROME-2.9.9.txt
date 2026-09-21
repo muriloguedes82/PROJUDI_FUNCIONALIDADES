@@ -1,0 +1,2 @@
+Chrome 2.9.9 reconstruída em 17/09/2026 a partir da Chrome 2.9.4 original e do patch Oráculo preservado na Firefox 2.9.11.
+Foram mantidos o service worker, offscreen clipboard e demais implementações próprias do Chrome; não foram importadas as pontes/correções exclusivas do Firefox.
