@@ -352,6 +352,7 @@
 	let pendenciaPanels = [];
 	let activePendenciaLink = null;
 	let pendenciaLoader = null; // { iframe, token, cleanup }
+	let movementMultipleNotice = null;
 
 	function isDocumentLink(el) {
 		if (!(el instanceof HTMLAnchorElement)) return false;
@@ -378,6 +379,55 @@
 		if (!(target instanceof Element)) return null;
 		const link = target.closest("a.link");
 		return isPendenciaLink(link) ? link : null;
+	}
+
+	// Link textual da movimentação. Só é elegível quando a própria linha
+	// possui o controle "Arquivos"; linhas que têm apenas "Intimações" ou
+	// nenhum anexo continuam com o comportamento nativo, sem Preview vazio.
+	function movementFileToggle(link) {
+		const row = link && link.closest('tr[id^="mov1Grau,"]');
+		return row && row.querySelector('a[class*="linkArquivos"] img[onclick*="showDetail"]');
+	}
+
+	function isMovementLink(el) {
+		if (!(el instanceof HTMLAnchorElement) || !el.classList.contains("link")) return false;
+		if (!movementFileToggle(el)) return false;
+		try {
+			return new URL(el.getAttribute("href"), document.baseURI).pathname === "/projudi/movimentacao.do";
+		} catch (e) {
+			return false;
+		}
+	}
+
+	function findMovementLink(target) {
+		if (!(target instanceof Element)) return null;
+		const link = target.closest("a.link");
+		return isMovementLink(link) ? link : null;
+	}
+
+	function findPreviewGroupLink(target) {
+		return findPendenciaLink(target) || findMovementLink(target);
+	}
+
+	// Se o usuário já abriu o "+", usa os links que estão na página e evita
+	// qualquer nova consulta. O id da linha expandida vem do próprio
+	// onclick="showDetail('rowmovimentacoesN', ...)" do Projudi.
+	function loadedMovementDocs(link) {
+		const toggle = movementFileToggle(link);
+		if (!toggle) return [];
+		const onclick = toggle.getAttribute("onclick") || "";
+		const match = onclick.match(/showDetail\(\s*['"]([^'"]+)/);
+		const container = match && document.getElementById(match[1]);
+		if (!container) return [];
+		return Array.prototype.slice
+			.call(container.querySelectorAll('a.link[href*="/arquivo.do"]'))
+			.filter(isDocumentLink)
+			.map(function (docLink) {
+				return {
+					href: new URL(docLink.getAttribute("href"), document.baseURI).href,
+					text: (docLink.textContent || "Documento").trim(),
+				};
+			});
 	}
 
 	function buildPanel() {
@@ -552,6 +602,8 @@
 			panel.wrap.remove();
 		});
 		pendenciaPanels = [];
+		if (movementMultipleNotice) movementMultipleNotice.remove();
+		movementMultipleNotice = null;
 		activePendenciaLink = null;
 	}
 
@@ -599,7 +651,39 @@
 		activePendenciaLink = link;
 	}
 
+	function positionMovementMultipleNotice(notice, link) {
+		const rect = link.getBoundingClientRect();
+		const margin = 8;
+		const noticeRect = notice.getBoundingClientRect();
+		let left = rect.right + margin;
+		if (left + noticeRect.width > window.innerWidth - margin) {
+			left = Math.max(margin, rect.left - margin - noticeRect.width);
+		}
+		let top = rect.top + (rect.height - noticeRect.height) / 2;
+		top = Math.max(margin, Math.min(top, window.innerHeight - noticeRect.height - margin));
+		notice.style.left = left + "px";
+		notice.style.top = top + "px";
+	}
+
+	function showMovementMultipleNotice(link, count) {
+		closeAllPendenciaPanels();
+		activePendenciaLink = link;
+		const notice = document.createElement("div");
+		notice.className = "pdp-multiple-docs-notice";
+		notice.setAttribute("role", "status");
+		notice.textContent = "Múltiplos documentos (" + count + " arquivos)";
+		notice.addEventListener("mouseenter", cancelClosePendencia);
+		notice.addEventListener("mouseleave", scheduleClosePendencia);
+		document.body.appendChild(notice);
+		movementMultipleNotice = notice;
+		positionMovementMultipleNotice(notice, link);
+	}
+
 	function showPendenciaDocs(link, docs) {
+		if (isMovementLink(link) && docs.length > 1) {
+			showMovementMultipleNotice(link, docs.length);
+			return;
+		}
 		closeAllPendenciaPanels();
 		activePendenciaLink = link;
 
@@ -644,7 +728,10 @@
 	}
 
 	function openPendenciaGroup(link) {
-		if (activePendenciaLink === link && (pendenciaPanels.length || (pendenciaLoader && pendenciaLoader.link === link))) {
+		if (
+			activePendenciaLink === link &&
+			(pendenciaPanels.length || movementMultipleNotice || (pendenciaLoader && pendenciaLoader.link === link))
+		) {
 			return;
 		}
 
@@ -679,7 +766,9 @@
 			if (!docs.length) {
 				showPendenciaMessage(
 					link,
-					"Nenhum documento encontrado para pré-visualização. Clique no link para abrir a análise completa."
+					isMovementLink(link)
+						? "Nenhum documento encontrado para pré-visualização nesta movimentação."
+						: "Nenhum documento encontrado para pré-visualização. Clique no link para abrir a análise completa."
 				);
 				return;
 			}
@@ -691,7 +780,9 @@
 			if (activePendenciaLink === link && !pendenciaPanels.length) {
 				showPendenciaMessage(
 					link,
-					"Não foi possível carregar a pré-visualização a tempo. Clique no link para abrir a análise completa."
+					isMovementLink(link)
+						? "Não foi possível carregar os documentos desta movimentação a tempo."
+						: "Não foi possível carregar a pré-visualização a tempo. Clique no link para abrir a análise completa."
 				);
 			}
 		}, PENDENCIA_TIMEOUT_MS);
@@ -701,6 +792,20 @@
 		window.addEventListener("message", onMessage);
 		document.body.appendChild(iframe);
 		iframe.src = href;
+	}
+
+	function openPreviewGroup(link) {
+		if (isMovementLink(link)) {
+			const docs = loadedMovementDocs(link);
+			if (docs.length) {
+				showPendenciaDocs(link, docs);
+				return;
+			}
+		}
+		// Com o "+" fechado, abre a URL da movimentação somente num iframe
+		// invisível. O modo loader acima encontra os arquivos e devolve seus
+		// links; a página que o usuário está vendo não navega nem se expande.
+		openPendenciaGroup(link);
 	}
 
 	function cancelOpen() {
@@ -1000,12 +1105,12 @@
 				return;
 			}
 
-			const pendenciaLink = findPendenciaLink(e.target);
-			if (pendenciaLink) {
+			const groupLink = findPreviewGroupLink(e.target);
+			if (groupLink) {
 				cancelClosePendencia();
 				cancelOpen();
 				openTimer = setTimeout(function () {
-					openPendenciaGroup(pendenciaLink);
+					openPreviewGroup(groupLink);
 				}, OPEN_DELAY_MS);
 			}
 		},
@@ -1025,14 +1130,15 @@
 				return;
 			}
 
-			const pendenciaLink = findPendenciaLink(e.target);
-			if (pendenciaLink) {
+			const groupLink = findPreviewGroupLink(e.target);
+			if (groupLink) {
 				const toEl = e.relatedTarget;
 				const stillInsideAPanel =
 					toEl &&
-					pendenciaPanels.some(function (panel) {
-						return panel.wrap.contains(toEl);
-					});
+					((movementMultipleNotice && movementMultipleNotice.contains(toEl)) ||
+						pendenciaPanels.some(function (panel) {
+							return panel.wrap.contains(toEl);
+						}));
 				if (stillInsideAPanel) return;
 				scheduleClosePendencia();
 			}
@@ -1059,6 +1165,9 @@
 				pendenciaPanels.forEach(function (panel, index) {
 					positionPanel(panel, activePendenciaLink, index);
 				});
+			}
+			if (activePendenciaLink && movementMultipleNotice) {
+				positionMovementMultipleNotice(movementMultipleNotice, activePendenciaLink);
 			}
 		},
 		true

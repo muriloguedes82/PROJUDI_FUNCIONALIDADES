@@ -25,6 +25,20 @@ a.link[href*="/arquivo.do"]:hover,
 	transform: translateY(0);
 }
 
+.pdp-multiple-docs-notice {
+	position: fixed;
+	z-index: 2147483647;
+	padding: 7px 10px;
+	background: #fff8d8;
+	color: #4b431d;
+	border: 1px solid #c8b75c;
+	border-radius: 4px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+	font: bold 12px Arial, Helvetica, sans-serif;
+	white-space: nowrap;
+	pointer-events: auto;
+}
+
 .pdp-overlay .pdp-panel {
 	width: 100%;
 	height: 100%;
