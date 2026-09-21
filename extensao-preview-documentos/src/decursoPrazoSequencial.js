@@ -63,34 +63,81 @@
 		return input;
 	}
 
-	function seqDaLinha(row) {
+	// Só mexemos em linhas que claramente são "linha de processo" da própria
+	// tela (têm o link para processo.do na 2ª coluna, igual ao exemplo real
+	// registrado no header da coluna: "Processo" / "Seq."). A tela também
+	// pode ter outras linhas nesse <tbody> que não são nossas — geradas por
+	// outra extensão/script de extração em massa que já existe nessa mesma
+	// tabela (ex.: os botões "Extrair Retorno"/"Baixar Retorno", que não
+	// fazem parte desta extensão) — e essas nunca devem ser tocadas.
+	function linkDoProcesso(row) {
 		const celulas = row.querySelectorAll("td");
 		const celula = celulas[1];
 		if (!celula) return null;
+		return celula.querySelector('a[href*="/processo.do"]');
+	}
 
+	function seqDaLinha(celula) {
 		const br = celula.querySelector("br");
 		const texto = br && br.nextSibling ? br.nextSibling.textContent : celula.textContent;
 		const encontrado = String(texto || "").trim().match(/(\d+)\s*$/);
 		return encontrado ? encontrado[1] : null;
 	}
 
+	function amostraHTML(row) {
+		const html = row.outerHTML || "";
+		return html.length > 220 ? html.slice(0, 220) + "…" : html;
+	}
+
 	function filtrarTabela(digito) {
 		const tabela = document.querySelector("table.resultTable");
-		if (!tabela) return;
+		if (!tabela) {
+			console.log(TAG, "table.resultTable não encontrada na página — nada a filtrar");
+			return;
+		}
 
-		let total = 0;
+		const linhas = Array.from(tabela.querySelectorAll("tbody > tr"));
+		const reconhecidas = [];
+		const ignoradas = [];
 		let visiveis = 0;
-		tabela.querySelectorAll("tbody > tr").forEach(function (row) {
-			if (!row.querySelector("td")) return;
-			total++;
 
-			const seq = seqDaLinha(row);
+		linhas.forEach(function (row, indice) {
+			if (!row.querySelector("td")) return;
+
+			const link = linkDoProcesso(row);
+			if (!link) {
+				ignoradas.push({ indice: indice, motivo: "sem link para processo.do na 2ª coluna", html: amostraHTML(row) });
+				return; // nunca ocultamos linha que não reconhecemos como "linha de processo"
+			}
+
+			const celula = link.closest("td");
+			const seq = seqDaLinha(celula);
 			const manter = !digito || seq === null || seq.slice(-1) === digito;
 			row.style.display = manter ? "" : "none";
 			if (manter) visiveis++;
+
+			reconhecidas.push({
+				indice: indice,
+				processo: link.textContent.trim().replace(/\s+/g, " "),
+				seq: seq,
+				oculta: !manter,
+			});
 		});
 
-		console.log(TAG, "filtro aplicado — dígito:", digito || "(nenhum)", "| linhas visíveis:", visiveis, "de", total);
+		console.groupCollapsed(
+			TAG,
+			"filtro aplicado — dígito:", digito || "(nenhum)",
+			"| linhas na tabela:", linhas.length,
+			"| reconhecidas como processo:", reconhecidas.length,
+			"| ignoradas (não mexidas):", ignoradas.length,
+			"| visíveis após filtro:", visiveis
+		);
+		if (reconhecidas.length) console.table(reconhecidas);
+		if (ignoradas.length) {
+			console.warn(TAG, ignoradas.length, "linha(s) no tbody não reconhecidas como linha de processo — preservadas sem alteração. Amostra:");
+			console.table(ignoradas.slice(0, 5));
+		}
+		console.groupEnd();
 	}
 
 	const form = document.querySelector("#intimacaoBuscaForm");
@@ -109,5 +156,9 @@
 	}
 
 	const digitoSalvo = sessionStorage.getItem(STORAGE_KEY);
-	if (digitoValido(digitoSalvo)) filtrarTabela(digitoSalvo);
+	if (digitoValido(digitoSalvo)) {
+		console.log(TAG, 'reaplicando dígito salvo de um "Filtrar" anterior nesta aba:', digitoSalvo,
+			"— para limpar, apague o campo Sequencial e clique em Filtrar de novo");
+		filtrarTabela(digitoSalvo);
+	}
 })();
