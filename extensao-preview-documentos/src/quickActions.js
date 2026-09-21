@@ -1835,14 +1835,50 @@
 	//   de mandados devolvidos): mesma ideia, mas para uma ação cujo botão
 	//   nativo faz um POST (via `submitPage(url, form)`) em vez de um link
 	//   GET comum - o caso de openActionModal (`src` direto no iframe) não
-	//   serve aqui, pois um GET não reproduziria o POST original. Diferente
-	//   do aviso acima sobre `<form target="...">`, aqui o iframe já existe
-	//   e está conectado ao documento (criado por showActionModal antes do
-	//   form ser montado), então seu nome já é um alvo de navegação válido
-	//   no momento do submit - a armadilha da ABA NOVA só ocorre quando o
-	//   iframe é criado/nomeado no mesmíssimo instante da tentativa de
-	//   mirar nele, o que não é o caso aqui.
+	//   serve aqui, pois um GET não reproduziria o POST original.
+	//
+	//   A primeira versão disto usava um `<form target="nome-do-iframe">`
+	//   mirando o iframe já existente do popup, na suposição de que isso
+	//   seria seguro por o iframe já estar conectado ao documento (ao
+	//   contrário do aviso acima sobre openActionModal, que é sobre um
+	//   iframe criado/nomeado no mesmíssimo instante da tentativa de mirar
+	//   nele). Testado ao vivo, isso também abriu uma ABA NOVA em vez de
+	//   navegar o iframe do popup - ou seja, a mesma armadilha ocorre mesmo
+	//   com o iframe já presente no DOM, então esta técnica foi abandonada
+	//   por completo (não é só "quando o nome não é reconhecido a tempo").
+	//
+	//   Em vez disso, reproduzimos o POST em segundo plano via fetch() -
+	//   mesma técnica de leitura já usada por `readPage()` em
+	//   habilitarAdvogado.js e por `fetchMandadoAnalise()` em content.js
+	//   (inclusive a mesma detecção de charset, já que o Projudi serve em
+	//   windows-1252) - e escrevemos o HTML resultante diretamente no
+	//   iframe do popup via `iframe.srcdoc`, com uma tag `<base href="...">`
+	//   injetada logo no `<head>` apontando para a URL de verdade da
+	//   resposta. Sem essa tag, os links/formulários/scripts relativos da
+	//   tela resultante (ex.: os botões nativos "Marcar Leitura"/
+	//   "Confirmar" da tela seguinte) resolveriam contra "about:srcdoc" e
+	//   quebrariam; com ela, se comportam como se o iframe tivesse navegado
+	//   de verdade para aquela URL - inclusive o clique num desses botões
+	//   nativos, que faz uma navegação real do iframe (não mais um
+	//   `srcdoc`), então o shim de opener/close e o `checkFlagClosePopup`
+	//   (ambos ligados ao evento "load" do iframe, que dispara tanto ao
+	//   final de um `srcdoc` quanto de uma navegação comum) continuam
+	//   funcionando normalmente daí em diante.
 	// -------------------------------------------------------------------
+
+	// Insere `<base href="...">` logo após a abertura do `<head>` (ou cria
+	// um `<head>` mínimo se a página não tiver um, caso nunca visto no
+	// Projudi mas tratado por segurança) - resolve todo link/formulário/
+	// script relativo do HTML como se ele tivesse navegado de verdade para
+	// `baseUrl`, mesmo carregado via `iframe.srcdoc` (cuja URL própria é
+	// "about:srcdoc").
+	function injectBaseHref(html, baseUrl) {
+		const baseTag = '<base href="' + String(baseUrl).replace(/"/g, "&quot;") + '">';
+		if (/<head[^>]*>/i.test(html)) return html.replace(/<head[^>]*>/i, function (match) { return match + baseTag; });
+		if (/<html[^>]*>/i.test(html)) return html.replace(/<html[^>]*>/i, function (match) { return match + "<head>" + baseTag + "</head>"; });
+		return baseTag + html;
+	}
+
 	window.__pdpQuickActions = {
 		resolveDialogUrl: resolveDialogUrl,
 		openActionModal: function (label, url) {
@@ -1852,24 +1888,29 @@
 		},
 		openActionModalPost: function (label, url, fields) {
 			const iframe = showActionModal(label);
-			const frameName = "pdp-qa-modal-frame-" + Date.now() + "-" + Math.random().toString(36).slice(2);
-			iframe.name = frameName;
 
-			const form = document.createElement("form");
-			form.method = "POST";
-			form.action = url;
-			form.target = frameName;
-			form.style.display = "none";
+			const body = new URLSearchParams();
 			(fields || []).forEach(function (pair) {
-				const input = document.createElement("input");
-				input.type = "hidden";
-				input.name = pair[0];
-				input.value = pair[1];
-				form.appendChild(input);
+				body.append(pair[0], pair[1]);
 			});
-			document.body.appendChild(form);
-			form.submit();
-			form.remove();
+
+			fetch(url, { method: "POST", credentials: "same-origin", body: body })
+				.then(function (response) {
+					if (!response.ok) throw new Error("O Projudi não respondeu (" + response.status + ").");
+					return response.arrayBuffer().then(function (bytes) {
+						const preview = new TextDecoder("windows-1252").decode(bytes.slice(0, 4096));
+						const charsetMatch =
+							/charset\s*=\s*["']?([\w-]+)/i.exec(response.headers.get("content-type") || "") ||
+							/charset\s*=\s*["']?([\w-]+)/i.exec(preview);
+						const charset = (charsetMatch && charsetMatch[1]) || "windows-1252";
+						const html = new TextDecoder(charset).decode(bytes);
+						iframe.srcdoc = injectBaseHref(html, response.url);
+					});
+				})
+				.catch(function (err) {
+					alert('Não foi possível abrir "' + label + '": ' + err.message);
+					removeActionModal();
+				});
 
 			return iframe;
 		},
