@@ -353,6 +353,7 @@
 	let activePendenciaLink = null;
 	let pendenciaLoader = null; // { iframe, token, cleanup }
 	let movementMultipleNotice = null;
+	let movementInPlaceLoad = null; // { link }
 
 	function isDocumentLink(el) {
 		if (!(el instanceof HTMLAnchorElement)) return false;
@@ -795,9 +796,7 @@
 			if (!docs.length) {
 				showPendenciaMessage(
 					link,
-					isMovementLink(link)
-						? "Nenhum documento encontrado para pré-visualização nesta movimentação."
-						: "Nenhum documento encontrado para pré-visualização. Clique no link para abrir a análise completa."
+					"Nenhum documento encontrado para pré-visualização. Clique no link para abrir a análise completa."
 				);
 				return;
 			}
@@ -809,9 +808,7 @@
 			activePendenciaLink = link;
 			showPendenciaMessage(
 				link,
-				isMovementLink(link)
-					? "Não foi possível carregar os documentos desta movimentação a tempo."
-					: "Não foi possível carregar a pré-visualização a tempo. Clique no link para abrir a análise completa."
+				"Não foi possível carregar a pré-visualização a tempo. Clique no link para abrir a análise completa."
 			);
 		}, PENDENCIA_TIMEOUT_MS);
 
@@ -822,38 +819,80 @@
 		iframe.src = href;
 	}
 
+	// Clica no próprio controle "+" nativo da linha (mesmo elemento que o
+	// usuário clicaria manualmente) para disparar a carga dos anexos dessa
+	// movimentação, sem depender de recarregar a URL da movimentação num
+	// iframe à parte — carregar a URL inteira numa aba oculta mostrou-se
+	// pouco confiável: a página de detalhe de uma movimentação também
+	// reexibe o contexto de movimentações vizinhas, então "expandir tudo e
+	// coletar tudo" (mesmo mecanismo usado para as pendências de
+	// juntada/conclusão, ver runLoaderMode) varria documentos de OUTRAS
+	// movimentações junto. Clicando no controle desta linha específica, só
+	// o contêiner dela (o mesmo que loadedMovementDocs já lê) é populado.
+	//
+	// Para não abrir a linha visivelmente enquanto isso acontece, o
+	// contêiner é escondido (visibility:hidden, preserva o layout) durante
+	// a espera; ao final, os documentos são lidos e o controle é clicado de
+	// novo para recolher a linha de volta ao estado original.
+	function loadMovementDocsInPlace(link, callback) {
+		const toggle = movementFileToggle(link);
+		if (!toggle) {
+			callback([]);
+			return;
+		}
+		const container = movementDocsContainer(toggle);
+		if (container) container.style.setProperty("visibility", "hidden", "important");
+		try {
+			toggle.click();
+		} catch (e) {
+			/* ignore */
+		}
+		setTimeout(function () {
+			const docs = loadedMovementDocs(link);
+			try {
+				toggle.click();
+			} catch (e) {
+				/* ignore */
+			}
+			if (container) container.style.removeProperty("visibility");
+			callback(docs);
+		}, 1500);
+	}
+
 	function openPreviewGroup(link) {
 		if (isMovementLink(link)) {
-			const toggle = movementFileToggle(link);
 			const docs = loadedMovementDocs(link);
-			// Texto puro (JSON.stringify), não o objeto vivo — no console do
-			// Chrome um objeto vivo aparece só como "Object" (preciso expandir
-			// manualmente e o valor pode já ter mudado); serializado, o
-			// conteúdo já sai pronto para copiar/colar.
-			console.log(
-				"[Projudi Preview] hover no texto da movimentação: " +
-					JSON.stringify(
-						{
-							href: link.href,
-							toggleEncontrado: !!toggle,
-							toggleId: toggle ? toggle.id : null,
-							toggleOnclick: toggle ? toggle.getAttribute("onclick") : null,
-							containerEncontrado: !!(toggle && movementDocsContainer(toggle)),
-							docsJaCarregados: docs.length,
-							docs: docs,
-						},
-						null,
-						2
-					)
-			);
 			if (docs.length) {
 				showPendenciaDocs(link, docs);
 				return;
 			}
+			// Já tem uma carga em andamento para esta mesma movimentação —
+			// não clica no "+" de novo por cima.
+			if (movementInPlaceLoad && movementInPlaceLoad.link === link) return;
+			movementInPlaceLoad = { link: link };
+			activePendenciaLink = link;
+			loadMovementDocsInPlace(link, function (loadedDocs) {
+				if (movementInPlaceLoad && movementInPlaceLoad.link === link) movementInPlaceLoad = null;
+				console.log(
+					"[Projudi Preview] carga em segundo plano da movimentação concluída: " +
+						JSON.stringify({ href: link.href, docsEncontrados: loadedDocs.length, docs: loadedDocs }, null, 2)
+				);
+				// O mouse pode já ter saído da linha nesse meio-tempo — mesmo
+				// assim, exibe o resultado (mesmo raciocínio da correção em
+				// openPendenciaGroup: só há uma carga por vez para este link,
+				// então o resultado é sempre o certo).
+				activePendenciaLink = link;
+				if (loadedDocs.length) {
+					showPendenciaDocs(link, loadedDocs);
+				} else {
+					showPendenciaMessage(link, "Nenhum documento encontrado para pré-visualização nesta movimentação.");
+				}
+			});
+			return;
 		}
-		// Com o "+" fechado, abre a URL da movimentação somente num iframe
-		// invisível. O modo loader acima encontra os arquivos e devolve seus
-		// links; a página que o usuário está vendo não navega nem se expande.
+		// Pendências de Análise de Juntada/Conclusão: continuam usando o
+		// iframe oculto, que já é específico da tela de análise (sem o
+		// problema de "varrer" outras movimentações).
 		openPendenciaGroup(link);
 	}
 
