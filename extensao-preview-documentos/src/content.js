@@ -1739,7 +1739,10 @@
 		window.addEventListener("scroll", scheduleReposition, true);
 	}
 
-	initWhatsappFeature();
+	// Nas rotas da blacklist de interface (window.__pdpButtonGroupBlocked,
+	// definida em uiVisibility.js), mantém todo o código de Preview acima
+	// ativo, mas não cria o botão flutuante do WhatsApp.
+	if (!window.__pdpButtonGroupBlocked) initWhatsappFeature();
 
 	// ---------------------------------------------------------------------
 	// Modo "loader": executado dentro do <iframe> oculto criado acima.
