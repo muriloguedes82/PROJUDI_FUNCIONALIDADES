@@ -129,7 +129,13 @@
 			emailMenuButton = document.createElement("button");
 			emailMenuButton.type = "button";
 			emailMenuButton.id = "pdp-email-menu-button";
-			emailMenuButton.className = "pdp-email-visible";
+			// Sem a classe "pdp-email-visible": esse botão não entra no
+			// empilhamento vertical genérico do buttonDrag.js (pensado para
+			// vários botões do mesmo tamanho, um embaixo do outro) — com só
+			// este botão pequeno ao lado do "Enviar por e-mail", esse
+			// empilhamento bagunçava a posição dos dois. Em vez disso, a
+			// posição é calculada abaixo (positionEmailMenuButton), sempre
+			// ancorada ao próprio botão "Enviar por e-mail".
 			emailMenuButton.textContent = "▼";
 			emailMenuButton.title = "Mais opções de e-mail";
 			emailMenuButton.setAttribute("aria-haspopup", "menu");
@@ -180,6 +186,28 @@
 	window.addEventListener("pdp-buttons-hide", closeEmailDropdown);
 	window.addEventListener("pdp-buttons-moved", positionEmailDropdown);
 
+	// Ancora a seta sempre colada ao botão "Enviar por e-mail", lendo a
+	// posição REAL dele na tela (getBoundingClientRect) — não importa se
+	// quem o posicionou foi o repositionButtons() logo abaixo ou o "arrastar
+	// botões" do buttonDrag.js, o resultado é sempre lido daqui. Também
+	// espelha manualmente o estado de "Ocultar/Mostrar opções" do
+	// buttonDrag.js (já que este botão não usa a classe pdp-email-visible,
+	// não fica escondido pela regra CSS genérica sozinho).
+	function positionEmailMenuButton() {
+		if (!emailMenuButton || !sendButton || !sendButton.isConnected) return;
+		const hidden = document.documentElement.hasAttribute("data-pdp-buttons-hidden");
+		emailMenuButton.style.setProperty("visibility", hidden ? "hidden" : "visible", "important");
+		emailMenuButton.style.setProperty("pointer-events", hidden ? "none" : "auto", "important");
+		if (hidden) return;
+		const rect = sendButton.getBoundingClientRect();
+		if (!rect.width && !rect.height) return; // sendButton ainda não renderizou
+		emailMenuButton.style.setProperty("top", rect.top + "px", "important");
+		emailMenuButton.style.setProperty("height", rect.height + "px", "important");
+		emailMenuButton.style.setProperty("bottom", "auto", "important");
+		emailMenuButton.style.setProperty("right", window.innerWidth - rect.left + 6 + "px", "important");
+	}
+	window.addEventListener("pdp-buttons-moved", positionEmailMenuButton);
+
 	function findActionToolbarElement() {
 		const candidates = document.querySelectorAll('button, a, input[type="button"], input[type="submit"]');
 		for (const el of candidates) {
@@ -227,13 +255,15 @@
 			}
 		}
 
-		let cursor = baseBottom;
-		recipientsButton.style.bottom = cursor + "px";
-		cursor += (recipientsButton.offsetHeight || 36) + BUTTON_GAP;
+		// recipientsButton fica sempre escondido (display:none, ver
+		// email.css) — não soma altura nenhuma ao cursor: um botão invisível
+		// não deveria reservar espaço para o próximo.
+		recipientsButton.style.bottom = baseBottom + "px";
 
 		if (sendButton) {
-			sendButton.style.bottom = cursor + "px";
+			sendButton.style.bottom = baseBottom + "px";
 		}
+		positionEmailMenuButton();
 	}
 
 	// O botão de enviar fica sempre visível (mesmo sem nenhum arquivo
