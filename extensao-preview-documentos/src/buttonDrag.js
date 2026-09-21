@@ -28,7 +28,7 @@
   function applyVisibility() {
     document.documentElement.toggleAttribute("data-pdp-buttons-hidden", buttonsHidden);
     if (toggle) {
-      const label = buttonsHidden ? "Mostrar opções" : "Ocultar opções";
+      const label = buttonsHidden ? "Mostrar" : "Ocultar";
       if (toggle.textContent !== label) toggle.textContent = label;
       toggle.setAttribute("aria-expanded", String(!buttonsHidden));
       toggle.title = buttonsHidden ? "Mostrar todos os botões da extensão" : "Ocultar todos os botões da extensão";
@@ -52,7 +52,7 @@
       handle = document.createElement("button");
       handle.type = "button";
       handle.id = "pdp-buttons-drag";
-      handle.textContent = "↕ Mover botões";
+      handle.textContent = "↕ Mover";
       handle.title = "Arraste para cima ou para baixo. Use também as setas do teclado.";
       handle.style.cssText = "position:fixed;right:12px;z-index:2147483647;height:24px;padding:2px 8px;border:1px solid #aaa;border-radius:4px;background:#fff;color:#333;font:12px Arial;cursor:ns-resize;touch-action:none;user-select:none;";
       handle.addEventListener("pointerdown", event => {
@@ -101,43 +101,100 @@
     }
     handle.hidden = false;
     toggle.hidden = false;
-    toggle.style.right = (12 + handle.offsetWidth + 6) + "px";
-    const emailHeight = emails.reduce((sum, el) => sum + el.offsetHeight, 0) + Math.max(0, emails.length - 1) * 6;
-    const height = Math.max(emailHeight, ...peers.map(el => el.offsetHeight), 0);
-    const total = height + 30;
-    groupHeight = total;
-    const reference = document.getElementById('pdp-expand-movements');
-    if (reference && reference.getClientRects().length) {
+    layoutColumns(emails, peers);
+    return;
+  }
+
+  // Layout em 2 linhas, coladas ao canto do quadro de pendências/análise
+  // automática (ou ao rodapé da janela, na falta dele): a primeira com o
+  // toggle "Ocultar/Mostrar" e o botão do WhatsApp; a segunda com "↕
+  // Mover", a seta de e-mail (▼) colada ao "Enviar por e-mail", e a fila
+  // de Ações Rápidas (#pdp-qa-row, que já tem suas próprias 2 linhas
+  // internas: Concluso/Remessa/…/Enviar por WhatsApp e Processo
+  // copiado/Destacar movimentações/Oráculo/Enviar por e-mail). A altura de
+  // referência para todos os botões soltos vem de um botão já existente
+  // dentro dessa fila (Oráculo, ou o primeiro .pdp-qa-group-btn), para os
+  // dois lados ficarem visualmente do mesmo tamanho.
+  function layoutColumns(emails, peers) {
+    const sender = emails.find(el => el.id === 'pdp-from-button');
+    const send = emails.find(el => el.id === 'pdp-email-button');
+    const emailMenu = emails.find(el => el.id === 'pdp-email-menu-button');
+    const whats = peers.find(el => el.id === 'pdp-wa-launcher');
+    const row = peers.find(el => el.id === 'pdp-qa-row');
+    const gap = 6;
+    const horizontalPadding = 7;
+    const oraculo = row?.querySelector('#pdp-oraculo-button');
+    const referenceButton = oraculo || row?.querySelector('.pdp-qa-group-btn');
+    const buttonHeight = Math.max(30, Math.ceil(referenceButton?.getBoundingClientRect().height || 30));
+    for (const el of [send, emailMenu, whats, sender, handle, toggle].filter(Boolean)) {
+      el.style.boxSizing = 'border-box';
+      el.style.setProperty('height', buttonHeight + 'px', 'important');
+      el.style.setProperty('font-size', '12px', 'important');
+      el.style.setProperty('line-height', '1', 'important');
+      el.style.setProperty('white-space', 'nowrap', 'important');
+      el.style.setProperty('width', 'auto', 'important');
+      el.style.setProperty('padding-left', horizontalPadding + 'px', 'important');
+      el.style.setProperty('padding-right', horizontalPadding + 'px', 'important');
+    }
+    const menuWidth = buttonHeight;
+    if (emailMenu) {
+      emailMenu.style.setProperty('width', menuWidth + 'px', 'important');
+      emailMenu.style.setProperty('padding-left', '0', 'important');
+      emailMenu.style.setProperty('padding-right', '0', 'important');
+    }
+    const naturalControlWidth = Math.max(
+      Math.ceil(toggle?.getBoundingClientRect().width || 0),
+      Math.ceil(handle?.getBoundingClientRect().width || 0)
+    );
+    const controlWidth = Math.max(1, naturalControlWidth);
+    for (const control of [toggle, handle]) {
+      control.style.setProperty('width', controlWidth + 'px', 'important');
+      control.style.boxSizing = 'border-box';
+    }
+    const whatsWidth = Math.ceil(whats?.getBoundingClientRect().width || 0);
+    const emailWidth = Math.ceil(send?.getBoundingClientRect().width || 0) + (emailMenu ? menuWidth : 0);
+    const deliveryWidth = Math.max(whatsWidth, emailWidth);
+    if (whats && deliveryWidth) {
+      whats.style.setProperty('width', deliveryWidth + 'px', 'important');
+    }
+    if (send && deliveryWidth) {
+      const emailMainWidth = Math.max(1, deliveryWidth - (emailMenu ? menuWidth : 0));
+      send.style.setProperty('width', emailMainWidth + 'px', 'important');
+    }
+    const lines = row ? [...row.querySelectorAll('.pdp-qa-row-line')] : [];
+    lines.forEach(line => { line.style.minHeight = buttonHeight + 'px'; line.style.alignItems = 'center'; });
+    const firstHeight = Math.max(buttonHeight, lines[0]?.offsetHeight || 0);
+    const secondHeight = Math.max(buttonHeight, lines[1]?.offsetHeight || 0);
+    groupHeight = firstHeight + gap + secondHeight;
+    const reference = document.getElementById('pdp-expand-movements') ||
+      document.getElementById('quadroPendencias') ||
+      document.getElementById('quadroAnaliseAutomatica');
+    if (reference?.getClientRects().length) {
       const rect = reference.getBoundingClientRect();
-      let cursor = 30 + (height + emailHeight) / 2;
-      let recipientCenter = 30 + height / 2;
-      emails.forEach(el => {
-        cursor -= el.offsetHeight;
-        if (el.id === 'pdp-recipients-button') recipientCenter = cursor + el.offsetHeight / 2;
-        cursor -= 6;
-      });
-      referenceTop = rect.top + rect.height / 2 - recipientCenter;
+      referenceTop = rect.top + rect.height / 2 - firstHeight - gap - secondHeight / 2;
     } else {
-      if (fallbackPageTop === null) fallbackPageTop = window.scrollY + window.innerHeight - total - 12;
+      if (fallbackPageTop === null) fallbackPageTop = window.scrollY + window.innerHeight - groupHeight - 12;
       referenceTop = fallbackPageTop - window.scrollY;
     }
-    // Mantém o conjunto inteiro entre as bordas, inclusive ao voltar para cima.
-    const top = Math.max(MARGIN, Math.min(referenceTop + manualOffset, window.innerHeight - total - MARGIN));
-    handle.style.top = top + "px";
-    toggle.style.top = top + "px";
-    function place(el, y) {
-      el.style.setProperty("top", y + "px", "important");
-      el.setAttribute("data-pdp-movable", "");
-      el.style.removeProperty("bottom");
+    const top = Math.max(MARGIN, Math.min(referenceTop + manualOffset, window.innerHeight - groupHeight - MARGIN));
+    const sendRight = 12 + controlWidth + 10;
+    function place(el, y, right) {
+      if (!el) return;
+      el.style.setProperty('top', y + 'px', 'important');
+      el.style.setProperty('right', right + 'px', 'important');
+      el.style.setProperty('bottom', 'auto', 'important');
+      el.setAttribute('data-pdp-movable', '');
     }
-    let bottom = top + 30 + (height + emailHeight) / 2;
-    emails.forEach(el => {
-      bottom -= el.offsetHeight;
-      place(el, bottom);
-      bottom -= 6;
-    });
-    peers.forEach(el => place(el, top + 30 + (height - el.offsetHeight) / 2));
-    window.dispatchEvent(new Event("pdp-buttons-moved"));
+    const firstTop = top + (firstHeight - buttonHeight) / 2;
+    const secondTop = top + firstHeight + gap + (secondHeight - buttonHeight) / 2;
+    place(toggle, firstTop, 12);
+    place(handle, secondTop, 12);
+    place(sender, secondTop, 12);
+    place(whats, firstTop, sendRight);
+    place(emailMenu, secondTop, sendRight);
+    place(send, secondTop, sendRight + menuWidth);
+    place(row, top, sendRight + deliveryWidth + 10);
+    window.dispatchEvent(new Event('pdp-buttons-moved'));
   }
   function schedule() {
     if (scheduled) return;
