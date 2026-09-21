@@ -1871,7 +1871,18 @@
 	//   true` nos blocos de content_scripts do Projudi/SEEU, nenhum script
 	//   desta extensão (inclusive a pré-visualização de documentos ao
 	//   passar o mouse, de content.js) rodaria dentro deste popup, mesmo
-	//   a origem "de verdade" da resposta sendo o próprio Projudi.
+	//   a origem "de verdade" da resposta sendo o próprio Projudi. O Chrome
+	//   exige que o `path` do padrão de `matches` seja exatamente "*"
+	//   quando `match_origin_as_fallback` está ativo (senão recusa carregar
+	//   a extensão) — por isso esses dois blocos passaram de
+	//   "*://*.tjpr.jus.br/projudi/*"/"*://seeu.pje.jus.br/seeu/*" para
+	//   "*://*.tjpr.jus.br/*"/"*://seeu.pje.jus.br/*" (mesmos hosts já
+	//   cobertos por host_permissions, só sem restringir o caminho): os
+	//   scripts desta extensão passam a rodar em qualquer página desses
+	//   dois domínios, não só sob /projudi/ ou /seeu/ — sem problema prático
+	//   aqui, já que cada recurso só age depois de confirmar marcadores
+	//   específicos da tela (número do processo, formulários nativos etc.),
+	//   nunca só pela URL.
 	// -------------------------------------------------------------------
 
 	// Insere `<base href="...">` logo após a abertura do `<head>` (ou cria
