@@ -15,18 +15,23 @@
 // NUNCA navega, o usuário faz tudo (habilitar, desabilitar, adicionar,
 // remover) dentro do popup e fecha com "✕ Fechar" quando terminar.
 //
-// Como chega até lá:
+// Como resolve a URL final (`advogadosParte.do`), antes de sequer abrir o
+// popup:
 // 1. Se a página atual já é a aba "Partes e Outros" (selectedIcon=
-//    tabPartes) e o botão nativo "Advogados" já vem com o endereço pronto
-//    (lido do seu `onclick`), abre esse endereço direto no popup.
-// 2. Senão, abre a PRÓPRIA aba "Partes e Outros" dentro do popup (POST de
-//    verdade num iframe — não `fetch()`: testes anteriores desta extensão
-//    mostraram o Projudi devolver telas sem os botões de ação quando a
-//    requisição não "parece" uma navegação de aba real, ver README) e,
-//    assim que ela carregar, continua sozinha para "Advogados" se o
-//    endereço já vier pronto — sem exigir um segundo clique. Se não vier
-//    (caso raro), o usuário só precisa clicar em "Advogados" ali mesmo,
-//    dentro do popup, sem nunca ter saído da tela principal.
+//    tabPartes), lê o `onclick` do botão nativo "Advogados" direto do DOM.
+// 2. Senão, busca essa aba em segundo plano via `fetch()` (POST para o
+//    próprio `#processoForm`, sem iframe — mesma técnica já usada e
+//    validada ao vivo pelo Oráculo em `oraculoDirect.js`, documentada em
+//    "Indicador de suspensão ativa") e lê o mesmo `onclick` dali.
+//
+// Só então o popup é aberto, com o `<iframe>` já apontando (`src`, um GET
+// comum) direto para a URL resolvida — nunca um `<form target="...">`
+// mirando o nome do iframe: essa técnica foi tentada numa versão anterior
+// e, quando o nome do iframe não é reconhecido a tempo pelo navegador como
+// alvo válido, ele abre uma ABA NOVA em vez de navegar o iframe (o
+// comportamento padrão do HTML para um `target` sem contexto de navegação
+// correspondente) - exatamente o bug relatado ao vivo. Um `src` comum não
+// tem essa armadilha.
 //
 // Importante: a existência (ou não) de um advogado já habilitado para a
 // parte NÃO impede o botão de funcionar — o popup mostra a tela nativa tal
@@ -41,6 +46,24 @@
 		const url = new URL(value, location.href);
 		if (url.origin !== location.origin || url.pathname !== path) throw new Error("Endereço inesperado: " + value);
 		return url;
+	}
+
+	async function readPage(url, options) {
+		const controller = new AbortController();
+		const timer = setTimeout(function () { controller.abort(); }, 25000);
+		try {
+			const response = await fetch(url, Object.assign({}, options, { credentials: "same-origin", signal: controller.signal }));
+			if (!response.ok) throw new Error("O Projudi não respondeu (" + response.status + ").");
+			localURL(response.url, new URL(url, location.href).pathname);
+			const bytes = await response.arrayBuffer();
+			const preview = new TextDecoder("windows-1252").decode(bytes.slice(0, 4096));
+			const charsetMatch =
+				/charset\s*=\s*["']?([\w-]+)/i.exec(response.headers.get("content-type") || "") || /charset\s*=\s*["']?([\w-]+)/i.exec(preview);
+			const charset = (charsetMatch && charsetMatch[1]) || "windows-1252";
+			return new DOMParser().parseFromString(new TextDecoder(charset).decode(bytes), "text/html");
+		} finally {
+			clearTimeout(timer);
+		}
 	}
 
 	// O botão "Advogados" é único por processo (não por parte) — fica na
@@ -84,49 +107,6 @@
 		return body;
 	}
 
-	// POST de verdade DENTRO de um iframe já existente (o do popup desta
-	// extensão), pelo `name` dele como alvo do formulário — nunca navega a
-	// aba visível, só o conteúdo do iframe.
-	function postIntoIframe(iframe, url, body) {
-		const frameName = iframe.name || "pdp-habilitar-advogado-" + Date.now() + "-" + Math.random().toString(36).slice(2);
-		iframe.name = frameName;
-		const realForm = document.createElement("form");
-		realForm.method = "POST";
-		realForm.action = url;
-		realForm.target = frameName;
-		realForm.style.display = "none";
-		for (const [name, value] of body) {
-			const input = document.createElement("input");
-			input.type = "hidden";
-			input.name = name;
-			input.value = value;
-			realForm.appendChild(input);
-		}
-		document.body.appendChild(realForm);
-		realForm.submit();
-		realForm.remove();
-	}
-
-	// Chama `callback` só na primeira navegação de VERDADE do iframe —
-	// inserir/apontar um iframe já dispara um "load" para o `about:blank`
-	// inicial, antes de qualquer navegação de verdade começar (mesma
-	// armadilha documentada em quickActions.js/fetchDoc e em
-	// ordenarCumprimentos.js/waitForIframeEvent).
-	function onFirstRealLoad(iframe, callback) {
-		function onLoad() {
-			let href;
-			try {
-				href = iframe.contentWindow.location.href;
-			} catch (err) {
-				href = null;
-			}
-			if (href === "about:blank") return;
-			iframe.removeEventListener("load", onLoad);
-			callback();
-		}
-		iframe.addEventListener("load", onLoad);
-	}
-
 	window.__pdpOpenHabilitarAdvogado = async function () {
 		const api = window.__pdpQuickActions;
 		if (!api || typeof api.openActionModal !== "function") {
@@ -138,39 +118,28 @@
 		const id = form.elements.namedItem("id") ? form.elements.namedItem("id").value : null;
 		if (!/^\d+$/.test(id || "")) throw new Error("Não foi possível identificar o processo atual.");
 
+		function checkContext() {
+			const current = form.elements.namedItem("id");
+			if (!form.isConnected || !current || current.value !== id) throw new Error("O processo mudou durante a operação. Clique novamente.");
+		}
+
 		const selectedIconField = form.elements.namedItem("selectedIcon");
 		const jaEstaNaAbaPartes = !!selectedIconField && selectedIconField.value === "tabPartes";
 
-		if (jaEstaNaAbaPartes) {
-			const url = findAdvogadosUrl(document);
-			if (url) {
-				api.openActionModal("Advogados", url.href);
-				return;
-			}
-			// Raro: já está na aba certa, mas o botão nativo ainda não veio com
-			// o endereço pronto — cai para o mesmo caminho de baixo, que abre a
-			// aba dentro do popup e tenta de novo por ali.
+		let doc = document;
+		if (!jaEstaNaAbaPartes) {
+			const tabUrl = findTabPartesAction();
+			const body = tabPartesBody(form, id);
+			doc = await readPage(tabUrl.href, { method: "POST", body: body });
+			const responseId = doc.querySelector('#processoForm [name="id"]');
+			if (!responseId || responseId.value !== id) throw new Error('A resposta da aba "Partes e Outros" não corresponde ao processo atual.');
+			checkContext();
 		}
 
-		const tabUrl = findTabPartesAction();
-		const body = tabPartesBody(form, id);
-		const iframe = api.openActionModal("Partes e Outros", null);
-		onFirstRealLoad(iframe, function () {
-			let doc;
-			try {
-				doc = iframe.contentDocument;
-			} catch (err) {
-				return;
-			}
-			if (!doc) return;
-			const url = findAdvogadosUrl(doc);
-			// Continua sozinha para "Advogados", ainda dentro do mesmo popup,
-			// se o endereço já vier pronto. Senão, deixa o usuário na aba
-			// "Partes e Outros" (já aberta no popup) para clicar em
-			// "Advogados" manualmente ali mesmo.
-			if (url) iframe.src = url.href;
-		});
-		postIntoIframe(iframe, tabUrl.href, body);
+		const url = findAdvogadosUrl(doc);
+		if (!url) throw new Error('Não foi possível determinar o endereço da tela "Advogados" a partir do botão nativo.');
+		checkContext();
+		api.openActionModal("Advogados", url.href);
 	};
 
 	// -------------------------------------------------------------------

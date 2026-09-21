@@ -1822,15 +1822,15 @@
 	//   sem de fato repetir a ação.
 	// - openActionModal (ver src/habilitarAdvogado.js, botão "(Des)
 	//   Habilitar Advogado"): abre o MESMO popup usado pelas ações do
-	//   painel "Ações" (Ordenar Cumprimentos, Realizar Remessa etc.) -
-	//   reaproveita showActionModal (com o mesmo shim de opener/close e o
-	//   mesmo "✕ Fechar"), sem precisar da cadeia de resolveDialogUrl (que
-	//   serve para DESCOBRIR a URL a partir de uma movimentação; aqui quem
-	//   chama já conhece a URL de antemão, ou nem tem uma ainda e só quer o
-	//   <iframe> do popup para navegá-lo por conta própria - ex.: um POST
-	//   de verdade num formulário com `target` apontando pro `name` desse
-	//   iframe, em vez de um simples `src`). `url` é opcional: passe null
-	//   para só abrir o popup vazio e navegá-lo depois.
+	//   painel "Ações" (Ordenar Cumprimentos, Realizar Remessa etc.) direto
+	//   numa URL já conhecida - reaproveita showActionModal (com o mesmo
+	//   shim de opener/close e o mesmo "✕ Fechar"), sem precisar da cadeia
+	//   de resolveDialogUrl (que serve para DESCOBRIR a URL a partir de uma
+	//   movimentação; aqui quem chama já sabe a URL de antemão). Sempre um
+	//   `src` comum (GET) no iframe - nunca um `<form target="...">`
+	//   mirando o nome do iframe, que abre uma ABA NOVA em vez de navegar o
+	//   iframe quando o nome não é reconhecido a tempo como alvo válido
+	//   (comportamento padrão do HTML nesse caso - já visto ao vivo).
 	// -------------------------------------------------------------------
 	window.__pdpQuickActions = {
 		resolveDialogUrl: resolveDialogUrl,

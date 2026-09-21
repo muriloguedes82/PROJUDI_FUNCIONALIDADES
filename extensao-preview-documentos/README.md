@@ -621,20 +621,22 @@ Cumprimentos" e "Realizar Remessa" (ver acima): a aba visível nunca
 navega, e o usuário habilita, desabilita, adiciona ou remove o advogado
 direto no popup, fechando com "✕ Fechar" ao terminar.
 
-Como a extensão chega até lá:
+Como a extensão resolve a URL final, ANTES de sequer abrir o popup:
 
-1. Se a tela atual já é a aba "Partes e Outros" e o botão nativo
-   "Advogados" já vem com o endereço pronto (lido do seu `onclick`), abre
-   esse endereço direto no popup.
-2. Senão, abre a própria aba "Partes e Outros" **dentro do popup** — um
-   POST de verdade num `<iframe>` (não `fetch()`: testes anteriores desta
-   extensão mostraram o Projudi devolver telas sem os botões de ação
-   quando a requisição não "parece" uma navegação de aba real, ver
-   "Ações rápidas" acima) — e, assim que ela carregar, continua sozinha
-   para "Advogados" se o endereço já vier pronto, sem exigir um segundo
-   clique. No caso raro de não vir, o usuário só precisa clicar em
-   "Advogados" ali mesmo, dentro do popup, sem nunca sair da tela
-   principal.
+1. Se a tela atual já é a aba "Partes e Outros", lê o `onclick` do botão
+   nativo "Advogados" direto do DOM.
+2. Senão, busca essa aba em segundo plano via `fetch()` (POST para o
+   próprio formulário do processo, sem iframe — mesma técnica já usada e
+   validada ao vivo pelo Oráculo, ver "Indicador de suspensão ativa" mais
+   acima) e lê o mesmo `onclick` dali.
+
+Só então o popup é aberto, com o `<iframe>` já apontando (um `src` comum,
+GET) direto para a URL resolvida — nunca um `<form target="...">` mirando
+o nome do iframe: essa técnica foi tentada numa versão anterior e, quando
+o nome do iframe não é reconhecido a tempo pelo navegador como um alvo
+válido, ele abre uma **aba nova** em vez de navegar o iframe (o
+comportamento padrão do HTML nesse caso) — exatamente o bug visto ao vivo
+nessa versão. Um `src` comum não tem essa armadilha.
 
 A existência (ou não) de um advogado já habilitado nunca impede o botão de
 funcionar: o popup mostra a tela nativa tal como ela está, inclusive
