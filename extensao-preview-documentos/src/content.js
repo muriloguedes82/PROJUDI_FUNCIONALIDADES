@@ -384,9 +384,11 @@
 	// Link textual da movimentação. Só é elegível quando a própria linha
 	// possui o controle "Arquivos"; linhas que têm apenas "Intimações" ou
 	// nenhum anexo continuam com o comportamento nativo, sem Preview vazio.
+	// Mesmo critério (id, não class) já usado e comprovado em
+	// expandMovements.js e no modo loader mais abaixo (EXPAND_ICON_SELECTOR).
 	function movementFileToggle(link) {
 		const row = link && link.closest('tr[id^="mov1Grau,"]');
-		return row && row.querySelector('a[class*="linkArquivos"] img[onclick*="showDetail"]');
+		return row && row.querySelector('img[onclick*="showDetail"], a[id^="linkArquivos"] img');
 	}
 
 	function isMovementLink(el) {
@@ -409,15 +411,32 @@
 		return findPendenciaLink(target) || findMovementLink(target);
 	}
 
+	// Localiza o contêiner que o Projudi preenche ao expandir o "+" de uma
+	// linha, a partir do próprio ícone — mesmo critério do modo loader
+	// (ver findContainerForIcon em runLoaderMode, mais abaixo): tenta o id
+	// explícito no onclick="showDetail('id', ...)" e, na falta dele, o
+	// sufixo numérico do id do ícone (ex.: "icon0" -> "row0"/"div0").
+	function movementDocsContainer(toggle) {
+		const onclick = toggle.getAttribute("onclick") || "";
+		const explicit = onclick.match(/showDetail\(\s*['"]([^'"]+)/);
+		if (explicit) {
+			const byArg = document.getElementById(explicit[1]);
+			if (byArg) return byArg;
+		}
+		const suffixMatch = (toggle.id || "").match(/(\d+)$/);
+		if (suffixMatch) {
+			const suffix = suffixMatch[1];
+			return document.getElementById("row" + suffix) || document.getElementById("div" + suffix);
+		}
+		return null;
+	}
+
 	// Se o usuário já abriu o "+", usa os links que estão na página e evita
-	// qualquer nova consulta. O id da linha expandida vem do próprio
-	// onclick="showDetail('rowmovimentacoesN', ...)" do Projudi.
+	// qualquer nova consulta.
 	function loadedMovementDocs(link) {
 		const toggle = movementFileToggle(link);
 		if (!toggle) return [];
-		const onclick = toggle.getAttribute("onclick") || "";
-		const match = onclick.match(/showDetail\(\s*['"]([^'"]+)/);
-		const container = match && document.getElementById(match[1]);
+		const container = movementDocsContainer(toggle);
 		if (!container) return [];
 		return Array.prototype.slice
 			.call(container.querySelectorAll('a.link[href*="/arquivo.do"]'))
@@ -797,6 +816,11 @@
 	function openPreviewGroup(link) {
 		if (isMovementLink(link)) {
 			const docs = loadedMovementDocs(link);
+			console.log("[Projudi Preview] hover no texto da movimentação:", {
+				jaExpandido: !!movementDocsContainer(movementFileToggle(link)),
+				docsJaCarregados: docs.length,
+				href: link.href,
+			});
 			if (docs.length) {
 				showPendenciaDocs(link, docs);
 				return;
