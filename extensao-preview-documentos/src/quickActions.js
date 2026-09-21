@@ -1809,18 +1809,35 @@
 	window.addEventListener("scroll", scheduleReposition, true);
 
 	// -------------------------------------------------------------------
-	// API mínima exposta para outros recursos desta extensão (ver
-	// src/ordenarCumprimentos.js, botão "Nova Ordenação"): resolve a URL de
-	// um diálogo de ação pelo rótulo exato, reaproveitando a MESMA cadeia
-	// já usada e testada aqui - cada chamada gera um diálogo (e token de
-	// sessão) NOVO, nunca reaproveitando uma URL já usada. Necessário
-	// porque reenviar um formulário com o token de uma página já carregada
-	// antes (ex.: a mesma página que o usuário ainda está vendo) corre o
-	// risco de reaproveitar um token de uso único já consumido por outro
-	// envio - o Projudi pode aceitar a requisição sem indicar erro algum,
-	// mas sem de fato repetir a ação.
+	// API mínima exposta para outros recursos desta extensão:
+	// - resolveDialogUrl (ver src/ordenarCumprimentos.js, botão "Nova
+	//   Ordenação"): resolve a URL de um diálogo de ação pelo rótulo exato,
+	//   reaproveitando a MESMA cadeia já usada e testada aqui - cada
+	//   chamada gera um diálogo (e token de sessão) NOVO, nunca
+	//   reaproveitando uma URL já usada. Necessário porque reenviar um
+	//   formulário com o token de uma página já carregada antes (ex.: a
+	//   mesma página que o usuário ainda está vendo) corre o risco de
+	//   reaproveitar um token de uso único já consumido por outro envio -
+	//   o Projudi pode aceitar a requisição sem indicar erro algum, mas
+	//   sem de fato repetir a ação.
+	// - openActionModal (ver src/habilitarAdvogado.js, botão "(Des)
+	//   Habilitar Advogado"): abre o MESMO popup usado pelas ações do
+	//   painel "Ações" (Ordenar Cumprimentos, Realizar Remessa etc.) direto
+	//   numa URL já conhecida - reaproveita showActionModal (com o mesmo
+	//   shim de opener/close e o mesmo "✕ Fechar"), sem precisar da cadeia
+	//   de resolveDialogUrl (que serve para DESCOBRIR a URL a partir de uma
+	//   movimentação; aqui quem chama já sabe a URL de antemão). Sempre um
+	//   `src` comum (GET) no iframe - nunca um `<form target="...">`
+	//   mirando o nome do iframe, que abre uma ABA NOVA em vez de navegar o
+	//   iframe quando o nome não é reconhecido a tempo como alvo válido
+	//   (comportamento padrão do HTML nesse caso - já visto ao vivo).
 	// -------------------------------------------------------------------
 	window.__pdpQuickActions = {
 		resolveDialogUrl: resolveDialogUrl,
+		openActionModal: function (label, url) {
+			const iframe = showActionModal(label);
+			if (url) iframe.src = url;
+			return iframe;
+		},
 	};
 })();
