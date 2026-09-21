@@ -18,13 +18,18 @@
 // 1. O dígito informado no Filtrar é lido do sessionStorage (guardado só
 //    para esta carga — nunca fica pendurado para acessos futuros, então a
 //    tela sempre começa com o campo Sequencial em branco).
-// 2. As demais páginas são buscadas em segundo plano, num <iframe> oculto
-//    (mesma sessão/cookies do usuário, técnica já usada por outras partes
-//    desta extensão — ver README, "Pendências"), clicando de verdade no
-//    link "Próxima Página" de cada página carregada ali dentro. Como é a
-//    própria página do Projudi (com o JavaScript dela) rodando dentro do
-//    iframe, não precisamos saber como esse avanço de página funciona por
-//    baixo dos panos.
+// 2. As demais páginas são buscadas em segundo plano com fetch() — mesma
+//    sessão/cookies do usuário (credentials: same-origin), sem abrir nem
+//    navegar nenhuma aba/iframe (mesma técnica já usada em outras partes
+//    desta extensão, ex.: sequencialProcessoPrincipal.js). A tentativa
+//    inicial de clicar de verdade no link "Próxima Página" dentro de um
+//    iframe oculto esbarrou no Content-Security-Policy do Projudi (o link
+//    usa uma URL "javascript:", que o navegador bloqueia); por isso, em
+//    vez de clicar em qualquer coisa, descobrimos a URL/parâmetros reais
+//    da "Próxima Página" a partir do próprio HTML (bruto, como o servidor
+//    manda — via fetch, não a partir do DOM já processado pelo Chrome) e
+//    repetimos o mesmo POST que o formulário de busca já faz, uma vez por
+//    página.
 // 3. Os processos cujo "Seq." termina no dígito informado, de todas as
 //    páginas, substituem as linhas da própria tabela de resultados já
 //    existente na tela (nada de painel novo) — e o resumo (quantos
@@ -33,16 +38,16 @@
 (function () {
 	"use strict";
 
-	// Nunca roda dentro do iframe oculto usado para buscar as demais
-	// páginas em segundo plano (ver coletarTodasAsPaginas/clicarProximaNoIframe
-	// abaixo) — senão esta mesma lógica tentaria rodar recursivamente lá
-	// dentro também.
+	// Nunca roda dentro de um iframe oculto usado por OUTRA parte desta
+	// extensão para carregar páginas em segundo plano (ex.:
+	// sequencialProcessoPrincipal.js) — essa tela em si não deveria aparecer
+	// assim, mas o guarda-costas é o mesmo padrão usado em todo o resto do
+	// código, então mantemos por consistência/segurança.
 	if (window.frameElement && window.frameElement.hasAttribute("data-pdp-loader")) return;
 
 	const TAG = "[Projudi Sequencial Decurso de Prazo]";
 	const STORAGE_KEY = "pdpDecursoPrazoSequencialDigito";
 	const MAX_PAGINAS = 200;
-	const TIMEOUT_PRIMEIRA_CARGA_MS = 15000;
 	const TIMEOUT_AVANCAR_PAGINA_MS = 12000;
 
 	if (window.__pdpDecursoPrazoSequencial) return;
@@ -158,62 +163,115 @@
 		};
 	}
 
-	// --- coleta em segundo plano, num iframe oculto --------------------------
+	// --- coleta em segundo plano, via fetch() ---------------------------------
 
-	// Clica de verdade no link "Próxima Página" DENTRO do iframe oculto (que
-	// está rodando a página real do Projudi, com o JavaScript dela) e espera
-	// a página avançar — seja recarregando o iframe inteiro, seja atualizando
-	// só a tabela via AJAX. Não precisamos saber qual dos dois é: cobrimos os
-	// dois com o mesmo Promise.
-	function clicarProximaNoIframe(iframe, link) {
-		return new Promise(function (resolve) {
-			let concluido = false;
-			let observer = null;
+	// Repete, com fetch(), o mesmo POST que o formulário de busca já faz —
+	// mesma técnica de fetchAbaInformacoesGeraisPOST em
+	// sequencialProcessoPrincipal.js (detecção de charset a partir do
+	// <meta charset>/cabeçalho HTTP, igual à tela de Decurso de Prazo, que
+	// também é servida em windows-1252/ISO-8859-1).
+	async function buscarDocumentoPOST(actionUrl, corpo) {
+		const controller = new AbortController();
+		const timeout = setTimeout(function () {
+			controller.abort();
+		}, TIMEOUT_AVANCAR_PAGINA_MS);
+		try {
+			const resposta = await fetch(actionUrl, {
+				method: "POST",
+				body: corpo,
+				credentials: "same-origin",
+				signal: controller.signal,
+			});
+			if (!resposta.ok) throw new Error("Projudi respondeu " + resposta.status + " " + resposta.statusText);
+			const bytes = await resposta.arrayBuffer();
+			const preview = new TextDecoder("windows-1252").decode(bytes.slice(0, 4096));
+			const charsetMatch =
+				/charset\s*=\s*["']?([\w-]+)/i.exec(resposta.headers.get("content-type") || "") ||
+				/charset\s*=\s*["']?([\w-]+)/i.exec(preview);
+			const charset = (charsetMatch && charsetMatch[1]) || "windows-1252";
+			const html = new TextDecoder(charset).decode(bytes);
+			return new DOMParser().parseFromString(html, "text/html");
+		} finally {
+			clearTimeout(timeout);
+		}
+	}
 
-			function finalizar(motivo) {
-				if (concluido) return;
-				concluido = true;
-				iframe.removeEventListener("load", aoRecarregar);
-				if (observer) observer.disconnect();
-				clearTimeout(timer);
-				resolve(motivo);
+	// Os campos atualmente preenchidos no formulário de busca (menos o nosso
+	// próprio campo Sequencial, que o Projudi não conhece) — usados para
+	// repetir a MESMA busca ao avançar de página.
+	function corpoDoFormularioAtual() {
+		const form = document.querySelector("#intimacaoBuscaForm");
+		const body = new URLSearchParams();
+		if (form) {
+			for (const [name, value] of new FormData(form)) {
+				if (typeof value === "string" && name !== "pdpSequencial") body.append(name, value);
 			}
+		}
+		return body;
+	}
 
-			function aoRecarregar() {
-				finalizar("recarregou");
-			}
-			iframe.addEventListener("load", aoRecarregar);
+	// Descobre como o link "Próxima Página" realmente funciona, a partir do
+	// HTML bruto devolvido pelo servidor (não a partir do DOM já processado
+	// pelo Chrome, que pode não trazer os mesmos atributos). Tenta, nessa
+	// ordem: um href de verdade; um onclick com submitPage('URL', form) —
+	// padrão já usado noutros botões desta mesma tela do Projudi, ver
+	// extractAnalisarRetornoAction em content.js; ou um onclick com
+	// location.href/alguma chamada contendo a URL. Loga sempre o HTML bruto
+	// do link, para diagnosticar sem precisar advinhar caso nada bata.
+	function acharProximaPaginaAction(doc) {
+		const nav = doc.querySelector("#navigator");
+		const link = nav && nav.querySelector("a.arrowNextOn");
+		if (!link) return null;
 
+		console.log(TAG, 'anchor "Próxima Página" (HTML bruto, como o servidor mandou):', link.outerHTML);
+
+		const href = link.getAttribute("href");
+		if (href && !/^\s*(javascript:|#)/i.test(href)) {
 			try {
-				const navAntes = obterNavegacao(iframe.contentDocument);
-				const marcadorAntes = navAntes ? navAntes.paginaAtual : null;
-				if (navAntes && navAntes.nav) {
-					observer = new MutationObserver(function () {
-						try {
-							const navAgora = obterNavegacao(iframe.contentDocument);
-							if (navAgora && navAgora.paginaAtual && navAgora.paginaAtual !== marcadorAntes) {
-								finalizar("atualizou");
-							}
-						} catch (e) {
-							// iframe pode estar no meio de uma navegação — ignora e espera o "load".
-						}
-					});
-					observer.observe(navAntes.nav, { childList: true, subtree: true, characterData: true });
-				}
+				return { url: new URL(href, location.href).href, corpo: null };
 			} catch (e) {
-				console.warn(TAG, "não consegui observar o navegador de páginas do iframe:", e);
+				/* ignora e tenta o onclick abaixo */
 			}
+		}
 
-			const timer = setTimeout(function () {
-				finalizar("timeout");
-			}, TIMEOUT_AVANCAR_PAGINA_MS);
+		const onclick = link.getAttribute("onclick") || "";
+		const padroes = [/submitPage\(\s*['"]([^'"]+)['"]/, /location\.href\s*=\s*['"]([^'"]+)['"]/, /\.(?:load|get|post)\(\s*['"]([^'"]+)['"]/];
+		for (const padrao of padroes) {
+			const encontrado = padrao.exec(onclick);
+			if (encontrado && encontrado[1]) {
+				try {
+					return { url: new URL(encontrado[1], location.href).href, corpo: corpoDoFormularioAtual() };
+				} catch (e) {
+					/* tenta o próximo padrão */
+				}
+			}
+		}
 
-			link.click();
+		console.warn(TAG, 'não consegui descobrir como a "Próxima Página" funciona a partir do HTML — onclick:', onclick || "(nenhum)", "| href:", href || "(nenhum)");
+		logarScriptsDePaginacao(doc);
+		return null;
+	}
+
+	// Diagnóstico de última instância: procura, nos <script> da própria
+	// resposta do servidor (fetch preserva o texto deles, diferente do "Save
+	// as MHTML" do Chrome, que remove <script>), algum trecho que pareça
+	// implementar a navegação entre páginas — para não precisar advinhar
+	// caso acharProximaPaginaAction não encontre nada.
+	function logarScriptsDePaginacao(doc) {
+		const scripts = doc.querySelectorAll("script:not([src])");
+		let achou = false;
+		scripts.forEach(function (script, indice) {
+			const texto = script.textContent || "";
+			if (/arrowNext|numeroPagina|goToPage|irParaPagina|paginaAtual|navigator/i.test(texto)) {
+				achou = true;
+				console.log(TAG, "script inline #" + indice + " com possível lógica de paginação (primeiros 2000 caracteres):", texto.slice(0, 2000));
+			}
 		});
+		if (!achou) console.warn(TAG, "nenhum <script> da resposta menciona paginação — pode estar num arquivo .js externo, fora do alcance deste diagnóstico");
 	}
 
 	// Busca todas as páginas seguintes à página 1 (já visível na aba de
-	// verdade) num iframe oculto, e devolve todos os processos, de todas as
+	// verdade) em segundo plano, e devolve todos os processos, de todas as
 	// páginas, cujo Seq. termina no dígito informado.
 	async function coletarTodasAsPaginas(digito) {
 		const encontrados = [];
@@ -243,82 +301,56 @@
 			return info;
 		}
 
-		const infoPagina1 = registrar(document, "página 1 (aba visível)");
-		const navPagina1 = obterNavegacao(document);
-		if (!navPagina1 || !navPagina1.proxima) {
+		registrar(document, "página 1 (aba visível)");
+		let docAtual = document;
+		let navAtual = obterNavegacao(document);
+		if (!navAtual || !navAtual.proxima) {
 			return { encontrados: encontrados, paginas: 1, erro: null };
 		}
 
-		const primeiroProcessoVisivel = infoPagina1.reconhecidas[0] ? infoPagina1.reconhecidas[0].dados.processo : null;
-
 		atualizarStatus("Buscando demais páginas em segundo plano…");
 
-		const iframe = document.createElement("iframe");
-		iframe.setAttribute("data-pdp-loader", "decurso-prazo-sequencial");
-		iframe.style.cssText = "position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;top:-9999px;";
-		document.body.appendChild(iframe);
-
-		try {
-			await new Promise(function (resolve, reject) {
-				const t = setTimeout(function () {
-					reject(new Error("tempo esgotado carregando a 1ª página em segundo plano"));
-				}, TIMEOUT_PRIMEIRA_CARGA_MS);
-				iframe.addEventListener("load", function aoCarregar() {
-					iframe.removeEventListener("load", aoCarregar);
-					clearTimeout(t);
-					resolve();
-				});
-				iframe.src = location.href;
-			});
-
-			// Confere que o iframe reproduziu a MESMA busca (o Projudi guarda o
-			// critério de busca na sessão do usuário; se por algum motivo vier
-			// outra coisa, é mais seguro parar aqui do que coletar dados errados).
-			const infoIframe1 = obterLinhasDaTabela(iframe.contentDocument);
-			const primeiroProcessoIframe = infoIframe1.reconhecidas[0] ? infoIframe1.reconhecidas[0].dados.processo : null;
-			if (primeiroProcessoVisivel && primeiroProcessoIframe !== primeiroProcessoVisivel) {
-				console.warn(
-					TAG,
-					"a página carregada em segundo plano não bateu com a busca atual — esperava como 1º processo:",
-					primeiroProcessoVisivel,
-					"| veio:",
-					primeiroProcessoIframe,
-					"— parando a coleta em todas as páginas; mostrando só a página atual."
-				);
-				return { encontrados: encontrados, paginas: 1, erro: "busca-nao-reproduzida-em-segundo-plano" };
+		let pagina = 1;
+		while (pagina < MAX_PAGINAS) {
+			const proxima = acharProximaPaginaAction(docAtual);
+			if (!proxima) {
+				erro = "nao-consegui-descobrir-a-proxima-pagina";
+				break;
 			}
 
-			let pagina = 1;
-			while (pagina < MAX_PAGINAS) {
-				const navAtual = obterNavegacao(iframe.contentDocument);
-				if (!navAtual || !navAtual.proxima) break;
+			atualizarStatus("Buscando demais páginas em segundo plano… (página " + (pagina + 1) + ")");
 
-				atualizarStatus("Buscando demais páginas em segundo plano… (indo para a página " + (pagina + 1) + ")");
-				const motivo = await clicarProximaNoIframe(iframe, navAtual.proxima);
-
-				if (motivo === "timeout") {
-					console.warn(TAG, "não detectei avanço da página", pagina, "para a seguinte em", TIMEOUT_AVANCAR_PAGINA_MS / 1000, "s — parando a coleta aqui.");
-					erro = "sem-resposta-apos-pagina-" + pagina;
-					break;
-				}
-
-				pagina++;
-				paginasPercorridas = pagina;
-				registrar(iframe.contentDocument, "página " + pagina + " (segundo plano)");
+			let doc;
+			try {
+				doc = await buscarDocumentoPOST(proxima.url, proxima.corpo || corpoDoFormularioAtual());
+			} catch (e) {
+				console.error(TAG, "falha ao buscar a página", pagina + 1, ":", e);
+				erro = "falha-buscando-pagina-" + (pagina + 1);
+				break;
 			}
 
-			if (pagina >= MAX_PAGINAS) {
-				console.warn(TAG, "atingido o limite de segurança de", MAX_PAGINAS, "páginas — parando");
-				erro = "limite-de-" + MAX_PAGINAS + "-paginas";
+			const infoDoc = obterLinhasDaTabela(doc);
+			if (!infoDoc.tabela) {
+				console.warn(TAG, "a resposta da página", pagina + 1, "não trouxe a tabela de resultados esperada");
+				erro = "resposta-sem-tabela-na-pagina-" + (pagina + 1);
+				break;
 			}
 
-			return { encontrados: encontrados, paginas: paginasPercorridas, erro: erro };
-		} catch (e) {
-			console.error(TAG, "erro coletando as demais páginas em segundo plano:", e);
-			return { encontrados: encontrados, paginas: paginasPercorridas, erro: String((e && e.message) || e) };
-		} finally {
-			iframe.remove();
+			pagina++;
+			paginasPercorridas = pagina;
+			registrar(doc, "página " + pagina + " (segundo plano)");
+			docAtual = doc;
+
+			navAtual = obterNavegacao(doc);
+			if (!navAtual || !navAtual.proxima) break;
 		}
+
+		if (pagina >= MAX_PAGINAS) {
+			console.warn(TAG, "atingido o limite de segurança de", MAX_PAGINAS, "páginas — parando");
+			erro = "limite-de-" + MAX_PAGINAS + "-paginas";
+		}
+
+		return { encontrados: encontrados, paginas: paginasPercorridas, erro: erro };
 	}
 
 	// --- apresentação do resultado na própria tabela -------------------------

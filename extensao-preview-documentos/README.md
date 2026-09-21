@@ -127,13 +127,14 @@ aceitando só um dígito (0 a 9). O campo começa sempre em branco — não há
 um dígito padrão — e basta digitar o número e clicar em **Filtrar**, nada
 além disso: como a busca dessa tela é paginada no servidor (20 registros
 por página) e um dígito de Sequencial pode ter processos espalhados por
-várias páginas, a extensão busca sozinha, em segundo plano (num `<iframe>`
-oculto, sem abrir nem trocar de aba, mesma técnica já usada na busca do
-Sequencial do processo principal acima), todas as páginas seguintes,
-clicando de verdade em "Próxima Página" a cada uma. Ao final, a própria
-tabela de resultados já existente na tela passa a mostrar só os processos
-cujo "Seq." termina no dígito informado, de todas as páginas percorridas,
-com um resumo (quantos processos, em quantas páginas) no lugar da
+várias páginas, a extensão busca sozinha, em segundo plano (com `fetch()`,
+mesma sessão/cookies do usuário, sem abrir nem trocar de aba, mesma
+técnica já usada na busca do Sequencial do processo principal acima),
+todas as páginas seguintes — repetindo, uma vez por página, a mesma busca
+que o botão "Filtrar" já faz. Ao final, a própria tabela de resultados já
+existente na tela passa a mostrar só os processos cujo "Seq." termina no
+dígito informado, de todas as páginas percorridas, com um resumo (quantos
+processos, em quantas páginas) no lugar da
 navegação entre páginas.
 
 ## Indicador de suspensão ativa
