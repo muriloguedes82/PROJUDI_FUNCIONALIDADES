@@ -830,33 +830,64 @@
 	// movimentações junto. Clicando no controle desta linha específica, só
 	// o contêiner dela (o mesmo que loadedMovementDocs já lê) é populado.
 	//
-	// Para não abrir a linha visivelmente enquanto isso acontece, o
-	// contêiner é escondido (visibility:hidden, preserva o layout) durante
-	// a espera; ao final, os documentos são lidos e o controle é clicado de
-	// novo para recolher a linha de volta ao estado original.
+	// Para não abrir a linha visivelmente enquanto isso acontece, tanto o
+	// ícone "+"/"-" quanto o contêiner ficam escondidos (display:none, não
+	// reserva espaço nenhum — nem o ícone alternando nem uma linha em
+	// branco aparecem) durante a espera; ao final, os documentos são lidos
+	// e o controle é clicado de novo para recolher a linha ao estado
+	// original, só então os dois voltam a ficar visíveis.
+	//
+	// Em vez de esperar um tempo fixo, verifica a cada 100ms se o
+	// contêiner já foi populado e segue assim que encontrar algo — mais
+	// rápido que esperar sempre o pior caso, com um teto de segurança para
+	// quando a carga demorar mais (rede lenta, etc.).
 	function loadMovementDocsInPlace(link, callback) {
 		const toggle = movementFileToggle(link);
 		if (!toggle) {
 			callback([]);
 			return;
 		}
-		const container = movementDocsContainer(toggle);
-		if (container) container.style.setProperty("visibility", "hidden", "important");
-		try {
-			toggle.click();
-		} catch (e) {
-			/* ignore */
+		let container = movementDocsContainer(toggle);
+		function hide() {
+			toggle.style.setProperty("visibility", "hidden", "important");
+			if (container) container.style.setProperty("display", "none", "important");
 		}
-		setTimeout(function () {
-			const docs = loadedMovementDocs(link);
+		function finish(docs) {
 			try {
 				toggle.click();
 			} catch (e) {
 				/* ignore */
 			}
-			if (container) container.style.removeProperty("visibility");
+			toggle.style.removeProperty("visibility");
+			if (container) container.style.removeProperty("display");
 			callback(docs);
-		}, 1500);
+		}
+
+		hide();
+		try {
+			toggle.click();
+		} catch (e) {
+			/* ignore */
+		}
+		// O contêiner pode só passar a existir depois do clique, em vez de
+		// já estar presente (vazio) na página — tenta achar de novo e
+		// escondê-lo também, caso tenha aparecido agora.
+		if (!container) {
+			container = movementDocsContainer(toggle);
+			hide();
+		}
+
+		const POLL_INTERVAL_MS = 100;
+		const MAX_WAIT_MS = 3000;
+		let waited = 0;
+		const poll = setInterval(function () {
+			waited += POLL_INTERVAL_MS;
+			const docs = loadedMovementDocs(link);
+			if (docs.length || waited >= MAX_WAIT_MS) {
+				clearInterval(poll);
+				finish(docs);
+			}
+		}, POLL_INTERVAL_MS);
 	}
 
 	function openPreviewGroup(link) {
