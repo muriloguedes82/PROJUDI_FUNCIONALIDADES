@@ -1832,6 +1832,20 @@
 		const launcher = document.getElementById("pdp-wa-launcher");
 		if (!launcher) return;
 
+		// Quando o grupo de botões (buttonDrag.js) já assumiu este launcher
+		// — sinalizado pelo atributo "data-pdp-movable" que ele mesmo aplica
+		// em layoutColumns()/place() —, NÃO reposiciona por aqui: os dois
+		// códigos rodam em paralelo (mesmo intervalo de 700ms, mesmos
+		// eventos de scroll/resize), mas com fórmulas diferentes para o
+		// mesmo elemento. Sem essa checagem, cada um reescrevia "right" com
+		// um valor diferente do outro a cada ciclo, e o botão ficava
+		// alternando entre as duas posições — esse é o piscar do
+		// GRUPAMENTO de botões (distinto do piscar por frações de pixel
+		// que o setPx() acima evita). Quando o grupo se desfizer,
+		// buttonDrag.js remove o atributo antes de recalcular, e este
+		// código volta a assumir a posição no ciclo seguinte.
+		if (launcher.hasAttribute("data-pdp-movable")) return;
+
 		const emailButtons = Array.prototype.slice.call(document.querySelectorAll(EMAIL_BUTTON_SELECTOR));
 		if (emailButtons.length) {
 			let minLeft = null;
