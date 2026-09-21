@@ -1831,12 +1831,46 @@
 	//   mirando o nome do iframe, que abre uma ABA NOVA em vez de navegar o
 	//   iframe quando o nome não é reconhecido a tempo como alvo válido
 	//   (comportamento padrão do HTML nesse caso - já visto ao vivo).
+	// - openActionModalPost (ver src/content.js, botão "Analisar Retorno"
+	//   de mandados devolvidos): mesma ideia, mas para uma ação cujo botão
+	//   nativo faz um POST (via `submitPage(url, form)`) em vez de um link
+	//   GET comum - o caso de openActionModal (`src` direto no iframe) não
+	//   serve aqui, pois um GET não reproduziria o POST original. Diferente
+	//   do aviso acima sobre `<form target="...">`, aqui o iframe já existe
+	//   e está conectado ao documento (criado por showActionModal antes do
+	//   form ser montado), então seu nome já é um alvo de navegação válido
+	//   no momento do submit - a armadilha da ABA NOVA só ocorre quando o
+	//   iframe é criado/nomeado no mesmíssimo instante da tentativa de
+	//   mirar nele, o que não é o caso aqui.
 	// -------------------------------------------------------------------
 	window.__pdpQuickActions = {
 		resolveDialogUrl: resolveDialogUrl,
 		openActionModal: function (label, url) {
 			const iframe = showActionModal(label);
 			if (url) iframe.src = url;
+			return iframe;
+		},
+		openActionModalPost: function (label, url, fields) {
+			const iframe = showActionModal(label);
+			const frameName = "pdp-qa-modal-frame-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+			iframe.name = frameName;
+
+			const form = document.createElement("form");
+			form.method = "POST";
+			form.action = url;
+			form.target = frameName;
+			form.style.display = "none";
+			(fields || []).forEach(function (pair) {
+				const input = document.createElement("input");
+				input.type = "hidden";
+				input.name = pair[0];
+				input.value = pair[1];
+				form.appendChild(input);
+			});
+			document.body.appendChild(form);
+			form.submit();
+			form.remove();
+
 			return iframe;
 		},
 	};
