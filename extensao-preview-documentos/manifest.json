@@ -62,6 +62,7 @@
         "src/movementHighlight.js",
         "src/expandMovements.js",
         "src/sequencialProcessoPrincipal.js",
+        "src/decursoPrazoSequencial.js",
         "src/suspensaoAtiva.js",
         "src/monitoracaoAtiva.js",
         "src/oraculoDirect.js",

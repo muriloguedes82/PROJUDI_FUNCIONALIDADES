@@ -111,6 +111,32 @@ preenchida assim que a busca termina. Esse campo só aparece nos processos
 que já têm "Processo Principal:" preenchido, ou seja, nos processos
 apensos — o processo principal em si não ganha essa linha extra.
 
+## Filtro por "Sequencial" na Análise de Decurso de Prazo
+
+Várias telas de análise do Projudi (ex.: Análise de Juntadas) já têm um
+campo **Sequencial** no formulário de busca: o servidor informa um dígito
+de 0 a 9 e, ao clicar em **Filtrar**, a tabela de resultados é restrita às
+linhas cujo "Seq." termina naquele dígito — útil para dividir a fila de
+trabalho entre vários servidores. A tela de **Análise de Decurso de
+Prazo** (menu "Decurso de Prazo", `processo/intimacaoBusca.do`) não tinha
+esse campo, embora a própria tabela de resultados já exiba um "Seq." para
+cada linha (coluna "Processo", logo abaixo do número do processo).
+
+A extensão insere o campo **Sequencial:** nesse formulário de busca,
+aceitando só um dígito (0 a 9). O campo começa sempre em branco — não há
+um dígito padrão — e basta digitar o número e clicar em **Filtrar**, nada
+além disso: como a busca dessa tela é paginada no servidor (20 registros
+por página) e um dígito de Sequencial pode ter processos espalhados por
+várias páginas, a extensão busca sozinha, em segundo plano (com `fetch()`,
+mesma sessão/cookies do usuário, sem abrir nem trocar de aba, mesma
+técnica já usada na busca do Sequencial do processo principal acima),
+todas as páginas seguintes — repetindo, uma vez por página, a mesma busca
+que o botão "Filtrar" já faz. Ao final, a própria tabela de resultados já
+existente na tela passa a mostrar só os processos cujo "Seq." termina no
+dígito informado, de todas as páginas percorridas, com um resumo (quantos
+processos, em quantas páginas) no lugar da
+navegação entre páginas.
+
 ## Indicador de suspensão ativa
 
 No cabeçalho do processo, logo depois do texto "(N dia(s) em
