@@ -2,14 +2,14 @@
 //
 // Compartilha a seleção de documentos com o WhatsApp na tela de
 // Movimentações (mesmo padrão usado por content.js: <a class="link"
-// href=".../arquivo.do?...">, igual no Projudi e no SEEU). Dois botões
-// flutuantes ficam sempre visíveis sobre a tela: "Destinatários"
-// (cadastrar/remover/priorizar destinatários favoritos) e "Enviar por
-// e-mail" — este último funciona com ou sem nenhum arquivo marcado, para
-// permitir enviar um e-mail sem anexar documentos dos autos quando o
-// usuário quiser.
+// href=".../arquivo.do?...">, igual no Projudi e no SEEU). O botão
+// flutuante "✉️ Enviar por e-mail" fica sempre visível sobre a tela —
+// funciona com ou sem nenhum arquivo marcado, para permitir enviar um
+// e-mail sem anexar documentos dos autos quando o usuário quiser. Ao lado
+// dele, uma seta (▼) abre um menu com "Alterar Remetente" (cadastrar
+// remetentes e escolher o padrão ao abrir o Outlook).
 //
-// Ao clicar em "Enviar por e-mail": se houver destinatários salvos,
+// Ao clicar em "✉️ Enviar por e-mail": se houver destinatários salvos,
 // primeiro é exibido um seletor para escolher um ou mais (com busca e os
 // marcados como prioritários no topo); em seguida, o nome e o link de cada
 // arquivo selecionado (se houver) são enviados ao background script — é lá
@@ -57,7 +57,8 @@
 	window.__pdpDocumentSelection.subscribe(function () { updateSendButton(); }); // href -> { href, name }
 	let sendButton = null;
 	let recipientsButton = null;
-	let fromButton = null;
+	let emailMenuButton = null;
+	let emailDropdown = null;
 	let frameEligible = false;
 
 	// ---------------------------------------------------------------------
@@ -115,28 +116,69 @@
 			});
 			document.body.appendChild(recipientsButton);
 		}
-		if (!fromButton || !fromButton.isConnected) {
-			fromButton = document.createElement("button");
-			fromButton.type = "button";
-			fromButton.id = "pdp-from-button";
-			fromButton.className = "pdp-email-visible";
-			fromButton.textContent = "✉️ Remetente";
-			fromButton.title = "Cadastrar remetentes e escolher o padrão ao abrir o Outlook";
-			fromButton.addEventListener("click", function () {
-				openFromAccountsDialog();
-			});
-			document.body.appendChild(fromButton);
-		}
 		if (!sendButton || !sendButton.isConnected) {
 			sendButton = document.createElement("button");
 			sendButton.type = "button";
 			sendButton.id = "pdp-email-button";
 			sendButton.className = "pdp-email-visible";
-			sendButton.textContent = selected.size > 0 ? "Enviar por e-mail (" + selected.size + ")" : "Enviar por e-mail";
+			sendButton.textContent = selected.size > 0 ? "✉️ Enviar por e-mail (" + selected.size + ")" : "✉️ Enviar por e-mail";
 			sendButton.addEventListener("click", onSendClick);
 			document.body.appendChild(sendButton);
 		}
+		if (!emailMenuButton || !emailMenuButton.isConnected) {
+			emailMenuButton = document.createElement("button");
+			emailMenuButton.type = "button";
+			emailMenuButton.id = "pdp-email-menu-button";
+			emailMenuButton.className = "pdp-email-visible";
+			emailMenuButton.textContent = "▼";
+			emailMenuButton.title = "Mais opções de e-mail";
+			emailMenuButton.setAttribute("aria-haspopup", "menu");
+			emailMenuButton.setAttribute("aria-expanded", "false");
+			emailMenuButton.addEventListener("click", function (event) {
+				event.stopPropagation();
+				if (emailDropdown && emailDropdown.isConnected) {
+					closeEmailDropdown();
+					return;
+				}
+				emailDropdown = document.createElement("div");
+				emailDropdown.id = "pdp-email-dropdown";
+				emailDropdown.setAttribute("role", "menu");
+				emailDropdown.style.cssText =
+					"position:fixed;z-index:2147483001;padding:4px;border:1px solid #aaa;border-radius:4px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.2);";
+				const sender = document.createElement("button");
+				sender.type = "button";
+				sender.textContent = "Alterar Remetente";
+				sender.setAttribute("role", "menuitem");
+				sender.style.cssText =
+					"display:block;width:100%;padding:7px 10px;border:0;background:#fff;text-align:left;cursor:pointer;";
+				sender.addEventListener("click", function () {
+					closeEmailDropdown();
+					openFromAccountsDialog();
+				});
+				emailDropdown.appendChild(sender);
+				document.body.appendChild(emailDropdown);
+				emailMenuButton.setAttribute("aria-expanded", "true");
+				positionEmailDropdown();
+			});
+			document.body.appendChild(emailMenuButton);
+		}
 	}
+
+	function positionEmailDropdown() {
+		if (!emailDropdown || !emailMenuButton) return;
+		const rect = emailMenuButton.getBoundingClientRect();
+		emailDropdown.style.right = Math.max(8, window.innerWidth - rect.right) + "px";
+		emailDropdown.style.top = Math.min(window.innerHeight - emailDropdown.offsetHeight - 8, rect.bottom + 4) + "px";
+	}
+
+	function closeEmailDropdown() {
+		if (emailDropdown) emailDropdown.remove();
+		emailDropdown = null;
+		if (emailMenuButton) emailMenuButton.setAttribute("aria-expanded", "false");
+	}
+	document.addEventListener("click", closeEmailDropdown);
+	window.addEventListener("pdp-buttons-hide", closeEmailDropdown);
+	window.addEventListener("pdp-buttons-moved", positionEmailDropdown);
 
 	function findActionToolbarElement() {
 		const candidates = document.querySelectorAll('button, a, input[type="button"], input[type="submit"]');
@@ -185,17 +227,13 @@
 			}
 		}
 
-		let cursor = baseBottom;
-		recipientsButton.style.bottom = cursor + "px";
-		cursor += (recipientsButton.offsetHeight || 36) + BUTTON_GAP;
-
-		if (fromButton) {
-			fromButton.style.bottom = cursor + "px";
-			cursor += (fromButton.offsetHeight || 36) + BUTTON_GAP;
-		}
+		// recipientsButton fica sempre escondido (display:none, ver
+		// email.css) — não soma altura nenhuma ao cursor: um botão invisível
+		// não deveria reservar espaço para o próximo.
+		recipientsButton.style.bottom = baseBottom + "px";
 
 		if (sendButton) {
-			sendButton.style.bottom = cursor + "px";
+			sendButton.style.bottom = baseBottom + "px";
 		}
 	}
 
@@ -206,7 +244,7 @@
 		ensureButtons();
 		if (!sendButton) return;
 		const count = selected.size;
-		sendButton.textContent = count > 0 ? "Enviar por e-mail (" + count + ")" : "Enviar por e-mail";
+		sendButton.textContent = count > 0 ? "✉️ Enviar por e-mail (" + count + ")" : "✉️ Enviar por e-mail";
 		sendButton.classList.add("pdp-email-visible");
 		repositionButtons();
 	}
