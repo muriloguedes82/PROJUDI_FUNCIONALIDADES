@@ -747,12 +747,18 @@
 	}
 
 	function openPendenciaGroup(link) {
-		if (
-			activePendenciaLink === link &&
-			(pendenciaPanels.length || movementMultipleNotice || (pendenciaLoader && pendenciaLoader.link === link))
-		) {
-			return;
-		}
+		// Já tem uma busca em segundo plano em andamento para este mesmo
+		// link: não reinicia. Antes, esta checagem também exigia
+		// "activePendenciaLink === link" — mas activePendenciaLink é zerado
+		// por closeAllPendenciaPanels() a cada vez que o mouse sai do link
+		// por mais de CLOSE_DELAY_MS, o que acontecia quase sempre antes da
+		// busca (raramente instantânea, sobretudo para expandir uma
+		// movimentação) terminar. Resultado: cada nova passada do mouse
+		// cancelava a busca anterior e recomeçava do zero, e a pré-
+		// visualização nunca chegava a aparecer. A identidade de "já estou
+		// buscando isto" agora depende só do próprio pendenciaLoader.
+		if (pendenciaLoader && pendenciaLoader.link === link) return;
+		if (activePendenciaLink === link && (pendenciaPanels.length || movementMultipleNotice)) return;
 
 		const href = link.getAttribute("href");
 		if (!href) return;
@@ -779,7 +785,11 @@
 			if (!data || data.source !== MESSAGE_SOURCE || data.type !== "pendencia-docs" || data.token !== token) return;
 
 			cleanupPendenciaLoader();
-			if (activePendenciaLink !== link) return;
+			// O token já garante que esta resposta é da busca certa para
+			// este link — mesmo que o mouse tenha saído nesse meio-tempo
+			// (por isso não checamos mais "activePendenciaLink === link"
+			// aqui), então o resultado é exibido de qualquer forma.
+			activePendenciaLink = link;
 
 			const docs = Array.isArray(data.docs) ? data.docs : [];
 			if (!docs.length) {
@@ -796,14 +806,13 @@
 
 		const timeoutId = setTimeout(function () {
 			cleanupPendenciaLoader();
-			if (activePendenciaLink === link && !pendenciaPanels.length) {
-				showPendenciaMessage(
-					link,
-					isMovementLink(link)
-						? "Não foi possível carregar os documentos desta movimentação a tempo."
-						: "Não foi possível carregar a pré-visualização a tempo. Clique no link para abrir a análise completa."
-				);
-			}
+			activePendenciaLink = link;
+			showPendenciaMessage(
+				link,
+				isMovementLink(link)
+					? "Não foi possível carregar os documentos desta movimentação a tempo."
+					: "Não foi possível carregar a pré-visualização a tempo. Clique no link para abrir a análise completa."
+			);
 		}, PENDENCIA_TIMEOUT_MS);
 
 		pendenciaLoader = { iframe: iframe, link: link, onMessage: onMessage, timeoutId: timeoutId };
