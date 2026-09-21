@@ -1814,6 +1814,20 @@
 	const EMAIL_BUTTON_SELECTOR = "#pdp-email-button, #pdp-recipients-button, .pdp-email-visible";
 	const BUTTON_SCREEN_MARGIN = 12;
 
+	// repositionLauncher() roda a cada 700ms (reconcileWhatsappUi) e a cada
+	// frame de rolagem (scheduleReposition) — bem mais que o suficiente
+	// para, sem essa checagem, reaplicar "bottom"/"right" com frações de
+	// pixel ligeiramente diferentes a cada chamada mesmo sem nada ter
+	// mudado de verdade, fazendo o navegador repintar o botão sem
+	// necessidade (o "piscar" do launcher de WhatsApp). Mesma técnica já
+	// usada com sucesso no grupo de botões (ver setPx() em buttonDrag.js):
+	// só escreve no estilo quando o valor arredondado realmente muda.
+	function setPx(el, prop, value) {
+		const next = Math.round(value) + "px";
+		if (el.style.getPropertyValue(prop) === next) return;
+		el.style.setProperty(prop, next);
+	}
+
 	function repositionLauncher() {
 		const launcher = document.getElementById("pdp-wa-launcher");
 		if (!launcher) return;
@@ -1833,8 +1847,8 @@
 			const groupCenter = (minTop + maxBottom) / 2;
 			const launcherHeight = launcher.offsetHeight || 32;
 			const bottom = window.innerHeight - groupCenter - launcherHeight / 2;
-			launcher.style.bottom = Math.max(BUTTON_SCREEN_MARGIN, Math.round(bottom)) + "px";
-			launcher.style.right = Math.round(window.innerWidth - minLeft + 8) + "px";
+			setPx(launcher, "bottom", Math.max(BUTTON_SCREEN_MARGIN, bottom));
+			setPx(launcher, "right", window.innerWidth - minLeft + 8);
 			return;
 		}
 
@@ -1852,8 +1866,8 @@
 				bottom = Math.min(Math.max(BUTTON_SCREEN_MARGIN, offset), window.innerHeight - BUTTON_SCREEN_MARGIN);
 			}
 		}
-		launcher.style.bottom = bottom + "px";
-		launcher.style.right = BUTTON_SCREEN_MARGIN + "px";
+		setPx(launcher, "bottom", bottom);
+		setPx(launcher, "right", BUTTON_SCREEN_MARGIN);
 	}
 
 	// Algumas telas (Projudi e SEEU) trocam de "aba" do processo (ex.:
