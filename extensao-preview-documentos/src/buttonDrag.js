@@ -24,6 +24,17 @@
   let drag = null;
   let scheduled = false;
   let saveQueue = Promise.resolve();
+  // Larguras medidas (que dependem do texto de toggle/handle/send/whats)
+  // ficam em cache — só remedidas quando esse texto muda de verdade. Nas
+  // versões anteriores (empilhamento vertical simples) a largura nunca
+  // era recalculada a cada chamada; aqui ela dependia de forçar
+  // width:auto e remedir em toda chamada (a cada 700ms/mutação), o que
+  // podia oscilar por frações de pixel entre uma medição e outra e
+  // causar o piscar. Cacheando, a medição só roda quando precisa.
+  let widthsSignature = null;
+  let cachedControlWidth = 1;
+  let cachedDeliveryWidth = 0;
+  let cachedEmailMainWidth = 1;
 
   function applyVisibility() {
     document.documentElement.toggleAttribute("data-pdp-buttons-hidden", buttonsHidden);
@@ -147,35 +158,44 @@
       el.style.setProperty('font-size', '12px', 'important');
       el.style.setProperty('line-height', '1', 'important');
       el.style.setProperty('white-space', 'nowrap', 'important');
-      el.style.setProperty('width', 'auto', 'important');
       setPx(el, 'padding-left', horizontalPadding, 'important');
       setPx(el, 'padding-right', horizontalPadding, 'important');
     }
     const menuWidth = buttonHeight;
     if (emailMenu) {
-      setPx(emailMenu, 'width', menuWidth, 'important');
       emailMenu.style.setProperty('padding-left', '0', 'important');
       emailMenu.style.setProperty('padding-right', '0', 'important');
     }
-    const naturalControlWidth = Math.max(
-      Math.ceil(toggle?.getBoundingClientRect().width || 0),
-      Math.ceil(handle?.getBoundingClientRect().width || 0)
-    );
-    const controlWidth = Math.max(1, naturalControlWidth);
-    for (const control of [toggle, handle]) {
-      setPx(control, 'width', controlWidth, 'important');
-      control.style.boxSizing = 'border-box';
+    // O texto de toggle/handle/send/whats é o único que muda a largura
+    // natural deles ("Ocultar"/"Mostrar", "Enviar por e-mail (2)", etc.).
+    // Só remede (forçando width:auto e lendo de volta) quando esse texto
+    // muda de verdade — nas chamadas normais (a cada 700ms/mutação, sem
+    // nada relevante ter mudado), reaplica a largura já calculada, sem
+    // forçar auto e remedir de novo. Ler a largura "natural" toda vez
+    // fazia essas medições oscilarem por frações de pixel entre uma
+    // chamada e outra (mesmo sem mudança real), o que causava o piscar.
+    const signature = [toggle?.textContent, handle?.textContent, send?.textContent, whats?.textContent].join('|');
+    if (signature !== widthsSignature) {
+      widthsSignature = signature;
+      for (const el of [toggle, handle, send, whats].filter(Boolean)) {
+        el.style.setProperty('width', 'auto', 'important');
+      }
+      cachedControlWidth = Math.max(
+        1,
+        Math.ceil(toggle?.getBoundingClientRect().width || 0),
+        Math.ceil(handle?.getBoundingClientRect().width || 0)
+      );
+      const whatsWidth = Math.ceil(whats?.getBoundingClientRect().width || 0);
+      const emailWidth = Math.ceil(send?.getBoundingClientRect().width || 0) + (emailMenu ? menuWidth : 0);
+      cachedDeliveryWidth = Math.max(whatsWidth, emailWidth);
+      cachedEmailMainWidth = Math.max(1, cachedDeliveryWidth - (emailMenu ? menuWidth : 0));
     }
-    const whatsWidth = Math.ceil(whats?.getBoundingClientRect().width || 0);
-    const emailWidth = Math.ceil(send?.getBoundingClientRect().width || 0) + (emailMenu ? menuWidth : 0);
-    const deliveryWidth = Math.max(whatsWidth, emailWidth);
-    if (whats && deliveryWidth) {
-      setPx(whats, 'width', deliveryWidth, 'important');
-    }
-    if (send && deliveryWidth) {
-      const emailMainWidth = Math.max(1, deliveryWidth - (emailMenu ? menuWidth : 0));
-      setPx(send, 'width', emailMainWidth, 'important');
-    }
+    setPx(emailMenu, 'width', menuWidth, 'important');
+    setPx(toggle, 'width', cachedControlWidth, 'important');
+    setPx(handle, 'width', cachedControlWidth, 'important');
+    if (whats && cachedDeliveryWidth) setPx(whats, 'width', cachedDeliveryWidth, 'important');
+    if (send && cachedDeliveryWidth) setPx(send, 'width', cachedEmailMainWidth, 'important');
+    const controlWidth = cachedControlWidth;
     const lines = row ? [...row.querySelectorAll('.pdp-qa-row-line')] : [];
     lines.forEach(line => { line.style.minHeight = buttonHeight + 'px'; line.style.alignItems = 'center'; });
     const firstHeight = Math.max(buttonHeight, lines[0]?.offsetHeight || 0);
@@ -208,7 +228,7 @@
     place(whats, firstTop, sendRight);
     place(emailMenu, secondTop, sendRight);
     place(send, secondTop, sendRight + menuWidth);
-    place(row, top, sendRight + deliveryWidth + 10);
+    place(row, top, sendRight + cachedDeliveryWidth + 10);
     window.dispatchEvent(new Event('pdp-buttons-moved'));
   }
   function schedule() {
