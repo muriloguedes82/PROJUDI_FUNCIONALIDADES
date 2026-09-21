@@ -37,7 +37,8 @@
 	function inserirCampo(form) {
 		if (form.querySelector("#pdpSequencial")) return null;
 
-		const ancoraRow = form.querySelector("#flagSomentePrioritarios, #situacao")?.closest("tr");
+		const prioridadeRow = form.querySelector("#flagSomentePrioritarios")?.closest("tr");
+		const ancoraRow = prioridadeRow || form.querySelector("#situacao")?.closest("tr");
 		if (!ancoraRow) {
 			console.warn(TAG, "não encontrei onde inserir o campo Sequencial no formulário");
 			return null;
