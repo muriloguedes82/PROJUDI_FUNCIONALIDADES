@@ -47,15 +47,18 @@
 // relação com o retorno deste mandado e por isso são ignorados.
 //
 // Cada painel de pré-visualização de um documento retornado ganha também
-// um botão "Analisar Retorno", que reproduz — na aba de verdade, não no
-// iframe oculto de busca — o clique no botão de mesmo nome da tela de
-// detalhe do mandado (ver `extractAnalisarRetornoAction` e
+// um botão "Analisar Retorno", que reproduz o clique no botão de mesmo
+// nome da tela de detalhe do mandado (ver `extractAnalisarRetornoAction` e
 // `submitAnalisarRetorno`), poupando os dois cliques manuais anteriores
-// (abrir a pendência, depois a data na coluna "Ordenação"). Esse botão só
-// NAVEGA para a tela seguinte ("Marcar Leitura" + "Resultado do
-// Cumprimento"); nenhum campo dela é preenchido automaticamente, pelo
-// mesmo motivo acima — quem decide o resultado é sempre o usuário, depois
-// de ler a certidão.
+// (abrir a pendência, depois a data na coluna "Ordenação"). Esse botão
+// mostra a tela seguinte ("Marcar Leitura" + "Resultado do Cumprimento")
+// num POPUP sobreposto à tela atual — a mesma técnica (mesmo popup,
+// inclusive) já usada pelo botão "(Des)Habilitar Advogado" (ver README,
+// "(Des)Habilitar Advogado", e `showActionModal`/`openActionModalPost` em
+// quickActions.js): a aba de verdade NUNCA navega. Nenhum campo dessa tela
+// é preenchido automaticamente, pelo mesmo motivo acima — quem decide o
+// resultado é sempre o usuário, depois de ler a certidão, dentro do
+// próprio popup.
 //
 // Há ainda um segundo botão, "Analisar Retorno", inserido direto no quadro
 // de Pendências logo depois do próprio link (ex.: depois de "Mandado:
@@ -63,10 +66,10 @@
 // desta extensão (ver "Dispensar juntadas" em juntadaDrag.js e "Finalizar
 // conclusão" em finalizarConclusao.js). Ele dispensa até passar o mouse:
 // busca a análise em segundo plano e, havendo um único mandado pendente
-// naquele link, já navega a aba de verdade direto para a última tela.
-// Havendo mais de um mandado pendente no mesmo link, não escolhe por conta
-// própria qual analisar — pede para o usuário passar o mouse sobre o link
-// e escolher pelo painel de pré-visualização de cada mandado.
+// naquele link, já abre esse mesmo popup direto na última tela. Havendo
+// mais de um mandado pendente no mesmo link, não escolhe por conta própria
+// qual analisar — pede para o usuário passar o mouse sobre o link e
+// escolher pelo painel de pré-visualização de cada mandado.
 //
 // Há ainda um terceiro botão, igual aos dois primeiros, mas na própria
 // tela de listagem de mandados (cumprimentoCartorioMandado.do?actionType=
@@ -77,8 +80,8 @@
 // linha pendente já tem a data/hora de ordenação (<a class="url">) na
 // coluna "Ordenação" — o botão é inserido logo abaixo dessa data/hora, na
 // mesma célula (ver `scanMandadoListButtons` e `.pdp-analisar-retorno-
-// mandado-row` em content.css), e navega a aba de verdade direto para a
-// última tela daquele mandado.
+// mandado-row` em content.css), e abre o mesmo popup direto na última tela
+// daquele mandado, sem navegar a aba de verdade.
 
 (function () {
 	"use strict";
@@ -495,36 +498,35 @@
 		return panel;
 	}
 
-	// Reproduz, na aba de verdade (não no iframe oculto de busca), o clique no
-	// botão "Analisar Retorno" da tela de detalhe de um mandado — poupando o
-	// usuário dos dois cliques manuais anteriores (abrir a pendência, depois
-	// a data na coluna "Ordenação"). NÃO preenche nenhum campo da tela
-	// seguinte ("Marcar Leitura" + "Resultado"): a marcação de opções na
-	// certidão do oficial de justiça é feita por cima do texto impresso
-	// (sem nenhum campo de formulário real no PDF), o que torna a leitura
-	// automática dessas marcações não confiável o bastante para preencher
-	// um registro do processo sem revisão humana — por isso o preenchimento
-	// continua 100% manual, só a navegação até a tela é automática.
+	// Reproduz o clique no botão "Analisar Retorno" da tela de detalhe de um
+	// mandado — poupando o usuário dos dois cliques manuais anteriores
+	// (abrir a pendência, depois a data na coluna "Ordenação"). Mostra a
+	// tela seguinte ("Marcar Leitura" + "Resultado do Cumprimento") num
+	// POPUP sobreposto à tela atual, em vez de navegar a aba de verdade —
+	// mesma técnica já usada pelo botão "(Des)Habilitar Advogado" (ver
+	// `openActionModalPost`/`showActionModal` em quickActions.js): a aba
+	// visível NUNCA navega, o usuário faz a análise dentro do popup e fecha
+	// com "✕ Fechar" quando terminar. NÃO preenche nenhum campo dessa tela:
+	// a marcação de opções na certidão do oficial de justiça é feita por
+	// cima do texto impresso (sem nenhum campo de formulário real no PDF), o
+	// que torna a leitura automática dessas marcações não confiável o
+	// bastante para preencher um registro do processo sem revisão humana —
+	// por isso o preenchimento continua 100% manual, só a navegação até a
+	// tela é automática.
 	//
 	// `action.url` e `action.fields` vêm do próprio botão "Analisar Retorno"
 	// da tela de detalhe do mandado (extraído em segundo plano por
 	// `extractAnalisarRetornoAction`, dentro do iframe de busca) — mesmo
 	// destino e mesmos campos que o botão de verdade enviaria via
-	// `submitPage(url, form)`.
+	// `submitPage(url, form)`; `openActionModalPost` reproduz esse mesmo POST,
+	// só que direcionado ao iframe do popup em vez da aba inteira.
 	function submitAnalisarRetorno(action) {
-		const form = document.createElement("form");
-		form.method = "POST";
-		form.action = action.url;
-		form.style.display = "none";
-		action.fields.forEach(function (pair) {
-			const input = document.createElement("input");
-			input.type = "hidden";
-			input.name = pair[0];
-			input.value = pair[1];
-			form.appendChild(input);
-		});
-		document.body.appendChild(form);
-		form.submit();
+		const api = window.__pdpQuickActions;
+		if (!api || typeof api.openActionModalPost !== "function") {
+			alert('Não encontrei o recurso "Ações rápidas" (quickActions.js), necessário para abrir o popup.');
+			return;
+		}
+		api.openActionModalPost("Analisar Retorno", action.url, action.fields);
 	}
 
 	function positionPanel(panel, link, cascadeIndex) {
@@ -1051,13 +1053,13 @@
 				actions.push(doc.analisarRetorno);
 			});
 
-			if (actions.length === 1) {
-				submitAnalisarRetorno(actions[0]);
-				return; // a aba vai navegar; não há mais botão para restaurar
-			}
-
 			button.disabled = false;
 			button.textContent = originalLabel;
+
+			if (actions.length === 1) {
+				submitAnalisarRetorno(actions[0]); // abre num popup; a aba de trás não navega
+				return;
+			}
 
 			if (actions.length > 1) {
 				alert(
@@ -1164,13 +1166,15 @@
 
 		fetchMandadoAnalise(absolute).then(function (doc) {
 			const action = doc && extractAnalisarRetornoAction(doc, absolute);
-			if (action) {
-				submitAnalisarRetorno(action);
-				return; // a aba vai navegar; não há mais botão para restaurar
-			}
 
 			button.disabled = false;
 			button.textContent = originalLabel;
+
+			if (action) {
+				submitAnalisarRetorno(action); // abre num popup; a aba de trás não navega
+				return;
+			}
+
 			alert("Não foi possível localizar a tela de análise deste mandado automaticamente. Clique na data para abrir manualmente.");
 		});
 	}
