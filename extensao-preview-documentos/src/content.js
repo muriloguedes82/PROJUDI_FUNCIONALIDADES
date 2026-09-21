@@ -729,10 +729,40 @@
 	const MANDADO_PENDENCIA_HREF_MARKER = "/cumprimentoCartorioMandado.do";
 	const mandadoButtons = new WeakMap();
 
+	// O quadro de Pendências tem mais de uma linha cujo link aponta para
+	// cumprimentoCartorioMandado.do (ex.: "Cumprimentos Expedidos e Não
+	// Lidos:" e "Cumprimentos Aguardando Análise de Retorno:") — só a
+	// segunda tem uma tela de análise de retorno de verdade para pular;
+	// checar só o href levaria o botão a aparecer também na primeira. Por
+	// isso confirmamos o rótulo (td.labelRadio) da própria linha do link.
+	const CUMPRIMENTOS_AGUARDANDO_RETORNO_LABEL = normalizeLabel("Cumprimentos Aguardando Análise de Retorno:");
+
+	// Cada linha do quadro de Pendências é, na verdade, <tr> (rótulo) + <td>
+	// com uma SEGUNDA <table class="form"> aninhada dentro, cuja própria
+	// <tr>/<td> é que envolve o link da pendência (confirmado no .mhtml real
+	// da capa do processo). Por isso `link.closest("tr")` sozinho encontra
+	// essa <tr> interna (sem nenhum td.labelRadio) — é preciso subir além
+	// dela, <tr> por <tr>, até achar a linha externa que realmente tem o
+	// rótulo.
+	function findPendenciaLabelRow(link) {
+		let node = link;
+		while (node) {
+			const tr = node.closest("tr");
+			if (!tr) return null;
+			if (tr.querySelector(":scope > td.labelRadio")) return tr;
+			node = tr.parentElement;
+		}
+		return null;
+	}
+
 	function isMandadoPendenciaLink(link) {
 		if (!isPendenciaLink(link)) return false;
 		const href = link.getAttribute("href") || "";
-		return href.indexOf(MANDADO_PENDENCIA_HREF_MARKER) !== -1;
+		if (href.indexOf(MANDADO_PENDENCIA_HREF_MARKER) === -1) return false;
+		const row = findPendenciaLabelRow(link);
+		const labelCell = row && row.querySelector(":scope > td.labelRadio");
+		if (!labelCell) return false;
+		return normalizeLabel(labelCell.textContent) === CUMPRIMENTOS_AGUARDANDO_RETORNO_LABEL;
 	}
 
 	// Busca independente do estado do hover (não usa/mexe em `pendenciaLoader`
@@ -861,6 +891,38 @@
 
 	const mandadoListButtons = new WeakMap();
 
+	// A tela de listagem (cumprimentoCartorioMandado.do) é usada para vários
+	// status de mandado (o filtro "Status:" no topo da tela troca o que é
+	// listado — ex.: "Aguardando Análise de Decurso de Prazo" também aparece
+	// aqui, não só "Aguardando Análise de Retorno (Mandado Retornado)"). Só
+	// esse último status tem, de fato, a tela "Analisar Retorno" para pular;
+	// nos demais o botão "Analisar Retorno" da tela de detalhe nem existe.
+	// Por isso o botão só é inserido na linha cujo valor da coluna "Status"
+	// bate com esse texto — o índice dessa coluna é achado a partir do
+	// próprio cabeçalho da tabela (thead), em vez de fixo, para não quebrar
+	// se o Projudi reordenar/ocultar colunas.
+	const MANDADO_STATUS_AGUARDANDO_RETORNO_LABEL = normalizeLabel("Aguardando Análise de Retorno (Mandado Retornado)");
+
+	function mandadoRowStatusMatches(link) {
+		const row = link.closest("tr");
+		const table = row && row.closest("table.resultTable");
+		if (!row || !table) return false;
+
+		const headerCells = Array.prototype.slice.call(table.querySelectorAll("thead th"));
+		const statusIndex = headerCells.findIndex(function (th) {
+			return normalizeLabel(th.textContent) === "status";
+		});
+		if (statusIndex === -1) return false;
+
+		const rowCells = Array.prototype.slice.call(row.children).filter(function (el) {
+			return el.tagName === "TD";
+		});
+		const statusCell = rowCells[statusIndex];
+		if (!statusCell) return false;
+
+		return normalizeLabel(statusCell.textContent) === MANDADO_STATUS_AGUARDANDO_RETORNO_LABEL;
+	}
+
 	function iniciarAnaliseRetornoMandadoRow(link, button) {
 		const href = link.getAttribute("href");
 		if (!href || button.disabled) return;
@@ -893,6 +955,8 @@
 		if (!isMandadoListScreen()) return;
 
 		findMandadoRowLinks().forEach(function (link) {
+			if (!mandadoRowStatusMatches(link)) return;
+
 			let button = mandadoListButtons.get(link);
 			if (!button || !button.isConnected) {
 				button = document.createElement("button");
