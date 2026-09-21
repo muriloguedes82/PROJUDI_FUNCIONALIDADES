@@ -115,6 +115,21 @@
   // referência para todos os botões soltos vem de um botão já existente
   // dentro dessa fila (Oráculo, ou o primeiro .pdp-qa-group-btn), para os
   // dois lados ficarem visualmente do mesmo tamanho.
+  // Aplica um valor em pixels só quando ele muda de verdade (arredondado
+  // ao pixel inteiro) — layout() roda a cada 700ms e a cada mutação no
+  // DOM da página (bem frequente), e reaplicar frações de pixel
+  // ligeiramente diferentes a cada chamada, mesmo sem nada realmente ter
+  // mudado, fazia o navegador repintar os botões sem necessidade — o
+  // "piscar" ligeiro que dava para notar. Isso não afeta a rolagem nem a
+  // ancoragem: a posição continua recalculada a cada chamada, só deixa de
+  // ser REAPLICADA quando o valor arredondado é idêntico ao já visível.
+  function setPx(el, prop, value, priority) {
+    if (!el) return;
+    const next = Math.round(value) + 'px';
+    if (el.style.getPropertyValue(prop) === next) return;
+    el.style.setProperty(prop, next, priority);
+  }
+
   function layoutColumns(emails, peers) {
     const sender = emails.find(el => el.id === 'pdp-from-button');
     const send = emails.find(el => el.id === 'pdp-email-button');
@@ -128,17 +143,17 @@
     const buttonHeight = Math.max(30, Math.ceil(referenceButton?.getBoundingClientRect().height || 30));
     for (const el of [send, emailMenu, whats, sender, handle, toggle].filter(Boolean)) {
       el.style.boxSizing = 'border-box';
-      el.style.setProperty('height', buttonHeight + 'px', 'important');
+      setPx(el, 'height', buttonHeight, 'important');
       el.style.setProperty('font-size', '12px', 'important');
       el.style.setProperty('line-height', '1', 'important');
       el.style.setProperty('white-space', 'nowrap', 'important');
       el.style.setProperty('width', 'auto', 'important');
-      el.style.setProperty('padding-left', horizontalPadding + 'px', 'important');
-      el.style.setProperty('padding-right', horizontalPadding + 'px', 'important');
+      setPx(el, 'padding-left', horizontalPadding, 'important');
+      setPx(el, 'padding-right', horizontalPadding, 'important');
     }
     const menuWidth = buttonHeight;
     if (emailMenu) {
-      emailMenu.style.setProperty('width', menuWidth + 'px', 'important');
+      setPx(emailMenu, 'width', menuWidth, 'important');
       emailMenu.style.setProperty('padding-left', '0', 'important');
       emailMenu.style.setProperty('padding-right', '0', 'important');
     }
@@ -148,18 +163,18 @@
     );
     const controlWidth = Math.max(1, naturalControlWidth);
     for (const control of [toggle, handle]) {
-      control.style.setProperty('width', controlWidth + 'px', 'important');
+      setPx(control, 'width', controlWidth, 'important');
       control.style.boxSizing = 'border-box';
     }
     const whatsWidth = Math.ceil(whats?.getBoundingClientRect().width || 0);
     const emailWidth = Math.ceil(send?.getBoundingClientRect().width || 0) + (emailMenu ? menuWidth : 0);
     const deliveryWidth = Math.max(whatsWidth, emailWidth);
     if (whats && deliveryWidth) {
-      whats.style.setProperty('width', deliveryWidth + 'px', 'important');
+      setPx(whats, 'width', deliveryWidth, 'important');
     }
     if (send && deliveryWidth) {
       const emailMainWidth = Math.max(1, deliveryWidth - (emailMenu ? menuWidth : 0));
-      send.style.setProperty('width', emailMainWidth + 'px', 'important');
+      setPx(send, 'width', emailMainWidth, 'important');
     }
     const lines = row ? [...row.querySelectorAll('.pdp-qa-row-line')] : [];
     lines.forEach(line => { line.style.minHeight = buttonHeight + 'px'; line.style.alignItems = 'center'; });
@@ -180,8 +195,8 @@
     const sendRight = 12 + controlWidth + 10;
     function place(el, y, right) {
       if (!el) return;
-      el.style.setProperty('top', y + 'px', 'important');
-      el.style.setProperty('right', right + 'px', 'important');
+      setPx(el, 'top', y, 'important');
+      setPx(el, 'right', right, 'important');
       el.style.setProperty('bottom', 'auto', 'important');
       el.setAttribute('data-pdp-movable', '');
     }
