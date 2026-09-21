@@ -51,6 +51,16 @@ painel flutuante sobreposto à própria tela de movimentações — sem precisar
 trocar de aba. A ideia é a mesma já oferecida pelo eproc e pela extensão
 AzFlow.
 
+Também é possível passar o mouse sobre o **texto da movimentação** quando
+a linha possui o controle **Arquivos (+)**. Se os arquivos já estiverem
+expandidos, a extensão os usa diretamente; se estiverem recolhidos, ela
+consulta a movimentação em segundo plano e mostra o Preview sem navegar a
+aba nem abrir visualmente a linha.
+
+Quando a movimentação contém mais de um arquivo, nenhum painel é aberto.
+Um aviso compacto ao lado do link informa **"Múltiplos documentos"** e a
+quantidade de arquivos encontrados.
+
 ## Destaque de movimentações por tipo de usuário
 
 Na tela **Movimentações**, cada linha mostra na coluna "Movimentado Por"

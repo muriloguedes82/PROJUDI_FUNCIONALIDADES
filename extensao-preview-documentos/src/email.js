@@ -24,6 +24,7 @@
 	"use strict";
 	// A janela do Oráculo mantém apenas os controles nativos.
 	if (location.pathname === "/projudi/processo/criminal/antecedentesCriminais.do") return;
+	if (window.__pdpButtonGroupBlocked) return;
 
 	if (window.__pdpEmailInjected) return;
 	window.__pdpEmailInjected = true;

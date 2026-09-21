@@ -25,7 +25,7 @@
   function parties(doc) {
     const found = new Map();
     for (const heading of doc.querySelectorAll('h4')) {
-      if (!/^(reu|reus|acusado|acusados|investigado|investigados|noticiado|noticiados|autor do fato|autores do fato|autores dos fatos|representado|representados)$/.test(normalize(heading.textContent))) continue;
+      if (!/^(reu|reus|acusado|acusados|investigado|investigados|noticiado|noticiados|autor do fato|autores do fato|autores dos fatos|representado|representados|flagranteado|flagranteados|posso passivo|polo passivo|polos passivos|requerido|requeridos)$/.test(normalize(heading.textContent))) continue;
       let table = heading.nextElementSibling;
       while (table && !table.matches('table,h3,h4')) table = table.nextElementSibling;
       if (!table?.matches('table.resultTable')) continue;
@@ -80,7 +80,7 @@
     }
     checkContext();
     const items = parties(doc);
-    if (!items.length) throw new Error('Não encontrei partes classificadas como Réu, Acusado, Investigado, Noticiado, Autor do fato ou Representado.');
+    if (!items.length) throw new Error('Não encontrei uma parte com classificação habilitada para consulta no Oráculo.');
     const selected = await choose(items);
     if (!selected) return true;
     checkContext();
