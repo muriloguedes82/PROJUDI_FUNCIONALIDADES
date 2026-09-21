@@ -1864,6 +1864,14 @@
 	//   (ambos ligados ao evento "load" do iframe, que dispara tanto ao
 	//   final de um `srcdoc` quanto de uma navegação comum) continuam
 	//   funcionando normalmente daí em diante.
+	//
+	//   Um detalhe à parte, no manifest.json: um iframe `srcdoc` tem URL
+	//   própria "about:srcdoc", que por padrão NÃO bate com nenhum padrão
+	//   de `matches` dos content_scripts — sem o `match_origin_as_fallback:
+	//   true` nos blocos de content_scripts do Projudi/SEEU, nenhum script
+	//   desta extensão (inclusive a pré-visualização de documentos ao
+	//   passar o mouse, de content.js) rodaria dentro deste popup, mesmo
+	//   a origem "de verdade" da resposta sendo o próprio Projudi.
 	// -------------------------------------------------------------------
 
 	// Insere `<base href="...">` logo após a abertura do `<head>` (ou cria
