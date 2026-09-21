@@ -737,12 +737,30 @@
 	// isso confirmamos o rótulo (td.labelRadio) da própria linha do link.
 	const CUMPRIMENTOS_AGUARDANDO_RETORNO_LABEL = normalizeLabel("Cumprimentos Aguardando Análise de Retorno:");
 
+	// Cada linha do quadro de Pendências é, na verdade, <tr> (rótulo) + <td>
+	// com uma SEGUNDA <table class="form"> aninhada dentro, cuja própria
+	// <tr>/<td> é que envolve o link da pendência (confirmado no .mhtml real
+	// da capa do processo). Por isso `link.closest("tr")` sozinho encontra
+	// essa <tr> interna (sem nenhum td.labelRadio) — é preciso subir além
+	// dela, <tr> por <tr>, até achar a linha externa que realmente tem o
+	// rótulo.
+	function findPendenciaLabelRow(link) {
+		let node = link;
+		while (node) {
+			const tr = node.closest("tr");
+			if (!tr) return null;
+			if (tr.querySelector(":scope > td.labelRadio")) return tr;
+			node = tr.parentElement;
+		}
+		return null;
+	}
+
 	function isMandadoPendenciaLink(link) {
 		if (!isPendenciaLink(link)) return false;
 		const href = link.getAttribute("href") || "";
 		if (href.indexOf(MANDADO_PENDENCIA_HREF_MARKER) === -1) return false;
-		const row = link.closest("tr");
-		const labelCell = row && row.querySelector("td.labelRadio");
+		const row = findPendenciaLabelRow(link);
+		const labelCell = row && row.querySelector(":scope > td.labelRadio");
 		if (!labelCell) return false;
 		return normalizeLabel(labelCell.textContent) === CUMPRIMENTOS_AGUARDANDO_RETORNO_LABEL;
 	}
