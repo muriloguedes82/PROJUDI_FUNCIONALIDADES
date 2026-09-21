@@ -1721,8 +1721,25 @@
 		activePanel.style.right = Math.max(BUTTON_SCREEN_MARGIN, Math.round(right)) + "px";
 	}
 
+	// Quando o grupo de botões (buttonDrag.js) já assumiu #pdp-qa-row —
+	// sinalizado pelo atributo "data-pdp-movable" que ele mesmo aplica em
+	// layoutColumns()/place() —, NÃO reposiciona por aqui. buttonDrag.js
+	// inclui "#pdp-qa-row" diretamente no seletor de peers (não só quando
+	// há botões de e-mail/WhatsApp), então assim que a fila existe e fica
+	// visível ele sempre a reivindica. Sem essa checagem, os dois códigos
+	// rodavam em paralelo (mesmo intervalo de 700ms, mesmos eventos de
+	// scroll/resize) com fórmulas diferentes de "bottom"/"right" para o
+	// MESMO elemento, e o valor aplicado por último — de um jeito ou de
+	// outro — vencia a cada ciclo: a fila (com "Processo copiado",
+	// "(Des)Habilitar Advogado", "Destacar movimentações", "Oráculo")
+	// ficava alternando entre as duas posições. Mesma causa e mesma
+	// correção já aplicadas ao botão de WhatsApp em content.js.
 	function repositionRow() {
 		if (!row) return;
+		if (row.hasAttribute("data-pdp-movable")) {
+			if (activeGroupId) positionPanel(activeGroupId);
+			return;
+		}
 
 		const otherButtons = Array.prototype.slice.call(document.querySelectorAll(OTHER_BUTTON_SELECTOR));
 		if (otherButtons.length) {
