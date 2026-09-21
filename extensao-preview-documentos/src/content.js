@@ -815,12 +815,28 @@
 
 	function openPreviewGroup(link) {
 		if (isMovementLink(link)) {
+			const toggle = movementFileToggle(link);
 			const docs = loadedMovementDocs(link);
-			console.log("[Projudi Preview] hover no texto da movimentação:", {
-				jaExpandido: !!movementDocsContainer(movementFileToggle(link)),
-				docsJaCarregados: docs.length,
-				href: link.href,
-			});
+			// Texto puro (JSON.stringify), não o objeto vivo — no console do
+			// Chrome um objeto vivo aparece só como "Object" (preciso expandir
+			// manualmente e o valor pode já ter mudado); serializado, o
+			// conteúdo já sai pronto para copiar/colar.
+			console.log(
+				"[Projudi Preview] hover no texto da movimentação: " +
+					JSON.stringify(
+						{
+							href: link.href,
+							toggleEncontrado: !!toggle,
+							toggleId: toggle ? toggle.id : null,
+							toggleOnclick: toggle ? toggle.getAttribute("onclick") : null,
+							containerEncontrado: !!(toggle && movementDocsContainer(toggle)),
+							docsJaCarregados: docs.length,
+							docs: docs,
+						},
+						null,
+						2
+					)
+			);
 			if (docs.length) {
 				showPendenciaDocs(link, docs);
 				return;
