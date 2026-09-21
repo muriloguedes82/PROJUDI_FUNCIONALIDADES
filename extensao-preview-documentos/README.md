@@ -254,12 +254,13 @@ ativa.
 
 Ao lado de cada arquivo listado numa movimentação (os mesmos links de
 `arquivo.do`, que aparecem ao expandir o "+" da movimentação), a extensão
-insere uma checkbox. Dois botões flutuantes ficam **sempre visíveis** no
-canto inferior direito da tela: **"👥 Destinatários"** e **"Enviar por
-e-mail"** — este último funciona com ou sem nenhum arquivo marcado, para
-enviar um e-mail sem anexar documentos dos autos quando for o caso (nesse
-caso mostra só "Enviar por e-mail"; com arquivos marcados, mostra a
-contagem, ex.: "Enviar por e-mail (2)").
+insere uma checkbox. O botão flutuante **"✉️ Enviar por e-mail"** fica
+**sempre visível** no canto inferior direito da tela — funciona com ou sem
+nenhum arquivo marcado, para enviar um e-mail sem anexar documentos dos
+autos quando for o caso (nesse caso mostra só "Enviar por e-mail"; com
+arquivos marcados, mostra a contagem, ex.: "Enviar por e-mail (2)"). Ao
+lado dele, uma seta **"▼"** abre um menu com **"Alterar Remetente"** (veja
+"Remetentes salvos" abaixo).
 
 Ao clicar em "Enviar por e-mail":
 
@@ -308,8 +309,10 @@ incluída.
 
 ### Destinatários favoritos
 
-O botão **"👥 Destinatários"** abre uma tela para gerenciar até **200**
-destinatários salvos como preferência:
+Não há mais um botão dedicado para gerenciar destinatários salvos — essa
+tela só aparece ao clicar em **"Enviar por e-mail"** quando já existe pelo
+menos um destinatário salvo (veja abaixo). Nela é possível gerenciar até
+**200** destinatários:
 
 - **Adicionar**: informe Nome e E-mail e clique em "+ Adicionar".
 - **Remover**: clique no ícone 🗑 ao lado do destinatário.
@@ -332,8 +335,9 @@ sincronizados entre computadores nem enviados a nenhum servidor).
 
 ### Remetentes salvos (campo "De")
 
-No modo **"Outlook Web (sem Azure AD)"**, o botão **"✉️ Remetente"** abre
-uma tela para cadastrar até **20** contas remetentes (Nome + E-mail),
+No modo **"Outlook Web (sem Azure AD)"**, a seta **"▼"** ao lado de
+"Enviar por e-mail" → **"Alterar Remetente"** abre uma tela para cadastrar
+até **20** contas remetentes (Nome + E-mail),
 editar (✏️), remover (🗑) e marcar uma delas com a estrela (☆ → ★) como
 **padrão**. Toda vez que o Outlook abrir pela extensão:
 

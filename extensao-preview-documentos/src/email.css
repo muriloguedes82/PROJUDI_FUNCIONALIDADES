@@ -4,13 +4,21 @@
 	cursor: pointer;
 }
 
+/* Sem o botão independente de gerenciamento de destinatários — a gestão de
+   remetentes passou para o menu (▼) ao lado do botão de enviar (ver
+   #pdp-email-menu-button em email.js); o seletor de destinatários salvos ao
+   enviar (quando já existe algum cadastrado) continua funcionando normalmente. */
+#pdp-recipients-button {
+	display: none !important;
+}
+
 /* Visual neutro, parecido com os botões da própria barra de ações do
    Projudi/SEEU (cinza claro, borda fina, cantos levemente arredondados) —
    em vez de destacar com cor própria, os botões flutuantes se misturam ao
    restante da interface do sistema. */
 #pdp-email-button,
-#pdp-recipients-button,
-#pdp-from-button {
+#pdp-email-menu-button,
+#pdp-recipients-button {
 	position: fixed;
 	right: 16px;
 	/* "bottom" é recalculado em tempo real pelo email.js para ficar sempre
@@ -37,9 +45,14 @@
 	display: inline-block;
 }
 
+#pdp-email-menu-button {
+	padding-left: 0;
+	padding-right: 0;
+}
+
 #pdp-email-button:hover,
-#pdp-recipients-button:hover,
-#pdp-from-button:hover {
+#pdp-email-menu-button:hover,
+#pdp-recipients-button:hover {
 	background: #e2e2e2;
 }
 
