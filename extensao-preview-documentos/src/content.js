@@ -352,6 +352,8 @@
 	let pendenciaPanels = [];
 	let activePendenciaLink = null;
 	let pendenciaLoader = null; // { iframe, token, cleanup }
+	let movementMultipleNotice = null;
+	let movementInPlaceLoad = null; // { link }
 
 	function isDocumentLink(el) {
 		if (!(el instanceof HTMLAnchorElement)) return false;
@@ -378,6 +380,74 @@
 		if (!(target instanceof Element)) return null;
 		const link = target.closest("a.link");
 		return isPendenciaLink(link) ? link : null;
+	}
+
+	// Link textual da movimentação. Só é elegível quando a própria linha
+	// possui o controle "Arquivos"; linhas que têm apenas "Intimações" ou
+	// nenhum anexo continuam com o comportamento nativo, sem Preview vazio.
+	// Mesmo critério (id, não class) já usado e comprovado em
+	// expandMovements.js e no modo loader mais abaixo (EXPAND_ICON_SELECTOR).
+	function movementFileToggle(link) {
+		const row = link && link.closest('tr[id^="mov1Grau,"]');
+		return row && row.querySelector('img[onclick*="showDetail"], a[id^="linkArquivos"] img');
+	}
+
+	function isMovementLink(el) {
+		if (!(el instanceof HTMLAnchorElement) || !el.classList.contains("link")) return false;
+		if (!movementFileToggle(el)) return false;
+		try {
+			return new URL(el.getAttribute("href"), document.baseURI).pathname === "/projudi/movimentacao.do";
+		} catch (e) {
+			return false;
+		}
+	}
+
+	function findMovementLink(target) {
+		if (!(target instanceof Element)) return null;
+		const link = target.closest("a.link");
+		return isMovementLink(link) ? link : null;
+	}
+
+	function findPreviewGroupLink(target) {
+		return findPendenciaLink(target) || findMovementLink(target);
+	}
+
+	// Localiza o contêiner que o Projudi preenche ao expandir o "+" de uma
+	// linha, a partir do próprio ícone — mesmo critério do modo loader
+	// (ver findContainerForIcon em runLoaderMode, mais abaixo): tenta o id
+	// explícito no onclick="showDetail('id', ...)" e, na falta dele, o
+	// sufixo numérico do id do ícone (ex.: "icon0" -> "row0"/"div0").
+	function movementDocsContainer(toggle) {
+		const onclick = toggle.getAttribute("onclick") || "";
+		const explicit = onclick.match(/showDetail\(\s*['"]([^'"]+)/);
+		if (explicit) {
+			const byArg = document.getElementById(explicit[1]);
+			if (byArg) return byArg;
+		}
+		const suffixMatch = (toggle.id || "").match(/(\d+)$/);
+		if (suffixMatch) {
+			const suffix = suffixMatch[1];
+			return document.getElementById("row" + suffix) || document.getElementById("div" + suffix);
+		}
+		return null;
+	}
+
+	// Se o usuário já abriu o "+", usa os links que estão na página e evita
+	// qualquer nova consulta.
+	function loadedMovementDocs(link) {
+		const toggle = movementFileToggle(link);
+		if (!toggle) return [];
+		const container = movementDocsContainer(toggle);
+		if (!container) return [];
+		return Array.prototype.slice
+			.call(container.querySelectorAll('a.link[href*="/arquivo.do"]'))
+			.filter(isDocumentLink)
+			.map(function (docLink) {
+				return {
+					href: new URL(docLink.getAttribute("href"), document.baseURI).href,
+					text: (docLink.textContent || "Documento").trim(),
+				};
+			});
 	}
 
 	function buildPanel() {
@@ -552,6 +622,8 @@
 			panel.wrap.remove();
 		});
 		pendenciaPanels = [];
+		if (movementMultipleNotice) movementMultipleNotice.remove();
+		movementMultipleNotice = null;
 		activePendenciaLink = null;
 	}
 
@@ -599,7 +671,39 @@
 		activePendenciaLink = link;
 	}
 
+	function positionMovementMultipleNotice(notice, link) {
+		const rect = link.getBoundingClientRect();
+		const margin = 8;
+		const noticeRect = notice.getBoundingClientRect();
+		let left = rect.right + margin;
+		if (left + noticeRect.width > window.innerWidth - margin) {
+			left = Math.max(margin, rect.left - margin - noticeRect.width);
+		}
+		let top = rect.top + (rect.height - noticeRect.height) / 2;
+		top = Math.max(margin, Math.min(top, window.innerHeight - noticeRect.height - margin));
+		notice.style.left = left + "px";
+		notice.style.top = top + "px";
+	}
+
+	function showMovementMultipleNotice(link, count) {
+		closeAllPendenciaPanels();
+		activePendenciaLink = link;
+		const notice = document.createElement("div");
+		notice.className = "pdp-multiple-docs-notice";
+		notice.setAttribute("role", "status");
+		notice.textContent = "Múltiplos documentos (" + count + " arquivos)";
+		notice.addEventListener("mouseenter", cancelClosePendencia);
+		notice.addEventListener("mouseleave", scheduleClosePendencia);
+		document.body.appendChild(notice);
+		movementMultipleNotice = notice;
+		positionMovementMultipleNotice(notice, link);
+	}
+
 	function showPendenciaDocs(link, docs) {
+		if (isMovementLink(link) && docs.length > 1) {
+			showMovementMultipleNotice(link, docs.length);
+			return;
+		}
 		closeAllPendenciaPanels();
 		activePendenciaLink = link;
 
@@ -644,9 +748,18 @@
 	}
 
 	function openPendenciaGroup(link) {
-		if (activePendenciaLink === link && (pendenciaPanels.length || (pendenciaLoader && pendenciaLoader.link === link))) {
-			return;
-		}
+		// Já tem uma busca em segundo plano em andamento para este mesmo
+		// link: não reinicia. Antes, esta checagem também exigia
+		// "activePendenciaLink === link" — mas activePendenciaLink é zerado
+		// por closeAllPendenciaPanels() a cada vez que o mouse sai do link
+		// por mais de CLOSE_DELAY_MS, o que acontecia quase sempre antes da
+		// busca (raramente instantânea, sobretudo para expandir uma
+		// movimentação) terminar. Resultado: cada nova passada do mouse
+		// cancelava a busca anterior e recomeçava do zero, e a pré-
+		// visualização nunca chegava a aparecer. A identidade de "já estou
+		// buscando isto" agora depende só do próprio pendenciaLoader.
+		if (pendenciaLoader && pendenciaLoader.link === link) return;
+		if (activePendenciaLink === link && (pendenciaPanels.length || movementMultipleNotice)) return;
 
 		const href = link.getAttribute("href");
 		if (!href) return;
@@ -673,7 +786,11 @@
 			if (!data || data.source !== MESSAGE_SOURCE || data.type !== "pendencia-docs" || data.token !== token) return;
 
 			cleanupPendenciaLoader();
-			if (activePendenciaLink !== link) return;
+			// O token já garante que esta resposta é da busca certa para
+			// este link — mesmo que o mouse tenha saído nesse meio-tempo
+			// (por isso não checamos mais "activePendenciaLink === link"
+			// aqui), então o resultado é exibido de qualquer forma.
+			activePendenciaLink = link;
 
 			const docs = Array.isArray(data.docs) ? data.docs : [];
 			if (!docs.length) {
@@ -688,12 +805,11 @@
 
 		const timeoutId = setTimeout(function () {
 			cleanupPendenciaLoader();
-			if (activePendenciaLink === link && !pendenciaPanels.length) {
-				showPendenciaMessage(
-					link,
-					"Não foi possível carregar a pré-visualização a tempo. Clique no link para abrir a análise completa."
-				);
-			}
+			activePendenciaLink = link;
+			showPendenciaMessage(
+				link,
+				"Não foi possível carregar a pré-visualização a tempo. Clique no link para abrir a análise completa."
+			);
 		}, PENDENCIA_TIMEOUT_MS);
 
 		pendenciaLoader = { iframe: iframe, link: link, onMessage: onMessage, timeoutId: timeoutId };
@@ -701,6 +817,114 @@
 		window.addEventListener("message", onMessage);
 		document.body.appendChild(iframe);
 		iframe.src = href;
+	}
+
+	// Clica no próprio controle "+" nativo da linha (mesmo elemento que o
+	// usuário clicaria manualmente) para disparar a carga dos anexos dessa
+	// movimentação, sem depender de recarregar a URL da movimentação num
+	// iframe à parte — carregar a URL inteira numa aba oculta mostrou-se
+	// pouco confiável: a página de detalhe de uma movimentação também
+	// reexibe o contexto de movimentações vizinhas, então "expandir tudo e
+	// coletar tudo" (mesmo mecanismo usado para as pendências de
+	// juntada/conclusão, ver runLoaderMode) varria documentos de OUTRAS
+	// movimentações junto. Clicando no controle desta linha específica, só
+	// o contêiner dela (o mesmo que loadedMovementDocs já lê) é populado.
+	//
+	// Para não abrir a linha visivelmente enquanto isso acontece, tanto o
+	// ícone "+"/"-" quanto o contêiner ficam escondidos (display:none, não
+	// reserva espaço nenhum — nem o ícone alternando nem uma linha em
+	// branco aparecem) durante a espera; ao final, os documentos são lidos
+	// e o controle é clicado de novo para recolher a linha ao estado
+	// original, só então os dois voltam a ficar visíveis.
+	//
+	// Em vez de esperar um tempo fixo, verifica a cada 100ms se o
+	// contêiner já foi populado e segue assim que encontrar algo — mais
+	// rápido que esperar sempre o pior caso, com um teto de segurança para
+	// quando a carga demorar mais (rede lenta, etc.).
+	function loadMovementDocsInPlace(link, callback) {
+		const toggle = movementFileToggle(link);
+		if (!toggle) {
+			callback([]);
+			return;
+		}
+		let container = movementDocsContainer(toggle);
+		function hide() {
+			toggle.style.setProperty("visibility", "hidden", "important");
+			if (container) container.style.setProperty("display", "none", "important");
+		}
+		function finish(docs) {
+			try {
+				toggle.click();
+			} catch (e) {
+				/* ignore */
+			}
+			toggle.style.removeProperty("visibility");
+			if (container) container.style.removeProperty("display");
+			callback(docs);
+		}
+
+		hide();
+		try {
+			toggle.click();
+		} catch (e) {
+			/* ignore */
+		}
+		// O contêiner pode só passar a existir depois do clique, em vez de
+		// já estar presente (vazio) na página — tenta achar de novo e
+		// escondê-lo também, caso tenha aparecido agora.
+		if (!container) {
+			container = movementDocsContainer(toggle);
+			hide();
+		}
+
+		const POLL_INTERVAL_MS = 100;
+		const MAX_WAIT_MS = 3000;
+		let waited = 0;
+		const poll = setInterval(function () {
+			waited += POLL_INTERVAL_MS;
+			const docs = loadedMovementDocs(link);
+			if (docs.length || waited >= MAX_WAIT_MS) {
+				clearInterval(poll);
+				finish(docs);
+			}
+		}, POLL_INTERVAL_MS);
+	}
+
+	function openPreviewGroup(link) {
+		if (isMovementLink(link)) {
+			const docs = loadedMovementDocs(link);
+			if (docs.length) {
+				showPendenciaDocs(link, docs);
+				return;
+			}
+			// Já tem uma carga em andamento para esta mesma movimentação —
+			// não clica no "+" de novo por cima.
+			if (movementInPlaceLoad && movementInPlaceLoad.link === link) return;
+			movementInPlaceLoad = { link: link };
+			activePendenciaLink = link;
+			loadMovementDocsInPlace(link, function (loadedDocs) {
+				if (movementInPlaceLoad && movementInPlaceLoad.link === link) movementInPlaceLoad = null;
+				console.log(
+					"[Projudi Preview] carga em segundo plano da movimentação concluída: " +
+						JSON.stringify({ href: link.href, docsEncontrados: loadedDocs.length, docs: loadedDocs }, null, 2)
+				);
+				// O mouse pode já ter saído da linha nesse meio-tempo — mesmo
+				// assim, exibe o resultado (mesmo raciocínio da correção em
+				// openPendenciaGroup: só há uma carga por vez para este link,
+				// então o resultado é sempre o certo).
+				activePendenciaLink = link;
+				if (loadedDocs.length) {
+					showPendenciaDocs(link, loadedDocs);
+				} else {
+					showPendenciaMessage(link, "Nenhum documento encontrado para pré-visualização nesta movimentação.");
+				}
+			});
+			return;
+		}
+		// Pendências de Análise de Juntada/Conclusão: continuam usando o
+		// iframe oculto, que já é específico da tela de análise (sem o
+		// problema de "varrer" outras movimentações).
+		openPendenciaGroup(link);
 	}
 
 	function cancelOpen() {
@@ -1000,12 +1224,12 @@
 				return;
 			}
 
-			const pendenciaLink = findPendenciaLink(e.target);
-			if (pendenciaLink) {
+			const groupLink = findPreviewGroupLink(e.target);
+			if (groupLink) {
 				cancelClosePendencia();
 				cancelOpen();
 				openTimer = setTimeout(function () {
-					openPendenciaGroup(pendenciaLink);
+					openPreviewGroup(groupLink);
 				}, OPEN_DELAY_MS);
 			}
 		},
@@ -1025,14 +1249,15 @@
 				return;
 			}
 
-			const pendenciaLink = findPendenciaLink(e.target);
-			if (pendenciaLink) {
+			const groupLink = findPreviewGroupLink(e.target);
+			if (groupLink) {
 				const toEl = e.relatedTarget;
 				const stillInsideAPanel =
 					toEl &&
-					pendenciaPanels.some(function (panel) {
-						return panel.wrap.contains(toEl);
-					});
+					((movementMultipleNotice && movementMultipleNotice.contains(toEl)) ||
+						pendenciaPanels.some(function (panel) {
+							return panel.wrap.contains(toEl);
+						}));
 				if (stillInsideAPanel) return;
 				scheduleClosePendencia();
 			}
@@ -1059,6 +1284,9 @@
 				pendenciaPanels.forEach(function (panel, index) {
 					positionPanel(panel, activePendenciaLink, index);
 				});
+			}
+			if (activePendenciaLink && movementMultipleNotice) {
+				positionMovementMultipleNotice(movementMultipleNotice, activePendenciaLink);
 			}
 		},
 		true
@@ -1739,7 +1967,10 @@
 		window.addEventListener("scroll", scheduleReposition, true);
 	}
 
-	initWhatsappFeature();
+	// Nas rotas da blacklist de interface (window.__pdpButtonGroupBlocked,
+	// definida em uiVisibility.js), mantém todo o código de Preview acima
+	// ativo, mas não cria o botão flutuante do WhatsApp.
+	if (!window.__pdpButtonGroupBlocked) initWhatsappFeature();
 
 	// ---------------------------------------------------------------------
 	// Modo "loader": executado dentro do <iframe> oculto criado acima.
