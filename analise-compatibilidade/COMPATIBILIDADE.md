@@ -3,9 +3,17 @@
 Análise do pacote anexado (`projudi-layout-teste-2.9.32.zip`) frente à
 extensão atual do repositório
 ([`extensao-preview-documentos/`](../extensao-preview-documentos), versão
-**2.9.49**). O conteúdo extraído do ZIP foi mantido, sem alterações, em
+**2.9.50**, antes desta análise **2.9.49**). O conteúdo extraído do ZIP foi
+mantido, sem alterações, em
 [`projudi-layout-teste-2.9.32/`](./projudi-layout-teste-2.9.32) para
 referência.
+
+**Atualização**: três melhorias identificadas no pacote-teste (ausentes na
+2.9.49) foram portadas para a nossa extensão — veja
+["Melhorias portadas para a nossa versão"](#melhorias-portadas-para-a-nossa-versão-2950)
+abaixo. As comparações de tamanho/diff e a lista de "funcionalidades só na
+nossa versão" a seguir foram feitas **antes** da portagem, contra a 2.9.49;
+os itens portados deixaram de valer como diferença depois dela.
 
 ## Resumo
 
@@ -81,14 +89,51 @@ presentes, de forma equivalente, na nossa versão atual (botão
 Expandir/Recolher movimentações, drag do grupo de botões, dispensa de
 juntadas).
 
+## Melhorias portadas para a nossa versão (2.9.50)
+
+Apesar de ser uma build mais antiga em geral, o pacote-teste continha três
+correções pontuais, em arquivos que a tabela acima já apontava como
+divergentes, que a nossa versão não tinha. Foram portadas para
+`extensao-preview-documentos/`:
+
+1. **Grupo de botões (WhatsApp/e-mail) — evita aparecer na posição errada
+   antes do reposicionamento.** `quickActions.js` (`ensureRow`) agora cria o
+   `#pdp-qa-row` com `data-pdp-layout-pending` e `visibility:hidden`;
+   `buttonDrag.js` (`layoutColumns`) remove o atributo e a ocultação assim
+   que calcula a posição final, ancorada ao quadro Pendências/Análise
+   Automática. Isso complementa (não substitui) o cache de larguras
+   (`widthsSignature`/`setPx`) que já tínhamos contra o *jitter* contínuo —
+   mantido como estava.
+2. **Botões Expandir/Recolher e (Des)ocultar sem arquivo — mesma ideia, e
+   agora também ancoram em `#quadroAnaliseAutomatica`.**
+   `expandMovements.js`: `refresh()` passou a considerar
+   `#quadroAnaliseAutomatica` além de `#quadroPendencias` como host do
+   rodapé (`boxHost = panel || automaticPanel`); `isOnProcessScreen()` trata
+   `analisarJuntada(.do)` como exceção (o botão aparece mesmo sem a barra de
+   ações de um processo aberto); e o módulo agora respeita
+   `window.__pdpEmbeddedButtonGroupBlocked` (item 3) antes de rodar.
+3. **Blacklist de subpáginas atualizada.** `uiVisibility.js`: acrescentadas
+   as rotas `cumprimentoCartorioMandado(.do)`, `advogadosParte(.do)` e
+   `analisarJuntada(.do)` a `exactPaths`; e adicionado bloqueio por iframe
+   hospedeiro — quando a página está embutida num `<iframe>` marcado com
+   `data-pdp-hide-button-group`, `window.__pdpEmbeddedButtonGroupBlocked` é
+   ligado e some com o grupo de botões flutuantes só nesse frame
+   (`expandMovements.js` já consome essa flag, item 2).
+
+Depois da portagem, `expandMovements.js` e `uiVisibility.js` ficaram
+**idênticos** aos do pacote-teste; `buttonDrag.js` e `quickActions.js`
+mantêm a versão portada somada ao cache anti-*jitter* que só existia na
+nossa. `manifest.json` foi incrementado para `2.9.50`.
+
 ## Conclusão
 
-O arquivo anexado é **compatível em nível de manifesto/instalação**, mas é
-uma **versão anterior** (2.9.32) da mesma extensão, mantida por um
-"parceiro" a partir de um ponto antigo do histórico (2.9.3). Não introduz
-nenhuma funcionalidade ausente da nossa versão atual (2.9.49); pelo
-contrário, está atrás em pelo menos duas frentes (`loadMovementDocsInPlace`
-em `content.js` e a cobertura do processo principal em
-`sequencialProcessoPrincipal.js`). **Não há necessidade nem recomendação de
-mesclar este pacote na extensão atual** — ele serve apenas como referência
-de uma branch paralela de terceiros.
+O arquivo anexado é **compatível em nível de manifesto/instalação** e é, no
+geral, uma **versão anterior** (2.9.32) da mesma extensão, mantida por um
+"parceiro" a partir de um ponto antigo do histórico (2.9.3): continua atrás
+em `loadMovementDocsInPlace` (`content.js`) e na cobertura do processo
+principal em `sequencialProcessoPrincipal.js`, por exemplo. Mesmo assim,
+tinha três correções pontuais mais recentes que a nossa 2.9.49 — todas
+portadas nesta análise (veja seção acima). Não há mais nenhuma melhoria
+pendente de incorporação identificada neste pacote; ele segue guardado em
+[`projudi-layout-teste-2.9.32/`](./projudi-layout-teste-2.9.32) apenas como
+referência de uma branch paralela de terceiros.

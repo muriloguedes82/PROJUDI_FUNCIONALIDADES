@@ -229,6 +229,10 @@
     place(emailMenu, secondTop, sendRight);
     place(send, secondTop, sendRight + menuWidth);
     place(row, top, sendRight + cachedDeliveryWidth + 10);
+    if (row && row.hasAttribute('data-pdp-layout-pending')) {
+      row.removeAttribute('data-pdp-layout-pending');
+      row.style.removeProperty('visibility');
+    }
     window.dispatchEvent(new Event('pdp-buttons-moved'));
   }
   function schedule() {

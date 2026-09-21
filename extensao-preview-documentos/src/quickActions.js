@@ -1425,6 +1425,11 @@
 		row = document.createElement("div");
 		row.id = "pdp-qa-row";
 		row.className = "pdp-qa-row";
+		// O controlador compartilhado (buttonDrag.js) posiciona este grupo no
+		// próximo frame. Mantê-lo oculto até lá evita que apareça por um
+		// instante na posição padrão quando o Projudi recria trechos via AJAX.
+		row.setAttribute("data-pdp-layout-pending", "");
+		row.style.visibility = "hidden";
 
 		const mainLine = document.createElement("div");
 		mainLine.className = "pdp-qa-row-line";

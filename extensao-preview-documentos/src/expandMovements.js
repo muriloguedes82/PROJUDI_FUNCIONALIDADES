@@ -6,6 +6,7 @@
 // qualquer momento pela mesma caixa.
 (function () {
   'use strict';
+  if (window.__pdpEmbeddedButtonGroupBlocked) return;
   if (window.__pdpExpandMovements) return;
   window.__pdpExpandMovements = true;
 
@@ -28,8 +29,16 @@
   // de aba em que a AJAX ainda não repôs o conteúdo.
   const PROCESS_TOOLBAR_LABELS = ['Peticionar', 'Juntar Documento', 'Patronato', 'Exportar Processo', 'Pedido Incidental', 'Navegar', 'Voltar'];
   let processScreenEligible = false;
+  function isAnalisarJuntadaScreen() {
+    const path = location.pathname.replace(/\/+$/, '');
+    return path === '/projudi/processo/analisarJuntada' || path === '/projudi/processo/analisarJuntada.do';
+  }
   function isOnProcessScreen() {
     if (location.pathname === '/projudi/processo/criminal/antecedentesCriminais.do') return false;
+    // A listagem de Análise de Juntadas não possui a barra de ações de um
+    // processo individual. Ainda assim, mantém o controle de expansão como
+    // exceção à blacklist dos demais botões dessa página.
+    if (isAnalisarJuntadaScreen()) return true;
     if (processScreenEligible) return true;
     const hasToolbar = [...document.querySelectorAll('button, a, input[type="button"], input[type="submit"]')]
       .some(el => PROCESS_TOOLBAR_LABELS.indexOf((el.textContent || el.value || '').trim()) !== -1);
@@ -155,19 +164,25 @@
       return;
     }
     const panel = document.getElementById('quadroPendencias');
+    const automaticPanel = document.getElementById('quadroAnaliseAutomatica');
+    const boxHost = panel || automaticPanel;
     let filterRow = null;
-    if (!panel && location.pathname === '/projudi/processo/analisarJuntada.do') {
+    if (!boxHost && isAnalisarJuntadaScreen()) {
       const filters = [...document.querySelectorAll('input[type="submit"],input[type="button"],button')]
         .filter(el => (el.value || el.textContent || '').trim().toLowerCase() === 'filtrar' && el.getClientRects().length);
       if (filters.length === 1) filterRow = filters[0].closest('tr');
     }
-    const host = panel || filterRow;
+    const host = boxHost || filterRow;
     if (!host) {
       if (footer) { log('refresh: host sumiu, removendo footer'); footer.remove(); }
       return;
     }
     if (!footer || !footer.isConnected || !host.contains(footer)) {
-      log('refresh: (re)criando footer', { temPanel: !!panel, temFilterRow: !!filterRow });
+      log('refresh: (re)criando footer', {
+        temPendencias: !!panel,
+        temAnaliseAutomatica: !!automaticPanel,
+        temFilterRow: !!filterRow
+      });
       if (filterRow) {
         if (footer) footer.remove();
         footer = document.createElement('td');
@@ -178,7 +193,7 @@
         if (hideGroup) footer.appendChild(hideGroup);
       } else {
       if (footer) footer.remove();
-      const table = /^(TABLE|TBODY|THEAD|TFOOT)$/.test(panel.tagName);
+      const table = /^(TABLE|TBODY|THEAD|TFOOT)$/.test(boxHost.tagName);
       footer = document.createElement(table ? 'tr' : 'div');
       footer.id = 'pdp-expand-pendencias-footer';
       let container = footer;
@@ -188,7 +203,7 @@
         footer.appendChild(container);
       }
       container.style.cssText = 'padding:10px 6px 4px;text-align:left;';
-      const parent = panel.tagName === 'TABLE' ? (panel.tBodies[0] || panel.createTBody()) : panel;
+      const parent = boxHost.tagName === 'TABLE' ? (boxHost.tBodies[0] || boxHost.createTBody()) : boxHost;
       parent.appendChild(footer);
       if (button) container.appendChild(button);
       if (hideGroup) container.appendChild(hideGroup);
