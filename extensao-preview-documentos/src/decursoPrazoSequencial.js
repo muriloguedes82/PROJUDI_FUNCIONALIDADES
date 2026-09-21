@@ -9,34 +9,41 @@
 // campo, embora a própria tabela de resultados já exiba um "Seq." para
 // cada linha (coluna "Processo", ex.: "0002549-67.2025.8.16.0007" / 43295).
 //
-// Como a busca desta tela é um formulário comum (recarrega a página; não é
-// AJAX) e o servidor não reconheceria um parâmetro novo, o filtro é feito
-// inteiramente no navegador:
-// 1. Insere um campo "Sequencial:" no formulário, ao lado dos demais
-//    filtros, aceitando só um dígito (0 a 9). Ele começa sempre em branco
-//    — não há um dígito padrão — e só é preenchido depois que o próprio
-//    usuário digita algo e clica em "Filtrar".
-// 2. Ao enviar o formulário, guarda o dígito escolhido no sessionStorage
-//    só para a PRÓXIMA carga de página (é consumido — removido do
-//    sessionStorage — assim que lido), o suficiente para sobreviver ao
-//    recarregamento que o próprio "Filtrar" provoca sem "vazar" para
-//    acessos futuros à tela.
-// 3. Ao carregar a página de resultados, oculta as linhas da tabela cujo
-//    "Seq." não termine com o dígito guardado — preservando as demais
-//    linhas (cabeçalhos, mensagens etc.) intactas.
-//
-// Além do filtro na página atual, o botão "Listar em todas as páginas"
-// percorre automaticamente as páginas seguintes (clicando em "Próxima
-// Página", do mesmo jeito que o usuário faria) coletando os processos cujo
-// Seq. bate com o dígito informado, e mostra a lista completa ao final —
-// já que a busca nativa só filtra/pagina no servidor, uma página por vez.
+// Diferente das outras telas, aqui a busca é paginada no servidor (20
+// registros por página) — um dígito de Sequencial pode ter processos
+// espalhados por várias páginas, então filtrar só a página atual não bastaria.
+// O fluxo é: usuário digita o dígito e clica em "Filtrar" (nada além disso);
+// a página de resultados (1ª página) carrega normalmente e, a partir daí,
+// tudo é feito sozinho, sem navegar a aba de verdade:
+// 1. O dígito informado no Filtrar é lido do sessionStorage (guardado só
+//    para esta carga — nunca fica pendurado para acessos futuros, então a
+//    tela sempre começa com o campo Sequencial em branco).
+// 2. As demais páginas são buscadas em segundo plano, num <iframe> oculto
+//    (mesma sessão/cookies do usuário, técnica já usada por outras partes
+//    desta extensão — ver README, "Pendências"), clicando de verdade no
+//    link "Próxima Página" de cada página carregada ali dentro. Como é a
+//    própria página do Projudi (com o JavaScript dela) rodando dentro do
+//    iframe, não precisamos saber como esse avanço de página funciona por
+//    baixo dos panos.
+// 3. Os processos cujo "Seq." termina no dígito informado, de todas as
+//    páginas, substituem as linhas da própria tabela de resultados já
+//    existente na tela (nada de painel novo) — e o resumo (quantos
+//    processos, em quantas páginas) aparece onde antes ficava a navegação
+//    de páginas.
 (function () {
 	"use strict";
 
+	// Nunca roda dentro do iframe oculto usado para buscar as demais
+	// páginas em segundo plano (ver coletarTodasAsPaginas/clicarProximaNoIframe
+	// abaixo) — senão esta mesma lógica tentaria rodar recursivamente lá
+	// dentro também.
+	if (window.frameElement && window.frameElement.hasAttribute("data-pdp-loader")) return;
+
 	const TAG = "[Projudi Sequencial Decurso de Prazo]";
 	const STORAGE_KEY = "pdpDecursoPrazoSequencialDigito";
-	const STORAGE_COLETA_KEY = "pdpDecursoPrazoColeta";
 	const MAX_PAGINAS = 200;
+	const TIMEOUT_PRIMEIRA_CARGA_MS = 15000;
+	const TIMEOUT_AVANCAR_PAGINA_MS = 12000;
 
 	if (window.__pdpDecursoPrazoSequencial) return;
 	window.__pdpDecursoPrazoSequencial = true;
@@ -63,8 +70,7 @@
 		tr.innerHTML =
 			'<td class="label"><label for="pdpSequencial">Sequencial:</label></td>' +
 			'<td><input type="text" id="pdpSequencial" name="pdpSequencial" maxlength="1" size="2" ' +
-			'autocomplete="off" title="Restringe a tabela de resultados às linhas cujo Seq. termina neste dígito (0 a 9)"> ' +
-			'<button type="button" id="pdpColetarTodasPaginas" title="Percorre automaticamente todas as páginas de resultado e lista os processos cujo Seq. termina no dígito informado">Listar em todas as páginas</button> ' +
+			'autocomplete="off" title="Ao clicar em Filtrar, restringe a tabela de resultados (em todas as páginas) aos processos cujo Seq. termina neste dígito (0 a 9)"> ' +
 			'<span id="pdpColetaStatus" style="font-size:11px;color:#666;"></span></td>';
 		ancoraRow.parentNode.insertBefore(tr, ancoraRow);
 
@@ -75,25 +81,19 @@
 		});
 
 		// Nunca preenche sozinho com um dígito "padrão": só mostra algo aqui
-		// se esta carga de página é, de fato, o resultado de um Filtrar (ou
-		// de uma coleta em andamento) que informou um dígito válido.
+		// se esta carga de página é, de fato, o resultado de um Filtrar que
+		// informou um dígito válido.
 		if (digitoValido(valorInicial)) input.value = valorInicial;
-
-		tr.querySelector("#pdpColetarTodasPaginas").addEventListener("click", function () {
-			const digito = input.value.trim();
-			if (!digitoValido(digito)) {
-				window.alert("Informe um dígito de 0 a 9 no campo Sequencial antes de listar em todas as páginas.");
-				input.focus();
-				return;
-			}
-			const nav = obterNavegacao();
-			iniciarColeta(digito, !!(nav && nav.primeira));
-		});
 
 		return input;
 	}
 
-	// --- leitura das linhas da tabela ----------------------------------------
+	function atualizarStatus(texto) {
+		const status = document.querySelector("#pdpColetaStatus");
+		if (status) status.textContent = texto || "";
+	}
+
+	// --- leitura das linhas de uma tabela de resultados ----------------------
 
 	// Só mexemos em linhas que claramente são "linha de processo" da própria
 	// tela (têm o link para processo.do na 2ª coluna, igual ao exemplo real
@@ -117,7 +117,6 @@
 		if (!link) return null;
 		return {
 			processo: link.textContent.trim().replace(/\s+/g, " "),
-			url: link.href,
 			seq: seqDaCelula(celulaProcesso),
 			dataDecurso: celulas[2] ? celulas[2].textContent.trim() : "",
 			situacao: celulas.length ? celulas[celulas.length - 1].textContent.trim().replace(/\s+/g, " ") : "",
@@ -129,8 +128,8 @@
 		return html.length > 220 ? html.slice(0, 220) + "…" : html;
 	}
 
-	function obterLinhasDaTabela() {
-		const tabela = document.querySelector("table.resultTable");
+	function obterLinhasDaTabela(doc) {
+		const tabela = (doc || document).querySelector("table.resultTable");
 		const reconhecidas = [];
 		const ignoradas = [];
 		if (!tabela) return { tabela: null, reconhecidas: reconhecidas, ignoradas: ignoradas };
@@ -148,261 +147,225 @@
 		return { tabela: tabela, reconhecidas: reconhecidas, ignoradas: ignoradas };
 	}
 
-	// --- filtro visual na página atual ---------------------------------------
-
-	function filtrarTabela(digito) {
-		const info = obterLinhasDaTabela();
-		if (!info.tabela) {
-			console.log(TAG, "table.resultTable não encontrada na página — nada a filtrar");
-			return;
-		}
-
-		let visiveis = 0;
-		const linhasLog = info.reconhecidas.map(function (item) {
-			const manter = !digito || item.dados.seq === null || item.dados.seq.slice(-1) === digito;
-			item.row.style.display = manter ? "" : "none";
-			if (manter) visiveis++;
-			return { processo: item.dados.processo, seq: item.dados.seq, oculta: !manter };
-		});
-
-		console.groupCollapsed(
-			TAG,
-			"filtro aplicado — dígito:", digito || "(nenhum)",
-			"| linhas na tabela:", info.reconhecidas.length + info.ignoradas.length,
-			"| reconhecidas como processo:", info.reconhecidas.length,
-			"| ignoradas (não mexidas):", info.ignoradas.length,
-			"| visíveis após filtro:", visiveis
-		);
-		if (linhasLog.length) console.table(linhasLog);
-		if (info.ignoradas.length) {
-			console.warn(TAG, info.ignoradas.length, "linha(s) no tbody não reconhecidas como linha de processo — preservadas sem alteração. Amostra:");
-			console.table(info.ignoradas.slice(0, 5));
-		}
-		console.groupEnd();
-	}
-
-	// --- navegação entre páginas ---------------------------------------------
-
-	function obterNavegacao() {
-		const nav = document.querySelector("#navigator");
+	function obterNavegacao(doc) {
+		const nav = (doc || document).querySelector("#navigator");
 		if (!nav) return null;
 		const paginaEl = nav.querySelector("b");
 		return {
-			primeira: nav.querySelector("a.arrowFirstOn"),
+			nav: nav,
 			proxima: nav.querySelector("a.arrowNextOn"),
 			paginaAtual: paginaEl ? paginaEl.textContent.trim() : null,
 		};
 	}
 
-	// Clica no link de navegação (Próxima/Primeira Página) e cobre os dois
-	// jeitos como a tela pode reagir: recarregando a página inteira (nesse
-	// caso o script para por aqui mesmo, e a coleta continua sozinha quando
-	// o script for injetado de novo na próxima carga) ou atualizando a
-	// tabela via AJAX sem navegar (nesse caso continuamos a coleta aqui,
-	// assim que percebemos a mudança no navegador de páginas).
-	function clicarNavegacao(link, proximoPasso) {
-		const paginaAntes = obterNavegacao()?.paginaAtual;
-		let concluido = false;
-		const nav = document.querySelector("#navigator");
-		const observer = nav
-			? new MutationObserver(function () {
-					if (concluido) return;
-					const paginaAgora = obterNavegacao()?.paginaAtual;
-					if (paginaAgora && paginaAgora !== paginaAntes) {
-						concluido = true;
-						observer.disconnect();
-						console.log(TAG, "tabela atualizada sem recarregar a página (AJAX) — continuando a coleta");
-						proximoPasso();
-					}
-			  })
-			: null;
-		if (observer && nav) observer.observe(nav, { childList: true, subtree: true, characterData: true });
+	// --- coleta em segundo plano, num iframe oculto --------------------------
 
-		link.click();
+	// Clica de verdade no link "Próxima Página" DENTRO do iframe oculto (que
+	// está rodando a página real do Projudi, com o JavaScript dela) e espera
+	// a página avançar — seja recarregando o iframe inteiro, seja atualizando
+	// só a tabela via AJAX. Não precisamos saber qual dos dois é: cobrimos os
+	// dois com o mesmo Promise.
+	function clicarProximaNoIframe(iframe, link) {
+		return new Promise(function (resolve) {
+			let concluido = false;
+			let observer = null;
 
-		window.setTimeout(function () {
-			if (concluido) return;
-			if (observer) observer.disconnect();
-			// Se a página recarregou de verdade, o script atual nem chega até
-			// aqui (o contexto já foi destruído); se chegamos aqui é porque o
-			// clique não teve efeito nenhum.
-			console.warn(TAG, "cliquei para avançar de página mas não detectei nenhuma mudança em 8s — a coleta pode ter parado nesta página. Confira manualmente.");
-		}, 8000);
-	}
-
-	// --- coleta em todas as páginas ------------------------------------------
-
-	function obterColeta() {
-		try {
-			const raw = sessionStorage.getItem(STORAGE_COLETA_KEY);
-			return raw ? JSON.parse(raw) : null;
-		} catch (err) {
-			console.warn(TAG, "não consegui ler o estado salvo da coleta:", err);
-			return null;
-		}
-	}
-
-	function salvarColeta(coleta) {
-		try {
-			sessionStorage.setItem(STORAGE_COLETA_KEY, JSON.stringify(coleta));
-		} catch (err) {
-			console.warn(TAG, "não consegui salvar o estado da coleta:", err);
-		}
-	}
-
-	function limparColeta() {
-		sessionStorage.removeItem(STORAGE_COLETA_KEY);
-	}
-
-	function iniciarColeta(digito, precisaVoltarPrimeira) {
-		limparColeta();
-		const coleta = {
-			digito: digito,
-			ativo: true,
-			fase: precisaVoltarPrimeira ? "irParaPrimeira" : "coletando",
-			paginasVisitadas: [],
-			encontrados: [],
-		};
-		salvarColeta(coleta);
-		console.log(TAG, "iniciando coleta em todas as páginas — dígito:", digito);
-		passoColeta();
-	}
-
-	function atualizarStatus(texto) {
-		const status = document.querySelector("#pdpColetaStatus");
-		if (status) status.textContent = texto || "";
-	}
-
-	function passoColeta() {
-		const coleta = obterColeta();
-		if (!coleta || !coleta.ativo) return;
-
-		const nav = obterNavegacao();
-		const paginaAtual = nav?.paginaAtual || "?";
-
-		console.groupCollapsed(TAG, "coleta em todas as páginas — página atual:", paginaAtual, "| fase:", coleta.fase);
-		atualizarStatus("Coletando… página " + paginaAtual + " (" + coleta.encontrados.length + " encontrado(s) até agora)");
-
-		if (coleta.fase === "irParaPrimeira") {
-			if (nav && nav.primeira) {
-				console.log(TAG, "indo para a primeira página antes de começar a coletar");
-				salvarColeta(coleta);
-				console.groupEnd();
-				clicarNavegacao(nav.primeira, passoColeta);
-				return;
+			function finalizar(motivo) {
+				if (concluido) return;
+				concluido = true;
+				iframe.removeEventListener("load", aoRecarregar);
+				if (observer) observer.disconnect();
+				clearTimeout(timer);
+				resolve(motivo);
 			}
-			coleta.fase = "coletando";
-		}
 
-		if (coleta.paginasVisitadas.indexOf(paginaAtual) !== -1) {
-			console.warn(TAG, "página", paginaAtual, "já tinha sido coletada — parando para evitar loop infinito");
-			coleta.fase = "concluido";
-			coleta.erro = "loop-detectado";
-			salvarColeta(coleta);
-			console.groupEnd();
-			exibirResultadosColeta(coleta);
-			return;
-		}
+			function aoRecarregar() {
+				finalizar("recarregou");
+			}
+			iframe.addEventListener("load", aoRecarregar);
 
-		const info = obterLinhasDaTabela();
-		let novos = 0;
-		info.reconhecidas.forEach(function (item) {
-			const seq = item.dados.seq;
-			if (seq === null || seq.slice(-1) !== coleta.digito) return;
-			const chave = item.dados.processo + "#" + seq;
-			if (coleta.encontrados.some(function (r) { return r.chave === chave; })) return;
-			coleta.encontrados.push(Object.assign({ chave: chave, pagina: paginaAtual }, item.dados));
-			novos++;
+			try {
+				const navAntes = obterNavegacao(iframe.contentDocument);
+				const marcadorAntes = navAntes ? navAntes.paginaAtual : null;
+				if (navAntes && navAntes.nav) {
+					observer = new MutationObserver(function () {
+						try {
+							const navAgora = obterNavegacao(iframe.contentDocument);
+							if (navAgora && navAgora.paginaAtual && navAgora.paginaAtual !== marcadorAntes) {
+								finalizar("atualizou");
+							}
+						} catch (e) {
+							// iframe pode estar no meio de uma navegação — ignora e espera o "load".
+						}
+					});
+					observer.observe(navAntes.nav, { childList: true, subtree: true, characterData: true });
+				}
+			} catch (e) {
+				console.warn(TAG, "não consegui observar o navegador de páginas do iframe:", e);
+			}
+
+			const timer = setTimeout(function () {
+				finalizar("timeout");
+			}, TIMEOUT_AVANCAR_PAGINA_MS);
+
+			link.click();
 		});
-		coleta.paginasVisitadas.push(paginaAtual);
-		console.log(TAG, novos, "processo(s) novo(s) nesta página | total acumulado:", coleta.encontrados.length, "| linhas ignoradas nesta página:", info.ignoradas.length);
-
-		if (coleta.paginasVisitadas.length >= MAX_PAGINAS) {
-			console.warn(TAG, "atingido o limite de segurança de", MAX_PAGINAS, "páginas — parando");
-			coleta.fase = "concluido";
-			coleta.erro = "limite-paginas";
-			salvarColeta(coleta);
-			console.groupEnd();
-			exibirResultadosColeta(coleta);
-			return;
-		}
-
-		if (nav && nav.proxima) {
-			salvarColeta(coleta);
-			console.log(TAG, "avançando para a próxima página…");
-			console.groupEnd();
-			clicarNavegacao(nav.proxima, passoColeta);
-			return;
-		}
-
-		coleta.fase = "concluido";
-		salvarColeta(coleta);
-		console.log(TAG, "última página alcançada — coleta concluída com", coleta.encontrados.length, "processo(s) em", coleta.paginasVisitadas.length, "página(s)");
-		console.groupEnd();
-		exibirResultadosColeta(coleta);
 	}
 
-	function exibirResultadosColeta(coleta) {
+	// Busca todas as páginas seguintes à página 1 (já visível na aba de
+	// verdade) num iframe oculto, e devolve todos os processos, de todas as
+	// páginas, cujo Seq. termina no dígito informado.
+	async function coletarTodasAsPaginas(digito) {
+		const encontrados = [];
+		const chaves = new Set();
+		let paginasPercorridas = 1;
+		let erro = null;
+
+		function registrar(doc, origemLabel) {
+			const info = obterLinhasDaTabela(doc);
+			let novos = 0;
+			info.reconhecidas.forEach(function (item) {
+				const seq = item.dados.seq;
+				if (seq === null || seq.slice(-1) !== digito) return;
+				const chave = item.dados.processo + "#" + seq;
+				if (chaves.has(chave)) return;
+				chaves.add(chave);
+				encontrados.push({
+					processo: item.dados.processo,
+					seq: seq,
+					dataDecurso: item.dados.dataDecurso,
+					situacao: item.dados.situacao,
+					linha: item.row.cloneNode(true),
+				});
+				novos++;
+			});
+			console.log(TAG, origemLabel, "—", novos, "processo(s) novo(s) | total acumulado:", encontrados.length, "| linhas ignoradas nesta página:", info.ignoradas.length);
+			return info;
+		}
+
+		const infoPagina1 = registrar(document, "página 1 (aba visível)");
+		const navPagina1 = obterNavegacao(document);
+		if (!navPagina1 || !navPagina1.proxima) {
+			return { encontrados: encontrados, paginas: 1, erro: null };
+		}
+
+		const primeiroProcessoVisivel = infoPagina1.reconhecidas[0] ? infoPagina1.reconhecidas[0].dados.processo : null;
+
+		atualizarStatus("Buscando demais páginas em segundo plano…");
+
+		const iframe = document.createElement("iframe");
+		iframe.setAttribute("data-pdp-loader", "decurso-prazo-sequencial");
+		iframe.style.cssText = "position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;top:-9999px;";
+		document.body.appendChild(iframe);
+
+		try {
+			await new Promise(function (resolve, reject) {
+				const t = setTimeout(function () {
+					reject(new Error("tempo esgotado carregando a 1ª página em segundo plano"));
+				}, TIMEOUT_PRIMEIRA_CARGA_MS);
+				iframe.addEventListener("load", function aoCarregar() {
+					iframe.removeEventListener("load", aoCarregar);
+					clearTimeout(t);
+					resolve();
+				});
+				iframe.src = location.href;
+			});
+
+			// Confere que o iframe reproduziu a MESMA busca (o Projudi guarda o
+			// critério de busca na sessão do usuário; se por algum motivo vier
+			// outra coisa, é mais seguro parar aqui do que coletar dados errados).
+			const infoIframe1 = obterLinhasDaTabela(iframe.contentDocument);
+			const primeiroProcessoIframe = infoIframe1.reconhecidas[0] ? infoIframe1.reconhecidas[0].dados.processo : null;
+			if (primeiroProcessoVisivel && primeiroProcessoIframe !== primeiroProcessoVisivel) {
+				console.warn(
+					TAG,
+					"a página carregada em segundo plano não bateu com a busca atual — esperava como 1º processo:",
+					primeiroProcessoVisivel,
+					"| veio:",
+					primeiroProcessoIframe,
+					"— parando a coleta em todas as páginas; mostrando só a página atual."
+				);
+				return { encontrados: encontrados, paginas: 1, erro: "busca-nao-reproduzida-em-segundo-plano" };
+			}
+
+			let pagina = 1;
+			while (pagina < MAX_PAGINAS) {
+				const navAtual = obterNavegacao(iframe.contentDocument);
+				if (!navAtual || !navAtual.proxima) break;
+
+				atualizarStatus("Buscando demais páginas em segundo plano… (indo para a página " + (pagina + 1) + ")");
+				const motivo = await clicarProximaNoIframe(iframe, navAtual.proxima);
+
+				if (motivo === "timeout") {
+					console.warn(TAG, "não detectei avanço da página", pagina, "para a seguinte em", TIMEOUT_AVANCAR_PAGINA_MS / 1000, "s — parando a coleta aqui.");
+					erro = "sem-resposta-apos-pagina-" + pagina;
+					break;
+				}
+
+				pagina++;
+				paginasPercorridas = pagina;
+				registrar(iframe.contentDocument, "página " + pagina + " (segundo plano)");
+			}
+
+			if (pagina >= MAX_PAGINAS) {
+				console.warn(TAG, "atingido o limite de segurança de", MAX_PAGINAS, "páginas — parando");
+				erro = "limite-de-" + MAX_PAGINAS + "-paginas";
+			}
+
+			return { encontrados: encontrados, paginas: paginasPercorridas, erro: erro };
+		} catch (e) {
+			console.error(TAG, "erro coletando as demais páginas em segundo plano:", e);
+			return { encontrados: encontrados, paginas: paginasPercorridas, erro: String((e && e.message) || e) };
+		} finally {
+			iframe.remove();
+		}
+	}
+
+	// --- apresentação do resultado na própria tabela -------------------------
+
+	function apresentarResultado(digito, resultado) {
 		atualizarStatus("");
 
-		const ancora = document.querySelector("#navigator") || document.querySelector("table.resultTable");
-		if (!ancora || !ancora.parentNode) return;
-
-		let painel = document.getElementById("pdpColetaResultado");
-		if (!painel) {
-			painel = document.createElement("div");
-			painel.id = "pdpColetaResultado";
-			painel.style.cssText = "border:2px solid #5c6b3f;background:#fbfaf3;padding:10px 14px;margin:10px 0;font-size:12px;color:#26301f;";
-			ancora.parentNode.insertBefore(painel, ancora);
-		}
-
-		const linhas = coleta.encontrados
-			.map(function (r) {
-				return (
-					"<tr>" +
-					'<td><a href="' + r.url + '" target="_blank" rel="noopener">' + r.processo + "</a></td>" +
-					"<td>" + (r.seq || "") + "</td>" +
-					"<td>" + r.dataDecurso + "</td>" +
-					"<td>" + r.situacao + "</td>" +
-					"<td>" + r.pagina + "</td>" +
-					"</tr>"
-				);
-			})
-			.join("");
-
-		const aviso =
-			coleta.erro === "limite-paginas"
-				? '<p style="color:#a33">Parei em ' + coleta.paginasVisitadas.length + " páginas (limite de segurança). Pode haver mais processos além do que está listado.</p>"
-				: coleta.erro === "loop-detectado"
-				? '<p style="color:#a33">A navegação entre páginas parece ter travado (voltou para uma página já vista); a lista abaixo pode estar incompleta.</p>'
-				: "";
-
-		painel.innerHTML =
-			'<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px;">' +
-			"<strong>Sequencial " + coleta.digito + " em todas as páginas — " + coleta.encontrados.length + " processo(s) em " + coleta.paginasVisitadas.length + " página(s)</strong>" +
-			'<button type="button" id="pdpColetaFechar" style="cursor:pointer;">Fechar</button>' +
-			"</div>" +
-			aviso +
-			(coleta.encontrados.length
-				? '<table style="width:100%;border-collapse:collapse;font-size:12px;">' +
-				  '<thead><tr><th style="text-align:left;border-bottom:1px solid #ccc;padding:2px 6px 2px 0;">Processo</th>' +
-				  '<th style="text-align:left;border-bottom:1px solid #ccc;padding:2px 6px;">Seq.</th>' +
-				  '<th style="text-align:left;border-bottom:1px solid #ccc;padding:2px 6px;">Data Decurso</th>' +
-				  '<th style="text-align:left;border-bottom:1px solid #ccc;padding:2px 6px;">Situação</th>' +
-				  '<th style="text-align:left;border-bottom:1px solid #ccc;padding:2px 6px;">Pág.</th></tr></thead>' +
-				  "<tbody>" + linhas + "</tbody></table>"
-				: "<p>Nenhum processo com Sequencial " + coleta.digito + " foi encontrado nas páginas percorridas.</p>");
-
-		const fechar = document.getElementById("pdpColetaFechar");
-		if (fechar) {
-			fechar.addEventListener("click", function () {
-				limparColeta();
-				painel.remove();
+		const tabela = document.querySelector("table.resultTable");
+		const tbody = tabela && tabela.querySelector("tbody");
+		if (tbody) {
+			tbody.innerHTML = "";
+			resultado.encontrados.forEach(function (item) {
+				tbody.appendChild(item.linha);
 			});
 		}
 
-		console.log(TAG, "resultado final da coleta:");
-		console.table(coleta.encontrados);
+		const nav = document.querySelector("#navigator");
+		if (nav) {
+			const avisoErro = resultado.erro
+				? ' <span style="color:#a33">— a lista pode estar incompleta (' + resultado.erro + ").</span>"
+				: "";
+			nav.innerHTML =
+				'<div class="navLeft"><strong>Sequencial ' +
+				digito +
+				"</strong> em todas as páginas: " +
+				resultado.encontrados.length +
+				" processo(s) encontrados, percorrendo " +
+				resultado.paginas +
+				" página(s)." +
+				avisoErro +
+				"</div>" +
+				'<div style="clear:both"></div>';
+		}
+
+		console.groupCollapsed(TAG, "resultado final — dígito:", digito, "| processos:", resultado.encontrados.length, "| páginas percorridas:", resultado.paginas, "| erro:", resultado.erro || "(nenhum)");
+		console.table(
+			resultado.encontrados.map(function (item) {
+				return { processo: item.processo, seq: item.seq, dataDecurso: item.dataDecurso, situacao: item.situacao };
+			})
+		);
+		console.groupEnd();
+	}
+
+	async function filtrarEmTodasAsPaginas(digito) {
+		console.log(TAG, "Filtrar acionado com Sequencial", digito, "— buscando em todas as páginas em segundo plano");
+		const resultado = await coletarTodasAsPaginas(digito);
+		apresentarResultado(digito, resultado);
 	}
 
 	// --- inicialização --------------------------------------------------------
@@ -431,16 +394,6 @@
 	}
 
 	if (digitoParaEstaCarga) {
-		console.log(TAG, "aplicando o dígito informado no Filtrar:", digitoParaEstaCarga);
-		filtrarTabela(digitoParaEstaCarga);
-	}
-
-	const coletaEmAndamento = obterColeta();
-	if (coletaEmAndamento) {
-		if (coletaEmAndamento.ativo) {
-			passoColeta();
-		} else {
-			exibirResultadosColeta(coletaEmAndamento);
-		}
+		filtrarEmTodasAsPaginas(digitoParaEstaCarga);
 	}
 })();
