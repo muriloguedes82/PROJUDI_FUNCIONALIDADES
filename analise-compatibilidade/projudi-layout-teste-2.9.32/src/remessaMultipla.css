@@ -1,0 +1,26 @@
+/* Botão "Nova Remessa" injetado ao lado do "Realizar Remessa" nativo
+   (src/remessaMultipla.js). O painel da fila reaproveita as classes
+   genéricas .pdp-fila-* já definidas em ordenarCumprimentos.css (mesmo
+   padrão de fila usado por "Nova Ordenação"), carregado junto no mesmo
+   grupo de content scripts. */
+
+.pdp-nova-remessa-btn {
+	margin-left: 8px;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 11px;
+	color: #222;
+	background: linear-gradient(to bottom, #eaf3ff, #d3e6ff);
+	border: 1px solid #7fa8d9;
+	border-radius: 3px;
+	padding: 3px 8px;
+	cursor: pointer;
+}
+
+.pdp-nova-remessa-btn:hover {
+	background: linear-gradient(to bottom, #d9e9ff, #c3d9fb);
+}
+
+.pdp-nova-remessa-btn:disabled {
+	opacity: 0.6;
+	cursor: default;
+}

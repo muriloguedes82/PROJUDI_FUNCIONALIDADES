@@ -32,7 +32,7 @@
 	"use strict";
 	// A janela do Oráculo mantém apenas os controles nativos.
 	if (location.pathname === "/projudi/processo/criminal/antecedentesCriminais.do") return;
-	if (window.__pdpButtonGroupBlocked) return;
+	const buttonGroupBlocked = !!window.__pdpButtonGroupBlocked;
 
 	if (window.__pdpQuickActionsInjected) return;
 	window.__pdpQuickActionsInjected = true;
@@ -1003,6 +1003,13 @@
 			removeActionModal();
 		});
 		const iframe = backdrop.querySelector(".pdp-qa-modal-iframe");
+		if (label === "Analisar Retorno") {
+			// O POST desta ação é exibido por srcdoc; nesse contexto a URL
+			// interna é about:srcdoc e não pode ser reconhecida pela blacklist
+			// de rotas. O marcador permite que uiVisibility.js identifique o
+			// frame sem impedir o Preview de documentos dentro dele.
+			iframe.setAttribute("data-pdp-hide-button-group", "");
+		}
 		activeModalIframe = iframe;
 		attachModalIframeCloseShim(iframe);
 		startModalWatch(iframe);
@@ -1723,6 +1730,10 @@
 
 	function repositionRow() {
 		if (!row) return;
+		// Depois que o controlador Mover assume o grupo, ele é a única fonte
+		// das coordenadas top/right. O restante deste arquivo continua
+		// reconciliando conteúdo e painéis, sem disputar a posição a cada 700ms.
+		if (window.__pdpButtonDrag) return;
 
 		const otherButtons = Array.prototype.slice.call(document.querySelectorAll(OTHER_BUTTON_SELECTOR));
 		if (otherButtons.length) {
@@ -1784,118 +1795,49 @@
 		}
 	}
 
-	loadRowExpandedPreference();
-	setInterval(reconcile, 700);
-	reconcile();
+	if (!buttonGroupBlocked) {
+		loadRowExpandedPreference();
+		setInterval(reconcile, 700);
+		reconcile();
 
-	const observer = new MutationObserver(function () {
-		try {
-			reconcile();
-		} catch (err) {
-			console.error("[Projudi Ações Rápidas]", "erro no MutationObserver:", err);
-		}
-	});
-	observer.observe(document.documentElement, { childList: true, subtree: true });
-
-	let repositionScheduled = false;
-	function scheduleReposition() {
-		if (repositionScheduled) return;
-		repositionScheduled = true;
-		requestAnimationFrame(function () {
-			repositionScheduled = false;
-			repositionRow();
+		const observer = new MutationObserver(function () {
+			try {
+				reconcile();
+			} catch (err) {
+				console.error("[Projudi Ações Rápidas]", "erro no MutationObserver:", err);
+			}
 		});
+		observer.observe(document.documentElement, { childList: true, subtree: true });
+
+		let repositionScheduled = false;
+		function scheduleReposition() {
+			if (repositionScheduled) return;
+			repositionScheduled = true;
+			requestAnimationFrame(function () {
+				repositionScheduled = false;
+				repositionRow();
+			});
+		}
+		window.addEventListener("pdp-buttons-hide", closePanel);
+		window.addEventListener("pdp-buttons-moved", function () {
+			if (activeGroupId) positionPanel(activeGroupId);
+		});
+		window.addEventListener("resize", scheduleReposition);
+		window.addEventListener("scroll", scheduleReposition, true);
 	}
-	window.addEventListener("pdp-buttons-hide", closePanel);
-	window.addEventListener("pdp-buttons-moved", function () {
-		if (activeGroupId) positionPanel(activeGroupId);
-	});
-	window.addEventListener("resize", scheduleReposition);
-	window.addEventListener("scroll", scheduleReposition, true);
 
 	// -------------------------------------------------------------------
-	// API mínima exposta para outros recursos desta extensão:
-	// - resolveDialogUrl (ver src/ordenarCumprimentos.js, botão "Nova
-	//   Ordenação"): resolve a URL de um diálogo de ação pelo rótulo exato,
-	//   reaproveitando a MESMA cadeia já usada e testada aqui - cada
-	//   chamada gera um diálogo (e token de sessão) NOVO, nunca
-	//   reaproveitando uma URL já usada. Necessário porque reenviar um
-	//   formulário com o token de uma página já carregada antes (ex.: a
-	//   mesma página que o usuário ainda está vendo) corre o risco de
-	//   reaproveitar um token de uso único já consumido por outro envio -
-	//   o Projudi pode aceitar a requisição sem indicar erro algum, mas
-	//   sem de fato repetir a ação.
-	// - openActionModal (ver src/habilitarAdvogado.js, botão "(Des)
-	//   Habilitar Advogado"): abre o MESMO popup usado pelas ações do
-	//   painel "Ações" (Ordenar Cumprimentos, Realizar Remessa etc.) direto
-	//   numa URL já conhecida - reaproveita showActionModal (com o mesmo
-	//   shim de opener/close e o mesmo "✕ Fechar"), sem precisar da cadeia
-	//   de resolveDialogUrl (que serve para DESCOBRIR a URL a partir de uma
-	//   movimentação; aqui quem chama já sabe a URL de antemão). Sempre um
-	//   `src` comum (GET) no iframe - nunca um `<form target="...">`
-	//   mirando o nome do iframe, que abre uma ABA NOVA em vez de navegar o
-	//   iframe quando o nome não é reconhecido a tempo como alvo válido
-	//   (comportamento padrão do HTML nesse caso - já visto ao vivo).
-	// - openActionModalPost (ver src/content.js, botão "Analisar Retorno"
-	//   de mandados devolvidos): mesma ideia, mas para uma ação cujo botão
-	//   nativo faz um POST (via `submitPage(url, form)`) em vez de um link
-	//   GET comum - o caso de openActionModal (`src` direto no iframe) não
-	//   serve aqui, pois um GET não reproduziria o POST original.
-	//
-	//   A primeira versão disto usava um `<form target="nome-do-iframe">`
-	//   mirando o iframe já existente do popup, na suposição de que isso
-	//   seria seguro por o iframe já estar conectado ao documento (ao
-	//   contrário do aviso acima sobre openActionModal, que é sobre um
-	//   iframe criado/nomeado no mesmíssimo instante da tentativa de mirar
-	//   nele). Testado ao vivo, isso também abriu uma ABA NOVA em vez de
-	//   navegar o iframe do popup - ou seja, a mesma armadilha ocorre mesmo
-	//   com o iframe já presente no DOM, então esta técnica foi abandonada
-	//   por completo (não é só "quando o nome não é reconhecido a tempo").
-	//
-	//   Em vez disso, reproduzimos o POST em segundo plano via fetch() -
-	//   mesma técnica de leitura já usada por `readPage()` em
-	//   habilitarAdvogado.js e por `fetchMandadoAnalise()` em content.js
-	//   (inclusive a mesma detecção de charset, já que o Projudi serve em
-	//   windows-1252) - e escrevemos o HTML resultante diretamente no
-	//   iframe do popup via `iframe.srcdoc`, com uma tag `<base href="...">`
-	//   injetada logo no `<head>` apontando para a URL de verdade da
-	//   resposta. Sem essa tag, os links/formulários/scripts relativos da
-	//   tela resultante (ex.: os botões nativos "Marcar Leitura"/
-	//   "Confirmar" da tela seguinte) resolveriam contra "about:srcdoc" e
-	//   quebrariam; com ela, se comportam como se o iframe tivesse navegado
-	//   de verdade para aquela URL - inclusive o clique num desses botões
-	//   nativos, que faz uma navegação real do iframe (não mais um
-	//   `srcdoc`), então o shim de opener/close e o `checkFlagClosePopup`
-	//   (ambos ligados ao evento "load" do iframe, que dispara tanto ao
-	//   final de um `srcdoc` quanto de uma navegação comum) continuam
-	//   funcionando normalmente daí em diante.
-	//
-	//   Um detalhe à parte, no manifest.json: um iframe `srcdoc` tem URL
-	//   própria "about:srcdoc", que por padrão NÃO bate com nenhum padrão
-	//   de `matches` dos content_scripts — sem o `match_origin_as_fallback:
-	//   true` nos blocos de content_scripts do Projudi/SEEU, nenhum script
-	//   desta extensão (inclusive a pré-visualização de documentos ao
-	//   passar o mouse, de content.js) rodaria dentro deste popup, mesmo
-	//   a origem "de verdade" da resposta sendo o próprio Projudi. O Chrome
-	//   exige que o `path` do padrão de `matches` seja exatamente "*"
-	//   quando `match_origin_as_fallback` está ativo (senão recusa carregar
-	//   a extensão) — por isso esses dois blocos passaram de
-	//   "*://*.tjpr.jus.br/projudi/*"/"*://seeu.pje.jus.br/seeu/*" para
-	//   "*://*.tjpr.jus.br/*"/"*://seeu.pje.jus.br/*" (mesmos hosts já
-	//   cobertos por host_permissions, só sem restringir o caminho): os
-	//   scripts desta extensão passam a rodar em qualquer página desses
-	//   dois domínios, não só sob /projudi/ ou /seeu/ — sem problema prático
-	//   aqui, já que cada recurso só age depois de confirmar marcadores
-	//   específicos da tela (número do processo, formulários nativos etc.),
-	//   nunca só pela URL.
+	// API mínima exposta para outros recursos desta extensão (ver
+	// src/ordenarCumprimentos.js, botão "Nova Ordenação"): resolve a URL de
+	// um diálogo de ação pelo rótulo exato, reaproveitando a MESMA cadeia
+	// já usada e testada aqui - cada chamada gera um diálogo (e token de
+	// sessão) NOVO, nunca reaproveitando uma URL já usada. Necessário
+	// porque reenviar um formulário com o token de uma página já carregada
+	// antes (ex.: a mesma página que o usuário ainda está vendo) corre o
+	// risco de reaproveitar um token de uso único já consumido por outro
+	// envio - o Projudi pode aceitar a requisição sem indicar erro algum,
+	// mas sem de fato repetir a ação.
 	// -------------------------------------------------------------------
-
-	// Insere `<base href="...">` logo após a abertura do `<head>` (ou cria
-	// um `<head>` mínimo se a página não tiver um, caso nunca visto no
-	// Projudi mas tratado por segurança) - resolve todo link/formulário/
-	// script relativo do HTML como se ele tivesse navegado de verdade para
-	// `baseUrl`, mesmo carregado via `iframe.srcdoc` (cuja URL própria é
-	// "about:srcdoc").
 	function injectBaseHref(html, baseUrl) {
 		const baseTag = '<base href="' + String(baseUrl).replace(/"/g, "&quot;") + '">';
 		if (/<head[^>]*>/i.test(html)) return html.replace(/<head[^>]*>/i, function (match) { return match + baseTag; });
@@ -1912,11 +1854,8 @@
 		},
 		openActionModalPost: function (label, url, fields) {
 			const iframe = showActionModal(label);
-
 			const body = new URLSearchParams();
-			(fields || []).forEach(function (pair) {
-				body.append(pair[0], pair[1]);
-			});
+			(fields || []).forEach(function (pair) { body.append(pair[0], pair[1]); });
 
 			fetch(url, { method: "POST", credentials: "same-origin", body: body })
 				.then(function (response) {
@@ -1927,8 +1866,7 @@
 							/charset\s*=\s*["']?([\w-]+)/i.exec(response.headers.get("content-type") || "") ||
 							/charset\s*=\s*["']?([\w-]+)/i.exec(preview);
 						const charset = (charsetMatch && charsetMatch[1]) || "windows-1252";
-						const html = new TextDecoder(charset).decode(bytes);
-						iframe.srcdoc = injectBaseHref(html, response.url);
+						iframe.srcdoc = injectBaseHref(new TextDecoder(charset).decode(bytes), response.url);
 					});
 				})
 				.catch(function (err) {
