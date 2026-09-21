@@ -210,14 +210,25 @@
 		return body;
 	}
 
+	// Extrai atribuições do tipo
+	// document.forms['intimacaoBuscaForm']['pageNumber'].value='2'; — o
+	// padrão de verdade usado pelo link "Próxima Página" desta tela (href
+	// "javascript:...", confirmado no console: seta pageNumber/sortColumn/
+	// sortOrder no próprio formulário de busca e chama .submit()).
+	function extrairAtribuicoesJS(trecho) {
+		const regex = /document\.forms\[['"]([^'"]+)['"]\]\[['"]([^'"]+)['"]\]\.value\s*=\s*['"]([^'"]*)['"]/g;
+		const atribuicoes = [];
+		let m;
+		while ((m = regex.exec(trecho))) {
+			atribuicoes.push({ formulario: m[1], campo: m[2], valor: m[3] });
+		}
+		return atribuicoes;
+	}
+
 	// Descobre como o link "Próxima Página" realmente funciona, a partir do
 	// HTML bruto devolvido pelo servidor (não a partir do DOM já processado
-	// pelo Chrome, que pode não trazer os mesmos atributos). Tenta, nessa
-	// ordem: um href de verdade; um onclick com submitPage('URL', form) —
-	// padrão já usado noutros botões desta mesma tela do Projudi, ver
-	// extractAnalisarRetornoAction em content.js; ou um onclick com
-	// location.href/alguma chamada contendo a URL. Loga sempre o HTML bruto
-	// do link, para diagnosticar sem precisar advinhar caso nada bata.
+	// pelo Chrome, que pode não trazer os mesmos atributos). Loga sempre o
+	// HTML bruto do link, para diagnosticar sem precisar advinhar caso mude.
 	function acharProximaPaginaAction(doc) {
 		const nav = doc.querySelector("#navigator");
 		const link = nav && nav.querySelector("a.arrowNextOn");
@@ -225,7 +236,42 @@
 
 		console.log(TAG, 'anchor "Próxima Página" (HTML bruto, como o servidor mandou):', link.outerHTML);
 
-		const href = link.getAttribute("href");
+		const href = link.getAttribute("href") || "";
+		const onclick = link.getAttribute("onclick") || "";
+
+		// Padrão real desta tela: define campos do próprio formulário de
+		// busca (pageNumber, sortColumn, sortOrder) e reenvia. Reproduzimos
+		// com fetch(): mesmo corpo do formulário atual, com esses campos
+		// sobrescritos pelos valores que o link usaria.
+		const trechoComSubmit = /\.submit\(\)/.test(href) ? href : /\.submit\(\)/.test(onclick) ? onclick : "";
+		const atribuicoes = trechoComSubmit ? extrairAtribuicoesJS(trechoComSubmit) : [];
+		if (atribuicoes.length) {
+			const nomeFormulario = atribuicoes[0].formulario;
+			const formulario = doc.querySelector('form[name="' + nomeFormulario + '"]') || doc.getElementById(nomeFormulario) || doc.querySelector("#intimacaoBuscaForm");
+			let actionUrl = null;
+			if (formulario) {
+				try {
+					actionUrl = new URL(formulario.getAttribute("action") || formulario.action, location.href).href;
+				} catch (e) {
+					actionUrl = null;
+				}
+			}
+			if (formulario && actionUrl) {
+				const corpo = new URLSearchParams();
+				for (const [name, value] of new FormData(formulario)) {
+					if (typeof value === "string" && name !== "pdpSequencial") corpo.append(name, value);
+				}
+				atribuicoes.forEach(function (a) {
+					corpo.set(a.campo, a.valor);
+				});
+				console.log(TAG, "avançando via campos do formulário:", atribuicoes.map(function (a) { return a.campo + "=" + a.valor; }).join(", "));
+				return { url: actionUrl, corpo: corpo };
+			}
+		}
+
+		// Outros padrões possíveis (não confirmados nesta tela, mas usados
+		// noutros botões do Projudi — ver extractAnalisarRetornoAction em
+		// content.js) — mantidos como alternativa.
 		if (href && !/^\s*(javascript:|#)/i.test(href)) {
 			try {
 				return { url: new URL(href, location.href).href, corpo: null };
@@ -233,8 +279,6 @@
 				/* ignora e tenta o onclick abaixo */
 			}
 		}
-
-		const onclick = link.getAttribute("onclick") || "";
 		const padroes = [/submitPage\(\s*['"]([^'"]+)['"]/, /location\.href\s*=\s*['"]([^'"]+)['"]/, /\.(?:load|get|post)\(\s*['"]([^'"]+)['"]/];
 		for (const padrao of padroes) {
 			const encontrado = padrao.exec(onclick);
