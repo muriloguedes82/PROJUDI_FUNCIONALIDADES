@@ -43,7 +43,11 @@
 	// sequencialProcessoPrincipal.js) — essa tela em si não deveria aparecer
 	// assim, mas o guarda-costas é o mesmo padrão usado em todo o resto do
 	// código, então mantemos por consistência/segurança.
-	if (window.frameElement && window.frameElement.hasAttribute("data-pdp-loader")) return;
+	// Idem para o iframe oculto da dispensa de decursos (juntadaDrag.js),
+	// que carrega justamente esta tela: aqui o script consumiria o dígito
+	// guardado no sessionStorage (compartilhado com a aba) e poderia
+	// navegar pelas páginas dentro do iframe, atrapalhando a dispensa.
+	if (window.frameElement && (window.frameElement.hasAttribute("data-pdp-loader") || window.frameElement.hasAttribute("data-pdp-decurso"))) return;
 
 	const TAG = "[Projudi Sequencial Decurso de Prazo]";
 	const STORAGE_KEY = "pdpDecursoPrazoSequencialDigito";

@@ -5,7 +5,10 @@ Comparação do pacote anexado com a extensão principal do repositório
 **2.9.51**, commit `fa576a2`). O conteúdo do ZIP está guardado sem
 alterações em
 [`projudi-funcionalidades-2.9.52/`](./projudi-funcionalidades-2.9.52).
-**A extensão principal não foi alterada.**
+**Atualização:** a funcionalidade foi portada para a extensão principal
+(versão 2.9.52) com as correções — veja
+["Portagem para a extensão principal"](#portagem-para-a-extensão-principal-2952).
+As seções abaixo descrevem o pacote **como veio**.
 
 ## Resumo
 
@@ -181,8 +184,30 @@ fluxo deveria mostrar um erro (“listagem não reconhecida”) em vez de
   código seleciona essa classe, então não há efeito colateral.
 - O README do pacote não documenta a nova funcionalidade.
 
-## Próximo passo sugerido
+## Portagem para a extensão principal (2.9.52)
 
-Portar o IIFE e o handler do background para a extensão principal (com
-versão 2.9.52) já com as correções 1, 2 e 3 e o guard contra listagem
-vazia do item 4, e registrar a funcionalidade no README.
+O IIFE e o handler do background foram levados para
+`extensao-preview-documentos/` com estas mudanças em relação ao pacote:
+
+- **Ponto 1:** `fail()` agora põe `state = 'failed'`, e o listener de
+  `load` e o `finish()` ignoram qualquer evento depois disso. O prazo
+  passou a ser de 60 s **por etapa** (listagem, intimação, verificação),
+  reiniciado a cada passo, em vez de 120 s para a operação toda. Um
+  `ok:false` do background só vira erro se o iframe ainda não saiu da
+  página da intimação; se o envio já aconteceu, a verificação da
+  listagem decide.
+- **Ponto 2:** `decursoPrazoSequencial.js` não roda em frames
+  `data-pdp-decurso`.
+- **Ponto 3:** o clique em "Dispensar decursos" dispara
+  `pdp-juntada-action-start`, que fecha a pré-visualização da pendência.
+- **Ponto 4:**
+  - a primeira listagem vazia agora é erro, não "já dispensado(s)";
+  - os dois textos aceitam "análise **de**" e "análise **do**" decurso
+    de prazo;
+  - a `confirm()` aceita "confirm", "deseja" ou "certeza", desde que
+    mencione dispensa e decurso;
+  - se o botão nativo enviar o formulário sem pedir confirmação, isso
+    não é mais tratado como erro, porque a listagem é conferida em
+    seguida;
+  - o `id="dispensarButton"` continua a ser conferido na tela real.
+- README da extensão: nova seção "Dispensar decursos de prazo".

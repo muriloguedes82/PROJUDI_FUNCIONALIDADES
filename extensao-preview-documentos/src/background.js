@@ -700,6 +700,47 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   return true;
 });
 
+// Aciona somente a dispensa de decurso previamente marcada no iframe oculto.
+function clickDecursoWithConfirmation(token) {
+  if (!window.frameElement || window.frameElement.getAttribute('data-pdp-decurso') !== token) return null;
+  if (location.pathname !== '/projudi/processo/intimacao.do') return {ok:false, error:'Página de intimação inesperada.'};
+  const form = document.getElementById('intimacaoForm');
+  const button = form && form.querySelector('[data-pdp-decurso-button="' + token + '"]');
+  if (!button || button.disabled || String(button.value || button.textContent || '').trim().toLowerCase() !== 'dispensar') {
+    return {ok:false, error:'Botão de dispensa do decurso indisponível.'};
+  }
+  button.removeAttribute('data-pdp-decurso-button');
+  const originalConfirm = window.confirm;
+  let accepted = false, rejected = false;
+  window.confirm = function (message) {
+    const text = String(message || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    // Exige menção à dispensa e ao decurso; a forma da pergunta varia
+    // (“Confirma…?”, “Deseja realmente…?”), como na dispensa de juntadas.
+    const specific = /dispens/.test(text) && /decurso/.test(text) && /confirm|deseja|certeza/.test(text) && !/exclu|arquiv|remess|envi|conclus/.test(text);
+    if (!accepted && specific) { accepted = true; return true; }
+    rejected = true; return false;
+  };
+  try {
+    button.click();
+    // Sem confirm() nenhum, o botão nativo já enviou o formulário: não há o
+    // que recusar, e a listagem conferida em seguida confirma o resultado.
+    if (rejected) return {ok:false, error:'A confirmação recebida não correspondeu à dispensa de decurso esperada.'};
+    return {ok:true};
+  } catch (error) { return {ok:false, error:String(error.message || error)}; }
+  finally { window.confirm = originalConfirm; }
+}
+
+chrome.runtime.onMessage.addListener((message, sender, reply) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'decurso-dispense-marked') return false;
+  if (!sender.tab || !/^https?:\/\/[^/]+\.tjpr\.jus\.br\/projudi\//.test(sender.url || '') || !/^[a-f0-9-]{36}$/.test(message.token || '')) {
+    reply({ok:false, error:'Origem da operação inválida.'}); return false;
+  }
+  chrome.scripting.executeScript({target:{tabId:sender.tab.id, allFrames:true}, world:'MAIN', func:clickDecursoWithConfirmation, args:[message.token]})
+    .then(results => reply(results.map(entry => entry.result).find(Boolean) || {ok:false, error:'Não foi localizado o iframe da dispensa de decurso.'}))
+    .catch(error => reply({ok:false, error:error.message}));
+  return true;
+});
+
 chrome.runtime.onMessage.addListener((message,sender,reply) => {
   if (message?.source !== 'projudi-preview' || message.type !== 'clipboard-process-open') return false;
   try {
