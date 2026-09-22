@@ -200,7 +200,7 @@
   function pendingURL(link) {
     if (!link || !link.matches('a.link[href]') || !link.closest('#quadroPendencias')) return null;
     const text = normalize(link.textContent);
-    if (!/intimac/.test(text) || !/aguardando analise d[eo] decurso de prazo/.test(text)) return null;
+    if (!/intimac/.test(text) || !/aguardando analise de decurso de prazo/.test(text)) return null;
     try {
       const url = new URL(link.getAttribute('href'), location.href);
       if (url.origin !== location.origin || url.pathname !== listRoute || !url.search) return null;
@@ -216,7 +216,7 @@
     if (!table) return null;
     const links = [];
     for (const row of table.querySelectorAll('tbody > tr:not([id])')) {
-      if (!/aguardando analise d[eo] decurso de prazo/.test(normalize(row.textContent))) continue;
+      if (!/aguardando analise do decurso de prazo/.test(normalize(row.textContent))) continue;
       const link = [...row.querySelectorAll('a.link[href]')].find(candidate => {
         try {
           const url = new URL(candidate.getAttribute('href'), doc.URL);
@@ -268,13 +268,7 @@
     let previousCount = 0;
     let processed = 0;
     let total = 0;
-    let timer = null;
-    // Prazo por etapa (listagem ou intimação), não para a operação inteira:
-    // processos com muitas intimações não estouram só pela quantidade.
-    function arm() {
-      clearTimeout(timer);
-      timer = setTimeout(() => fail('A operação demorou além do esperado. Confira em “Ver detalhes” antes de tentar novamente.'), 60000);
-    }
+    let timer = setTimeout(() => fail('A operação demorou além do esperado. Confira em “Ver detalhes” antes de tentar novamente.'), 120000);
 
     function cleanup() {
       if (closed) return;
@@ -282,26 +276,26 @@
       if (!succeeded) refresh();
     }
     function fail(message) {
-      if (closed || state === 'failed') return;
-      // Interrompe a sequência: nenhum load posterior do iframe (envio já
-      // em andamento, navegação em “Ver detalhes”) volta a dispensar nada.
-      state = 'failed';
-      busy = false; clearTimeout(timer); refresh();
+      if (closed) return;
+      busy = false; clearTimeout(timer);
       note.textContent = message; details.hidden = false; close.hidden = false;
     }
     function finish() {
-      if (closed || state === 'failed') return;
+      if (closed) return;
       succeeded = true; busy = false; clearTimeout(timer); frame.remove(); completed.add(link);
       note.textContent = 'Decurso(s) já dispensado(s) - Movimentação permitida.';
       note.classList.add('pdp-dispensar-card-ok'); close.hidden = false;
       refresh();
+    }
+    function loadList() {
+      state = 'list'; frame.src = listUrl;
     }
     function openNext(entries) {
       if (!entries.length) { finish(); return; }
       previousCount = entries.length;
       total = Math.max(total, processed + entries.length);
       note.textContent = 'Dispensando decurso ' + (processed + 1) + ' de ' + total + '…';
-      state = 'detail'; arm(); frame.src = entries[0];
+      state = 'detail'; frame.src = entries[0];
     }
 
     close.addEventListener('click', cleanup);
@@ -309,15 +303,12 @@
       frame.style.cssText = 'position:fixed;inset:12vh 3vw 3vh;width:94vw;height:85vh;background:white;border:2px solid #536478;z-index:2147483646;';
     });
     frame.addEventListener('load', async () => {
-      if (closed || state === 'failed') return;
+      if (closed) return;
       try {
         const doc = frame.contentDocument;
         if (state === 'list') {
           const entries = detailLinks(doc);
           if (!entries) throw new Error('A listagem de decursos não foi reconhecida.');
-          // Lista vazia logo na primeira carga não é “já dispensado”: o link
-          // da pendência indicava decurso aguardando análise.
-          if (!entries.length) throw new Error('Nenhuma intimação aguardando análise do decurso foi reconhecida na listagem. Confira em “Ver detalhes”.');
           openNext(entries); return;
         }
         if (state === 'detail') {
@@ -326,11 +317,11 @@
           nativeButton.setAttribute('data-pdp-decurso-button', token);
           state = 'submitted';
           const response = await chrome.runtime.sendMessage({source:'projudi-preview', type:'decurso-dispense-marked', token});
-          if (state === 'submitted' && !response?.ok) throw new Error(response?.error || 'Não foi possível acionar a dispensa.');
+          if (!response?.ok) throw new Error(response?.error || 'Não foi possível acionar a dispensa.');
           return;
         }
         if (state === 'submitted') {
-          state = 'verify'; arm(); frame.src = listUrl; return;
+          state = 'verify'; frame.src = listUrl; return;
         }
         if (state === 'verify') {
           const entries = detailLinks(doc);
@@ -341,7 +332,6 @@
         }
       } catch (error) { fail(error.message || 'Não foi possível concluir a dispensa.'); }
     });
-    arm();
     frame.src = listUrl;
   }
 
@@ -364,11 +354,7 @@
         control.addEventListener('click', event => {
           event.preventDefault(); event.stopPropagation();
           const freshUrl = pendingURL(link);
-          if (!freshUrl || busy) return;
-          // Fecha pré-visualizações de pendência abertas (content.js), como
-          // faz o botão de juntadas.
-          window.dispatchEvent(new Event('pdp-juntada-action-start'));
-          run(link, freshUrl, control);
+          if (freshUrl && !busy) run(link, freshUrl, control);
         });
         link.insertAdjacentElement('afterend', control); controls.set(link, control);
       }

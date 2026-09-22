@@ -714,17 +714,13 @@ function clickDecursoWithConfirmation(token) {
   let accepted = false, rejected = false;
   window.confirm = function (message) {
     const text = String(message || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-    // Exige menção à dispensa e ao decurso; a forma da pergunta varia
-    // (“Confirma…?”, “Deseja realmente…?”), como na dispensa de juntadas.
-    const specific = /dispens/.test(text) && /decurso/.test(text) && /confirm|deseja|certeza/.test(text) && !/exclu|arquiv|remess|envi|conclus/.test(text);
+    const specific = /dispens/.test(text) && /decurso de prazo/.test(text) && /confirm/.test(text) && !/exclu|arquiv|remess|envi|conclus/.test(text);
     if (!accepted && specific) { accepted = true; return true; }
     rejected = true; return false;
   };
   try {
     button.click();
-    // Sem confirm() nenhum, o botão nativo já enviou o formulário: não há o
-    // que recusar, e a listagem conferida em seguida confirma o resultado.
-    if (rejected) return {ok:false, error:'A confirmação recebida não correspondeu à dispensa de decurso esperada.'};
+    if (!accepted || rejected) return {ok:false, error:'A confirmação recebida não correspondeu à dispensa de decurso esperada.'};
     return {ok:true};
   } catch (error) { return {ok:false, error:String(error.message || error)}; }
   finally { window.confirm = originalConfirm; }

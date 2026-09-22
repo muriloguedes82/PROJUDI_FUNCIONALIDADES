@@ -931,33 +931,6 @@ diretamente nele; a lista de pendências não é recarregada
 automaticamente, já que o Projudi não faz isso sozinho. Apenas uma
 finalização é processada por vez.
 
-## Dispensar decursos de prazo
-
-Ainda no quadro **Pendências**, quando o item é uma intimação
-**aguardando análise de decurso de prazo** (link para
-`processo/intimacaoBusca.do`), a extensão insere o botão
-**"Dispensar decursos"** ao lado do link. Ao clicar, ela dispensa, em um
-iframe oculto, todas as intimações daquele processo que aguardam a
-análise:
-
-1. Carrega a listagem (`intimacaoBusca.do`) e colhe os links das linhas
-   "aguardando análise do decurso de prazo". Se a listagem vier vazia ou
-   não for reconhecida, a operação é interrompida com erro — nunca
-   informa "já dispensado" sem ter dispensado nada.
-2. Abre cada intimação (`intimacao.do`), exige o botão nativo
-   **"Dispensar"** (`#intimacaoForm #dispensarButton`) habilitado e o
-   aciona pelo background, que só aceita uma única confirmação nativa que
-   mencione dispensa e decurso — qualquer outra é recusada.
-3. Recarrega a listagem e só segue para a próxima se a quantidade de
-   pendentes diminuiu; ao zerar, mostra "Decurso(s) já dispensado(s) -
-   Movimentação permitida.".
-
-Qualquer erro (inclusive o prazo de 60 s por etapa) **interrompe** a
-sequência: o card mostra a mensagem, "Ver detalhes" exibe o iframe no
-estado em que parou e nada mais é dispensado automaticamente. Apenas uma
-operação por vez. O filtro por Sequencial (`decursoPrazoSequencial.js`)
-não roda dentro desse iframe.
-
 ## Envio de documentos por WhatsApp Web
 
 A extensão adiciona uma caixinha de seleção ao lado de cada documento
