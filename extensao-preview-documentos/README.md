@@ -729,6 +729,36 @@ O resultado fica salvo em `sessionStorage` (por processo), para a linha
 aparecer na hora ao trocar de aba; a busca é refeita a cada carregamento
 e a linha é atualizada quando ela termina. Só no Projudi.
 
+## RG e CPF das partes nas telas de cumprimentos
+
+Nas telas de cumprimentos da serventia, as partes aparecem só pelo nome.
+A extensão acrescenta o **RG** e o **CPF** ao lado de cada parte:
+`FULANO (Investigado) — RG: 1.234.567-8; CPF: 000.000.000-00`. Vale para:
+
+- a **lista de cumprimentos** (tela `cumprimentoCartorio.do`, que se abre
+  ao clicar num dos contadores da lista de ordenações — ex.: "Demais
+  cumprimentos" > "Para Expedir"), na coluna **"Referente a(s) parte(s)"**;
+- a **tela do cumprimento** (link "Visualizar" da lista), na linha
+  **"Referente a(s) parte(s):"**.
+
+Os documentos são buscados de forma oculta no processo do link
+**"Processo"** (coluna da lista, ou link ao lado do "Identificador do
+Cumprimento"), sem abrir abas nem iframes:
+
+1. `fetch()` do link do processo (`processo.do?_tj=...`);
+2. se a página devolvida não traz a aba "Partes e Outros", POST para o
+   formulário do processo com `selectedIcon=tabPartes` (mesma técnica do
+   "Réus/Indiciados/Noticiados no cabeçalho");
+3. a parte é localizada pelo nome (sem acentos/maiúsculas) entre as partes
+   de todos os polos, e o RG e o CPF vêm das colunas "RG" e "CPF/CNPJ" da
+   aba.
+
+Enquanto a busca não termina aparece "RG/CPF: carregando…"; documento
+ausente na aba aparece como "não cadastrado". As buscas são feitas duas de
+cada vez, uma única vez por processo, e o resultado fica em
+`sessionStorage` (por número do processo), para aparecer na hora ao
+filtrar de novo, trocar de página ou abrir o cumprimento. Só no Projudi.
+
 ## "Nova Remessa" (realizar mais de uma remessa em seguida)
 
 Só no Projudi. A tela nativa **Realizar Remessa** só permite escolher UMA

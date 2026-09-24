@@ -1,0 +1,10 @@
+/* RG e CPF das partes nas telas de cumprimentos (ver cpfPartesCumprimentos.js) */
+span.pdp-cpf-parte.pdp-cpf-valor {
+	font-weight: bold;
+	white-space: nowrap;
+}
+
+span.pdp-cpf-parte.pdp-cpf-status {
+	color: #777;
+	font-style: italic;
+}
