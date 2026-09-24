@@ -38,6 +38,7 @@
 // como ela está, inclusive permitindo adicionar o primeiro advogado.
 (function () {
 	"use strict";
+	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
 
 	if (window.__pdpHabilitarAdvogado || !location.pathname.startsWith("/projudi/")) return;
 	window.__pdpHabilitarAdvogado = true;

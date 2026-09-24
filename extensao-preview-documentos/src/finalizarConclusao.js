@@ -1,6 +1,7 @@
 // Finalização da conclusão indicada no quadro de pendências, sem navegação.
 (function () {
   'use strict';
+  if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
   if (window.__pdpFinalizarConclusao || !location.pathname.startsWith('/projudi/')) return;
   window.__pdpFinalizarConclusao = true;
   const route = '/projudi/processo/conclusao.do';

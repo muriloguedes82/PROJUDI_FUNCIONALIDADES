@@ -6,6 +6,7 @@
 // qualquer momento pela mesma caixa.
 (function () {
   'use strict';
+  if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
   if (window.__pdpEmbeddedButtonGroupBlocked) return;
   if (window.__pdpExpandMovements) return;
   window.__pdpExpandMovements = true;

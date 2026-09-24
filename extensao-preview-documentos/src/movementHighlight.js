@@ -23,6 +23,7 @@
 
 (function () {
 	"use strict";
+	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
 
 	// Evita rodar dentro do iframe oculto usado por content.js para varrer
 	// pendências, e no iframe/popup de ações rápidas — não fazem sentido

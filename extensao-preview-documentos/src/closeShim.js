@@ -30,6 +30,7 @@
 // diagnosticar se esta hipótese está certa.
 (function () {
 	"use strict";
+	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
 
 	// Log incondicional (não depende de postMessage nem de nada além do
 	// próprio console) — só para confirmar, sem ambiguidade, que este

@@ -1,6 +1,7 @@
 // Seleção única, compartilhada pelos fluxos de WhatsApp e e-mail deste frame.
 (function () {
   'use strict';
+  if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
   if (window.__pdpDocumentSelection) return;
   const listeners = new Set();
   const decorated = new WeakMap();

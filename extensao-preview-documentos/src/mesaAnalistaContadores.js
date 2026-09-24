@@ -16,6 +16,7 @@
 // linha assim que algum dos seus totais voltar a ser maior que zero.
 (function () {
   "use strict";
+  if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
   const TAG = "[Projudi Contadores Zero]";
 
   if (window.__pdpMesaAnalistaContadores) {
