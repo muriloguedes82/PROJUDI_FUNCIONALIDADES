@@ -693,8 +693,9 @@ nunca navega; fecha com "✕ Fechar".
 
 A URL é resolvida como no "(Des)Habilitar Advogado": lê a aba "Partes e
 Outros" (do DOM, se já é a aba atual; senão, via `fetch()` em segundo
-plano) e extrai o endereço do `onclick` do botão nativo "Partes e Outros",
-localizado pelo texto. Nenhuma ação é praticada sozinha. Só no Projudi.
+plano) e extrai o endereço (`/projudi/processo/parteProcesso.do?_tj=...`)
+do `onclick` do botão nativo "Partes e Outros" (`id="enableParteButton"`).
+Nenhuma ação é praticada sozinha. Só no Projudi.
 
 ## Réus/Indiciados/Noticiados no cabeçalho do processo
 

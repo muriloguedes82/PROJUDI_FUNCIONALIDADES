@@ -15,7 +15,9 @@
 // aba "Partes e Outros" do "(Des)Habilitar Advogado" (`__pdpLerAbaPartes`
 // em habilitarAdvogado.js: o próprio DOM, se já é essa aba; senão, um
 // `fetch()` em segundo plano) e lendo o `onclick` do botão nativo
-// "Partes e Outros". O popup abre com um `src` comum (GET) no iframe.
+// "Partes e Outros" (id="enableParteButton", `document.location.href =
+// '/projudi/processo/parteProcesso.do?_tj=...'`). O popup abre com um
+// `src` comum (GET) no iframe.
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
@@ -23,48 +25,38 @@
 	if (window.__pdpEditarPartes || !location.pathname.startsWith("/projudi/")) return;
 	window.__pdpEditarPartes = true;
 
-	const NATIVE_LABEL = "Partes e Outros";
+	const PARTES_PATH = "/projudi/processo/parteProcesso.do";
 
-	function normalize(text) {
-		return (text || "").replace(/\s+/g, " ").trim();
-	}
-
-	// O botão nativo é localizado pelo texto (não há id conhecido/estável),
-	// só entre botões — o item de aba "Partes e Outros" tem o mesmo texto,
-	// mas é um link/span com `setTab(...)`, não um botão.
+	// Botão nativo, na barra ao final da aba "Partes e Outros":
+	// <input type="button" name="enableParteButton" id="enableParteButton"
+	//   value="Partes e Outros" onclick="disableScreen();
+	//   document.location.href='/projudi/processo/parteProcesso.do?_tj=...'">
+	// Na falta do id, procura pelo texto — só entre botões, pois o item de
+	// aba "Partes e Outros" tem o mesmo texto, mas é um link com `setTab(...)`.
 	function findNativeButton(doc) {
+		const byId = doc.getElementById("enableParteButton");
+		if (byId) return byId;
 		const candidates = doc.querySelectorAll('input[type="button"], input[type="submit"], button');
 		for (let i = 0; i < candidates.length; i++) {
 			const el = candidates[i];
 			if (el.id === "pdp-editar-partes-button") continue;
-			if (normalize(el.value || el.textContent) === NATIVE_LABEL) return el;
+			if ((el.value || el.textContent || "").replace(/\s+/g, " ").trim() === "Partes e Outros") return el;
 		}
 		return null;
 	}
 
-	function localURL(value) {
-		const url = new URL(value, location.href);
-		if (url.origin !== location.origin || !url.pathname.startsWith("/projudi/")) throw new Error("Endereço inesperado: " + value);
-		return url;
-	}
-
-	// Mesmo formato do botão "Advogados" (`document.location.href = '...'`)
-	// e, na falta dele, a primeira URL `.do` entre aspas do `onclick`.
+	// Mesmo formato (e mesma validação) do botão "Advogados" em
+	// habilitarAdvogado.js.
 	function findPartesUrl(doc) {
 		const button = findNativeButton(doc);
-		if (!button) return null;
-		const onclick = button.getAttribute("onclick") || "";
-		const match =
-			/location\.href\s*=\s*(['"])([^'"]+)\1/.exec(onclick) ||
-			/(['"])((?:https?:\/\/[^'"\/]+)?\/?[^'"\s]*\.do(?:\?[^'"]*)?)\1/.exec(onclick);
-		if (!match) {
-			console.info("[Projudi Editar Partes] onclick do botão nativo sem URL reconhecível: " + JSON.stringify(onclick));
-			return null;
-		}
+		const onclick = button ? button.getAttribute("onclick") || "" : "";
+		const hrefMatch = /document\.location\.href\s*=\s*(['"])([^'"]+)\1/.exec(onclick);
+		if (!hrefMatch) return null;
 		try {
-			return localURL(match[2]);
+			const url = new URL(hrefMatch[2], location.href);
+			if (url.origin !== location.origin || url.pathname !== PARTES_PATH) return null;
+			return url;
 		} catch (err) {
-			console.info("[Projudi Editar Partes] " + err.message);
 			return null;
 		}
 	}
