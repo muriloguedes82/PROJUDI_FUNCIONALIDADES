@@ -1,22 +1,26 @@
-// Projudi - CPF das partes na lista de cumprimentos
+// Projudi - RG e CPF das partes nas telas de cumprimentos
 //
 // Na lista de cumprimentos da serventia (`cumprimentoCartorio.do` — a tela
 // que se abre ao clicar num dos contadores da lista de ordenações, ex.:
 // "Demais cumprimentos" > "Para Expedir"), a coluna "Referente a(s)
 // parte(s)" mostra só o nome e o tipo da parte ("FULANO (Investigado)").
-// Para expedir o cumprimento é comum precisar do CPF, que só aparece na aba
-// "Partes e Outros" do processo.
+// Para expedir o cumprimento é comum precisar do RG e do CPF, que só
+// aparecem na aba "Partes e Outros" do processo. O mesmo vale para a tela
+// de um cumprimento (link "Visualizar" da lista, `cumprimentoCartorio.do`
+// com `actionType=editar`), cuja linha "Referente a(s) parte(s):" também
+// traz só o nome.
 //
-// Este recurso acrescenta o CPF ao lado de cada parte dessa coluna
-// ("FULANO (Investigado) — CPF: 000.000.000-00"), buscando-o de forma
-// oculta no processo da coluna "Processo":
+// Este recurso acrescenta o RG e o CPF ao lado de cada parte nessas duas
+// telas ("FULANO (Investigado) — RG: 1.234.567-8; CPF: 000.000.000-00"),
+// buscando-os de forma oculta no processo do link "Processo" (coluna da
+// lista ou link ao lado do "Identificador do Cumprimento"):
 // 1. GET no link do processo (`processo.do?_tj=...`), via `fetch()`, sem
 //    iframe e sem navegar a aba;
 // 2. se a página devolvida já traz a aba "Partes e Outros", lê dali; senão,
 //    POST para o `#processoForm` dessa página com `selectedIcon=tabPartes`
 //    (a mesma técnica de reusCabecalho.js e habilitarAdvogado.js);
 // 3. as partes de TODOS os polos são lidas das tabelas da aba (colunas
-//    localizadas pelo <th> "CPF/CNPJ", como em reusCabecalho.js) e a parte
+//    localizadas pelos <th> "RG" e "CPF/CNPJ", como em reusCabecalho.js) e a parte
 //    da lista é localizada pelo nome (sem acentos/maiúsculas).
 //
 // As buscas são feitas poucas de cada vez (ver MAX_PARALELO), uma só vez
@@ -28,6 +32,11 @@
 // (TJPR, `cumprimentoCartorio.do`): `table.resultTable` com <th>
 // "Processo" (link `processo.do?_tj=...` com o número num <em>) e <th>
 // "Referente a(s) parte(s)" (um <ul> com um <li> "NOME (Tipo)" por parte).
+// Tela do cumprimento: `table.form` com a linha <td class="label">
+// "Referente a(s) parte(s):" (um <ul> com um <li> "NOME" por parte) e, na
+// linha "Identificador do Cumprimento:", o link `processo.do?_tj=...` do
+// processo (número num <em>). A linha "Prazo (Referente a(s) parte(s)):" é
+// outra coisa e é ignorada.
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
@@ -45,9 +54,9 @@
 	if (window.__pdpCpfPartesCumprimentos) return;
 	window.__pdpCpfPartesCumprimentos = true;
 
-	const TAG = "[Projudi CPF nos cumprimentos]";
+	const TAG = "[Projudi RG/CPF nos cumprimentos]";
 	const SPAN_CLASS = "pdp-cpf-parte";
-	const STORAGE_PREFIX = "pdp-cpf-cumprimentos:";
+	const STORAGE_PREFIX = "pdp-cpf-cumprimentos-v2:";
 	const MAX_PARALELO = 2;
 
 	function normalize(text) {
@@ -101,7 +110,7 @@
 	// Leitura da aba "Partes e Outros" (todos os polos)
 	// ---------------------------------------------------------------------
 
-	// Retorna [{ nome, cpf }] ou null se o documento não tem a aba.
+	// Retorna [{ nome, rg, cpf }] ou null se o documento não tem a aba.
 	function lerPartes(doc) {
 		const tables = Array.prototype.filter.call(doc.querySelectorAll("table.resultTable"), function (table) {
 			return !!table.querySelector('a[href*="parteProcesso.do"]');
@@ -111,6 +120,7 @@
 		const partes = [];
 		for (const table of tables) {
 			const ths = Array.prototype.slice.call(table.querySelectorAll("thead th"));
+			const colRG = ths.findIndex(function (th) { return /^rg\b/.test(normalize(th.textContent)); });
 			const colCPF = ths.findIndex(function (th) { return /^cpf/.test(normalize(th.textContent)); });
 			const rows = table.tBodies.length ? table.tBodies[0].rows : [];
 			for (const tr of rows) {
@@ -121,6 +131,7 @@
 				const cells = tr.cells;
 				partes.push({
 					nome: nome,
+					rg: colRG >= 0 && cells[colRG] ? valorDocumento(cells[colRG].textContent) : "",
 					cpf: colCPF >= 0 && cells[colCPF] ? valorDocumento(cells[colCPF].textContent) : "",
 				});
 			}
@@ -263,16 +274,18 @@
 				const n = normalize(p.nome);
 				return n.startsWith(nome) || nome.startsWith(n);
 			});
-		return candidatas.find(function (p) { return p.cpf; }) || candidatas[0] || null;
+		return candidatas.find(function (p) { return p.cpf || p.rg; }) || candidatas[0] || null;
 	}
 
-	function textoCPF(resultado, nome) {
-		if (!resultado) return { texto: " — CPF: carregando…", classe: "pdp-cpf-status" };
-		if (resultado.erro) return { texto: " — CPF: não foi possível consultar", classe: "pdp-cpf-status", title: resultado.erro };
+	function textoDocumentos(resultado, nome) {
+		if (!resultado) return { texto: " — RG/CPF: carregando…", classe: "pdp-cpf-status" };
+		if (resultado.erro) return { texto: " — RG/CPF: não foi possível consultar", classe: "pdp-cpf-status", title: resultado.erro };
 		const parte = encontrarParte(resultado.partes, nome);
-		if (!parte) return { texto: " — CPF: parte não localizada no processo", classe: "pdp-cpf-status" };
-		if (!parte.cpf) return { texto: " — CPF: não cadastrado", classe: "pdp-cpf-status" };
-		return { texto: " — CPF: " + parte.cpf, classe: "pdp-cpf-valor" };
+		if (!parte) return { texto: " — RG/CPF: parte não localizada no processo", classe: "pdp-cpf-status" };
+		if (!parte.rg && !parte.cpf) return { texto: " — RG/CPF: não cadastrados", classe: "pdp-cpf-status" };
+		const rg = "RG: " + (parte.rg || "não cadastrado");
+		const cpf = "CPF: " + (parte.cpf || "não cadastrado");
+		return { texto: " — " + rg + "; " + cpf, classe: "pdp-cpf-valor" };
 	}
 
 	function localizarColunas(table) {
@@ -282,7 +295,18 @@
 		return colProcesso >= 0 && colPartes >= 0 ? { processo: colProcesso, partes: colPartes } : null;
 	}
 
-	function reconcile() {
+	function linkDoProcesso(container) {
+		const link = container.querySelector('a[href*="/processo.do"]');
+		if (!link) return null;
+		const numero = collapse((link.querySelector("em") || link).textContent);
+		return numero ? { numero: numero, href: link.href } : null;
+	}
+
+	// Cada alvo: { numero, href, itens: [<li>] } — as partes de um processo.
+	function coletarAlvos() {
+		const alvos = [];
+
+		// Lista de cumprimentos: colunas "Processo" e "Referente a(s) parte(s)".
 		for (const table of document.querySelectorAll("table.resultTable")) {
 			const cols = localizarColunas(table);
 			if (!cols) continue;
@@ -291,30 +315,48 @@
 					const tdProcesso = tr.cells[cols.processo];
 					const tdPartes = tr.cells[cols.partes];
 					if (!tdProcesso || !tdPartes) continue;
-					const link = tdProcesso.querySelector('a[href*="processo.do"]');
-					if (!link) continue;
-					const numero = collapse((link.querySelector("em") || link).textContent);
-					if (!numero) continue;
-					solicitar(numero, link.href);
-					const resultado = resultados.get(numero);
+					const processo = linkDoProcesso(tdProcesso);
+					if (!processo) continue;
+					alvos.push(Object.assign(processo, { itens: Array.prototype.slice.call(tdPartes.querySelectorAll("li")) }));
+				}
+			}
+		}
 
-					const itens = Array.prototype.slice.call(tdPartes.querySelectorAll("li"));
-					if (!itens.length) continue;
-					for (const li of itens) {
-						const info = textoCPF(resultado, nomeDoItem(li));
-						let span = li.querySelector("span." + SPAN_CLASS);
-						if (!span) {
-							span = document.createElement("span");
-							li.appendChild(span);
-						}
-						const className = SPAN_CLASS + " " + info.classe;
-						if (span.className !== className) span.className = className;
-						if (span.textContent !== info.texto) span.textContent = info.texto;
-						if ((span.getAttribute("title") || "") !== (info.title || "")) {
-							if (info.title) span.setAttribute("title", info.title);
-							else span.removeAttribute("title");
-						}
-					}
+		// Tela do cumprimento: linha "Referente a(s) parte(s):" da table.form.
+		for (const table of document.querySelectorAll("table.form")) {
+			const processo = linkDoProcesso(table);
+			if (!processo) continue;
+			for (const tr of table.rows) {
+				const label = tr.cells[0];
+				if (!label || !label.classList.contains("label")) continue;
+				if (!/^referente a\(?s?\)? parte\(?s?\)?:?$/.test(normalize(label.textContent))) continue;
+				const td = tr.cells[1];
+				if (!td) continue;
+				alvos.push(Object.assign({}, processo, { itens: Array.prototype.slice.call(td.querySelectorAll("li")) }));
+			}
+		}
+
+		return alvos;
+	}
+
+	function reconcile() {
+		for (const alvo of coletarAlvos()) {
+			if (!alvo.itens.length) continue;
+			solicitar(alvo.numero, alvo.href);
+			const resultado = resultados.get(alvo.numero);
+			for (const li of alvo.itens) {
+				const info = textoDocumentos(resultado, nomeDoItem(li));
+				let span = li.querySelector("span." + SPAN_CLASS);
+				if (!span) {
+					span = document.createElement("span");
+					li.appendChild(span);
+				}
+				const className = SPAN_CLASS + " " + info.classe;
+				if (span.className !== className) span.className = className;
+				if (span.textContent !== info.texto) span.textContent = info.texto;
+				if ((span.getAttribute("title") || "") !== (info.title || "")) {
+					if (info.title) span.setAttribute("title", info.title);
+					else span.removeAttribute("title");
 				}
 			}
 		}
