@@ -678,6 +678,38 @@ sozinha — a extensão só abre a tela; habilitar, desabilitar, adicionar ou
 remover o advogado continua sendo feito manualmente pelo usuário, dentro
 do popup.
 
+## Réus/Indiciados/Noticiados no cabeçalho do processo
+
+No SEEU, o cabeçalho do processo já mostra o nome do sentenciado (com RJI,
+CPF e RG), e o nome leva à tela da parte. No Projudi, para saber quem são
+os réus é preciso abrir a aba "Partes e Outros".
+
+A extensão adiciona, na tabela de informações do processo, uma linha logo
+abaixo da última linha de **"Assunto"** (Principal ou Secundário, se
+houver) com **todas** as partes do polo passivo — Réu, Indiciado,
+Noticiado, etc. —, uma por linha, no formato `NOME (RG: ...; CPF: ...)`
+(só os documentos preenchidos). O rótulo da linha é o próprio título do
+polo na aba "Partes e Outros" (ex.: "Réu:").
+
+O **nome é um link**: ao clicar, a tela da parte (a mesma do link nativo
+da aba "Partes e Outros", com "Alterar Parte", "Alterar Polo", "Dar
+Baixa", "Atualizar Dados IIPR", etc.) abre num **popup sobreposto à tela
+atual** — o mesmo popup do painel "Ações rápidas" e do "(Des)Habilitar
+Advogado" —, sem navegar a aba. Fecha com "✕ Fechar".
+
+De onde vêm os dados:
+
+1. Se a tela atual já é a aba "Partes e Outros", lê direto do DOM.
+2. Senão, busca essa aba em segundo plano via `fetch()` (POST para o
+   próprio formulário do processo com `selectedIcon=tabPartes`, mesma
+   técnica do "(Des)Habilitar Advogado"), sem iframe.
+
+O polo passivo é identificado pelo id das linhas da tabela
+(`rowpromovidas*`/`iconpromovidas*`) e, na falta dele, pelo título do polo.
+O resultado fica salvo em `sessionStorage` (por processo), para a linha
+aparecer na hora ao trocar de aba; a busca é refeita a cada carregamento
+e a linha é atualizada quando ela termina. Só no Projudi.
+
 ## "Nova Remessa" (realizar mais de uma remessa em seguida)
 
 Só no Projudi. A tela nativa **Realizar Remessa** só permite escolher UMA

@@ -1,0 +1,21 @@
+/* Réus/Indiciados/Noticiados no cabeçalho do processo (ver reusCabecalho.js) */
+tr[data-pdp-reus-row] ul.pdp-reus-lista {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+tr[data-pdp-reus-row] ul.pdp-reus-lista li {
+	margin: 0 0 2px 0;
+	padding: 0;
+	background: none;
+}
+
+tr[data-pdp-reus-row] a.pdp-reus-nome {
+	cursor: pointer;
+	font-weight: bold;
+}
+
+tr[data-pdp-reus-row] em.pdp-reus-status {
+	color: #777;
+}
