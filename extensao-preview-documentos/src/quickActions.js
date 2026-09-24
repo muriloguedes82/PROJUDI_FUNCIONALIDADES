@@ -1390,9 +1390,69 @@
 		}, DIALOG_WAIT_INTERVAL_MS);
 	}
 
+	// Resumo de uma página carregada (para o log de diagnóstico).
+	function describeLoadedPage(win, doc) {
+		const info = { href: null, title: doc ? doc.title : null };
+		try {
+			info.href = win.location.href;
+		} catch (err) {
+			info.href = "(erro ao ler location: " + err + ")";
+		}
+		if (doc && doc.body) info.texto = (doc.body.innerText || "").replace(/\s+/g, " ").trim().slice(0, 400);
+		if (doc && doc.forms) {
+			for (let i = 0; i < doc.forms.length; i++) {
+				const flag = doc.forms[i].elements.namedItem("flagClosePopup");
+				if (!flag) continue;
+				const back = doc.forms[i].elements.namedItem("backURL");
+				info.flagClosePopup = flag.value;
+				info.backURL = back ? back.value : null;
+				break;
+			}
+		}
+		return info;
+	}
+
+	// Registra cada navegação do diálogo nativo aberto dentro da tela de
+	// Ações (iframe interno do Projudi), inclusive a resposta do servidor
+	// depois do clique em "Arquivar".
+	function watchNestedDialogFrames(acoesDoc, label) {
+		const seen = [];
+		const start = Date.now();
+		const iv = setInterval(function () {
+			let frames;
+			try {
+				frames = acoesDoc.querySelectorAll("iframe");
+			} catch (err) {
+				clearInterval(iv);
+				return;
+			}
+			frames.forEach(function (frame) {
+				if (seen.indexOf(frame) !== -1) return;
+				seen.push(frame);
+				frame.addEventListener("load", function () {
+					try {
+						logChainStep('diálogo de "' + label + '" carregou uma página', describeLoadedPage(frame.contentWindow, frame.contentDocument));
+					} catch (err) {
+						logChainStep('diálogo de "' + label + '": sem acesso à página carregada', String(err));
+					}
+				});
+			});
+			if (Date.now() - start > 10000) clearInterval(iv);
+		}, DIALOG_WAIT_INTERVAL_MS);
+	}
+
+	// Depois que a tela de Ações do popup navega de novo, espera ela
+	// "assentar" (sem novas navegações por este tempo) antes de decidir se
+	// a ação terminou. O Projudi pode passar por telas intermediárias
+	// (reenvio de formulário, "Aguarde...") até gravar a movimentação —
+	// fechar o popup ou recarregar a tela na primeira navegação destruía o
+	// iframe no meio desse fluxo e nada era gravado.
+	const ACOES_SETTLE_MS = 2500;
+
 	function openInsideAcoesScreen(label, result, onDialogDoc) {
 		const iframe = showActionModal(label);
 		let acoesLoaded = false;
+		let settleTimer = null;
 		iframe.addEventListener("load", function onLoad() {
 			let doc;
 			try {
@@ -1412,20 +1472,39 @@
 				}
 				logChainStep('tela de Ações carregada no popup — abrindo "' + label + '" pelo link nativo', describeElement(link));
 				link.click();
+				watchNestedDialogFrames(doc, label);
 				if (onDialogDoc) waitForNestedDialogDoc(doc, result.url, onDialogDoc);
 				return;
 			}
-			// A tela de Ações navegou de novo: o Projudi concluiu (ou
-			// cancelou) a ação e voltou. Atualiza a tela do processo por trás
-			// e fecha o popup.
-			iframe.removeEventListener("load", onLoad);
-			logChainStep('"' + label + '" concluído — recarregando a tela e fechando o popup', null);
-			try {
-				window.location.reload();
-			} catch (err) {
-				logChainStep("falhou ao recarregar a tela por trás", String(err));
-			}
-			removeActionModal();
+			logChainStep('popup de "' + label + '" navegou', describeLoadedPage(iframe.contentWindow, doc));
+			clearTimeout(settleTimer);
+			settleTimer = setTimeout(function () {
+				if (activeModalIframe !== iframe) return; // popup já fechado
+				let settledDoc;
+				try {
+					settledDoc = iframe.contentDocument;
+				} catch (err) {
+					return;
+				}
+				if (!settledDoc || settledDoc.readyState !== "complete") return;
+				// Só fecha sozinho quando o Projudi voltou para uma tela
+				// "normal" (a do processo, com as abas, ou a própria tela de
+				// Ações). Qualquer outra tela (mensagem de erro, confirmação)
+				// fica visível no popup para o usuário ler e fechar.
+				const voltouAoProcesso = !!settledDoc.querySelector('[id^="tabItemprefix"]') || isOnAcoesScreenIn(settledDoc);
+				if (!voltouAoProcesso) {
+					logChainStep('popup de "' + label + '" parou numa tela intermediária — mantendo aberto', describeLoadedPage(iframe.contentWindow, settledDoc));
+					return;
+				}
+				iframe.removeEventListener("load", onLoad);
+				logChainStep('"' + label + '" concluído — fechando o popup e recarregando a tela', null);
+				removeActionModal();
+				try {
+					window.location.reload();
+				} catch (err) {
+					logChainStep("falhou ao recarregar a tela por trás", String(err));
+				}
+			}, ACOES_SETTLE_MS);
 		});
 		iframe.src = result.acoesUrl;
 	}
