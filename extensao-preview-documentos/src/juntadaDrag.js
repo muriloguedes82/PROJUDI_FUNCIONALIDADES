@@ -1,6 +1,7 @@
 // Botão ao lado da pendência: dispensa de juntadas em segundo plano.
 (function () {
   "use strict";
+  if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
   if (window.__pdpJuntadaDrag || !location.pathname.startsWith('/projudi/')) return;
   window.__pdpJuntadaDrag = true;
   const normalize = text => String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();

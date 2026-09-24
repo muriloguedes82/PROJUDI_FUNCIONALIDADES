@@ -79,6 +79,7 @@
 // (`MEDIDA_CAUTELAR_LABELS`), caso o card ainda não apareça.
 (function () {
 	"use strict";
+	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
 
 	// Evita rodar dentro de iframes ocultos usados por esta ou outras
 	// funcionalidades desta extensão para carregar páginas em segundo plano.

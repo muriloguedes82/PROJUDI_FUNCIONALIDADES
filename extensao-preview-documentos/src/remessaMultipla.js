@@ -40,6 +40,7 @@
 // algum item falhar, a extensão avisa qual e para - nada mais é enviado.
 (function () {
 	"use strict";
+	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
 
 	if (window.__pdpNovaRemessaInjected) return;
 	window.__pdpNovaRemessaInjected = true;

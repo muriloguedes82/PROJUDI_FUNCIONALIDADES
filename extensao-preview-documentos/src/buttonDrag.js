@@ -1,6 +1,7 @@
 // Posição vertical compartilhada dos atalhos, WhatsApp e e-mail.
 (function () {
   "use strict";
+  if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
   // A janela do Oráculo mantém apenas os controles nativos.
   if (location.pathname === '/projudi/processo/criminal/antecedentesCriminais.do') return;
   if (window.__pdpButtonGroupBlocked) return;

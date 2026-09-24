@@ -1,6 +1,7 @@
 // Consulta somente as páginas de visualização; não executa scripts do HTML recebido.
 (function () {
   'use strict';
+  if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
   const endpoint = '/projudi/processo/criminal/antecedentesCriminais.do';
   const normalize = text => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
   function localURL(value, path) {

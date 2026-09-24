@@ -85,6 +85,7 @@
 
 (function () {
 	"use strict";
+	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
 
 	const LOADER_ATTR = "data-pdp-loader";
 	const MESSAGE_SOURCE = "projudi-preview";

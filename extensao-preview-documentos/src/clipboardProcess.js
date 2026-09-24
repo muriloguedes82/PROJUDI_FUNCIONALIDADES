@@ -1,5 +1,6 @@
 (function () {
   'use strict';
+  if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
   if (window.__pdpClipboardProcess) return;
   function extractNumber(text) {
     const matches = [...String(text).matchAll(/(?<!\d)(?:\d{7}\s*-\s*\d{2}\s*\.\s*\d{4}\s*\.\s*\d\s*\.\s*\d{2}\s*\.\s*\d{4}|\d{20})(?!\d)/g)];

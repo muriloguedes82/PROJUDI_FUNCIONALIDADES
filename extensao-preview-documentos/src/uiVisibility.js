@@ -2,6 +2,7 @@
 // o grupo flutuante de atalhos/envios não deve ser exibido.
 (function () {
   'use strict';
+  if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
 
   const exactPaths = new Set([
     '/projudi/processo/juntarDocumento.do',
