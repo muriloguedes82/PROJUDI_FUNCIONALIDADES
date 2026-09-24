@@ -108,12 +108,11 @@
 		return body;
 	}
 
-	window.__pdpOpenHabilitarAdvogado = async function () {
-		const api = window.__pdpQuickActions;
-		if (!api || typeof api.openActionModal !== "function") {
-			throw new Error('Não encontrei o recurso "Ações rápidas" (quickActions.js), necessário para abrir o popup.');
-		}
-
+	// Devolve o documento da aba "Partes e Outros" do processo atual (o
+	// próprio `document`, se já é essa aba; senão, buscado em segundo plano)
+	// e uma função que confirma que o processo não mudou nesse meio-tempo.
+	// Também usado por editarPartes.js (botão "Editar Partes/Outros").
+	async function lerAbaPartes() {
 		const form = document.getElementById("processoForm");
 		if (!form) throw new Error("Não foi possível identificar o processo atual — abra a tela de um processo primeiro.");
 		const id = form.elements.namedItem("id") ? form.elements.namedItem("id").value : null;
@@ -137,9 +136,20 @@
 			checkContext();
 		}
 
-		const url = findAdvogadosUrl(doc);
+		return { doc: doc, checkContext: checkContext };
+	}
+	window.__pdpLerAbaPartes = lerAbaPartes;
+
+	window.__pdpOpenHabilitarAdvogado = async function () {
+		const api = window.__pdpQuickActions;
+		if (!api || typeof api.openActionModal !== "function") {
+			throw new Error('Não encontrei o recurso "Ações rápidas" (quickActions.js), necessário para abrir o popup.');
+		}
+
+		const aba = await lerAbaPartes();
+		const url = findAdvogadosUrl(aba.doc);
 		if (!url) throw new Error('Não foi possível determinar o endereço da tela "Advogados" a partir do botão nativo.');
-		checkContext();
+		aba.checkContext();
 		api.openActionModal("Advogados", url.href);
 	};
 
