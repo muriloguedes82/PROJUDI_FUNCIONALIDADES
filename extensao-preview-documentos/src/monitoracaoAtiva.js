@@ -412,6 +412,7 @@
 	// `#processoForm`, com um campo oculto `selectedIcon` no corpo (mesma
 	// técnica de oraculoDirect.js/suspensaoAtiva.js).
 	let avisouSemProcessoForm = false;
+	let avisouFormNaoProcesso = false;
 	async function fetchAbaInformacoesAdicionaisPOST() {
 		const form = document.getElementById("processoForm");
 		if (!form) {
@@ -433,6 +434,24 @@
 		}
 		if (actionUrl.origin !== window.location.origin) {
 			console.warn(TAG, "action do #processoForm aponta para outra origem, abortando busca em segundo plano:", actionUrl.href);
+			return null;
+		}
+		// Só a tela do processo em si (lista de abas + visualização) pode ser
+		// reenviada. Diálogos do Projudi também usam id="processoForm" — o de
+		// "Arquivamento de Processo" aponta para
+		// processoArquivamento.do?actionType=arquivar — e rodam num iframe onde
+		// este script também é injetado; reenviar esse formulário em segundo
+		// plano EXECUTA a ação (gerava movimentações "ARQUIVADO
+		// DEFINITIVAMENTE" duplicadas).
+		if (
+			!/\/visualizacaoProcesso\.do$/.test(actionUrl.pathname) ||
+			actionUrl.searchParams.get("actionType") !== "visualizar" ||
+			!document.querySelector('[id^="tabItemprefix"]')
+		) {
+			if (!avisouFormNaoProcesso) {
+				avisouFormNaoProcesso = true;
+				console.log(TAG, "#processoForm desta página não é o da tela do processo, busca em segundo plano ignorada:", actionUrl.href);
+			}
 			return null;
 		}
 

@@ -37,6 +37,14 @@
 
 	if (window.__pdpQuickActionsInjected) return;
 	window.__pdpQuickActionsInjected = true;
+	// Dentro do próprio popup desta extensão (ex.: a tela de Ações carregada
+	// para "Arquivar Processo", ver openInsideAcoesScreen) não cria outra
+	// fileira de botões por cima do diálogo.
+	try {
+		if (window.frameElement && window.frameElement.classList.contains("pdp-qa-modal-iframe")) return;
+	} catch (err) {
+		// frameElement inacessível — segue normalmente
+	}
 
 	// Rótulos exatos dos links do painel Ações/Outras Ações, agrupados como
 	// aparecem para o usuário. Comparados com o texto do link já "limpo"
@@ -578,7 +586,7 @@
 					const link = findActionLinkIn(result.doc, label);
 					if (link) {
 						const dialogUrl = extractUrlFromOnclick(link.getAttribute("onclick"), result.url);
-						if (dialogUrl) return { url: dialogUrl };
+						if (dialogUrl) return { url: dialogUrl, acoesUrl: result.url };
 					}
 				}
 				return { failed: true, screenTitle: getScreenTitleIn(result.doc) };
@@ -651,7 +659,7 @@
 							return tryEvent(index + 1);
 						}
 						logChainStep("URL do diálogo resolvida", dialogUrl);
-						return { url: dialogUrl };
+						return { url: dialogUrl, acoesUrl: acoes.url };
 					});
 				})
 				.catch(function (err) {
@@ -1333,6 +1341,175 @@
 	// (showActionModal), sem navegar a aba visível em nenhum momento.
 	// -------------------------------------------------------------------
 
+	// Ações cujo diálogo nativo só funciona aberto DENTRO da tela de Ações.
+	// O diálogo "Arquivamento de Processo" (que o próprio Projudi abre com o
+	// título "Suspender ou Sobrestar Processo", como janela interna da tela
+	// de Ações — com "Maximizar"/"Fechar") não grava nada sozinho: o botão
+	// "Arquivar" dele depende da tela de Ações que o abriu (window.parent).
+	// Carregado solto no popup (só a URL do diálogo, como as demais ações),
+	// o clique em "Arquivar" não tinha para onde enviar e nenhuma
+	// movimentação era gerada. Para essas ações o popup carrega a própria
+	// tela de Ações e clica no link nativo dentro dela, reproduzindo
+	// exatamente o ambiente em que o Projudi abre o diálogo.
+	const ACTIONS_NEEDING_ACOES_PARENT = ["Arquivar Processo"];
+
+	function needsAcoesParent(label, result) {
+		return ACTIONS_NEEDING_ACOES_PARENT.indexOf(label) !== -1 && !!(result && result.acoesUrl);
+	}
+
+	// Espera o diálogo nativo (iframe interno da tela de Ações) terminar de
+	// carregar e devolve o documento dele — usado para capturar/aplicar
+	// preferências no formulário certo.
+	function waitForNestedDialogDoc(acoesDoc, dialogUrl, callback) {
+		let dialogPath = null;
+		try {
+			dialogPath = new URL(dialogUrl).pathname;
+		} catch (err) {
+			// sem caminho conhecido: aceita qualquer iframe com formulário
+		}
+		const start = Date.now();
+		const iv = setInterval(function () {
+			const frames = acoesDoc.querySelectorAll("iframe");
+			for (let i = 0; i < frames.length; i++) {
+				let doc;
+				try {
+					doc = frames[i].contentDocument;
+					if (!doc || doc.readyState !== "complete") continue;
+					if (dialogPath && frames[i].contentWindow.location.pathname !== dialogPath) continue;
+				} catch (err) {
+					continue;
+				}
+				if (!doc.querySelector("form")) continue;
+				clearInterval(iv);
+				callback(doc);
+				return;
+			}
+			if (Date.now() - start > DIALOG_WAIT_TIMEOUT_MS * 2) {
+				clearInterval(iv);
+				callback(null);
+			}
+		}, DIALOG_WAIT_INTERVAL_MS);
+	}
+
+	// Resumo de uma página carregada (para o log de diagnóstico).
+	function describeLoadedPage(win, doc) {
+		const info = { href: null, title: doc ? doc.title : null };
+		try {
+			info.href = win.location.href;
+		} catch (err) {
+			info.href = "(erro ao ler location: " + err + ")";
+		}
+		if (doc && doc.body) info.texto = (doc.body.innerText || "").replace(/\s+/g, " ").trim().slice(0, 400);
+		if (doc && doc.forms) {
+			for (let i = 0; i < doc.forms.length; i++) {
+				const flag = doc.forms[i].elements.namedItem("flagClosePopup");
+				if (!flag) continue;
+				const back = doc.forms[i].elements.namedItem("backURL");
+				info.flagClosePopup = flag.value;
+				info.backURL = back ? back.value : null;
+				break;
+			}
+		}
+		return info;
+	}
+
+	// Registra cada navegação do diálogo nativo aberto dentro da tela de
+	// Ações (iframe interno do Projudi), inclusive a resposta do servidor
+	// depois do clique em "Arquivar".
+	function watchNestedDialogFrames(acoesDoc, label) {
+		const seen = [];
+		const start = Date.now();
+		const iv = setInterval(function () {
+			let frames;
+			try {
+				frames = acoesDoc.querySelectorAll("iframe");
+			} catch (err) {
+				clearInterval(iv);
+				return;
+			}
+			frames.forEach(function (frame) {
+				if (seen.indexOf(frame) !== -1) return;
+				seen.push(frame);
+				frame.addEventListener("load", function () {
+					try {
+						logChainStep('diálogo de "' + label + '" carregou uma página', describeLoadedPage(frame.contentWindow, frame.contentDocument));
+					} catch (err) {
+						logChainStep('diálogo de "' + label + '": sem acesso à página carregada', String(err));
+					}
+				});
+			});
+			if (Date.now() - start > 10000) clearInterval(iv);
+		}, DIALOG_WAIT_INTERVAL_MS);
+	}
+
+	// Depois que a tela de Ações do popup navega de novo, espera ela
+	// "assentar" (sem novas navegações por este tempo) antes de decidir se
+	// a ação terminou. O Projudi pode passar por telas intermediárias
+	// (reenvio de formulário, "Aguarde...") até gravar a movimentação —
+	// fechar o popup ou recarregar a tela na primeira navegação destruía o
+	// iframe no meio desse fluxo e nada era gravado.
+	const ACOES_SETTLE_MS = 2500;
+
+	function openInsideAcoesScreen(label, result, onDialogDoc) {
+		const iframe = showActionModal(label);
+		let acoesLoaded = false;
+		let settleTimer = null;
+		iframe.addEventListener("load", function onLoad() {
+			let doc;
+			try {
+				doc = iframe.contentDocument;
+			} catch (err) {
+				logChainStep("tela de Ações no popup: sem acesso ao documento", String(err));
+				return;
+			}
+			if (!acoesLoaded) {
+				acoesLoaded = true;
+				const link = doc ? findActionLinkIn(doc, label) : null;
+				if (!link) {
+					logChainStep('tela de Ações carregada no popup, mas sem o link "' + label + '"', { url: result.acoesUrl });
+					alert('Não consegui localizar a ação "' + label + '" na tela de Ações. Abra manualmente a partir da aba Movimentações.');
+					removeActionModal();
+					return;
+				}
+				logChainStep('tela de Ações carregada no popup — abrindo "' + label + '" pelo link nativo', describeElement(link));
+				link.click();
+				watchNestedDialogFrames(doc, label);
+				if (onDialogDoc) waitForNestedDialogDoc(doc, result.url, onDialogDoc);
+				return;
+			}
+			logChainStep('popup de "' + label + '" navegou', describeLoadedPage(iframe.contentWindow, doc));
+			clearTimeout(settleTimer);
+			settleTimer = setTimeout(function () {
+				if (activeModalIframe !== iframe) return; // popup já fechado
+				let settledDoc;
+				try {
+					settledDoc = iframe.contentDocument;
+				} catch (err) {
+					return;
+				}
+				if (!settledDoc || settledDoc.readyState !== "complete") return;
+				// Só fecha sozinho quando o Projudi voltou para uma tela
+				// "normal" (a do processo, com as abas, ou a própria tela de
+				// Ações). Qualquer outra tela (mensagem de erro, confirmação)
+				// fica visível no popup para o usuário ler e fechar.
+				const voltouAoProcesso = !!settledDoc.querySelector('[id^="tabItemprefix"]') || isOnAcoesScreenIn(settledDoc);
+				if (!voltouAoProcesso) {
+					logChainStep('popup de "' + label + '" parou numa tela intermediária — mantendo aberto', describeLoadedPage(iframe.contentWindow, settledDoc));
+					return;
+				}
+				iframe.removeEventListener("load", onLoad);
+				logChainStep('"' + label + '" concluído — fechando o popup e recarregando a tela', null);
+				removeActionModal();
+				try {
+					window.location.reload();
+				} catch (err) {
+					logChainStep("falhou ao recarregar a tela por trás", String(err));
+				}
+			}, ACOES_SETTLE_MS);
+		});
+		iframe.src = result.acoesUrl;
+	}
+
 	function openActionDialogViaChain(label) {
 		const cancelToken = { cancelled: false };
 		showLoadingOverlay(label, function () {
@@ -1343,6 +1520,10 @@
 			if (cancelToken.cancelled) return;
 			if (result.failed) {
 				alertChainFailure(label, result);
+				return;
+			}
+			if (needsAcoesParent(label, result)) {
+				openInsideAcoesScreen(label, result);
 				return;
 			}
 			showActionModal(label).src = result.url;
@@ -1359,6 +1540,16 @@
 			if (cancelToken.cancelled) return;
 			if (result.failed) {
 				alertChainFailure(label, result);
+				return;
+			}
+			if (needsAcoesParent(label, result)) {
+				openInsideAcoesScreen(label, result, function (dialogDoc) {
+					if (!dialogDoc) {
+						alert('A janela de "' + label + '" não apareceu a tempo. Preencha manualmente desta vez.');
+						return;
+					}
+					showCaptureToolbar(label, dialogDoc);
+				});
 				return;
 			}
 			const iframe = showActionModal(label);
@@ -1383,6 +1574,21 @@
 			if (cancelToken.cancelled) return;
 			if (result.failed) {
 				alertChainFailure(label, result);
+				return;
+			}
+			const fieldNamesForAcoes = pref.fields.map(function (f) {
+				return f.name;
+			});
+			if (needsAcoesParent(label, result)) {
+				openInsideAcoesScreen(label, result, function (dialogDoc) {
+					const form = dialogDoc && (findFormContainingFieldNamesIn(dialogDoc, fieldNamesForAcoes) || findLikelyDialogFormIn(dialogDoc));
+					if (!form) {
+						alert('Carreguei "' + label + '", mas não encontrei o formulário para preencher automaticamente. Preencha manualmente.');
+						return;
+					}
+					applyFormFields(form, pref.fields);
+					showConfirmBar(label, pref, form);
+				});
 				return;
 			}
 			const iframe = showActionModal(label);
