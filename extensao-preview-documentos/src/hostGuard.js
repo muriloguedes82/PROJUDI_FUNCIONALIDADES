@@ -7,6 +7,7 @@
 // script roda antes de todos os demais (em ambos os blocos) e marca em
 // `window.__pdpHostPermitido` se o frame pertence a um host cujo nome
 // começa com "projudi" (projudi.tjpr.jus.br, projudi2.tjpr.jus.br...) ou
+// "tst" (tst.tjpr.jus.br, ambiente de testes) ou
 // a seeu.pje.jus.br. Cada script da extensão encerra de imediato quando a
 // marca é falsa.
 //
@@ -15,7 +16,7 @@
 // página que os criou - o hostname deles é vazio.
 (function () {
 	"use strict";
-	const HOST_PERMITIDO = /^(projudi[^.]*\.tjpr\.jus\.br|seeu\.pje\.jus\.br)$/i;
+	const HOST_PERMITIDO = /^((projudi|tst)[^.]*\.tjpr\.jus\.br|seeu\.pje\.jus\.br)$/i;
 
 	function hostEfetivo() {
 		let origin = window.location.origin;
