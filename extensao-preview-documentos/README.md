@@ -678,6 +678,24 @@ sozinha — a extensão só abre a tela; habilitar, desabilitar, adicionar ou
 remover o advogado continua sendo feito manualmente pelo usuário, dentro
 do popup.
 
+## Editar Partes/Outros (popup para a tela "Partes do Processo")
+
+Adicionar ou alterar partes hoje exige abrir a aba "Partes e Outros" e, na
+barra de botões ao final dela, clicar no botão nativo **"Partes e Outros"**
+(ao lado de "Advogados", "Histórico de Substabelecimentos" e
+"Desmembrar"), que leva à tela **"Partes do Processo"** (lista de todas as
+partes, com "Adicionar" e "Voltar").
+
+Na mesma linha do **"📋 Processo copiado"**, logo após o "⚖️ (Des)Habilitar
+Advogado", a extensão adiciona o botão **"👥 Editar Partes/Outros"**, que
+abre essa tela no **mesmo popup** das "Ações rápidas" — a aba visível
+nunca navega; fecha com "✕ Fechar".
+
+A URL é resolvida como no "(Des)Habilitar Advogado": lê a aba "Partes e
+Outros" (do DOM, se já é a aba atual; senão, via `fetch()` em segundo
+plano) e extrai o endereço do `onclick` do botão nativo "Partes e Outros",
+localizado pelo texto. Nenhuma ação é praticada sozinha. Só no Projudi.
+
 ## Réus/Indiciados/Noticiados no cabeçalho do processo
 
 No SEEU, o cabeçalho do processo já mostra o nome do sentenciado (com RJI,
