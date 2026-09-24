@@ -311,6 +311,7 @@
 	// (`selectedIcon=tabPartes`) em segundo plano, via `fetch()` (sem
 	// iframe) com o restante dos campos do formulário reaproveitados via
 	// `FormData`. Aqui é a mesma ideia, com `selectedIcon=tabDadosAdicionais`.
+	let avisouFormNaoProcesso = false;
 	async function fetchAbaInformacoesAdicionaisPOST() {
 		const form = document.getElementById("processoForm");
 		if (!form) {
@@ -327,6 +328,24 @@
 		}
 		if (actionUrl.origin !== window.location.origin) {
 			console.warn(TAG, "action do #processoForm aponta para outra origem, abortando busca em segundo plano:", actionUrl.href);
+			return null;
+		}
+		// Só a tela do processo em si (lista de abas + visualização) pode ser
+		// reenviada. Diálogos do Projudi também usam id="processoForm" — o de
+		// "Arquivamento de Processo" aponta para
+		// processoArquivamento.do?actionType=arquivar — e rodam num iframe onde
+		// este script também é injetado; reenviar esse formulário em segundo
+		// plano EXECUTA a ação (gerava movimentações "ARQUIVADO
+		// DEFINITIVAMENTE" duplicadas).
+		if (
+			!/\/visualizacaoProcesso\.do$/.test(actionUrl.pathname) ||
+			actionUrl.searchParams.get("actionType") !== "visualizar" ||
+			!document.querySelector('[id^="tabItemprefix"]')
+		) {
+			if (!avisouFormNaoProcesso) {
+				avisouFormNaoProcesso = true;
+				console.log(TAG, "#processoForm desta página não é o da tela do processo, busca em segundo plano ignorada:", actionUrl.href);
+			}
 			return null;
 		}
 
