@@ -498,6 +498,9 @@ lado a lado, no mesmo canto da tela dos botões de WhatsApp/e-mail
 - **Suspender**: Suspender ou Sobrestar Processo
 - **Transitar**: Transitar em Julgado
 - **Arquivar**: Arquivar Processo
+  (fora da tela de Ações, o popup carrega a própria tela de Ações do
+  processo e abre o diálogo "Arquivamento de Processo" pelo link nativo —
+  esse diálogo só grava o arquivamento quando roda dentro dela)
 - **Outras**: Interromper Prazo, Declínio de competência para a Segunda
   Instância, Apensar, Desapensar
 
