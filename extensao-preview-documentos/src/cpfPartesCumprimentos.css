@@ -1,0 +1,10 @@
+/* CPF das partes na lista de cumprimentos (ver cpfPartesCumprimentos.js) */
+span.pdp-cpf-parte.pdp-cpf-valor {
+	font-weight: bold;
+	white-space: nowrap;
+}
+
+span.pdp-cpf-parte.pdp-cpf-status {
+	color: #777;
+	font-style: italic;
+}

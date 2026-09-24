@@ -729,6 +729,30 @@ O resultado fica salvo em `sessionStorage` (por processo), para a linha
 aparecer na hora ao trocar de aba; a busca é refeita a cada carregamento
 e a linha é atualizada quando ela termina. Só no Projudi.
 
+## CPF das partes na lista de cumprimentos
+
+Na lista de cumprimentos da serventia (tela `cumprimentoCartorio.do`, que
+se abre ao clicar num dos contadores da lista de ordenações — ex.:
+"Demais cumprimentos" > "Para Expedir"), a coluna **"Referente a(s)
+parte(s)"** mostra só o nome e o tipo da parte. A extensão acrescenta o
+**CPF** ao lado de cada parte: `FULANO (Investigado) — CPF: 000.000.000-00`.
+
+O CPF é buscado de forma oculta no processo da coluna **"Processo"**, sem
+abrir abas nem iframes:
+
+1. `fetch()` do link do processo (`processo.do?_tj=...`);
+2. se a página devolvida não traz a aba "Partes e Outros", POST para o
+   formulário do processo com `selectedIcon=tabPartes` (mesma técnica do
+   "Réus/Indiciados/Noticiados no cabeçalho");
+3. a parte é localizada pelo nome (sem acentos/maiúsculas) entre as partes
+   de todos os polos, e o CPF vem da coluna "CPF/CNPJ" da aba.
+
+Enquanto a busca não termina aparece "CPF: carregando…"; sem CPF na aba,
+"CPF: não cadastrado". As buscas são feitas duas de cada vez, uma única vez
+por processo, e o resultado fica em `sessionStorage` (por número do
+processo), para a coluna aparecer na hora ao filtrar de novo ou trocar de
+página. Só no Projudi.
+
 ## "Nova Remessa" (realizar mais de uma remessa em seguida)
 
 Só no Projudi. A tela nativa **Realizar Remessa** só permite escolher UMA
