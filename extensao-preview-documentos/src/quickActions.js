@@ -94,6 +94,17 @@
 			actions: ["Arquivar Processo"],
 		},
 		{
+			// Não é um link do painel Ações: o caminho até a tela final
+			// (aba "Informações Adicionais" → Depósitos/Alvarás Eletrônicos
+			// → "Novo Alvará") é ensinado por alvaraEletronico.js — ver
+			// CUSTOM_ACTIONS/openCustomAction. Só no Projudi.
+			id: "alvara",
+			title: "Alvará Eletrônico",
+			icon: "🏦",
+			actions: ["Alvará Eletrônico"],
+			custom: true,
+		},
+		{
 			id: "outras",
 			title: "Outras",
 			icon: "⋯",
@@ -1238,7 +1249,10 @@
 			}
 			const name = prompt('Nome para esta preferência de "' + label + '":', "");
 			if (!name) return;
-			const fields = captureFormFields(form);
+			const custom = getCustomAction(label);
+			const fields = captureFormFields(form).filter(function (f) {
+				return !custom || !custom.prefFields || custom.prefFields.indexOf(f.name) !== -1;
+			});
 			addPreference(label, name.trim(), fields).then(function () {
 				removeCaptureToolbar();
 				alert('Preferência "' + name.trim() + '" salva para "' + label + '". Você ainda pode revisar e enviar este formulário normalmente.');
@@ -1620,6 +1634,129 @@
 	}
 
 	// -------------------------------------------------------------------
+	// Ações "personalizadas" — não são links do painel Ações, e sim telas
+	// alcançadas por outro caminho, ensinado por outro arquivo desta
+	// extensão, que se registra em `window.__pdpCustomActions[rótulo]`:
+	// - resolveUrl(): Promise com a URL da primeira tela a carregar;
+	// - step(doc, clicked): chamado a cada página carregada no popup
+	//   (ainda oculto) — devolve { state: "ready" } na tela final,
+	//   { state: "clicked" } depois de clicar num botão nativo que leva à
+	//   próxima tela, ou { state: "fail", message };
+	// - prefFields: nomes dos campos que uma preferência pode guardar;
+	// - confirmAfterApply: false para só preencher, sem "Sim, executar".
+	// Hoje: "Alvará Eletrônico" (alvaraEletronico.js).
+	// -------------------------------------------------------------------
+
+	const CUSTOM_STEP_TIMEOUT_MS = 20000;
+
+	function getCustomAction(label) {
+		const all = window.__pdpCustomActions;
+		return (all && all[label]) || null;
+	}
+
+	// Abre a ação no popup, mantendo o iframe oculto (sob o overlay de
+	// carregamento) enquanto passa pelas telas intermediárias, e só o
+	// mostra na tela final. `onReady(doc)` recebe o documento da tela final
+	// (captura/aplicação de preferências).
+	function openCustomAction(label, onReady) {
+		const custom = getCustomAction(label);
+		if (!custom) {
+			alert('O atalho "' + label + '" não está disponível nesta tela.');
+			return;
+		}
+		const cancelToken = { cancelled: false };
+		function onCancel() {
+			cancelToken.cancelled = true;
+			removeActionModal();
+		}
+		showLoadingOverlay(label, onCancel);
+
+		Promise.resolve()
+			.then(function () {
+				return custom.resolveUrl();
+			})
+			.then(function (url) {
+				if (cancelToken.cancelled) return;
+				const iframe = showActionModal(label);
+				iframe.style.visibility = "hidden";
+				// O popup acabou de entrar por cima do overlay — traz o
+				// overlay de volta para a frente até a tela final chegar.
+				showLoadingOverlay(label, onCancel);
+
+				let clicked = false;
+				let finished = false;
+				const timer = setTimeout(function () {
+					if (finished) return;
+					finish('A tela de "' + label + '" demorou demais para abrir.');
+				}, CUSTOM_STEP_TIMEOUT_MS);
+
+				function finish(errorMessage, doc) {
+					finished = true;
+					clearTimeout(timer);
+					iframe.removeEventListener("load", onLoad);
+					if (cancelToken.cancelled || activeModalIframe !== iframe) return;
+					removeLoadingOverlay();
+					iframe.style.visibility = "";
+					// Em caso de erro, mostra mesmo assim a tela em que o
+					// Projudi parou (mensagem de erro, falta de permissão).
+					if (errorMessage) {
+						alert(errorMessage);
+						return;
+					}
+					if (onReady) onReady(doc);
+				}
+
+				function onLoad() {
+					if (finished) return;
+					let doc;
+					try {
+						doc = iframe.contentDocument;
+					} catch (err) {
+						finish("Não consegui acessar o conteúdo do popup.");
+						return;
+					}
+					// O "load" da página em branco inicial (inserir o iframe
+					// sem `src`) não é uma etapa — ver fetchDoc.
+					if (!doc || iframe.contentWindow.location.href === "about:blank") return;
+					const result = custom.step(doc, clicked);
+					logChainStep('"' + label + '": etapa no popup', { url: iframe.contentWindow.location.href, estado: result.state });
+					if (result.state === "clicked") {
+						clicked = true;
+					} else if (result.state === "ready") {
+						finish(null, doc);
+					} else {
+						finish(result.message || 'Não consegui abrir "' + label + '".');
+					}
+				}
+
+				iframe.addEventListener("load", onLoad);
+				iframe.src = url;
+			})
+			.catch(function (err) {
+				if (cancelToken.cancelled) return;
+				removeLoadingOverlay();
+				removeActionModal();
+				alert('Não foi possível abrir "' + label + '": ' + (err && err.message ? err.message : err));
+			});
+	}
+
+	function applyPreferenceCustom(label, pref) {
+		const custom = getCustomAction(label);
+		openCustomAction(label, function (doc) {
+			const fieldNames = pref.fields.map(function (f) {
+				return f.name;
+			});
+			const form = findFormContainingFieldNamesIn(doc, fieldNames) || findLikelyDialogFormIn(doc);
+			if (!form) {
+				alert('Carreguei "' + label + '", mas não encontrei o formulário para preencher automaticamente. Preencha manualmente.');
+				return;
+			}
+			applyFormFields(form, pref.fields);
+			if (!custom || custom.confirmAfterApply !== false) showConfirmBar(label, pref, form);
+		});
+	}
+
+	// -------------------------------------------------------------------
 	// Botões flutuantes (um por grupo) e painéis
 	// -------------------------------------------------------------------
 
@@ -1644,6 +1781,7 @@
 		secondLine.className = "pdp-qa-row-line";
 
 		ACTION_GROUPS.forEach(function (group) {
+			if (group.custom && !location.pathname.startsWith("/projudi/")) return;
 			const btn = document.createElement("button");
 			btn.type = "button";
 			btn.className = "pdp-qa-group-btn";
@@ -1756,9 +1894,20 @@
 		activePanel.className = "pdp-qa-panel";
 
 		let actionsToRender = [];
-		let mode; // 'ready' | 'hop' | 'unreachable'
+		let mode; // 'ready' | 'hop' | 'custom' | 'unreachable'
 
-		if (isOnAcoesScreen()) {
+		if (group.custom) {
+			mode = "custom";
+			actionsToRender = group.actions.filter(function (label) {
+				return !!getCustomAction(label);
+			});
+			if (!actionsToRender.length) {
+				const empty = document.createElement("div");
+				empty.className = "pdp-qa-empty";
+				empty.textContent = 'O atalho "' + group.title + '" não está disponível nesta tela.';
+				activePanel.appendChild(empty);
+			}
+		} else if (isOnAcoesScreen()) {
 			mode = "ready";
 			actionsToRender = group.actions.filter(function (label) {
 				return !!findActionLink(label);
@@ -1827,7 +1976,9 @@
 		openBtn.title = "Abrir o diálogo normal do Projudi para esta ação";
 		openBtn.addEventListener("click", function () {
 			closePanel();
-			if (mode === "hop") {
+			if (mode === "custom") {
+				openCustomAction(label, null);
+			} else if (mode === "hop") {
 				openActionDialogViaChain(label);
 			} else {
 				openActionDialog(label);
@@ -1849,7 +2000,12 @@
 		newPrefBtn.title = "Abre o diálogo para você preencher e salvar o preenchimento como preferência";
 		newPrefBtn.addEventListener("click", function () {
 			closePanel();
-			if (mode === "hop") {
+			if (mode === "custom") {
+				removeConfirmBar();
+				openCustomAction(label, function (doc) {
+					showCaptureToolbar(label, doc);
+				});
+			} else if (mode === "hop") {
 				startNewPreferenceCaptureViaChain(label);
 			} else {
 				startNewPreferenceCapture(label);
@@ -1875,7 +2031,11 @@
 			applyBtn.textContent = "★ " + pref.name;
 			applyBtn.title = 'Preenche automaticamente e pede 1 confirmação para executar "' + label + '"';
 			applyBtn.addEventListener("click", function () {
-				if (mode === "hop") {
+				if (mode === "custom") {
+					closePanel();
+					removeCaptureToolbar();
+					applyPreferenceCustom(label, pref);
+				} else if (mode === "hop") {
 					closePanel();
 					applyPreferenceViaChain(label, pref);
 				} else {

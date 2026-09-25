@@ -82,37 +82,38 @@
 		}
 	}
 
-	// Encontra a URL da própria tela do processo com a aba "Partes e Outros"
-	// selecionada, a partir do `onclick` do item de aba nativo (mesma técnica
-	// usada por oraculoDirect.js para achar `setTab('...')`).
-	function findTabPartesAction() {
+	// Encontra a URL da própria tela do processo com a aba `tabId` (ex.:
+	// "tabPartes") selecionada, a partir do `onclick` do item de aba nativo
+	// (mesma técnica usada por oraculoDirect.js para achar `setTab('...')`).
+	function findTabAction(tabId, tabName) {
 		const tab = Array.prototype.find.call(document.querySelectorAll("[onclick]"), function (el) {
 			const onclick = el.getAttribute("onclick") || "";
-			return /setTab\(/.test(onclick) && /['"]tabPartes['"]/.test(onclick);
+			return /setTab\(/.test(onclick) && new RegExp("['\"]" + tabId + "['\"]").test(onclick);
 		});
 		const onclickAttr = tab ? tab.getAttribute("onclick") : "";
 		const actionMatch = /setTab\(\s*['"]([^'"]+)['"]/.exec(onclickAttr || "");
-		if (!actionMatch) throw new Error('Não encontrei o acesso à aba "Partes e Outros" nesta tela.');
+		if (!actionMatch) throw new Error('Não encontrei o acesso à aba "' + tabName + '" nesta tela.');
 		const url = localURL(actionMatch[1], "/projudi/visualizacaoProcesso.do");
-		if (url.searchParams.get("actionType") !== "visualizar") throw new Error('A aba "Partes e Outros" não aponta para uma página de visualização.');
+		if (url.searchParams.get("actionType") !== "visualizar") throw new Error('A aba "' + tabName + '" não aponta para uma página de visualização.');
 		return url;
 	}
 
-	function tabPartesBody(form, id) {
+	function tabBody(form, id, tabId) {
 		const body = new URLSearchParams();
 		for (const pair of new FormData(form)) {
 			if (typeof pair[1] === "string") body.append(pair[0], pair[1]);
 		}
-		body.set("selectedIcon", "tabPartes");
+		body.set("selectedIcon", tabId);
 		body.set("id", id);
 		return body;
 	}
 
-	// Devolve o documento da aba "Partes e Outros" do processo atual (o
-	// próprio `document`, se já é essa aba; senão, buscado em segundo plano)
-	// e uma função que confirma que o processo não mudou nesse meio-tempo.
-	// Também usado por editarPartes.js (botão "Editar Partes/Outros").
-	async function lerAbaPartes() {
+	// Devolve o documento da aba `tabId` do processo atual (o próprio
+	// `document`, se já é essa aba; senão, buscado em segundo plano) e uma
+	// função que confirma que o processo não mudou nesse meio-tempo.
+	// Usado aqui ("Partes e Outros"), por editarPartes.js (idem) e por
+	// alvaraEletronico.js ("Informações Adicionais", tabDadosAdicionais).
+	async function lerAbaProcesso(tabId, tabName) {
 		const form = document.getElementById("processoForm");
 		if (!form) throw new Error("Não foi possível identificar o processo atual — abra a tela de um processo primeiro.");
 		const id = form.elements.namedItem("id") ? form.elements.namedItem("id").value : null;
@@ -124,19 +125,24 @@
 		}
 
 		const selectedIconField = form.elements.namedItem("selectedIcon");
-		const jaEstaNaAbaPartes = !!selectedIconField && selectedIconField.value === "tabPartes";
+		const jaEstaNaAba = !!selectedIconField && selectedIconField.value === tabId;
 
 		let doc = document;
-		if (!jaEstaNaAbaPartes) {
-			const tabUrl = findTabPartesAction();
-			const body = tabPartesBody(form, id);
+		if (!jaEstaNaAba) {
+			const tabUrl = findTabAction(tabId, tabName);
+			const body = tabBody(form, id, tabId);
 			doc = await readPage(tabUrl.href, { method: "POST", body: body });
 			const responseId = doc.querySelector('#processoForm [name="id"]');
-			if (!responseId || responseId.value !== id) throw new Error('A resposta da aba "Partes e Outros" não corresponde ao processo atual.');
+			if (!responseId || responseId.value !== id) throw new Error('A resposta da aba "' + tabName + '" não corresponde ao processo atual.');
 			checkContext();
 		}
 
 		return { doc: doc, checkContext: checkContext };
+	}
+	window.__pdpLerAbaProcesso = lerAbaProcesso;
+
+	function lerAbaPartes() {
+		return lerAbaProcesso("tabPartes", "Partes e Outros");
 	}
 	window.__pdpLerAbaPartes = lerAbaPartes;
 

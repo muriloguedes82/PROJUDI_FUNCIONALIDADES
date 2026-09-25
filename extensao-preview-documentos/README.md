@@ -484,7 +484,8 @@ Concluso, Apensar, etc. — que obriga a rolar a página até achar a ação
 desejada.
 
 A extensão adiciona **um botão flutuante por grupo de ações** — Concluso,
-Remessa, Ordenações, Partes, Suspender, Transitar, Arquivar, Outras —
+Remessa, Ordenações, Partes, Suspender, Transitar, Arquivar, Alvará
+Eletrônico, Outras —
 lado a lado, no mesmo canto da tela dos botões de WhatsApp/e-mail
 (posicionando-se ao lado deles quando presentes):
 
@@ -498,6 +499,8 @@ lado a lado, no mesmo canto da tela dos botões de WhatsApp/e-mail
 - **Suspender**: Suspender ou Sobrestar Processo
 - **Transitar**: Transitar em Julgado
 - **Arquivar**: Arquivar Processo
+- **Alvará Eletrônico**: Alvará Eletrônico (ver "Alvará Eletrônico"
+  abaixo — não é um link do painel Ações)
   (fora da tela de Ações, o popup carrega a própria tela de Ações do
   processo e abre o diálogo "Arquivamento de Processo" pelo link nativo —
   esse diálogo só grava o arquivamento quando roda dentro dela)
@@ -638,6 +641,40 @@ As preferências ficam em `chrome.storage.local` (armazenamento local da
 própria extensão, não enviado a nenhum servidor), organizadas por ação —
 ex.: as preferências de "Ordenar Cumprimentos" não aparecem em "Ordenar
 RPV".
+
+## Alvará Eletrônico (popup para "Cadastrar Alvará Eletrônico")
+
+Cadastrar um alvará eletrônico hoje exige abrir a aba **"Informações
+Adicionais"**, clicar em **"Depósitos/Alvarás Eletrônicos - Integração
+CEF"** ("Há N depósitos cadastrados (clique para visualizar)") e, na tela
+**"Informações Financeiras"**, clicar no botão nativo **"Novo Alvará"**,
+que leva à tela **"Cadastrar Alvará Eletrônico - Pagamento ao
+beneficiário"**.
+
+O painel "Ações rápidas" ganha o grupo **"🏦 Alvará Eletrônico"**, com os
+mesmos "Abrir", "+ Nova preferência" e preferências salvas das demais
+ações. "Abrir" mostra direto a tela de cadastro do alvará no **mesmo
+popup** das "Ações rápidas" — a aba visível nunca navega:
+
+1. A URL da tela de depósitos (`depositoEletronico.do?_tj=...`) é lida do
+   link da aba "Informações Adicionais" — do DOM, se já é a aba atual;
+   senão, da aba buscada via `fetch()` em segundo plano (a mesma leitura do
+   "(Des)Habilitar Advogado").
+2. O popup carrega essa tela **oculto** (sob o "Abrindo…") e clica no
+   botão nativo "Novo Alvará" dentro dele — o próprio `submitPage` do
+   Projudi envia o formulário com o token certo.
+3. Só quando o formulário do alvará (`alvaraEletronicoForm`) aparece o
+   popup é mostrado. Se o Projudi parar em outra tela (erro, falta de
+   permissão), ela é mostrada com um aviso.
+
+**Preferências do alvará**: guardam apenas os campos que se repetem entre
+processos — Magistrado, Urgente, Natureza do Alvará, Representação
+Processual, Finalidade do Pagamento, Tipo de Crédito e Observação. Conta
+judicial, beneficiário, sacadores, dados bancários, datas e valores
+dependem de cada pagamento e ficam sempre para o usuário. Ao aplicar uma
+preferência, a extensão só preenche esses campos — **não** mostra a barra
+"Sim, executar": o usuário completa o restante e clica em "Salvar" do
+próprio Projudi. Só no Projudi.
 
 ## (Des)Habilitar Advogado (popup para a tela de Advogados)
 
