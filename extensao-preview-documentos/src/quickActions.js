@@ -1077,10 +1077,13 @@
 		});
 	}
 
-	function addPreference(label, name, fields) {
+	// `extra`: dados além dos campos, guardados na própria preferência (ex.:
+	// a modalidade do "Alvará Eletrônico" — ver ações personalizadas).
+	function addPreference(label, name, fields, extra) {
 		return loadAllPreferences().then(function (all) {
 			const list = all[label] || [];
-			list.push({ id: "p" + Date.now() + Math.random().toString(36).slice(2, 7), name: name, fields: fields, createdAt: Date.now() });
+			const pref = Object.assign({}, extra || {}, { id: "p" + Date.now() + Math.random().toString(36).slice(2, 7), name: name, fields: fields, createdAt: Date.now() });
+			list.push(pref);
 			all[label] = list;
 			return saveAllPreferences(all);
 		});
@@ -1256,7 +1259,9 @@
 	// modo "ready" (diálogo nativo aberto na própria tela de Ações), ou
 	// `iframe.contentDocument` no modo "hop" (diálogo dentro do popup
 	// desta extensão — ver showActionModal). Por padrão usa `document`.
-	function showCaptureToolbar(label, doc) {
+	// `doc` também pode ser uma função que devolve o documento na hora de
+	// salvar; `getExtra` (opcional) devolve os dados extras da preferência.
+	function showCaptureToolbar(label, doc, getExtra) {
 		doc = doc || document;
 		removeCaptureToolbar();
 		captureToolbar = document.createElement("div");
@@ -1269,7 +1274,8 @@
 
 		captureToolbar.querySelector(".pdp-qa-capture-cancel").addEventListener("click", removeCaptureToolbar);
 		captureToolbar.querySelector(".pdp-qa-capture-save").addEventListener("click", function () {
-			const form = findCustomForm(label, doc) || findLikelyDialogFormIn(doc);
+			const currentDoc = typeof doc === "function" ? doc() : doc;
+			const form = findCustomForm(label, currentDoc) || findLikelyDialogFormIn(currentDoc);
 			if (!form) {
 				alert('Não encontrei o formulário do diálogo "' + label + '" para capturar. Ele ainda está aberto na tela?');
 				return;
@@ -1280,7 +1286,7 @@
 			const fields = captureFormFields(form).filter(function (f) {
 				return !custom || !custom.prefFields || custom.prefFields.indexOf(f.name) !== -1;
 			});
-			addPreference(label, name.trim(), fields).then(function () {
+			addPreference(label, name.trim(), fields, getExtra ? getExtra() : null).then(function () {
 				removeCaptureToolbar();
 				alert('Preferência "' + name.trim() + '" salva para "' + label + '". Você ainda pode revisar e enviar este formulário normalmente.');
 			});
@@ -1665,10 +1671,18 @@
 	// alcançadas por outro caminho, ensinado por outro arquivo desta
 	// extensão, que se registra em `window.__pdpCustomActions[rótulo]`:
 	// - resolveUrl(): Promise com a URL da primeira tela a carregar;
-	// - step(doc, clicked): chamado a cada página carregada no popup
-	//   (ainda oculto) — devolve { state: "ready" } na tela final,
-	//   { state: "clicked" } depois de clicar num botão nativo que leva à
-	//   próxima tela, ou { state: "fail", message };
+	// - step(doc, ctx): chamado a cada página carregada no popup e,
+	//   enquanto ela estiver aberta, periodicamente (telas que trocam de
+	//   conteúdo sem navegar). `ctx` é o estado desta abertura:
+	//   { mode: "open" | "capture" | "apply", pref, extra, actedDoc }. O
+	//   handler pode clicar/escolher opções nativas e devolve:
+	//   { state: "wait" }  — continua oculto, esperando a próxima tela;
+	//   { state: "show" }  — mostra o popup (o usuário precisa agir nele)
+	//                        e continua acompanhando;
+	//   { state: "ready" } — tela final: mostra e encerra (onReady);
+	//   { state: "fail", message }.
+	//   Em `ctx.extra` o handler guarda o que a preferência deve levar além
+	//   dos campos da tela final (ex.: a modalidade da tela anterior).
 	// - formId: id do <form> da tela final (captura/aplicação);
 	// - prefFields: nomes dos campos que uma preferência pode guardar;
 	// - confirmAfterApply: false para só preencher, sem "Sim, executar".
@@ -1676,6 +1690,7 @@
 	// -------------------------------------------------------------------
 
 	const CUSTOM_STEP_TIMEOUT_MS = 20000;
+	const CUSTOM_POLL_MS = 400;
 
 	function getCustomAction(label) {
 		const all = window.__pdpCustomActions;
@@ -1692,10 +1707,9 @@
 	}
 
 	// Abre a ação no popup, mantendo o iframe oculto (sob o overlay de
-	// carregamento) enquanto passa pelas telas intermediárias, e só o
-	// mostra na tela final. `onReady(doc)` recebe o documento da tela final
-	// (captura/aplicação de preferências).
-	function openCustomAction(label, onReady) {
+	// carregamento) enquanto o handler passa pelas telas intermediárias.
+	// `onReady(doc, ctx, iframe)` recebe a tela final.
+	function openCustomAction(label, mode, pref, onReady) {
 		const custom = getCustomAction(label);
 		if (!custom) {
 			alert('O atalho "' + label + '" não está disponível nesta tela.');
@@ -1720,53 +1734,70 @@
 				// overlay de volta para a frente até a tela final chegar.
 				showLoadingOverlay(label, onCancel);
 
-				let clicked = false;
+				const ctx = { mode: mode, pref: pref || null, extra: {}, actedDoc: null };
 				let finished = false;
-				const timer = setTimeout(function () {
-					if (finished) return;
-					finish('A tela de "' + label + '" demorou demais para abrir.');
+				let revealed = false;
+				let lastState = null;
+				let timer = setTimeout(function () {
+					if (!finished && !revealed) finish('A tela de "' + label + '" demorou demais para abrir.');
 				}, CUSTOM_STEP_TIMEOUT_MS);
+				const poll = setInterval(evaluate, CUSTOM_POLL_MS);
+
+				function reveal() {
+					if (revealed) return;
+					revealed = true;
+					clearTimeout(timer);
+					removeLoadingOverlay();
+					iframe.style.visibility = "";
+				}
 
 				function finish(errorMessage, doc) {
 					finished = true;
 					clearTimeout(timer);
-					iframe.removeEventListener("load", onLoad);
+					clearInterval(poll);
+					iframe.removeEventListener("load", evaluate);
 					if (cancelToken.cancelled || activeModalIframe !== iframe) return;
-					removeLoadingOverlay();
-					iframe.style.visibility = "";
+					reveal();
 					// Em caso de erro, mostra mesmo assim a tela em que o
 					// Projudi parou (mensagem de erro, falta de permissão).
 					if (errorMessage) {
 						alert(errorMessage);
 						return;
 					}
-					if (onReady) onReady(doc);
+					if (onReady) onReady(doc, ctx, iframe);
 				}
 
-				function onLoad() {
+				function evaluate() {
 					if (finished) return;
+					if (cancelToken.cancelled || activeModalIframe !== iframe) {
+						finish(null, null);
+						return;
+					}
 					let doc;
 					try {
 						doc = iframe.contentDocument;
+						// O "load" da página em branco inicial (inserir o
+						// iframe sem `src`) não é uma etapa — ver fetchDoc.
+						if (!doc || iframe.contentWindow.location.href === "about:blank" || doc.readyState !== "complete") return;
 					} catch (err) {
 						finish("Não consegui acessar o conteúdo do popup.");
 						return;
 					}
-					// O "load" da página em branco inicial (inserir o iframe
-					// sem `src`) não é uma etapa — ver fetchDoc.
-					if (!doc || iframe.contentWindow.location.href === "about:blank") return;
-					const result = custom.step(doc, clicked);
-					logChainStep('"' + label + '": etapa no popup', { url: iframe.contentWindow.location.href, estado: result.state });
-					if (result.state === "clicked") {
-						clicked = true;
-					} else if (result.state === "ready") {
+					const result = custom.step(doc, ctx) || { state: "wait" };
+					if (result.state !== lastState) {
+						lastState = result.state;
+						logChainStep('"' + label + '": etapa no popup', { url: iframe.contentWindow.location.href, estado: result.state });
+					}
+					if (result.state === "ready") {
 						finish(null, doc);
-					} else {
+					} else if (result.state === "show") {
+						reveal();
+					} else if (result.state === "fail") {
 						finish(result.message || 'Não consegui abrir "' + label + '".');
 					}
 				}
 
-				iframe.addEventListener("load", onLoad);
+				iframe.addEventListener("load", evaluate);
 				iframe.src = url;
 			})
 			.catch(function (err) {
@@ -1777,9 +1808,30 @@
 			});
 	}
 
+	function startNewPreferenceCaptureCustom(label) {
+		openCustomAction(label, "capture", null, function (doc, ctx, iframe) {
+			// Documento ATUAL do popup no momento de salvar (a tela pode ter
+			// sido recarregada pelo próprio Projudi enquanto o usuário
+			// preenchia).
+			showCaptureToolbar(
+				label,
+				function () {
+					try {
+						return iframe.contentDocument || doc;
+					} catch (err) {
+						return doc;
+					}
+				},
+				function () {
+					return ctx.extra;
+				}
+			);
+		});
+	}
+
 	function applyPreferenceCustom(label, pref) {
 		const custom = getCustomAction(label);
-		openCustomAction(label, function (doc) {
+		openCustomAction(label, "apply", pref, function (doc) {
 			const fieldNames = pref.fields.map(function (f) {
 				return f.name;
 			});
@@ -2014,7 +2066,7 @@
 		openBtn.addEventListener("click", function () {
 			closePanel();
 			if (mode === "custom") {
-				openCustomAction(label, null);
+				openCustomAction(label, "open", null, null);
 			} else if (mode === "hop") {
 				openActionDialogViaChain(label);
 			} else {
@@ -2039,9 +2091,7 @@
 			closePanel();
 			if (mode === "custom") {
 				removeConfirmBar();
-				openCustomAction(label, function (doc) {
-					showCaptureToolbar(label, doc);
-				});
+				startNewPreferenceCaptureCustom(label);
 			} else if (mode === "hop") {
 				startNewPreferenceCaptureViaChain(label);
 			} else {
@@ -2066,7 +2116,11 @@
 			applyBtn.type = "button";
 			applyBtn.className = "pdp-qa-pref-btn";
 			applyBtn.textContent = "★ " + pref.name;
-			applyBtn.title = 'Preenche automaticamente e pede 1 confirmação para executar "' + label + '"';
+			applyBtn.title =
+				(mode === "custom"
+					? 'Abre "' + label + '" já preenchido com esta preferência'
+					: 'Preenche automaticamente e pede 1 confirmação para executar "' + label + '"') +
+				(pref.descricao ? "\n" + pref.descricao : "");
 			applyBtn.addEventListener("click", function () {
 				if (mode === "custom") {
 					closePanel();

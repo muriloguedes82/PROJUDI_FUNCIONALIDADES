@@ -651,10 +651,15 @@ CEF"** ("Há N depósitos cadastrados (clique para visualizar)") e, na tela
 que leva à tela **"Cadastrar Alvará Eletrônico - Pagamento ao
 beneficiário"**.
 
+Depois do "Novo Alvará", o Projudi mostra uma primeira tela **"Cadastrar
+Alvará Eletrônico"** só com o campo **Modalidade**; escolhida a
+modalidade, vem o formulário completo (ex.: "Pagamento ao beneficiário
+(ordem de pagamento/transferência)").
+
 O painel "Ações rápidas" ganha o grupo **"🏦 Alvará Eletrônico"**, com os
 mesmos "Abrir", "+ Nova preferência" e preferências salvas das demais
-ações. "Abrir" mostra direto a tela de cadastro do alvará no **mesmo
-popup** das "Ações rápidas" — a aba visível nunca navega:
+ações, sempre no **mesmo popup** das "Ações rápidas" — a aba visível nunca
+navega:
 
 1. A URL da tela de depósitos (`depositoEletronico.do?_tj=...`) é lida do
    link da aba "Informações Adicionais" — do DOM, se já é a aba atual;
@@ -663,18 +668,30 @@ popup** das "Ações rápidas" — a aba visível nunca navega:
 2. O popup carrega essa tela **oculto** (sob o "Abrindo…") e clica no
    botão nativo "Novo Alvará" dentro dele — o próprio `submitPage` do
    Projudi envia o formulário com o token certo.
-3. Só quando o formulário do alvará (`alvaraEletronicoForm`) aparece o
-   popup é mostrado. Se o Projudi parar em outra tela (erro, falta de
-   permissão), ela é mostrada com um aviso.
+3. Na tela de **Modalidade**:
+   - **Abrir** mostra essa tela, para o usuário escolher a modalidade;
+   - **+ Nova preferência** mostra essa tela, anota a modalidade escolhida
+     e, no formulário completo, oferece "💾 Salvar como preferência": a
+     preferência guarda **a modalidade e os campos da segunda tela**.
+     Crie uma preferência para cada modalidade que usar;
+   - **usar uma preferência** escolhe sozinho a modalidade guardada, com o
+     popup ainda oculto: a tela de Modalidade é **pulada** e o usuário já
+     vê o formulário completo, preenchido. Se a modalidade não existir
+     neste processo, ou se o Projudi não avançar, a tela de Modalidade é
+     mostrada para o usuário seguir manualmente.
 
-**Preferências do alvará**: guardam apenas os campos que se repetem entre
-processos — Magistrado, Urgente, Natureza do Alvará, Representação
-Processual, Finalidade do Pagamento, Tipo de Crédito e Observação. Conta
-judicial, beneficiário, sacadores, dados bancários, datas e valores
-dependem de cada pagamento e ficam sempre para o usuário. Ao aplicar uma
-preferência, a extensão só preenche esses campos — **não** mostra a barra
-"Sim, executar": o usuário completa o restante e clica em "Salvar" do
-próprio Projudi. Só no Projudi.
+Se o Projudi parar em outra tela (erro, falta de permissão), ela é
+mostrada com um aviso. A modalidade de cada preferência aparece ao passar
+o mouse sobre ela.
+
+**Campos guardados**: a modalidade, e do formulário completo apenas os
+que se repetem entre processos — Magistrado, Urgente, Natureza do Alvará,
+Representação Processual, Finalidade do Pagamento, Tipo de Crédito e
+Observação. Conta judicial, beneficiário, sacadores, dados bancários,
+datas e valores dependem de cada pagamento e ficam sempre para o usuário.
+Ao aplicar uma preferência, a extensão só preenche — **não** mostra a
+barra "Sim, executar": o usuário completa o restante e clica em "Salvar"
+do próprio Projudi. Só no Projudi.
 
 Nessa tela o Projudi abre o `<form>` direto dentro de uma `<table>`: o
 navegador deixa o `<form>` vazio (e oculto) e os campos ficam fora dele,
