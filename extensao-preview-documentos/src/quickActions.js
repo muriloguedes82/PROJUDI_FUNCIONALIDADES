@@ -1113,6 +1113,29 @@
 		return !!el && el.offsetParent !== null;
 	}
 
+	// Campos de um formulário — por `form.elements`, não pelos filhos no
+	// DOM: quando o Projudi abre o `<form>` direto dentro de uma `<table>`
+	// (ex.: "Cadastrar Alvará Eletrônico"), o navegador deixa o `<form>`
+	// vazio (e oculto: o Chrome aplica `display: none` a um form filho de
+	// table/tr) e os campos ficam fora dele, só ASSOCIADOS a ele — um
+	// `form.querySelector(...)` não acha nenhum.
+	function formControls(form) {
+		return Array.prototype.slice.call(form.elements || []);
+	}
+	function formFieldsNamed(form, name) {
+		return formControls(form).filter(function (el) {
+			return el.name === name;
+		});
+	}
+	// "Visível" = tem algum campo preenchível visível (não o próprio
+	// `<form>`, que pode estar oculto mesmo com os campos na tela — ver
+	// formControls).
+	function hasVisibleFields(form) {
+		return formControls(form).some(function (el) {
+			return /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName) && el.type !== "hidden" && isVisible(el);
+		});
+	}
+
 	// Aceitam um `root` (o `document` de verdade para o modo "ready", ou
 	// `iframe.contentDocument` para o popup do modo "hop") — ver
 	// resolveDialogUrl/showActionModal.
@@ -1120,7 +1143,7 @@
 		const forms = root.querySelectorAll("form");
 		for (let i = forms.length - 1; i >= 0; i--) {
 			const form = forms[i];
-			if (isVisible(form) && form.querySelector("input, select, textarea")) return form;
+			if (hasVisibleFields(form)) return form;
 		}
 		return null;
 	}
@@ -1132,9 +1155,9 @@
 		const forms = root.querySelectorAll("form");
 		for (let i = forms.length - 1; i >= 0; i--) {
 			const form = forms[i];
-			if (!isVisible(form)) continue;
+			if (!hasVisibleFields(form)) continue;
 			const hasAny = names.some(function (name) {
-				return !!form.querySelector('[name="' + cssEscapeAttr(name) + '"]');
+				return formFieldsNamed(form, name).length > 0;
 			});
 			if (hasAny) return form;
 		}
@@ -1151,7 +1174,9 @@
 
 	function captureFormFields(form) {
 		const fields = [];
-		const elements = form.querySelectorAll("input, select, textarea");
+		const elements = formControls(form).filter(function (el) {
+			return /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName);
+		});
 		elements.forEach(function (el) {
 			if (!el.name) return;
 			const type = (el.type || el.tagName || "").toLowerCase();
@@ -1168,13 +1193,15 @@
 	function applyFormFields(form, fields) {
 		fields.forEach(function (f) {
 			if (f.type === "checkbox" || f.type === "radio") {
-				const el = form.querySelector('[name="' + cssEscapeAttr(f.name) + '"][value="' + cssEscapeAttr(f.value) + '"]');
+				const el = formFieldsNamed(form, f.name).filter(function (c) {
+					return c.value === f.value;
+				})[0];
 				if (el) {
 					el.checked = f.checked;
 					el.dispatchEvent(new Event("change", { bubbles: true }));
 				}
 			} else {
-				const el = form.querySelector('[name="' + cssEscapeAttr(f.name) + '"]');
+				const el = formFieldsNamed(form, f.name)[0];
 				if (el) {
 					el.value = f.value;
 					el.dispatchEvent(new Event("input", { bubbles: true }));
@@ -1185,9 +1212,9 @@
 	}
 
 	function findSubmitControl(form) {
-		const controls = Array.prototype.slice.call(
-			form.querySelectorAll('input[type="submit"], button[type="submit"], input[type="button"], button')
-		);
+		const controls = formControls(form).filter(function (c) {
+			return c.tagName === "BUTTON" || (c.tagName === "INPUT" && (c.type === "submit" || c.type === "button"));
+		});
 		for (let i = 0; i < controls.length; i++) {
 			const c = controls[i];
 			if (!isVisible(c)) continue;
@@ -1242,7 +1269,7 @@
 
 		captureToolbar.querySelector(".pdp-qa-capture-cancel").addEventListener("click", removeCaptureToolbar);
 		captureToolbar.querySelector(".pdp-qa-capture-save").addEventListener("click", function () {
-			const form = findLikelyDialogFormIn(doc);
+			const form = findCustomForm(label, doc) || findLikelyDialogFormIn(doc);
 			if (!form) {
 				alert('Não encontrei o formulário do diálogo "' + label + '" para capturar. Ele ainda está aberto na tela?');
 				return;
@@ -1642,6 +1669,7 @@
 	//   (ainda oculto) — devolve { state: "ready" } na tela final,
 	//   { state: "clicked" } depois de clicar num botão nativo que leva à
 	//   próxima tela, ou { state: "fail", message };
+	// - formId: id do <form> da tela final (captura/aplicação);
 	// - prefFields: nomes dos campos que uma preferência pode guardar;
 	// - confirmAfterApply: false para só preencher, sem "Sim, executar".
 	// Hoje: "Alvará Eletrônico" (alvaraEletronico.js).
@@ -1652,6 +1680,15 @@
 	function getCustomAction(label) {
 		const all = window.__pdpCustomActions;
 		return (all && all[label]) || null;
+	}
+
+	// Formulário da tela final pelo id declarado pela ação (`formId`), se
+	// houver — mais seguro que a heurística do "último form visível".
+	function findCustomForm(label, doc) {
+		const custom = getCustomAction(label);
+		if (!custom || !custom.formId || !doc) return null;
+		const form = doc.getElementById(custom.formId);
+		return form && form.tagName === "FORM" ? form : null;
 	}
 
 	// Abre a ação no popup, mantendo o iframe oculto (sob o overlay de
@@ -1746,7 +1783,7 @@
 			const fieldNames = pref.fields.map(function (f) {
 				return f.name;
 			});
-			const form = findFormContainingFieldNamesIn(doc, fieldNames) || findLikelyDialogFormIn(doc);
+			const form = findCustomForm(label, doc) || findFormContainingFieldNamesIn(doc, fieldNames) || findLikelyDialogFormIn(doc);
 			if (!form) {
 				alert('Carreguei "' + label + '", mas não encontrei o formulário para preencher automaticamente. Preencha manualmente.');
 				return;

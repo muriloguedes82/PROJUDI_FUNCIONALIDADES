@@ -676,6 +676,12 @@ preferência, a extensão só preenche esses campos — **não** mostra a barra
 "Sim, executar": o usuário completa o restante e clica em "Salvar" do
 próprio Projudi. Só no Projudi.
 
+Nessa tela o Projudi abre o `<form>` direto dentro de uma `<table>`: o
+navegador deixa o `<form>` vazio (e oculto) e os campos ficam fora dele,
+apenas associados a ele. Por isso a captura e a aplicação de preferências
+leem os campos por `form.elements` (não pelos filhos do `<form>`) e
+localizam o formulário pelo id `alvaraEletronicoForm`.
+
 ## (Des)Habilitar Advogado (popup para a tela de Advogados)
 
 Habilitar, desabilitar, adicionar ou remover um advogado hoje exige abrir

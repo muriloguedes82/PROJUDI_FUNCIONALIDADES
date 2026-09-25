@@ -101,6 +101,7 @@
 	window.__pdpCustomActions[LABEL] = {
 		resolveUrl: resolveUrl,
 		step: step,
+		formId: ALVARA_FORM_ID,
 		// Só os campos que fazem sentido reaproveitar entre processos. Conta
 		// judicial, beneficiário, sacadores, advogado, dados bancários,
 		// datas e valores dependem de cada processo/pagamento (e vários
