@@ -94,6 +94,17 @@
 			actions: ["Arquivar Processo"],
 		},
 		{
+			// Não é um link do painel Ações: o caminho até a tela final
+			// (aba "Informações Adicionais" → Depósitos/Alvarás Eletrônicos
+			// → "Novo Alvará") é ensinado por alvaraEletronico.js — ver
+			// CUSTOM_ACTIONS/openCustomAction. Só no Projudi.
+			id: "alvara",
+			title: "Alvará Eletrônico",
+			icon: "🏦",
+			actions: ["Alvará Eletrônico"],
+			custom: true,
+		},
+		{
 			id: "outras",
 			title: "Outras",
 			icon: "⋯",
@@ -1066,11 +1077,26 @@
 		});
 	}
 
-	function addPreference(label, name, fields) {
+	// `extra`: dados além dos campos, guardados na própria preferência (ex.:
+	// a modalidade do "Alvará Eletrônico" — ver ações personalizadas).
+	function addPreference(label, name, fields, extra) {
 		return loadAllPreferences().then(function (all) {
 			const list = all[label] || [];
-			list.push({ id: "p" + Date.now() + Math.random().toString(36).slice(2, 7), name: name, fields: fields, createdAt: Date.now() });
+			const pref = Object.assign({}, extra || {}, { id: "p" + Date.now() + Math.random().toString(36).slice(2, 7), name: name, fields: fields, createdAt: Date.now() });
+			list.push(pref);
 			all[label] = list;
+			return saveAllPreferences(all);
+		});
+	}
+
+	// Substitui uma preferência existente (mesmo id e data de criação),
+	// com novo nome/campos/dados extras — botão ✏️ (editar).
+	function updatePreference(label, id, name, fields, extra) {
+		return loadAllPreferences().then(function (all) {
+			all[label] = (all[label] || []).map(function (p) {
+				if (p.id !== id) return p;
+				return Object.assign({}, extra || {}, { id: p.id, name: name, fields: fields, createdAt: p.createdAt, updatedAt: Date.now() });
+			});
 			return saveAllPreferences(all);
 		});
 	}
@@ -1102,6 +1128,29 @@
 		return !!el && el.offsetParent !== null;
 	}
 
+	// Campos de um formulário — por `form.elements`, não pelos filhos no
+	// DOM: quando o Projudi abre o `<form>` direto dentro de uma `<table>`
+	// (ex.: "Cadastrar Alvará Eletrônico"), o navegador deixa o `<form>`
+	// vazio (e oculto: o Chrome aplica `display: none` a um form filho de
+	// table/tr) e os campos ficam fora dele, só ASSOCIADOS a ele — um
+	// `form.querySelector(...)` não acha nenhum.
+	function formControls(form) {
+		return Array.prototype.slice.call(form.elements || []);
+	}
+	function formFieldsNamed(form, name) {
+		return formControls(form).filter(function (el) {
+			return el.name === name;
+		});
+	}
+	// "Visível" = tem algum campo preenchível visível (não o próprio
+	// `<form>`, que pode estar oculto mesmo com os campos na tela — ver
+	// formControls).
+	function hasVisibleFields(form) {
+		return formControls(form).some(function (el) {
+			return /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName) && el.type !== "hidden" && isVisible(el);
+		});
+	}
+
 	// Aceitam um `root` (o `document` de verdade para o modo "ready", ou
 	// `iframe.contentDocument` para o popup do modo "hop") — ver
 	// resolveDialogUrl/showActionModal.
@@ -1109,7 +1158,7 @@
 		const forms = root.querySelectorAll("form");
 		for (let i = forms.length - 1; i >= 0; i--) {
 			const form = forms[i];
-			if (isVisible(form) && form.querySelector("input, select, textarea")) return form;
+			if (hasVisibleFields(form)) return form;
 		}
 		return null;
 	}
@@ -1121,9 +1170,9 @@
 		const forms = root.querySelectorAll("form");
 		for (let i = forms.length - 1; i >= 0; i--) {
 			const form = forms[i];
-			if (!isVisible(form)) continue;
+			if (!hasVisibleFields(form)) continue;
 			const hasAny = names.some(function (name) {
-				return !!form.querySelector('[name="' + cssEscapeAttr(name) + '"]');
+				return formFieldsNamed(form, name).length > 0;
 			});
 			if (hasAny) return form;
 		}
@@ -1140,7 +1189,9 @@
 
 	function captureFormFields(form) {
 		const fields = [];
-		const elements = form.querySelectorAll("input, select, textarea");
+		const elements = formControls(form).filter(function (el) {
+			return /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName);
+		});
 		elements.forEach(function (el) {
 			if (!el.name) return;
 			const type = (el.type || el.tagName || "").toLowerCase();
@@ -1157,13 +1208,15 @@
 	function applyFormFields(form, fields) {
 		fields.forEach(function (f) {
 			if (f.type === "checkbox" || f.type === "radio") {
-				const el = form.querySelector('[name="' + cssEscapeAttr(f.name) + '"][value="' + cssEscapeAttr(f.value) + '"]');
+				const el = formFieldsNamed(form, f.name).filter(function (c) {
+					return c.value === f.value;
+				})[0];
 				if (el) {
 					el.checked = f.checked;
 					el.dispatchEvent(new Event("change", { bubbles: true }));
 				}
 			} else {
-				const el = form.querySelector('[name="' + cssEscapeAttr(f.name) + '"]');
+				const el = formFieldsNamed(form, f.name)[0];
 				if (el) {
 					el.value = f.value;
 					el.dispatchEvent(new Event("input", { bubbles: true }));
@@ -1174,9 +1227,9 @@
 	}
 
 	function findSubmitControl(form) {
-		const controls = Array.prototype.slice.call(
-			form.querySelectorAll('input[type="submit"], button[type="submit"], input[type="button"], button')
-		);
+		const controls = formControls(form).filter(function (c) {
+			return c.tagName === "BUTTON" || (c.tagName === "INPUT" && (c.type === "submit" || c.type === "button"));
+		});
 		for (let i = 0; i < controls.length; i++) {
 			const c = controls[i];
 			if (!isVisible(c)) continue;
@@ -1218,30 +1271,49 @@
 	// modo "ready" (diálogo nativo aberto na própria tela de Ações), ou
 	// `iframe.contentDocument` no modo "hop" (diálogo dentro do popup
 	// desta extensão — ver showActionModal). Por padrão usa `document`.
-	function showCaptureToolbar(label, doc) {
+	// `doc` também pode ser uma função que devolve o documento na hora de
+	// salvar; `getExtra` (opcional) devolve os dados extras da preferência.
+	// Com `editingPref`, é a edição dessa preferência (botão ✏️): o diálogo
+	// já vem preenchido com ela, e salvar a SUBSTITUI (mesmo id), com o nome
+	// atual sugerido.
+	function showCaptureToolbar(label, doc, getExtra, editingPref) {
 		doc = doc || document;
 		removeCaptureToolbar();
 		captureToolbar = document.createElement("div");
 		captureToolbar.className = "pdp-qa-capture-bar";
 		captureToolbar.innerHTML =
-			'<span>Preencha o diálogo acima normalmente e depois:</span>' +
-			'<button type="button" class="pdp-qa-capture-save">💾 Salvar como preferência</button>' +
+			(editingPref
+				? '<span>Editando a preferência "' + escapeHtml(editingPref.name) + '" — ajuste o diálogo acima e depois:</span>' +
+					'<button type="button" class="pdp-qa-capture-save">💾 Atualizar preferência</button>'
+				: '<span>Preencha o diálogo acima normalmente e depois:</span>' +
+					'<button type="button" class="pdp-qa-capture-save">💾 Salvar como preferência</button>') +
 			'<button type="button" class="pdp-qa-capture-cancel">Cancelar</button>';
 		document.body.appendChild(captureToolbar);
 
 		captureToolbar.querySelector(".pdp-qa-capture-cancel").addEventListener("click", removeCaptureToolbar);
 		captureToolbar.querySelector(".pdp-qa-capture-save").addEventListener("click", function () {
-			const form = findLikelyDialogFormIn(doc);
+			const currentDoc = typeof doc === "function" ? doc() : doc;
+			const form = findCustomForm(label, currentDoc) || findLikelyDialogFormIn(currentDoc);
 			if (!form) {
 				alert('Não encontrei o formulário do diálogo "' + label + '" para capturar. Ele ainda está aberto na tela?');
 				return;
 			}
-			const name = prompt('Nome para esta preferência de "' + label + '":', "");
+			const name = prompt('Nome para esta preferência de "' + label + '":', editingPref ? editingPref.name : "");
 			if (!name) return;
-			const fields = captureFormFields(form);
-			addPreference(label, name.trim(), fields).then(function () {
+			const custom = getCustomAction(label);
+			const fields = captureFormFields(form).filter(function (f) {
+				return !custom || !custom.prefFields || custom.prefFields.indexOf(f.name) !== -1;
+			});
+			const extra = getExtra ? getExtra() : null;
+			const saving = editingPref
+				? updatePreference(label, editingPref.id, name.trim(), fields, extra)
+				: addPreference(label, name.trim(), fields, extra);
+			saving.then(function () {
 				removeCaptureToolbar();
-				alert('Preferência "' + name.trim() + '" salva para "' + label + '". Você ainda pode revisar e enviar este formulário normalmente.');
+				alert(
+					'Preferência "' + name.trim() + '" ' + (editingPref ? "atualizada" : "salva") + ' para "' + label +
+					'". Você ainda pode revisar e enviar este formulário normalmente.'
+				);
 			});
 		});
 	}
@@ -1279,6 +1351,17 @@
 		});
 	}
 
+	// Depois de preencher o diálogo com uma preferência: no uso normal, a
+	// barra "Sim, executar"; na edição (✏️), a barra "Atualizar
+	// preferência" — nada é enviado ao Projudi.
+	function afterPreferenceFilled(label, pref, form, doc, editing) {
+		if (editing) {
+			showCaptureToolbar(label, doc, null, pref);
+		} else {
+			showConfirmBar(label, pref, form);
+		}
+	}
+
 	function escapeHtml(text) {
 		const div = document.createElement("div");
 		div.textContent = text;
@@ -1312,7 +1395,7 @@
 		}, 400);
 	}
 
-	function applyPreference(label, pref) {
+	function applyPreference(label, pref, editing) {
 		closePanel();
 		removeCaptureToolbar();
 		const link = findActionLink(label);
@@ -1330,7 +1413,7 @@
 				return;
 			}
 			applyFormFields(form, pref.fields);
-			showConfirmBar(label, pref, form);
+			afterPreferenceFilled(label, pref, form, document, editing);
 		});
 	}
 
@@ -1564,7 +1647,7 @@
 		});
 	}
 
-	function applyPreferenceViaChain(label, pref) {
+	function applyPreferenceViaChain(label, pref, editing) {
 		const cancelToken = { cancelled: false };
 		showLoadingOverlay(label, function () {
 			cancelToken.cancelled = true;
@@ -1587,7 +1670,7 @@
 						return;
 					}
 					applyFormFields(form, pref.fields);
-					showConfirmBar(label, pref, form);
+					afterPreferenceFilled(label, pref, form, dialogDoc, editing);
 				});
 				return;
 			}
@@ -1611,11 +1694,215 @@
 						return;
 					}
 					applyFormFields(form, pref.fields);
-					showConfirmBar(label, pref, form);
+					afterPreferenceFilled(label, pref, form, doc, editing);
 				},
 				{ once: true }
 			);
 			iframe.src = result.url;
+		});
+	}
+
+	// -------------------------------------------------------------------
+	// Ações "personalizadas" — não são links do painel Ações, e sim telas
+	// alcançadas por outro caminho, ensinado por outro arquivo desta
+	// extensão, que se registra em `window.__pdpCustomActions[rótulo]`:
+	// - resolveUrl(): Promise com a URL da primeira tela a carregar;
+	// - step(doc, ctx): chamado a cada página carregada no popup e,
+	//   enquanto ela estiver aberta, periodicamente (telas que trocam de
+	//   conteúdo sem navegar). `ctx` é o estado desta abertura:
+	//   { mode: "open" | "capture" | "apply" | "edit", pref, extra,
+	//   actedDoc } ("edit" = abrir já preenchido com `pref` para editá-la,
+	//   com as mesmas etapas de "apply"). O
+	//   handler pode clicar/escolher opções nativas e devolve:
+	//   { state: "wait" }  — continua oculto, esperando a próxima tela;
+	//   { state: "show" }  — mostra o popup (o usuário precisa agir nele)
+	//                        e continua acompanhando;
+	//   { state: "ready" } — tela final: mostra e encerra (onReady);
+	//   { state: "fail", message }.
+	//   Em `ctx.extra` o handler guarda o que a preferência deve levar além
+	//   dos campos da tela final (ex.: a modalidade da tela anterior).
+	// - formId: id do <form> da tela final (captura/aplicação);
+	// - prefFields: nomes dos campos que uma preferência pode guardar;
+	// - confirmAfterApply: false para só preencher, sem "Sim, executar".
+	// Hoje: "Alvará Eletrônico" (alvaraEletronico.js).
+	// -------------------------------------------------------------------
+
+	const CUSTOM_STEP_TIMEOUT_MS = 20000;
+	const CUSTOM_POLL_MS = 400;
+
+	function getCustomAction(label) {
+		const all = window.__pdpCustomActions;
+		return (all && all[label]) || null;
+	}
+
+	// Formulário da tela final pelo id declarado pela ação (`formId`), se
+	// houver — mais seguro que a heurística do "último form visível".
+	function findCustomForm(label, doc) {
+		const custom = getCustomAction(label);
+		if (!custom || !custom.formId || !doc) return null;
+		const form = doc.getElementById(custom.formId);
+		return form && form.tagName === "FORM" ? form : null;
+	}
+
+	// Abre a ação no popup, mantendo o iframe oculto (sob o overlay de
+	// carregamento) enquanto o handler passa pelas telas intermediárias.
+	// `onReady(doc, ctx, iframe)` recebe a tela final.
+	function openCustomAction(label, mode, pref, onReady) {
+		const custom = getCustomAction(label);
+		if (!custom) {
+			alert('O atalho "' + label + '" não está disponível nesta tela.');
+			return;
+		}
+		const cancelToken = { cancelled: false };
+		function onCancel() {
+			cancelToken.cancelled = true;
+			removeActionModal();
+		}
+		showLoadingOverlay(label, onCancel);
+
+		Promise.resolve()
+			.then(function () {
+				return custom.resolveUrl();
+			})
+			.then(function (url) {
+				if (cancelToken.cancelled) return;
+				const iframe = showActionModal(label);
+				iframe.style.visibility = "hidden";
+				// O popup acabou de entrar por cima do overlay — traz o
+				// overlay de volta para a frente até a tela final chegar.
+				showLoadingOverlay(label, onCancel);
+
+				const ctx = { mode: mode, pref: pref || null, extra: {}, actedDoc: null };
+				let finished = false;
+				let revealed = false;
+				let lastState = null;
+				let timer = setTimeout(function () {
+					if (!finished && !revealed) finish('A tela de "' + label + '" demorou demais para abrir.');
+				}, CUSTOM_STEP_TIMEOUT_MS);
+				const poll = setInterval(evaluate, CUSTOM_POLL_MS);
+
+				function reveal() {
+					if (revealed) return;
+					revealed = true;
+					clearTimeout(timer);
+					removeLoadingOverlay();
+					iframe.style.visibility = "";
+				}
+
+				function finish(errorMessage, doc) {
+					finished = true;
+					clearTimeout(timer);
+					clearInterval(poll);
+					iframe.removeEventListener("load", evaluate);
+					if (cancelToken.cancelled || activeModalIframe !== iframe) return;
+					reveal();
+					// Em caso de erro, mostra mesmo assim a tela em que o
+					// Projudi parou (mensagem de erro, falta de permissão).
+					if (errorMessage) {
+						alert(errorMessage);
+						return;
+					}
+					if (onReady) onReady(doc, ctx, iframe);
+				}
+
+				function evaluate() {
+					if (finished) return;
+					if (cancelToken.cancelled || activeModalIframe !== iframe) {
+						finish(null, null);
+						return;
+					}
+					let doc;
+					try {
+						doc = iframe.contentDocument;
+						// O "load" da página em branco inicial (inserir o
+						// iframe sem `src`) não é uma etapa — ver fetchDoc.
+						if (!doc || iframe.contentWindow.location.href === "about:blank" || doc.readyState !== "complete") return;
+					} catch (err) {
+						finish("Não consegui acessar o conteúdo do popup.");
+						return;
+					}
+					const result = custom.step(doc, ctx) || { state: "wait" };
+					if (result.state !== lastState) {
+						lastState = result.state;
+						logChainStep('"' + label + '": etapa no popup', { url: iframe.contentWindow.location.href, estado: result.state });
+					}
+					if (result.state === "ready") {
+						finish(null, doc);
+					} else if (result.state === "show") {
+						reveal();
+					} else if (result.state === "fail") {
+						finish(result.message || 'Não consegui abrir "' + label + '".');
+					}
+				}
+
+				iframe.addEventListener("load", evaluate);
+				iframe.src = url;
+			})
+			.catch(function (err) {
+				if (cancelToken.cancelled) return;
+				removeLoadingOverlay();
+				removeActionModal();
+				alert('Não foi possível abrir "' + label + '": ' + (err && err.message ? err.message : err));
+			});
+	}
+
+	function startNewPreferenceCaptureCustom(label) {
+		openCustomAction(label, "capture", null, function (doc, ctx, iframe) {
+			// Documento ATUAL do popup no momento de salvar (a tela pode ter
+			// sido recarregada pelo próprio Projudi enquanto o usuário
+			// preenchia).
+			showCaptureToolbar(
+				label,
+				function () {
+					try {
+						return iframe.contentDocument || doc;
+					} catch (err) {
+						return doc;
+					}
+				},
+				function () {
+					return ctx.extra;
+				}
+			);
+		});
+	}
+
+	function applyPreferenceCustom(label, pref, editing) {
+		const custom = getCustomAction(label);
+		openCustomAction(label, editing ? "edit" : "apply", pref, function (doc, ctx, iframe) {
+			const fieldNames = pref.fields.map(function (f) {
+				return f.name;
+			});
+			const form = findCustomForm(label, doc) || findFormContainingFieldNamesIn(doc, fieldNames) || findLikelyDialogFormIn(doc);
+			if (!form) {
+				alert('Carreguei "' + label + '", mas não encontrei o formulário para preencher automaticamente. Preencha manualmente.');
+				return;
+			}
+			applyFormFields(form, pref.fields);
+			if (editing) {
+				// Mantém os dados extras da preferência (ex.: a modalidade),
+				// salvo se o usuário escolheu outros nesta abertura.
+				showCaptureToolbar(
+					label,
+					function () {
+						try {
+							return iframe.contentDocument || doc;
+						} catch (err) {
+							return doc;
+						}
+					},
+					function () {
+						const kept = {};
+						Object.keys(pref).forEach(function (key) {
+							if (["id", "name", "fields", "createdAt", "updatedAt"].indexOf(key) === -1) kept[key] = pref[key];
+						});
+						return Object.assign(kept, ctx.extra);
+					},
+					pref
+				);
+			} else if (!custom || custom.confirmAfterApply !== false) {
+				showConfirmBar(label, pref, form);
+			}
 		});
 	}
 
@@ -1644,6 +1931,7 @@
 		secondLine.className = "pdp-qa-row-line";
 
 		ACTION_GROUPS.forEach(function (group) {
+			if (group.custom && !location.pathname.startsWith("/projudi/")) return;
 			const btn = document.createElement("button");
 			btn.type = "button";
 			btn.className = "pdp-qa-group-btn";
@@ -1756,9 +2044,20 @@
 		activePanel.className = "pdp-qa-panel";
 
 		let actionsToRender = [];
-		let mode; // 'ready' | 'hop' | 'unreachable'
+		let mode; // 'ready' | 'hop' | 'custom' | 'unreachable'
 
-		if (isOnAcoesScreen()) {
+		if (group.custom) {
+			mode = "custom";
+			actionsToRender = group.actions.filter(function (label) {
+				return !!getCustomAction(label);
+			});
+			if (!actionsToRender.length) {
+				const empty = document.createElement("div");
+				empty.className = "pdp-qa-empty";
+				empty.textContent = 'O atalho "' + group.title + '" não está disponível nesta tela.';
+				activePanel.appendChild(empty);
+			}
+		} else if (isOnAcoesScreen()) {
 			mode = "ready";
 			actionsToRender = group.actions.filter(function (label) {
 				return !!findActionLink(label);
@@ -1827,7 +2126,9 @@
 		openBtn.title = "Abrir o diálogo normal do Projudi para esta ação";
 		openBtn.addEventListener("click", function () {
 			closePanel();
-			if (mode === "hop") {
+			if (mode === "custom") {
+				openCustomAction(label, "open", null, null);
+			} else if (mode === "hop") {
 				openActionDialogViaChain(label);
 			} else {
 				openActionDialog(label);
@@ -1849,7 +2150,10 @@
 		newPrefBtn.title = "Abre o diálogo para você preencher e salvar o preenchimento como preferência";
 		newPrefBtn.addEventListener("click", function () {
 			closePanel();
-			if (mode === "hop") {
+			if (mode === "custom") {
+				removeConfirmBar();
+				startNewPreferenceCaptureCustom(label);
+			} else if (mode === "hop") {
 				startNewPreferenceCaptureViaChain(label);
 			} else {
 				startNewPreferenceCapture(label);
@@ -1873,9 +2177,17 @@
 			applyBtn.type = "button";
 			applyBtn.className = "pdp-qa-pref-btn";
 			applyBtn.textContent = "★ " + pref.name;
-			applyBtn.title = 'Preenche automaticamente e pede 1 confirmação para executar "' + label + '"';
+			applyBtn.title =
+				(mode === "custom"
+					? 'Abre "' + label + '" já preenchido com esta preferência'
+					: 'Preenche automaticamente e pede 1 confirmação para executar "' + label + '"') +
+				(pref.descricao ? "\n" + pref.descricao : "");
 			applyBtn.addEventListener("click", function () {
-				if (mode === "hop") {
+				if (mode === "custom") {
+					closePanel();
+					removeCaptureToolbar();
+					applyPreferenceCustom(label, pref);
+				} else if (mode === "hop") {
 					closePanel();
 					applyPreferenceViaChain(label, pref);
 				} else {
@@ -1883,6 +2195,25 @@
 				}
 			});
 			chip.appendChild(applyBtn);
+
+			const editBtn = document.createElement("button");
+			editBtn.type = "button";
+			editBtn.className = "pdp-qa-pref-edit";
+			editBtn.textContent = "✏️";
+			editBtn.title = "Editar esta preferência: abre o diálogo preenchido com ela para ajustar os campos (e o nome) e salvar de novo";
+			editBtn.addEventListener("click", function () {
+				closePanel();
+				removeConfirmBar();
+				removeCaptureToolbar();
+				if (mode === "custom") {
+					applyPreferenceCustom(label, pref, true);
+				} else if (mode === "hop") {
+					applyPreferenceViaChain(label, pref, true);
+				} else {
+					applyPreference(label, pref, true);
+				}
+			});
+			chip.appendChild(editBtn);
 
 			const delBtn = document.createElement("button");
 			delBtn.type = "button";

@@ -484,7 +484,8 @@ Concluso, Apensar, etc. — que obriga a rolar a página até achar a ação
 desejada.
 
 A extensão adiciona **um botão flutuante por grupo de ações** — Concluso,
-Remessa, Ordenações, Partes, Suspender, Transitar, Arquivar, Outras —
+Remessa, Ordenações, Partes, Suspender, Transitar, Arquivar, Alvará
+Eletrônico, Outras —
 lado a lado, no mesmo canto da tela dos botões de WhatsApp/e-mail
 (posicionando-se ao lado deles quando presentes):
 
@@ -498,6 +499,8 @@ lado a lado, no mesmo canto da tela dos botões de WhatsApp/e-mail
 - **Suspender**: Suspender ou Sobrestar Processo
 - **Transitar**: Transitar em Julgado
 - **Arquivar**: Arquivar Processo
+- **Alvará Eletrônico**: Alvará Eletrônico (ver "Alvará Eletrônico"
+  abaixo — não é um link do painel Ações)
   (fora da tela de Ações, o popup carrega a própria tela de Ações do
   processo e abre o diálogo "Arquivamento de Processo" pelo link nativo —
   esse diálogo só grava o arquivamento quando roda dentro dela)
@@ -614,6 +617,15 @@ diálogo como **preferência** e reaplicá-lo depois com poucos cliques:
    efetivamente realiza a ação processual**, então confira os campos
    preenchidos antes de confirmar.
 
+Para **editar** uma preferência, clique no **✏️** ao lado dela (o 🗑
+continua removendo): a extensão abre o mesmo diálogo já preenchido com a
+preferência, mas **sem** a barra "Sim, executar" — no lugar dela aparece
+**"💾 Atualizar preferência"**. Ajuste os campos, clique nesse botão e
+confirme (ou troque) o nome: a preferência é substituída no mesmo lugar.
+Nada é enviado ao Projudi na edição. No "Alvará Eletrônico", a edição
+também pula a tela de Modalidade (usa a modalidade guardada); para outra
+modalidade, crie uma nova preferência.
+
 As preferências (e o "+ Nova preferência") também funcionam a partir de
 qualquer tela com a lista de Movimentações visível: nesse caso elas
 primeiro resolvem a URL do diálogo em segundo plano (ver acima) e só
@@ -638,6 +650,63 @@ As preferências ficam em `chrome.storage.local` (armazenamento local da
 própria extensão, não enviado a nenhum servidor), organizadas por ação —
 ex.: as preferências de "Ordenar Cumprimentos" não aparecem em "Ordenar
 RPV".
+
+## Alvará Eletrônico (popup para "Cadastrar Alvará Eletrônico")
+
+Cadastrar um alvará eletrônico hoje exige abrir a aba **"Informações
+Adicionais"**, clicar em **"Depósitos/Alvarás Eletrônicos - Integração
+CEF"** ("Há N depósitos cadastrados (clique para visualizar)") e, na tela
+**"Informações Financeiras"**, clicar no botão nativo **"Novo Alvará"**,
+que leva à tela **"Cadastrar Alvará Eletrônico - Pagamento ao
+beneficiário"**.
+
+Depois do "Novo Alvará", o Projudi mostra uma primeira tela **"Cadastrar
+Alvará Eletrônico"** só com o campo **Modalidade**; escolhida a
+modalidade, vem o formulário completo (ex.: "Pagamento ao beneficiário
+(ordem de pagamento/transferência)").
+
+O painel "Ações rápidas" ganha o grupo **"🏦 Alvará Eletrônico"**, com os
+mesmos "Abrir", "+ Nova preferência" e preferências salvas das demais
+ações, sempre no **mesmo popup** das "Ações rápidas" — a aba visível nunca
+navega:
+
+1. A URL da tela de depósitos (`depositoEletronico.do?_tj=...`) é lida do
+   link da aba "Informações Adicionais" — do DOM, se já é a aba atual;
+   senão, da aba buscada via `fetch()` em segundo plano (a mesma leitura do
+   "(Des)Habilitar Advogado").
+2. O popup carrega essa tela **oculto** (sob o "Abrindo…") e clica no
+   botão nativo "Novo Alvará" dentro dele — o próprio `submitPage` do
+   Projudi envia o formulário com o token certo.
+3. Na tela de **Modalidade**:
+   - **Abrir** mostra essa tela, para o usuário escolher a modalidade;
+   - **+ Nova preferência** mostra essa tela, anota a modalidade escolhida
+     e, no formulário completo, oferece "💾 Salvar como preferência": a
+     preferência guarda **a modalidade e os campos da segunda tela**.
+     Crie uma preferência para cada modalidade que usar;
+   - **usar uma preferência** escolhe sozinho a modalidade guardada, com o
+     popup ainda oculto: a tela de Modalidade é **pulada** e o usuário já
+     vê o formulário completo, preenchido. Se a modalidade não existir
+     neste processo, ou se o Projudi não avançar, a tela de Modalidade é
+     mostrada para o usuário seguir manualmente.
+
+Se o Projudi parar em outra tela (erro, falta de permissão), ela é
+mostrada com um aviso. A modalidade de cada preferência aparece ao passar
+o mouse sobre ela.
+
+**Campos guardados**: a modalidade, e do formulário completo apenas os
+que se repetem entre processos — Magistrado, Urgente, Natureza do Alvará,
+Representação Processual, Finalidade do Pagamento, Tipo de Crédito e
+Observação. Conta judicial, beneficiário, sacadores, dados bancários,
+datas e valores dependem de cada pagamento e ficam sempre para o usuário.
+Ao aplicar uma preferência, a extensão só preenche — **não** mostra a
+barra "Sim, executar": o usuário completa o restante e clica em "Salvar"
+do próprio Projudi. Só no Projudi.
+
+Nessa tela o Projudi abre o `<form>` direto dentro de uma `<table>`: o
+navegador deixa o `<form>` vazio (e oculto) e os campos ficam fora dele,
+apenas associados a ele. Por isso a captura e a aplicação de preferências
+leem os campos por `form.elements` (não pelos filhos do `<form>`) e
+localizam o formulário pelo id `alvaraEletronicoForm`.
 
 ## (Des)Habilitar Advogado (popup para a tela de Advogados)
 
