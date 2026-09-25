@@ -143,6 +143,19 @@
 	text-decoration: underline;
 }
 
+.pdp-qa-pref-edit {
+	background: none;
+	border: none;
+	font-size: 11px;
+	padding: 4px 2px;
+	cursor: pointer;
+	opacity: 0.75;
+}
+
+.pdp-qa-pref-edit:hover {
+	opacity: 1;
+}
+
 .pdp-qa-pref-del {
 	background: none;
 	border: none;

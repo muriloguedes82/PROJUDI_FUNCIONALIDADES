@@ -617,6 +617,15 @@ diálogo como **preferência** e reaplicá-lo depois com poucos cliques:
    efetivamente realiza a ação processual**, então confira os campos
    preenchidos antes de confirmar.
 
+Para **editar** uma preferência, clique no **✏️** ao lado dela (o 🗑
+continua removendo): a extensão abre o mesmo diálogo já preenchido com a
+preferência, mas **sem** a barra "Sim, executar" — no lugar dela aparece
+**"💾 Atualizar preferência"**. Ajuste os campos, clique nesse botão e
+confirme (ou troque) o nome: a preferência é substituída no mesmo lugar.
+Nada é enviado ao Projudi na edição. No "Alvará Eletrônico", a edição
+também pula a tela de Modalidade (usa a modalidade guardada); para outra
+modalidade, crie uma nova preferência.
+
 As preferências (e o "+ Nova preferência") também funcionam a partir de
 qualquer tela com a lista de Movimentações visível: nesse caso elas
 primeiro resolvem a URL do diálogo em segundo plano (ver acima) e só

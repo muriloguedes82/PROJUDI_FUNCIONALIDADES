@@ -28,9 +28,9 @@
 //    - "+ Nova preferência": mostra essa tela, anota a modalidade que o
 //      usuário escolher e, no formulário completo, oferece "Salvar como
 //      preferência" — a preferência guarda a modalidade + os campos;
-//    - preferência salva: escolhe a modalidade guardada sozinho (o
-//      `onchange` nativo do Projudi leva à tela seguinte), com o popup
-//      ainda oculto — a tela de Modalidade é "pulada" e o usuário já vê o
+//    - preferência salva (e sua edição, ✏️): escolhe a modalidade
+//      guardada sozinha (o `onchange` nativo do Projudi leva à tela
+//      seguinte), com o popup ainda oculto — a tela de Modalidade é "pulada" e o usuário já vê o
 //      formulário completo, preenchido com os campos da preferência.
 (function () {
 	"use strict";
@@ -164,19 +164,18 @@
 		const modalidade = findModalidadeSelect(doc);
 		if (modalidade) {
 			if (ctx.mode === "open") return { state: "ready" };
-			if (ctx.mode === "capture") {
-				// O usuário escolhe; anota a escolha (lida a cada verificação
-				// e no próprio "change", antes de a tela seguinte carregar).
-				if (!modalidade.__pdpModalidadeWatch) {
-					modalidade.__pdpModalidadeWatch = true;
-					modalidade.addEventListener("change", function () {
-						rememberModalidade(ctx, modalidade);
-					});
-				}
-				rememberModalidade(ctx, modalidade);
-				return { state: "show" };
+			// Anota a modalidade escolhida (lida a cada verificação e no
+			// próprio "change", antes de a tela seguinte carregar) — pelo
+			// usuário ou por este script.
+			if (!modalidade.__pdpModalidadeWatch) {
+				modalidade.__pdpModalidadeWatch = true;
+				modalidade.addEventListener("change", function () {
+					rememberModalidade(ctx, modalidade);
+				});
 			}
-			// mode === "apply"
+			rememberModalidade(ctx, modalidade);
+			if (ctx.mode === "capture") return { state: "show" }; // o usuário escolhe
+			// mode === "apply" | "edit"
 			const saved = ctx.pref && ctx.pref.modalidade;
 			if (!saved) return { state: "show" }; // preferência sem modalidade: o usuário escolhe
 			if (doc === ctx.actedDoc) {

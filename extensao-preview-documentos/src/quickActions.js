@@ -1089,6 +1089,18 @@
 		});
 	}
 
+	// Substitui uma preferência existente (mesmo id e data de criação),
+	// com novo nome/campos/dados extras — botão ✏️ (editar).
+	function updatePreference(label, id, name, fields, extra) {
+		return loadAllPreferences().then(function (all) {
+			all[label] = (all[label] || []).map(function (p) {
+				if (p.id !== id) return p;
+				return Object.assign({}, extra || {}, { id: p.id, name: name, fields: fields, createdAt: p.createdAt, updatedAt: Date.now() });
+			});
+			return saveAllPreferences(all);
+		});
+	}
+
 	function removePreference(label, id) {
 		return loadAllPreferences().then(function (all) {
 			all[label] = (all[label] || []).filter(function (p) {
@@ -1261,14 +1273,20 @@
 	// desta extensão — ver showActionModal). Por padrão usa `document`.
 	// `doc` também pode ser uma função que devolve o documento na hora de
 	// salvar; `getExtra` (opcional) devolve os dados extras da preferência.
-	function showCaptureToolbar(label, doc, getExtra) {
+	// Com `editingPref`, é a edição dessa preferência (botão ✏️): o diálogo
+	// já vem preenchido com ela, e salvar a SUBSTITUI (mesmo id), com o nome
+	// atual sugerido.
+	function showCaptureToolbar(label, doc, getExtra, editingPref) {
 		doc = doc || document;
 		removeCaptureToolbar();
 		captureToolbar = document.createElement("div");
 		captureToolbar.className = "pdp-qa-capture-bar";
 		captureToolbar.innerHTML =
-			'<span>Preencha o diálogo acima normalmente e depois:</span>' +
-			'<button type="button" class="pdp-qa-capture-save">💾 Salvar como preferência</button>' +
+			(editingPref
+				? '<span>Editando a preferência "' + escapeHtml(editingPref.name) + '" — ajuste o diálogo acima e depois:</span>' +
+					'<button type="button" class="pdp-qa-capture-save">💾 Atualizar preferência</button>'
+				: '<span>Preencha o diálogo acima normalmente e depois:</span>' +
+					'<button type="button" class="pdp-qa-capture-save">💾 Salvar como preferência</button>') +
 			'<button type="button" class="pdp-qa-capture-cancel">Cancelar</button>';
 		document.body.appendChild(captureToolbar);
 
@@ -1280,15 +1298,22 @@
 				alert('Não encontrei o formulário do diálogo "' + label + '" para capturar. Ele ainda está aberto na tela?');
 				return;
 			}
-			const name = prompt('Nome para esta preferência de "' + label + '":', "");
+			const name = prompt('Nome para esta preferência de "' + label + '":', editingPref ? editingPref.name : "");
 			if (!name) return;
 			const custom = getCustomAction(label);
 			const fields = captureFormFields(form).filter(function (f) {
 				return !custom || !custom.prefFields || custom.prefFields.indexOf(f.name) !== -1;
 			});
-			addPreference(label, name.trim(), fields, getExtra ? getExtra() : null).then(function () {
+			const extra = getExtra ? getExtra() : null;
+			const saving = editingPref
+				? updatePreference(label, editingPref.id, name.trim(), fields, extra)
+				: addPreference(label, name.trim(), fields, extra);
+			saving.then(function () {
 				removeCaptureToolbar();
-				alert('Preferência "' + name.trim() + '" salva para "' + label + '". Você ainda pode revisar e enviar este formulário normalmente.');
+				alert(
+					'Preferência "' + name.trim() + '" ' + (editingPref ? "atualizada" : "salva") + ' para "' + label +
+					'". Você ainda pode revisar e enviar este formulário normalmente.'
+				);
 			});
 		});
 	}
@@ -1326,6 +1351,17 @@
 		});
 	}
 
+	// Depois de preencher o diálogo com uma preferência: no uso normal, a
+	// barra "Sim, executar"; na edição (✏️), a barra "Atualizar
+	// preferência" — nada é enviado ao Projudi.
+	function afterPreferenceFilled(label, pref, form, doc, editing) {
+		if (editing) {
+			showCaptureToolbar(label, doc, null, pref);
+		} else {
+			showConfirmBar(label, pref, form);
+		}
+	}
+
 	function escapeHtml(text) {
 		const div = document.createElement("div");
 		div.textContent = text;
@@ -1359,7 +1395,7 @@
 		}, 400);
 	}
 
-	function applyPreference(label, pref) {
+	function applyPreference(label, pref, editing) {
 		closePanel();
 		removeCaptureToolbar();
 		const link = findActionLink(label);
@@ -1377,7 +1413,7 @@
 				return;
 			}
 			applyFormFields(form, pref.fields);
-			showConfirmBar(label, pref, form);
+			afterPreferenceFilled(label, pref, form, document, editing);
 		});
 	}
 
@@ -1611,7 +1647,7 @@
 		});
 	}
 
-	function applyPreferenceViaChain(label, pref) {
+	function applyPreferenceViaChain(label, pref, editing) {
 		const cancelToken = { cancelled: false };
 		showLoadingOverlay(label, function () {
 			cancelToken.cancelled = true;
@@ -1634,7 +1670,7 @@
 						return;
 					}
 					applyFormFields(form, pref.fields);
-					showConfirmBar(label, pref, form);
+					afterPreferenceFilled(label, pref, form, dialogDoc, editing);
 				});
 				return;
 			}
@@ -1658,7 +1694,7 @@
 						return;
 					}
 					applyFormFields(form, pref.fields);
-					showConfirmBar(label, pref, form);
+					afterPreferenceFilled(label, pref, form, doc, editing);
 				},
 				{ once: true }
 			);
@@ -1674,7 +1710,9 @@
 	// - step(doc, ctx): chamado a cada página carregada no popup e,
 	//   enquanto ela estiver aberta, periodicamente (telas que trocam de
 	//   conteúdo sem navegar). `ctx` é o estado desta abertura:
-	//   { mode: "open" | "capture" | "apply", pref, extra, actedDoc }. O
+	//   { mode: "open" | "capture" | "apply" | "edit", pref, extra,
+	//   actedDoc } ("edit" = abrir já preenchido com `pref` para editá-la,
+	//   com as mesmas etapas de "apply"). O
 	//   handler pode clicar/escolher opções nativas e devolve:
 	//   { state: "wait" }  — continua oculto, esperando a próxima tela;
 	//   { state: "show" }  — mostra o popup (o usuário precisa agir nele)
@@ -1829,9 +1867,9 @@
 		});
 	}
 
-	function applyPreferenceCustom(label, pref) {
+	function applyPreferenceCustom(label, pref, editing) {
 		const custom = getCustomAction(label);
-		openCustomAction(label, "apply", pref, function (doc) {
+		openCustomAction(label, editing ? "edit" : "apply", pref, function (doc, ctx, iframe) {
 			const fieldNames = pref.fields.map(function (f) {
 				return f.name;
 			});
@@ -1841,7 +1879,30 @@
 				return;
 			}
 			applyFormFields(form, pref.fields);
-			if (!custom || custom.confirmAfterApply !== false) showConfirmBar(label, pref, form);
+			if (editing) {
+				// Mantém os dados extras da preferência (ex.: a modalidade),
+				// salvo se o usuário escolheu outros nesta abertura.
+				showCaptureToolbar(
+					label,
+					function () {
+						try {
+							return iframe.contentDocument || doc;
+						} catch (err) {
+							return doc;
+						}
+					},
+					function () {
+						const kept = {};
+						Object.keys(pref).forEach(function (key) {
+							if (["id", "name", "fields", "createdAt", "updatedAt"].indexOf(key) === -1) kept[key] = pref[key];
+						});
+						return Object.assign(kept, ctx.extra);
+					},
+					pref
+				);
+			} else if (!custom || custom.confirmAfterApply !== false) {
+				showConfirmBar(label, pref, form);
+			}
 		});
 	}
 
@@ -2134,6 +2195,25 @@
 				}
 			});
 			chip.appendChild(applyBtn);
+
+			const editBtn = document.createElement("button");
+			editBtn.type = "button";
+			editBtn.className = "pdp-qa-pref-edit";
+			editBtn.textContent = "✏️";
+			editBtn.title = "Editar esta preferência: abre o diálogo preenchido com ela para ajustar os campos (e o nome) e salvar de novo";
+			editBtn.addEventListener("click", function () {
+				closePanel();
+				removeConfirmBar();
+				removeCaptureToolbar();
+				if (mode === "custom") {
+					applyPreferenceCustom(label, pref, true);
+				} else if (mode === "hop") {
+					applyPreferenceViaChain(label, pref, true);
+				} else {
+					applyPreference(label, pref, true);
+				}
+			});
+			chip.appendChild(editBtn);
 
 			const delBtn = document.createElement("button");
 			delBtn.type = "button";
