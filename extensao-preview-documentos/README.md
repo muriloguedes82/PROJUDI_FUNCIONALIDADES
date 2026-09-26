@@ -848,7 +848,8 @@ partir do link **"Processo"** da ordenação:
 1. aba **"Informações Adicionais"** do processo: Classe Processual, Data
    da Infração e os links abaixo;
 2. **Denunciado(s)/Querelado(s)** da parte: Data de Oferecimento, Data de
-   Recebimento e Imputações;
+   Recebimento, Data Aditamento e Recebimento Aditamento (só quando houver
+   aditamento da denúncia) e Imputações;
 3. **Sentenciados** da parte (anotações "Primeiro Grau" e "Tribunal de
    Justiça"; o link abre a lista de anotações e a extensão segue o
    "Exibir detalhes" da anotação ativa da parte): data da sentença, data do acórdão, recurso (número,

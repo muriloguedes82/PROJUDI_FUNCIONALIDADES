@@ -18,7 +18,8 @@
 //    mesma técnica de cpfPartesCumprimentos.js): "Classe Processual", "Data
 //    da Infração" e os links abaixo;
 // 2. "Denunciado(s)/Querelado(s)" (`denunciado.do` da parte): Data de
-//    Oferecimento, Data de Recebimento e Imputações;
+//    Oferecimento, Data de Recebimento, Data Aditamento e Recebimento
+//    Aditamento (quando houver aditamento) e Imputações;
 // 3. "Sentenciados" (`parteSentenciada.do` da parte, "Primeiro Grau" e
 //    "Tribunal de Justiça"): datas da sentença e do acórdão, recurso, regime,
 //    tempo de pena, multa e trânsito em julgado (relativo à sentença); o link
@@ -421,6 +422,9 @@
 		return {
 			oferecimento: campo(doc, /^data de oferecimento$/),
 			recebimento: campo(doc, /^data de recebimento$/),
+			// Só existem quando há aditamento da denúncia.
+			aditamento: primeiraData(campo(doc, /^data aditamento$/)),
+			recebimentoAditamento: primeiraData(campo(doc, /^recebimento aditamento$/)),
 			imputacoes: imputacoes,
 		};
 	}
@@ -887,6 +891,14 @@
 		return "";
 	}
 
+	// Linhas de aditamento da denúncia — só quando houver.
+	function camposAditamento(den, sufixo) {
+		const linhas = [];
+		if (den && den.aditamento) linhas.push(["Data Aditamento" + sufixo, den.aditamento]);
+		if (den && den.recebimentoAditamento) linhas.push(["Recebimento Aditamento" + sufixo, den.recebimentoAditamento]);
+		return linhas;
+	}
+
 	function renderizar(ordenacao, dados) {
 		limparSecoes(ordenacao);
 		const tbody = corpoDaTabela(ordenacao);
@@ -925,6 +937,7 @@
 				["Data da Infração", dados.geral.dataInfracao || (inf && inf.dataInfracao)],
 				["Data de Oferecimento da Denúncia", den && den.oferecimento],
 				["Data de Recebimento da Denúncia", den && den.recebimento],
+			].concat(camposAditamento(den, " da Denúncia"), [
 				["Data da Sentença", pg && pg.dataSentenca],
 				["Data do Acórdão", tj && tj.dataPublicacao],
 				["Data do Trânsito em Julgado (relativo à sentença)", tr("sentenca")],
@@ -932,7 +945,7 @@
 				["Data de Trânsito em Julgado do Assistente da Acusação", tr("assistente")],
 				["Data de Trânsito em Julgado da Defesa", tr("defesa")],
 				["Data de Trânsito em Julgado do Réu", tr("reu")],
-			]));
+			])));
 
 			secao(tbody, "Cadastro de Sentença" + sufixo, tabelaCampos([
 				["Tipo da Pena", preferir(anotacoes, function (a) { return a.tipoSentenca; })],
@@ -981,7 +994,7 @@
 			const conteudoDen = [tabelaCampos([
 				["Data de Oferecimento", den && den.oferecimento],
 				["Data de Recebimento", den && den.recebimento],
-			])];
+			].concat(camposAditamento(den, "")))];
 			if (den && den.imputacoes.length) {
 				conteudoDen.push(tabelaResultado(["Lei", "Pena Cominada", "Complemento"], den.imputacoes.map(function (i) { return [i.lei, i.pena, i.tipo]; })));
 			}
