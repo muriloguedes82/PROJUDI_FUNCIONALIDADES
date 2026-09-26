@@ -25,7 +25,10 @@
 //    tipificação vem da PRIMEIRA origem que existir, nesta ordem — Sentença
 //    Judicial Tribunal de Justiça, Sentença Judicial Primeiro Grau,
 //    Ministério Público; as demais são desprezadas (Delegacia nunca é usada);
-// 5. "Prisões": por ora só o link para a tela de prisões do processo.
+// 5. aba "Prisões" da tela da parte (`parteProcesso.do`, link do nome da
+//    parte na ordenação; na falta dele, o link "Prisões:" da aba "Informações
+//    Adicionais"): tabela de prisões e o "Local da Prisão" de "Dados da Peça"
+//    (local da prisão ainda sem soltura/conversão; se não houver, nenhum).
 //
 // Estrutura real das telas confirmada a partir de .mhtml salvos do Projudi
 // (TJPR):
@@ -74,6 +77,12 @@
 //   id="quadroPendencias"><legend>Trânsito em Julgado (relativo à sentença):
 //   14/04/2026</legend> com as tabelas "Autor:", "Assistente de Acusação:",
 //   "Réu:" e "Defensor do Réu:" (nome | data ou "Não Informado").
+// - `parteProcesso.do` (tela da parte): <h3>Área da Parte e Outros NOME</h3>;
+//   o conteúdo de todas as abas vem na página (só a atual visível); a aba
+//   "Prisões" (<div id="tabprefix2">) tem uma table.resultTable com <th>
+//   "Data da Prisão", "Guia de Prisão", "Motivo da Prisão", "Fiança", "Local
+//   da Prisão", "Soltura/ Conversão", "Guia de Soltura", "Motivo da
+//   Soltura", "Período de Prisão" e "Arquivo", e um <tfoot> "Total Geral:".
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
@@ -248,7 +257,7 @@
 				if (!nome) continue;
 				const span = li.querySelector('[id^="infoParteBnmp"]');
 				const id = span ? span.id.replace(/^infoParteBnmp/, "") : "";
-				partes.push({ nome: nome, id: /^\d+$/.test(id) ? id : "" });
+				partes.push({ nome: nome, id: /^\d+$/.test(id) ? id : "", href: a ? a.href : "" });
 			}
 		}
 		if (!partes.length) return null;
@@ -520,6 +529,71 @@
 	}
 
 	// ---------------------------------------------------------------------
+	// Prisões (aba "Prisões" da tela da parte)
+	// ---------------------------------------------------------------------
+
+	function tabelaDePrisoes(doc) {
+		return Array.prototype.find.call(doc.querySelectorAll("table.resultTable"), function (t) {
+			return Array.prototype.some.call(t.querySelectorAll("th"), function (th) { return normalize(th.textContent) === "data da prisao"; });
+		});
+	}
+
+	function nomeDaTelaDaParte(doc) {
+		const h3 = Array.prototype.find.call(doc.querySelectorAll("h3"), function (h) { return /^area da parte/.test(normalize(h.textContent)); });
+		return h3 ? collapse(h3.textContent).replace(/^.*?parte e outros\s*/i, "") : "";
+	}
+
+	function lerTabelaPrisoes(table) {
+		const ths = Array.prototype.map.call(table.querySelectorAll("thead th"), function (th) { return normalize(th.textContent); });
+		const col = function (regex) { return ths.findIndex(function (t) { return regex.test(t); }); };
+		const c = {
+			data: col(/^data da prisao/),
+			motivo: col(/^motivo da prisao/),
+			local: col(/^local da prisao/),
+			soltura: col(/^soltura/),
+			motivoSoltura: col(/^motivo da soltura/),
+			periodo: col(/^periodo/),
+		};
+		const texto = function (tr, i) { return i >= 0 && tr.cells[i] ? collapse(tr.cells[i].textContent) : ""; };
+		const linhas = [];
+		for (const tbody of table.tBodies) {
+			for (const tr of tbody.rows) {
+				if (tr.querySelector("th") || tr.cells.length < ths.length - 1) continue;
+				const data = texto(tr, c.data);
+				if (!primeiraData(data)) continue;
+				linhas.push({
+					data: data,
+					motivo: texto(tr, c.motivo),
+					local: texto(tr, c.local),
+					soltura: texto(tr, c.soltura),
+					motivoSoltura: texto(tr, c.motivoSoltura),
+					periodo: texto(tr, c.periodo),
+				});
+			}
+		}
+		const foot = table.tFoot ? Array.prototype.map.call(table.tFoot.querySelectorAll("th"), function (th) { return collapse(th.textContent); }).filter(Boolean) : [];
+		return { linhas: linhas, total: foot.length > 1 ? foot[foot.length - 1] : "" };
+	}
+
+	async function lerPrisoes(parte, linkProcesso) {
+		const candidatos = [parte.href, linkProcesso && linkProcesso.href].filter(Boolean);
+		let ultimoErro = null;
+		for (const href of candidatos) {
+			try {
+				const { doc } = await readPage(projudiURL(href).href, { method: "GET" });
+				const nomeTela = nomeDaTelaDaParte(doc);
+				if (nomeTela && !mesmoNome(nomeTela, parte.nome)) continue;
+				const table = tabelaDePrisoes(doc);
+				if (table) return lerTabelaPrisoes(table);
+			} catch (err) {
+				ultimoErro = err;
+			}
+		}
+		if (ultimoErro) throw ultimoErro;
+		throw new Error("a aba Prisões da parte não foi encontrada");
+	}
+
+	// ---------------------------------------------------------------------
 	// Busca de tudo, por parte
 	// ---------------------------------------------------------------------
 
@@ -551,13 +625,14 @@
 			ordenacao.partes.map(async function (parte) {
 				const denunciadoHref = linkDenunciado(doc, base, parte.nome);
 				const sentencas = linksSentenca(doc, base, parte.nome);
-				const [denunciado, primeiroGrau, tribunal, infracoes] = await Promise.all([
+				const [denunciado, primeiroGrau, tribunal, infracoes, prisoes] = await Promise.all([
 					denunciadoHref ? capturar(lerDenunciado(denunciadoHref)) : Promise.resolve(null),
 					sentencas.primeiroGrau ? capturar(lerSentenca(sentencas.primeiroGrau, parte.nome)) : Promise.resolve(null),
 					sentencas.tribunal ? capturar(lerSentenca(sentencas.tribunal, parte.nome)) : Promise.resolve(null),
 					geral.infracoes ? capturar(lerInfracoes(geral.infracoes.href, parte)) : Promise.resolve(null),
+					parte.href || geral.prisoes ? capturar(lerPrisoes(parte, geral.prisoes)) : Promise.resolve(null),
 				]);
-				return { parte: parte, denunciado: denunciado, primeiroGrau: primeiroGrau, tribunal: tribunal, infracoes: infracoes };
+				return { parte: parte, denunciado: denunciado, primeiroGrau: primeiroGrau, tribunal: tribunal, infracoes: infracoes, prisoes: prisoes };
 			})
 		);
 		return { geral: geral, partes: porParte };
@@ -663,13 +738,18 @@
 				item.primeiroGrau && item.primeiroGrau.erro ? "Sentença (Primeiro Grau): " + item.primeiroGrau.erro : "",
 				item.tribunal && item.tribunal.erro ? "Acórdão (Tribunal de Justiça): " + item.tribunal.erro : "",
 				item.infracoes && item.infracoes.erro ? "Infrações/Penas: " + item.infracoes.erro : "",
+				item.prisoes && item.prisoes.erro ? "Prisões: " + item.prisoes.erro : "",
 			].filter(Boolean);
+			const pri = item.prisoes && item.prisoes.ok;
+			const emAberto = pri ? pri.linhas.filter(function (l) { return !l.soltura; }) : [];
+			const localPrisao = emAberto.length ? emAberto[emAberto.length - 1].local : "";
 
 			const regime = preferir(anotacoes, function (a) { return a.regime; });
 			secao(tbody, "Dados da Peça" + sufixo, tabelaCampos([
 				["Tipo de Peça", ordenacao.tipoDocumento],
 				["Regime", regime ? "Regime " + regime : ""],
 				["Número do Processo", ordenacao.numero],
+				["Local da Prisão", localPrisao],
 			]));
 
 			const tr = function (campoTransito) { return preferir(anotacoes, function (a) { return a.transito[campoTransito]; }); };
@@ -729,15 +809,26 @@
 			}
 			secao(tbody, "Denunciado(s)/Querelado(s)" + sufixo, conteudoDen);
 
+			let conteudoPri;
+			if (pri && pri.linhas.length) {
+				conteudoPri = [tabelaResultado(
+					["Data da Prisão", "Motivo da Prisão", "Local da Prisão", "Soltura/ Conversão", "Motivo da Soltura", "Período de Prisão"],
+					pri.linhas.map(function (l) { return [l.data, l.motivo, l.local, l.soltura, l.motivoSoltura, l.periodo]; })
+				)];
+				if (pri.total) conteudoPri.push(tabelaCampos([["Total Geral", pri.total]]));
+			} else if (pri) {
+				conteudoPri = aviso("Nenhuma prisão cadastrada para esta parte.");
+			} else if (dados.geral.prisoes) {
+				conteudoPri = el("p", null, el("a", { href: dados.geral.prisoes.href, class: "link", target: "_blank" }, dados.geral.prisoes.texto || "Ver prisões cadastradas"));
+			} else {
+				conteudoPri = aviso(SEM_INFO);
+			}
+			secao(tbody, "Cadastro das Prisões" + sufixo, conteudoPri);
+
 			if (erros.length) {
 				secao(tbody, "Avisos da extensão" + sufixo, erros.map(function (e) { return el("div", null, aviso(e)); }));
 			}
 		}
-
-		const prisoes = dados.geral.prisoes;
-		secao(tbody, "Cadastro das Prisões", prisoes
-			? el("p", null, el("a", { href: prisoes.href, class: "link", target: "_blank" }, prisoes.texto || "Ver prisões cadastradas"))
-			: aviso(SEM_INFO));
 	}
 
 	// ---------------------------------------------------------------------
