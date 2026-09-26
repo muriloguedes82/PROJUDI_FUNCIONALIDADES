@@ -8,9 +8,10 @@
 // (o Projudi abre a janela interna "Inserir Arquivo", upload.do), escolher
 // o "Tipo do Arquivo" (e às vezes o "Modelo"), clicar em "Digitar Texto"
 // (a mesma janela vai para "Digitar Documento", digitarTexto.do, com o
-// CKEditor), digitar o texto, clicar em "Continuar", clicar em "Confirmar
-// Inclusão" e, de volta à tela "Juntar Documento", clicar em "Concluir
-// Movimento" — que chama o assinador.
+// CKEditor), digitar o texto, clicar em "Continuar", clicar em "Concluir"
+// na pré-visualização "Documento", clicar em "Assinar Arquivos" de volta
+// ao "Inserir Arquivo" (chama o assinador), depois em "Confirmar Inclusão"
+// e, na tela "Juntar Documento", em "Concluir Movimento".
 //
 // Este arquivo adiciona o botão "📎 Juntar Documento" na linha do
 // "📋 Processo copiado" (ver quickActions.js), logo após o "👥 Editar
@@ -20,13 +21,14 @@
 //   usuário faz no fluxo completo — Tipo de Documento (ao clicar em
 //   "Adicionar"), Tipo do Arquivo/Descrição/Modelo (ao clicar em "Digitar
 //   Texto") e o texto digitado (ao clicar em "Continuar") — até o
-//   "Concluir Movimento", quando pede o nome e salva a preferência (o
+//   "Assinar Arquivos", quando pede o nome e salva a preferência (o
 //   assinador segue normalmente);
-// - preferências salvas (★): refazem o fluxo sozinhas, do Tipo de
-//   Documento até o clique em "Concluir Movimento" (assinador);
+// - preferências salvas (★): refazem o fluxo sozinhas até o "Assinar
+//   Arquivos" (o usuário só digita o PIN) e, com o arquivo assinado,
+//   clicam em "Confirmar Inclusão" e em "Concluir Movimento";
 // - ✏️: refaz o fluxo com a preferência já preenchida em cada tela, mas
 //   sem clicar em nada — o usuário ajusta o que quiser, avança
-//   manualmente e, no "Concluir Movimento", a preferência é atualizada;
+//   manualmente e, no "Assinar Arquivos", a preferência é atualizada;
 // - 🗑: remove a preferência.
 //
 // O texto gravado é só o que o usuário acrescentou/alterou no documento
@@ -45,7 +47,10 @@
 //   "juntar"   → tela Juntar Documento (Tipo de Documento → "Adicionar");
 //   "upload"   → janela "Inserir Arquivo" (tipo/modelo → "Digitar Texto");
 //   "digitar"  → "Digitar Documento" (texto → "Continuar");
-//   "incluir"  → "Inserir Arquivo" com o arquivo na lista → "Confirmar Inclusão";
+//   "incluir"  → pré-visualização ("Concluir") e "Inserir Arquivo" com o
+//                arquivo na lista, ainda sem assinatura → "Assinar Arquivos";
+//   "assinar"  → aguardando o assinador; com "Assinado: Sim" → "Confirmar
+//                Inclusão";
 //   "concluir" → Juntar Documento com o arquivo → "Concluir Movimento".
 // Os cliques nos botões nativos (do usuário ou da extensão) avançam a
 // etapa; assim, se um passo automático falhar, o usuário faz esse passo à
@@ -497,9 +502,10 @@
 	}
 
 	// Pede o nome e salva a preferência gravada. Chamado no clique em
-	// "Concluir Movimento" (antes do handler do Projudi, na fase de
-	// captura — o `prompt` segura o assinador até o usuário responder) ou
-	// no botão "Salvar sem concluir" da faixa.
+	// "Assinar Arquivos" da janela Inserir Arquivo (antes do handler do
+	// Projudi, na fase de captura — o `prompt` segura o assinador até o
+	// usuário responder); na falta dele, no "Concluir Movimento" ou no botão
+	// "Salvar sem concluir" da faixa.
 	function salvarGravacao(job) {
 		const rec = job.rec || {};
 		if (!rec.tipoDocumento || !rec.tipoArquivo) {
@@ -523,6 +529,7 @@
 			descricao: rec.descricao || "",
 			modelo: rec.modelo || null,
 			conteudo: rec.conteudo || "",
+			ancora: rec.ancora || null,
 		};
 		persistPref(pref).catch(function (err) {
 			alert("Não foi possível salvar a preferência: " + err.message);
@@ -558,7 +565,7 @@
 					if (job.mode === "capture" || job.mode === "edit") {
 						const saved = salvarGravacao(job);
 						clearJob(true);
-						if (saved) showStatus('Preferência "' + saved.name + '" ' + (job.mode === "edit" ? "atualizada" : "salva") + ". Assinando…", "ok");
+						if (saved) showStatus('Preferência "' + saved.name + '" ' + (job.mode === "edit" ? "atualizada" : "salva") + ".", "ok");
 						else removeStatus();
 					} else {
 						clearJob(true);
@@ -620,7 +627,7 @@
 			return;
 		}
 
-		if (job.stage === "upload" || job.stage === "digitar") {
+		if (["upload", "digitar", "assinar"].indexOf(job.stage) !== -1 || (job.stage === "incluir" && !hasFiles)) {
 			showStatusOnce("juntar-wait-" + job.mode, modeLabel(job) + ": continue na janela do Projudi (Inserir Arquivo / Digitar Documento).", job.mode === "apply" ? null : "rec");
 			return;
 		}
@@ -634,14 +641,14 @@
 			if (job.mode === "apply") {
 				if (juntarBusy) return;
 				juntarBusy = true;
-				showStatus('Documento incluído. Clicando em "Concluir Movimento" (o assinador será chamado)…', "ok");
+				showStatus('Documento incluído. Clicando em "Concluir Movimento"…', "ok");
 				buttons.concluir.click(); // o listener acima encerra o fluxo
 				return;
 			}
 			buttons.concluir.classList.add("pdp-jd-highlight");
 			showStatusOnce(
 				"juntar-save-" + job.mode,
-				modeLabel(job) + ': confira e clique em "Concluir Movimento" — a preferência é ' + (job.mode === "edit" ? "atualizada" : "salva") + " nesse momento e o assinador segue normalmente.",
+				modeLabel(job) + ': confira e clique em "Concluir Movimento" — a preferência é ' + (job.mode === "edit" ? "atualizada" : "salva") + " nesse momento.",
 				"rec",
 				[
 					{
@@ -653,7 +660,7 @@
 							const saved = salvarGravacao(current);
 							if (!saved) return;
 							clearJob(true);
-							showStatus('Preferência "' + saved.name + '" ' + (current.mode === "edit" ? "atualizada" : "salva") + '. Clique em "Concluir Movimento" quando quiser assinar.', "ok");
+							showStatus('Preferência "' + saved.name + '" ' + (current.mode === "edit" ? "atualizada" : "salva") + '. Clique em "Concluir Movimento" quando quiser.', "ok");
 						},
 					},
 				]
@@ -713,6 +720,31 @@
 
 	let uploadActed = false;
 	let uploadBusy = false;
+	let assinarClicked = false;
+	let confirmarClicked = false;
+
+	// Coluna "Assinado" da lista de arquivos: true quando todas as linhas
+	// estão assinadas ("Sim"); null se a coluna não existe.
+	function todosAssinados(form) {
+		const table = form && form.querySelector("table.resultTable");
+		if (!table) return null;
+		const headers = Array.prototype.slice.call(table.querySelectorAll("thead th"));
+		const col = headers.findIndex(function (th) {
+			return norm(th.textContent) === "ASSINADO";
+		});
+		if (col === -1) return null;
+		return fileRows(form).every(function (tr) {
+			const cell = tr.children[col];
+			return !!cell && /^SIM\b/.test(norm(cell.textContent));
+		});
+	}
+
+	// Depois do "Concluir" da pré-visualização, o Projudi volta ao
+	// "Inserir Arquivo" com o arquivo "Assinado: Não" e o botão "Assinar
+	// Arquivos" (no lugar do "Confirmar Inclusão"), que chama o assinador.
+	function findAssinarButton() {
+		return findButton(document, "Assinar Arquivos") || findButton(document, "Assinar Arquivo") || findButton(document, "Assinar");
+	}
 
 	function watchUploadScreen() {
 		const digitar = findButton(document, "Digitar Texto");
@@ -728,18 +760,50 @@
 				true
 			);
 		}
-		const confirmar = findButton(document, "Confirmar Inclusão");
-		if (confirmar && !confirmar.__pdpJdWatch) {
-			confirmar.__pdpJdWatch = true;
-			confirmar.addEventListener(
+		// Flags separadas por papel e texto conferido no clique: o Projudi
+		// pode trocar o texto do mesmo botão ("Assinar Arquivos" ↔
+		// "Confirmar Inclusão").
+		const assinar = findAssinarButton();
+		if (assinar && !assinar.__pdpJdAssinar) {
+			assinar.__pdpJdAssinar = true;
+			assinar.addEventListener(
 				"click",
 				function () {
-					advance(["upload", "digitar", "incluir"], "concluir");
+					if (!/^ASSINAR/.test(norm(buttonText(assinar)))) return;
+					const job = readJob();
+					if (!job) return;
+					if (job.mode === "capture" || job.mode === "edit") {
+						// Fim da gravação: daqui em diante (assinar, "Confirmar
+						// Inclusão", "Concluir Movimento") a preferência segue
+						// sozinha quando aplicada.
+						const saved = salvarGravacao(job);
+						if (saved) {
+							clearJob(true);
+							showStatus(
+								'Preferência "' + saved.name + '" ' + (job.mode === "edit" ? "atualizada" : "salva") + '. Assine no assinador e depois clique em "Confirmar Inclusão" e em "Concluir Movimento".',
+								"ok"
+							);
+						}
+						return;
+					}
+					advance(["upload", "digitar", "incluir"], "assinar");
 				},
 				true
 			);
 		}
-		return { digitar: digitar, confirmar: confirmar };
+		const confirmar = findButton(document, "Confirmar Inclusão");
+		if (confirmar && !confirmar.__pdpJdConfirmar) {
+			confirmar.__pdpJdConfirmar = true;
+			confirmar.addEventListener(
+				"click",
+				function () {
+					if (norm(buttonText(confirmar)) !== "CONFIRMAR INCLUSAO") return;
+					advance(["upload", "digitar", "incluir", "assinar"], "concluir");
+				},
+				true
+			);
+		}
+		return { digitar: digitar, assinar: assinar, confirmar: confirmar };
 	}
 
 	async function tickUpload(job) {
@@ -773,19 +837,92 @@
 			return;
 		}
 
-		if ((job.stage === "incluir" || job.stage === "digitar") && fileRows(form).length && !uploadActed) {
-			uploadActed = true;
+		if (["digitar", "incluir", "assinar"].indexOf(job.stage) === -1 || !fileRows(form).length) return;
+		const assinados = todosAssinados(form);
+
+		// Arquivo ainda sem assinatura: "Assinar Arquivos" chama o assinador.
+		if (assinados === false || (assinados === null && buttons.assinar && !buttons.confirmar)) {
 			if (job.mode !== "apply") {
-				showStatusOnce("rec-incluir", modeLabel(job) + ': clique em "Confirmar Inclusão".', "rec");
+				if (buttons.assinar) buttons.assinar.classList.add("pdp-jd-highlight");
+				showStatusOnce(
+					"rec-assinar",
+					modeLabel(job) + ': clique em "Assinar Arquivos" — a preferência é ' + (job.mode === "edit" ? "atualizada" : "salva") + " nesse momento e o assinador é chamado.",
+					"rec"
+				);
 				return;
 			}
-			if (!buttons.confirmar) {
-				showStatus('Texto incluído. Clique em "Confirmar Inclusão" — a extensão continua daí.', "warn");
+			if (!buttons.assinar) {
+				showStatusOnce("apply-assinar-missing", 'Texto incluído. Assine o arquivo (não encontrei o botão "Assinar Arquivos") — a extensão continua depois.', "warn");
 				return;
 			}
-			showStatus(modeLabel(job) + ': clicando em "Confirmar Inclusão"…');
-			buttons.confirmar.click();
+			if (assinarClicked || job.stage === "assinar") {
+				showStatusOnce("apply-assinando", 'Assine no assinador. Depois da assinatura a extensão clica em "Confirmar Inclusão" e em "Concluir Movimento".', "ok");
+				return;
+			}
+			assinarClicked = true;
+			showStatus(modeLabel(job) + ': clicando em "Assinar Arquivos" (o assinador será chamado)…', "ok");
+			buttons.assinar.click();
+			return;
 		}
+
+		// Assinado: "Confirmar Inclusão".
+		if (job.mode !== "apply" || confirmarClicked) return;
+		if (!buttons.confirmar) {
+			showStatusOnce("apply-confirmar-missing", 'Arquivo assinado. Clique em "Confirmar Inclusão" — a extensão continua daí.', "warn");
+			return;
+		}
+		confirmarClicked = true;
+		showStatus(modeLabel(job) + ': arquivo assinado. Clicando em "Confirmar Inclusão"…');
+		buttons.confirmar.click();
+	}
+
+	// -------------------------------------------------------------------
+	// Pré-visualização "Documento" (depois do "Continuar" do editor): PDF
+	// com os botões "Concluir" e "Alterar".
+	// -------------------------------------------------------------------
+
+	function isPreviewScreen() {
+		return !!findButton(document, "Concluir") && !!findButton(document, "Alterar") && !document.getElementById("conteudoEditor");
+	}
+
+	let previewActed = false;
+
+	function tickPreview(job) {
+		const concluir = findButton(document, "Concluir");
+		const alterar = findButton(document, "Alterar");
+		if (!concluir.__pdpJdWatch) {
+			concluir.__pdpJdWatch = true;
+			concluir.addEventListener(
+				"click",
+				function () {
+					advance(["upload", "digitar"], "incluir");
+				},
+				true
+			);
+		}
+		if (!alterar.__pdpJdWatch) {
+			alterar.__pdpJdWatch = true;
+			alterar.addEventListener(
+				"click",
+				function () {
+					updateJob(function (current) {
+						current.stage = "digitar";
+						current.reentry = true;
+					});
+				},
+				true
+			);
+		}
+		if (["digitar", "incluir"].indexOf(job.stage) === -1 || previewActed) return;
+		previewActed = true;
+		if (job.mode !== "apply") {
+			showStatus(modeLabel(job) + ': confira o documento e clique em "Concluir" (ou em "Alterar" para voltar ao texto).', "rec");
+			return;
+		}
+		showStatus(modeLabel(job) + ': clicando em "Concluir" na pré-visualização…');
+		setTimeout(function () {
+			concluir.click();
+		}, 400);
 	}
 
 	async function preencherUpload(job) {
@@ -868,22 +1005,41 @@
 
 	// Só o que o usuário acrescentou/alterou: blocos do corpo que não
 	// existiam na abertura, ignorando os vazios.
+	//
+	// `ancora`: texto do bloco inalterado imediatamente anterior ao
+	// primeiro bloco novo — onde inserir o conteúdo quando o documento não
+	// tem o marcador "INSIRA O TEXTO AQUI" (ex.: documento gerado por um
+	// Modelo).
 	function conteudoDigitado(body, snapshot) {
 		const remaining = snapshot.slice();
 		const parts = [];
+		let lastKeptText = null;
+		let ancora = null;
 		Array.prototype.slice.call(body.childNodes).forEach(function (node) {
 			const key = nodeKey(node);
 			if (!key) return;
 			const idx = remaining.indexOf(key);
 			if (idx !== -1) {
 				remaining.splice(idx, 1);
+				if (cleanText(node.textContent)) lastKeptText = cleanText(node.textContent);
 				return;
 			}
 			if (!cleanText(node.textContent) && !(node.querySelector && node.querySelector("img, table"))) return;
 			if (PLACEHOLDER_RE.test(node.textContent || "")) return;
+			if (!parts.length) ancora = lastKeptText;
 			parts.push(node.nodeType === 1 ? node.outerHTML : node.nodeValue);
 		});
-		return parts.join("");
+		return { conteudo: parts.join(""), ancora: ancora };
+	}
+
+	// Onde inserir o conteúdo gravado num documento sem marcador: logo
+	// depois do bloco com o texto da âncora (último, se repetido).
+	function findAncora(body, ancora) {
+		if (!ancora) return null;
+		const nodes = Array.prototype.slice.call(body.childNodes).filter(function (node) {
+			return node.nodeType === 1 && cleanText(node.textContent) === ancora;
+		});
+		return nodes.length ? nodes[nodes.length - 1] : null;
 	}
 
 	function findPlaceholder(body) {
@@ -897,15 +1053,22 @@
 	// Substitui o marcador pelo conteúdo gravado; devolve o último nó
 	// inserido.
 	function insertConteudo(placeholder, html) {
-		const doc = placeholder.ownerDocument;
+		const last = insertAfter(placeholder, html, true);
+		placeholder.remove();
+		return last;
+	}
+
+	// Insere o HTML logo depois de `ref` (ou antes, se `before`).
+	function insertAfter(ref, html, before) {
+		const doc = ref.ownerDocument;
 		const container = doc.createElement("div");
 		container.innerHTML = html;
+		const anchor = before ? ref : ref.nextSibling;
 		let last = null;
 		while (container.firstChild) {
 			last = container.firstChild;
-			placeholder.parentNode.insertBefore(last, placeholder);
+			ref.parentNode.insertBefore(last, anchor);
 		}
-		placeholder.remove();
 		return last;
 	}
 
@@ -928,13 +1091,24 @@
 		form.__pdpJdWatch = true;
 		function onContinuar() {
 			const body = editorBody();
-			if (body && digitarSnapshot) record({ conteudo: conteudoDigitado(body, digitarSnapshot) });
+			if (body && digitarSnapshot) record(conteudoDigitado(body, digitarSnapshot));
 			advance(["upload", "digitar"], "incluir");
 		}
 		// "Continuar" (submit), do usuário ou automático.
 		form.addEventListener("submit", onContinuar, true);
 		const continuar = findButton(form, "Continuar");
 		if (continuar) continuar.addEventListener("click", onContinuar, true);
+	}
+
+	async function clickContinuar(form, job, message) {
+		const continuar = findButton(form, "Continuar");
+		if (!continuar) {
+			showStatus(message + ' Clique em "Continuar" — a extensão continua daí.', "warn");
+			return;
+		}
+		showStatus(modeLabel(job) + ": " + message + ' Clicando em "Continuar"…');
+		await sleep(400);
+		continuar.click();
 	}
 
 	async function tickDigitar(job) {
@@ -946,42 +1120,67 @@
 		const body = editorBody();
 		if (!body) return; // CKEditor ainda carregando
 		digitarActed = true;
+
+		// Volta pelo "Alterar" da pré-visualização: compara com o documento
+		// como ele abriu da primeira vez (guardado no fluxo), não com o texto
+		// já alterado.
+		if (job.reentry && job.snapshot) {
+			digitarSnapshot = job.snapshot;
+			showStatus(modeLabel(job) + ': ajuste o texto e clique em "Continuar".', job.mode === "apply" ? null : "rec");
+			return;
+		}
 		digitarSnapshot = snapshotEditor(body);
+		updateJob(function (current) {
+			current.snapshot = digitarSnapshot;
+		});
 
 		const placeholder = findPlaceholder(body);
 
 		if (job.mode === "capture") {
 			if (placeholder) placeCaret(body, placeholder, true);
-			showStatus(modeLabel(job) + ': digite o texto e clique em "Continuar". O que você digitar (sem cabeçalho, data e assinatura) vai para a preferência.', "rec");
+			showStatus(
+				modeLabel(job) + ': digite/ajuste o texto e clique em "Continuar". O que você acrescentar ou alterar (sem cabeçalho, data e assinatura) vai para a preferência.',
+				"rec"
+			);
 			return;
 		}
 
 		const conteudo = job.pref.conteudo;
 		if (!conteudo) {
-			if (placeholder) placeCaret(body, placeholder, true);
-			showStatus(modeLabel(job) + ': esta preferência não tem texto. Digite-o e clique em "Continuar" — a extensão continua daí.', job.mode === "edit" ? "rec" : "ok");
+			// Sem texto gravado: o documento é o que o Projudi gerou (ex.: a
+			// partir do Modelo) — segue como está.
+			if (job.mode === "edit") {
+				if (placeholder) placeCaret(body, placeholder, true);
+				showStatus(modeLabel(job) + ': esta preferência não tem texto próprio. Ajuste se quiser e clique em "Continuar".', "rec");
+				return;
+			}
+			if (placeholder) {
+				placeCaret(body, placeholder, true);
+				showStatus(modeLabel(job) + ': esta preferência não tem texto. Digite-o e clique em "Continuar" — a extensão continua daí.', "ok");
+				return;
+			}
+			await clickContinuar(form, job, "documento gerado pelo Projudi.");
 			return;
 		}
-		if (!placeholder) {
-			showStatus('Não encontrei o marcador "INSIRA O TEXTO AQUI" no documento. Digite o texto e clique em "Continuar" — a extensão continua daí.', "warn");
-			return;
+
+		let last = null;
+		if (placeholder) {
+			last = insertConteudo(placeholder, conteudo);
+		} else {
+			const ref = findAncora(body, job.pref.ancora);
+			if (!ref) {
+				showStatus('Não encontrei onde inserir o texto da preferência neste documento. Digite/cole o texto e clique em "Continuar" — a extensão continua daí.', "warn");
+				return;
+			}
+			last = insertAfter(ref, conteudo, false);
 		}
-		const last = insertConteudo(placeholder, conteudo);
 
 		if (job.mode === "edit") {
 			if (last && last.nodeType === 1) placeCaret(body, last, false);
 			showStatus(modeLabel(job) + ': texto da preferência inserido. Ajuste se quiser e clique em "Continuar".', "rec");
 			return;
 		}
-
-		const continuar = findButton(form, "Continuar");
-		if (!continuar) {
-			showStatus('Texto inserido. Clique em "Continuar" — a extensão continua daí.', "warn");
-			return;
-		}
-		showStatus(modeLabel(job) + ': texto inserido. Clicando em "Continuar"…');
-		await sleep(400);
-		continuar.click();
+		await clickContinuar(form, job, "texto inserido.");
 	}
 
 	// -------------------------------------------------------------------
@@ -993,7 +1192,8 @@
 			const juntar = isJuntarScreen();
 			const upload = !juntar && isUploadScreen();
 			const digitar = !juntar && !upload && isDigitarScreen();
-			if (!juntar && !upload && !digitar) return;
+			const preview = !juntar && !upload && !digitar && isPreviewScreen();
+			if (!juntar && !upload && !digitar && !preview) return;
 
 			const job = readJob();
 			if (!job) {
@@ -1002,7 +1202,8 @@
 			}
 			if (juntar) tickJuntar(job);
 			else if (upload) tickUpload(job);
-			else tickDigitar(job);
+			else if (digitar) tickDigitar(job);
+			else tickPreview(job);
 		} catch (err) {
 			console.error(LOG, err);
 		}
