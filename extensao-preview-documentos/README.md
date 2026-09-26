@@ -1391,6 +1391,10 @@ Limitações:
 4. Abra um processo no Projudi (TJPR) ou no SEEU e passe o mouse sobre um
    documento na aba Movimentações.
 
+Para publicar na Chrome Web Store, veja [CHROME-WEB-STORE.md](./CHROME-WEB-STORE.md)
+(empacotamento, ficha da loja e justificativa das permissões) e a
+[Política de Privacidade](./PRIVACIDADE.md).
+
 ## Convivência com o AzFlow no SEEU
 
 O AzFlow é uma extensão de produtividade jurídica muito usada junto com o

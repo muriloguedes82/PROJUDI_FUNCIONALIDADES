@@ -1,15 +1,20 @@
 {
   "manifest_version": 3,
   "name": "Projudi/SEEU - Documentos: Pré-visualização, WhatsApp e E-mail",
-  "version": "2.9.77",
-  "description": "Ao passar o mouse sobre um documento na tela de Movimentações (Projudi ou SEEU), ou sobre uma pendência de análise de juntada/conclusão do Projudi, exibe a íntegra do(s) arquivo(s) em janela(s) sobreposta(s), sem precisar abri-los em outra aba. Também permite selecionar arquivos do processo e enviá-los por WhatsApp Web ou por e-mail via Outlook.",
+  "version": "2.9.78",
+  "description": "Pré-visualiza documentos do Projudi/SEEU ao passar o mouse, envia-os por WhatsApp Web ou Outlook e agiliza tarefas do cartório.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "minimum_chrome_version": "116",
   "permissions": [
     "identity",
     "storage",
     "unlimitedStorage",
-    "tabs",
     "scripting",
-    "windows",
     "downloads",
     "clipboardRead",
     "offscreen"
@@ -27,7 +32,10 @@
   "background": {
     "service_worker": "src/background.js"
   },
-  "options_page": "src/options.html",
+  "options_ui": {
+    "page": "src/options.html",
+    "open_in_tab": true
+  },
   "content_scripts": [
     {
       "matches": [
