@@ -828,6 +828,47 @@ cada vez, uma única vez por processo, e o resultado fica em
 `sessionStorage` (por número do processo), para aparecer na hora ao
 filtrar de novo, trocar de página ou abrir o cumprimento. Só no Projudi.
 
+## Informações processuais na ordenação BNMP do mandado de prisão
+
+Na ordenação do BNMP de uma **guia de recolhimento/execução**, o Projudi
+mostra as seções "Dados da Peça", "Dados do Processo Criminal", "Cadastro
+de Sentença", "Tipificação penal" e "Cadastro das Prisões", que ajudam a
+preencher a peça no BNMP 3. Na ordenação de um **mandado de prisão** essas
+seções não aparecem. A extensão monta seções equivalentes nessa tela, com
+o mesmo visual (recolhíveis pelo ícone ⊟), para cada parte de "Referente
+a(s) parte(s)".
+
+Os dados são buscados de forma oculta (sem abrir abas nem iframes), a
+partir do link **"Processo"** da ordenação:
+
+1. aba **"Informações Adicionais"** do processo: Classe Processual, Data
+   da Infração e os links abaixo;
+2. **Denunciado(s)/Querelado(s)** da parte: Data de Oferecimento, Data de
+   Recebimento e Imputações;
+3. **Sentenciados** da parte (anotações "Primeiro Grau" e "Tribunal de
+   Justiça"): data da sentença, data do acórdão, recurso (número,
+   recorrentes, data de recebimento, órgão julgador), regime inicial, tempo
+   de pena, dias-multa, proporção S.M., observação e as datas de trânsito
+   em julgado (relativo à sentença) da acusação, do assistente, da defesa e
+   do réu. A anotação do Tribunal de Justiça prevalece; a do Primeiro Grau
+   completa o que faltar;
+4. **Infrações/Penas**, filtradas pela parte: a tipificação vem da
+   primeira origem que existir, nesta ordem: **Sentença Judicial Tribunal
+   de Justiça**, **Sentença Judicial Primeiro Grau** e **Ministério
+   Público**. As demais são desprezadas, e a Delegacia nunca é usada. Anos,
+   meses e dias vêm da pena da própria imputação quando ela é uma pena
+   imposta (não uma faixa, como "5 a 15 anos");
+5. **Cadastro das Prisões**: por enquanto, só o link para a tela de
+   prisões do processo.
+
+Diferenças em relação à guia: "Local da Prisão", "Medida de Segurança",
+as frações de progressão/livramento e a reincidência não aparecem, porque
+não constam das telas acima. A data de trânsito em julgado exibida é a
+relativa à sentença (quadro "Trânsito em Julgado" da anotação). Se a lista
+de Infrações/Penas da parte tiver mais de uma página, aparece um aviso de
+lista parcial. Falhas de leitura de alguma tela aparecem numa seção
+"Avisos da extensão". Só no Projudi.
+
 ## "Nova Remessa" (realizar mais de uma remessa em seguida)
 
 Só no Projudi. A tela nativa **Realizar Remessa** só permite escolher UMA
