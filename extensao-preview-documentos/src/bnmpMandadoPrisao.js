@@ -317,7 +317,11 @@
 	// ---------------------------------------------------------------------
 
 	function temAbaInformacoesAdicionais(doc) {
-		return !!(celulaDoCampo(doc, /^infracoes\/penas$/) || celulaDoCampo(doc, /^denunciado\(s\)\/querelado\(s\)$/));
+		// Qualquer um destes campos só existe nessa aba (processos de flagrante
+		// podem ainda não ter Infrações/Penas nem Denunciados).
+		return [/^infracoes\/penas$/, /^denunciado\(s\)\/querelado\(s\)$/, /^prisoes$/, /^sentenciados$/, /^data da infracao$/].some(function (regex) {
+			return !!celulaDoCampo(doc, regex);
+		});
 	}
 
 	function urlAba(doc, form, base, tabId) {
