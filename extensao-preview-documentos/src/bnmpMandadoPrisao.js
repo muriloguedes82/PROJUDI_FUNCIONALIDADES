@@ -1,13 +1,16 @@
-// Projudi - Informações processuais na ordenação BNMP do mandado de prisão
+// Projudi - Informações processuais nas ordenações BNMP que não são guias
 //
 // Ao abrir uma ordenação do BNMP (`cumprimentoCartorio.do`, formulário com
-// `actionType=cumprirBnmp`) de uma GUIA de recolhimento/execução, o próprio
-// Projudi monta, no servidor, as seções "Dados da Peça", "Dados do Processo
-// Criminal", "Cadastro de Sentença", "Tipificação penal" e "Cadastro das
-// Prisões", que ajudam a preencher a peça no BNMP 3. Na ordenação de um
-// MANDADO DE PRISÃO essas seções não vêm.
+// `actionType=cumprirBnmp`) de uma GUIA (Guia de Recolhimento, Guia de
+// Execução Definitiva, Guia de Execução para Tratamento Ambulatorial, Guia
+// de Internação), o próprio Projudi monta, no servidor, as seções "Dados da
+// Peça", "Dados do Processo Criminal", "Cadastro de Sentença", "Tipificação
+// penal" e "Cadastro das Prisões", que ajudam a preencher a peça no BNMP 3.
+// Nas demais peças (Mandado de Prisão, Alvará de Soltura, Mandado de
+// Internação, Contramandado etc.) essas seções não vêm.
 //
-// Este recurso monta seções equivalentes na ordenação do mandado de prisão,
+// Este recurso monta seções equivalentes nas ordenações das demais peças —
+// nunca nas guias, que já têm a tela nativa —
 // buscando os dados em segundo plano (`fetch()`, sem iframe e sem navegar a
 // aba), POR PARTE (cada parte de "Referente a(s) parte(s)"):
 // 1. página do processo (link "Processo" da ordenação) e, se preciso, a aba
@@ -104,7 +107,7 @@
 	if (window.__pdpBnmpMandadoPrisao) return;
 	window.__pdpBnmpMandadoPrisao = true;
 
-	const TAG = "[Projudi BNMP mandado de prisão]";
+	const TAG = "[Projudi BNMP dados da peça]";
 	const ROW_ATTR = "data-pdp-bnmp-mandado";
 	const SEM_INFO = "Sem informação";
 	const ORIGEM_MP = "2";
@@ -265,7 +268,7 @@
 	}
 
 	// ---------------------------------------------------------------------
-	// Ordenação do mandado de prisão (página atual)
+	// Ordenação BNMP (página atual) — qualquer peça que não seja guia
 	// ---------------------------------------------------------------------
 
 	function lerOrdenacao() {
@@ -273,7 +276,10 @@
 		if (!form || !/actionType=cumprirBnmp/i.test(form.getAttribute("action") || "")) return null;
 		const table = form.querySelector("table.form");
 		if (!table) return null;
-		if (!/^mandado de prisao/.test(normalize(campo(table, /^tipo de documento$/)))) return null;
+		// Guias ("Guia de Recolhimento", "Guia de Execução...", "Guia de
+		// Internação") já têm as seções nativas do Projudi.
+		const tipo = normalize(campo(table, /^tipo de documento$/));
+		if (!tipo || /^guia\b/.test(tipo)) return null;
 		const jaTemSecoes = Array.prototype.some.call(form.querySelectorAll("h3"), function (h3) {
 			return normalize(h3.textContent) === "dados da peca" && !h3.closest("[" + ROW_ATTR + "]");
 		});

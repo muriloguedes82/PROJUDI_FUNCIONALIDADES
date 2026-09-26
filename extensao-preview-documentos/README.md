@@ -828,15 +828,19 @@ cada vez, uma única vez por processo, e o resultado fica em
 `sessionStorage` (por número do processo), para aparecer na hora ao
 filtrar de novo, trocar de página ou abrir o cumprimento. Só no Projudi.
 
-## Informações processuais na ordenação BNMP do mandado de prisão
+## Informações processuais nas ordenações BNMP (exceto guias)
 
-Na ordenação do BNMP de uma **guia de recolhimento/execução**, o Projudi
-mostra as seções "Dados da Peça", "Dados do Processo Criminal", "Cadastro
-de Sentença", "Tipificação penal" e "Cadastro das Prisões", que ajudam a
-preencher a peça no BNMP 3. Na ordenação de um **mandado de prisão** essas
-seções não aparecem. A extensão monta seções equivalentes nessa tela, com
-o mesmo visual (recolhíveis pelo ícone ⊟), para cada parte de "Referente
-a(s) parte(s)".
+Na ordenação do BNMP de uma **guia** (Guia de Recolhimento, Guia de
+Execução Definitiva, Guia de Execução para Tratamento Ambulatorial, Guia de
+Internação), o Projudi mostra as seções "Dados da Peça", "Dados do
+Processo Criminal", "Cadastro de Sentença", "Tipificação penal" e
+"Cadastro das Prisões", que ajudam a preencher a peça no BNMP 3. Nas
+**demais peças** (Mandado de Prisão, Alvará de Soltura, Mandado de
+Internação, Contramandado, Mandado de Monitoramento Eletrônico etc.)
+essas seções não aparecem. A extensão monta seções equivalentes nessas
+telas, com o mesmo visual (recolhíveis pelo ícone ⊟), para cada parte de
+"Referente a(s) parte(s)". Nas guias ela não faz nada, já que a tela
+nativa existe.
 
 Os dados são buscados de forma oculta (sem abrir abas nem iframes), a
 partir do link **"Processo"** da ordenação:
