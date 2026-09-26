@@ -766,7 +766,7 @@ plano) e extrai o endereço (`/projudi/processo/parteProcesso.do?_tj=...`)
 do `onclick` do botão nativo "Partes e Outros" (`id="enableParteButton"`).
 Nenhuma ação é praticada sozinha. Só no Projudi.
 
-## Juntar Documento (com preferências)
+## Juntar Documento (com preferências gravadas)
 
 Juntar um documento digitado (certidão, informação, termo...) hoje exige:
 botão nativo **"Juntar Documento"** → escolher o **Tipo de Documento** →
@@ -776,54 +776,59 @@ Arquivo** (e às vezes o **Modelo**) → **"Digitar Texto"** → digitar →
 (que chama o assinador).
 
 Na mesma linha do **"📋 Processo copiado"**, logo após o "👥 Editar
-Partes/Outros", a extensão adiciona o botão **"📎 Juntar Documento"**. Ele abre um painel com:
+Partes/Outros", a extensão adiciona o botão **"📎 Juntar Documento"**. Ele
+abre um painel com:
 
 - **Abrir**: só vai para a tela "Juntar Documento" (como o botão nativo);
-- **preferências salvas** (★ nome), cada uma com **✏️** (editar) e **🗑**
-  (remover);
-- **+ Nova preferência**.
+- **+ Nova preferência**: grava o fluxo completo feito por você (abaixo);
+- **preferências salvas** (★ nome): refazem o fluxo sozinhas, até o
+  "Concluir Movimento" e o assinador;
+- **✏️**: edita a preferência refazendo o fluxo;
+- **🗑**: remove a preferência.
 
-Uma preferência guarda:
+### Gravar uma preferência ("+ Nova preferência")
 
-| Campo | Uso |
-| --- | --- |
-| Tipo de Documento | campo "Tipo de Documento" da tela Juntar Documento |
-| Tipo do Arquivo | select "Tipo do Arquivo" da janela Inserir Arquivo |
-| Outros (Descrição) | só quando o Tipo do Arquivo é "Outros" |
-| Modelo | opcional; vazio = o modelo que o Projudi sugerir |
-| Texto a inserir | opcional; substitui "XXXXXXXXXX INSIRA O TEXTO AQUI XXXXXXXXXX" (linha em branco separa parágrafos). Vazio: o marcador fica selecionado para você digitar por cima |
-| Clicar em "Continuar" sozinho | só com texto na preferência |
-| Clicar em "Concluir Movimento" sozinho | chama o assinador (vem marcado nas preferências novas); desmarcado, a extensão para com o botão destacado |
+Como nas demais ações rápidas, a preferência é gravada a partir do que você
+faz nas telas do próprio Projudi — faça o fluxo completo uma vez. A
+extensão abre a tela Juntar Documento e uma faixa **"● Gravando"** no topo
+indica o que fazer em cada tela:
 
-A preferência é editada num formulário da própria extensão (nada é enviado
-ao Projudi). As sugestões dos campos (tipos de documento com o código,
-tipos de arquivo e modelos por tipo) são **aprendidas das telas do
-Projudi** à medida que você passa por elas — a pesquisa/autocompletar de
-Tipo de Documento e a janela Inserir Arquivo. Também dá para digitar o
-texto exato da opção.
+| Tela | O que é gravado | Quando |
+| --- | --- | --- |
+| Juntar Documento | Tipo de Documento (texto e código) | ao clicar em "Adicionar" |
+| Inserir Arquivo | Tipo do Arquivo, Outros (Descrição), Modelo | ao clicar em "Digitar Texto" |
+| Digitar Documento | o texto que você digitou | ao clicar em "Continuar" |
 
-Ao clicar numa preferência, a extensão vai para a tela Juntar Documento e
-segue sozinha, mostrando uma faixa de status no topo (com **"Parar
-automação"**):
+Depois, clique em "Confirmar Inclusão" e, de volta à Juntar Documento, em
+**"Concluir Movimento"**: a extensão pede o **nome** da preferência, salva
+e o assinador segue normalmente. (A faixa também tem **"💾 Salvar sem
+concluir"**, para salvar sem assinar agora.)
 
-1. preenche o Tipo de Documento (direto pelo código, se conhecido; senão
-   pelo autocompletar nativo) e clica em **"Adicionar"**;
-2. na janela Inserir Arquivo, escolhe Tipo do Arquivo, Descrição e Modelo
-   e clica em **"Digitar Texto"**;
-3. no editor, insere o texto da preferência (ou seleciona o marcador para
-   você digitar); se marcado, clica em **"Continuar"** — senão, você
-   revisa e clica;
-4. com o arquivo na lista, clica em **"Confirmar Inclusão"**;
-5. de volta à Juntar Documento, com o arquivo listado, clica em
-   **"Concluir Movimento"** (assinador) — ou só o destaca, conforme a
-   preferência.
+Do documento, só é gravado o que você **acrescentou ou alterou** — os
+blocos do texto que não existiam quando o editor abriu. Cabeçalho, número
+dos autos, data e assinatura, que o Projudi gera para cada processo, ficam
+de fora; ao aplicar, o texto gravado substitui o marcador "XXXXXXXXXX
+INSIRA O TEXTO AQUI XXXXXXXXXX".
 
-Se um passo automático falhar (ex.: opção inexistente), a faixa avisa; faça
-esse passo à mão que a extensão continua do seguinte — os cliques nos
-botões nativos ("Adicionar", "Digitar Texto", "Continuar", "Confirmar
-Inclusão") também avançam a automação. O estado fica no `sessionStorage`
-(só nesta aba) e expira em 1 hora; a automação também para se a tela
-Juntar Documento for de outro processo. Só no Projudi.
+### Aplicar (★) e editar (✏️)
+
+- **★ nome**: vai para a tela Juntar Documento e faz tudo sozinha —
+  Tipo de Documento → "Adicionar" → Tipo do Arquivo/Descrição/Modelo →
+  "Digitar Texto" → texto → "Continuar" → "Confirmar Inclusão" →
+  **"Concluir Movimento"**, que chama o assinador. Se a preferência não
+  tiver texto, a extensão para no editor com o marcador selecionado; ao
+  clicar em "Continuar", ela segue.
+- **✏️**: refaz o fluxo com cada tela **já preenchida** pela preferência,
+  mas sem clicar em nada — ajuste o que quiser (inclusive o texto) e
+  avance manualmente; no "Concluir Movimento" a extensão pede o nome
+  (já sugerido) e **atualiza** a preferência.
+
+Se um passo automático falhar (ex.: opção que não existe mais), a faixa
+avisa; faça esse passo à mão que a extensão continua do seguinte — os
+cliques nos botões nativos também avançam o fluxo. **"Parar"**, na faixa,
+encerra o acompanhamento sem gravar nada. O estado fica no
+`sessionStorage` (só nesta aba) e expira em 1 hora; o fluxo também para se
+a tela Juntar Documento for de outro processo. Só no Projudi.
 
 ## Réus/Indiciados/Noticiados no cabeçalho do processo
 
