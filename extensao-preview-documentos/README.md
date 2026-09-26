@@ -846,7 +846,8 @@ partir do link **"Processo"** da ordenação:
 2. **Denunciado(s)/Querelado(s)** da parte: Data de Oferecimento, Data de
    Recebimento e Imputações;
 3. **Sentenciados** da parte (anotações "Primeiro Grau" e "Tribunal de
-   Justiça"): data da sentença, data do acórdão, recurso (número,
+   Justiça"; o link abre a lista de anotações e a extensão segue o
+   "Exibir detalhes" da anotação ativa da parte): data da sentença, data do acórdão, recurso (número,
    recorrentes, data de recebimento, órgão julgador), regime inicial, tempo
    de pena, dias-multa, proporção S.M., observação e as datas de trânsito
    em julgado (relativo à sentença) da acusação, do assistente, da defesa e

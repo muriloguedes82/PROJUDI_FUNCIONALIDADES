@@ -18,7 +18,9 @@
 //    Oferecimento, Data de Recebimento e Imputações;
 // 3. "Sentenciados" (`parteSentenciada.do` da parte, "Primeiro Grau" e
 //    "Tribunal de Justiça"): datas da sentença e do acórdão, recurso, regime,
-//    tempo de pena, multa e trânsito em julgado (relativo à sentença) — a
+//    tempo de pena, multa e trânsito em julgado (relativo à sentença); o link
+//    abre a lista "Sentenciados - Primeiro Grau/Outras Instâncias", de onde
+//    se segue o "Exibir detalhes" da linha ativa da parte — a
 //    anotação do Tribunal de Justiça prevalece; a do Primeiro Grau completa o
 //    que faltar;
 // 4. "Infrações/Penas" (`parteProcessoPena.do`, filtrado pela parte): a
@@ -432,15 +434,44 @@
 		return primeiraData(escolhida.cells[1].textContent);
 	}
 
+	// Lista de anotações (`parteSentenciada.do?actionType=listar`): table.
+	// resultTable com as colunas "Anotação de Sentença" (<a title="Exibir
+	// detalhes">NOME</a>), "Instância", "Data da Publicação", "Tipo de
+	// Sentença", "Data de Cadastro" e "Desativada em". Escolhe a linha da
+	// parte não desativada com a publicação mais recente.
+	function linkDetalheNaLista(doc, nome) {
+		const dataOrdenavel = function (text) {
+			const d = primeiraData(text);
+			return d ? d.split("/").reverse().join("") : "";
+		};
+		let melhor = null;
+		for (const table of doc.querySelectorAll("table.resultTable")) {
+			const ths = Array.prototype.map.call(table.querySelectorAll("th"), function (th) { return normalize(textoLimpo(th)); });
+			const colAnotacao = ths.findIndex(function (t) { return /^anotacao de sentenca/.test(t); });
+			if (colAnotacao < 0) continue;
+			const colPublicacao = ths.findIndex(function (t) { return /^data da publicacao/.test(t); });
+			const colDesativada = ths.findIndex(function (t) { return /^desativada em/.test(t); });
+			for (const tr of table.querySelectorAll("tr")) {
+				if (tr.querySelector("th") || tr.cells.length <= colAnotacao) continue;
+				const a = tr.cells[colAnotacao].querySelector('a[href*="parteSentenciada.do"]');
+				if (!a || !mesmoNome(textoLimpo(a), nome)) continue;
+				if (colDesativada >= 0 && tr.cells[colDesativada] && primeiraData(textoLimpo(tr.cells[colDesativada]))) continue;
+				const data = colPublicacao >= 0 && tr.cells[colPublicacao] ? dataOrdenavel(textoLimpo(tr.cells[colPublicacao])) : "";
+				if (!melhor || data > melhor.data) melhor = { href: a.getAttribute("href"), data: data };
+			}
+		}
+		return melhor ? melhor.href : null;
+	}
+
 	async function lerSentenca(href, nome) {
 		let pagina = await readPage(projudiURL(href).href, { method: "GET" });
 		if (!ehDetalheDeSentenca(pagina.doc)) {
-			// Mais de uma anotação: a lista traz links "visualizar"; usa a ativa.
-			const links = Array.prototype.filter.call(pagina.doc.querySelectorAll('a[href*="parteSentenciada.do"]'), function (a) {
-				return /actionType=visualizar/.test(a.getAttribute("href")) && /ativa/.test(normalize(a.textContent));
-			});
-			if (!links.length) throw new Error("anotação de sentença não encontrada (resposta: " + descreverPagina(pagina.doc, pagina.url) + ")");
-			pagina = await readPage(projudiURL(links[0].getAttribute("href"), pagina.url).href, { method: "GET" });
+			// O link de "Sentenciados" costuma abrir a lista "Sentenciados -
+			// Primeiro Grau/Outras Instâncias"; o detalhe é o link "Exibir
+			// detalhes" (nome da parte) da linha ativa.
+			const link = linkDetalheNaLista(pagina.doc, nome);
+			if (!link) throw new Error("anotação de sentença não encontrada (resposta: " + descreverPagina(pagina.doc, pagina.url) + ")");
+			pagina = await readPage(projudiURL(link, pagina.url).href, { method: "GET" });
 			if (!ehDetalheDeSentenca(pagina.doc)) throw new Error("anotação de sentença não pôde ser lida (resposta: " + descreverPagina(pagina.doc, pagina.url) + ")");
 		}
 		const doc = pagina.doc;
