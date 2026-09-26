@@ -775,8 +775,8 @@ Arquivo** (e às vezes o **Modelo**) → **"Digitar Texto"** → digitar →
 **"Continuar"** → **"Confirmar Inclusão"** → **"Concluir Movimento"**
 (que chama o assinador).
 
-Imediatamente à esquerda do **"📋 Processo copiado"**, a extensão adiciona
-o botão **"📎 Juntar Documento"**. Ele abre um painel com:
+Na mesma linha do **"📋 Processo copiado"**, logo após o "👥 Editar
+Partes/Outros", a extensão adiciona o botão **"📎 Juntar Documento"**. Ele abre um painel com:
 
 - **Abrir**: só vai para a tela "Juntar Documento" (como o botão nativo);
 - **preferências salvas** (★ nome), cada uma com **✏️** (editar) e **🗑**
@@ -793,7 +793,7 @@ Uma preferência guarda:
 | Modelo | opcional; vazio = o modelo que o Projudi sugerir |
 | Texto a inserir | opcional; substitui "XXXXXXXXXX INSIRA O TEXTO AQUI XXXXXXXXXX" (linha em branco separa parágrafos). Vazio: o marcador fica selecionado para você digitar por cima |
 | Clicar em "Continuar" sozinho | só com texto na preferência |
-| Clicar em "Concluir Movimento" sozinho | chama o assinador; desmarcado, a extensão para com o botão destacado |
+| Clicar em "Concluir Movimento" sozinho | chama o assinador (vem marcado nas preferências novas); desmarcado, a extensão para com o botão destacado |
 
 A preferência é editada num formulário da própria extensão (nada é enviado
 ao Projudi). As sugestões dos campos (tipos de documento com o código,

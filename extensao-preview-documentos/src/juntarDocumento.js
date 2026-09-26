@@ -12,8 +12,9 @@
 // Inclusão" e, de volta à tela "Juntar Documento", clicar em "Concluir
 // Movimento" — que chama o assinador.
 //
-// Este arquivo adiciona o botão "📎 Juntar Documento" ao lado do
-// "📋 Processo copiado" (ver quickActions.js). Ele abre um painel com:
+// Este arquivo adiciona o botão "📎 Juntar Documento" na linha do
+// "📋 Processo copiado" (ver quickActions.js), logo após o "👥 Editar
+// Partes/Outros". Ele abre um painel com:
 // - "Abrir": só vai para a tela "Juntar Documento" (como o botão nativo);
 // - preferências salvas (★), cada uma com ✏️ (editar) e 🗑 (remover);
 // - "+ Nova preferência".
@@ -912,7 +913,7 @@
 	else tick();
 
 	// -------------------------------------------------------------------
-	// Botão flutuante ao lado do "📋 Processo copiado" (quickActions.js) e
+	// Botão flutuante na linha do "📋 Processo copiado" (quickActions.js) e
 	// painel de preferências — só no frame que tem essa fileira.
 	// -------------------------------------------------------------------
 
@@ -938,11 +939,17 @@
 				else openPanel();
 			});
 		}
-		// Imediatamente antes (à esquerda) do "Processo copiado": o lado
-		// direito já é disputado pelo "(Des)Habilitar Advogado" e pelo
-		// "Editar Partes/Outros", cada um ancorado no anterior.
-		if (button.nextElementSibling !== clipboardBtn || button.parentElement !== clipboardBtn.parentElement) {
-			clipboardBtn.insertAdjacentElement("beforebegin", button);
+		// À direita, depois do último da cadeia "Processo copiado" →
+		// "(Des)Habilitar Advogado" → "Editar Partes/Outros" (cada um
+		// ancorado no anterior, para os MutationObservers não disputarem a
+		// mesma posição).
+		let anchor = clipboardBtn;
+		["pdp-habilitar-advogado-button", "pdp-editar-partes-button"].forEach(function (id) {
+			const el = document.getElementById(id);
+			if (el && el.parentElement === clipboardBtn.parentElement) anchor = el;
+		});
+		if (button.previousElementSibling !== anchor || button.parentElement !== anchor.parentElement) {
+			anchor.insertAdjacentElement("afterend", button);
 		}
 	}
 
