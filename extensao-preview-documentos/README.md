@@ -874,8 +874,11 @@ Diferença em relação à guia: "Medida de Segurança" não aparece, porque
 não consta das telas acima. A data de trânsito em julgado exibida é a
 relativa à sentença (quadro "Trânsito em Julgado" da anotação). Se a lista
 de Infrações/Penas da parte tiver mais de uma página, aparece um aviso de
-lista parcial. Falhas de leitura de alguma tela aparecem numa seção
-"Avisos da extensão". Só no Projudi.
+lista parcial. As buscas são feitas uma de cada vez (o Projudi guarda o
+estado das telas na sessão). Falhas de leitura de alguma tela aparecem
+numa seção "Avisos da extensão", com um resumo do que o Projudi devolveu
+(endereço, título e mensagem de erro da página), para diagnóstico. Só no
+Projudi.
 
 ## "Nova Remessa" (realizar mais de uma remessa em seguida)
 

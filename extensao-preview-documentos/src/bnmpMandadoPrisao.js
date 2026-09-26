@@ -191,9 +191,37 @@
 		return null;
 	}
 
+	// Texto de um nó sem o conteúdo de <script>/<style> — algumas células do
+	// Projudi trazem um script embutido (ex.: callout da "Classe Processual"),
+	// cujo código apareceria no textContent.
+	function textoLimpo(node) {
+		if (!node) return "";
+		const clone = node.cloneNode(true);
+		for (const el of clone.querySelectorAll("script, style, noscript")) el.remove();
+		return clone.textContent;
+	}
+
 	function campo(root, regex) {
 		const td = celulaDoCampo(root, regex);
-		return td ? valor(td.textContent) : "";
+		return td ? valor(textoLimpo(td)) : "";
+	}
+
+	// Resumo de uma página devolvida pelo Projudi, para os avisos quando a
+	// tela não é a esperada: endereço, título (<h3>/<title>) e mensagem de erro.
+	function descreverPagina(doc, url) {
+		let caminho = "";
+		try {
+			const u = new URL(url);
+			caminho = u.pathname.replace(/^\/projudi\//, "") + (u.searchParams.get("actionType") ? "?actionType=" + u.searchParams.get("actionType") : "");
+		} catch (err) {
+			caminho = String(url || "");
+		}
+		const h3 = doc.querySelector("#content h3, h3");
+		const titulo = collapse(textoLimpo(h3)) || collapse(doc.title);
+		const erro = doc.querySelector("#errorMessages, .errorMessages, .error, #warningMessages");
+		const partes = [caminho, titulo ? "título \"" + titulo.slice(0, 80) + "\"" : ""];
+		if (erro) partes.push("mensagem \"" + collapse(textoLimpo(erro)).slice(0, 160) + "\"");
+		return partes.filter(Boolean).join(", ");
 	}
 
 	function primeiraData(text) {
@@ -373,8 +401,8 @@
 		const { doc } = await readPage(projudiURL(href).href, { method: "GET" });
 		const imputacoes = linhasComDados(tabelaDoCampo(doc, /^imputacoes$/)).map(function (tr) {
 			return {
-				lei: collapse(tr.cells[0].textContent),
-				pena: collapse(tr.cells[1] ? tr.cells[1].textContent : ""),
+				lei: collapse(textoLimpo(tr.cells[0])),
+				pena: collapse(textoLimpo(tr.cells[1])),
 				tipo: complementos(tr.cells[2]),
 			};
 		});
@@ -411,9 +439,9 @@
 			const links = Array.prototype.filter.call(pagina.doc.querySelectorAll('a[href*="parteSentenciada.do"]'), function (a) {
 				return /actionType=visualizar/.test(a.getAttribute("href")) && /ativa/.test(normalize(a.textContent));
 			});
-			if (!links.length) throw new Error("anotação de sentença não encontrada");
+			if (!links.length) throw new Error("anotação de sentença não encontrada (resposta: " + descreverPagina(pagina.doc, pagina.url) + ")");
 			pagina = await readPage(projudiURL(links[0].getAttribute("href"), pagina.url).href, { method: "GET" });
-			if (!ehDetalheDeSentenca(pagina.doc)) throw new Error("anotação de sentença não pôde ser lida");
+			if (!ehDetalheDeSentenca(pagina.doc)) throw new Error("anotação de sentença não pôde ser lida (resposta: " + descreverPagina(pagina.doc, pagina.url) + ")");
 		}
 		const doc = pagina.doc;
 
@@ -480,10 +508,10 @@
 				const idMatch = seguinte && /^trLinhaDoTempo(\d+)_/.exec(seguinte.id || "");
 				linhas.push({
 					id: idMatch ? idMatch[1] : "",
-					parte: collapse(tr.cells[col("parte do processo")].textContent),
+					parte: collapse(textoLimpo(tr.cells[col("parte do processo")])),
 					origem: normalize(origemTd.textContent),
-					origemTexto: collapse(origemTd.textContent),
-					artigo: collapse(tr.cells[col("pena cominada")].textContent),
+					origemTexto: collapse(textoLimpo(origemTd)),
+					artigo: collapse(textoLimpo(tr.cells[col("pena cominada")])),
 					tipo: complementos(tr.cells[col("complemento")]),
 				});
 			}
@@ -530,7 +558,7 @@
 	async function lerInfracoes(href, parte, processoId) {
 		const inicial = await readPage(projudiURL(href).href, { method: "GET" });
 		const form = inicial.doc.getElementById("parteProcessoPenaForm");
-		if (!form) throw new Error("a tela de Infrações/Penas não pôde ser lida");
+		if (!form) throw new Error("a tela de Infrações/Penas não pôde ser lida (resposta: " + descreverPagina(inicial.doc, inicial.url) + ")");
 		const select = form.querySelector('select[name="idFiltroParteProcesso"]');
 		let idParte = parte.id;
 		if (select && !Array.prototype.some.call(select.options, function (o) { return o.value === idParte; })) {
@@ -551,6 +579,7 @@
 			body.set("tipoOrigemPena", origem);
 			const resp = await readPage(action, { method: "POST", body: body });
 			const lista = lerListaInfracoes(resp.doc);
+			lista.resposta = descreverPagina(resp.doc, resp.url) + ", " + lista.linhas.length + " linha(s)";
 			lista.linhas = lista.linhas.filter(function (l) { return !l.parte || mesmoNome(l.parte, parte.nome); });
 			return lista;
 		}
@@ -560,28 +589,55 @@
 			{ origem: ORIGEM_SENTENCA, teste: /^sentenca judicial.*primeiro grau/, rotulo: "Sentença Judicial – Primeiro Grau" },
 			{ origem: ORIGEM_MP, teste: /^ministerio publico/, rotulo: "Ministério Público" },
 		];
+		const listaInicial = lerListaInfracoes(inicial.doc);
+		const inicialDaParte = {
+			dataInfracao: listaInicial.dataInfracao,
+			navegacao: listaInicial.navegacao,
+			linhas: listaInicial.linhas.filter(function (l) { return mesmoNome(l.parte, parte.nome); }),
+		};
+		let dataInfracao = listaInicial.dataInfracao;
+
+		async function escolher(fontes) {
+			for (const p of prioridades) {
+				const lista = await fontes(p.origem);
+				dataInfracao = dataInfracao || lista.dataInfracao;
+				const linhas = lista.linhas.filter(function (l) { return p.teste.test(l.origem); });
+				if (linhas.length) return { p: p, lista: lista, linhas: linhas };
+			}
+			return null;
+		}
+
+		// 1º: pesquisa filtrada (parte + origem), como o botão "Pesquisar"; se
+		// nada vier, a lista inicial (todas as partes, 1ª página) pelo nome.
 		const cache = {};
-		let dataInfracao = lerListaInfracoes(inicial.doc).dataInfracao;
-		for (const p of prioridades) {
-			if (!cache[p.origem]) cache[p.origem] = await pesquisar(p.origem);
-			const lista = cache[p.origem];
-			dataInfracao = dataInfracao || lista.dataInfracao;
-			const linhas = lista.linhas.filter(function (l) { return p.teste.test(l.origem); });
-			if (linhas.length) {
-				if (processoId) {
-					await Promise.all(linhas.map(async function (linha) {
-						if (!linha.id) return;
-						try {
-							linha.detalhe = await lerDetalheInfracao(action, processoId, linha, p.origem, parte);
-						} catch (err) {
-							console.warn(TAG, "detalhe da infração " + linha.id + ":", err);
-						}
-					}));
+		let escolha = await escolher(async function (origem) {
+			if (!cache[origem]) cache[origem] = await pesquisar(origem);
+			return cache[origem];
+		});
+		if (!escolha) escolha = await escolher(async function () { return inicialDaParte; });
+
+		if (!escolha) {
+			const respostas = Object.keys(cache).map(function (o) { return "origem " + o + ": " + (cache[o].resposta || cache[o].linhas.length + " linha(s)"); });
+			return {
+				origem: "",
+				linhas: [],
+				dataInfracao: dataInfracao,
+				navegacao: "",
+				diagnostico: "lista inicial: " + descreverPagina(inicial.doc, inicial.url) + ", " + listaInicial.linhas.length + " linha(s); " + respostas.join("; "),
+			};
+		}
+
+		if (processoId) {
+			for (const linha of escolha.linhas) {
+				if (!linha.id) continue;
+				try {
+					linha.detalhe = await lerDetalheInfracao(action, processoId, linha, escolha.p.origem, parte);
+				} catch (err) {
+					console.warn(TAG, "detalhe da infração " + linha.id + ":", err);
 				}
-				return { origem: p.rotulo, linhas: linhas, dataInfracao: dataInfracao, navegacao: lista.navegacao };
 			}
 		}
-		return { origem: "", linhas: [], dataInfracao: dataInfracao, navegacao: "" };
+		return { origem: escolha.p.rotulo, linhas: escolha.linhas, dataInfracao: dataInfracao, navegacao: escolha.lista.navegacao };
 	}
 
 	// ---------------------------------------------------------------------
@@ -610,7 +666,7 @@
 			motivoSoltura: col(/^motivo da soltura/),
 			periodo: col(/^periodo/),
 		};
-		const texto = function (tr, i) { return i >= 0 && tr.cells[i] ? collapse(tr.cells[i].textContent) : ""; };
+		const texto = function (tr, i) { return i >= 0 && tr.cells[i] ? collapse(textoLimpo(tr.cells[i])) : ""; };
 		const linhas = [];
 		for (const tbody of table.tBodies) {
 			for (const tr of tbody.rows) {
@@ -689,20 +745,21 @@
 			prisoes: linkDoCampo(doc, base, /^prisoes$/),
 		};
 
-		const porParte = await Promise.all(
-			ordenacao.partes.map(async function (parte) {
-				const denunciadoHref = linkDenunciado(doc, base, parte.nome);
-				const sentencas = linksSentenca(doc, base, parte.nome);
-				const [denunciado, primeiroGrau, tribunal, infracoes, prisoes] = await Promise.all([
-					denunciadoHref ? capturar(lerDenunciado(denunciadoHref)) : Promise.resolve(null),
-					sentencas.primeiroGrau ? capturar(lerSentenca(sentencas.primeiroGrau, parte.nome)) : Promise.resolve(null),
-					sentencas.tribunal ? capturar(lerSentenca(sentencas.tribunal, parte.nome)) : Promise.resolve(null),
-					geral.infracoes ? capturar(lerInfracoes(geral.infracoes.href, parte, geral.processoId)) : Promise.resolve(null),
-					parte.href || geral.prisoes ? capturar(lerPrisoes(parte, geral.prisoes)) : Promise.resolve(null),
-				]);
-				return { parte: parte, denunciado: denunciado, primeiroGrau: primeiroGrau, tribunal: tribunal, infracoes: infracoes, prisoes: prisoes };
-			})
-		);
+		// Uma busca de cada vez: o Projudi guarda o estado das telas (formulário
+		// da anotação de sentença, filtro de Infrações/Penas...) na sessão, e
+		// buscas simultâneas podem se atrapalhar.
+		const porParte = [];
+		for (const parte of ordenacao.partes) {
+			const denunciadoHref = linkDenunciado(doc, base, parte.nome);
+			const sentencas = linksSentenca(doc, base, parte.nome);
+			const item = { parte: parte, denunciado: null, primeiroGrau: null, tribunal: null, infracoes: null, prisoes: null };
+			if (denunciadoHref) item.denunciado = await capturar(lerDenunciado(denunciadoHref));
+			if (sentencas.primeiroGrau) item.primeiroGrau = await capturar(lerSentenca(sentencas.primeiroGrau, parte.nome));
+			if (sentencas.tribunal) item.tribunal = await capturar(lerSentenca(sentencas.tribunal, parte.nome));
+			if (geral.infracoes) item.infracoes = await capturar(lerInfracoes(geral.infracoes.href, parte, geral.processoId));
+			if (parte.href || geral.prisoes) item.prisoes = await capturar(lerPrisoes(parte, geral.prisoes));
+			porParte.push(item);
+		}
 		return { geral: geral, partes: porParte };
 	}
 
@@ -806,6 +863,7 @@
 				item.primeiroGrau && item.primeiroGrau.erro ? "Sentença (Primeiro Grau): " + item.primeiroGrau.erro : "",
 				item.tribunal && item.tribunal.erro ? "Acórdão (Tribunal de Justiça): " + item.tribunal.erro : "",
 				item.infracoes && item.infracoes.erro ? "Infrações/Penas: " + item.infracoes.erro : "",
+				item.infracoes && item.infracoes.ok && item.infracoes.ok.diagnostico ? "Infrações/Penas (diagnóstico): " + item.infracoes.ok.diagnostico : "",
 				item.prisoes && item.prisoes.erro ? "Prisões: " + item.prisoes.erro : "",
 			].filter(Boolean);
 			const pri = item.prisoes && item.prisoes.ok;
