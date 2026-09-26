@@ -855,9 +855,14 @@ partir do link **"Processo"** da ordenação:
 4. **Infrações/Penas**, filtradas pela parte: a tipificação vem da
    primeira origem que existir, nesta ordem: **Sentença Judicial Tribunal
    de Justiça**, **Sentença Judicial Primeiro Grau** e **Ministério
-   Público**. As demais são desprezadas, e a Delegacia nunca é usada. Anos,
-   meses e dias vêm da pena da própria imputação quando ela é uma pena
-   imposta (não uma faixa, como "5 a 15 anos");
+   Público**. As demais são desprezadas, e a Delegacia nunca é usada. Para
+   cada infração escolhida, a extensão abre o detalhe dela
+   (`parteProcessoPena.do?actionType=visualizar`) e traz Data do Delito,
+   Tipo (realização do crime, violência doméstica, hediondo...), Fração
+   para Progressão de Regime, Fração para Livramento Condicional,
+   Reincidente (comum/específico) e anos/meses/dias da pena. Se o detalhe
+   não puder ser lido, a linha usa os dados da lista (data da infração e
+   pena, quando for pena imposta e não uma faixa como "5 a 15 anos");
 5. aba **Prisões** da tela da parte (link do nome da parte na ordenação;
    na falta dele, o link "Prisões:" da aba "Informações Adicionais"):
    tabela "Cadastro das Prisões" (data, motivo, local, soltura/conversão,
@@ -865,9 +870,8 @@ partir do link **"Processo"** da ordenação:
    "Dados da Peça" é o da prisão ainda sem soltura/conversão (se não
    houver, fica "Sem informação").
 
-Diferenças em relação à guia: "Medida de Segurança", as frações de
-progressão/livramento e a reincidência não aparecem, porque não constam
-das telas acima. A data de trânsito em julgado exibida é a
+Diferença em relação à guia: "Medida de Segurança" não aparece, porque
+não consta das telas acima. A data de trânsito em julgado exibida é a
 relativa à sentença (quadro "Trânsito em Julgado" da anotação). Se a lista
 de Infrações/Penas da parte tiver mais de uma página, aparece um aviso de
 lista parcial. Falhas de leitura de alguma tela aparecem numa seção

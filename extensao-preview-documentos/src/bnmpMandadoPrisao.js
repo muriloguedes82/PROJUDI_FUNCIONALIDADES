@@ -25,6 +25,11 @@
 //    tipificação vem da PRIMEIRA origem que existir, nesta ordem — Sentença
 //    Judicial Tribunal de Justiça, Sentença Judicial Primeiro Grau,
 //    Ministério Público; as demais são desprezadas (Delegacia nunca é usada);
+//    cada infração escolhida tem o detalhe lido (`parteProcessoPena.do?
+//    actionType=visualizar&numeroProcesso=<id do processo>&id=<id da
+//    infração>&tipoOrigemPena=<origem>`): Data do Delito, Realização do Crime,
+//    Violência Doméstica, Hediondo, Reincidente Comum/Específico e as frações
+//    para progressão de regime e livramento condicional;
 // 5. aba "Prisões" da tela da parte (`parteProcesso.do`, link do nome da
 //    parte na ordenação; na falta dele, o link "Prisões:" da aba "Informações
 //    Adicionais"): tabela de prisões e o "Local da Prisão" de "Dados da Peça"
@@ -469,7 +474,12 @@
 			for (const tr of table.tBodies.length ? table.tBodies[0].rows : []) {
 				if (tr.cells.length < ths.length || tr.style.display === "none") continue;
 				const origemTd = tr.cells[col("origem")];
+				// A linha oculta seguinte (id="trLinhaDoTempo<ID>_<n>") traz o id
+				// da infração/pena, usado para abrir o detalhe dela.
+				const seguinte = tr.nextElementSibling;
+				const idMatch = seguinte && /^trLinhaDoTempo(\d+)_/.exec(seguinte.id || "");
 				linhas.push({
+					id: idMatch ? idMatch[1] : "",
 					parte: collapse(tr.cells[col("parte do processo")].textContent),
 					origem: normalize(origemTd.textContent),
 					origemTexto: collapse(origemTd.textContent),
@@ -481,7 +491,43 @@
 		return { dataInfracao: dataInfracao, navegacao: nav ? collapse(nav.textContent) : "", linhas: linhas };
 	}
 
-	async function lerInfracoes(href, parte) {
+	// Detalhe de uma infração/pena (`parteProcessoPena.do?actionType=
+	// visualizar`): Data do Delito, realização, frações e reincidência. Só é
+	// aceito se a tela for de fato da parte esperada.
+	async function lerDetalheInfracao(action, processoId, linha, origem, parte) {
+		const url = new URL(action);
+		url.search = "";
+		url.searchParams.set("actionType", "visualizar");
+		url.searchParams.set("numeroProcesso", processoId);
+		url.searchParams.set("id", linha.id);
+		url.searchParams.set("tipoOrigemPena", origem);
+		const { doc } = await readPage(projudiURL(url.href).href, { method: "GET" });
+		const form = doc.getElementById("parteProcessoPenaForm");
+		const h3 = form && form.querySelector("h3");
+		if (!h3 || normalize(h3.textContent) !== "infracao/pena") throw new Error("detalhe da infração não reconhecido");
+		if (!mesmoNome(campo(form, /^parte do processo$/), parte.nome)) throw new Error("detalhe da infração de outra parte");
+		const sim = function (regex) { return /^sim/.test(normalize(campo(form, regex))); };
+		const tipo = [campo(form, /^realizacao do crime$/)];
+		if (sim(/^violencia domestica$/)) tipo.push("Violência Doméstica");
+		if (sim(/^hediondo$/)) tipo.push("Hediondo");
+		if (sim(/^com violencia ou grave ameaca$/)) tipo.push("Com violência ou grave ameaça");
+		if (sim(/^resultado morte$/)) tipo.push("Resultado morte");
+		const complemento = campo(form, /^complemento$/);
+		if (complemento) tipo.push(complemento);
+		const reincidente = [];
+		if (sim(/^reincidente comum$/)) reincidente.push("Comum");
+		if (sim(/^reincidente especifico$/)) reincidente.push("Específico");
+		return {
+			dataDelito: primeiraData(campo(form, /^data do delito$/)),
+			tipo: tipo.filter(Boolean).join("; "),
+			fracaoProgressao: campo(form, /^fracao para progressao de regime$/),
+			fracaoLivramento: campo(form, /^fracao para livramento condicional$/),
+			reincidente: reincidente.join(" e "),
+			pena: campo(form, /^pena cominada$/),
+		};
+	}
+
+	async function lerInfracoes(href, parte, processoId) {
 		const inicial = await readPage(projudiURL(href).href, { method: "GET" });
 		const form = inicial.doc.getElementById("parteProcessoPenaForm");
 		if (!form) throw new Error("a tela de Infrações/Penas não pôde ser lida");
@@ -522,6 +568,16 @@
 			dataInfracao = dataInfracao || lista.dataInfracao;
 			const linhas = lista.linhas.filter(function (l) { return p.teste.test(l.origem); });
 			if (linhas.length) {
+				if (processoId) {
+					await Promise.all(linhas.map(async function (linha) {
+						if (!linha.id) return;
+						try {
+							linha.detalhe = await lerDetalheInfracao(action, processoId, linha, p.origem, parte);
+						} catch (err) {
+							console.warn(TAG, "detalhe da infração " + linha.id + ":", err);
+						}
+					}));
+				}
 				return { origem: p.rotulo, linhas: linhas, dataInfracao: dataInfracao, navegacao: lista.navegacao };
 			}
 		}
@@ -610,11 +666,23 @@
 		}
 	}
 
+	// Id interno do processo: campo "id" do #processoForm; na falta dele, o
+	// `id=` da action desse formulário.
+	function idDoProcesso(doc) {
+		const form = doc.getElementById("processoForm");
+		if (!form) return "";
+		const field = form.querySelector('[name="id"]');
+		if (field && /^\d+$/.test(field.value)) return field.value;
+		const m = /[?&]id=(\d+)/.exec(form.getAttribute("action") || "");
+		return m ? m[1] : "";
+	}
+
 	async function buscarDados(ordenacao) {
 		const info = await lerInformacoesAdicionais(ordenacao.processoHref);
 		const doc = info.doc;
 		const base = info.url;
 		const geral = {
+			processoId: idDoProcesso(doc),
 			classe: campo(doc.getElementById("informacoesProcessuais") || doc, /^classe processual$/),
 			dataInfracao: campo(doc, /^data da infracao$/),
 			infracoes: linkDoCampo(doc, base, /^infracoes\/penas$/),
@@ -629,7 +697,7 @@
 					denunciadoHref ? capturar(lerDenunciado(denunciadoHref)) : Promise.resolve(null),
 					sentencas.primeiroGrau ? capturar(lerSentenca(sentencas.primeiroGrau, parte.nome)) : Promise.resolve(null),
 					sentencas.tribunal ? capturar(lerSentenca(sentencas.tribunal, parte.nome)) : Promise.resolve(null),
-					geral.infracoes ? capturar(lerInfracoes(geral.infracoes.href, parte)) : Promise.resolve(null),
+					geral.infracoes ? capturar(lerInfracoes(geral.infracoes.href, parte, geral.processoId)) : Promise.resolve(null),
 					parte.href || geral.prisoes ? capturar(lerPrisoes(parte, geral.prisoes)) : Promise.resolve(null),
 				]);
 				return { parte: parte, denunciado: denunciado, primeiroGrau: primeiroGrau, tribunal: tribunal, infracoes: infracoes, prisoes: prisoes };
@@ -780,10 +848,21 @@
 			if (inf && inf.linhas.length) {
 				conteudoTip.push(el("p", null, [el("b", null, "Origem: "), inf.origem]));
 				conteudoTip.push(tabelaResultado(
-					["Artigo", "Data do Delito", "Tipo", "Anos", "Meses", "dia(s)"],
+					["Artigo", "Data do Delito", "Tipo", "Fração para Progressão de Regime", "Fração para Livramento Condicional", "Reincidente", "Anos", "Meses", "dia(s)"],
 					inf.linhas.map(function (l) {
-						const pena = penaEmPartes(l.artigo);
-						return [l.artigo, dados.geral.dataInfracao || inf.dataInfracao, l.tipo, pena.anos, pena.meses, pena.dias];
+						const d = l.detalhe || {};
+						const pena = penaEmPartes(d.pena || l.artigo);
+						return [
+							l.artigo,
+							d.dataDelito || dados.geral.dataInfracao || inf.dataInfracao,
+							d.tipo || l.tipo,
+							d.fracaoProgressao,
+							d.fracaoLivramento,
+							d.reincidente,
+							pena.anos,
+							pena.meses,
+							pena.dias,
+						];
 					})
 				));
 				const pagina = /(\d+) registro.*ate (\d+)/.exec(normalize(inf.navegacao));
