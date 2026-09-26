@@ -1,0 +1,4 @@
+/* Informações processuais na ordenação BNMP do mandado de prisão (ver bnmpMandadoPrisao.js) */
+tr[data-pdp-bnmp-mandado] em.pdp-bnmp-aviso {
+	color: #777;
+}
