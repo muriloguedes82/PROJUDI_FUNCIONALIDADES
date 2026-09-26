@@ -1,0 +1,67 @@
+/* Projudi - "Juntar Documento" com preferências (ver juntarDocumento.js) */
+
+.pdp-jd-panel {
+	width: 340px;
+}
+
+.pdp-jd-status {
+	position: fixed;
+	top: 8px;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 2147483647;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	max-width: min(720px, calc(100vw - 32px));
+	box-sizing: border-box;
+	padding: 8px 10px;
+	background: #fff8dc;
+	border: 1px solid #c9b458;
+	border-radius: 4px;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+	font: 12px Arial, Helvetica, sans-serif;
+	color: #333;
+}
+
+.pdp-jd-status.pdp-jd-status-ok {
+	background: #eef7e8;
+	border-color: #7aa35c;
+}
+
+.pdp-jd-status.pdp-jd-status-rec {
+	background: #fff8e6;
+	border-color: #e8a33d;
+}
+
+.pdp-jd-status.pdp-jd-status-rec .pdp-jd-status-text::before {
+	content: "● ";
+	color: #d9534f;
+}
+
+.pdp-jd-status.pdp-jd-status-warn {
+	background: #fdecea;
+	border-color: #d9534f;
+}
+
+.pdp-jd-status-text {
+	flex: 1;
+}
+
+.pdp-jd-status button {
+	flex: none;
+	padding: 2px 8px;
+	font: 12px Arial, Helvetica, sans-serif;
+	cursor: pointer;
+}
+
+.pdp-jd-highlight {
+	outline: 3px solid #f0ad4e !important;
+	outline-offset: 2px;
+}
+
+.pdp-jd-status .pdp-jd-primary {
+	font-weight: bold;
+	border: 1px solid #7a7;
+	background: #e3f5e3;
+}

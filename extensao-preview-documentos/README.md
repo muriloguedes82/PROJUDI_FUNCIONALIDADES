@@ -766,6 +766,79 @@ plano) e extrai o endereço (`/projudi/processo/parteProcesso.do?_tj=...`)
 do `onclick` do botão nativo "Partes e Outros" (`id="enableParteButton"`).
 Nenhuma ação é praticada sozinha. Só no Projudi.
 
+## Juntar Documento (com preferências gravadas)
+
+Juntar um documento digitado (certidão, informação, termo...) hoje exige:
+botão nativo **"Juntar Documento"** → escolher o **Tipo de Documento** →
+**"Adicionar"** (janela "Inserir Arquivo") → escolher o **Tipo do
+Arquivo** (e às vezes o **Modelo**) → **"Digitar Texto"** → digitar →
+**"Continuar"** → pré-visualização "Documento" → **"Concluir"** → de volta
+ao "Inserir Arquivo", com o arquivo "Assinado: Não" → **"Assinar
+Arquivos"** (chama o assinador) → **"Confirmar Inclusão"** → **"Concluir
+Movimento"**.
+
+Na mesma linha do **"📋 Processo copiado"**, logo após o "👥 Editar
+Partes/Outros", a extensão adiciona o botão **"📎 Juntar Documento"**. Ele
+abre um painel com:
+
+- **Abrir**: só vai para a tela "Juntar Documento" (como o botão nativo);
+- **+ Nova preferência**: grava o fluxo feito por você (abaixo);
+- **preferências salvas** (★ nome): refazem o fluxo sozinhas;
+- **✏️**: edita a preferência refazendo o fluxo;
+- **🗑**: remove a preferência.
+
+### Gravar uma preferência ("+ Nova preferência")
+
+Como nas demais ações rápidas, a preferência é gravada a partir do que você
+faz nas telas do próprio Projudi — faça o fluxo uma vez. A extensão abre a
+tela Juntar Documento e uma faixa **"● Gravando"** no topo indica o que
+fazer em cada tela:
+
+| Tela | O que é gravado | Quando |
+| --- | --- | --- |
+| Juntar Documento | Tipo de Documento (texto e código) | ao clicar em "Adicionar" |
+| Inserir Arquivo | Tipo do Arquivo, Outros (Descrição), Modelo | ao clicar em "Digitar Texto" |
+| Digitar Documento | o texto que você acrescentou/alterou | ao clicar em "Continuar" |
+
+Na pré-visualização, clique em "Concluir" (ou "Alterar" para voltar ao
+texto). De volta ao "Inserir Arquivo", ao clicar em **"Assinar
+Arquivos"** a extensão pede o **nome** da preferência e salva; o assinador
+segue normalmente. (Se o fluxo chegar ao "Concluir Movimento" sem passar
+por "Assinar Arquivos", a preferência é salva ali.)
+
+Do documento, só é gravado o que você **acrescentou ou alterou** — os
+blocos do texto que não existiam quando o editor abriu. Cabeçalho, número
+dos autos, data, assinatura e o texto do Modelo, que o Projudi gera para
+cada processo, ficam de fora. Ao aplicar, o texto gravado substitui o
+marcador "XXXXXXXXXX INSIRA O TEXTO AQUI XXXXXXXXXX"; num documento sem o
+marcador (gerado por um Modelo), entra logo depois do mesmo parágrafo em
+que você o digitou. Se você não acrescentou nada (o Modelo já traz o
+texto), a preferência usa o documento como o Projudi o gera.
+
+### Aplicar (★) e editar (✏️)
+
+- **★ nome**: vai para a tela Juntar Documento e faz tudo sozinha —
+  Tipo de Documento → "Adicionar" → Tipo do Arquivo/Descrição/Modelo →
+  "Digitar Texto" → texto → "Continuar" → "Concluir" (pré-visualização) →
+  **"Assinar Arquivos"**, que chama o assinador. **Você só digita o PIN.**
+  Assim que o arquivo aparece como "Assinado: Sim", a extensão clica em
+  "Confirmar Inclusão" e, na tela Juntar Documento, em **"Concluir
+  Movimento"**.
+- **✏️**: refaz o fluxo com cada tela **já preenchida** pela preferência,
+  mas sem clicar em nada — ajuste o que quiser (inclusive o texto) e
+  avance manualmente; no "Assinar Arquivos" a extensão pede o nome (já
+  sugerido) e **atualiza** a preferência.
+
+A senha/PIN do certificado **não** é guardada pela extensão: a assinatura
+continua sendo um ato do próprio usuário, no assinador.
+
+Se um passo automático falhar (ex.: opção que não existe mais), a faixa
+avisa; faça esse passo à mão que a extensão continua do seguinte — os
+cliques nos botões nativos também avançam o fluxo. **"Parar"**, na faixa,
+encerra o acompanhamento sem gravar nada. O estado fica no
+`sessionStorage` (só nesta aba) e expira em 1 hora; o fluxo também para se
+a tela Juntar Documento for de outro processo. Só no Projudi.
+
 ## Réus/Indiciados/Noticiados no cabeçalho do processo
 
 No SEEU, o cabeçalho do processo já mostra o nome do sentenciado (com RJI,
