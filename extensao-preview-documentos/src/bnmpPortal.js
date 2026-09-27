@@ -22,7 +22,12 @@
 //      quando a ordenação é de uma PEÇA (Mandado de Prisão, Alvará de
 //      Soltura, guias etc.);
 //    - em "Incluir Evento" (4º ícone, `fa-list`, ao lado do lápis de
-//      "Editar Pessoa") quando a ordenação é de um EVENTO (ver EVENTOS);
+//      "Editar Pessoa") quando a ordenação é de um dos 7 EVENTOS do BNMP 3
+//      (ver EVENTOS);
+//    em seguida, confirma (OK) o aviso "Prezado Usuário" que o BNMP 3
+//    sempre mostra ("Você está prestes a emitir uma peça/evento...") e, no
+//    caso de evento, escolhe o evento na lista "Tipo de evento" da tela
+//    /eventos/incluir/rji/<RJI>;
 // 3. registra no console (F12), a cada troca de tela, o endereço e os
 //    botões/links visíveis ("[Projudi BNMP portal]").
 //
@@ -57,21 +62,23 @@
 	const APP_HOST = "bnmp.pdpj.jus.br";
 	const ESPERA_MS = 30000;
 
-	// Tipos de documento da ordenação que, no BNMP 3, são EVENTOS (e não
-	// peças). Comparados sem acentos/maiúsculas, pelo início do texto ou
-	// pela palavra-chave. Qualquer outro tipo é tratado como peça.
+	// Os 7 tipos de evento do BNMP 3 (lista "Tipo de evento" da tela
+	// /eventos/incluir/rji/<RJI>, confirmada por .mhtml). `ordenacao` é
+	// comparado com o "Tipo de Documento" da ordenação do Projudi e `opcao`
+	// com o texto da opção da lista, ambos sem acentos/maiúsculas. Qualquer
+	// tipo de documento que não case com nenhum deles é tratado como peça.
 	const EVENTOS = [
-		/audiencia de custodia/,
-		/auto de prisao em flagrante/,
-		/^averbacao\b/,
-		/^transferencia\b/,
-		/^evento\b/,
-		/\bfuga\b/,
-		/\bevasao\b/,
-		/\bobito\b|\bmorte\b/,
-		/^(nao )?retorno da saida temporaria/,
-		/^saida temporaria/,
-		/^(inicio|fim|termino) (do|de) monitoramento/,
+		{ nome: "Fuga", ordenacao: /\bfuga\b/, opcao: /^fuga$/ },
+		{ nome: "Auto de Prisão em Flagrante", ordenacao: /auto de prisao em flagrante/, opcao: /^auto de prisao em flagrante$/ },
+		{ nome: "Evasão", ordenacao: /\bevasao\b/, opcao: /^evasao$/ },
+		{ nome: "Saída temporária", ordenacao: /saida temporaria/, opcao: /^saida temporaria$/ },
+		{
+			nome: "Transferência de documentos para outras unidades judiciárias",
+			ordenacao: /transferencia de documentos?\b/,
+			opcao: /^transferencia de documentos/,
+		},
+		{ nome: "Alteração Unidade Prisional", ordenacao: /alteracao (de |da )?unidade prisional/, opcao: /^alteracao (de |da )?unidade prisional$/ },
+		{ nome: "Audiência de Custódia e Análise de Prisão", ordenacao: /audiencia de custodia/, opcao: /^audiencia de custodia/ },
 	];
 
 	// Ícones da tela da parte: tooltip, classe do ícone e posição (1 = olho).
@@ -223,14 +230,20 @@
 	// Tela da parte: "Incluir Peça" / "Incluir Evento"
 	// ---------------------------------------------------------------------
 
-	function tipoDaOrdenacao(ctx) {
+	function eventoDaOrdenacao(ctx) {
 		const tipo = normalize(ctx.tipoDocumento);
-		if (!tipo) return null;
-		return EVENTOS.some(function (re) {
-			return re.test(tipo);
-		})
-			? "evento"
-			: "peca";
+		return (
+			(tipo &&
+				EVENTOS.find(function (ev) {
+					return ev.ordenacao.test(tipo);
+				})) ||
+			null
+		);
+	}
+
+	function tipoDaOrdenacao(ctx) {
+		if (!normalize(ctx.tipoDocumento)) return null;
+		return eventoDaOrdenacao(ctx) ? "evento" : "peca";
 	}
 
 	function naTelaDaParte() {
@@ -252,19 +265,84 @@
 		return null;
 	}
 
-	async function clicarAcao(acao) {
+	// Aviso que o BNMP 3 sempre mostra depois de "Incluir Peça"/"Incluir
+	// Evento" (confirmado por .mhtml): <mat-dialog-container> com
+	// <app-alerta-dialog>, título "Prezado Usuário", texto "Você está prestes
+	// a emitir uma peça/evento para a unidade judiciária ..." e os botões
+	// <button class="btn-cancelar">CANCELAR</button> e <button
+	// class="btn-confirmar">OK</button>. Só este aviso é confirmado.
+	function avisoDeEmissao() {
+		const dialogos = document.querySelectorAll("mat-dialog-container");
+		for (const d of dialogos) {
+			if (!/prestes a emitir/.test(normalize(d.textContent))) continue;
+			const ok = d.querySelector("button.btn-confirmar") ||
+				Array.prototype.find.call(d.querySelectorAll("button"), function (b) {
+					return normalize(b.textContent) === "ok";
+				});
+			if (ok && visivel(ok)) return ok;
+		}
+		return null;
+	}
+
+	function selectTipoEvento() {
+		if (!/^\/eventos\/incluir\b/.test(location.pathname)) return null;
+		const sel = document.querySelector('mat-select[name="tipoEvento"]') || document.querySelector("mat-form-field.tipo-evento mat-select");
+		return visivel(sel) ? sel : null;
+	}
+
+	// Escolhe o evento da ordenação na lista "Tipo de evento" (mat-select do
+	// Angular Material: abre a lista clicando no gatilho e clica na
+	// <mat-option>, que é criada num overlay fora do formulário).
+	async function escolherEvento(evento) {
+		const sel = await esperar(selectTipoEvento);
+		const atual = sel.querySelector(".mat-select-value");
+		if (atual && evento.opcao.test(normalize(atual.textContent))) return;
+		(sel.querySelector(".mat-select-trigger") || sel).click();
+		const opcao = await esperar(function () {
+			return Array.prototype.find.call(document.querySelectorAll("mat-option"), function (o) {
+				return visivel(o) && evento.opcao.test(normalize(o.textContent));
+			});
+		}, 10000);
+		opcao.click();
+	}
+
+	async function clicarAcao(acao, evento) {
 		const def = ACOES[acao];
 		status('Abrindo "' + def.rotulo + '"…');
+		let el;
 		try {
-			const el = await esperar(function () {
+			el = await esperar(function () {
 				return naTelaDaParte() && iconeDaAcao(acao);
 			});
-			el.click();
-			status('"' + def.rotulo + '" aberto pela extensão.');
-			console.info(TAG, "clicado:", def.rotulo);
 		} catch (err) {
 			status('Não encontrei o botão "' + def.rotulo + '" na tela da parte.');
 			console.warn(TAG, "botão não encontrado:", def.rotulo, err);
+			return;
+		}
+		el.click();
+		console.info(TAG, "clicado:", def.rotulo);
+
+		try {
+			const ok = await esperar(avisoDeEmissao, 10000);
+			ok.click();
+			console.info(TAG, 'aviso "Prezado Usuário" confirmado (OK)');
+		} catch (err) {
+			// Sem o aviso (ou já fechado): segue.
+			console.info(TAG, 'aviso "Prezado Usuário" não apareceu');
+		}
+
+		if (acao !== "evento" || !evento) {
+			status('"' + def.rotulo + '" aberto pela extensão.');
+			return;
+		}
+		status('Escolhendo o evento "' + evento.nome + '"…');
+		try {
+			await escolherEvento(evento);
+			status('Evento "' + evento.nome + '" escolhido pela extensão. Confira e continue o preenchimento.');
+			console.info(TAG, "evento escolhido:", evento.nome);
+		} catch (err) {
+			status('"Incluir Evento" aberto, mas não consegui escolher "' + evento.nome + '" na lista "Tipo de evento".');
+			console.warn(TAG, "falha ao escolher o evento:", evento.nome, err);
 		}
 	}
 
@@ -326,7 +404,8 @@
 			const b = document.createElement("b");
 			b.textContent = "No BNMP 3: ";
 			linha.appendChild(b);
-			linha.appendChild(document.createTextNode(tipo === "evento" ? "evento" : "peça"));
+			const ev = eventoDaOrdenacao(ctx);
+			linha.appendChild(document.createTextNode(ev ? "evento — " + ev.nome : "peça"));
 			corpo.appendChild(linha);
 		}
 		if (location.host === APP_HOST) {
@@ -334,7 +413,7 @@
 			botoes.style.cssText = "display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;";
 			const itens = [
 				[ACOES.peca.rotulo, function () { clicarAcao("peca"); }, naTelaDaParte],
-				[ACOES.evento.rotulo, function () { clicarAcao("evento"); }, naTelaDaParte],
+				[ACOES.evento.rotulo, function () { clicarAcao("evento", eventoDaOrdenacao(ctx)); }, naTelaDaParte],
 			];
 			if (ctx.cpf) {
 				itens.push(["Buscar CPF em Pessoas", function () { executarBusca("/pessoas", ctx); }]);
@@ -425,7 +504,7 @@
 					if (window.__pdpBnmpAcaoFeita === ctx.criadoEm) return;
 				}
 				window.__pdpBnmpAcaoFeita = ctx.criadoEm;
-				clicarAcao(tipo);
+				clicarAcao(tipo, eventoDaOrdenacao(ctx));
 			}
 
 			// Troca de tela na aplicação de página única: recoloca o quadro se a

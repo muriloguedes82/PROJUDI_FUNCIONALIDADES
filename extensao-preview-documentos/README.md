@@ -987,11 +987,18 @@ partir de uma ordenação:
     ordenação é de uma **peça** (Mandado de Prisão, Alvará de Soltura,
     Contramandado, guias etc.);
   - **"Incluir Evento"** (4º ícone, ao lado do lápis de "Editar Pessoa")
-    quando a ordenação é de um **evento** — tipo de documento com
-    "Audiência de Custódia", "Auto de Prisão em Flagrante", "Averbação…",
-    "Transferência…", "Evento…", fuga, evasão, óbito/morte, saída
-    temporária ou início/fim de monitoramento (lista `EVENTOS` no início
-    do arquivo). Qualquer outro tipo é tratado como peça.
+    quando a ordenação é de um dos **7 eventos** do BNMP 3: Fuga, Auto de
+    Prisão em Flagrante, Evasão, Saída temporária, Transferência de
+    documentos para outras unidades judiciárias, Alteração (de) Unidade
+    Prisional e Audiência de Custódia e Análise de Prisão (lista `EVENTOS`
+    no início do arquivo). Qualquer outro tipo é tratado como peça.
+
+  Em seguida, confirma (**OK**) o aviso "Prezado Usuário — Você está
+  prestes a emitir uma peça/evento para a unidade judiciária…" (só esse
+  aviso, e só logo após o clique da própria extensão). No caso de evento,
+  ainda escolhe o evento da ordenação na lista **"Tipo de evento"** da tela
+  de inclusão (`/eventos/incluir/rji/<RJI>`); o restante do preenchimento
+  fica com o usuário.
 
   Recarregar a janela não repete o clique; um novo clique num logotipo do
   Projudi, sim;
@@ -1004,7 +1011,8 @@ partir de uma ordenação:
   visíveis (`[Projudi BNMP portal]`).
 
 Estrutura das telas confirmada a partir de .mhtml do BNMP 3 (tela da
-parte, página inicial, Peças, Pessoas, Pessoas (Beta) e Eventos).
+parte, aviso "Prezado Usuário", inclusão de evento, página inicial, Peças,
+Pessoas, Pessoas (Beta) e Eventos).
 
 Além do logotipo (`<span id="infoParteBnmp...">`, confirmado num .mhtml da
 tela), também é reconhecido, em qualquer tela do Projudi, link/botão cujo
