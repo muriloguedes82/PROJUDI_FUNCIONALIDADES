@@ -1,50 +1,36 @@
-// Projudi - Botão "Ir para o BNMP"/"BNMP 3" abre a tela num popup
+// Projudi - Botão do BNMP 3 abre o portal numa janela pop-up sobre o Projudi
 //
-// Nas telas "Outros Cumprimentos" (mesa, tabela BNMP) e na ordenação do
-// BNMP (`cumprimentoCartorio.do?actionType=cumprirBnmp`), o botão nativo
-// que leva ao BNMP 3 abre o destino numa janela/aba nova, tirando o usuário
-// do Projudi. Este recurso faz o botão abrir o destino num POPUP sobreposto
-// à tela atual — o mesmo visual do popup das Ações rápidas (ordenações,
-// remessas; ver `showActionModal` em quickActions.js) —, com "✕ Fechar",
-// "Abrir em janela ↗" e "Abrir em nova aba ↗" no cabeçalho.
-//
-// Botão real, confirmado num .mhtml da ordenação BNMP (TJPR): o logotipo do
-// BNMP 3 ao lado de cada parte de "Referente a(s) parte(s):" —
+// Na ordenação do BNMP (`cumprimentoCartorio.do?actionType=cumprirBnmp`),
+// cada parte de "Referente a(s) parte(s):" tem o logotipo do BNMP 3, um link
+// que o Projudi abre numa ABA nova, tirando o usuário da tela da ordenação.
+// Confirmado num .mhtml da tela (TJPR):
 //   <span id="infoParteBnmp27965566">&nbsp;<a href="https://portalbnmp.cnj.
 //   jus.br/bnmpportal/api/pessoas/cpf/<CPF>" target="_blank"><img alt="BNMP"
 //   src=".../projudi/imagens/bnmp3-logotipo.png"></a></span>
-// Além dele, por segurança (outras telas, mudanças de layout), também conta
-// link/botão cujo texto, `value`, `title` ou `alt` fala em "BNMP 3"/"BNMP3",
-// ou "BNMP" junto de "ir para", "acessar", "abrir", "portal" etc., ou que
-// abra outro host com "bnmp" no nome/caminho (ver ehBotaoBnmp). "Ordenar Expedição
-// BNMP" e os links da própria ordenação (`actionType=cumprirBnmp`) nunca
-// contam. Ao abrir uma tela do Projudi com "bnmp" no conteúdo, os
-// candidatos encontrados são listados no console (F12), prefixados com
-// "[Projudi BNMP 3 popup]", para ajustar a detecção se preciso.
 //
-// Como o endereço é obtido, na fase de captura do clique (antes do onclick
-// nativo):
-// 1. `href` comum do link, ou o primeiro endereço entre aspas em
-//    `window.open(...)`, `openDialog(...)`, `location.href = ...`,
-//    `location.assign/replace(...)` no `onclick`/`href="javascript:..."`;
-// 2. botão de formulário: `action` do form (GET vira URL com os campos;
-//    POST é enviado para o iframe do popup);
-// 3. se nada disso der o endereço, o clique nativo segue normalmente e
-//    bnmp3Shim.js (mundo da página) desvia o `window.open()` que o script
-//    nativo fizer durante esse clique para o popup.
+// Com este recurso, o clique abre o portal numa JANELA POP-UP do navegador
+// (background.js, `chrome.windows.create({type: "popup"})`), menor que a do
+// Projudi e centralizada sobre ela; o usuário a arrasta para onde quiser
+// pela barra de título, deixando a ordenação legível atrás. Os cliques
+// seguintes reaproveitam a mesma janela (se ainda estiver aberta), e a
+// posição/tamanho escolhidos pelo usuário são lembrados.
 //
-// O popup é criado no documento mais alto da mesma origem que não seja um
-// <frameset> (o Projudi usa framesets), para cobrir a tela inteira mesmo
-// quando o botão está num frame ou dentro de outro popup da extensão.
+// Por que não um popup DENTRO da página (como os das ordenações/remessas):
+// o portal do CNJ e o login do PDPJ proíbem ser exibidos dentro de outra
+// página (X-Frame-Options/CSP), e o login num frame de outro site sofre com
+// o particionamento de cookies/armazenamento do Chrome.
 //
-// O portal do BNMP (cnj.jus.br) e o login do PDPJ (pje.jus.br) costumam
-// proibir ser exibidos dentro de outra página (X-Frame-Options/CSP
-// frame-ancestors). Antes de carregar o iframe, background.js cria uma regra
-// de sessão (declarativeNetRequest) que remove esses cabeçalhos SÓ dos
-// frames desses domínios, SÓ na aba do Projudi que abriu o popup. Se mesmo
-// assim o destino não carregar (ex.: login que não funciona dentro de um
-// frame), "Abrir em janela ↗" abre o mesmo endereço numa janela pop-up do
-// navegador sobre o Projudi (mesma técnica do rascunho de e-mail).
+// Junto com o endereço, vão para background.js os dados da ordenação (tipo
+// de documento, processo, parte, CPF), guardados para a aba do portal
+// (ver bnmpPortal.js, que roda dentro do portal do BNMP).
+//
+// Além do logotipo, também conta, em qualquer tela do Projudi, link/botão
+// cujo texto, `value`, `title` ou `alt` fale em "BNMP 3"/"BNMP3", ou "BNMP"
+// junto de "ir para", "acessar", "abrir", "portal" etc., ou que abra outro
+// host com "bnmp" no endereço. "Ordenar Expedição BNMP" e os links da
+// própria ordenação nunca contam. Em toda tela do Projudi que mencione
+// "BNMP", os candidatos são listados no console (F12), prefixados com
+// "[Projudi BNMP 3]", para ajustar a detecção se preciso.
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
@@ -52,11 +38,7 @@
 	if (window.__pdpBnmp3Popup) return;
 	window.__pdpBnmp3Popup = true;
 
-	const TAG = "[Projudi BNMP 3 popup]";
-	const EVENTO_ABRIR = "pdp-bnmp3-abrir";
-	const EVENTO_CLIQUE = "pdp-bnmp3-clique";
-	const MODAL_ID = "pdp-bnmp3-modal";
-	const TITULO = "BNMP 3";
+	const TAG = "[Projudi BNMP 3]";
 	const SELETOR_CLICAVEL = 'a, button, input[type="button"], input[type="submit"], input[type="image"], [onclick]';
 
 	function normalize(text) {
@@ -142,196 +124,38 @@
 		return el && ehBotaoBnmp(el) ? el : null;
 	}
 
-	// -------------------------------------------------------------------
-	// Popup
-	// -------------------------------------------------------------------
+	function collapse(text) {
+		return String(text || "").replace(/\s+/g, " ").trim();
+	}
 
-	// Documento mais alto da mesma origem cujo corpo não é um <frameset>.
-	function janelaHospedeira() {
-		let melhor = window;
-		let win = window;
-		for (let i = 0; i < 10; i++) {
-			let pai;
-			try {
-				pai = win.parent;
-				if (!pai || pai === win) break;
-				const body = pai.document.body;
-				if (body && body.tagName !== "FRAMESET") melhor = pai;
-			} catch (err) {
-				break; // outra origem
-			}
-			win = pai;
+	// Valor da linha "<td class="label">Rótulo:</td><td>valor</td>" da
+	// 1ª table.form da ordenação.
+	function campoDaOrdenacao(regex) {
+		const tabela = document.querySelector("#cumprimentoCartorioForm table.form");
+		if (!tabela) return "";
+		for (const td of tabela.querySelectorAll("td.label")) {
+			if (!regex.test(normalize(td.textContent).replace(/\s*:\s*$/, ""))) continue;
+			let next = td.nextElementSibling;
+			while (next && next.tagName !== "TD") next = next.nextElementSibling;
+			return next ? collapse(next.textContent) : "";
 		}
-		return melhor;
+		return "";
 	}
 
-	function fecharPopup(doc) {
-		const el = (doc || janelaHospedeira().document).getElementById(MODAL_ID);
-		if (el) {
-			if (el.__pdpFechar) el.__pdpFechar();
-			el.remove();
-		}
-	}
-
-	function el(doc, tag, attrs, texto) {
-		const node = doc.createElement(tag);
-		for (const k in attrs || {}) node.setAttribute(k, attrs[k]);
-		if (texto) node.textContent = texto;
-		return node;
-	}
-
-	function abrirEmJanela(url) {
-		chrome.runtime
-			.sendMessage({ source: "projudi-preview", type: "bnmp3-open-window", url: url })
-			.then(function (r) {
-				if (!r || !r.ok) throw new Error((r && r.error) || "sem resposta");
-			})
-			.catch(function (err) {
-				console.warn(TAG, "janela pop-up do navegador falhou; abrindo em nova aba", err);
-				window.open(url, "_blank", "noopener");
-			});
-	}
-
-	// Cria o popup e devolve o <iframe> (sem `src`; quem chama decide como
-	// carregar). `url` é a URL (string) mostrada nos atalhos do cabeçalho.
-	function criarPopup(url, titulo) {
-		const host = janelaHospedeira();
-		const doc = host.document;
-		fecharPopup(doc);
-
-		const backdrop = el(doc, "div", { id: MODAL_ID, class: "pdp-qa-modal-backdrop pdp-bnmp3-backdrop" });
-		const box = el(doc, "div", { class: "pdp-qa-modal-box pdp-bnmp3-box" });
-		const header = el(doc, "div", { class: "pdp-qa-modal-header" });
-		header.appendChild(el(doc, "span", null, titulo || TITULO));
-		const acoes = el(doc, "div", { class: "pdp-bnmp3-acoes" });
-		const janela = el(doc, "button", { type: "button", class: "pdp-qa-modal-close", title: "Abrir numa janela pop-up do navegador, sobre o Projudi (use se o popup ficar em branco)" }, "Abrir em janela ↗");
-		const aba = el(doc, "a", { class: "pdp-qa-modal-close pdp-bnmp3-aba", href: url, target: "_blank", rel: "noopener" }, "Abrir em nova aba ↗");
-		const fechar = el(doc, "button", { type: "button", class: "pdp-qa-modal-close" }, "✕ Fechar");
-		acoes.appendChild(janela);
-		acoes.appendChild(aba);
-		acoes.appendChild(fechar);
-		header.appendChild(acoes);
-		const body = el(doc, "div", { class: "pdp-qa-modal-body" });
-		const iframe = el(doc, "iframe", {
-			class: "pdp-qa-modal-iframe pdp-bnmp3-iframe",
-			name: "pdp-bnmp3-" + Date.now(),
-			allow: "clipboard-read; clipboard-write",
-		});
-		body.appendChild(iframe);
-		box.appendChild(header);
-		box.appendChild(body);
-		backdrop.appendChild(box);
-		doc.body.appendChild(backdrop);
-
-		fechar.addEventListener("click", function () {
-			fecharPopup(doc);
-		});
-		janela.addEventListener("click", function () {
-			abrirEmJanela(aba.href);
-			fecharPopup(doc);
-		});
-		function onKey(event) {
-			if (event.key === "Escape") fecharPopup(doc);
-		}
-		// Sinal de window.close() de dentro do popup (closeShim.js), quando o
-		// destino é uma tela do próprio Projudi.
-		function onMessage(event) {
-			if (event.origin !== host.location.origin || !event.data || event.data.__pdpShim !== true) return;
-			if (event.source === iframe.contentWindow && event.data.__pdpCloseSignal) fecharPopup(doc);
-		}
-		host.addEventListener("keydown", onKey, true);
-		host.addEventListener("message", onMessage);
-		backdrop.__pdpFechar = function () {
-			host.removeEventListener("keydown", onKey, true);
-			host.removeEventListener("message", onMessage);
-		};
-		// Mantém o link "nova aba" apontando para onde o popup está (quando
-		// o destino é da mesma origem e dá para ler).
-		iframe.addEventListener("load", function () {
-			try {
-				const atual = iframe.contentWindow.location.href;
-				if (/^https?:/.test(atual)) aba.href = atual;
-			} catch (err) {
-				// outra origem — mantém o endereço inicial
-			}
-		});
-		return iframe;
-	}
-
-	// Libera a exibição em frame dos domínios do BNMP/PDPJ nesta aba (ver
-	// comentário do topo). Não espera mais que ~1,5 s: sem resposta, carrega
-	// assim mesmo.
-	function liberarFrame(url) {
-		if (new URL(url).origin === location.origin) return Promise.resolve();
-		const pedido = chrome.runtime
-			.sendMessage({ source: "projudi-preview", type: "bnmp3-allow-frame" })
-			.then(function (r) {
-				if (!r || !r.ok) console.warn(TAG, "não foi possível liberar a exibição em frame:", r && r.error);
-			})
-			.catch(function (err) {
-				console.warn(TAG, "não foi possível liberar a exibição em frame:", err);
-			});
-		return Promise.race([pedido, new Promise(function (resolve) { setTimeout(resolve, 1500); })]);
-	}
-
-	function abrirPopup(url, titulo) {
-		console.info(TAG, "abrindo no popup:", url);
-		const iframe = criarPopup(url, titulo);
-		liberarFrame(url).then(function () {
-			if (iframe.isConnected && !iframe.getAttribute("src")) iframe.src = url;
-		});
-		return iframe;
-	}
-
-	// "BNMP 3 — NOME DA PARTE", quando o botão está na linha de uma parte.
-	function tituloDoBotao(botao) {
+	// Dados da ordenação para a aba do portal (ver bnmpPortal.js).
+	function contexto(botao, url) {
 		const li = botao.closest("li");
 		const parte = li && li.querySelector('a[href*="parteProcesso.do"]');
-		const nome = parte ? parte.textContent.replace(/\s+/g, " ").trim() : "";
-		return nome ? TITULO + " — " + nome : TITULO;
+		const processo = document.querySelector('#cumprimentoCartorioForm table.form a[href*="/processo.do"]');
+		const cpf = /\/cpf\/(\d{11})\b/.exec(url.pathname);
+		return {
+			tipoDocumento: campoDaOrdenacao(/^tipo de documento$/),
+			processo: processo ? collapse((processo.querySelector("em") || processo).textContent) : "",
+			parte: parte ? collapse(parte.textContent) : "",
+			cpf: cpf ? cpf[1] : "",
+			ordenacao: location.href,
+		};
 	}
-
-	function enviarFormNoPopup(form, botao) {
-		const action = absoluta(form.getAttribute("action") || location.href);
-		if (!action) return false;
-		const metodo = (form.getAttribute("method") || "get").toLowerCase();
-		if (metodo !== "post") {
-			const dados = new FormData(form);
-			if (botao && botao.name) dados.append(botao.name, botao.value || "");
-			for (const [k, v] of dados) if (typeof v === "string") action.searchParams.append(k, v);
-			abrirPopup(action.href);
-			return true;
-		}
-		const iframe = criarPopup(action.href);
-		const alvoAnterior = form.getAttribute("target");
-		let extra = null;
-		if (botao && botao.name) {
-			extra = form.ownerDocument.createElement("input");
-			extra.type = "hidden";
-			extra.name = botao.name;
-			extra.value = botao.value || "";
-			form.appendChild(extra);
-		}
-		// O iframe precisa já estar no DOM (e carregado como about:blank)
-		// para o navegador reconhecer o `name` como alvo — senão abre aba
-		// nova (armadilha documentada em quickActions.js/habilitarAdvogado.js).
-		setTimeout(function () {
-			form.setAttribute("target", iframe.name);
-			try {
-				HTMLFormElement.prototype.submit.call(form);
-			} finally {
-				if (alvoAnterior === null) form.removeAttribute("target");
-				else form.setAttribute("target", alvoAnterior);
-				if (extra) extra.remove();
-			}
-		}, 50);
-		console.info(TAG, "formulário enviado para o popup:", action.href);
-		return true;
-	}
-
-	// -------------------------------------------------------------------
-	// Clique no botão nativo
-	// -------------------------------------------------------------------
 
 	window.addEventListener(
 		"click",
@@ -339,35 +163,27 @@
 			if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey) return;
 			const botao = botaoDoEvento(event);
 			if (!botao) return;
-
 			const url = urlDoElemento(botao);
-			if (url) {
-				event.preventDefault();
-				event.stopImmediatePropagation();
-				abrirPopup(url.href, tituloDoBotao(botao));
+			if (!url) {
+				console.info(TAG, "botão BNMP sem endereço legível; segue o clique nativo", botao.outerHTML.slice(0, 300));
 				return;
 			}
-			const form = botao.form || (botao.matches('input[type="submit"], input[type="image"], button') ? botao.closest("form") : null);
-			const ehSubmit = botao.matches('input[type="submit"], input[type="image"], button:not([type]), button[type="submit"]');
-			if (form && ehSubmit && !botao.getAttribute("onclick") && enviarFormNoPopup(form, botao)) {
-				event.preventDefault();
-				event.stopImmediatePropagation();
-				return;
-			}
-			// Endereço montado pelo script nativo: deixa o clique seguir e
-			// avisa bnmp3Shim.js para desviar o window.open() desse clique.
-			console.info(TAG, "endereço não está no botão; aguardando o window.open() do script nativo", botao.outerHTML.slice(0, 300));
-			document.dispatchEvent(new CustomEvent(EVENTO_CLIQUE));
+			event.preventDefault();
+			event.stopImmediatePropagation();
+			const dados = contexto(botao, url);
+			console.info(TAG, "abrindo na janela pop-up:", url.href, dados);
+			chrome.runtime
+				.sendMessage({ source: "projudi-preview", type: "bnmp3-open-window", url: url.href, contexto: dados })
+				.then(function (r) {
+					if (!r || !r.ok) throw new Error((r && r.error) || "sem resposta");
+				})
+				.catch(function (err) {
+					console.warn(TAG, "janela pop-up falhou; abrindo em nova aba", err);
+					window.open(url.href, "_blank", "noopener");
+				});
 		},
 		true
 	);
-
-	document.addEventListener(EVENTO_ABRIR, function (event) {
-		const url = absoluta(event.detail);
-		if (!url) return;
-		abrirPopup(url.href);
-		event.preventDefault();
-	});
 
 	// -------------------------------------------------------------------
 	// Diagnóstico: candidatos na tela (uma vez por página)

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Projudi/SEEU - Documentos: Pré-visualização, WhatsApp e E-mail",
-  "version": "2.9.79",
+  "version": "2.9.80",
   "description": "Ao passar o mouse sobre um documento na tela de Movimentações (Projudi ou SEEU), ou sobre uma pendência de análise de juntada/conclusão do Projudi, exibe a íntegra do(s) arquivo(s) em janela(s) sobreposta(s), sem precisar abri-los em outra aba. Também permite selecionar arquivos do processo e enviá-los por WhatsApp Web ou por e-mail via Outlook.",
   "permissions": [
     "identity",
@@ -12,14 +12,12 @@
     "windows",
     "downloads",
     "clipboardRead",
-    "offscreen",
-    "declarativeNetRequestWithHostAccess"
+    "offscreen"
   ],
   "host_permissions": [
     "*://*.tjpr.jus.br/*",
     "*://seeu.pje.jus.br/*",
     "*://*.cnj.jus.br/*",
-    "*://*.pje.jus.br/*",
     "*://*.amazonaws.com/*",
     "https://web.whatsapp.com/*",
     "https://login.microsoftonline.com/*",
@@ -92,8 +90,7 @@
         "src/reusCabecalho.css",
         "src/cpfPartesCumprimentos.css",
         "src/bnmpMandadoPrisao.css",
-        "src/juntarDocumento.css",
-        "src/bnmp3Popup.css"
+        "src/juntarDocumento.css"
       ],
       "run_at": "document_idle",
       "all_frames": true,
@@ -101,14 +98,12 @@
     },
     {
       "matches": [
-        "*://*.tjpr.jus.br/*"
+        "https://portalbnmp.cnj.jus.br/*"
       ],
       "js": [
-        "src/bnmp3Shim.js"
+        "src/bnmpPortal.js"
       ],
-      "world": "MAIN",
-      "run_at": "document_start",
-      "all_frames": true
+      "run_at": "document_idle"
     },
     {
       "matches": [

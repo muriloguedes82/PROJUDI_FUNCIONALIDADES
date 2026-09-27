@@ -849,62 +849,88 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   return true;
 });
 
-// Botão "Ir para o BNMP"/"BNMP 3" (bnmp3Popup.js): "Abrir em janela ↗" abre
-// o destino numa janela pop-up do navegador sobre o Projudi, para quando o
-// site de destino não aceita ser exibido dentro do popup da página.
+// Botão do BNMP 3 (bnmp3Popup.js): abre o portal do BNMP numa janela pop-up
+// do navegador, centralizada sobre a janela do Projudi e menor que ela, que
+// o usuário arrasta para onde quiser. Os cliques seguintes reaproveitam a
+// mesma janela (se ainda estiver aberta), e a posição/tamanho escolhidos
+// pelo usuário ficam guardados (chrome.storage.local) para as próximas.
+// Os dados da ordenação (tipo de documento, processo, parte, CPF) ficam
+// guardados por aba (chrome.storage.session) para bnmpPortal.js.
+const BNMP3_WINDOW_KEY = 'pdpBnmp3WindowId';
+const BNMP3_BOUNDS_KEY = 'pdpBnmp3Bounds';
+const BNMP3_CONTEXT_PREFIX = 'pdpBnmp3Contexto:';
+
+async function bnmp3JanelaExistente() {
+  const {[BNMP3_WINDOW_KEY]: id} = await chrome.storage.session.get(BNMP3_WINDOW_KEY);
+  if (!id) return null;
+  try {
+    const win = await chrome.windows.get(id, {populate: true});
+    return win.tabs && win.tabs[0] ? win : null;
+  } catch (_) { return null; }
+}
+
+async function bnmp3Posicao(projudiWindowId) {
+  const {[BNMP3_BOUNDS_KEY]: salvo} = await chrome.storage.local.get(BNMP3_BOUNDS_KEY);
+  if (salvo && salvo.width > 200 && salvo.height > 200) return salvo;
+  let width = 1000, height = 760, left, top;
+  try {
+    const current = await chrome.windows.get(projudiWindowId);
+    width = Math.max(700, Math.round((current.width || 1400) * 0.7));
+    height = Math.max(500, Math.round((current.height || 950) * 0.85));
+    left = (current.left || 0) + Math.round(((current.width || width) - width) / 2);
+    top = (current.top || 0) + Math.round(((current.height || height) - height) / 2);
+  } catch (_) { /* usa o tamanho padrão */ }
+  return {width, height, left, top};
+}
+
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
   if (message?.source !== 'projudi-preview' || message.type !== 'bnmp3-open-window') return false;
   let url;
   try {
     const origin = new URL(sender.url);
     url = new URL(message.url);
-    if (!sender.tab || !/^(projudi|tst)[^.]*\.tjpr\.jus\.br$/i.test(origin.hostname) || !/^https?:$/.test(url.protocol)) throw new Error('Endereço inválido.');
+    if (!sender.tab || !/^(projudi|tst)[^.]*\.tjpr\.jus\.br$/i.test(origin.hostname) || url.protocol !== 'https:' || !/(^|\.)cnj\.jus\.br$/i.test(url.hostname)) throw new Error('Endereço inválido.');
   } catch (error) { reply({ok:false, error:error.message}); return false; }
   (async () => {
-    let width = 1200, height = 850, left, top;
-    try {
-      const current = await chrome.windows.get(sender.tab.windowId);
-      width = Math.min(1280, Math.round((current.width || 1400) * 0.9));
-      height = Math.min(900, Math.round((current.height || 950) * 0.9));
-      left = (current.left || 0) + Math.round(((current.width || width) - width) / 2);
-      top = (current.top || 0) + Math.round(((current.height || height) - height) / 2);
-    } catch (_) { /* usa o tamanho padrão */ }
-    await chrome.windows.create({url:url.href, type:'popup', width, height, left, top});
+    let win = await bnmp3JanelaExistente();
+    let tabId;
+    if (win) {
+      tabId = win.tabs[0].id;
+      await chrome.tabs.update(tabId, {url: url.href});
+      await chrome.windows.update(win.id, {focused: true, state: 'normal'});
+    } else {
+      const pos = await bnmp3Posicao(sender.tab.windowId);
+      win = await chrome.windows.create({url: url.href, type: 'popup', focused: true, ...pos});
+      tabId = win.tabs[0].id;
+      await chrome.storage.session.set({[BNMP3_WINDOW_KEY]: win.id});
+    }
+    const contexto = {...(message.contexto || {}), url: url.href, projudiTabId: sender.tab.id, criadoEm: Date.now()};
+    await chrome.storage.session.set({[BNMP3_CONTEXT_PREFIX + tabId]: contexto});
     return {ok:true};
   })().then(reply).catch(error => reply({ok:false, error:error.message}));
   return true;
 });
 
-// Botão do BNMP 3 (bnmp3Popup.js): o portal do BNMP (cnj.jus.br) e o login
-// do PDPJ (pje.jus.br) proíbem ser exibidos dentro de outra página. Esta
-// regra de SESSÃO remove X-Frame-Options e Content-Security-Policy só das
-// respostas carregadas em frames (sub_frame) desses domínios e só na aba do
-// Projudi que abriu o popup; a regra some quando a aba fecha (ou o
-// navegador reinicia).
-const BNMP3_FRAME_RULE_BASE = 700000000;
-function bnmp3FrameRuleId(tabId) { return BNMP3_FRAME_RULE_BASE + (tabId % 100000000); }
-
-chrome.runtime.onMessage.addListener((message, sender, reply) => {
-  if (message?.source !== 'projudi-preview' || message.type !== 'bnmp3-allow-frame') return false;
-  try {
-    const origin = new URL(sender.url);
-    if (!sender.tab || !/^(projudi|tst)[^.]*\.tjpr\.jus\.br$/i.test(origin.hostname)) throw new Error('Origem inválida.');
-  } catch (error) { reply({ok:false, error:error.message}); return false; }
-  const id = bnmp3FrameRuleId(sender.tab.id);
-  chrome.declarativeNetRequest.updateSessionRules({
-    removeRuleIds: [id],
-    addRules: [{
-      id, priority: 1,
-      action: {type: 'modifyHeaders', responseHeaders: [
-        {header: 'x-frame-options', operation: 'remove'},
-        {header: 'content-security-policy', operation: 'remove'}
-      ]},
-      condition: {tabIds: [sender.tab.id], resourceTypes: ['sub_frame'], requestDomains: ['cnj.jus.br', 'pje.jus.br']}
-    }]
-  }).then(() => reply({ok:true})).catch(error => reply({ok:false, error:error.message}));
-  return true;
-});
+// Guarda a posição/tamanho da janela do BNMP quando o usuário a move ou
+// redimensiona.
+if (chrome.windows.onBoundsChanged) {
+  chrome.windows.onBoundsChanged.addListener(async win => {
+    const {[BNMP3_WINDOW_KEY]: id} = await chrome.storage.session.get(BNMP3_WINDOW_KEY);
+    if (win.id !== id || win.state !== 'normal') return;
+    await chrome.storage.local.set({[BNMP3_BOUNDS_KEY]: {left: win.left, top: win.top, width: win.width, height: win.height}});
+  });
+}
 
 chrome.tabs.onRemoved.addListener(tabId => {
-  chrome.declarativeNetRequest.updateSessionRules({removeRuleIds: [bnmp3FrameRuleId(tabId)]}).catch(() => {});
+  chrome.storage.session.remove(BNMP3_CONTEXT_PREFIX + tabId).catch(() => {});
+});
+
+// bnmpPortal.js (dentro do portal do BNMP) pede os dados da ordenação que
+// abriu a aba em que está; outras abas do portal recebem `null`.
+chrome.runtime.onMessage.addListener((message, sender, reply) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'bnmp3-contexto') return false;
+  if (!sender.tab) { reply(null); return false; }
+  const key = BNMP3_CONTEXT_PREFIX + sender.tab.id;
+  chrome.storage.session.get(key).then(data => reply(data[key] || null)).catch(() => reply(null));
+  return true;
 });
