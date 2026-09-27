@@ -513,7 +513,9 @@ copiado"** e o botão **"🖍️ Destacar movimentações"**, que abre um popup
 (sobreposto à própria tela, sem trocar de aba) para escolher quais tipos
 de usuário (Magistrado, Ministério Público, Advogado) destacar na aba
 Movimentações, e com qual cor — veja "Destaque de movimentações por tipo
-de usuário" mais acima.
+de usuário" mais acima. Na mesma linha fica o **"🔗 Combos"**, que executa
+várias preferências salvas em sequência (ver "Combos de preferências"
+abaixo).
 
 Cada botão abre um painel com as ações daquele grupo — o conteúdo do
 painel depende de qual tela do processo você está vendo, já que o painel
@@ -650,6 +652,56 @@ As preferências ficam em `chrome.storage.local` (armazenamento local da
 própria extensão, não enviado a nenhum servidor), organizadas por ação —
 ex.: as preferências de "Ordenar Cumprimentos" não aparecem em "Ordenar
 RPV".
+
+### Combos de preferências (várias preferências em sequência)
+
+Um **combo** junta preferências já salvas (de qualquer ação do painel,
+inclusive o "Alvará Eletrônico") para executá-las **uma depois da outra,
+na ordem escolhida** — ex.: "Intimar MP" → "Enviar Concluso p/ sentença".
+
+Para criar, clique no botão **"🔗 Combos"** (na segunda linha, junto do
+"📋 Processo copiado") e em **"+ Novo combo"**:
+
+1. dê um nome ao combo;
+2. na **caixa 1**, escolha a preferência que deve ser executada
+   **primeiro** (a lista mostra todas as preferências salvas, agrupadas
+   por ação);
+3. clique em **"+ Adicionar preferência"** para abrir a **caixa 2** e
+   escolha a próxima — e assim por diante (o botão só fica ativo depois de
+   escolhida a preferência da última caixa). As setas ↑/↓ mudam a ordem e
+   o ✕ remove uma caixa;
+4. clique em **"💾 Salvar combo"** (são necessárias pelo menos 2
+   preferências).
+
+No painel "🔗 Combos", cada combo aparece como **"▶ nome"** (executar),
+com ✏️ (editar etapas, ordem e nome) e 🗑 (remover o combo — as
+preferências continuam salvas). Passar o mouse sobre "▶" mostra as etapas.
+O combo guarda só a referência a cada preferência: editar a preferência
+depois vale também para o combo; se ela for removida, o combo avisa e pede
+para escolher outra.
+
+Ao clicar em **"▶ nome"** (com a aba Movimentações ou a tela de Ações
+aberta), a 1ª etapa abre no popup das "Ações rápidas", já preenchida, com
+a barra de confirmação de sempre — agora com "Combo ... — etapa 1 de N".
+**Cada etapa continua pedindo o "✅ Sim, executar"**: o combo nunca
+confirma um ato processual sozinho, só poupa o trabalho de abrir e
+preencher cada ação. Executada uma etapa (o "Sim, executar" foi clicado,
+ou o próprio Projudi sinalizou o fim da ação), a seguinte abre sozinha —
+inclusive depois do recarregamento da tela que o Projudi faz ao terminar
+uma ação: o andamento fica no `sessionStorage` (só nesta aba) e a tela
+recarregada continua da etapa seguinte.
+
+Enquanto o combo roda, uma barra embaixo da tela mostra a etapa atual, com
+**"↻ Repetir etapa"**, **"⏭ Próxima etapa"** e **"⏹ Parar combo"**. Se o
+popup de uma etapa for fechado sem o "Sim, executar" (✕ Fechar,
+Cancelar, erro ao abrir), o combo espera: repita a etapa, siga para a
+próxima (se ela foi concluída à mão — é o caso do "Alvará Eletrônico",
+que só preenche e deixa o "Salvar" para o usuário) ou pare. Se outro
+processo for aberto na mesma aba, o combo não continua nele. As
+preferências do "📎 Juntar Documento" (que navegam a própria aba) ainda
+não entram nos combos.
+
+Os combos ficam em `chrome.storage.local` (chave `pdpPreferenceCombos`).
 
 ## Alvará Eletrônico (popup para "Cadastrar Alvará Eletrônico")
 

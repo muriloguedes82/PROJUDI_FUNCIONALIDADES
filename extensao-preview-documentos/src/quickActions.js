@@ -143,6 +143,11 @@
 	let captureToolbar = null;
 	let confirmBar = null;
 	let activeModalIframe = null;
+	// Etapa de combo em andamento neste frame (ver "Combos de preferências").
+	let comboStep = null;
+	// A tela está sendo recarregada por esta extensão (fim de uma ação): a
+	// próxima etapa de um combo fica para a instância da página recarregada.
+	let pageReloading = false;
 	const ROW_EXPANDED_KEY = "pdpQuickActionsExpanded";
 	let rowExpanded = false;
 	let rowPreferenceLoaded = false;
@@ -245,7 +250,7 @@
 		if (!activeModalIframe || event.source !== activeModalIframe.contentWindow) return;
 		if (event.data.__pdpCloseSignal) {
 			logChainStep("recebido sinal de fechamento do popup (closeShim, document_start)", event.data);
-			removeActionModal();
+			removeActionModal("auto");
 		} else if (event.data.__pdpOpenerSignal) {
 			logChainStep("closeShim: estado inicial de window.opener no diálogo", event.data);
 		} else if (event.data.__pdpErrorSignal) {
@@ -511,6 +516,7 @@
 	function fetchDoc(url) {
 		return new Promise(function (resolve, reject) {
 			const iframe = document.createElement("iframe");
+			iframe.className = "pdp-qa-fetch-iframe";
 			iframe.style.position = "absolute";
 			iframe.style.top = "-9999px";
 			iframe.style.left = "-9999px";
@@ -935,7 +941,7 @@
 			try {
 				const shimClose = function () {
 					logChainStep("shim (load): win.close() do iframe foi chamado — fechando o popup da extensão", null);
-					removeActionModal();
+					removeActionModal("auto");
 				};
 				shimClose.__pdpShim = true;
 				win.close = shimClose;
@@ -995,11 +1001,12 @@
 			if (flagField.value === "true") {
 				logChainStep("shim: flagClosePopup=true — a ação terminou; recarregando a tela e fechando o popup", null);
 				try {
+					pageReloading = true;
 					window.location.reload();
 				} catch (err) {
 					logChainStep("shim: falhou ao recarregar a tela por trás", String(err));
 				}
-				removeActionModal();
+				removeActionModal("auto");
 			}
 			break; // só o 1º form com esse campo importa — mesma suposição do próprio Projudi
 		}
@@ -1020,22 +1027,34 @@
 		document.body.appendChild(backdrop);
 		backdrop.querySelector(".pdp-qa-modal-close").addEventListener("click", function () {
 			logChainStep('"✕ Fechar" clicado manualmente pelo usuário', null);
-			removeActionModal();
+			removeActionModal("manual");
 		});
 		const iframe = backdrop.querySelector(".pdp-qa-modal-iframe");
 		activeModalIframe = iframe;
 		attachModalIframeCloseShim(iframe);
 		startModalWatch(iframe);
+		// O primeiro popup aberto por uma etapa de combo é o dessa etapa
+		// (ver runPendingComboStep); a barra do combo fica por cima dele.
+		if (comboStep && !comboStep.iframe) {
+			comboStep.iframe = iframe;
+			bringComboBarToFront();
+		}
 		return iframe;
 	}
 
-	function removeActionModal() {
+	// `reason`: "auto" quando o próprio Projudi sinalizou o fim da ação
+	// (flagClosePopup, window.close(), volta à tela do processo), "manual"
+	// no "✕ Fechar"/"Cancelar" — os combos usam isso para saber se a etapa
+	// foi executada (ver onComboStepModalClosed).
+	function removeActionModal(reason) {
 		const el = document.getElementById(MODAL_ID);
 		if (el) el.remove();
+		const closedIframe = activeModalIframe;
 		activeModalIframe = null;
 		stopModalWatch();
 		removeConfirmBar();
 		removeCaptureToolbar();
+		if (comboStep && closedIframe && comboStep.iframe === closedIframe) onComboStepModalClosed(reason);
 	}
 
 	function alertChainFailure(label, result) {
@@ -1334,6 +1353,7 @@
 		confirmBar = document.createElement("div");
 		confirmBar.className = "pdp-qa-confirm-bar";
 		confirmBar.innerHTML =
+			(comboStep ? '<span class="pdp-qa-confirm-combo">' + escapeHtml(comboStepCaption()) + "</span>" : "") +
 			'<span>Confirmar "' + escapeHtml(label) + '" com a preferência "' + escapeHtml(pref.name) + '"?</span>' +
 			'<button type="button" class="pdp-qa-confirm-yes">✅ Sim, executar</button>' +
 			'<button type="button" class="pdp-qa-confirm-cancel">Cancelar</button>';
@@ -1347,6 +1367,7 @@
 				alert('Os campos foram preenchidos, mas não encontrei o botão de confirmar do Projudi automaticamente. Confira e clique nele manualmente.');
 				return;
 			}
+			if (comboStep) comboStep.confirmed = true;
 			submit.click();
 		});
 	}
@@ -1582,7 +1603,8 @@
 				}
 				iframe.removeEventListener("load", onLoad);
 				logChainStep('"' + label + '" concluído — fechando o popup e recarregando a tela', null);
-				removeActionModal();
+				pageReloading = true;
+				removeActionModal("auto");
 				try {
 					window.location.reload();
 				} catch (err) {
@@ -1647,12 +1669,14 @@
 		});
 	}
 
-	function applyPreferenceViaChain(label, pref, editing) {
+	// `resolver` (opcional): outra forma de achar a URL do diálogo — os
+	// combos usam resolveDialogUrlForCombo, que também serve na tela de Ações.
+	function applyPreferenceViaChain(label, pref, editing, resolver) {
 		const cancelToken = { cancelled: false };
 		showLoadingOverlay(label, function () {
 			cancelToken.cancelled = true;
 		});
-		resolveDialogUrl(label).then(function (result) {
+		(resolver || resolveDialogUrl)(label).then(function (result) {
 			removeLoadingOverlay();
 			if (cancelToken.cancelled) return;
 			if (result.failed) {
@@ -1756,7 +1780,7 @@
 		const cancelToken = { cancelled: false };
 		function onCancel() {
 			cancelToken.cancelled = true;
-			removeActionModal();
+			removeActionModal("manual");
 		}
 		showLoadingOverlay(label, onCancel);
 
@@ -1907,6 +1931,744 @@
 	}
 
 	// -------------------------------------------------------------------
+	// Combos de preferências
+	//
+	// Um combo é uma lista ORDENADA de preferências já salvas (de qualquer
+	// ação do painel), executadas uma depois da outra. O editor mostra uma
+	// caixa por etapa: na 1ª o usuário escolhe a preferência que roda
+	// primeiro; "+ Adicionar preferência" cria a caixa seguinte, e assim por
+	// diante. Guardados em chrome.storage.local, em COMBOS_KEY:
+	//   [{ id, name, steps: [{ label, prefId }], createdAt, updatedAt }]
+	// A etapa guarda só a referência (ação + id): editar a preferência
+	// depois vale também para o combo.
+	//
+	// Execução: cada etapa é a mesma "★ preferência" de sempre, sempre no
+	// popup desta extensão (applyPreferenceViaChain/applyPreferenceCustom),
+	// com a mesma confirmação "Sim, executar" — o combo nunca confirma um
+	// ato processual sozinho. Quando o popup da etapa fecha depois de
+	// executada (o usuário clicou em "Sim, executar", ou o próprio Projudi
+	// sinalizou o fim da ação — ver removeActionModal), a próxima etapa
+	// abre sozinha. Se o popup fechar sem execução (✕ Fechar, Cancelar,
+	// erro), a barra do combo pergunta: repetir, ir para a próxima ou parar.
+	//
+	// Ao terminar uma ação, o Projudi/esta extensão recarregam a tela do
+	// processo (checkFlagClosePopup) — por isso o andamento fica no
+	// sessionStorage (só esta aba, compartilhado pelos frames da mesma
+	// origem), em COMBO_RUN_KEY:
+	//   { comboId, name, steps: [{ label, prefId, prefName }], index,
+	//     phase: "pending" | "running" | "waiting", numero, startedAt }
+	// e a instância da página recarregada continua da etapa "pending".
+	// -------------------------------------------------------------------
+
+	const COMBOS_KEY = "pdpPreferenceCombos";
+	const COMBO_RUN_KEY = "pdpComboRun";
+	const COMBO_RUN_MAX_AGE_MS = 2 * 60 * 60 * 1000;
+	const COMBO_NEXT_STEP_DELAY_MS = 900;
+	const COMBO_RESUME_DELAY_MS = 1500;
+	const COMBO_EDITOR_ID = "pdp-qa-combo-editor";
+	const COMBO_BAR_ID = "pdp-qa-combo-bar";
+	let comboResumeChecked = false;
+
+	function loadCombos() {
+		return chrome.storage.local.get([COMBOS_KEY]).then(function (data) {
+			return data[COMBOS_KEY] || [];
+		});
+	}
+
+	function saveCombos(combos) {
+		return chrome.storage.local.set({ [COMBOS_KEY]: combos });
+	}
+
+	// Inclui (sem `id`) ou substitui (mesmo `id`) um combo.
+	function saveCombo(combo) {
+		return loadCombos().then(function (combos) {
+			if (combo.id) {
+				combos = combos.map(function (c) {
+					return c.id === combo.id ? Object.assign({}, c, combo, { updatedAt: Date.now() }) : c;
+				});
+			} else {
+				combos.push(Object.assign({}, combo, { id: "c" + Date.now() + Math.random().toString(36).slice(2, 7), createdAt: Date.now() }));
+			}
+			return saveCombos(combos);
+		});
+	}
+
+	function removeCombo(id) {
+		return loadCombos().then(function (combos) {
+			return saveCombos(
+				combos.filter(function (c) {
+					return c.id !== id;
+				})
+			);
+		});
+	}
+
+	// Todas as preferências salvas, na ordem dos grupos do painel (ações
+	// desconhecidas — de versões antigas — no fim): [{ label, pref }].
+	function flattenPreferences(all) {
+		const labels = [];
+		ACTION_GROUPS.forEach(function (group) {
+			group.actions.forEach(function (label) {
+				if (labels.indexOf(label) === -1) labels.push(label);
+			});
+		});
+		Object.keys(all).forEach(function (label) {
+			if (labels.indexOf(label) === -1) labels.push(label);
+		});
+		const items = [];
+		labels.forEach(function (label) {
+			(all[label] || []).forEach(function (pref) {
+				items.push({ label: label, pref: pref });
+			});
+		});
+		return items;
+	}
+
+	function findPref(all, step) {
+		return (all[step.label] || []).filter(function (p) {
+			return p.id === step.prefId;
+		})[0] || null;
+	}
+
+	function describeComboSteps(steps, all) {
+		return steps
+			.map(function (step, i) {
+				const pref = all ? findPref(all, step) : null;
+				const name = pref ? pref.name : step.prefName || "(preferência removida)";
+				return i + 1 + ". " + step.label + " — ★ " + name;
+			})
+			.join("\n");
+	}
+
+	function numeroProcessoAtual() {
+		const el = document.querySelector("em.attention");
+		const match = /\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/.exec((el ? el.textContent : "") + " " + (document.title || ""));
+		return match ? match[0] : null;
+	}
+
+	// --- Andamento (sessionStorage) ------------------------------------
+
+	function readComboRun() {
+		try {
+			return JSON.parse(sessionStorage.getItem(COMBO_RUN_KEY) || "null");
+		} catch (err) {
+			return null;
+		}
+	}
+
+	function writeComboRun(run) {
+		try {
+			sessionStorage.setItem(COMBO_RUN_KEY, JSON.stringify(run));
+		} catch (err) {
+			console.error("[Projudi Ações Rápidas] não foi possível gravar o andamento do combo:", err);
+		}
+	}
+
+	function clearComboRun() {
+		try {
+			sessionStorage.removeItem(COMBO_RUN_KEY);
+		} catch (err) {
+			// sem sessionStorage: nada a limpar
+		}
+	}
+
+	function comboStepCaption(run) {
+		run = run || readComboRun();
+		if (!run) return "";
+		return 'Combo "' + run.name + '" — etapa ' + Math.min(run.index + 1, run.steps.length) + " de " + run.steps.length;
+	}
+
+	// --- Barra do combo --------------------------------------------------
+
+	function removeComboBar() {
+		const el = document.getElementById(COMBO_BAR_ID);
+		if (el) el.remove();
+	}
+
+	// Mantém a barra acima do popup da etapa (mesma camada, mais ao fim do
+	// <body>).
+	function bringComboBarToFront() {
+		const el = document.getElementById(COMBO_BAR_ID);
+		if (el) document.body.appendChild(el);
+	}
+
+	// `message` (opcional): aviso sobre a etapa atual. Fora da fase
+	// "pending" (a etapa está abrindo), a barra oferece Repetir/Próxima —
+	// também quando a etapa não chegou a abrir (erro, "Cancelar" no
+	// "Abrindo…").
+	function renderComboBar(message) {
+		const run = readComboRun();
+		removeComboBar();
+		if (!run) return;
+		const step = run.steps[run.index];
+		const bar = document.createElement("div");
+		bar.id = COMBO_BAR_ID;
+		bar.className = "pdp-qa-combo-bar";
+
+		const text = document.createElement("div");
+		text.className = "pdp-qa-combo-bar-text";
+		const title = document.createElement("strong");
+		title.textContent = "🔗 " + comboStepCaption(run) + (step ? ": " + step.label + " — ★ " + step.prefName : "");
+		text.appendChild(title);
+		if (message) {
+			const msg = document.createElement("span");
+			msg.className = "pdp-qa-combo-bar-msg";
+			msg.textContent = message;
+			text.appendChild(msg);
+		}
+		bar.appendChild(text);
+		bar.title = describeComboSteps(run.steps);
+
+		function addButton(caption, tip, onClick) {
+			const btn = document.createElement("button");
+			btn.type = "button";
+			btn.textContent = caption;
+			btn.title = tip;
+			btn.addEventListener("click", onClick);
+			bar.appendChild(btn);
+		}
+		if (run.phase !== "pending") {
+			addButton("↻ Repetir etapa", "Abrir de novo esta etapa", function () {
+				restartComboStep(0);
+			});
+			addButton(
+				"⏭ Próxima etapa",
+				run.phase === "running" ? "Fechar esta etapa sem executá-la e abrir a próxima" : "Considerar esta etapa concluída (ou pulá-la) e abrir a próxima",
+				function () {
+					restartComboStep(1);
+				}
+			);
+		}
+		addButton("⏹ Parar combo", "Encerrar o combo (as etapas já executadas continuam valendo)", stopCombo);
+		document.body.appendChild(bar);
+	}
+
+	// --- Execução --------------------------------------------------------
+
+	function startCombo(combo) {
+		if (readComboRun() && !confirm("Já há um combo em andamento nesta aba. Encerrá-lo e iniciar \"" + combo.name + '"?')) return;
+		loadAllPreferences().then(function (all) {
+			const missing = combo.steps.filter(function (step) {
+				return !findPref(all, step);
+			});
+			if (missing.length) {
+				alert(
+					'O combo "' + combo.name + '" usa preferência(s) que não existem mais:\n' +
+						missing
+							.map(function (step) {
+								return "- " + step.label;
+							})
+							.join("\n") +
+						"\n\nEdite o combo (✏️) e escolha outra preferência para essa(s) etapa(s)."
+				);
+				return;
+			}
+			abandonComboStep();
+			writeComboRun({
+				comboId: combo.id,
+				name: combo.name,
+				steps: combo.steps.map(function (step) {
+					return { label: step.label, prefId: step.prefId, prefName: findPref(all, step).name };
+				}),
+				index: 0,
+				phase: "pending",
+				numero: numeroProcessoAtual(),
+				startedAt: Date.now(),
+			});
+			logChainStep('combo "' + combo.name + '" iniciado', { etapas: combo.steps.length });
+			runPendingComboStep();
+		});
+	}
+
+	// URL do diálogo para uma etapa: na tela de Ações, direto do link nativo
+	// (o combo sempre usa o popup, para saber quando a etapa termina); fora
+	// dela, a mesma cadeia em segundo plano de sempre.
+	function resolveDialogUrlForCombo(label) {
+		if (isOnAcoesScreen()) {
+			const link = findActionLink(label);
+			const url = link ? extractUrlFromOnclick(link.getAttribute("onclick"), window.location.href) : null;
+			if (url) return Promise.resolve({ url: url, acoesUrl: window.location.href });
+			return Promise.resolve({ failed: true, screenTitle: "Ações (sem esta ação específica)" });
+		}
+		return resolveDialogUrl(label);
+	}
+
+	function runPendingComboStep() {
+		const run = readComboRun();
+		if (!run || run.phase !== "pending") return;
+		if (run.index >= run.steps.length) {
+			finishCombo(run);
+			return;
+		}
+		const step = run.steps[run.index];
+		// Marca antes de qualquer espera: outro frame/instância não abre a
+		// mesma etapa de novo.
+		run.phase = "running";
+		writeComboRun(run);
+		loadAllPreferences().then(function (all) {
+			const pref = findPref(all, step);
+			if (!pref) {
+				setComboWaiting('A preferência "' + step.prefName + '" não existe mais. Pule esta etapa ou pare o combo.');
+				return;
+			}
+			comboStep = { confirmed: false, iframe: null };
+			renderComboBar();
+			logChainStep("combo: abrindo etapa " + (run.index + 1), { acao: step.label, preferencia: pref.name });
+			if (getCustomAction(step.label)) {
+				applyPreferenceCustom(step.label, pref);
+			} else {
+				applyPreferenceViaChain(step.label, pref, false, resolveDialogUrlForCombo);
+			}
+		});
+	}
+
+	// O popup da etapa atual fechou (ver removeActionModal).
+	function onComboStepModalClosed(reason) {
+		const step = comboStep;
+		comboStep = null;
+		const executed = step.confirmed || reason === "auto";
+		logChainStep("combo: popup da etapa fechado", { motivo: reason || null, executada: executed });
+		if (executed) {
+			advanceCombo();
+		} else {
+			setComboWaiting('O popup da etapa foi fechado sem o "Sim, executar". Se ela foi concluída, clique em "Próxima etapa"; senão, em "Repetir etapa".');
+		}
+	}
+
+	function setComboWaiting(message) {
+		const run = readComboRun();
+		if (!run) return;
+		run.phase = "waiting";
+		writeComboRun(run);
+		renderComboBar(message);
+	}
+
+	function advanceCombo() {
+		const run = readComboRun();
+		if (!run) return;
+		run.index++;
+		if (run.index >= run.steps.length) {
+			finishCombo(run);
+			return;
+		}
+		run.phase = "pending";
+		writeComboRun(run);
+		renderComboBar("Etapa anterior concluída. Abrindo a próxima…");
+		// Se a tela está sendo recarregada, a página nova continua daqui
+		// (ver maybeResumeCombo).
+		if (!pageReloading) setTimeout(runPendingComboStep, COMBO_NEXT_STEP_DELAY_MS);
+	}
+
+	// Desliga a etapa em andamento deste frame sem tratá-la como fechada.
+	function abandonComboStep() {
+		const step = comboStep;
+		comboStep = null;
+		if (step && step.iframe && activeModalIframe === step.iframe) removeActionModal("manual");
+	}
+
+	// `offset`: 0 repete a etapa atual; 1 vai para a próxima.
+	function restartComboStep(offset) {
+		const run = readComboRun();
+		if (!run) return;
+		abandonComboStep();
+		removeLoadingOverlay();
+		run.index += offset;
+		if (run.index >= run.steps.length) {
+			finishCombo(run);
+			return;
+		}
+		run.phase = "pending";
+		writeComboRun(run);
+		runPendingComboStep();
+	}
+
+	function stopCombo() {
+		abandonComboStep();
+		clearComboRun();
+		removeComboBar();
+		logChainStep("combo encerrado pelo usuário", null);
+	}
+
+	function finishCombo(run) {
+		clearComboRun();
+		removeComboBar();
+		logChainStep('combo "' + run.name + '" concluído', null);
+		const bar = document.createElement("div");
+		bar.id = COMBO_BAR_ID;
+		bar.className = "pdp-qa-combo-bar pdp-qa-combo-bar-done";
+		bar.textContent = '✅ Combo "' + run.name + '" concluído (' + run.steps.length + " etapas).";
+		document.body.appendChild(bar);
+		setTimeout(function () {
+			if (bar.isConnected) bar.remove();
+		}, 5000);
+	}
+
+	// Na primeira vez que a fileira de botões aparece nesta página, continua
+	// um combo em andamento nesta aba (a tela foi recarregada ao fim de uma
+	// etapa) — ver reconcile.
+	function maybeResumeCombo() {
+		if (comboResumeChecked || !row || !row.isConnected) return;
+		comboResumeChecked = true;
+		if (insideHelperFrame()) return;
+		const run = readComboRun();
+		if (!run) return;
+		if (Date.now() - (run.startedAt || 0) > COMBO_RUN_MAX_AGE_MS) {
+			clearComboRun();
+			return;
+		}
+		const numero = numeroProcessoAtual();
+		if (run.numero && numero && run.numero !== numero) {
+			// Outro processo aberto nesta aba: não executa nada aqui.
+			run.phase = "waiting";
+			writeComboRun(run);
+			renderComboBar("Este combo foi iniciado no processo " + run.numero + ". Volte a ele para continuar, ou pare o combo.");
+			return;
+		}
+		if (run.phase === "pending") {
+			renderComboBar("Continuando o combo…");
+			setTimeout(runPendingComboStep, COMBO_RESUME_DELAY_MS);
+		} else {
+			setComboWaiting(run.phase === "running" ? "A tela mudou enquanto esta etapa estava aberta." : "");
+		}
+	}
+
+	// Páginas carregadas nos iframes auxiliares (os ocultos de fetchDoc e
+	// de outros recursos, e os diálogos dentro do popup) também rodam este
+	// script — nelas um combo nunca é retomado.
+	function insideHelperFrame() {
+		let win = window;
+		try {
+			while (win.frameElement) {
+				const frame = win.frameElement;
+				if (frame.classList.contains("pdp-qa-fetch-iframe") || frame.classList.contains("pdp-qa-modal-iframe")) return true;
+				const rect = frame.getBoundingClientRect();
+				if (rect.right <= 0 || rect.bottom <= 0 || rect.width === 0 || rect.height === 0) return true;
+				win = win.parent;
+			}
+		} catch (err) {
+			// frame de outra origem acima: não é um iframe auxiliar desta extensão
+		}
+		return false;
+	}
+
+	// --- Editor (caixas de etapas) ---------------------------------------
+
+	function closeComboEditor() {
+		const el = document.getElementById(COMBO_EDITOR_ID);
+		if (el) el.remove();
+	}
+
+	// `existing`: combo a editar (✏️); sem ele, um combo novo.
+	function openComboEditor(existing) {
+		closePanel();
+		loadAllPreferences().then(function (all) {
+			const items = flattenPreferences(all);
+			if (!items.length) {
+				alert('Ainda não há preferências salvas. Crie-as primeiro com "+ Nova preferência" nas ações do painel e depois monte o combo.');
+				return;
+			}
+			// Índice em `items` escolhido em cada caixa (-1 = nada/removida).
+			let slots = existing
+				? existing.steps.map(function (step) {
+						return items.findIndex(function (item) {
+							return item.label === step.label && item.pref.id === step.prefId;
+						});
+					})
+				: [-1];
+
+			closeComboEditor();
+			const backdrop = document.createElement("div");
+			backdrop.id = COMBO_EDITOR_ID;
+			backdrop.className = "pdp-qa-combo-backdrop";
+			backdrop.innerHTML =
+				'<div class="pdp-qa-combo-box">' +
+				'<div class="pdp-qa-modal-header"><span>' +
+				(existing ? "Editar combo de preferências" : "Novo combo de preferências") +
+				'</span><button type="button" class="pdp-qa-modal-close">✕ Fechar</button></div>' +
+				'<div class="pdp-qa-combo-body">' +
+				'<p class="pdp-qa-combo-help">Escolha na 1ª caixa a preferência que deve ser executada primeiro. Depois use "+ Adicionar preferência" para a próxima, e assim por diante. Ao usar o combo, cada etapa abre já preenchida e pede a confirmação de sempre ("Sim, executar"); executada uma, a seguinte abre sozinha.</p>' +
+				'<label class="pdp-qa-combo-name">Nome do combo <input type="text" maxlength="80"></label>' +
+				'<div class="pdp-qa-combo-steps"></div>' +
+				'<button type="button" class="pdp-qa-combo-add">+ Adicionar preferência</button>' +
+				"</div>" +
+				'<div class="pdp-qa-combo-footer">' +
+				'<button type="button" class="pdp-qa-combo-save">💾 Salvar combo</button>' +
+				'<button type="button" class="pdp-qa-combo-cancel">Cancelar</button>' +
+				"</div>" +
+				"</div>";
+			document.body.appendChild(backdrop);
+
+			const removed = slots.filter(function (v) {
+				return v < 0;
+			}).length;
+			if (existing && removed) {
+				const warn = document.createElement("div");
+				warn.className = "pdp-qa-note";
+				warn.textContent = removed + " etapa(s) deste combo usava(m) uma preferência que foi removida — escolha outra na caixa vazia ou remova a caixa com ✕.";
+				backdrop.querySelector(".pdp-qa-combo-help").after(warn);
+			}
+
+			const nameInput = backdrop.querySelector(".pdp-qa-combo-name input");
+			nameInput.value = existing ? existing.name : "";
+			const stepsWrap = backdrop.querySelector(".pdp-qa-combo-steps");
+			const addBtn = backdrop.querySelector(".pdp-qa-combo-add");
+
+			function buildSelect(slotIndex) {
+				const select = document.createElement("select");
+				select.className = "pdp-qa-combo-select";
+				const placeholder = document.createElement("option");
+				placeholder.value = "-1";
+				placeholder.textContent = "— escolha uma preferência —";
+				select.appendChild(placeholder);
+				let group = null;
+				items.forEach(function (item, i) {
+					if (!group || group.label !== item.label) {
+						group = document.createElement("optgroup");
+						group.label = item.label;
+						select.appendChild(group);
+					}
+					const option = document.createElement("option");
+					option.value = String(i);
+					option.textContent = "★ " + item.pref.name;
+					group.appendChild(option);
+				});
+				select.value = String(slots[slotIndex]);
+				select.addEventListener("change", function () {
+					slots[slotIndex] = parseInt(select.value, 10);
+					updateAddButton();
+				});
+				return select;
+			}
+
+			function moveSlot(from, to) {
+				const moved = slots.splice(from, 1)[0];
+				slots.splice(to, 0, moved);
+				renderSlots();
+			}
+
+			function renderSlots() {
+				stepsWrap.innerHTML = "";
+				slots.forEach(function (value, i) {
+					const box = document.createElement("div");
+					box.className = "pdp-qa-combo-step";
+
+					const num = document.createElement("span");
+					num.className = "pdp-qa-combo-step-num";
+					num.textContent = String(i + 1);
+					num.title = i === 0 ? "Executada primeiro" : "Executada depois da etapa " + i;
+					box.appendChild(num);
+
+					box.appendChild(buildSelect(i));
+
+					const tools = document.createElement("span");
+					tools.className = "pdp-qa-combo-step-tools";
+					[
+						{ text: "↑", tip: "Executar antes", disabled: i === 0, fn: function () { moveSlot(i, i - 1); } },
+						{ text: "↓", tip: "Executar depois", disabled: i === slots.length - 1, fn: function () { moveSlot(i, i + 1); } },
+						{
+							text: "✕",
+							tip: "Remover esta etapa",
+							disabled: slots.length === 1,
+							fn: function () {
+								slots.splice(i, 1);
+								renderSlots();
+							},
+						},
+					].forEach(function (spec) {
+						const btn = document.createElement("button");
+						btn.type = "button";
+						btn.textContent = spec.text;
+						btn.title = spec.tip;
+						btn.disabled = spec.disabled;
+						btn.addEventListener("click", spec.fn);
+						tools.appendChild(btn);
+					});
+					box.appendChild(tools);
+					stepsWrap.appendChild(box);
+				});
+				updateAddButton();
+			}
+
+			// Só cria a próxima caixa depois de escolhida a preferência da
+			// última.
+			function updateAddButton() {
+				const last = slots[slots.length - 1];
+				addBtn.disabled = last === undefined || last < 0;
+				addBtn.title = addBtn.disabled ? "Escolha primeiro a preferência da última caixa" : "Adicionar a etapa " + (slots.length + 1);
+			}
+
+			addBtn.addEventListener("click", function () {
+				slots.push(-1);
+				renderSlots();
+				const selects = stepsWrap.querySelectorAll("select");
+				if (selects.length) selects[selects.length - 1].focus();
+			});
+
+			backdrop.querySelector(".pdp-qa-modal-close").addEventListener("click", closeComboEditor);
+			backdrop.querySelector(".pdp-qa-combo-cancel").addEventListener("click", closeComboEditor);
+			backdrop.addEventListener("click", function (event) {
+				if (event.target === backdrop) closeComboEditor();
+			});
+
+			backdrop.querySelector(".pdp-qa-combo-save").addEventListener("click", function () {
+				const name = nameInput.value.trim();
+				if (!name) {
+					alert("Dê um nome ao combo.");
+					nameInput.focus();
+					return;
+				}
+				if (slots.some(function (v) { return v < 0; })) {
+					alert("Escolha a preferência de todas as caixas (ou remova as que sobraram com ✕).");
+					return;
+				}
+				if (slots.length < 2) {
+					alert("Um combo precisa de pelo menos 2 preferências. Use \"+ Adicionar preferência\".");
+					return;
+				}
+				const combo = {
+					name: name,
+					steps: slots.map(function (v) {
+						return { label: items[v].label, prefId: items[v].pref.id };
+					}),
+				};
+				if (existing) combo.id = existing.id;
+				saveCombo(combo)
+					.then(function () {
+						closeComboEditor();
+						alert('Combo "' + name + '" ' + (existing ? "atualizado" : "salvo") + ". Use-o pelo botão \"🔗 Combos\".");
+					})
+					.catch(function (err) {
+						alert("Não foi possível salvar o combo: " + (err && err.message ? err.message : err));
+					});
+			});
+
+			renderSlots();
+			nameInput.focus();
+		});
+	}
+
+	// --- Painel "🔗 Combos" ----------------------------------------------
+
+	function toggleCombosPanel() {
+		if (activeGroupId === "combos") {
+			closePanel();
+			return;
+		}
+		closePanel();
+		buildCombosPanel();
+	}
+
+	function buildCombosPanel() {
+		activeGroupId = "combos";
+		const activeBtn = panelButton("combos");
+		if (activeBtn) activeBtn.classList.add("pdp-qa-active");
+		activePanel = document.createElement("div");
+		activePanel.className = "pdp-qa-panel";
+
+		const canRun = isOnAcoesScreen() || !!findMovimentarButton() || !!findLatestValidEventLink();
+		if (!canRun) {
+			const note = document.createElement("div");
+			note.className = "pdp-qa-empty";
+			note.textContent = 'Para usar um combo, abra a aba "Movimentações" do processo. Aqui dá para criar e editar combos.';
+			activePanel.appendChild(note);
+		}
+
+		const list = document.createElement("div");
+		list.className = "pdp-qa-combo-list";
+		activePanel.appendChild(list);
+
+		const newBtn = document.createElement("button");
+		newBtn.type = "button";
+		newBtn.className = "pdp-qa-pref-new";
+		newBtn.textContent = "+ Novo combo";
+		newBtn.title = "Combinar preferências já salvas, para executá-las em sequência, na ordem escolhida";
+		newBtn.addEventListener("click", function () {
+			openComboEditor(null);
+		});
+		activePanel.appendChild(newBtn);
+
+		document.body.appendChild(activePanel);
+		positionPanel("combos");
+		setTimeout(function () {
+			document.addEventListener("click", onOutsideClick, true);
+			document.addEventListener("keydown", onKeydown, true);
+		}, 0);
+
+		Promise.all([loadCombos(), loadAllPreferences()]).then(function (data) {
+			if (activeGroupId !== "combos") return;
+			renderCombos(list, data[0], data[1], canRun);
+			positionPanel("combos");
+		});
+	}
+
+	function renderCombos(list, combos, all, canRun) {
+		list.innerHTML = "";
+		if (!combos.length) {
+			const empty = document.createElement("div");
+			empty.className = "pdp-qa-empty";
+			empty.textContent = 'Nenhum combo ainda. Use "+ Novo combo" para combinar preferências já salvas.';
+			list.appendChild(empty);
+			return;
+		}
+		combos.forEach(function (combo) {
+			const item = document.createElement("div");
+			item.className = "pdp-qa-combo-item";
+
+			const chip = document.createElement("span");
+			chip.className = "pdp-qa-pref-chip";
+
+			const runBtn = document.createElement("button");
+			runBtn.type = "button";
+			runBtn.className = "pdp-qa-pref-btn";
+			runBtn.textContent = "▶ " + combo.name;
+			runBtn.disabled = !canRun;
+			runBtn.title = (canRun ? "Executar em sequência (cada etapa pede a confirmação de sempre):\n" : 'Abra a aba "Movimentações" para executar:\n') + describeComboSteps(combo.steps, all);
+			runBtn.addEventListener("click", function () {
+				closePanel();
+				startCombo(combo);
+			});
+			chip.appendChild(runBtn);
+
+			const editBtn = document.createElement("button");
+			editBtn.type = "button";
+			editBtn.className = "pdp-qa-pref-edit";
+			editBtn.textContent = "✏️";
+			editBtn.title = "Editar este combo (etapas, ordem e nome)";
+			editBtn.addEventListener("click", function () {
+				openComboEditor(combo);
+			});
+			chip.appendChild(editBtn);
+
+			const delBtn = document.createElement("button");
+			delBtn.type = "button";
+			delBtn.className = "pdp-qa-pref-del";
+			delBtn.textContent = "🗑";
+			delBtn.title = "Remover este combo (as preferências continuam salvas)";
+			delBtn.addEventListener("click", function () {
+				if (!confirm('Remover o combo "' + combo.name + '"? As preferências dele continuam salvas.')) return;
+				removeCombo(combo.id)
+					.then(loadCombos)
+					.then(function (updated) {
+						renderCombos(list, updated, all, canRun);
+					});
+			});
+			chip.appendChild(delBtn);
+			item.appendChild(chip);
+
+			const steps = document.createElement("div");
+			steps.className = "pdp-qa-combo-item-steps";
+			steps.textContent = combo.steps.length + " etapas: " + combo.steps
+				.map(function (step) {
+					const pref = findPref(all, step);
+					return pref ? pref.name : "⚠ removida";
+				})
+				.join(" → ");
+			item.appendChild(steps);
+			list.appendChild(item);
+		});
+	}
+
+	// -------------------------------------------------------------------
 	// Botões flutuantes (um por grupo) e painéis
 	// -------------------------------------------------------------------
 
@@ -1974,6 +2736,15 @@
 		});
 		secondLine.appendChild(highlightPrefsBtn);
 
+		const combosBtn = document.createElement("button");
+		combosBtn.type = "button";
+		combosBtn.className = "pdp-qa-group-btn";
+		combosBtn.dataset.panelId = "combos";
+		combosBtn.innerHTML = '<span class="pdp-qa-icon">🔗</span><span>Combos</span>';
+		combosBtn.title = "Combos de preferências: executar várias preferências salvas em sequência, na ordem escolhida";
+		combosBtn.addEventListener("click", toggleCombosPanel);
+		secondLine.appendChild(combosBtn);
+
 		row.appendChild(mainLine);
 		row.appendChild(secondLine);
 
@@ -1984,13 +2755,19 @@
 		repositionRow();
 	}
 
+	// Botão que abre o painel `id`: um grupo de ações (data-group-id) ou
+	// o "🔗 Combos" (data-panel-id, que não é recolhido com os grupos).
+	function panelButton(id) {
+		return row ? row.querySelector('[data-group-id="' + id + '"], [data-panel-id="' + id + '"]') : null;
+	}
+
 	function closePanel() {
 		if (activePanel) {
 			activePanel.remove();
 			activePanel = null;
 		}
 		if (activeGroupId && row) {
-			const prevBtn = row.querySelector('[data-group-id="' + activeGroupId + '"]');
+			const prevBtn = panelButton(activeGroupId);
 			if (prevBtn) prevBtn.classList.remove("pdp-qa-active");
 		}
 		activeGroupId = null;
@@ -2240,7 +3017,7 @@
 
 	function positionPanel(groupId) {
 		if (!activePanel || !row) return;
-		const btn = row.querySelector('[data-group-id="' + groupId + '"]');
+		const btn = panelButton(groupId);
 		if (!btn) return;
 		const rect = btn.getBoundingClientRect();
 
@@ -2334,6 +3111,7 @@
 				activeGroupId = null;
 			}
 			repositionRow();
+			maybeResumeCombo();
 		} catch (err) {
 			console.error("[Projudi Ações Rápidas]", "erro ao reconciliar:", err);
 		}
@@ -2362,6 +3140,9 @@
 		});
 	}
 	window.addEventListener("pdp-buttons-hide", closePanel);
+	window.addEventListener("pagehide", function () {
+		pageReloading = true;
+	});
 	window.addEventListener("pdp-buttons-moved", function () {
 		if (activeGroupId) positionPanel(activeGroupId);
 	});
