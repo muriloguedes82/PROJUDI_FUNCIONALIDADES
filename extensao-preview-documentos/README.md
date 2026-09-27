@@ -995,10 +995,19 @@ partir de uma ordenação:
 
   Em seguida, confirma (**OK**) o aviso "Prezado Usuário — Você está
   prestes a emitir uma peça/evento para a unidade judiciária…" (só esse
-  aviso, e só logo após o clique da própria extensão). No caso de evento,
-  ainda escolhe o evento da ordenação na lista **"Tipo de evento"** da tela
-  de inclusão (`/eventos/incluir/rji/<RJI>`); o restante do preenchimento
-  fica com o usuário.
+  aviso, e só logo após o clique da própria extensão) e preenche o tipo:
+  - **evento:** escolhe o evento da ordenação na lista **"Tipo de evento"**
+    (`/eventos/incluir/rji/<RJI>`);
+  - **peça:** digita o "Tipo de Documento" da ordenação no campo **"Tipo
+    de peça"** (autocompletar de `/pecas/nova-peca/incluir/rji/<RJI>`) e
+    escolhe a sugestão com o mesmo nome (sem diferenciar acentos e
+    maiúsculas) ou, se não houver, a **única** sugestão que começa com
+    esse nome. Sem certeza (ex.: "Guia de Recolhimento" com sugestões
+    "Provisória" e "Definitiva"), deixa o texto digitado e as sugestões
+    abertas para o usuário escolher; o console (F12) lista as sugestões
+    que o BNMP 3 ofereceu.
+
+  O restante do preenchimento fica com o usuário.
 
   Recarregar a janela não repete o clique; um novo clique num logotipo do
   Projudi, sim;
@@ -1011,7 +1020,8 @@ partir de uma ordenação:
   visíveis (`[Projudi BNMP portal]`).
 
 Estrutura das telas confirmada a partir de .mhtml do BNMP 3 (tela da
-parte, aviso "Prezado Usuário", inclusão de evento, página inicial, Peças,
+parte, aviso "Prezado Usuário", inclusão de evento, inclusão de peça,
+página inicial, Peças,
 Pessoas, Pessoas (Beta) e Eventos).
 
 Além do logotipo (`<span id="infoParteBnmp...">`, confirmado num .mhtml da

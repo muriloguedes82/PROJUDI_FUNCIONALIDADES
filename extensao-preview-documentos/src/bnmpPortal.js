@@ -25,9 +25,12 @@
 //      "Editar Pessoa") quando a ordenação é de um dos 7 EVENTOS do BNMP 3
 //      (ver EVENTOS);
 //    em seguida, confirma (OK) o aviso "Prezado Usuário" que o BNMP 3
-//    sempre mostra ("Você está prestes a emitir uma peça/evento...") e, no
-//    caso de evento, escolhe o evento na lista "Tipo de evento" da tela
-//    /eventos/incluir/rji/<RJI>;
+//    sempre mostra ("Você está prestes a emitir uma peça/evento...") e
+//    escolhe o tipo: no caso de evento, na lista "Tipo de evento" da tela
+//    /eventos/incluir/rji/<RJI>; no caso de peça, no campo "Tipo de peça"
+//    (autocompletar) da tela /pecas/nova-peca/incluir/rji/<RJI>, digitando o
+//    tipo de documento da ordenação e escolhendo a sugestão idêntica (ou a
+//    única compatível) — sem certeza, deixa as sugestões abertas;
 // 3. registra no console (F12), a cada troca de tela, o endereço e os
 //    botões/links visíveis ("[Projudi BNMP portal]").
 //
@@ -306,7 +309,71 @@
 		opcao.click();
 	}
 
-	async function clicarAcao(acao, evento) {
+	// Campo "Tipo de peça" da tela /pecas/nova-peca/incluir/rji/<RJI>
+	// (confirmado por .mhtml): <mat-form-field> com <mat-label>Tipo de
+	// peça</mat-label> e um <input matinput role="combobox" class="...
+	// mat-autocomplete-trigger"> ligado a um <mat-autocomplete>; as opções
+	// (<mat-option>) só existem num overlay depois de digitar/abrir o campo.
+	function inputTipoPeca() {
+		if (!/^\/pecas\/nova-peca\/incluir\b/.test(location.pathname)) return null;
+		for (const campo of document.querySelectorAll("mat-form-field")) {
+			const rotulo = campo.querySelector("mat-label, label");
+			if (!rotulo || normalize(rotulo.textContent) !== "tipo de peca") continue;
+			const input = campo.querySelector("input.mat-autocomplete-trigger, input[role='combobox'], input");
+			if (visivel(input)) return input;
+		}
+		return null;
+	}
+
+	function opcoesVisiveis() {
+		return Array.prototype.filter.call(document.querySelectorAll("mat-option"), visivel);
+	}
+
+	// Escolhe a opção só quando há certeza: texto idêntico ao tipo de
+	// documento da ordenação (sem acentos/maiúsculas) ou, na falta dele, uma
+	// ÚNICA opção que começa com o tipo (ou em que o tipo começa).
+	function opcaoDaPeca(tipo, opcoes) {
+		const alvo = normalize(tipo);
+		const exata = opcoes.find(function (o) {
+			return normalize(o.textContent) === alvo;
+		});
+		if (exata) return exata;
+		const parecidas = opcoes.filter(function (o) {
+			const t = normalize(o.textContent);
+			return t.indexOf(alvo) === 0 || alvo.indexOf(t) === 0;
+		});
+		return parecidas.length === 1 ? parecidas[0] : null;
+	}
+
+	async function escolherPeca(tipo) {
+		const input = await esperar(inputTipoPeca);
+		input.focus();
+		input.click();
+		digitar(input, tipo);
+		// Espera as sugestões assentarem (o filtro pode vir do servidor).
+		let opcoes = [];
+		const fim = Date.now() + 10000;
+		let anterior = -1;
+		let estavel = 0;
+		while (Date.now() < fim) {
+			await pausa(300);
+			opcoes = opcoesVisiveis();
+			if (opcoes.length && opcoes.length === anterior) estavel++;
+			else estavel = 0;
+			anterior = opcoes.length;
+			if (estavel >= 2) break;
+		}
+		console.info(TAG, "sugestões de \"Tipo de peça\" para", tipo + ":", opcoes.map(function (o) { return collapse(o.textContent); }));
+		const escolhida = opcaoDaPeca(tipo, opcoes);
+		if (!escolhida) {
+			throw new Error(opcoes.length ? "nenhuma sugestão corresponde com certeza" : "o BNMP 3 não sugeriu nenhum tipo");
+		}
+		const nome = collapse(escolhida.textContent);
+		escolhida.click();
+		return nome;
+	}
+
+	async function clicarAcao(acao, evento, tipoPeca) {
 		const def = ACOES[acao];
 		status('Abrindo "' + def.rotulo + '"…');
 		let el;
@@ -331,7 +398,23 @@
 			console.info(TAG, 'aviso "Prezado Usuário" não apareceu');
 		}
 
-		if (acao !== "evento" || !evento) {
+		if (acao === "peca") {
+			if (!tipoPeca) {
+				status('"' + def.rotulo + '" aberto pela extensão.');
+				return;
+			}
+			status('Escolhendo o tipo de peça "' + tipoPeca + '"…');
+			try {
+				const nome = await escolherPeca(tipoPeca);
+				status('Tipo de peça "' + nome + '" escolhido pela extensão. Confira e continue o preenchimento.');
+				console.info(TAG, "tipo de peça escolhido:", nome);
+			} catch (err) {
+				status('"Incluir Peça" aberto; escolha o tipo de peça na lista (' + err.message + ").");
+				console.warn(TAG, "tipo de peça não escolhido:", tipoPeca, err);
+			}
+			return;
+		}
+		if (!evento) {
 			status('"' + def.rotulo + '" aberto pela extensão.');
 			return;
 		}
@@ -412,7 +495,7 @@
 			const botoes = document.createElement("div");
 			botoes.style.cssText = "display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;";
 			const itens = [
-				[ACOES.peca.rotulo, function () { clicarAcao("peca"); }, naTelaDaParte],
+				[ACOES.peca.rotulo, function () { clicarAcao("peca", null, ctx.tipoDocumento); }, naTelaDaParte],
 				[ACOES.evento.rotulo, function () { clicarAcao("evento", eventoDaOrdenacao(ctx)); }, naTelaDaParte],
 			];
 			if (ctx.cpf) {
@@ -504,7 +587,7 @@
 					if (window.__pdpBnmpAcaoFeita === ctx.criadoEm) return;
 				}
 				window.__pdpBnmpAcaoFeita = ctx.criadoEm;
-				clicarAcao(tipo, eventoDaOrdenacao(ctx));
+				clicarAcao(tipo, eventoDaOrdenacao(ctx), ctx.tipoDocumento);
 			}
 
 			// Troca de tela na aplicação de página única: recoloca o quadro se a
