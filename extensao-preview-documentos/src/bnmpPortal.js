@@ -12,26 +12,39 @@
 //
 // O que faz:
 // 1. mostra, num quadro no canto inferior direito (recolhível), os dados da
-//    ordenação (peça, processo, parte, CPF), com os botões "Buscar CPF em
-//    Pessoas" e "Buscar CPF em Peças";
-// 2. na PRIMEIRA vez que a janela chega ao BNMP 3 depois de um clique no
-//    logotipo da ordenação, faz sozinho a busca do CPF em Pessoas: vai para
-//    /pessoas (clicando no link do menu, sem recarregar), marca o filtro
-//    "CPF", digita o CPF, pesquisa e destaca a linha da pessoa encontrada;
+//    ordenação (peça, processo, parte, CPF), com os botões "Incluir Peça" e
+//    "Incluir Evento" (na tela da parte) e "Buscar CPF em Pessoas"/"Buscar
+//    CPF em Peças";
+// 2. o link do Projudi sempre leva à TELA DA PARTE (/parte/visualizar/<id>).
+//    Na primeira vez que a janela chega a essa tela depois de um clique no
+//    logotipo da ordenação, a extensão clica sozinha:
+//    - em "Incluir Peça" (pasta com seta, `fa-file-import`, ao lado do olho)
+//      quando a ordenação é de uma PEÇA (Mandado de Prisão, Alvará de
+//      Soltura, guias etc.);
+//    - em "Incluir Evento" (4º ícone, `fa-list`, ao lado do lápis de
+//      "Editar Pessoa") quando a ordenação é de um EVENTO (ver EVENTOS);
 // 3. registra no console (F12), a cada troca de tela, o endereço e os
-//    botões/links visíveis ("[Projudi BNMP portal]"), para as próximas
-//    etapas da automação.
+//    botões/links visíveis ("[Projudi BNMP portal]").
 //
-// Estrutura das telas confirmada a partir de .mhtml salvos (bnmp.pdpj.jus.br,
-// /pessoas e /pecas): menu lateral com <a href="https://bnmp.pdpj.jus.br/
-// pessoas" aria-label="Ir para Pessoas">; filtro em <div class=
-// "uikit-finder"> com <section class="radio-group-more-filter"> de
-// <mat-checkbox> ("CPF", "RJI", "NOME" em Pessoas; "CPF", "RJI", "Nº PEÇA",
-// "NOME DA PESSOA" em Peças; marcado = classe `mat-checkbox-checked`), um
-// <input matinput data-placeholder="Pesquisar"> e o <button class=
-// "btn-search">; resultados em <tr class="mat-row"> com <td class="mat-cell
-// cdk-column-cpf"> (Pessoas) / "cdk-column-cpf" e "cdk-column-nomePessoa"
-// (Peças), CPF formatado "000.000.000-00".
+// Estrutura das telas confirmada a partir de .mhtml salvos (bnmp.pdpj.jus.br):
+// - tela da parte: <div class="icon d-flex justify-content-end"> com <a> na
+//   ordem: olho (`far fa-eye`), <a mattooltip="Incluir Peça"><i class="fas
+//   fa-file-import">, <a mattooltip="Editar Pessoa"><i class="fas
+//   fa-pencil-alt">, <a mattooltip="Incluir Evento"><i class="fas fa-list">,
+//   "Desativar Pessoa", "Histórico", "Imprimir", "Download", "Atualizar
+//   Status" (os <a> não têm href; o Angular trata o clique);
+// - /pessoas e /pecas: menu lateral com <a href="https://bnmp.pdpj.jus.br/
+//   pessoas" aria-label="Ir para Pessoas">; filtro em <div class=
+//   "uikit-finder"> com <section class="radio-group-more-filter"> de
+//   <mat-checkbox> ("CPF", "RJI", "NOME"...; marcado = classe
+//   `mat-checkbox-checked`), um <input matinput data-placeholder=
+//   "Pesquisar"> e o <button class="btn-search">; resultados em <tr
+//   class="mat-row"> com <td class="mat-cell cdk-column-cpf"> (CPF
+//   formatado "000.000.000-00");
+// - /eventos: tipos de evento na coluna "Evento" (ex.: "Audiência de
+//   Custódia e Análise de Prisão", "Auto de Prisão em Flagrante",
+//   "Averbação da alteração do prazo de validade...", "Transferência de
+//   documentos para outras unidades judiciárias").
 (function () {
 	"use strict";
 	if (window.top !== window) return;
@@ -43,6 +56,29 @@
 	const DESTAQUE_ATTR = "data-pdp-bnmp-cpf";
 	const APP_HOST = "bnmp.pdpj.jus.br";
 	const ESPERA_MS = 30000;
+
+	// Tipos de documento da ordenação que, no BNMP 3, são EVENTOS (e não
+	// peças). Comparados sem acentos/maiúsculas, pelo início do texto ou
+	// pela palavra-chave. Qualquer outro tipo é tratado como peça.
+	const EVENTOS = [
+		/audiencia de custodia/,
+		/auto de prisao em flagrante/,
+		/^averbacao\b/,
+		/^transferencia\b/,
+		/^evento\b/,
+		/\bfuga\b/,
+		/\bevasao\b/,
+		/\bobito\b|\bmorte\b/,
+		/^(nao )?retorno da saida temporaria/,
+		/^saida temporaria/,
+		/^(inicio|fim|termino) (do|de) monitoramento/,
+	];
+
+	// Ícones da tela da parte: tooltip, classe do ícone e posição (1 = olho).
+	const ACOES = {
+		peca: { rotulo: "Incluir Peça", icone: "fa-file-import", posicao: 2 },
+		evento: { rotulo: "Incluir Evento", icone: "fa-list", posicao: 4 },
+	};
 
 	function collapse(text) {
 		return String(text || "").replace(/\s+/g, " ").trim();
@@ -184,6 +220,55 @@
 	}
 
 	// ---------------------------------------------------------------------
+	// Tela da parte: "Incluir Peça" / "Incluir Evento"
+	// ---------------------------------------------------------------------
+
+	function tipoDaOrdenacao(ctx) {
+		const tipo = normalize(ctx.tipoDocumento);
+		if (!tipo) return null;
+		return EVENTOS.some(function (re) {
+			return re.test(tipo);
+		})
+			? "evento"
+			: "peca";
+	}
+
+	function naTelaDaParte() {
+		return location.host === APP_HOST && /^\/parte\/visualizar\//.test(location.pathname);
+	}
+
+	function iconeDaAcao(acao) {
+		const def = ACOES[acao];
+		const porTooltip = Array.prototype.find.call(document.querySelectorAll("a[mattooltip], button[mattooltip]"), function (el) {
+			return normalize(el.getAttribute("mattooltip")) === normalize(def.rotulo) && visivel(el);
+		});
+		if (porTooltip) return porTooltip;
+		const porIcone = document.querySelector("div.icon a > i." + def.icone);
+		if (porIcone && visivel(porIcone.parentElement)) return porIcone.parentElement;
+		// Último recurso: posição na barra de ícones, conferindo que o 1º é o olho.
+		const barra = document.querySelector("div.icon.d-flex");
+		const links = barra ? barra.querySelectorAll(":scope > a") : [];
+		if (links.length >= def.posicao && links[0].querySelector(".fa-eye")) return links[def.posicao - 1];
+		return null;
+	}
+
+	async function clicarAcao(acao) {
+		const def = ACOES[acao];
+		status('Abrindo "' + def.rotulo + '"…');
+		try {
+			const el = await esperar(function () {
+				return naTelaDaParte() && iconeDaAcao(acao);
+			});
+			el.click();
+			status('"' + def.rotulo + '" aberto pela extensão.');
+			console.info(TAG, "clicado:", def.rotulo);
+		} catch (err) {
+			status('Não encontrei o botão "' + def.rotulo + '" na tela da parte.');
+			console.warn(TAG, "botão não encontrado:", def.rotulo, err);
+		}
+	}
+
+	// ---------------------------------------------------------------------
 	// Quadro com os dados da ordenação
 	// ---------------------------------------------------------------------
 
@@ -222,7 +307,7 @@
 		const corpo = document.createElement("div");
 		corpo.style.cssText = "padding:0 10px 8px;";
 		[
-			["Peça", ctx.tipoDocumento],
+			["Documento", ctx.tipoDocumento],
 			["Processo", ctx.processo],
 			["Parte", ctx.parte],
 			["CPF", cpfFormatado(ctx.cpf)],
@@ -235,23 +320,37 @@
 			linha.appendChild(document.createTextNode(par[1]));
 			corpo.appendChild(linha);
 		});
-		if (location.host === APP_HOST && ctx.cpf) {
+		const tipo = tipoDaOrdenacao(ctx);
+		if (tipo) {
+			const linha = document.createElement("div");
+			const b = document.createElement("b");
+			b.textContent = "No BNMP 3: ";
+			linha.appendChild(b);
+			linha.appendChild(document.createTextNode(tipo === "evento" ? "evento" : "peça"));
+			corpo.appendChild(linha);
+		}
+		if (location.host === APP_HOST) {
 			const botoes = document.createElement("div");
 			botoes.style.cssText = "display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;";
-			[
-				["Buscar CPF em Pessoas", "/pessoas"],
-				["Buscar CPF em Peças", "/pecas"],
-			].forEach(function (par) {
+			const itens = [
+				[ACOES.peca.rotulo, function () { clicarAcao("peca"); }, naTelaDaParte],
+				[ACOES.evento.rotulo, function () { clicarAcao("evento"); }, naTelaDaParte],
+			];
+			if (ctx.cpf) {
+				itens.push(["Buscar CPF em Pessoas", function () { executarBusca("/pessoas", ctx); }]);
+				itens.push(["Buscar CPF em Peças", function () { executarBusca("/pecas", ctx); }]);
+			}
+			itens.forEach(function (item) {
 				const bt = document.createElement("button");
 				bt.type = "button";
-				bt.textContent = par[0];
+				bt.textContent = item[0];
 				bt.style.cssText = "font:12px Arial,Helvetica,sans-serif;padding:3px 8px;border:1px solid #b09a3a;border-radius:3px;background:#fff;cursor:pointer;";
-				bt.addEventListener("click", function () {
-					executarBusca(par[1], ctx);
-				});
+				if (item[2]) bt.setAttribute("data-so-parte", "");
+				bt.addEventListener("click", item[1]);
 				botoes.appendChild(bt);
 			});
 			corpo.appendChild(botoes);
+			atualizarBotoes(quadro);
 		}
 		statusEl = document.createElement("div");
 		statusEl.style.cssText = "margin-top:4px;color:#555;";
@@ -264,6 +363,14 @@
 		quadro.appendChild(cab);
 		quadro.appendChild(corpo);
 		document.body.appendChild(quadro);
+	}
+
+	// "Incluir Peça"/"Incluir Evento" só aparecem na tela da parte.
+	function atualizarBotoes(quadro) {
+		const naParte = naTelaDaParte();
+		(quadro || document).querySelectorAll("[data-so-parte]").forEach(function (bt) {
+			bt.style.display = naParte ? "" : "none";
+		});
 	}
 
 	// ---------------------------------------------------------------------
@@ -299,18 +406,27 @@
 				.catch(function () {})
 				.then(function () {
 					mostrarQuadro(ctx);
-					if (location.host !== APP_HOST || !ctx.cpf) return;
-					// Busca automática só uma vez por clique no logotipo (cada
-					// clique grava um `criadoEm` novo).
-					const chave = "pdpBnmpBuscaAuto:" + ctx.criadoEm;
-					try {
-						if (sessionStorage.getItem(chave)) return;
-						sessionStorage.setItem(chave, "1");
-					} catch (err) {
-						// sem sessionStorage — busca assim mesmo
-					}
-					executarBusca("/pessoas", ctx);
+					acaoAutomatica();
 				});
+
+			// Clique automático em "Incluir Peça"/"Incluir Evento" só uma vez
+			// por clique no logotipo (cada clique grava um `criadoEm` novo), e
+			// só quando a janela está na tela da parte (depois do login do
+			// PDPJ, a chegada pode demorar).
+			function acaoAutomatica() {
+				if (!naTelaDaParte()) return;
+				const tipo = tipoDaOrdenacao(ctx);
+				if (!tipo) return;
+				const chave = "pdpBnmpAcaoAuto:" + ctx.criadoEm;
+				try {
+					if (sessionStorage.getItem(chave)) return;
+					sessionStorage.setItem(chave, "1");
+				} catch (err) {
+					if (window.__pdpBnmpAcaoFeita === ctx.criadoEm) return;
+				}
+				window.__pdpBnmpAcaoFeita = ctx.criadoEm;
+				clicarAcao(tipo);
+			}
 
 			// Troca de tela na aplicação de página única: recoloca o quadro se a
 			// tela o removeu e registra a tela nova no console.
@@ -324,6 +440,8 @@
 					status(texto);
 				}
 				if (location.href === ultimaUrl) return;
+				atualizarBotoes();
+				acaoAutomatica();
 				clearTimeout(timer);
 				timer = setTimeout(function () {
 					ultimaUrl = location.href;

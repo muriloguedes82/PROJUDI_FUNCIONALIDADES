@@ -975,24 +975,36 @@ Por que não um popup dentro da própria página, como os das ordenações e
 remessas: o portal do CNJ e o login do PDPJ não aceitam ser exibidos dentro
 de outra página.
 
-**Dentro do BNMP 3** (`bnmp.pdpj.jus.br`, para onde o link do Projudi em
-`portalbnmp.cnj.jus.br` leva; `src/bnmpPortal.js`), só na janela aberta a
+**Dentro do BNMP 3** (`bnmp.pdpj.jus.br`; o link do Projudi em
+`portalbnmp.cnj.jus.br` sempre leva à **tela da parte**,
+`/parte/visualizar/<id>`; `src/bnmpPortal.js`), só na janela aberta a
 partir de uma ordenação:
 
-- um quadro recolhível no canto inferior direito mostra os dados da
-  ordenação (peça, processo, parte e CPF), com os botões **"Buscar CPF em
-  Pessoas"** e **"Buscar CPF em Peças"**;
-- na primeira vez que a janela chega ao BNMP 3 depois do clique no
-  logotipo, a extensão faz sozinha a busca em **Pessoas**: abre a tela pelo
-  menu, marca o filtro **CPF**, digita o CPF da parte, pesquisa e destaca
-  (contorno amarelo) a linha da pessoa. Recarregar a janela não repete a
-  busca; um novo clique num logotipo do Projudi, sim;
-- a cada troca de tela, o console (F12) lista o endereço e os botões/links
-  visíveis (`[Projudi BNMP portal]`), como base para as próximas etapas
-  da automação (abrir o cadastro da nova peça).
+- na primeira vez que a janela chega à tela da parte depois do clique no
+  logotipo, a extensão clica sozinha no ícone certo da barra de ícones da
+  parte:
+  - **"Incluir Peça"** (pasta com seta, ao lado do olho verde) quando a
+    ordenação é de uma **peça** (Mandado de Prisão, Alvará de Soltura,
+    Contramandado, guias etc.);
+  - **"Incluir Evento"** (4º ícone, ao lado do lápis de "Editar Pessoa")
+    quando a ordenação é de um **evento** — tipo de documento com
+    "Audiência de Custódia", "Auto de Prisão em Flagrante", "Averbação…",
+    "Transferência…", "Evento…", fuga, evasão, óbito/morte, saída
+    temporária ou início/fim de monitoramento (lista `EVENTOS` no início
+    do arquivo). Qualquer outro tipo é tratado como peça.
 
-Estrutura das telas confirmada a partir de .mhtml do BNMP 3 (página
-inicial, Peças, Pessoas, Pessoas (Beta) e Eventos).
+  Recarregar a janela não repete o clique; um novo clique num logotipo do
+  Projudi, sim;
+- um quadro recolhível no canto inferior direito mostra os dados da
+  ordenação (documento, processo, parte, CPF e se é peça ou evento no
+  BNMP 3), com os botões **"Incluir Peça"** e **"Incluir Evento"** (na
+  tela da parte) e **"Buscar CPF em Pessoas"**/**"Buscar CPF em Peças"**
+  (marca o filtro CPF, pesquisa e destaca a linha da pessoa);
+- a cada troca de tela, o console (F12) lista o endereço e os botões/links
+  visíveis (`[Projudi BNMP portal]`).
+
+Estrutura das telas confirmada a partir de .mhtml do BNMP 3 (tela da
+parte, página inicial, Peças, Pessoas, Pessoas (Beta) e Eventos).
 
 Além do logotipo (`<span id="infoParteBnmp...">`, confirmado num .mhtml da
 tela), também é reconhecido, em qualquer tela do Projudi, link/botão cujo
