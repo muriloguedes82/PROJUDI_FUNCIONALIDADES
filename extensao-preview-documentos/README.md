@@ -975,7 +975,9 @@ Por que não um popup dentro da própria página, como os das ordenações e
 remessas: o portal do CNJ e o login do PDPJ não aceitam ser exibidos dentro
 de outra página.
 
-**Dentro do portal do BNMP** (`src/bnmpPortal.js`), só na janela aberta a
+**Dentro do BNMP 3** (`bnmp.pdpj.jus.br` — telas `/pagina-inicial`,
+`/pecas`, `/pessoas`, `/eventos` —, para onde o link do Projudi em
+`portalbnmp.cnj.jus.br` leva; `src/bnmpPortal.js`), só na janela aberta a
 partir de uma ordenação, a extensão mostra no canto inferior direito um
 quadro recolhível com os dados da ordenação (peça, processo, parte e CPF).
 A cada troca de tela do portal, o console (F12) lista o endereço e os
@@ -989,8 +991,8 @@ texto, `value`, `title` ou `alt` fale em "BNMP 3"/"BNMP3" ou "BNMP" junto de
 "bnmp" no endereço. "Ordenar Expedição BNMP" e os links da própria
 ordenação nunca contam. Em toda tela do Projudi que mencione "BNMP", o
 console lista os candidatos (`[Projudi BNMP 3] elementos com "BNMP" nesta
-tela`). A extensão passa a ter acesso a `*.cnj.jus.br` (ao atualizar, o
-Chrome pode pedir para aceitar a nova permissão).
+tela`). A extensão passa a ter acesso a `*.cnj.jus.br` e `*.pdpj.jus.br` (ao
+atualizar, o Chrome pode pedir para aceitar as novas permissões).
 
 ## "Nova Remessa" (realizar mais de uma remessa em seguida)
 

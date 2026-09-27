@@ -889,7 +889,7 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   try {
     const origin = new URL(sender.url);
     url = new URL(message.url);
-    if (!sender.tab || !/^(projudi|tst)[^.]*\.tjpr\.jus\.br$/i.test(origin.hostname) || url.protocol !== 'https:' || !/(^|\.)cnj\.jus\.br$/i.test(url.hostname)) throw new Error('Endereço inválido.');
+    if (!sender.tab || !/^(projudi|tst)[^.]*\.tjpr\.jus\.br$/i.test(origin.hostname) || url.protocol !== 'https:' || !/(^|\.)(cnj|pdpj)\.jus\.br$/i.test(url.hostname)) throw new Error('Endereço inválido.');
   } catch (error) { reply({ok:false, error:error.message}); return false; }
   (async () => {
     let win = await bnmp3JanelaExistente();

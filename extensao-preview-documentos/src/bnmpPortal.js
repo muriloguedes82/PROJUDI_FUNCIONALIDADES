@@ -1,5 +1,11 @@
-// Portal do BNMP 3 (portalbnmp.cnj.jus.br) aberto pelo botão do BNMP 3 da
-// ordenação no Projudi (ver bnmp3Popup.js)
+// Portal do BNMP 3 aberto pelo botão do BNMP 3 da ordenação no Projudi (ver
+// bnmp3Popup.js)
+//
+// O link do Projudi aponta para `portalbnmp.cnj.jus.br/bnmpportal/api/
+// pessoas/cpf/<CPF>`; o BNMP 3 em si fica em `bnmp.pdpj.jus.br` (telas
+// /pagina-inicial, /pecas, /pessoas, /eventos). Este script roda nos dois
+// domínios; os dados da ordenação são guardados por ABA, então continuam
+// valendo depois dos redirecionamentos e do login do PDPJ.
 //
 // Só age na aba/janela que a própria extensão abriu a partir de uma
 // ordenação: background.js guarda, por aba, os dados dessa ordenação (tipo
