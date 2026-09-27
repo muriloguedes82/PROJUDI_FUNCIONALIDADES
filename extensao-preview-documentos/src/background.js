@@ -848,3 +848,29 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
     .catch(error => reply({ ok: false, error: error.message }));
   return true;
 });
+
+// Botão "Ir para o BNMP"/"BNMP 3" (bnmp3Popup.js): "Abrir em janela ↗" abre
+// o destino numa janela pop-up do navegador sobre o Projudi, para quando o
+// site de destino não aceita ser exibido dentro do popup da página.
+chrome.runtime.onMessage.addListener((message, sender, reply) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'bnmp3-open-window') return false;
+  let url;
+  try {
+    const origin = new URL(sender.url);
+    url = new URL(message.url);
+    if (!sender.tab || !/^(projudi|tst)[^.]*\.tjpr\.jus\.br$/i.test(origin.hostname) || !/^https?:$/.test(url.protocol)) throw new Error('Endereço inválido.');
+  } catch (error) { reply({ok:false, error:error.message}); return false; }
+  (async () => {
+    let width = 1200, height = 850, left, top;
+    try {
+      const current = await chrome.windows.get(sender.tab.windowId);
+      width = Math.min(1280, Math.round((current.width || 1400) * 0.9));
+      height = Math.min(900, Math.round((current.height || 950) * 0.9));
+      left = (current.left || 0) + Math.round(((current.width || width) - width) / 2);
+      top = (current.top || 0) + Math.round(((current.height || height) - height) / 2);
+    } catch (_) { /* usa o tamanho padrão */ }
+    await chrome.windows.create({url:url.href, type:'popup', width, height, left, top});
+    return {ok:true};
+  })().then(reply).catch(error => reply({ok:false, error:error.message}));
+  return true;
+});

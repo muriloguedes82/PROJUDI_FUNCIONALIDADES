@@ -1,0 +1,17 @@
+/* Popup do botão "Ir para o BNMP"/"BNMP 3" (bnmp3Popup.js). O restante do
+   visual vem das classes .pdp-qa-modal-* de quickActions.css. */
+.pdp-bnmp3-box {
+	width: min(1280px, 96vw);
+	height: 94vh;
+}
+
+.pdp-bnmp3-acoes {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+}
+
+a.pdp-bnmp3-aba {
+	color: inherit;
+	text-decoration: none;
+}
