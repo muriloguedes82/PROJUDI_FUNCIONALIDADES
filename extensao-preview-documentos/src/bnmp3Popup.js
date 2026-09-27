@@ -8,11 +8,15 @@
 // remessas; ver `showActionModal` em quickActions.js) —, com "✕ Fechar",
 // "Abrir em janela ↗" e "Abrir em nova aba ↗" no cabeçalho.
 //
-// Como o botão é reconhecido (ver ehBotaoBnmp): não há .mhtml dessas telas
-// com o botão, então ele é localizado pelo que o usuário vê — link/botão
-// cujo texto, `value`, `title` ou `alt` fala em "BNMP 3"/"BNMP3", ou "BNMP"
-// junto de "ir para", "acessar", "abrir", "portal" etc. —, ou pelo endereço
-// que ele abre (outro host com "bnmp" no nome/caminho). "Ordenar Expedição
+// Botão real, confirmado num .mhtml da ordenação BNMP (TJPR): o logotipo do
+// BNMP 3 ao lado de cada parte de "Referente a(s) parte(s):" —
+//   <span id="infoParteBnmp27965566">&nbsp;<a href="https://portalbnmp.cnj.
+//   jus.br/bnmpportal/api/pessoas/cpf/<CPF>" target="_blank"><img alt="BNMP"
+//   src=".../projudi/imagens/bnmp3-logotipo.png"></a></span>
+// Além dele, por segurança (outras telas, mudanças de layout), também conta
+// link/botão cujo texto, `value`, `title` ou `alt` fala em "BNMP 3"/"BNMP3",
+// ou "BNMP" junto de "ir para", "acessar", "abrir", "portal" etc., ou que
+// abra outro host com "bnmp" no nome/caminho (ver ehBotaoBnmp). "Ordenar Expedição
 // BNMP" e os links da própria ordenação (`actionType=cumprirBnmp`) nunca
 // contam. Ao abrir uma tela do Projudi com "bnmp" no conteúdo, os
 // candidatos encontrados são listados no console (F12), prefixados com
@@ -33,11 +37,14 @@
 // <frameset> (o Projudi usa framesets), para cobrir a tela inteira mesmo
 // quando o botão está num frame ou dentro de outro popup da extensão.
 //
-// Limitação: se o BNMP 3 estiver em outro domínio que proíba ser exibido
-// dentro de outra página (X-Frame-Options/CSP frame-ancestors), o
-// navegador mostra o popup em branco ou com erro — nesse caso, "Abrir em
-// janela ↗" abre o mesmo endereço numa janela pop-up do navegador sobre o
-// Projudi (mesma técnica do rascunho de e-mail).
+// O portal do BNMP (cnj.jus.br) e o login do PDPJ (pje.jus.br) costumam
+// proibir ser exibidos dentro de outra página (X-Frame-Options/CSP
+// frame-ancestors). Antes de carregar o iframe, background.js cria uma regra
+// de sessão (declarativeNetRequest) que remove esses cabeçalhos SÓ dos
+// frames desses domínios, SÓ na aba do Projudi que abriu o popup. Se mesmo
+// assim o destino não carregar (ex.: login que não funciona dentro de um
+// frame), "Abrir em janela ↗" abre o mesmo endereço numa janela pop-up do
+// navegador sobre o Projudi (mesma técnica do rascunho de e-mail).
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
@@ -114,6 +121,9 @@
 		if (/^ordenar\b/.test(texto)) return false;
 		const codigo = codigoDoClique(el) + " " + (el.getAttribute("href") || "");
 		if (/cumprirBnmp/i.test(codigo)) return false;
+		// Botão real da ordenação BNMP: logotipo do BNMP 3 ao lado de cada
+		// parte (ver comentário do topo).
+		if (el.tagName === "A" && (el.closest('[id^="infoParteBnmp"]') || el.querySelector('img[src*="bnmp3-logotipo"]'))) return true;
 		// Linhas/células inteiras com onclick também casam com o seletor; o
 		// texto só conta quando é curto como o de um botão.
 		if (texto.length > 80) {
@@ -184,7 +194,7 @@
 
 	// Cria o popup e devolve o <iframe> (sem `src`; quem chama decide como
 	// carregar). `url` é a URL (string) mostrada nos atalhos do cabeçalho.
-	function criarPopup(url) {
+	function criarPopup(url, titulo) {
 		const host = janelaHospedeira();
 		const doc = host.document;
 		fecharPopup(doc);
@@ -192,7 +202,7 @@
 		const backdrop = el(doc, "div", { id: MODAL_ID, class: "pdp-qa-modal-backdrop pdp-bnmp3-backdrop" });
 		const box = el(doc, "div", { class: "pdp-qa-modal-box pdp-bnmp3-box" });
 		const header = el(doc, "div", { class: "pdp-qa-modal-header" });
-		header.appendChild(el(doc, "span", null, TITULO));
+		header.appendChild(el(doc, "span", null, titulo || TITULO));
 		const acoes = el(doc, "div", { class: "pdp-bnmp3-acoes" });
 		const janela = el(doc, "button", { type: "button", class: "pdp-qa-modal-close", title: "Abrir numa janela pop-up do navegador, sobre o Projudi (use se o popup ficar em branco)" }, "Abrir em janela ↗");
 		const aba = el(doc, "a", { class: "pdp-qa-modal-close pdp-bnmp3-aba", href: url, target: "_blank", rel: "noopener" }, "Abrir em nova aba ↗");
@@ -248,11 +258,37 @@
 		return iframe;
 	}
 
-	function abrirPopup(url) {
+	// Libera a exibição em frame dos domínios do BNMP/PDPJ nesta aba (ver
+	// comentário do topo). Não espera mais que ~1,5 s: sem resposta, carrega
+	// assim mesmo.
+	function liberarFrame(url) {
+		if (new URL(url).origin === location.origin) return Promise.resolve();
+		const pedido = chrome.runtime
+			.sendMessage({ source: "projudi-preview", type: "bnmp3-allow-frame" })
+			.then(function (r) {
+				if (!r || !r.ok) console.warn(TAG, "não foi possível liberar a exibição em frame:", r && r.error);
+			})
+			.catch(function (err) {
+				console.warn(TAG, "não foi possível liberar a exibição em frame:", err);
+			});
+		return Promise.race([pedido, new Promise(function (resolve) { setTimeout(resolve, 1500); })]);
+	}
+
+	function abrirPopup(url, titulo) {
 		console.info(TAG, "abrindo no popup:", url);
-		const iframe = criarPopup(url);
-		iframe.src = url;
+		const iframe = criarPopup(url, titulo);
+		liberarFrame(url).then(function () {
+			if (iframe.isConnected && !iframe.getAttribute("src")) iframe.src = url;
+		});
 		return iframe;
+	}
+
+	// "BNMP 3 — NOME DA PARTE", quando o botão está na linha de uma parte.
+	function tituloDoBotao(botao) {
+		const li = botao.closest("li");
+		const parte = li && li.querySelector('a[href*="parteProcesso.do"]');
+		const nome = parte ? parte.textContent.replace(/\s+/g, " ").trim() : "";
+		return nome ? TITULO + " — " + nome : TITULO;
 	}
 
 	function enviarFormNoPopup(form, botao) {
@@ -308,7 +344,7 @@
 			if (url) {
 				event.preventDefault();
 				event.stopImmediatePropagation();
-				abrirPopup(url.href);
+				abrirPopup(url.href, tituloDoBotao(botao));
 				return;
 			}
 			const form = botao.form || (botao.matches('input[type="submit"], input[type="image"], button') ? botao.closest("form") : null);

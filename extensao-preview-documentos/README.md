@@ -959,33 +959,43 @@ numa seção "Avisos da extensão", com um resumo do que o Projudi devolveu
 (endereço, título e mensagem de erro da página), para diagnóstico. Só no
 Projudi.
 
-## Botão "Ir para o BNMP"/"BNMP 3" em popup
+## Botão do BNMP 3 em popup
 
-Na tela **"Outros Cumprimentos"** e na **ordenação do BNMP**
-(`cumprimentoCartorio.do?actionType=cumprirBnmp`), o botão nativo que leva
-ao BNMP 3 abre o destino numa janela/aba nova. Com a extensão, o destino
-abre num **popup sobreposto à tela do Projudi** — o mesmo visual dos popups
-de ordenação e remessa —, com **"✕ Fechar"** (ou Esc), **"Abrir em
-janela ↗"** e **"Abrir em nova aba ↗"** no cabeçalho.
+Na **ordenação do BNMP** (`cumprimentoCartorio.do?actionType=cumprirBnmp`),
+cada parte de "Referente a(s) parte(s):" tem o logotipo do **BNMP 3**, um
+link para o portal do CNJ (`https://portalbnmp.cnj.jus.br/bnmpportal/api/
+pessoas/cpf/<CPF>`) que o Projudi abre numa aba nova. Com a extensão, o
+portal abre num **popup sobreposto à tela do Projudi** — o mesmo visual dos
+popups de ordenação e remessa —, com o nome da parte no título e, no
+cabeçalho, **"✕ Fechar"** (ou Esc), **"Abrir em janela ↗"** e **"Abrir em
+nova aba ↗"**.
 
-O botão é reconhecido pelo texto, `value`, `title` ou `alt` ("BNMP 3",
-"BNMP3", ou "BNMP" junto de "Ir para", "Acessar", "Abrir", "Portal"
-etc.) ou pelo endereço que abre (outro host com "bnmp" no nome/caminho).
-"Ordenar Expedição BNMP" e os links da própria ordenação nunca contam. O
-endereço é lido do `href`/`onclick` do botão; se ele só é montado pelo
-script nativo na hora do clique, a extensão desvia o `window.open()` desse
-clique para o popup (`src/bnmp3Shim.js`, que roda no mundo da página).
+Além do logotipo (`<span id="infoParteBnmp...">`, confirmado num .mhtml da
+tela), também é reconhecido, em qualquer tela do Projudi, link/botão cujo
+texto, `value`, `title` ou `alt` fale em "BNMP 3"/"BNMP3" ou "BNMP" junto de
+"Ir para", "Acessar", "Abrir", "Portal" etc., ou que abra outro host com
+"bnmp" no endereço. "Ordenar Expedição BNMP" e os links da própria
+ordenação nunca contam. Se o endereço só for montado pelo script nativo na
+hora do clique, o `window.open()` desse clique é desviado para o popup
+(`src/bnmp3Shim.js`, que roda no mundo da página).
+
+O portal do BNMP (cnj.jus.br) e o login do PDPJ (pje.jus.br) proíbem ser
+exibidos dentro de outra página. Para o popup funcionar, a extensão cria,
+ao abri-lo, uma regra temporária (declarativeNetRequest, regra de sessão)
+que remove os cabeçalhos `X-Frame-Options` e `Content-Security-Policy`
+**só** dos frames desses dois domínios e **só** na aba do Projudi que abriu
+o popup; a regra some ao fechar a aba ou o navegador. Por isso a versão
+2.9.79 pede as permissões `declarativeNetRequestWithHostAccess` e de acesso
+a `*.cnj.jus.br` e `*.pje.jus.br` (ao atualizar, o Chrome pode pedir para
+aceitar as novas permissões).
+
+Se ainda assim o portal não carregar ou o login não funcionar dentro do
+popup, **"Abrir em janela ↗"** abre o mesmo endereço numa janela pop-up do
+navegador centralizada sobre o Projudi.
 
 Diagnóstico: em toda tela do Projudi que mencione "BNMP", o console (F12)
-lista os links/botões com "BNMP" e se cada um foi reconhecido, com a
-mensagem `[Projudi BNMP 3 popup] elementos com "BNMP" nesta tela`. Se o
-botão não for reconhecido, esse trecho mostra o HTML dele para ajustar a
-detecção.
-
-Limitação: se o BNMP 3 estiver num domínio que proíba ser exibido dentro de
-outra página (X-Frame-Options/CSP), o popup fica em branco ou com erro do
-navegador — use **"Abrir em janela ↗"**, que abre o mesmo endereço numa
-janela pop-up do navegador centralizada sobre o Projudi. Só no Projudi.
+lista os links/botões com "BNMP" e se cada um foi reconhecido
+(`[Projudi BNMP 3 popup] elementos com "BNMP" nesta tela`). Só no Projudi.
 
 ## "Nova Remessa" (realizar mais de uma remessa em seguida)
 

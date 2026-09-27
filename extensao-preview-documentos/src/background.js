@@ -874,3 +874,37 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   })().then(reply).catch(error => reply({ok:false, error:error.message}));
   return true;
 });
+
+// Botão do BNMP 3 (bnmp3Popup.js): o portal do BNMP (cnj.jus.br) e o login
+// do PDPJ (pje.jus.br) proíbem ser exibidos dentro de outra página. Esta
+// regra de SESSÃO remove X-Frame-Options e Content-Security-Policy só das
+// respostas carregadas em frames (sub_frame) desses domínios e só na aba do
+// Projudi que abriu o popup; a regra some quando a aba fecha (ou o
+// navegador reinicia).
+const BNMP3_FRAME_RULE_BASE = 700000000;
+function bnmp3FrameRuleId(tabId) { return BNMP3_FRAME_RULE_BASE + (tabId % 100000000); }
+
+chrome.runtime.onMessage.addListener((message, sender, reply) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'bnmp3-allow-frame') return false;
+  try {
+    const origin = new URL(sender.url);
+    if (!sender.tab || !/^(projudi|tst)[^.]*\.tjpr\.jus\.br$/i.test(origin.hostname)) throw new Error('Origem inválida.');
+  } catch (error) { reply({ok:false, error:error.message}); return false; }
+  const id = bnmp3FrameRuleId(sender.tab.id);
+  chrome.declarativeNetRequest.updateSessionRules({
+    removeRuleIds: [id],
+    addRules: [{
+      id, priority: 1,
+      action: {type: 'modifyHeaders', responseHeaders: [
+        {header: 'x-frame-options', operation: 'remove'},
+        {header: 'content-security-policy', operation: 'remove'}
+      ]},
+      condition: {tabIds: [sender.tab.id], resourceTypes: ['sub_frame'], requestDomains: ['cnj.jus.br', 'pje.jus.br']}
+    }]
+  }).then(() => reply({ok:true})).catch(error => reply({ok:false, error:error.message}));
+  return true;
+});
+
+chrome.tabs.onRemoved.addListener(tabId => {
+  chrome.declarativeNetRequest.updateSessionRules({removeRuleIds: [bnmp3FrameRuleId(tabId)]}).catch(() => {});
+});
