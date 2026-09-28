@@ -1337,6 +1337,14 @@
 	new MutationObserver(reconcileButton).observe(document.documentElement, { childList: true, subtree: true });
 	reconcileButton();
 
+	// Usado pelo painel "⭐ Minhas Preferências" (quickActions.js).
+	window.__pdpJuntarDocumento = {
+		apply: function (pref) {
+			closePanel();
+			iniciarJuntada("apply", pref);
+		},
+	};
+
 	function closePanel() {
 		if (panel) panel.remove();
 		panel = null;

@@ -33,7 +33,12 @@
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
 	// A janela do Oráculo mantém apenas os controles nativos.
 	if (location.pathname === "/projudi/processo/criminal/antecedentesCriminais.do") return;
-	if (window.__pdpButtonGroupBlocked) return;
+	// Nas telas em que a fileira de botões não aparece (ver uiVisibility.js)
+	// o script continua carregando, sem interface, só para expor a API
+	// window.__pdpQuickActions - usada, por exemplo, pelas preferências
+	// aplicadas a partir da linha do processo nas telas de Análise de
+	// Juntadas/Retorno de Conclusão/Decurso de Prazo (preferenciasNaLinha.js).
+	const semInterface = !!window.__pdpButtonGroupBlocked;
 
 	if (window.__pdpQuickActionsInjected) return;
 	window.__pdpQuickActionsInjected = true;
@@ -132,6 +137,10 @@
 	// se sobrepor (mesma técnica usada entre WhatsApp e e-mail).
 	const OTHER_BUTTON_SELECTOR = "#pdp-wa-launcher, .pdp-email-visible";
 	const PREFERENCES_KEY = "pdpActionPreferences"; // { [actionLabel]: [{id, name, fields, createdAt}] }
+	const JUNTAR_PREFS_KEY = "pdpJuntarDocumentoPrefs"; // ver juntarDocumento.js
+	const FAV_ORDER_KEY = "pdpPreferencesOrder"; // ["a:<id>" | "j:<id>", ...] — ordem dos cards em "Minhas Preferências"
+	const FAV_PANEL_ID = "__minhas-preferencias";
+	const FAV_VISIBLE_LIMIT = 20;
 	const DIALOG_WAIT_TIMEOUT_MS = 6000;
 	const DIALOG_WAIT_INTERVAL_MS = 150;
 	const SUBMIT_LABEL_CANDIDATES = ["confirmar", "enviar", "salvar", "ok", "concluir", "sim", "gravar", "executar", "confirma"];
@@ -148,6 +157,11 @@
 	// A tela está sendo recarregada por esta extensão (fim de uma ação): a
 	// próxima etapa de um combo fica para a instância da página recarregada.
 	let pageReloading = false;
+	// Ganchos do popup aberto a partir da linha de uma listagem (ver
+	// applyPreferenceFrom): { noReload, onSubmit, onDone, onClose }. Lá a
+	// tela por trás é uma listagem (resultado de um POST), que não deve ser
+	// recarregada ao fim da ação - a linha é que mostra o resultado.
+	let modalHooks = null;
 	const ROW_EXPANDED_KEY = "pdpQuickActionsExpanded";
 	let rowExpanded = false;
 	let rowPreferenceLoaded = false;
@@ -587,19 +601,30 @@
 	// Ponto de entrada: devolve uma Promise que resolve com
 	// `{ url }` (a URL do diálogo pronta para um iframe) ou
 	// `{ failed: true, tried, screenTitle }` se não achar.
-	// `eventsDoc` (opcional): documento de onde tirar as movimentações, em
-	// vez da tela atual — os combos passam a aba Movimentações lida em
-	// segundo plano quando a tela atual é outra aba do processo.
-	function resolveDialogUrl(label, eventsDoc) {
-		logChainStep('resolvendo URL de "' + label + '" em segundo plano', { partindoDe: window.location.href, abaLidaEmSegundoPlano: !!eventsDoc });
+	// `origem` (opcional): { doc, url } de uma tela já carregada em segundo
+	// plano (ex.: a tela do processo, aberta a partir da linha de uma
+	// listagem - ver applyPreferenceFrom; a aba Movimentações lida pelos
+	// combos quando a tela atual é outra aba do processo). Sem ela, parte
+	// da tela atual.
+	function resolveDialogUrl(label, origem) {
+		const rootDoc = (origem && origem.doc) || document;
+		const baseUrl = (origem && origem.url) || window.location.href;
+		logChainStep('resolvendo URL de "' + label + '" em segundo plano', { partindoDe: baseUrl });
 
-		const liveMovBtn = eventsDoc ? null : findMovimentarButtonIn(document);
+		// A própria origem já é uma tela de Ações.
+		if (origem && isOnAcoesScreenIn(rootDoc)) {
+			const direct = findActionLinkIn(rootDoc, label);
+			const directUrl = direct ? extractUrlFromOnclick(direct.getAttribute("onclick"), baseUrl) : null;
+			if (directUrl) return Promise.resolve({ url: directUrl, acoesUrl: baseUrl });
+		}
+
+		const liveMovBtn = findMovimentarButtonIn(rootDoc);
 		if (liveMovBtn) {
 			// Já estamos na tela de detalhe de uma movimentação escolhida
 			// manualmente pelo usuário — só um destino possível, sem tentar
 			// outras movimentações.
 			logChainStep("já na tela de detalhe da movimentação", describeElement(liveMovBtn));
-			const movUrl = extractUrlFromOnclick(liveMovBtn.getAttribute("onclick"), window.location.href);
+			const movUrl = extractUrlFromOnclick(liveMovBtn.getAttribute("onclick"), baseUrl);
 			if (!movUrl) return Promise.resolve({ failed: true, screenTitle: null });
 			return fetchDoc(movUrl).then(function (result) {
 				if (isOnAcoesScreenIn(result.doc)) {
@@ -614,7 +639,7 @@
 		}
 
 		const events = Array.prototype.slice
-			.call((eventsDoc || document).querySelectorAll('a.link[id^="LNKmov"]'))
+			.call(rootDoc.querySelectorAll('a.link[id^="LNKmov"]'))
 			.filter(function (a) {
 				return (a.id || "").indexOf("INVALIDO") === -1 && !a.closest("strike, s, del");
 			})
@@ -629,7 +654,7 @@
 			const href = events[index].getAttribute("href");
 			let eventUrl;
 			try {
-				eventUrl = new URL(href, window.location.href).href;
+				eventUrl = new URL(href, baseUrl).href;
 			} catch (err) {
 				return tryEvent(index + 1);
 			}
@@ -1007,6 +1032,23 @@
 	// submit nativo (que mira no lugar errado no nosso caso), lemos esse
 	// campo diretamente e agimos por conta própria: recarrega a aba real
 	// por trás (equivalente ao que o backURL faria) e fecha o popup.
+	// Fim de uma ação no popup: recarrega a tela por trás - exceto quando o
+	// popup foi aberto a partir da linha de uma listagem (modalHooks).
+	function finishActionAndReload() {
+		if (modalHooks && modalHooks.noReload) {
+			if (modalHooks.onDone) modalHooks.onDone();
+			return;
+		}
+		try {
+			// Um combo em andamento continua na página recarregada (ver
+			// advanceCombo/maybeResumeCombo).
+			pageReloading = true;
+			window.location.reload();
+		} catch (err) {
+			logChainStep("falhou ao recarregar a tela por trás", String(err));
+		}
+	}
+
 	function checkFlagClosePopup(win) {
 		let doc;
 		try {
@@ -1027,12 +1069,7 @@
 			});
 			if (flagField.value === "true") {
 				logChainStep("shim: flagClosePopup=true — a ação terminou; recarregando a tela e fechando o popup", null);
-				try {
-					pageReloading = true;
-					window.location.reload();
-				} catch (err) {
-					logChainStep("shim: falhou ao recarregar a tela por trás", String(err));
-				}
+				finishActionAndReload();
 				removeActionModal("auto");
 			}
 			break; // só o 1º form com esse campo importa — mesma suposição do próprio Projudi
@@ -1078,6 +1115,11 @@
 		if (el) el.remove();
 		const closedIframe = activeModalIframe;
 		activeModalIframe = null;
+		if (modalHooks) {
+			const hooks = modalHooks;
+			modalHooks = null;
+			if (hooks.onClose) hooks.onClose();
+		}
 		stopModalWatch();
 		removeConfirmBar();
 		removeCaptureToolbar();
@@ -2061,6 +2103,7 @@
 				return;
 			}
 			if (comboStep) comboStep.confirmed = true;
+			if (modalHooks && modalHooks.onSubmit) modalHooks.onSubmit();
 			submit.click();
 		});
 	}
@@ -2296,13 +2339,8 @@
 				}
 				iframe.removeEventListener("load", onLoad);
 				logChainStep('"' + label + '" concluído — fechando o popup e recarregando a tela', null);
-				pageReloading = true;
+				finishActionAndReload();
 				removeActionModal("auto");
-				try {
-					window.location.reload();
-				} catch (err) {
-					logChainStep("falhou ao recarregar a tela por trás", String(err));
-				}
 			}, ACOES_SETTLE_MS);
 		});
 		iframe.src = result.acoesUrl;
@@ -2362,18 +2400,19 @@
 		});
 	}
 
-	// `resolver` (opcional): outra forma de achar a URL do diálogo — os
-	// combos usam resolveDialogUrlForCombo, que também serve na tela de Ações.
-	function applyPreferenceViaChain(label, pref, editing, resolver) {
+	// `origem`/`hooks` (opcionais): ver resolveDialogUrl e modalHooks.
+	function applyPreferenceViaChain(label, pref, editing, origem, hooks) {
 		const cancelToken = { cancelled: false };
 		showLoadingOverlay(label, function () {
 			cancelToken.cancelled = true;
+			if (hooks && hooks.onFail) hooks.onFail("cancelado");
 			onComboStepFailed("Abertura da etapa cancelada.");
 		});
-		(resolver || resolveDialogUrl)(label).then(function (result) {
+		resolveDialogUrl(label, origem).then(function (result) {
 			removeLoadingOverlay();
 			if (cancelToken.cancelled) return;
 			if (result.failed) {
+				if (hooks && hooks.onFail) hooks.onFail(result.screenTitle ? 'o Projudi levou à tela "' + result.screenTitle + '"' : "ação não localizada");
 				alertChainFailure(label, result);
 				onComboStepFailed('Não consegui abrir "' + label + '" a partir desta tela.');
 				return;
@@ -2390,9 +2429,11 @@
 					}
 					fillPreference(label, pref, form, dialogDoc, editing);
 				});
+				modalHooks = hooks || null;
 				return;
 			}
 			const iframe = showActionModal(label);
+			modalHooks = hooks || null;
 			iframe.addEventListener(
 				"load",
 				function () {
@@ -2675,8 +2716,7 @@
 	const COMBO_RESUME_DELAY_MS = 1500;
 	const COMBO_EDITOR_ID = "pdp-qa-combo-editor";
 	const COMBO_BAR_ID = "pdp-qa-combo-bar";
-	const JUNTAR_LABEL = "Juntar Documento";
-	const JUNTAR_PREFS_KEY = "pdpJuntarDocumentoPrefs"; // mantido por juntarDocumento.js
+	const JUNTAR_LABEL = "Juntar Documento"; // preferências em JUNTAR_PREFS_KEY (topo)
 	const COMBO_JUNTAR_DONE_KEY = "pdpComboJuntadaConcluida"; // idem
 	const COMBO_JUNTAR_CONCLUIR_KEY = "pdpComboJuntadaConcluir"; // idem
 	let comboResumeChecked = false;
@@ -2909,17 +2949,15 @@
 		});
 	}
 
-	// URL do diálogo para uma etapa: na tela de Ações, direto do link nativo
-	// (o combo sempre usa o popup, para saber quando a etapa termina); fora
-	// dela, a mesma cadeia em segundo plano de sempre.
-	function resolveDialogUrlForCombo(label) {
-		if (isOnAcoesScreen()) {
-			const link = findActionLink(label);
-			const url = link ? extractUrlFromOnclick(link.getAttribute("onclick"), window.location.href) : null;
-			if (url) return Promise.resolve({ url: url, acoesUrl: window.location.href });
-			return Promise.resolve({ failed: true, screenTitle: "Ações (sem esta ação específica)" });
-		}
-		return resolveDialogUrl(label);
+	// Ponto de partida de uma etapa para resolveDialogUrl: a aba
+	// Movimentações lida em segundo plano, ou a própria tela de Ações (o
+	// combo sempre usa o popup, para saber quando a etapa termina — a
+	// origem "tela de Ações" dá a URL direto do link nativo); sem nenhuma,
+	// a tela atual.
+	function comboOrigem(screen) {
+		if (screen.eventsDoc) return { doc: screen.eventsDoc, url: window.location.href };
+		if (isOnAcoesScreen()) return { doc: document, url: window.location.href };
+		return undefined;
 	}
 
 	function runPendingComboStep() {
@@ -2963,12 +3001,8 @@
 			renderComboBar();
 			if (getCustomAction(step.label)) {
 				applyPreferenceCustom(step.label, pref);
-			} else if (screen.eventsDoc) {
-				applyPreferenceViaChain(step.label, pref, false, function (label) {
-					return resolveDialogUrl(label, screen.eventsDoc);
-				});
 			} else {
-				applyPreferenceViaChain(step.label, pref, false, resolveDialogUrlForCombo);
+				applyPreferenceViaChain(step.label, pref, false, comboOrigem(screen));
 			}
 		});
 	}
@@ -3702,6 +3736,17 @@
 			secondLine.appendChild(clipboardBtn);
 		}
 
+		// Antes (à esquerda) do "Processo copiado": os botões irmãos
+		// (habilitarAdvogado.js etc.) disputam a posição logo DEPOIS dele.
+		const favBtn = document.createElement("button");
+		favBtn.type = "button";
+		favBtn.id = "pdp-fav-prefs-button";
+		favBtn.className = "pdp-qa-group-btn";
+		favBtn.innerHTML = '<span class="pdp-qa-icon">⭐</span><span>Minhas Preferências</span>';
+		favBtn.title = "Todas as preferências salvas, num só lugar: escolha uma para acioná-la";
+		favBtn.addEventListener("click", toggleFavPanel);
+		secondLine.insertBefore(favBtn, secondLine.firstChild);
+
 		const highlightPrefsBtn = document.createElement("button");
 		highlightPrefsBtn.type = "button";
 		highlightPrefsBtn.className = "pdp-qa-group-btn";
@@ -3742,7 +3787,10 @@
 			activePanel.remove();
 			activePanel = null;
 		}
-		if (activeGroupId && row) {
+		if (activeGroupId === FAV_PANEL_ID && row) {
+			const favBtn = row.querySelector("#pdp-fav-prefs-button");
+			if (favBtn) favBtn.classList.remove("pdp-qa-active");
+		} else if (activeGroupId && row) {
 			const prevBtn = panelButton(activeGroupId);
 			if (prevBtn) prevBtn.classList.remove("pdp-qa-active");
 		}
@@ -3988,10 +4036,298 @@
 	}
 
 	// -------------------------------------------------------------------
+	// "⭐ Minhas Preferências": todas as preferências salvas (das ações
+	// rápidas e do "📎 Juntar Documento") em cards, num painel que abre
+	// para baixo do botão. Só as FAV_VISIBLE_LIMIT primeiras aparecem por
+	// padrão; o modo de edição permite arrastar os cards para reordená-los
+	// (ordem gravada em FAV_ORDER_KEY).
+	// -------------------------------------------------------------------
+
+	function groupForLabel(label) {
+		for (let i = 0; i < ACTION_GROUPS.length; i++) {
+			if (ACTION_GROUPS[i].actions.indexOf(label) !== -1) return ACTION_GROUPS[i];
+		}
+		return null;
+	}
+
+	// Mesma decisão de modo de buildPanel(), por ação; null = indisponível aqui.
+	function modeForLabel(label) {
+		const group = groupForLabel(label);
+		if (!group) return null;
+		if (group.custom) {
+			if (!location.pathname.startsWith("/projudi/")) return null;
+			return getCustomAction(label) ? "custom" : null;
+		}
+		if (isOnAcoesScreen()) return findActionLink(label) ? "ready" : null;
+		if (findMovimentarButton() || findLatestValidEventLink()) return "hop";
+		return null;
+	}
+
+	function loadFavItems() {
+		return chrome.storage.local.get([PREFERENCES_KEY, JUNTAR_PREFS_KEY, FAV_ORDER_KEY]).then(function (data) {
+			const items = [];
+			const actionPrefs = data[PREFERENCES_KEY] || {};
+			Object.keys(actionPrefs).forEach(function (label) {
+				(actionPrefs[label] || []).forEach(function (pref) {
+					items.push({ key: "a:" + pref.id, kind: "action", label: label, pref: pref });
+				});
+			});
+			const juntarPrefs = Array.isArray(data[JUNTAR_PREFS_KEY]) ? data[JUNTAR_PREFS_KEY] : [];
+			juntarPrefs.forEach(function (pref) {
+				items.push({ key: "j:" + pref.id, kind: "juntar", label: "Juntar Documento", pref: pref });
+			});
+
+			const order = Array.isArray(data[FAV_ORDER_KEY]) ? data[FAV_ORDER_KEY] : [];
+			const position = new Map(order.map(function (key, i) { return [key, i]; }));
+			items.sort(function (a, b) {
+				const pa = position.has(a.key) ? position.get(a.key) : Infinity;
+				const pb = position.has(b.key) ? position.get(b.key) : Infinity;
+				if (pa !== pb) return pa - pb;
+				return (a.pref.createdAt || 0) - (b.pref.createdAt || 0);
+			});
+			return items;
+		});
+	}
+
+	function toggleFavPanel() {
+		if (activeGroupId === FAV_PANEL_ID) {
+			closePanel();
+			return;
+		}
+		closePanel();
+		buildFavPanel();
+	}
+
+	function buildFavPanel() {
+		activeGroupId = FAV_PANEL_ID;
+		const favBtn = row && row.querySelector("#pdp-fav-prefs-button");
+		if (favBtn) favBtn.classList.add("pdp-qa-active");
+
+		const panel = document.createElement("div");
+		panel.className = "pdp-qa-panel pdp-qa-fav-panel";
+		activePanel = panel;
+
+		const state = { showAll: false, editing: false };
+
+		const header = document.createElement("div");
+		header.className = "pdp-qa-fav-header";
+		const title = document.createElement("span");
+		title.className = "pdp-qa-action-label";
+		title.textContent = "⭐ Minhas Preferências";
+		header.appendChild(title);
+		const editBtn = document.createElement("button");
+		editBtn.type = "button";
+		editBtn.className = "pdp-qa-open-btn";
+		editBtn.textContent = "✏️ Editar posição";
+		editBtn.title = "Arrastar os cards para colocá-los na ordem que você quiser";
+		header.appendChild(editBtn);
+		panel.appendChild(header);
+
+		const hint = document.createElement("div");
+		hint.className = "pdp-qa-note";
+		hint.textContent = 'Arraste os cards para reordená-los. A ordem é salva na hora. Clique em "✅ Concluir" ao terminar.';
+		hint.hidden = true;
+		panel.appendChild(hint);
+
+		const grid = document.createElement("div");
+		grid.className = "pdp-qa-fav-grid";
+		panel.appendChild(grid);
+
+		const footer = document.createElement("label");
+		footer.className = "pdp-qa-fav-footer";
+		const showAllBox = document.createElement("input");
+		showAllBox.type = "checkbox";
+		const showAllText = document.createElement("span");
+		footer.appendChild(showAllBox);
+		footer.appendChild(showAllText);
+		footer.hidden = true;
+		panel.appendChild(footer);
+
+		function applyVisibility() {
+			const cards = grid.querySelectorAll(".pdp-qa-fav-card");
+			const showAll = state.showAll || state.editing;
+			cards.forEach(function (card, index) {
+				card.classList.toggle("pdp-qa-fav-hidden", !showAll && index >= FAV_VISIBLE_LIMIT);
+			});
+			const hiddenCount = Math.max(0, cards.length - FAV_VISIBLE_LIMIT);
+			footer.hidden = hiddenCount === 0;
+			showAllBox.checked = showAll;
+			showAllBox.disabled = state.editing;
+			showAllText.textContent = "Mostrar todas (+" + hiddenCount + ")";
+			positionFavPanel();
+		}
+
+		showAllBox.addEventListener("change", function () {
+			state.showAll = showAllBox.checked;
+			applyVisibility();
+		});
+
+		editBtn.addEventListener("click", function () {
+			state.editing = !state.editing;
+			panel.classList.toggle("pdp-qa-fav-editing", state.editing);
+			editBtn.textContent = state.editing ? "✅ Concluir" : "✏️ Editar posição";
+			hint.hidden = !state.editing;
+			grid.querySelectorAll(".pdp-qa-fav-card").forEach(function (card) {
+				card.draggable = state.editing;
+			});
+			applyVisibility();
+		});
+
+		let draggedCard = null;
+
+		function persistOrder() {
+			const order = Array.prototype.map.call(grid.querySelectorAll(".pdp-qa-fav-card"), function (card) {
+				return card.dataset.key;
+			});
+			chrome.storage.local.set({ [FAV_ORDER_KEY]: order }).catch(function (err) {
+				console.error("[Projudi Ações Rápidas]", "erro ao salvar a ordem das preferências:", err);
+			});
+		}
+
+		function buildCard(item) {
+			const card = document.createElement("div");
+			card.className = "pdp-qa-fav-card";
+			card.dataset.key = item.key;
+			card.tabIndex = 0;
+			card.setAttribute("role", "button");
+
+			const mode = item.kind === "juntar"
+				? (window.__pdpJuntarDocumento && location.pathname.startsWith("/projudi/") ? "juntar" : null)
+				: modeForLabel(item.label);
+
+			const actionEl = document.createElement("span");
+			actionEl.className = "pdp-qa-fav-card-action";
+			actionEl.textContent = item.label;
+			card.appendChild(actionEl);
+			const nameEl = document.createElement("span");
+			nameEl.className = "pdp-qa-fav-card-name";
+			nameEl.textContent = "★ " + item.pref.name;
+			card.appendChild(nameEl);
+
+			if (!mode) {
+				card.classList.add("pdp-qa-fav-unavailable");
+				card.title = '"' + item.label + '" não está disponível nesta tela. Abra a aba "Movimentações" do processo.';
+			} else if (item.kind === "juntar") {
+				card.title = 'Juntar Documento com a preferência "' + item.pref.name + '"';
+			} else {
+				card.title = mode === "custom"
+					? 'Abre "' + item.label + '" já preenchido com esta preferência'
+					: 'Preenche automaticamente e pede 1 confirmação para executar "' + item.label + '"';
+				if (item.pref.descricao) card.title += "\n" + item.pref.descricao;
+			}
+
+			function activate() {
+				if (state.editing || !mode) return;
+				closePanel();
+				removeConfirmBar();
+				removeCaptureToolbar();
+				if (mode === "juntar") window.__pdpJuntarDocumento.apply(item.pref);
+				else if (mode === "custom") applyPreferenceCustom(item.label, item.pref);
+				else if (mode === "hop") applyPreferenceViaChain(item.label, item.pref);
+				else applyPreference(item.label, item.pref);
+			}
+			card.addEventListener("click", activate);
+			card.addEventListener("keydown", function (e) {
+				if (e.key === "Enter" || e.key === " ") {
+					e.preventDefault();
+					activate();
+				}
+			});
+
+			card.addEventListener("dragstart", function (e) {
+				if (!state.editing) {
+					e.preventDefault();
+					return;
+				}
+				draggedCard = card;
+				card.classList.add("pdp-qa-fav-dragging");
+				e.dataTransfer.effectAllowed = "move";
+				e.dataTransfer.setData("text/plain", item.key);
+			});
+			card.addEventListener("dragend", function () {
+				card.classList.remove("pdp-qa-fav-dragging");
+				grid.querySelectorAll(".pdp-qa-fav-over").forEach(function (c) {
+					c.classList.remove("pdp-qa-fav-over");
+				});
+				draggedCard = null;
+			});
+			card.addEventListener("dragover", function (e) {
+				if (!draggedCard || draggedCard === card) return;
+				e.preventDefault();
+				e.dataTransfer.dropEffect = "move";
+				card.classList.add("pdp-qa-fav-over");
+			});
+			card.addEventListener("dragleave", function () {
+				card.classList.remove("pdp-qa-fav-over");
+			});
+			card.addEventListener("drop", function (e) {
+				e.preventDefault();
+				card.classList.remove("pdp-qa-fav-over");
+				if (!draggedCard || draggedCard === card) return;
+				const cards = Array.prototype.slice.call(grid.children);
+				const movingForward = cards.indexOf(draggedCard) < cards.indexOf(card);
+				card.insertAdjacentElement(movingForward ? "afterend" : "beforebegin", draggedCard);
+				persistOrder();
+			});
+
+			return card;
+		}
+
+		loadFavItems().then(function (items) {
+			if (activePanel !== panel) return; // painel já fechado/trocado
+			if (!items.length) {
+				const empty = document.createElement("div");
+				empty.className = "pdp-qa-empty";
+				empty.textContent = 'Nenhuma preferência salva ainda. Crie uma com "+ Nova preferência" no painel de qualquer ação.';
+				grid.replaceWith(empty);
+				editBtn.hidden = true;
+			} else {
+				items.forEach(function (item) {
+					grid.appendChild(buildCard(item));
+				});
+			}
+			applyVisibility();
+		});
+
+		document.body.appendChild(panel);
+		positionFavPanel();
+
+		setTimeout(function () {
+			document.addEventListener("click", onOutsideClick, true);
+			document.addEventListener("keydown", onKeydown, true);
+		}, 0);
+	}
+
+	// Abre para baixo do botão; só vai para cima quando não cabe embaixo.
+	function positionFavPanel() {
+		if (!activePanel || !row || activeGroupId !== FAV_PANEL_ID) return;
+		const btn = row.querySelector("#pdp-fav-prefs-button");
+		if (!btn) return;
+		const rect = btn.getBoundingClientRect();
+		const above = rect.top - BUTTON_SCREEN_MARGIN - 6;
+		const below = window.innerHeight - rect.bottom - BUTTON_SCREEN_MARGIN - 6;
+		const openBelow = below >= Math.min(260, activePanel.scrollHeight) || below >= above;
+		activePanel.style.boxSizing = "border-box";
+		activePanel.style.maxHeight = Math.max(0, openBelow ? below : above) + "px";
+		activePanel.style.top = openBelow ? (rect.bottom + 6) + "px" : "auto";
+		activePanel.style.bottom = openBelow ? "auto" : (window.innerHeight - rect.top + 6) + "px";
+
+		const width = activePanel.offsetWidth || 380;
+		let left = rect.right - width;
+		if (left + width > window.innerWidth - BUTTON_SCREEN_MARGIN) left = window.innerWidth - BUTTON_SCREEN_MARGIN - width;
+		activePanel.style.left = Math.max(BUTTON_SCREEN_MARGIN, Math.round(left)) + "px";
+		activePanel.style.right = "auto";
+	}
+
+	// -------------------------------------------------------------------
 	// Posicionamento (mesma técnica dos botões irmãos de WhatsApp/e-mail)
 	// -------------------------------------------------------------------
 
 	function positionPanel(groupId) {
+		if (groupId === FAV_PANEL_ID) {
+			positionFavPanel();
+			return;
+		}
 		if (!activePanel || !row) return;
 		const btn = panelButton(groupId);
 		if (!btn) return;
@@ -4093,18 +4429,20 @@
 		}
 	}
 
-	loadRowExpandedPreference();
-	setInterval(reconcile, 700);
-	reconcile();
+	if (!semInterface) {
+		loadRowExpandedPreference();
+		setInterval(reconcile, 700);
+		reconcile();
 
-	const observer = new MutationObserver(function () {
-		try {
-			reconcile();
-		} catch (err) {
-			console.error("[Projudi Ações Rápidas]", "erro no MutationObserver:", err);
-		}
-	});
-	observer.observe(document.documentElement, { childList: true, subtree: true });
+		const observer = new MutationObserver(function () {
+			try {
+				reconcile();
+			} catch (err) {
+				console.error("[Projudi Ações Rápidas]", "erro no MutationObserver:", err);
+			}
+		});
+		observer.observe(document.documentElement, { childList: true, subtree: true });
+	}
 
 	let repositionScheduled = false;
 	function scheduleReposition() {
@@ -4217,6 +4555,20 @@
 
 	window.__pdpQuickActions = {
 		resolveDialogUrl: resolveDialogUrl,
+		// Preferências salvas (mesma lista/ordem de "Minhas Preferências").
+		loadFavItems: loadFavItems,
+		// Aplica uma preferência de ação (não "Juntar Documento" nem ações
+		// personalizadas) partindo de uma tela já carregada em segundo plano
+		// (`origem` = { doc, url }, ex.: a tela do processo) - mesmo popup,
+		// mesmo preenchimento e mesma barra "Sim, executar" das demais. Os
+		// `hooks` ({ onSubmit, onDone, onClose, onFail }) informam quem
+		// chamou; a tela por trás não é recarregada ao fim.
+		applyPreferenceFrom: function (label, pref, origem, hooks) {
+			closePanel();
+			removeConfirmBar();
+			removeCaptureToolbar();
+			applyPreferenceViaChain(label, pref, false, origem, Object.assign({ noReload: true }, hooks || {}));
+		},
 		openActionModal: function (label, url) {
 			const iframe = showActionModal(label);
 			if (url) iframe.src = url;

@@ -1081,7 +1081,12 @@ partir do link **"Processo"** da ordenação:
    (`parteProcessoPena.do?actionType=visualizar`) e traz Data do Delito,
    Tipo (realização do crime, violência doméstica, hediondo...), Fração
    para Progressão de Regime, Fração para Livramento Condicional,
-   Reincidente (comum/específico) e anos/meses/dias da pena. Se o detalhe
+   Reincidente (comum/específico), anos/meses/dias da pena e **Data de
+   Prescrição** (ex.: "13/09/2031 (Ativa)" ou "Interrompida pelo
+   Acórdão"). Abaixo da tabela, **Próxima Prescrição** mostra a data ativa
+   mais próxima entre os crimes da tipificação (sem tipificação, entre as
+   imputações da denúncia); a tabela de imputações da denúncia também
+   ganha a coluna "Data de Prescrição". Se o detalhe
    não puder ser lido, a linha usa os dados da lista (data da infração e
    pena, quando for pena imposta e não uma faixa como "5 a 15 anos");
 5. aba **Prisões** da tela da parte (link do nome da parte na ordenação;
@@ -1357,6 +1362,77 @@ diretamente nele; a lista de pendências não é recarregada
 automaticamente, já que o Projudi não faz isso sozinho. Apenas uma
 finalização é processada por vez.
 
+## Listas de tarefas (cores/bolinhas e tarefas escritas)
+
+Nas telas **Análise de Juntadas** (`processo/analisarJuntada.do`),
+**Retorno de Conclusão** (`processo/conclusao.do`) e **Análise de Decurso
+de Prazo** (`processo/intimacaoBusca.do`), a extensão permite organizar os
+processos em listas de tarefas próprias do usuário (`src/listaTarefas.js`):
+
+- **Legenda**: acima da tabela de resultados aparece a barra "Listas de
+  tarefas", com uma bolinha colorida e o nome de cada lista criada, além
+  da quantidade de processos da página em cada uma. Clicar numa lista
+  filtra a tabela, mostrando só os processos dela (clicar de novo, ou em
+  "✕ limpar filtro", volta a mostrar todos).
+- **Na linha do processo**, ao lado do número: as bolinhas das listas em
+  que o processo está, um contador "✎ N" com as tarefas escritas ainda
+  pendentes (passe o mouse para ler o texto; "✎ ✓" quando todas foram
+  concluídas) e o botão **+**, que abre o painel do processo. Nele é
+  possível marcar/desmarcar as listas (cores), escrever tarefas, marcá-las
+  como concluídas, editá-las (✏️) e removê-las (🗑), e aplicar as
+  preferências com um clique.
+- **⚙ Gerenciar listas e preferências**: cria, edita (nome e cor —
+  paleta ou cor livre), reordena (▲/▼) e remove as **listas**; e cria,
+  edita, reordena e remove as **preferências** — tarefas prontas (texto
+  e, opcionalmente, uma lista) que, aplicadas a um processo, incluem a
+  tarefa escrita e já o colocam na lista associada. Remover uma lista a
+  retira de todos os processos (as tarefas escritas continuam). Há ainda
+  a opção de apagar, de uma vez, as tarefas concluídas de todos os
+  processos.
+
+As listas e tarefas são vinculadas ao **número do processo**, então o
+mesmo processo mostra as mesmas marcações nas três telas. Os dados ficam
+em `chrome.storage.local` (`pdpTarefasListas`, `pdpTarefasPreferencias` e
+`pdpTarefasProcessos`), valem para todos os hosts do Projudi, sobrevivem
+ao fechamento do navegador e são atualizados em todas as abas abertas.
+Ficam só neste navegador: não são compartilhados com outros servidores.
+
+## Minhas Preferências na linha do processo (⭐)
+
+Nas mesmas três telas (Análise de Juntadas, Retorno de Conclusão e Análise
+de Decurso de Prazo), cada linha de processo ganha, ao lado do **+** das
+listas de tarefas, o botão **⭐**, que abre os cards de "Minhas
+Preferências" (as mesmas preferências das ações rápidas: Realizar
+Remessa, Enviar Concluso, Intimar Partes, Ordenar Cumprimentos...). Ao
+escolher um card (`src/preferenciasNaLinha.js`):
+
+1. A extensão pergunta, conforme a tela, se deve antes **dispensar as
+   juntadas**, **finalizar a conclusão** ou **dispensar os decursos de
+   prazo** pendentes do processo. Tanto **Sim** quanto **Não** seguem o
+   fluxo: o "Sim" só acrescenta essa etapa, feita pelos mesmos recursos dos
+   botões do quadro Pendências ("Dispensar juntadas", "Finalizar conclusão"
+   e "Dispensar decursos" - que dispensam **todas** as juntadas/decursos
+   pendentes daquele processo). Se essa etapa falhar, o motivo aparece na
+   linha e o fluxo continua. O ✕ (ou Esc) cancela tudo.
+2. A tela do processo é carregada em segundo plano (iframe oculto) - no
+   Retorno de Conclusão, cuja linha não tem link para o processo, o
+   endereço é lido na tela de análise da conclusão ou, se não estiver lá,
+   obtido pela busca por número. A partir dela, o diálogo da ação abre já
+   preenchido com a preferência, no mesmo popup das ações rápidas, com a
+   mesma barra **"✅ Sim, executar"**: nada é enviado ao Projudi sem esse
+   clique.
+3. A linha mostra o andamento e o resultado (ex.: "✅ Juntada(s) já
+   dispensada(s) · ★ Remessa MP: concluída"). A listagem **não** é
+   recarregada ao fim, para não perder a busca/filtro feitos.
+
+Uma preferência por vez. Preferências de "Juntar Documento" e do "Alvará
+Eletrônico" aparecem esmaecidas: continuam disponíveis só na tela do
+processo. Para permitir isso, `quickActions.js` passou a carregar também
+nas telas em que a fileira de botões fica oculta (sem exibir nada), só para
+expor a API usada pela linha (`applyPreferenceFrom`/`loadFavItems`), e
+`juntadaDrag.js`/`finalizarConclusao.js` expõem as dispensas em
+`window.__pdpDispensas`.
+
 ## Dispensar decursos de prazo
 
 Ainda no quadro **Pendências**, quando o item é uma intimação
@@ -1523,6 +1599,49 @@ Limitações:
   anexados manualmente.
 - Nenhum arquivo, número de telefone ou mensagem é armazenado além do
   tempo necessário para abrir a conversa e anexar os documentos.
+
+## Bloqueio para advogados e assessores de advogado
+
+A extensão é de uso interno e **não funciona** quando o usuário do Projudi
+está logado com perfil de **advogado(a)** ou de **assessor(a) de
+advogado**. O bloqueio fica em `src/hostGuard.js`, que roda antes de todos
+os demais scripts. Quando o perfil é de advocacia, ele deixa falsa a marca
+`window.__pdpHostPermitido`, e assim nenhuma função é carregada.
+
+Para identificar o perfil, a extensão usa várias checagens independentes.
+Basta uma delas para bloquear:
+
+1. o campo **Atribuição:** do cabeçalho (ex. `Advogada (PR12345)`,
+   `Assessor de Advogado ...`): qualquer menção a "advogad" bloqueia.
+   Também bloqueia a atribuição que começa com **Assessor**, **Assessora**
+   ou **Assessor(a)** e traz o número da OAB do advogado assessorado
+   (ex. `Assessora (PR12345)`). Por enquanto, só o assessor de advogado é
+   bloqueado. O assessor do Judiciário continua liberado: sem número da
+   OAB, ou quando a atribuição menciona magistrado, juiz, desembargador,
+   gabinete, vara, turma, câmara, tribunal, Ministério Público, promotor,
+   procurador ou defensor;
+2. o título da mesa inicial (`Mesa do(a) Advogado ...`) e o formulário
+   `#mesaAdvogadoForm`;
+3. o endereço da própria tela, quando ela é exclusiva da advocacia
+   (`mesaAdvogado.do`, `processosAdvogado.do`, `intimacaoAdvogado.do`,
+   `citacaoAdvogado.do`, `sustentacaoOralAdvogado.do`...);
+4. os links do menu que só aparecem para advogados, como "Início" (que
+   volta para a página inicial da área do advogado), Intimações e Citações
+   do advogado;
+5. as checagens acima também nos frames ancestrais e nos demais frames
+   da aba (o cabeçalho e o menu ficam em frames separados das telas do
+   processo);
+6. a memória do perfil detectado, gravada em `localStorage`/
+   `sessionStorage` (leitura imediata) e em `chrome.storage.local` (vale
+   também para os outros hosts e sobrevive ao fechamento do navegador).
+
+A memória só é apagada quando o campo **Atribuição:** mostra um perfil que
+não é de advocacia, por exemplo depois de trocar de perfil ou quando outro
+usuário faz login. Nessa troca, o frameset e o menu que já tinham carregado
+continuam bloqueados até a próxima navegação. As telas abertas depois
+disso funcionam normalmente. Se o perfil de advocacia for identificado só
+depois que a tela carregou, os elementos da extensão (id/classe `pdp*`)
+são ocultados na hora.
 
 ## Termos de Uso (aceite obrigatório)
 
