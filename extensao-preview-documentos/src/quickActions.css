@@ -224,6 +224,42 @@
 	border-color: #d4b25a;
 }
 
+.pdp-qa-fav-card {
+	position: relative;
+	padding-left: 18px;
+	padding-right: 18px;
+}
+
+.pdp-qa-fav-del {
+	position: absolute;
+	top: 1px;
+	right: 1px;
+	background: none;
+	border: none;
+	border-radius: 3px;
+	padding: 1px 3px;
+	font-size: 11px;
+	line-height: 1;
+	cursor: pointer;
+	opacity: 0.45;
+}
+
+.pdp-qa-fav-card:hover .pdp-qa-fav-del,
+.pdp-qa-fav-card:focus-within .pdp-qa-fav-del {
+	opacity: 0.85;
+}
+
+.pdp-qa-fav-del:hover,
+.pdp-qa-fav-del:focus {
+	opacity: 1;
+	background: #f6d6d6;
+	outline: none;
+}
+
+.pdp-qa-fav-card.pdp-qa-fav-unavailable .pdp-qa-fav-del {
+	cursor: pointer;
+}
+
 .pdp-qa-fav-card-action {
 	font-size: 9.5px;
 	color: #8a6d1c;

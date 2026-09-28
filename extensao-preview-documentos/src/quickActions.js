@@ -2306,6 +2306,18 @@
 		});
 	}
 
+	function removeFavItem(item) {
+		if (item.kind === "action") return removePreference(item.label, item.pref.id);
+		return chrome.storage.local.get([JUNTAR_PREFS_KEY]).then(function (data) {
+			const prefs = Array.isArray(data[JUNTAR_PREFS_KEY]) ? data[JUNTAR_PREFS_KEY] : [];
+			return chrome.storage.local.set({
+				[JUNTAR_PREFS_KEY]: prefs.filter(function (p) {
+					return p.id !== item.pref.id;
+				}),
+			});
+		});
+	}
+
 	function toggleFavPanel() {
 		if (activeGroupId === FAV_PANEL_ID) {
 			closePanel();
@@ -2421,6 +2433,29 @@
 			nameEl.textContent = "★ " + item.pref.name;
 			card.appendChild(nameEl);
 
+			const delBtn = document.createElement("button");
+			delBtn.type = "button";
+			delBtn.className = "pdp-qa-fav-del";
+			delBtn.textContent = "🗑";
+			delBtn.title = "Remover esta preferência";
+			delBtn.draggable = false;
+			delBtn.addEventListener("click", function (e) {
+				e.stopPropagation();
+				if (!confirm('Remover a preferência "' + item.pref.name + '" de "' + item.label + '"?')) return;
+				removeFavItem(item).then(function () {
+					card.remove();
+					if (!grid.querySelector(".pdp-qa-fav-card")) showEmpty();
+					applyVisibility();
+				}).catch(function (err) {
+					console.error("[Projudi Ações Rápidas]", "erro ao remover preferência:", err);
+					alert("Não foi possível remover a preferência. Tente de novo.");
+				});
+			});
+			delBtn.addEventListener("keydown", function (e) {
+				e.stopPropagation();
+			});
+			card.appendChild(delBtn);
+
 			if (!mode) {
 				card.classList.add("pdp-qa-fav-unavailable");
 				card.title = '"' + item.label + '" não está disponível nesta tela. Abra a aba "Movimentações" do processo.';
@@ -2490,14 +2525,19 @@
 			return card;
 		}
 
+		function showEmpty() {
+			const empty = document.createElement("div");
+			empty.className = "pdp-qa-empty";
+			empty.textContent = 'Nenhuma preferência salva ainda. Crie uma com "+ Nova preferência" no painel de qualquer ação.';
+			grid.replaceWith(empty);
+			editBtn.hidden = true;
+			hint.hidden = true;
+		}
+
 		loadFavItems().then(function (items) {
 			if (activePanel !== panel) return; // painel já fechado/trocado
 			if (!items.length) {
-				const empty = document.createElement("div");
-				empty.className = "pdp-qa-empty";
-				empty.textContent = 'Nenhuma preferência salva ainda. Crie uma com "+ Nova preferência" no painel de qualquer ação.';
-				grid.replaceWith(empty);
-				editBtn.hidden = true;
+				showEmpty();
 			} else {
 				items.forEach(function (item) {
 					grid.appendChild(buildCard(item));
