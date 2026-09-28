@@ -636,8 +636,9 @@ tela). Ao aplicar, a extensão preenche em rodadas, até cada campo
   liberam os campos de uma opção pelo clique (ex.: "Outras Remessas");
 - listas que carregam depois de outro campo (ex.: a **Finalidade**, que
   depende do **Destino**) são aguardadas; a opção é achada pelo valor ou
-  pelo texto. Lista que continua vazia (ex.: o Destino, alimentado por
-  busca) ganha de volta a opção gravada;
+  pelo texto. Um **select2** vazio (ex.: o Destino, alimentado só pela
+  busca) ganha a opção gravada na hora; uma lista comum que continua vazia
+  por 2,5s, sem outra alteração no diálogo, também;
 - por alguns segundos depois do preenchimento, e de novo no clique em
   "Sim, executar", campos que a própria tela tenha esvaziado (recarga
   tardia) são repostos — uma alteração feita por você nunca é desfeita.

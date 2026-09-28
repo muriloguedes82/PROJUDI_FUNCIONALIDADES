@@ -1513,6 +1513,14 @@
 		return true;
 	}
 
+	// <select> transformado em select2 (o original fica oculto, com a
+	// classe/atributos que o próprio select2 aplica, e o widget logo depois).
+	function isSelect2(el) {
+		if (el.classList.contains("select2-hidden-accessible") || el.hasAttribute("data-select2-id")) return true;
+		const next = el.nextElementSibling;
+		return !!next && (next.classList.contains("select2") || next.classList.contains("select2-container"));
+	}
+
 	// Campo que o usuário de fato preencheu na preferência. Preferências
 	// gravadas antes da versão 2.9.82 guardavam também os campos vazios, as
 	// bolinhas não marcadas e as caixas desmarcadas — esses são ignorados.
@@ -1558,8 +1566,11 @@
 		let stableRounds = 0;
 		let lastMissing = ordered;
 		// Uma alteração pode fazer a tela recarregar outras listas (ex.:
-		// Destino → Finalidade): lista vazia só ganha a opção recriada
-		// depois de FILL_INJECT_AFTER_MS vazia e sem nenhuma alteração.
+		// Destino → Finalidade): lista comum vazia só ganha a opção
+		// recriada depois de FILL_INJECT_AFTER_MS vazia e sem nenhuma
+		// alteração. Um select2 vazio (ex.: o Destino) é alimentado só pela
+		// busca do usuário — nunca carrega a opção sozinho —, então ganha
+		// a opção gravada na hora.
 		let lastChangeAt = start;
 		const emptySince = new Map();
 		const ctx = {
@@ -1567,6 +1578,7 @@
 				lastChangeAt = Date.now();
 			},
 			canInject: function (f, el) {
+				if (isSelect2(el)) return true;
 				if (!emptySince.has(f)) emptySince.set(f, Date.now());
 				return Date.now() - Math.max(emptySince.get(f), lastChangeAt) >= FILL_INJECT_AFTER_MS;
 			},
@@ -1591,6 +1603,7 @@
 			stableRounds = missing.length || Date.now() - lastChangeAt < FILL_ROUND_MS ? 0 : stableRounds + 1;
 			if (stableRounds >= 3 || Date.now() - start >= FILL_TIMEOUT_MS) {
 				if (missing.length) logChainStep("preferência: campos não preenchidos", missing.map(function (f) { return (f.label || f.name) + " = " + describeFieldValue(f); }));
+				logChainStep("preferência: preenchimento concluído", { segundos: ((Date.now() - start) / 1000).toFixed(1), campos: ordered.length, faltando: missing.length });
 				guardEmptyFields(form, ordered);
 				done(missing);
 				return;
