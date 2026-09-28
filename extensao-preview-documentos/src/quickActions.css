@@ -482,8 +482,24 @@
 	font-size: 12px;
 }
 
-.pdp-qa-combo-select {
+.pdp-qa-combo-select-wrap {
 	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.pdp-qa-combo-step-action {
+	font-size: 10.5px;
+	font-weight: bold;
+	color: #5a6b80;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+
+.pdp-qa-combo-select {
+	width: 100%;
 	min-width: 0;
 	font-size: 12.5px;
 	padding: 4px;
@@ -619,4 +635,10 @@
 #pdp-buttons-drag,
 #pdp-buttons-toggle {
 	z-index: 9 !important;
+}
+
+/* Barra do combo visível: espaço no fim da página para ela não cobrir os
+   últimos botões nativos (ex.: "Concluir Movimento" do Juntar Documento). */
+html.pdp-qa-combo-active body {
+	padding-bottom: 90px !important;
 }

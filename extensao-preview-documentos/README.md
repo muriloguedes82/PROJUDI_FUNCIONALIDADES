@@ -655,9 +655,10 @@ RPV".
 
 ### Combos de preferências (várias preferências em sequência)
 
-Um **combo** junta preferências já salvas (de qualquer ação do painel,
-inclusive o "Alvará Eletrônico") para executá-las **uma depois da outra,
-na ordem escolhida** — ex.: "Intimar MP" → "Enviar Concluso p/ sentença".
+Um **combo** junta preferências já salvas — de qualquer ação do painel,
+do "Alvará Eletrônico" e do **"📎 Juntar Documento"** — para executá-las
+**uma depois da outra, na ordem escolhida** — ex.: "Intimar MP" →
+"Juntar Certidão de decurso" → "Enviar Concluso p/ sentença".
 
 Para criar, clique no botão **"🔗 Combos"** (na segunda linha, junto do
 "📋 Processo copiado") e em **"+ Novo combo"**:
@@ -665,7 +666,7 @@ Para criar, clique no botão **"🔗 Combos"** (na segunda linha, junto do
 1. dê um nome ao combo;
 2. na **caixa 1**, escolha a preferência que deve ser executada
    **primeiro** (a lista mostra todas as preferências salvas, agrupadas
-   por ação);
+   por ação; a ação da preferência escolhida aparece acima da caixa);
 3. clique em **"+ Adicionar preferência"** para abrir a **caixa 2** e
    escolha a próxima — e assim por diante (o botão só fica ativo depois de
    escolhida a preferência da última caixa). As setas ↑/↓ mudam a ordem e
@@ -697,11 +698,22 @@ popup de uma etapa for fechado sem o "Sim, executar" (✕ Fechar,
 Cancelar, erro ao abrir), o combo espera: repita a etapa, siga para a
 próxima (se ela foi concluída à mão — é o caso do "Alvará Eletrônico",
 que só preenche e deixa o "Salvar" para o usuário) ou pare. Se outro
-processo for aberto na mesma aba, o combo não continua nele. As
-preferências do "📎 Juntar Documento" (que navegam a própria aba) ainda
-não entram nos combos.
+processo for aberto na mesma aba, o combo não continua nele.
 
-Os combos ficam em `chrome.storage.local` (chave `pdpPreferenceCombos`).
+**Etapa "Juntar Documento"**: não usa o popup — a extensão abre a tela
+"Juntar Documento" na própria aba e faz a juntada com a preferência, como
+o "★" do painel "📎 Juntar Documento" (ver abaixo): preenche cada tela,
+chama o assinador (o usuário assina) e clica em "Confirmar Inclusão" e em
+"Concluir Movimento". A confirmação dessa etapa é a própria assinatura.
+No "Concluir Movimento" a extensão anota que a etapa terminou; de volta à
+tela do processo, o combo segue para a etapa seguinte. Se a juntada for
+interrompida ("Parar" na faixa do Juntar Documento, ou outra tela aberta),
+a barra do combo pergunta como seguir. Para essa etapa, inicie o combo na
+tela do processo (a que tem o botão nativo "Juntar Documento").
+
+Os combos ficam em `chrome.storage.local` (chave `pdpPreferenceCombos`);
+cada etapa guarda a ação e o id da preferência (as do "Juntar Documento"
+vêm de `pdpJuntarDocumentoPrefs`).
 
 ## Alvará Eletrônico (popup para "Cadastrar Alvará Eletrônico")
 

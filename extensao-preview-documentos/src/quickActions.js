@@ -1934,7 +1934,8 @@
 	// Combos de preferências
 	//
 	// Um combo é uma lista ORDENADA de preferências já salvas (de qualquer
-	// ação do painel), executadas uma depois da outra. O editor mostra uma
+	// ação do painel, e também do "📎 Juntar Documento" — ver
+	// juntarDocumento.js), executadas uma depois da outra. O editor mostra uma
 	// caixa por etapa: na 1ª o usuário escolhe a preferência que roda
 	// primeiro; "+ Adicionar preferência" cria a caixa seguinte, e assim por
 	// diante. Guardados em chrome.storage.local, em COMBOS_KEY:
@@ -1958,6 +1959,12 @@
 	//   { comboId, name, steps: [{ label, prefId, prefName }], index,
 	//     phase: "pending" | "running" | "waiting", numero, startedAt }
 	// e a instância da página recarregada continua da etapa "pending".
+	//
+	// Etapa "Juntar Documento": não usa o popup — a juntada navega a
+	// própria aba (tela Juntar Documento → Inserir Arquivo → ... →
+	// "Concluir Movimento"), conduzida por juntarDocumento.js, que marca
+	// COMBO_JUNTAR_DONE_KEY no "Concluir Movimento". De volta à tela do
+	// processo, maybeResumeCombo vê a marca e segue para a próxima etapa.
 	// -------------------------------------------------------------------
 
 	const COMBOS_KEY = "pdpPreferenceCombos";
@@ -1967,6 +1974,9 @@
 	const COMBO_RESUME_DELAY_MS = 1500;
 	const COMBO_EDITOR_ID = "pdp-qa-combo-editor";
 	const COMBO_BAR_ID = "pdp-qa-combo-bar";
+	const JUNTAR_LABEL = "Juntar Documento";
+	const JUNTAR_PREFS_KEY = "pdpJuntarDocumentoPrefs"; // mantido por juntarDocumento.js
+	const COMBO_JUNTAR_DONE_KEY = "pdpComboJuntadaConcluida"; // idem
 	let comboResumeChecked = false;
 
 	function loadCombos() {
@@ -2003,8 +2013,20 @@
 		});
 	}
 
-	// Todas as preferências salvas, na ordem dos grupos do painel (ações
-	// desconhecidas — de versões antigas — no fim): [{ label, pref }].
+	// Todas as preferências que podem entrar num combo, por rótulo da ação:
+	// as das Ações rápidas e as do "Juntar Documento" (em JUNTAR_LABEL).
+	function loadComboPreferences() {
+		return Promise.all([loadAllPreferences(), chrome.storage.local.get([JUNTAR_PREFS_KEY])]).then(function (data) {
+			const all = Object.assign({}, data[0]);
+			const juntar = data[1][JUNTAR_PREFS_KEY];
+			if (Array.isArray(juntar) && juntar.length) all[JUNTAR_LABEL] = juntar;
+			return all;
+		});
+	}
+
+	// Todas as preferências salvas, na ordem dos grupos do painel, depois o
+	// "Juntar Documento" (ações desconhecidas — de versões antigas — no
+	// fim): [{ label, pref }].
 	function flattenPreferences(all) {
 		const labels = [];
 		ACTION_GROUPS.forEach(function (group) {
@@ -2012,6 +2034,7 @@
 				if (labels.indexOf(label) === -1) labels.push(label);
 			});
 		});
+		labels.push(JUNTAR_LABEL);
 		Object.keys(all).forEach(function (label) {
 			if (labels.indexOf(label) === -1) labels.push(label);
 		});
@@ -2083,6 +2106,7 @@
 	function removeComboBar() {
 		const el = document.getElementById(COMBO_BAR_ID);
 		if (el) el.remove();
+		document.documentElement.classList.remove("pdp-qa-combo-active");
 	}
 
 	// Mantém a barra acima do popup da etapa (mesma camada, mais ao fim do
@@ -2141,13 +2165,16 @@
 		}
 		addButton("⏹ Parar combo", "Encerrar o combo (as etapas já executadas continuam valendo)", stopCombo);
 		document.body.appendChild(bar);
+		// Espaço no fim da página para a barra não cobrir botões nativos
+		// (ex.: "Concluir Movimento" da tela Juntar Documento).
+		document.documentElement.classList.add("pdp-qa-combo-active");
 	}
 
 	// --- Execução --------------------------------------------------------
 
 	function startCombo(combo) {
 		if (readComboRun() && !confirm("Já há um combo em andamento nesta aba. Encerrá-lo e iniciar \"" + combo.name + '"?')) return;
-		loadAllPreferences().then(function (all) {
+		loadComboPreferences().then(function (all) {
 			const missing = combo.steps.filter(function (step) {
 				return !findPref(all, step);
 			});
@@ -2205,21 +2232,57 @@
 		// mesma etapa de novo.
 		run.phase = "running";
 		writeComboRun(run);
-		loadAllPreferences().then(function (all) {
+		loadComboPreferences().then(function (all) {
 			const pref = findPref(all, step);
 			if (!pref) {
 				setComboWaiting('A preferência "' + step.prefName + '" não existe mais. Pule esta etapa ou pare o combo.');
 				return;
 			}
+			logChainStep("combo: abrindo etapa " + (run.index + 1), { acao: step.label, preferencia: pref.name });
+			if (step.label === JUNTAR_LABEL) {
+				startJuntarStep(pref);
+				return;
+			}
 			comboStep = { confirmed: false, iframe: null };
 			renderComboBar();
-			logChainStep("combo: abrindo etapa " + (run.index + 1), { acao: step.label, preferencia: pref.name });
 			if (getCustomAction(step.label)) {
 				applyPreferenceCustom(step.label, pref);
 			} else {
 				applyPreferenceViaChain(step.label, pref, false, resolveDialogUrlForCombo);
 			}
 		});
+	}
+
+	// Etapa "Juntar Documento": a juntada navega esta aba; o combo continua
+	// quando a tela do processo voltar (ver maybeResumeCombo).
+	function startJuntarStep(pref) {
+		const api = window.__pdpJuntarDocumentoApi;
+		if (!api) {
+			setComboWaiting('"Juntar Documento" não está disponível nesta tela (só no Projudi, com o processo aberto).');
+			return;
+		}
+		try {
+			sessionStorage.removeItem(COMBO_JUNTAR_DONE_KEY);
+		} catch (err) {
+			// sem marca antiga a limpar
+		}
+		renderComboBar('Abrindo "Juntar Documento"… A juntada segue sozinha até o "Concluir Movimento" (assine quando o assinador pedir).');
+		if (!api.start(pref)) setComboWaiting('Não consegui abrir "Juntar Documento" nesta tela. Abra a tela do processo e clique em "Repetir etapa".');
+	}
+
+	function juntarStepDone() {
+		try {
+			if (!sessionStorage.getItem(COMBO_JUNTAR_DONE_KEY)) return false;
+			sessionStorage.removeItem(COMBO_JUNTAR_DONE_KEY);
+			return true;
+		} catch (err) {
+			return false;
+		}
+	}
+
+	function juntarJobActive() {
+		const api = window.__pdpJuntarDocumentoApi;
+		return !!(api && api.hasActiveJob());
 	}
 
 	// O popup da etapa atual fechou (ver removeActionModal).
@@ -2247,7 +2310,9 @@
 		const run = readComboRun();
 		if (!run) return;
 		run.index++;
-		if (run.index >= run.steps.length) {
+		// Com a tela recarregando, o aviso de conclusão fica para a página
+		// nova (runPendingComboStep chama finishCombo).
+		if (run.index >= run.steps.length && !pageReloading) {
 			finishCombo(run);
 			return;
 		}
@@ -2271,6 +2336,7 @@
 		const run = readComboRun();
 		if (!run) return;
 		abandonComboStep();
+		abandonJuntarStep(run);
 		removeLoadingOverlay();
 		run.index += offset;
 		if (run.index >= run.steps.length) {
@@ -2282,8 +2348,16 @@
 		runPendingComboStep();
 	}
 
+	// Encerra o acompanhamento de uma juntada aberta pela etapa atual.
+	function abandonJuntarStep(run) {
+		const step = run && run.steps[run.index];
+		const api = window.__pdpJuntarDocumentoApi;
+		if (step && step.label === JUNTAR_LABEL && api && api.hasActiveJob()) api.cancel();
+	}
+
 	function stopCombo() {
 		abandonComboStep();
+		abandonJuntarStep(readComboRun());
 		clearComboRun();
 		removeComboBar();
 		logChainStep("combo encerrado pelo usuário", null);
@@ -2324,8 +2398,24 @@
 			renderComboBar("Este combo foi iniciado no processo " + run.numero + ". Volte a ele para continuar, ou pare o combo.");
 			return;
 		}
+		const step = run.steps[run.index];
+		if (run.phase === "running" && step && step.label === JUNTAR_LABEL) {
+			if (juntarStepDone()) {
+				// Voltou do "Concluir Movimento": segue como etapa executada.
+				run.index++;
+				run.phase = "pending";
+				writeComboRun(run);
+			} else if (juntarJobActive()) {
+				// Ainda nas telas da juntada.
+				renderComboBar('Juntada em andamento — o combo continua depois do "Concluir Movimento".');
+				return;
+			} else {
+				setComboWaiting('A juntada não chegou ao "Concluir Movimento" pelo combo. Se ela foi concluída, clique em "Próxima etapa"; senão, em "Repetir etapa".');
+				return;
+			}
+		}
 		if (run.phase === "pending") {
-			renderComboBar("Continuando o combo…");
+			renderComboBar(run.index < run.steps.length ? "Continuando o combo…" : "");
 			setTimeout(runPendingComboStep, COMBO_RESUME_DELAY_MS);
 		} else {
 			setComboWaiting(run.phase === "running" ? "A tela mudou enquanto esta etapa estava aberta." : "");
@@ -2361,7 +2451,7 @@
 	// `existing`: combo a editar (✏️); sem ele, um combo novo.
 	function openComboEditor(existing) {
 		closePanel();
-		loadAllPreferences().then(function (all) {
+		loadComboPreferences().then(function (all) {
 			const items = flattenPreferences(all);
 			if (!items.length) {
 				alert('Ainda não há preferências salvas. Crie-as primeiro com "+ Nova preferência" nas ações do painel e depois monte o combo.');
@@ -2386,7 +2476,7 @@
 				(existing ? "Editar combo de preferências" : "Novo combo de preferências") +
 				'</span><button type="button" class="pdp-qa-modal-close">✕ Fechar</button></div>' +
 				'<div class="pdp-qa-combo-body">' +
-				'<p class="pdp-qa-combo-help">Escolha na 1ª caixa a preferência que deve ser executada primeiro. Depois use "+ Adicionar preferência" para a próxima, e assim por diante. Ao usar o combo, cada etapa abre já preenchida e pede a confirmação de sempre ("Sim, executar"); executada uma, a seguinte abre sozinha.</p>' +
+				'<p class="pdp-qa-combo-help">Escolha na 1ª caixa a preferência que deve ser executada primeiro. Depois use "+ Adicionar preferência" para a próxima, e assim por diante. Ao usar o combo, cada etapa abre já preenchida e pede a confirmação de sempre ("Sim, executar"; no Juntar Documento, a assinatura); executada uma, a seguinte abre sozinha.</p>' +
 				'<label class="pdp-qa-combo-name">Nome do combo <input type="text" maxlength="80"></label>' +
 				'<div class="pdp-qa-combo-steps"></div>' +
 				'<button type="button" class="pdp-qa-combo-add">+ Adicionar preferência</button>' +
@@ -2433,11 +2523,25 @@
 					group.appendChild(option);
 				});
 				select.value = String(slots[slotIndex]);
+				// Ação da preferência escolhida, acima da lista (o nome da
+				// preferência sozinho nem sempre diz de qual ação ela é).
+				const wrap = document.createElement("div");
+				wrap.className = "pdp-qa-combo-select-wrap";
+				const action = document.createElement("span");
+				action.className = "pdp-qa-combo-step-action";
+				function showAction() {
+					const item = items[slots[slotIndex]];
+					action.textContent = item ? item.label : "Preferência";
+				}
+				showAction();
 				select.addEventListener("change", function () {
 					slots[slotIndex] = parseInt(select.value, 10);
+					showAction();
 					updateAddButton();
 				});
-				return select;
+				wrap.appendChild(action);
+				wrap.appendChild(select);
+				return wrap;
 			}
 
 			function moveSlot(from, to) {
@@ -2594,7 +2698,7 @@
 			document.addEventListener("keydown", onKeydown, true);
 		}, 0);
 
-		Promise.all([loadCombos(), loadAllPreferences()]).then(function (data) {
+		Promise.all([loadCombos(), loadComboPreferences()]).then(function (data) {
 			if (activeGroupId !== "combos") return;
 			renderCombos(list, data[0], data[1], canRun);
 			positionPanel("combos");

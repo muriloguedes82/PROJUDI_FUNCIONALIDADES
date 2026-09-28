@@ -67,6 +67,10 @@
 	// Preferência gravada no clique em "Concluir Movimento", até o
 	// chrome.storage confirmar a gravação (a página pode navegar antes).
 	const PENDING_SAVE_KEY = "pdpJuntarDocumentoPendingSave";
+	// Combos de preferências (quickActions.js): uma juntada iniciada por um
+	// combo marca aqui, no "Concluir Movimento", que a etapa terminou — a
+	// tela do processo, ao voltar, segue para a etapa seguinte.
+	const COMBO_DONE_KEY = "pdpComboJuntadaConcluida";
 	// O usuário pode levar um bom tempo digitando o texto.
 	const JOB_MAX_AGE_MS = 60 * 60 * 1000;
 	const WAIT_TIMEOUT_MS = 8000;
@@ -395,11 +399,13 @@
 	}
 
 	// mode: null (só abrir) | "apply" | "capture" | "edit"
-	function iniciarJuntada(mode, pref) {
+	// `combo`: juntada iniciada por um combo de preferências (ver
+	// COMBO_DONE_KEY). Devolve false se não achou o botão nativo.
+	function iniciarJuntada(mode, pref, combo) {
 		const url = findJuntarUrl(document);
 		if (!url) {
 			alert('Não encontrei o botão nativo "Juntar Documento" nesta tela. Abra o processo (a barra com "Peticionar", "Juntar Documento", "Navegar"...) e tente de novo.');
-			return;
+			return false;
 		}
 		if (mode) {
 			writeJob({
@@ -408,13 +414,28 @@
 				pref: pref || null,
 				rec: {},
 				numero: numeroProcesso(document),
+				combo: !!combo,
 				createdAt: Date.now(),
 			});
 		} else {
 			clearJob();
 		}
 		location.href = url.href;
+		return true;
 	}
+
+	// Usado pelos combos de preferências (quickActions.js).
+	window.__pdpJuntarDocumentoApi = {
+		start: function (pref) {
+			return iniciarJuntada("apply", pref, true);
+		},
+		hasActiveJob: function () {
+			return !!readJob();
+		},
+		cancel: function () {
+			clearJob();
+		},
+	};
 
 	// -------------------------------------------------------------------
 	// Tela "Juntar Documento" (form#juntarDocumentoForm)
@@ -568,6 +589,13 @@
 						if (saved) showStatus('Preferência "' + saved.name + '" ' + (job.mode === "edit" ? "atualizada" : "salva") + ".", "ok");
 						else removeStatus();
 					} else {
+						if (job.combo) {
+							try {
+								sessionStorage.setItem(COMBO_DONE_KEY, String(Date.now()));
+							} catch (err) {
+								// sem sessionStorage: o combo pergunta como seguir
+							}
+						}
 						clearJob(true);
 					}
 				},
