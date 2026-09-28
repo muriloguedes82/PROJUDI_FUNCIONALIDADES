@@ -3544,7 +3544,7 @@
 				saveCombo(combo)
 					.then(function () {
 						closeComboEditor();
-						alert('Combo "' + name + '" ' + (existing ? "atualizado" : "salvo") + ". Use-o pelo botão \"🔗 Combos\".");
+						alert('Combo "' + name + '" ' + (existing ? "atualizado" : "salvo") + ". Use-o pelo botão \"🔗 Combos\" ou \"⭐ Minhas Preferências\".");
 					})
 					.catch(function (err) {
 						alert("Não foi possível salvar o combo: " + (err && err.message ? err.message : err));
@@ -4064,7 +4064,13 @@
 	}
 
 	function loadFavItems() {
-		return chrome.storage.local.get([PREFERENCES_KEY, JUNTAR_PREFS_KEY, FAV_ORDER_KEY]).then(function (data) {
+		return loadFavItemsWith(false);
+	}
+
+	// `includeCombos`: também os combos (só o painel do botão; o da linha do
+	// processo, em preferenciasNaLinha.js, não tem como executar um combo).
+	function loadFavItemsWith(includeCombos) {
+		return chrome.storage.local.get([PREFERENCES_KEY, JUNTAR_PREFS_KEY, FAV_ORDER_KEY, COMBOS_KEY]).then(function (data) {
 			const items = [];
 			const actionPrefs = data[PREFERENCES_KEY] || {};
 			Object.keys(actionPrefs).forEach(function (label) {
@@ -4076,6 +4082,21 @@
 			juntarPrefs.forEach(function (pref) {
 				items.push({ key: "j:" + pref.id, kind: "juntar", label: "Juntar Documento", pref: pref });
 			});
+			if (includeCombos) {
+				const all = Object.assign({}, actionPrefs);
+				if (juntarPrefs.length) all[JUNTAR_LABEL] = juntarPrefs;
+				const combos = Array.isArray(data[COMBOS_KEY]) ? data[COMBOS_KEY] : [];
+				combos.forEach(function (combo) {
+					items.push({
+						key: "c:" + combo.id,
+						kind: "combo",
+						label: "🔗 Combo · " + combo.steps.length + (combo.steps.length === 1 ? " etapa" : " etapas"),
+						pref: { id: combo.id, name: combo.name, createdAt: combo.createdAt },
+						combo: combo,
+						all: all,
+					});
+				});
+			}
 
 			const order = Array.isArray(data[FAV_ORDER_KEY]) ? data[FAV_ORDER_KEY] : [];
 			const position = new Map(order.map(function (key, i) { return [key, i]; }));
@@ -4086,6 +4107,19 @@
 				return (a.pref.createdAt || 0) - (b.pref.createdAt || 0);
 			});
 			return items;
+		});
+	}
+
+	function removeFavItem(item) {
+		if (item.kind === "combo") return removeCombo(item.combo.id);
+		if (item.kind === "action") return removePreference(item.label, item.pref.id);
+		return chrome.storage.local.get([JUNTAR_PREFS_KEY]).then(function (data) {
+			const prefs = Array.isArray(data[JUNTAR_PREFS_KEY]) ? data[JUNTAR_PREFS_KEY] : [];
+			return chrome.storage.local.set({
+				[JUNTAR_PREFS_KEY]: prefs.filter(function (p) {
+					return p.id !== item.pref.id;
+				}),
+			});
 		});
 	}
 
@@ -4174,6 +4208,8 @@
 		});
 
 		let draggedCard = null;
+		// Mesmo critério do painel "🔗 Combos" (qualquer aba da tela do processo).
+		const comboCanRun = isOnAcoesScreen() || !!findMovimentarButton() || !!findLatestValidEventLink() || hasProcessoForm() || !!findBackToProcessUrl();
 
 		function persistOrder() {
 			const order = Array.prototype.map.call(grid.querySelectorAll(".pdp-qa-fav-card"), function (card) {
@@ -4191,9 +4227,13 @@
 			card.tabIndex = 0;
 			card.setAttribute("role", "button");
 
-			const mode = item.kind === "juntar"
-				? (window.__pdpJuntarDocumento && location.pathname.startsWith("/projudi/") ? "juntar" : null)
-				: modeForLabel(item.label);
+			const isCombo = item.kind === "combo";
+			if (isCombo) card.classList.add("pdp-qa-fav-combo");
+			const mode = isCombo
+				? (comboCanRun ? "combo" : null)
+				: item.kind === "juntar"
+					? (window.__pdpJuntarDocumento && location.pathname.startsWith("/projudi/") ? "juntar" : null)
+					: modeForLabel(item.label);
 
 			const actionEl = document.createElement("span");
 			actionEl.className = "pdp-qa-fav-card-action";
@@ -4201,10 +4241,75 @@
 			card.appendChild(actionEl);
 			const nameEl = document.createElement("span");
 			nameEl.className = "pdp-qa-fav-card-name";
-			nameEl.textContent = "★ " + item.pref.name;
+			nameEl.textContent = (isCombo ? "▶ " : "★ ") + item.pref.name;
 			card.appendChild(nameEl);
 
-			if (!mode) {
+			const tools = document.createElement("span");
+			tools.className = "pdp-qa-fav-tools";
+			card.appendChild(tools);
+
+			const editPrefBtn = document.createElement("button");
+			editPrefBtn.type = "button";
+			editPrefBtn.className = "pdp-qa-fav-edit";
+			editPrefBtn.textContent = "✏️";
+			editPrefBtn.draggable = false;
+			editPrefBtn.disabled = !mode && !isCombo;
+			editPrefBtn.title = isCombo
+				? "Editar este combo (etapas, ordem e nome)"
+				: mode
+					? "Editar esta preferência: abre o diálogo preenchido com ela para ajustar os campos (e o nome) e salvar de novo"
+					: '"' + item.label + '" não está disponível nesta tela para editar.';
+			editPrefBtn.addEventListener("click", function (e) {
+				e.stopPropagation();
+				if (isCombo) {
+					openComboEditor(item.combo);
+					return;
+				}
+				if (!mode) return;
+				closePanel();
+				removeConfirmBar();
+				removeCaptureToolbar();
+				if (mode === "juntar") window.__pdpJuntarDocumento.edit(item.pref);
+				else if (mode === "custom") applyPreferenceCustom(item.label, item.pref, true);
+				else if (mode === "hop") applyPreferenceViaChain(item.label, item.pref, true);
+				else applyPreference(item.label, item.pref, true);
+			});
+			editPrefBtn.addEventListener("keydown", function (e) {
+				e.stopPropagation();
+			});
+			tools.appendChild(editPrefBtn);
+
+			const delBtn = document.createElement("button");
+			delBtn.type = "button";
+			delBtn.className = "pdp-qa-fav-del";
+			delBtn.textContent = "🗑";
+			delBtn.title = isCombo ? "Remover este combo (as preferências dele continuam salvas)" : "Remover esta preferência";
+			delBtn.draggable = false;
+			delBtn.addEventListener("click", function (e) {
+				e.stopPropagation();
+				const question = isCombo
+					? 'Remover o combo "' + item.pref.name + '"? As preferências dele continuam salvas.'
+					: 'Remover a preferência "' + item.pref.name + '" de "' + item.label + '"?';
+				if (!confirm(question)) return;
+				removeFavItem(item).then(function () {
+					card.remove();
+					if (!grid.querySelector(".pdp-qa-fav-card")) showEmpty();
+					applyVisibility();
+				}).catch(function (err) {
+					console.error("[Projudi Ações Rápidas]", "erro ao remover preferência:", err);
+					alert("Não foi possível remover a preferência. Tente de novo.");
+				});
+			});
+			delBtn.addEventListener("keydown", function (e) {
+				e.stopPropagation();
+			});
+			tools.appendChild(delBtn);
+
+			if (isCombo) {
+				if (!mode) card.classList.add("pdp-qa-fav-unavailable");
+				card.title = (mode ? "Executar em sequência (cada etapa pede a confirmação de sempre):\n" : "Abra a tela do processo para executar:\n") +
+					describeComboSteps(item.combo.steps, item.all);
+			} else if (!mode) {
 				card.classList.add("pdp-qa-fav-unavailable");
 				card.title = '"' + item.label + '" não está disponível nesta tela. Abra a aba "Movimentações" do processo.';
 			} else if (item.kind === "juntar") {
@@ -4219,6 +4324,10 @@
 			function activate() {
 				if (state.editing || !mode) return;
 				closePanel();
+				if (mode === "combo") {
+					startCombo(item.combo);
+					return;
+				}
 				removeConfirmBar();
 				removeCaptureToolbar();
 				if (mode === "juntar") window.__pdpJuntarDocumento.apply(item.pref);
@@ -4273,14 +4382,19 @@
 			return card;
 		}
 
-		loadFavItems().then(function (items) {
+		function showEmpty() {
+			const empty = document.createElement("div");
+			empty.className = "pdp-qa-empty";
+			empty.textContent = 'Nenhuma preferência ou combo salvo ainda. Crie uma preferência com "+ Nova preferência" no painel de qualquer ação.';
+			grid.replaceWith(empty);
+			editBtn.hidden = true;
+			hint.hidden = true;
+		}
+
+		loadFavItemsWith(true).then(function (items) {
 			if (activePanel !== panel) return; // painel já fechado/trocado
 			if (!items.length) {
-				const empty = document.createElement("div");
-				empty.className = "pdp-qa-empty";
-				empty.textContent = 'Nenhuma preferência salva ainda. Crie uma com "+ Nova preferência" no painel de qualquer ação.';
-				grid.replaceWith(empty);
-				editBtn.hidden = true;
+				showEmpty();
 			} else {
 				items.forEach(function (item) {
 					grid.appendChild(buildCard(item));
