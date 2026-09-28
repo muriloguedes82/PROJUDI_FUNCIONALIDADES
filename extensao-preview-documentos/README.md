@@ -633,6 +633,24 @@ guarda o valor e, nas listas, também o **texto da opção** escolhida, além
 do rótulo do campo na tela e da seção do diálogo (ex.: "Urgente — Partes -
 Vítima").
 
+**Intimar / Citar / Notificar Partes: quem é intimado.** Nessas telas
+(inclusive as variações com "Dias corridos/Dias úteis" e partes com
+"intimação online"), cada seção de partes tem as colunas de caixas
+"Intimação Pessoal" e "Advogado/Sociedade de Advogados", e o próprio
+Projudi, ao abrir, já marca o advogado de toda parte que tem advogado.
+Para que nenhuma intimação saia a mais, essas colunas são gravadas pelo
+**estado final** de cada uma — todas as partes, nenhuma, ou as partes
+marcadas — e, ao aplicar, **a preferência define exatamente quem é
+intimado: toda caixa que ela não marcou é desmarcada**, inclusive os
+advogados marcados pelo Projudi e as colunas de seções que nem existiam no
+processo em que a preferência foi gravada. A coluna é reconhecida pelo
+polo (ex.: "PartesAtivas" — o exequente, o noticiante, o autor), então uma
+preferência como "intimação pessoal do autor" vale também em processos de
+outra classe e na outra tela de intimação. A lista mostrada ao salvar
+indica as colunas marcadas e avisa que as demais ficam desmarcadas.
+Preferências gravadas antes da versão 2.9.87 seguem a mesma regra: só as
+caixas que elas marcavam ficam marcadas.
+
 Quando vários campos têm o mesmo nome e valor — as caixas "marcar todos"
 de "Intimar Partes" são todas `checker` —, cada um é identificado pela
 **seção e pelo rótulo** (ex.: "Partes - Vítima | Advogado/Sociedade de

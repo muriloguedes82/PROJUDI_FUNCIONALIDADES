@@ -1397,6 +1397,164 @@
 		return select.selectedIndex === options.indexOf(def);
 	}
 
+	// -------------------------------------------------------------------
+	// Colunas de seleção de partes (telas de intimação/citação/notificação)
+	//
+	// Nessas telas cada seção de partes tem colunas de caixas ("Intimação
+	// Pessoal", "Advogado/Sociedade de Advogados"), uma por parte, com um
+	// "marcar todos" no cabeçalho — e o próprio Projudi, ao abrir, já marca
+	// o advogado de toda parte que tem advogado. Uma caixa esquecida
+	// marcada é uma intimação a mais (ex.: o advogado intimado quando a
+	// preferência era só a intimação pessoal da parte). Por isso essas
+	// colunas não são tratadas como campos soltos: a preferência guarda o
+	// estado FINAL de cada coluna (`columns`: todas / nenhuma / as partes
+	// marcadas) e, ao aplicar, define exatamente quem é marcado — toda
+	// caixa que a preferência não marcou é desmarcada, inclusive as de
+	// seções que nem existiam no processo em que ela foi gravada.
+	//
+	// A coluna é identificada pelo nome da caixa + o grupo de partes (o
+	// Projudi numera os ids por polo: "idPartesProcessoIFAdvogado" +
+	// "PartesAtivas1" → grupo "PartesAtivas"), o que vale de um processo
+	// para outro e nas diferentes telas de intimação; sem esse padrão de
+	// id, pelo título da seção.
+	// -------------------------------------------------------------------
+
+	// Caixas de parte (linhas) das colunas com "marcar todos".
+	function selectionRowsIn(form) {
+		return formControls(form).filter(function (el) {
+			return el.type === "checkbox" && !!el.name && !!columnHeaderCheckbox(el);
+		});
+	}
+
+	function selectionColumnKey(el) {
+		let group = null;
+		if (el.id && el.id.indexOf(el.name) === 0) group = el.id.slice(el.name.length).replace(/\d+$/, "");
+		return el.name + "|" + (group || sectionTitle(el) || "");
+	}
+
+	function selectionColumnLabel(el) {
+		const header = columnHeaderCheckbox(el);
+		const headerText = (header && labelForText(header)) || el.name;
+		const section = sectionTitle(el);
+		return headerText + (section ? " — " + section : "");
+	}
+
+	// Nome da parte na linha da caixa (para mostrar ao usuário).
+	function selectionRowParty(el) {
+		const cell = el.closest("td, th");
+		if (!cell) return el.value;
+		return (
+			Array.prototype.filter
+				.call(cell.parentElement.cells, function (c) {
+					return c !== cell && !c.querySelector("input, select, textarea") && cleanLabel(c.textContent);
+				})
+				.map(function (c) {
+					return cleanLabel(c.textContent);
+				})
+				.join(" ")
+				.slice(0, 60) || el.value
+		);
+	}
+
+	// Estado final de cada coluna de seleção do diálogo.
+	function captureSelectionColumns(form) {
+		const byKey = new Map();
+		selectionRowsIn(form).forEach(function (el) {
+			const key = selectionColumnKey(el);
+			if (!byKey.has(key)) byKey.set(key, { key: key, label: selectionColumnLabel(el), rows: [] });
+			byKey.get(key).rows.push(el);
+		});
+		return Array.from(byKey.values()).map(function (col) {
+			const enabled = col.rows.filter(function (el) {
+				return !el.disabled;
+			});
+			const checked = enabled.filter(function (el) {
+				return el.checked;
+			});
+			const out = { key: col.key, label: col.label };
+			if (!checked.length) out.state = "none";
+			else if (checked.length === enabled.length) out.state = "all";
+			else {
+				out.state = "some";
+				out.values = checked.map(function (el) {
+					return el.value;
+				});
+				out.parties = checked.map(selectionRowParty);
+			}
+			return out;
+		});
+	}
+
+	function describeSelectionColumns(columns) {
+		const lines = (columns || [])
+			.filter(function (c) {
+				return c.state !== "none";
+			})
+			.map(function (c) {
+				return "• " + c.label + ": " + (c.state === "all" ? "todas as partes" : (c.parties || c.values).join(", "));
+			});
+		if ((columns || []).length) lines.push("• Demais caixas de intimação (pessoal/advogado): desmarcadas");
+		return lines.join("\n");
+	}
+
+	// Diz, para cada caixa de parte do diálogo, se ela deve ficar marcada.
+	// Preferência com `columns`: pelo estado gravado de cada coluna (coluna
+	// que não existia na gravação: desmarcada). Preferência antiga: só as
+	// caixas (ou colunas, pelo "marcar todos") que ela marcava.
+	function selectionDesire(form, pref) {
+		if (pref && Array.isArray(pref.columns)) {
+			const byKey = {};
+			pref.columns.forEach(function (c) {
+				byKey[c.key] = c;
+			});
+			return function (row) {
+				const col = byKey[selectionColumnKey(row)];
+				if (!col) return false;
+				if (col.state === "all") return true;
+				if (col.state === "some") return (col.values || []).indexOf(row.value) !== -1;
+				return false;
+			};
+		}
+		const targets = ((pref && pref.fields) || [])
+			.filter(function (f) {
+				return f.type === "checkbox" && f.checked;
+			})
+			.map(function (f) {
+				return controlsFor(form, f)[0];
+			})
+			.filter(Boolean);
+		return function (row) {
+			return targets.indexOf(row) !== -1 || targets.indexOf(columnHeaderCheckbox(row)) !== -1;
+		};
+	}
+
+	// Aplica a seleção; devolve quantas caixas ainda não estão como deviam.
+	function enforceSelectionColumns(form, desire, ctx) {
+		let pending = 0;
+		selectionRowsIn(form).forEach(function (row) {
+			if (row.disabled) return;
+			const want = desire(row);
+			if (row.checked !== want) {
+				row.click();
+				if (ctx) ctx.changed();
+			}
+			if (row.checked !== want) pending++;
+		});
+		return pending;
+	}
+
+	// Nomes das caixas de parte e dos "marcar todos" — tratados pelas
+	// colunas de seleção, não como campos soltos.
+	function selectionControlNames(form) {
+		const names = {};
+		selectionRowsIn(form).forEach(function (row) {
+			names[row.name] = true;
+			const header = columnHeaderCheckbox(row);
+			if (header && header.name) names[header.name] = true;
+		});
+		return names;
+	}
+
 	// O controle aparece na tela (blocos ocultos — ex.: o prazo individual de
 	// cada parte, que só abre no "+" — não foram preenchidos pelo usuário).
 	function isRendered(el) {
@@ -1522,6 +1680,7 @@
 
 	function captureFormFields(form) {
 		const fields = [];
+		const selectionNames = selectionControlNames(form);
 		const elements = formControls(form).filter(function (el) {
 			return /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName);
 		});
@@ -1529,6 +1688,9 @@
 			if (!el.name && !el.id) return;
 			const type = (el.type || el.tagName || "").toLowerCase();
 			if (type === "hidden" || type === "submit" || type === "button" || type === "reset" || type === "file" || type === "password" || type === "image") return;
+			// Caixas de parte e "marcar todos": gravadas como colunas de
+			// seleção (captureSelectionColumns), não campo a campo.
+			if (type === "checkbox" && selectionNames[el.name]) return;
 			// Só o que o usuário de fato preencheu/selecionou: campos
 			// bloqueados (ex.: as seções não escolhidas de "Realizar
 			// Remessa"), vazios, bolinhas não marcadas e caixas desmarcadas
@@ -1787,8 +1949,14 @@
 	const FILL_DISABLED_GRACE_MS = 1500;
 
 	// Preenche `fields` em rodadas (ver acima) e chama done(faltando).
-	function fillFormFields(form, fields, done) {
-		fields = fields.filter(isMeaningfulField);
+	// `pref` (opcional): a preferência inteira — as colunas de seleção de
+	// partes (ver captureSelectionColumns) são aplicadas a partir dela.
+	function fillFormFields(form, fields, done, pref) {
+		const selectionNames = selectionControlNames(form);
+		const desire = selectionDesire(form, pref || { fields: fields });
+		fields = fields.filter(isMeaningfulField).filter(function (f) {
+			return !(f.type === "checkbox" && selectionNames[f.name]);
+		});
 		const ordered = fields
 			.filter(function (f) {
 				return f.type === "radio" || f.type === "checkbox";
@@ -1824,6 +1992,14 @@
 			// Popup fechado/diálogo trocado no meio: não há o que preencher.
 			if (!form.isConnected) return;
 			const pastGrace = Date.now() - start >= FILL_DISABLED_GRACE_MS;
+			// Primeiro, quem é marcado nas colunas de partes (a preferência
+			// define exatamente isso; o resto é desmarcado).
+			let selectionPending = 0;
+			try {
+				selectionPending = enforceSelectionColumns(form, desire, ctx);
+			} catch (err) {
+				logChainStep("preferência: erro nas caixas de partes", String(err));
+			}
 			const missing = ordered.filter(function (f) {
 				try {
 					// Depois da carência: campo bloqueado (parte do diálogo que a
@@ -1840,7 +2016,7 @@
 				}
 			});
 			lastMissing = missing;
-			stableRounds = missing.length || Date.now() - lastChangeAt < FILL_ROUND_MS ? 0 : stableRounds + 1;
+			stableRounds = missing.length || selectionPending || Date.now() - lastChangeAt < FILL_ROUND_MS ? 0 : stableRounds + 1;
 			if (stableRounds >= 3 || Date.now() - start >= FILL_TIMEOUT_MS) {
 				if (missing.length) logChainStep("preferência: campos não preenchidos", missing.map(function (f) { return (f.label || f.name) + " = " + describeFieldValue(f); }));
 				logChainStep("preferência: preenchimento concluído", { segundos: ((Date.now() - start) / 1000).toFixed(1), campos: ordered.length, faltando: missing.length });
@@ -1989,18 +2165,23 @@
 			const fields = captureFormFields(form).filter(function (f) {
 				return !custom || !custom.prefFields || custom.prefFields.indexOf(f.name) !== -1;
 			});
-			if (!fields.length) {
+			const columns = captureSelectionColumns(form);
+			const anySelected = columns.some(function (c) {
+				return c.state !== "none";
+			});
+			if (!fields.length && !anySelected) {
 				alert('Nenhum campo preenchido ou selecionado no diálogo "' + label + '". Preencha o que a preferência deve guardar e salve de novo.');
 				return;
 			}
 			// Mostra o que vai ser gravado: dá para conferir na hora se algum
 			// campo (ex.: uma lista que carrega depois) ficou de fora.
+			const summary = [describeSelectionColumns(columns), describeFields(fields)].filter(Boolean).join("\n");
 			const name = prompt(
-				"Campos que serão gravados:\n" + describeFields(fields) + "\n\nSe algum estiver errado, cancele, ajuste o diálogo e salve de novo.\n\nNome para esta preferência de \"" + label + '":',
+				"Campos que serão gravados:\n" + summary + "\n\nSe algum estiver errado, cancele, ajuste o diálogo e salve de novo.\n\nNome para esta preferência de \"" + label + '":',
 				editingPref ? editingPref.name : ""
 			);
 			if (!name || !name.trim()) return;
-			const extra = getExtra ? getExtra() : null;
+			const extra = Object.assign({}, getExtra ? getExtra() : {}, columns.length ? { columns: columns } : {});
 			const saving = editingPref
 				? updatePreference(label, editingPref.id, name.trim(), fields, extra)
 				: addPreference(label, name.trim(), fields, extra);
@@ -2065,10 +2246,15 @@
 	// Preenche o diálogo com a preferência e, no fim, mostra a barra certa.
 	function fillPreference(label, pref, form, doc, editing) {
 		showFillingBar(label, pref);
-		fillFormFields(form, pref.fields, function (missing) {
-			removeConfirmBar();
-			afterPreferenceFilled(label, pref, form, doc, editing, missing);
-		});
+		fillFormFields(
+			form,
+			pref.fields,
+			function (missing) {
+				removeConfirmBar();
+				afterPreferenceFilled(label, pref, form, doc, editing, missing);
+			},
+			pref
+		);
 	}
 
 	// `missing`: campos que não foi possível preencher — a barra avisa
@@ -2668,7 +2854,7 @@
 				} else {
 					warnMissingFields(label, pref, missing);
 				}
-			});
+			}, pref);
 		});
 	}
 
