@@ -939,7 +939,12 @@ partir do link **"Processo"** da ordenação:
    (`parteProcessoPena.do?actionType=visualizar`) e traz Data do Delito,
    Tipo (realização do crime, violência doméstica, hediondo...), Fração
    para Progressão de Regime, Fração para Livramento Condicional,
-   Reincidente (comum/específico) e anos/meses/dias da pena. Se o detalhe
+   Reincidente (comum/específico), anos/meses/dias da pena e **Data de
+   Prescrição** (ex.: "13/09/2031 (Ativa)" ou "Interrompida pelo
+   Acórdão"). Abaixo da tabela, **Próxima Prescrição** mostra a data ativa
+   mais próxima entre os crimes da tipificação (sem tipificação, entre as
+   imputações da denúncia); a tabela de imputações da denúncia também
+   ganha a coluna "Data de Prescrição". Se o detalhe
    não puder ser lido, a linha usa os dados da lista (data da infração e
    pena, quando for pena imposta e não uma faixa como "5 a 15 anos");
 5. aba **Prisões** da tela da parte (link do nome da parte na ordenação;
