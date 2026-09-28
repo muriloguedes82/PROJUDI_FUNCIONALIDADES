@@ -132,6 +132,10 @@
 	// se sobrepor (mesma técnica usada entre WhatsApp e e-mail).
 	const OTHER_BUTTON_SELECTOR = "#pdp-wa-launcher, .pdp-email-visible";
 	const PREFERENCES_KEY = "pdpActionPreferences"; // { [actionLabel]: [{id, name, fields, createdAt}] }
+	const JUNTAR_PREFS_KEY = "pdpJuntarDocumentoPrefs"; // ver juntarDocumento.js
+	const FAV_ORDER_KEY = "pdpPreferencesOrder"; // ["a:<id>" | "j:<id>", ...] — ordem dos cards em "Minhas Preferências"
+	const FAV_PANEL_ID = "__minhas-preferencias";
+	const FAV_VISIBLE_LIMIT = 20;
 	const DIALOG_WAIT_TIMEOUT_MS = 6000;
 	const DIALOG_WAIT_INTERVAL_MS = 150;
 	const SUBMIT_LABEL_CANDIDATES = ["confirmar", "enviar", "salvar", "ok", "concluir", "sim", "gravar", "executar", "confirma"];
@@ -1964,6 +1968,17 @@
 			secondLine.appendChild(clipboardBtn);
 		}
 
+		// Antes (à esquerda) do "Processo copiado": os botões irmãos
+		// (habilitarAdvogado.js etc.) disputam a posição logo DEPOIS dele.
+		const favBtn = document.createElement("button");
+		favBtn.type = "button";
+		favBtn.id = "pdp-fav-prefs-button";
+		favBtn.className = "pdp-qa-group-btn";
+		favBtn.innerHTML = '<span class="pdp-qa-icon">⭐</span><span>Minhas Preferências</span>';
+		favBtn.title = "Todas as preferências salvas, num só lugar: escolha uma para acioná-la";
+		favBtn.addEventListener("click", toggleFavPanel);
+		secondLine.insertBefore(favBtn, secondLine.firstChild);
+
 		const highlightPrefsBtn = document.createElement("button");
 		highlightPrefsBtn.type = "button";
 		highlightPrefsBtn.className = "pdp-qa-group-btn";
@@ -1989,7 +2004,10 @@
 			activePanel.remove();
 			activePanel = null;
 		}
-		if (activeGroupId && row) {
+		if (activeGroupId === FAV_PANEL_ID && row) {
+			const favBtn = row.querySelector("#pdp-fav-prefs-button");
+			if (favBtn) favBtn.classList.remove("pdp-qa-active");
+		} else if (activeGroupId && row) {
 			const prevBtn = row.querySelector('[data-group-id="' + activeGroupId + '"]');
 			if (prevBtn) prevBtn.classList.remove("pdp-qa-active");
 		}
@@ -2235,10 +2253,298 @@
 	}
 
 	// -------------------------------------------------------------------
+	// "⭐ Minhas Preferências": todas as preferências salvas (das ações
+	// rápidas e do "📎 Juntar Documento") em cards, num painel que abre
+	// para baixo do botão. Só as FAV_VISIBLE_LIMIT primeiras aparecem por
+	// padrão; o modo de edição permite arrastar os cards para reordená-los
+	// (ordem gravada em FAV_ORDER_KEY).
+	// -------------------------------------------------------------------
+
+	function groupForLabel(label) {
+		for (let i = 0; i < ACTION_GROUPS.length; i++) {
+			if (ACTION_GROUPS[i].actions.indexOf(label) !== -1) return ACTION_GROUPS[i];
+		}
+		return null;
+	}
+
+	// Mesma decisão de modo de buildPanel(), por ação; null = indisponível aqui.
+	function modeForLabel(label) {
+		const group = groupForLabel(label);
+		if (!group) return null;
+		if (group.custom) {
+			if (!location.pathname.startsWith("/projudi/")) return null;
+			return getCustomAction(label) ? "custom" : null;
+		}
+		if (isOnAcoesScreen()) return findActionLink(label) ? "ready" : null;
+		if (findMovimentarButton() || findLatestValidEventLink()) return "hop";
+		return null;
+	}
+
+	function loadFavItems() {
+		return chrome.storage.local.get([PREFERENCES_KEY, JUNTAR_PREFS_KEY, FAV_ORDER_KEY]).then(function (data) {
+			const items = [];
+			const actionPrefs = data[PREFERENCES_KEY] || {};
+			Object.keys(actionPrefs).forEach(function (label) {
+				(actionPrefs[label] || []).forEach(function (pref) {
+					items.push({ key: "a:" + pref.id, kind: "action", label: label, pref: pref });
+				});
+			});
+			const juntarPrefs = Array.isArray(data[JUNTAR_PREFS_KEY]) ? data[JUNTAR_PREFS_KEY] : [];
+			juntarPrefs.forEach(function (pref) {
+				items.push({ key: "j:" + pref.id, kind: "juntar", label: "Juntar Documento", pref: pref });
+			});
+
+			const order = Array.isArray(data[FAV_ORDER_KEY]) ? data[FAV_ORDER_KEY] : [];
+			const position = new Map(order.map(function (key, i) { return [key, i]; }));
+			items.sort(function (a, b) {
+				const pa = position.has(a.key) ? position.get(a.key) : Infinity;
+				const pb = position.has(b.key) ? position.get(b.key) : Infinity;
+				if (pa !== pb) return pa - pb;
+				return (a.pref.createdAt || 0) - (b.pref.createdAt || 0);
+			});
+			return items;
+		});
+	}
+
+	function toggleFavPanel() {
+		if (activeGroupId === FAV_PANEL_ID) {
+			closePanel();
+			return;
+		}
+		closePanel();
+		buildFavPanel();
+	}
+
+	function buildFavPanel() {
+		activeGroupId = FAV_PANEL_ID;
+		const favBtn = row && row.querySelector("#pdp-fav-prefs-button");
+		if (favBtn) favBtn.classList.add("pdp-qa-active");
+
+		const panel = document.createElement("div");
+		panel.className = "pdp-qa-panel pdp-qa-fav-panel";
+		activePanel = panel;
+
+		const state = { showAll: false, editing: false };
+
+		const header = document.createElement("div");
+		header.className = "pdp-qa-fav-header";
+		const title = document.createElement("span");
+		title.className = "pdp-qa-action-label";
+		title.textContent = "⭐ Minhas Preferências";
+		header.appendChild(title);
+		const editBtn = document.createElement("button");
+		editBtn.type = "button";
+		editBtn.className = "pdp-qa-open-btn";
+		editBtn.textContent = "✏️ Editar posição";
+		editBtn.title = "Arrastar os cards para colocá-los na ordem que você quiser";
+		header.appendChild(editBtn);
+		panel.appendChild(header);
+
+		const hint = document.createElement("div");
+		hint.className = "pdp-qa-note";
+		hint.textContent = 'Arraste os cards para reordená-los. A ordem é salva na hora. Clique em "✅ Concluir" ao terminar.';
+		hint.hidden = true;
+		panel.appendChild(hint);
+
+		const grid = document.createElement("div");
+		grid.className = "pdp-qa-fav-grid";
+		panel.appendChild(grid);
+
+		const footer = document.createElement("label");
+		footer.className = "pdp-qa-fav-footer";
+		const showAllBox = document.createElement("input");
+		showAllBox.type = "checkbox";
+		const showAllText = document.createElement("span");
+		footer.appendChild(showAllBox);
+		footer.appendChild(showAllText);
+		footer.hidden = true;
+		panel.appendChild(footer);
+
+		function applyVisibility() {
+			const cards = grid.querySelectorAll(".pdp-qa-fav-card");
+			const showAll = state.showAll || state.editing;
+			cards.forEach(function (card, index) {
+				card.classList.toggle("pdp-qa-fav-hidden", !showAll && index >= FAV_VISIBLE_LIMIT);
+			});
+			const hiddenCount = Math.max(0, cards.length - FAV_VISIBLE_LIMIT);
+			footer.hidden = hiddenCount === 0;
+			showAllBox.checked = showAll;
+			showAllBox.disabled = state.editing;
+			showAllText.textContent = "Mostrar todas (+" + hiddenCount + ")";
+			positionFavPanel();
+		}
+
+		showAllBox.addEventListener("change", function () {
+			state.showAll = showAllBox.checked;
+			applyVisibility();
+		});
+
+		editBtn.addEventListener("click", function () {
+			state.editing = !state.editing;
+			panel.classList.toggle("pdp-qa-fav-editing", state.editing);
+			editBtn.textContent = state.editing ? "✅ Concluir" : "✏️ Editar posição";
+			hint.hidden = !state.editing;
+			grid.querySelectorAll(".pdp-qa-fav-card").forEach(function (card) {
+				card.draggable = state.editing;
+			});
+			applyVisibility();
+		});
+
+		let draggedCard = null;
+
+		function persistOrder() {
+			const order = Array.prototype.map.call(grid.querySelectorAll(".pdp-qa-fav-card"), function (card) {
+				return card.dataset.key;
+			});
+			chrome.storage.local.set({ [FAV_ORDER_KEY]: order }).catch(function (err) {
+				console.error("[Projudi Ações Rápidas]", "erro ao salvar a ordem das preferências:", err);
+			});
+		}
+
+		function buildCard(item) {
+			const card = document.createElement("div");
+			card.className = "pdp-qa-fav-card";
+			card.dataset.key = item.key;
+			card.tabIndex = 0;
+			card.setAttribute("role", "button");
+
+			const mode = item.kind === "juntar"
+				? (window.__pdpJuntarDocumento && location.pathname.startsWith("/projudi/") ? "juntar" : null)
+				: modeForLabel(item.label);
+
+			const actionEl = document.createElement("span");
+			actionEl.className = "pdp-qa-fav-card-action";
+			actionEl.textContent = item.label;
+			card.appendChild(actionEl);
+			const nameEl = document.createElement("span");
+			nameEl.className = "pdp-qa-fav-card-name";
+			nameEl.textContent = "★ " + item.pref.name;
+			card.appendChild(nameEl);
+
+			if (!mode) {
+				card.classList.add("pdp-qa-fav-unavailable");
+				card.title = '"' + item.label + '" não está disponível nesta tela. Abra a aba "Movimentações" do processo.';
+			} else if (item.kind === "juntar") {
+				card.title = 'Juntar Documento com a preferência "' + item.pref.name + '"';
+			} else {
+				card.title = mode === "custom"
+					? 'Abre "' + item.label + '" já preenchido com esta preferência'
+					: 'Preenche automaticamente e pede 1 confirmação para executar "' + item.label + '"';
+				if (item.pref.descricao) card.title += "\n" + item.pref.descricao;
+			}
+
+			function activate() {
+				if (state.editing || !mode) return;
+				closePanel();
+				removeConfirmBar();
+				removeCaptureToolbar();
+				if (mode === "juntar") window.__pdpJuntarDocumento.apply(item.pref);
+				else if (mode === "custom") applyPreferenceCustom(item.label, item.pref);
+				else if (mode === "hop") applyPreferenceViaChain(item.label, item.pref);
+				else applyPreference(item.label, item.pref);
+			}
+			card.addEventListener("click", activate);
+			card.addEventListener("keydown", function (e) {
+				if (e.key === "Enter" || e.key === " ") {
+					e.preventDefault();
+					activate();
+				}
+			});
+
+			card.addEventListener("dragstart", function (e) {
+				if (!state.editing) {
+					e.preventDefault();
+					return;
+				}
+				draggedCard = card;
+				card.classList.add("pdp-qa-fav-dragging");
+				e.dataTransfer.effectAllowed = "move";
+				e.dataTransfer.setData("text/plain", item.key);
+			});
+			card.addEventListener("dragend", function () {
+				card.classList.remove("pdp-qa-fav-dragging");
+				grid.querySelectorAll(".pdp-qa-fav-over").forEach(function (c) {
+					c.classList.remove("pdp-qa-fav-over");
+				});
+				draggedCard = null;
+			});
+			card.addEventListener("dragover", function (e) {
+				if (!draggedCard || draggedCard === card) return;
+				e.preventDefault();
+				e.dataTransfer.dropEffect = "move";
+				card.classList.add("pdp-qa-fav-over");
+			});
+			card.addEventListener("dragleave", function () {
+				card.classList.remove("pdp-qa-fav-over");
+			});
+			card.addEventListener("drop", function (e) {
+				e.preventDefault();
+				card.classList.remove("pdp-qa-fav-over");
+				if (!draggedCard || draggedCard === card) return;
+				const cards = Array.prototype.slice.call(grid.children);
+				const movingForward = cards.indexOf(draggedCard) < cards.indexOf(card);
+				card.insertAdjacentElement(movingForward ? "afterend" : "beforebegin", draggedCard);
+				persistOrder();
+			});
+
+			return card;
+		}
+
+		loadFavItems().then(function (items) {
+			if (activePanel !== panel) return; // painel já fechado/trocado
+			if (!items.length) {
+				const empty = document.createElement("div");
+				empty.className = "pdp-qa-empty";
+				empty.textContent = 'Nenhuma preferência salva ainda. Crie uma com "+ Nova preferência" no painel de qualquer ação.';
+				grid.replaceWith(empty);
+				editBtn.hidden = true;
+			} else {
+				items.forEach(function (item) {
+					grid.appendChild(buildCard(item));
+				});
+			}
+			applyVisibility();
+		});
+
+		document.body.appendChild(panel);
+		positionFavPanel();
+
+		setTimeout(function () {
+			document.addEventListener("click", onOutsideClick, true);
+			document.addEventListener("keydown", onKeydown, true);
+		}, 0);
+	}
+
+	// Abre para baixo do botão; só vai para cima quando não cabe embaixo.
+	function positionFavPanel() {
+		if (!activePanel || !row || activeGroupId !== FAV_PANEL_ID) return;
+		const btn = row.querySelector("#pdp-fav-prefs-button");
+		if (!btn) return;
+		const rect = btn.getBoundingClientRect();
+		const above = rect.top - BUTTON_SCREEN_MARGIN - 6;
+		const below = window.innerHeight - rect.bottom - BUTTON_SCREEN_MARGIN - 6;
+		const openBelow = below >= Math.min(260, activePanel.scrollHeight) || below >= above;
+		activePanel.style.boxSizing = "border-box";
+		activePanel.style.maxHeight = Math.max(0, openBelow ? below : above) + "px";
+		activePanel.style.top = openBelow ? (rect.bottom + 6) + "px" : "auto";
+		activePanel.style.bottom = openBelow ? "auto" : (window.innerHeight - rect.top + 6) + "px";
+
+		const width = activePanel.offsetWidth || 380;
+		let left = rect.right - width;
+		if (left + width > window.innerWidth - BUTTON_SCREEN_MARGIN) left = window.innerWidth - BUTTON_SCREEN_MARGIN - width;
+		activePanel.style.left = Math.max(BUTTON_SCREEN_MARGIN, Math.round(left)) + "px";
+		activePanel.style.right = "auto";
+	}
+
+	// -------------------------------------------------------------------
 	// Posicionamento (mesma técnica dos botões irmãos de WhatsApp/e-mail)
 	// -------------------------------------------------------------------
 
 	function positionPanel(groupId) {
+		if (groupId === FAV_PANEL_ID) {
+			positionFavPanel();
+			return;
+		}
 		if (!activePanel || !row) return;
 		const btn = row.querySelector('[data-group-id="' + groupId + '"]');
 		if (!btn) return;
