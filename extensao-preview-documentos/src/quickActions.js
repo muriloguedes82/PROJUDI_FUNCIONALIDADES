@@ -1356,11 +1356,22 @@
 			if (!el.name && !el.id) return;
 			const type = (el.type || el.tagName || "").toLowerCase();
 			if (type === "hidden" || type === "submit" || type === "button" || type === "reset" || type === "file" || type === "password" || type === "image") return;
+			// Só o que o usuário de fato preencheu/selecionou: campos
+			// bloqueados (ex.: as seções não escolhidas de "Realizar
+			// Remessa"), vazios, bolinhas não marcadas e caixas desmarcadas
+			// ficam de fora — salvo a caixa que vinha marcada e foi
+			// desmarcada (essa escolha também é do usuário).
+			if (el.disabled) return;
+			if (type === "radio" && !el.checked) return;
+			if (type === "checkbox" && !el.checked && !el.defaultChecked) return;
+			if (type === "select-multiple" && !Array.prototype.some.call(el.options, function (o) { return o.selected; })) return;
+			if (type !== "radio" && type !== "checkbox" && type !== "select-multiple" && !(el.value || "").trim()) return;
 			const f = { name: el.name || "", type: type, label: fieldLabel(el) };
 			if (!el.name) f.id = el.id;
 			if (type === "checkbox" || type === "radio") {
 				f.value = el.value;
 				f.checked = el.checked;
+				if (type === "checkbox" && !el.checked) f.unchecked = true; // desmarcada pelo usuário
 				if (type === "radio" && el.checked) f.optionLabel = radioOptionLabel(el);
 			} else if (type === "select-multiple") {
 				const selected = Array.prototype.filter.call(el.options, function (o) {
@@ -1502,8 +1513,38 @@
 		return true;
 	}
 
+	// Campo que o usuário de fato preencheu na preferência. Preferências
+	// gravadas antes da versão 2.9.82 guardavam também os campos vazios, as
+	// bolinhas não marcadas e as caixas desmarcadas — esses são ignorados.
+	function isMeaningfulField(f) {
+		if (f.type === "radio") return !!f.checked;
+		if (f.type === "checkbox") return !!f.checked || !!f.unchecked;
+		if (f.type === "select-multiple") return !!(f.values && f.values.length);
+		return (f.value || "").trim() !== "";
+	}
+
+	// O campo (ou a opção da bolinha/caixa) existe na tela, mas bloqueado.
+	function fieldDisabledNow(form, f) {
+		const els = controlsFor(form, f);
+		if (!els.length) return false;
+		if (f.type === "radio" || f.type === "checkbox") {
+			const el = els.filter(function (c) {
+				return c.value === f.value;
+			})[0];
+			return !!el && el.disabled;
+		}
+		return els[0].disabled;
+	}
+
+	// Campo que continua bloqueado depois de marcadas as bolinhas e caixas
+	// da preferência pertence a uma parte do diálogo que ela não usa (ex.:
+	// outra seção de "Realizar Remessa", em preferência antiga) — não é
+	// preenchido nem cobrado.
+	const FILL_DISABLED_GRACE_MS = 1500;
+
 	// Preenche `fields` em rodadas (ver acima) e chama done(faltando).
 	function fillFormFields(form, fields, done) {
+		fields = fields.filter(isMeaningfulField);
 		const ordered = fields
 			.filter(function (f) {
 				return f.type === "radio" || f.type === "checkbox";
@@ -1534,8 +1575,10 @@
 		function round() {
 			// Popup fechado/diálogo trocado no meio: não há o que preencher.
 			if (!form.isConnected) return;
+			const pastGrace = Date.now() - start >= FILL_DISABLED_GRACE_MS;
 			const missing = ordered.filter(function (f) {
 				try {
+					if (pastGrace && fieldDisabledNow(form, f)) return false;
 					const el = controlsFor(form, f)[0];
 					if (el && el.tagName === "SELECT" && el.options.length > 1) emptySince.delete(f);
 					return !applyField(form, f, ctx);
@@ -1565,6 +1608,7 @@
 	// recarga por AJAX costuma fazer. Só esses são repostos depois do
 	// preenchimento: uma troca feita pelo usuário nunca é desfeita.
 	function fieldIsEmptyNow(form, f) {
+		if (!isMeaningfulField(f) || fieldDisabledNow(form, f)) return false;
 		const els = controlsFor(form, f);
 		if (f.type === "radio") {
 			return f.checked && !els.some(function (c) {
@@ -1693,7 +1737,7 @@
 				return !custom || !custom.prefFields || custom.prefFields.indexOf(f.name) !== -1;
 			});
 			if (!fields.length) {
-				alert('Não encontrei nenhum campo preenchível no diálogo "' + label + '". Nada foi gravado.');
+				alert('Nenhum campo preenchido ou selecionado no diálogo "' + label + '". Preencha o que a preferência deve guardar e salve de novo.');
 				return;
 			}
 			// Mostra o que vai ser gravado: dá para conferir na hora se algum
