@@ -1,4 +1,14 @@
-# Projudi/SEEU - Documentos: Pré-visualização, WhatsApp e E-mail
+# Meirinho – Projudi/SEEU: Pré-visualização, WhatsApp e E-mail
+
+<img src="icons/icon128.png" alt="Ícone do Meirinho" width="64" align="right">
+
+**Meirinho** é o nome da extensão. O meirinho era o antigo oficial de
+justiça, encarregado de levar e fazer cumprir os atos do juízo; a extensão
+faz o papel de um "meirinho digital" da serventia: examina os autos
+(pré-visualização), leva os documentos adiante (WhatsApp/e-mail) e agiliza
+os atos de cartório no Projudi e no SEEU. O ícone (documento + lupa
+dourada) fica em `icons/`, e o tile promocional do catálogo do Chrome
+(440×280) em `store/promo-pequeno-440x280.png`.
 
 Extensão de navegador (Chrome/Edge, Manifest V3) que resolve problemas do
 dia a dia no Projudi (TJPR) e no SEEU — os dois usam o mesmo padrão de
