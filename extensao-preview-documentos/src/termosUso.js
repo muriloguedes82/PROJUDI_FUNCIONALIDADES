@@ -63,6 +63,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/reusCabecalho.js",
 			"src/cpfPartesCumprimentos.js",
 			"src/bnmpMandadoPrisao.js",
+			"src/preferenciasNaLinha.js",
 			"src/listaTarefas.js"
 		],
 		css: [

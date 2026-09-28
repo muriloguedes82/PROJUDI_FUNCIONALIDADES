@@ -1255,6 +1255,42 @@ em `chrome.storage.local` (`pdpTarefasListas`, `pdpTarefasPreferencias` e
 ao fechamento do navegador e são atualizados em todas as abas abertas.
 Ficam só neste navegador: não são compartilhados com outros servidores.
 
+## Minhas Preferências na linha do processo (⭐)
+
+Nas mesmas três telas (Análise de Juntadas, Retorno de Conclusão e Análise
+de Decurso de Prazo), cada linha de processo ganha, ao lado do **+** das
+listas de tarefas, o botão **⭐**, que abre os cards de "Minhas
+Preferências" (as mesmas preferências das ações rápidas: Realizar
+Remessa, Enviar Concluso, Intimar Partes, Ordenar Cumprimentos...). Ao
+escolher um card (`src/preferenciasNaLinha.js`):
+
+1. A extensão pergunta, conforme a tela, se deve antes **dispensar as
+   juntadas**, **finalizar a conclusão** ou **dispensar os decursos de
+   prazo** pendentes do processo. Tanto **Sim** quanto **Não** seguem o
+   fluxo: o "Sim" só acrescenta essa etapa, feita pelos mesmos recursos dos
+   botões do quadro Pendências ("Dispensar juntadas", "Finalizar conclusão"
+   e "Dispensar decursos" - que dispensam **todas** as juntadas/decursos
+   pendentes daquele processo). Se essa etapa falhar, o motivo aparece na
+   linha e o fluxo continua. O ✕ (ou Esc) cancela tudo.
+2. A tela do processo é carregada em segundo plano (iframe oculto) - no
+   Retorno de Conclusão, cuja linha não tem link para o processo, o
+   endereço é lido na tela de análise da conclusão ou, se não estiver lá,
+   obtido pela busca por número. A partir dela, o diálogo da ação abre já
+   preenchido com a preferência, no mesmo popup das ações rápidas, com a
+   mesma barra **"✅ Sim, executar"**: nada é enviado ao Projudi sem esse
+   clique.
+3. A linha mostra o andamento e o resultado (ex.: "✅ Juntada(s) já
+   dispensada(s) · ★ Remessa MP: concluída"). A listagem **não** é
+   recarregada ao fim, para não perder a busca/filtro feitos.
+
+Uma preferência por vez. Preferências de "Juntar Documento" e do "Alvará
+Eletrônico" aparecem esmaecidas: continuam disponíveis só na tela do
+processo. Para permitir isso, `quickActions.js` passou a carregar também
+nas telas em que a fileira de botões fica oculta (sem exibir nada), só para
+expor a API usada pela linha (`applyPreferenceFrom`/`loadFavItems`), e
+`juntadaDrag.js`/`finalizarConclusao.js` expõem as dispensas em
+`window.__pdpDispensas`.
+
 ## Dispensar decursos de prazo
 
 Ainda no quadro **Pendências**, quando o item é uma intimação

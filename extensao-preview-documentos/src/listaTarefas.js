@@ -27,7 +27,7 @@
 
 	// Iframes ocultos que a extensão usa para carregar telas em segundo plano.
 	try {
-		if (window.frameElement && (window.frameElement.hasAttribute("data-pdp-loader") || window.frameElement.hasAttribute("data-pdp-decurso"))) return;
+		if (window.frameElement && (window.frameElement.hasAttribute("data-pdp-loader") || window.frameElement.hasAttribute("data-pdp-decurso") || window.frameElement.hasAttribute("data-pdp-dispensa"))) return;
 	} catch (e) { /* frame de outra origem */ }
 
 	const ROTAS = /\/processo\/(analisarJuntada|conclusao|intimacaoBusca)\.do$/;
@@ -262,6 +262,21 @@
 				abrirPopover(item.cnj, w);
 			}
 		}));
+		// "Minhas Preferências" deste processo (preferenciasNaLinha.js).
+		if (window.__pdpPreferenciasNaLinha) {
+			const estrela = el("button", {
+				type: "button",
+				class: "pdp-tl-mais pdp-tl-estrela",
+				title: "Minhas Preferências: executar uma ação rápida neste processo",
+				text: "⭐",
+				onclick: function (ev) {
+					ev.preventDefault();
+					ev.stopPropagation();
+					window.__pdpPreferenciasNaLinha.abrir(estrela, item.row, item.cnj);
+				}
+			});
+			w.appendChild(estrela);
+		}
 	}
 
 	// `soTabela`: chamada pelo MutationObserver (a página mudou, os dados

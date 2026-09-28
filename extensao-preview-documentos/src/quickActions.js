@@ -33,7 +33,12 @@
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
 	// A janela do Oráculo mantém apenas os controles nativos.
 	if (location.pathname === "/projudi/processo/criminal/antecedentesCriminais.do") return;
-	if (window.__pdpButtonGroupBlocked) return;
+	// Nas telas em que a fileira de botões não aparece (ver uiVisibility.js)
+	// o script continua carregando, sem interface, só para expor a API
+	// window.__pdpQuickActions - usada, por exemplo, pelas preferências
+	// aplicadas a partir da linha do processo nas telas de Análise de
+	// Juntadas/Retorno de Conclusão/Decurso de Prazo (preferenciasNaLinha.js).
+	const semInterface = !!window.__pdpButtonGroupBlocked;
 
 	if (window.__pdpQuickActionsInjected) return;
 	window.__pdpQuickActionsInjected = true;
@@ -147,6 +152,11 @@
 	let captureToolbar = null;
 	let confirmBar = null;
 	let activeModalIframe = null;
+	// Ganchos do popup aberto a partir da linha de uma listagem (ver
+	// applyPreferenceFrom): { noReload, onSubmit, onDone, onClose }. Lá a
+	// tela por trás é uma listagem (resultado de um POST), que não deve ser
+	// recarregada ao fim da ação - a linha é que mostra o resultado.
+	let modalHooks = null;
 	const ROW_EXPANDED_KEY = "pdpQuickActionsExpanded";
 	let rowExpanded = false;
 	let rowPreferenceLoaded = false;
@@ -585,16 +595,28 @@
 	// Ponto de entrada: devolve uma Promise que resolve com
 	// `{ url }` (a URL do diálogo pronta para um iframe) ou
 	// `{ failed: true, tried, screenTitle }` se não achar.
-	function resolveDialogUrl(label) {
-		logChainStep('resolvendo URL de "' + label + '" em segundo plano', { partindoDe: window.location.href });
+	// `origem` (opcional): { doc, url } de uma tela já carregada em segundo
+	// plano (ex.: a tela do processo, aberta a partir da linha de uma
+	// listagem - ver applyPreferenceFrom). Sem ela, parte da tela atual.
+	function resolveDialogUrl(label, origem) {
+		const rootDoc = (origem && origem.doc) || document;
+		const baseUrl = (origem && origem.url) || window.location.href;
+		logChainStep('resolvendo URL de "' + label + '" em segundo plano', { partindoDe: baseUrl });
 
-		const liveMovBtn = findMovimentarButtonIn(document);
+		// A própria origem já é uma tela de Ações.
+		if (origem && isOnAcoesScreenIn(rootDoc)) {
+			const direct = findActionLinkIn(rootDoc, label);
+			const directUrl = direct ? extractUrlFromOnclick(direct.getAttribute("onclick"), baseUrl) : null;
+			if (directUrl) return Promise.resolve({ url: directUrl, acoesUrl: baseUrl });
+		}
+
+		const liveMovBtn = findMovimentarButtonIn(rootDoc);
 		if (liveMovBtn) {
 			// Já estamos na tela de detalhe de uma movimentação escolhida
 			// manualmente pelo usuário — só um destino possível, sem tentar
 			// outras movimentações.
 			logChainStep("já na tela de detalhe da movimentação", describeElement(liveMovBtn));
-			const movUrl = extractUrlFromOnclick(liveMovBtn.getAttribute("onclick"), window.location.href);
+			const movUrl = extractUrlFromOnclick(liveMovBtn.getAttribute("onclick"), baseUrl);
 			if (!movUrl) return Promise.resolve({ failed: true, screenTitle: null });
 			return fetchDoc(movUrl).then(function (result) {
 				if (isOnAcoesScreenIn(result.doc)) {
@@ -609,7 +631,7 @@
 		}
 
 		const events = Array.prototype.slice
-			.call(document.querySelectorAll('a.link[id^="LNKmov"]'))
+			.call(rootDoc.querySelectorAll('a.link[id^="LNKmov"]'))
 			.filter(function (a) {
 				return (a.id || "").indexOf("INVALIDO") === -1 && !a.closest("strike, s, del");
 			})
@@ -624,7 +646,7 @@
 			const href = events[index].getAttribute("href");
 			let eventUrl;
 			try {
-				eventUrl = new URL(href, window.location.href).href;
+				eventUrl = new URL(href, baseUrl).href;
 			} catch (err) {
 				return tryEvent(index + 1);
 			}
@@ -978,6 +1000,20 @@
 	// submit nativo (que mira no lugar errado no nosso caso), lemos esse
 	// campo diretamente e agimos por conta própria: recarrega a aba real
 	// por trás (equivalente ao que o backURL faria) e fecha o popup.
+	// Fim de uma ação no popup: recarrega a tela por trás - exceto quando o
+	// popup foi aberto a partir da linha de uma listagem (modalHooks).
+	function finishActionAndReload() {
+		if (modalHooks && modalHooks.noReload) {
+			if (modalHooks.onDone) modalHooks.onDone();
+			return;
+		}
+		try {
+			window.location.reload();
+		} catch (err) {
+			logChainStep("falhou ao recarregar a tela por trás", String(err));
+		}
+	}
+
 	function checkFlagClosePopup(win) {
 		let doc;
 		try {
@@ -998,11 +1034,7 @@
 			});
 			if (flagField.value === "true") {
 				logChainStep("shim: flagClosePopup=true — a ação terminou; recarregando a tela e fechando o popup", null);
-				try {
-					window.location.reload();
-				} catch (err) {
-					logChainStep("shim: falhou ao recarregar a tela por trás", String(err));
-				}
+				finishActionAndReload();
 				removeActionModal();
 			}
 			break; // só o 1º form com esse campo importa — mesma suposição do próprio Projudi
@@ -1037,6 +1069,11 @@
 		const el = document.getElementById(MODAL_ID);
 		if (el) el.remove();
 		activeModalIframe = null;
+		if (modalHooks) {
+			const hooks = modalHooks;
+			modalHooks = null;
+			if (hooks.onClose) hooks.onClose();
+		}
 		stopModalWatch();
 		removeConfirmBar();
 		removeCaptureToolbar();
@@ -1351,6 +1388,7 @@
 				alert('Os campos foram preenchidos, mas não encontrei o botão de confirmar do Projudi automaticamente. Confira e clique nele manualmente.');
 				return;
 			}
+			if (modalHooks && modalHooks.onSubmit) modalHooks.onSubmit();
 			submit.click();
 		});
 	}
@@ -1586,12 +1624,8 @@
 				}
 				iframe.removeEventListener("load", onLoad);
 				logChainStep('"' + label + '" concluído — fechando o popup e recarregando a tela', null);
+				finishActionAndReload();
 				removeActionModal();
-				try {
-					window.location.reload();
-				} catch (err) {
-					logChainStep("falhou ao recarregar a tela por trás", String(err));
-				}
 			}, ACOES_SETTLE_MS);
 		});
 		iframe.src = result.acoesUrl;
@@ -1651,15 +1685,18 @@
 		});
 	}
 
-	function applyPreferenceViaChain(label, pref, editing) {
+	// `origem`/`hooks` (opcionais): ver resolveDialogUrl e modalHooks.
+	function applyPreferenceViaChain(label, pref, editing, origem, hooks) {
 		const cancelToken = { cancelled: false };
 		showLoadingOverlay(label, function () {
 			cancelToken.cancelled = true;
+			if (hooks && hooks.onFail) hooks.onFail("cancelado");
 		});
-		resolveDialogUrl(label).then(function (result) {
+		resolveDialogUrl(label, origem).then(function (result) {
 			removeLoadingOverlay();
 			if (cancelToken.cancelled) return;
 			if (result.failed) {
+				if (hooks && hooks.onFail) hooks.onFail(result.screenTitle ? 'o Projudi levou à tela "' + result.screenTitle + '"' : "ação não localizada");
 				alertChainFailure(label, result);
 				return;
 			}
@@ -1676,9 +1713,11 @@
 					applyFormFields(form, pref.fields);
 					afterPreferenceFilled(label, pref, form, dialogDoc, editing);
 				});
+				modalHooks = hooks || null;
 				return;
 			}
 			const iframe = showActionModal(label);
+			modalHooks = hooks || null;
 			iframe.addEventListener(
 				"load",
 				function () {
@@ -2645,18 +2684,20 @@
 		}
 	}
 
-	loadRowExpandedPreference();
-	setInterval(reconcile, 700);
-	reconcile();
+	if (!semInterface) {
+		loadRowExpandedPreference();
+		setInterval(reconcile, 700);
+		reconcile();
 
-	const observer = new MutationObserver(function () {
-		try {
-			reconcile();
-		} catch (err) {
-			console.error("[Projudi Ações Rápidas]", "erro no MutationObserver:", err);
-		}
-	});
-	observer.observe(document.documentElement, { childList: true, subtree: true });
+		const observer = new MutationObserver(function () {
+			try {
+				reconcile();
+			} catch (err) {
+				console.error("[Projudi Ações Rápidas]", "erro no MutationObserver:", err);
+			}
+		});
+		observer.observe(document.documentElement, { childList: true, subtree: true });
+	}
 
 	let repositionScheduled = false;
 	function scheduleReposition() {
@@ -2766,6 +2807,20 @@
 
 	window.__pdpQuickActions = {
 		resolveDialogUrl: resolveDialogUrl,
+		// Preferências salvas (mesma lista/ordem de "Minhas Preferências").
+		loadFavItems: loadFavItems,
+		// Aplica uma preferência de ação (não "Juntar Documento" nem ações
+		// personalizadas) partindo de uma tela já carregada em segundo plano
+		// (`origem` = { doc, url }, ex.: a tela do processo) - mesmo popup,
+		// mesmo preenchimento e mesma barra "Sim, executar" das demais. Os
+		// `hooks` ({ onSubmit, onDone, onClose, onFail }) informam quem
+		// chamou; a tela por trás não é recarregada ao fim.
+		applyPreferenceFrom: function (label, pref, origem, hooks) {
+			closePanel();
+			removeConfirmBar();
+			removeCaptureToolbar();
+			applyPreferenceViaChain(label, pref, false, origem, Object.assign({ noReload: true }, hooks || {}));
+		},
 		openActionModal: function (label, url) {
 			const iframe = showActionModal(label);
 			if (url) iframe.src = url;
