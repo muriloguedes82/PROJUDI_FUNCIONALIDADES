@@ -1670,7 +1670,7 @@
 	function describeFields(fields) {
 		return fields
 			.filter(function (f) {
-				return f.type !== "radio" || f.checked;
+				return !f.implicit && (f.type !== "radio" || f.checked);
 			})
 			.map(function (f) {
 				return "• " + (f.label || f.name || f.id) + ": " + describeFieldValue(f);
@@ -1698,22 +1698,25 @@
 			// desmarcada (essa escolha também é do usuário).
 			if (el.disabled) return;
 			if (!isRendered(el) && !(el.tagName === "SELECT" && isSelect2(el))) return; // o select2 esconde a lista original
-			// Bolinha, lista e texto: só se diferem do padrão da tela (o que
-			// já vem assim — ex.: "Urgente: Não", "Prazo: Estipular em dias"
-			// — não foi escolha do usuário).
-			if (type === "radio" && (!el.checked || el.defaultChecked)) return;
+			// Bolinha, lista, texto e caixa que ficaram no padrão da tela (ex.:
+			// "Urgente: Não", "Prazo: Estipular em dias", "Dias úteis") não
+			// foram escolha do usuário, mas fazem parte do que ele viu ao
+			// gravar: são gravados como `implicit` — aplicados do mesmo jeito
+			// (a preferência é executada exatamente como gravada, mesmo que
+			// outro processo abra com outro padrão), mas não aparecem na lista
+			// mostrada ao salvar nem geram aviso se não existirem no processo.
+			if (type === "radio" && !el.checked) return;
+			let implicit = false;
+			if (type === "radio" && el.defaultChecked) implicit = true;
 			// (o select2 cria a opção escolhida já como "padrão" — ele fica
 			// de fora dessa regra; vazio, cai na regra abaixo)
-			if (type === "select-one" && !isSelect2(el) && isDefaultOption(el)) return;
-			if ((type === "text" || type === "textarea" || type === "number" || type === "date" || type === "email" || type === "tel") && el.value === el.defaultValue) return;
-			// Caixa: só se o estado difere do padrão da tela. As caixas de
-			// cada parte (valor = código da parte) só existem no processo em
-			// que a preferência foi gravada; noutro processo são ignoradas, e
-			// vale o "marcar todos" da coluna, se ele foi gravado.
-			if (type === "checkbox" && el.checked === el.defaultChecked) return;
+			if (type === "select-one" && !isSelect2(el) && isDefaultOption(el)) implicit = true;
+			if ((type === "text" || type === "textarea" || type === "number" || type === "date" || type === "email" || type === "tel") && el.value === el.defaultValue) implicit = true;
+			if (type === "checkbox" && el.checked === el.defaultChecked) implicit = true;
 			if (type === "select-multiple" && !Array.prototype.some.call(el.options, function (o) { return o.selected; })) return;
 			if (type !== "radio" && type !== "checkbox" && type !== "select-multiple" && !(el.value || "").trim()) return;
 			const f = { name: el.name || "", type: type, label: fieldLabel(el) };
+			if (implicit) f.implicit = true;
 			if (!el.name) f.id = el.id;
 			// Posição entre os controles de mesmo nome (e, nas caixas e
 			// bolinhas, entre os de mesmo nome E valor): há diálogos com
@@ -1738,7 +1741,7 @@
 			if (type === "checkbox" || type === "radio") {
 				f.value = el.value;
 				f.checked = el.checked;
-				if (type === "checkbox" && !el.checked) f.unchecked = true; // desmarcada pelo usuário
+				if (type === "checkbox" && !el.checked) f.unchecked = true; // desmarcada (pelo usuário ou no padrão)
 				if (type === "radio" && el.checked) f.optionLabel = radioOptionLabel(el);
 			} else if (type === "select-multiple") {
 				const selected = Array.prototype.filter.call(el.options, function (o) {
@@ -2009,7 +2012,10 @@
 					if (pastGrace && (fieldDisabledNow(form, f) || !controlsFor(form, f).length)) return false;
 					const el = controlsFor(form, f)[0];
 					if (el && el.tagName === "SELECT" && el.options.length > 1) emptySince.delete(f);
-					return !applyField(form, f, ctx);
+					const ok = applyField(form, f, ctx);
+					// Campo no padrão da tela na gravação (implicit): aplicado,
+					// mas nunca cobrado.
+					return !ok && !f.implicit;
 				} catch (err) {
 					logChainStep("preferência: erro ao preencher um campo", { campo: f.label || f.name, erro: String(err) });
 					return true;
@@ -2277,10 +2283,36 @@
 		confirmBar.querySelector(".pdp-qa-confirm-yes").addEventListener("click", function () {
 			// Última conferência antes de enviar: repõe o que a tela tenha
 			// esvaziado e não envia com campo gravado ainda vazio.
-			const stillEmpty = form.isConnected ? restoreEmptyFields(form, pref.fields || []) : [];
+			const stillEmpty = form.isConnected
+				? restoreEmptyFields(form, pref.fields || []).filter(function (f) {
+						return !f.implicit;
+					})
+				: [];
 			if (stillEmpty.length) {
 				alert("Antes de confirmar, preencha: " + missingFieldsText(stillEmpty) + ". Depois clique de novo em \"Sim, executar\".");
 				return;
+			}
+			// Quem é intimado/citado precisa estar exatamente como na
+			// preferência: se alguma caixa de parte mudou depois do
+			// preenchimento (a tela, ou o usuário), mostra a diferença e
+			// pergunta — nunca desfaz sozinho uma mudança feita à mão.
+			if (form.isConnected) {
+				const desire = selectionDesire(form, pref);
+				const diffs = selectionRowsIn(form)
+					.filter(function (row) {
+						return !row.disabled && row.checked !== desire(row);
+					})
+					.map(function (row) {
+						return "• " + selectionColumnLabel(row) + " — " + selectionRowParty(row) + ": " + (row.checked ? "MARCADA (a preferência não marca)" : "DESMARCADA (a preferência marca)");
+					});
+				if (
+					diffs.length &&
+					!confirm(
+						'Atenção: a seleção de partes está diferente da preferência "' + pref.name + '":\n' + diffs.join("\n") +
+							'\n\nOK = enviar assim mesmo. Cancelar = voltar e conferir.'
+					)
+				)
+					return;
 			}
 			const submit = findSubmitControl(form);
 			removeConfirmBar();

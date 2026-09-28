@@ -633,6 +633,17 @@ guarda o valor e, nas listas, também o **texto da opção** escolhida, além
 do rótulo do campo na tela e da seção do diálogo (ex.: "Urgente — Partes -
 Vítima").
 
+**Execução exatamente como gravada.** Além do que você escolheu, a
+preferência grava também, em silêncio, o estado dos demais campos visíveis
+do diálogo que ficaram no padrão da tela (ex.: "Urgente: Não", "Dias
+úteis", "Estipular em dias") e os aplica do mesmo jeito — assim ela sai
+igual à gravação mesmo num processo que abra com outro padrão. Esses
+campos não aparecem na lista mostrada ao salvar e não geram aviso se não
+existirem no processo. No "Sim, executar", a extensão confere de novo a
+seleção de partes (quem é intimado): se alguma caixa mudou depois do
+preenchimento, mostra a diferença e pergunta antes de enviar — nunca
+desfaz sozinha uma mudança feita à mão.
+
 **Intimar / Citar / Notificar Partes: quem é intimado.** Nessas telas
 (inclusive as variações com "Dias corridos/Dias úteis" e partes com
 "intimação online"), cada seção de partes tem as colunas de caixas
