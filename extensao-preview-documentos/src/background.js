@@ -851,3 +851,67 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
     .catch(error => reply({ ok: false, error: error.message }));
   return true;
 });
+
+// Certidão narrativa (ver certidaoNarrativa.js e certidao.html).
+// "certidao-open": o content script já gravou os dados coletados em
+// chrome.storage.local ("pdpCertidao:<id>"); aqui só abrimos a janela.
+// "certidao-fetch-doc": a página da certidão pede o conteúdo de um arquivo
+// do processo; baixamos daqui pelo mesmo motivo de downloadDocAsPayload
+// (no SEEU o link redireciona para o S3 sem CORS).
+const PDP_CERTIDAO_PREFIX = 'pdpCertidao:';
+const PDP_CERTIDAO_PAGE = chrome.runtime.getURL('src/certidao.html');
+const PDP_CERTIDAO_HOSTS = /^((projudi|tst)[^./]*\.tjpr\.jus\.br|seeu\.pje\.jus\.br)$/i;
+
+async function pdpCertidaoLimparAntigas() {
+  const all = await chrome.storage.local.get(null);
+  const limite = Date.now() - 6 * 60 * 60 * 1000;
+  const velhas = Object.keys(all).filter(key => key.startsWith(PDP_CERTIDAO_PREFIX) && !(all[key]?.criadoEm > limite));
+  if (velhas.length) await chrome.storage.local.remove(velhas);
+}
+
+chrome.runtime.onMessage.addListener((message, sender, reply) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'certidao-open') return false;
+  (async () => {
+    const origin = new URL(sender.url || '');
+    if (!sender.tab || !PDP_CERTIDAO_HOSTS.test(origin.hostname)) throw new Error('Origem inválida.');
+    if (!/^[\w-]{8,80}$/.test(message.id || '')) throw new Error('Identificador inválido.');
+    let left, top, width = 960, height = 900;
+    try {
+      const current = await chrome.windows.get(sender.tab.windowId);
+      width = Math.min(960, current.width || 960);
+      height = Math.min(1000, Math.max(600, (current.height || 900) - 40));
+      left = (current.left || 0) + Math.max(0, Math.round(((current.width || width) - width) / 2));
+      top = (current.top || 0) + 20;
+    } catch (_) { /* usa o padrão */ }
+    const url = PDP_CERTIDAO_PAGE + '?id=' + encodeURIComponent(message.id);
+    try {
+      await chrome.windows.create({ url, type: 'popup', width, height, left, top });
+    } catch (_) {
+      // Tela menor que a janela pedida (ou fora da área visível): deixa o
+      // navegador escolher posição e tamanho.
+      await chrome.windows.create({ url, type: 'popup' });
+    }
+    pdpCertidaoLimparAntigas().catch(() => {});
+    return { ok: true };
+  })().then(reply).catch(error => reply({ ok: false, error: error.message }));
+  return true;
+});
+
+chrome.runtime.onMessage.addListener((message, sender, reply) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'certidao-fetch-doc') return false;
+  (async () => {
+    if (!(sender.url || '').startsWith(PDP_CERTIDAO_PAGE)) throw new Error('Origem inválida.');
+    const url = new URL(message.url);
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') throw new Error('Endereço inválido.');
+    if (!PDP_CERTIDAO_HOSTS.test(url.hostname)) throw new Error('Endereço fora do Projudi/SEEU.');
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 60000);
+    try {
+      const resp = await fetch(url.href, { credentials: 'include', signal: controller.signal });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const bytes = new Uint8Array(await resp.arrayBuffer());
+      return { ok: true, contentType: resp.headers.get('content-type') || '', base64: bytesToBase64(bytes) };
+    } finally { clearTimeout(timer); }
+  })().then(reply).catch(error => reply({ ok: false, error: error.name === 'AbortError' ? 'Tempo esgotado ao baixar o arquivo.' : error.message }));
+  return true;
+});

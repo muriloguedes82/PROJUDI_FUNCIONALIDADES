@@ -48,6 +48,21 @@
 		</label>
 	</fieldset>
 
+	<fieldset>
+		<legend>Certidão narrativa (botão "📜 Certidão")</legend>
+		<label for="certidaoModo">Resumo das peças principais
+			<select id="certidaoModo">
+				<option value="manual">Manual — trechos extraídos para o servidor revisar</option>
+				<option value="ia">IA do navegador (Chrome, processada no próprio computador)</option>
+			</select>
+		</label>
+		<p class="help">
+			O modo pode ser trocado também na própria janela da certidão. A IA
+			do navegador exige Chrome 138 ou superior com o modelo Gemini Nano
+			disponível; sem ela, a certidão usa o modo manual.
+		</p>
+	</fieldset>
+
 	<button id="save" type="button">Salvar</button>
 	<div id="status"></div>
 

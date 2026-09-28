@@ -11,7 +11,7 @@ padrão ao abrir um processo):
   baixar cada arquivo manualmente e anexá-los um a um.
 
 A pasta [`extensao-preview-documentos/`](./extensao-preview-documentos) contém
-uma extensão de navegador que resolve os três casos:
+uma extensão de navegador que resolve esses casos:
 
 1. Exibe o documento em um painel sobreposto ao simplesmente passar o mouse
    sobre o arquivo, sem precisar trocar de aba — nos moldes do que já
@@ -23,6 +23,11 @@ uma extensão de navegador que resolve os três casos:
    "Enviar por e-mail", que prepara um rascunho no Outlook institucional já
    com os documentos selecionados anexados, aberto em uma janela pop-up
    menor sobre a tela do Projudi.
+4. Gera a **certidão narrativa** do processo (botão "📜 Certidão"), no
+   modelo do eproc: todos os movimentos com data, hora e evento, e um
+   resumo dos pedidos das peças principais (inicial/denúncia,
+   contestação/resposta, sentença e recurso). O resumo pode ser feito à
+   mão, a partir de trechos extraídos, ou pela IA do próprio Chrome.
 
 Veja o README da pasta para detalhes de funcionamento, instalação e
 configuração.

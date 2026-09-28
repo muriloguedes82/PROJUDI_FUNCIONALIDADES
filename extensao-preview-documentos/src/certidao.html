@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Certidão narrativa</title>
+	<link rel="stylesheet" href="certidao.css">
+</head>
+<body>
+	<div id="barra" class="no-print">
+		<div class="barra-linha">
+			<strong class="barra-titulo">📜 Certidão narrativa</strong>
+			<label title="Como preencher o resumo dos pedidos das peças principais">
+				Resumo das peças:
+				<select id="modo">
+					<option value="manual">Manual (trechos extraídos para revisar)</option>
+					<option value="ia">IA do navegador (Chrome)</option>
+				</select>
+			</label>
+			<button type="button" id="gerar-resumos">✨ Gerar resumos</button>
+			<span class="barra-espaco"></span>
+			<button type="button" id="copiar">📋 Copiar texto</button>
+			<button type="button" id="imprimir" class="primario">🖨️ Imprimir / Salvar PDF</button>
+		</div>
+		<div class="barra-linha barra-opcoes">
+			<label><input type="checkbox" id="opt-usuario"> Incluir quem movimentou</label>
+			<label><input type="checkbox" id="opt-invalidos" checked> Incluir movimentos invalidados</label>
+			<label><input type="checkbox" id="opt-seq" checked> Mostrar o sequencial dos eventos</label>
+			<span id="status" role="status" aria-live="polite"></span>
+		</div>
+	</div>
+
+	<div id="avisos" class="no-print" hidden></div>
+
+	<main id="folha">
+		<p id="carregando">Carregando os dados do processo…</p>
+	</main>
+
+	<script src="certidaoTexto.js"></script>
+	<script type="module" src="certidao.js"></script>
+</body>
+</html>

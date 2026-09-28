@@ -1,0 +1,3 @@
+pdf.js (pdfjs-dist 4.10.38, build "legacy"), Mozilla Foundation, licença Apache 2.0 (ver LICENSE).
+Usado só pela página da certidão (src/certidao.html) para extrair o texto das peças em PDF.
+Origem: https://www.npmjs.com/package/pdfjs-dist

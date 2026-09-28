@@ -42,6 +42,10 @@ extensão funciona da mesma forma nos dois sistemas:
    "Finalizar Conclusão Pendente" e aguardar o recarregamento da página
    — é preciso repetir isso pendência por pendência (veja "Finalizar
    conclusão pendente" abaixo).
+10. não há, no Projudi/SEEU, uma **certidão narrativa** como a do eproc
+    (todos os eventos com data e hora, partes, assuntos e valor da causa)
+    — é preciso redigi-la à mão, relendo as peças principais para resumir
+    os pedidos (veja "Certidão narrativa do processo" abaixo).
 
 ## Pré-visualização de Documentos
 
@@ -838,6 +842,106 @@ cliques nos botões nativos também avançam o fluxo. **"Parar"**, na faixa,
 encerra o acompanhamento sem gravar nada. O estado fica no
 `sessionStorage` (só nesta aba) e expira em 1 hora; o fluxo também para se
 a tela Juntar Documento for de outro processo. Só no Projudi.
+
+## Certidão narrativa do processo
+
+O botão **📜 Certidão**, na barra de botões da extensão (tela do processo,
+Projudi e SEEU), monta uma certidão no modelo da "Certidão Narrativa" do
+eproc e a abre numa janela própria, editável, com os botões **Imprimir /
+Salvar PDF** e **Copiar texto**. A certidão traz:
+
+- o cabeçalho do processo: classe, número, juízo, data da distribuição,
+  partes de cada polo com CPF/CNPJ e advogado(s) com OAB;
+- **todos os movimentos**, em ordem cronológica, no formato "em
+  dd/mm/aaaa hh:mm:ss, evento (seq. N)". Se a tabela de movimentações
+  estiver paginada, as demais páginas também são lidas. Opções na barra:
+  incluir quem movimentou, incluir movimentos invalidados (marcados como
+  "invalidado") e mostrar o sequencial;
+- um **resumo dos pedidos das peças principais** (petição inicial ou
+  denúncia, contestação ou resposta à acusação, sentença, recurso), uma
+  linha por peça: "Petição inicial (evento 2, 25/09/2026): …";
+- os assuntos cadastrados e o valor da causa;
+- local e data, e o nome e o cargo do(a) servidor(a). Nome, cargo e local
+  ficam gravados para as próximas certidões.
+
+Todo campo não encontrado aparece como `[preencher]`, em destaque. Ele
+não sai destacado na impressão, mas precisa ser preenchido.
+
+### Resumo das peças: dois modos
+
+O modo é escolhido na própria janela ("Resumo das peças") ou na página de
+Opções da extensão.
+
+- **Manual.** Para cada peça, a extensão baixa o arquivo (PDF ou HTML) e
+  extrai o trecho dos pedidos:
+  - na inicial, na contestação e no recurso: a partir de "DOS PEDIDOS",
+    "DOS REQUERIMENTOS", "ANTE O EXPOSTO" etc., até o fecho;
+  - na sentença: o dispositivo.
+
+  O trecho aparece num quadro de apoio ("Trecho extraído"), que não sai
+  na impressão, e o servidor escreve o resumo no campo ao lado. O botão
+  "Copiar trecho para o resumo" serve de ponto de partida.
+  - **Denúncia.** A extensão usa o padrão das denúncias do Ministério
+    Público: títulos "FATO 01 – crime", data de cada fato (o fato que diz
+    "sob a mesma circunstância de data e local do fato 01" herda a data),
+    denunciado(s), o parágrafo da capitulação ("Assim agindo, o denunciado
+    … incidiu nos crimes previstos …") e os requerimentos finais
+    (recebimento, citação, testemunhas, condenação, reparação mínima do
+    art. 387, IV, do CPP). Com isso, o resumo já vem pré-montado, por
+    exemplo: "Denúncia oferecida contra FULANO pela prática de: Fato 1 –
+    lesão corporal (06/09/2026); Fato 2 – ameaça (06/09/2026).
+    Capitulação: … Requer …". Basta revisar.
+- **IA do navegador.** O trecho extraído é resumido pela IA embutida no
+  Chrome (Prompt API / Gemini Nano). O processamento é **local**: o texto
+  da peça não sai do computador. O resumo vem marcado "gerado por IA —
+  revise antes de imprimir" (a marca não sai na impressão), e cada peça
+  tem também o botão "✨ Resumir com IA".
+  - Requisitos: Chrome 138 ou superior, com o modelo Gemini Nano
+    disponível. Isso depende do hardware: o Google exige GPU com mais de
+    4 GB de VRAM ou CPU com 16 GB de RAM, além de espaço em disco para o
+    modelo.
+  - Na primeira vez, o modelo é baixado pelo Chrome depois de um clique em
+    "✨ Gerar resumos".
+  - Se a IA não estiver disponível, a certidão avisa e segue no modo
+    manual.
+
+### De onde vêm os dados
+
+- **Movimentos:** linhas `tr[id^="mov1Grau,"]` da tabela de
+  Movimentações. No SEEU, e em layouts sem esse id, é usada a tabela cujo
+  cabeçalho tem "Data" e "Evento/Movimentação". As colunas "Seq.",
+  "Data", "Evento" e "Movimentado Por" são localizadas pelo texto do
+  cabeçalho.
+- **Peças principais:** reconhecidas pelo nome do movimento. Movimentos
+  que só *mencionam* a peça ficam de fora (intimação, prazo, certidão,
+  "Recebido o recurso", "cumprimento de sentença", audiência etc.). Os
+  arquivos são carregados clicando no "+" da linha, como no Preview, e o
+  primeiro arquivo do movimento é o usado; outro pode ser escolhido na
+  lista "Arquivo".
+- **Cabeçalho:** rótulos "Classe Processual", "Assunto…", "Juízo",
+  "Comarca", "Valor da Causa" e "Data da Distribuição" da tela atual e,
+  no Projudi, da aba "Informações Gerais", lida em segundo plano.
+- **Partes:** aba "Partes e Outros" (no Projudi, lida em segundo plano):
+  tabela de cada polo, colunas CPF/CNPJ e Advogado(s).
+- **Arquivos:** baixados pelo service worker, como no envio por e-mail e
+  WhatsApp (o SEEU redireciona para o S3). O texto dos PDFs é extraído
+  pelo pdf.js, que vai junto com a extensão em `src/lib/pdfjs/`.
+
+### Limitações
+
+- PDF digitalizado (imagem, sem camada de texto) não tem texto a
+  extrair. A certidão avisa, e o resumo dessa peça deve ser escrito à mão.
+- A identificação das colunas e dos rótulos foi escrita a partir do
+  layout conhecido do Projudi. Se algum dado não aparecer (sobretudo no
+  SEEU), salve a tela de Movimentações e as abas "Informações Gerais" e
+  "Partes" como `.mhtml` para ajustar os seletores.
+- A certidão é gerada a partir do que a tela mostra ao usuário. Ela não
+  tem código de autenticidade e deve ser conferida, assinada e juntada
+  pelo servidor.
+- Os dados coletados ficam em `chrome.storage.local` até 6 horas, para a
+  janela poder ser recarregada, e depois são apagados.
+- As funções de extração (`src/certidaoTexto.js`) têm testes em
+  `testes/`: `node --test extensao-preview-documentos/testes/*.test.js`.
 
 ## Réus/Indiciados/Noticiados no cabeçalho do processo
 

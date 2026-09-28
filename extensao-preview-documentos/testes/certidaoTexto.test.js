@@ -1,0 +1,100 @@
+// Testes das funções puras da certidão narrativa (src/certidaoTexto.js).
+// Rodar com: node --test extensao-preview-documentos/testes/
+"use strict";
+
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const T = require("../src/certidaoTexto.js");
+
+const DENUNCIA = `O MINISTÉRIO PÚBLICO DO ESTADO DO PARANÁ, por seu Promotor de Justiça, vem oferecer DENÚNCIA em face de VALDIR CARNEIRO, pela prática das seguintes condutas delituosas:
+FATO 01 – lesão corporal
+No dia 06 de setembro de 2026, por volta das 20h20min, no interior da
+residência situada na Travessa Rio Betara, nº 372, Bairro Iguaçu, neste
+município e Foro Regional de Fazenda Rio Grande, Comarca da Região
+Metropolitana de Curitiba/PR, o denunciado VALDIR CARNEIRO,
+dolosamente, ciente da ilicitude e reprovabilidade de sua conduta, por
+razões de condição do sexo feminino caracterizadas pela violência
+doméstica e familiar contra a mulher, ofendeu a integridade corporal da
+vítima L.A.d.S., sua companheira, ao desferir um golpe de arma branca
+(faca) contra ela, causando-lhe lesão corporal consistente em um
+ferimento corto-contuso superficial, sem necessidade de sutura, na orelha
+da vítima, tudo conforme: boletim de ocorrência nº 2026/1183745 (mov.
+1.4), termos de depoimento e declaração (mov. 1.5/10), atestado médico
+(mov. 1.16, fl. 6) e fotografia (mov. 1.18).
+Consta dos autos que na data e local mencionados, enquanto a vítima se
+arrumava para sair, o denunciado e a vítima travaram discussão, momento
+em que VALDIR CARNEIRO apanhou uma faca e desferiu um golpe contra
+a ofendida, que, ao tentar se esquivar, foi atingida na orelha.
+FATO 02 – ameaça
+Sob a mesma circunstância de data e local do fato 01, em momento
+imediatamente posterior, o ora denunciado VALDIR CARNEIRO,
+dolosamente, ciente da ilicitude e reprovabilidade de sua conduta, por
+razões de condição do sexo feminino caracterizadas pela violência
+doméstica e familiar contra a mulher, ameaçou de causar mal injusto e
+grave à L.A.d.S., sua companheira, por palavras ao dizer que, caso a
+ofendida acionasse a polícia e ele fosse preso, iria matá-la assim que saísse.
+Assim agindo, o denunciado VALDIR CARNEIRO incidiu nos crimes
+previstos no artigo 129, §13º (1º Fato – lesão corporal), e no artigo 147, §1º (2º
+Fato – ameaça), na forma do artigo 69 (concurso material), todos do Código
+Penal e c/c art. 5º e 7º, incisos I e II, da Lei Maria da Penha.
+Diante do exposto, requer o Ministério Público seja a presente denúncia recebida e autuada,
+citando-se o denunciado para apresentar resposta à acusação, prosseguindo-se nos
+ulteriores termos até final condenação, com a fixação de valor mínimo para reparação
+dos danos causados à vítima, nos termos do art. 387, inciso IV, do CPP, ouvindo-se as testemunhas abaixo arroladas.
+Fazenda Rio Grande, 20 de setembro de 2026.
+Promotor de Justiça`;
+
+test("denúncia: fatos, datas herdadas, denunciado, capitulação e requerimentos", () => {
+	const d = T.extrairDenuncia(DENUNCIA);
+	assert.equal(d.fatos.length, 2);
+	assert.deepEqual(d.fatos.map((f) => [f.n, f.crime, f.data]), [
+		[1, "lesão corporal", "06/09/2026"],
+		[2, "ameaça", "06/09/2026"],
+	]);
+	assert.deepEqual(d.denunciados, ["VALDIR CARNEIRO"]);
+	assert.match(d.capitulacao, /^Assim agindo/);
+	assert.match(d.capitulacao, /Lei Maria da Penha\.$/);
+	assert.ok(d.requerimentos.includes("o recebimento da denúncia"));
+	assert.ok(d.requerimentos.includes("a condenação"));
+	assert.ok(d.requerimentos.some((r) => /387/.test(r)));
+	assert.match(d.resumo, /^Denúncia oferecida contra VALDIR CARNEIRO pela prática de: Fato 1 – lesão corporal \(06\/09\/2026\); Fato 2 – ameaça \(06\/09\/2026\)\./);
+	assert.match(d.resumo, /Capitulação: crimes previstos no artigo 129, §13º/);
+	console.log(d.resumo);
+});
+
+test("petição inicial: pega a seção DOS PEDIDOS até o fecho", () => {
+	const txt = "EXCELENTÍSSIMO SENHOR JUIZ\nFULANA, vem propor AÇÃO...\nDOS FATOS\nA autora comprou passagem...\nDO DIREITO\nO CDC...\nDOS PEDIDOS\nAnte o exposto, requer:\na) a citação da ré;\nb) a condenação da ré ao pagamento de R$ 400,00 por danos materiais;\nc) a condenação em R$ 10.000,00 por danos morais.\nDá-se à causa o valor de R$ 10.400,00.\nNestes termos, pede deferimento.\nCapanema, 25 de setembro de 2026.";
+	const trecho = T.extrairTrechoPedidos(txt, "inicial");
+	assert.match(trecho, /danos morais/);
+	assert.doesNotMatch(trecho, /pede deferimento/);
+	assert.doesNotMatch(trecho, /DOS FATOS/);
+});
+
+test("sentença: dispositivo", () => {
+	const txt = "SENTENÇA\nRelatório dispensado.\nFundamentação longa ".repeat(5) + "\nANTE O EXPOSTO, JULGO PROCEDENTE o pedido para condenar a ré ao pagamento de R$ 5.000,00.\nPublique-se.";
+	const trecho = T.extrairTrechoPedidos(txt, "sentenca");
+	assert.match(trecho, /^ANTE O EXPOSTO, JULGO PROCEDENTE/);
+});
+
+test("classificação dos movimentos", () => {
+	const c = (s) => (T.classificarMovimento(s) || {}).tipo || null;
+	assert.equal(c("Juntada de Petição Inicial"), "inicial");
+	assert.equal(c("OFERECIDA A DENÚNCIA"), "denuncia");
+	assert.equal(c("JUNTADA DE PETIÇÃO DE CONTESTAÇÃO"), "contestacao");
+	assert.equal(c("Juntada de Petição de Resposta à Acusação"), "resposta");
+	assert.equal(c("JULGADO PROCEDENTE O PEDIDO"), "sentenca");
+	assert.equal(c("Juntada de Petição de Recurso Inominado"), "recurso");
+	assert.equal(c("Expedida/certificada a intimação eletrônica - Sentença"), null);
+	assert.equal(c("Recebido o recurso de apelação"), null);
+	assert.equal(c("Juntada de Petição de cumprimento de sentença"), null);
+	assert.equal(c("Audiência de conciliação designada"), null);
+});
+
+test("ordenação e frase do movimento", () => {
+	const movs = T.ordenarMovimentos([
+		{ seq: "2", dataHora: "28/09/2026 02:00:41", evento: "Disponibilizado no DJEN" },
+		{ seq: "1", dataHora: "25/09/2026 15:39:05", evento: "Distribuído por sorteio" },
+	]);
+	assert.equal(movs[0].seq, "1");
+	assert.equal(T.fraseMovimento(movs[0]), "em 25/09/2026 15:39:05, Distribuído por sorteio (seq. 1)");
+});

@@ -57,6 +57,8 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/oraculoDirect.js",
 			"src/oraculo.js",
 			"src/habilitarAdvogado.js",
+			"src/certidaoTexto.js",
+			"src/certidaoNarrativa.js",
 			"src/editarPartes.js",
 			"src/alvaraEletronico.js",
 			"src/juntarDocumento.js",
