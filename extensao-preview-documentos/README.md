@@ -681,8 +681,8 @@ O combo guarda só a referência a cada preferência: editar a preferência
 depois vale também para o combo; se ela for removida, o combo avisa e pede
 para escolher outra.
 
-Ao clicar em **"▶ nome"** (com a aba Movimentações ou a tela de Ações
-aberta), a 1ª etapa abre no popup das "Ações rápidas", já preenchida, com
+Ao clicar em **"▶ nome"** (em qualquer aba da tela do processo, ou na
+tela de Ações), a 1ª etapa abre no popup das "Ações rápidas", já preenchida, com
 a barra de confirmação de sempre — agora com "Combo ... — etapa 1 de N".
 **Cada etapa continua pedindo o "✅ Sim, executar"**: o combo nunca
 confirma um ato processual sozinho, só poupa o trabalho de abrir e
@@ -708,8 +708,29 @@ chama o assinador (o usuário assina) e clica em "Confirmar Inclusão" e em
 No "Concluir Movimento" a extensão anota que a etapa terminou; de volta à
 tela do processo, o combo segue para a etapa seguinte. Se a juntada for
 interrompida ("Parar" na faixa do Juntar Documento, ou outra tela aberta),
-a barra do combo pergunta como seguir. Para essa etapa, inicie o combo na
-tela do processo (a que tem o botão nativo "Juntar Documento").
+a barra do combo pergunta como seguir.
+
+**De onde cada etapa parte.** As ações do painel chegam à tela de Ações
+a partir da lista de movimentações; o "Juntar Documento", do botão nativo
+da tela do processo. Como uma etapa pode terminar em outra tela (o
+"Concluir Movimento" da juntada para numa tela com "Voltar para o
+Processo", e esse botão abre o processo na aba "Informações Gerais", sem a
+lista de movimentações), antes de abrir cada etapa o combo prepara o
+ponto de partida sozinho:
+
+1. se a tela atual já serve, abre a etapa direto;
+2. na tela do processo, em outra aba: lê a aba **"Movimentações" em
+   segundo plano** (a mesma leitura de aba usada pelo "(Des)Habilitar
+   Advogado") e usa as movimentações dela — a tela visível não muda; se
+   essa leitura falhar, abre a aba Movimentações pelo próprio item de aba
+   do Projudi e continua lá;
+3. fora da tela do processo: clica em **"Voltar para o Processo"** e
+   continua lá.
+
+São no máximo 3 navegações seguidas por etapa; se ainda assim não der, a
+barra pede para abrir a aba Movimentações e clicar em "Repetir etapa". Se
+uma etapa não conseguir abrir (ação não encontrada, "Cancelar" no
+"Abrindo…"), a barra também passa a oferecer Repetir/Próxima/Parar.
 
 Os combos ficam em `chrome.storage.local` (chave `pdpPreferenceCombos`);
 cada etapa guarda a ação e o id da preferência (as do "Juntar Documento"

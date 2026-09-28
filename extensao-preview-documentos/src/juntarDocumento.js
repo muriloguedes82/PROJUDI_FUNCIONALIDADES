@@ -429,6 +429,10 @@
 		start: function (pref) {
 			return iniciarJuntada("apply", pref, true);
 		},
+		// Esta tela tem o botão nativo "Juntar Documento" (tela do processo).
+		available: function () {
+			return !!findJuntarUrl(document);
+		},
 		hasActiveJob: function () {
 			return !!readJob();
 		},

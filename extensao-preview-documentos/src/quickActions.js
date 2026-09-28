@@ -587,10 +587,13 @@
 	// Ponto de entrada: devolve uma Promise que resolve com
 	// `{ url }` (a URL do diálogo pronta para um iframe) ou
 	// `{ failed: true, tried, screenTitle }` se não achar.
-	function resolveDialogUrl(label) {
-		logChainStep('resolvendo URL de "' + label + '" em segundo plano', { partindoDe: window.location.href });
+	// `eventsDoc` (opcional): documento de onde tirar as movimentações, em
+	// vez da tela atual — os combos passam a aba Movimentações lida em
+	// segundo plano quando a tela atual é outra aba do processo.
+	function resolveDialogUrl(label, eventsDoc) {
+		logChainStep('resolvendo URL de "' + label + '" em segundo plano', { partindoDe: window.location.href, abaLidaEmSegundoPlano: !!eventsDoc });
 
-		const liveMovBtn = findMovimentarButtonIn(document);
+		const liveMovBtn = eventsDoc ? null : findMovimentarButtonIn(document);
 		if (liveMovBtn) {
 			// Já estamos na tela de detalhe de uma movimentação escolhida
 			// manualmente pelo usuário — só um destino possível, sem tentar
@@ -611,7 +614,7 @@
 		}
 
 		const events = Array.prototype.slice
-			.call(document.querySelectorAll('a.link[id^="LNKmov"]'))
+			.call((eventsDoc || document).querySelectorAll('a.link[id^="LNKmov"]'))
 			.filter(function (a) {
 				return (a.id || "").indexOf("INVALIDO") === -1 && !a.closest("strike, s, del");
 			})
@@ -1675,12 +1678,14 @@
 		const cancelToken = { cancelled: false };
 		showLoadingOverlay(label, function () {
 			cancelToken.cancelled = true;
+			onComboStepFailed("Abertura da etapa cancelada.");
 		});
 		(resolver || resolveDialogUrl)(label).then(function (result) {
 			removeLoadingOverlay();
 			if (cancelToken.cancelled) return;
 			if (result.failed) {
 				alertChainFailure(label, result);
+				onComboStepFailed('Não consegui abrir "' + label + '" a partir desta tela.');
 				return;
 			}
 			const fieldNamesForAcoes = pref.fields.map(function (f) {
@@ -1781,6 +1786,7 @@
 		function onCancel() {
 			cancelToken.cancelled = true;
 			removeActionModal("manual");
+			onComboStepFailed("Abertura da etapa cancelada.");
 		}
 		showLoadingOverlay(label, onCancel);
 
@@ -1867,6 +1873,7 @@
 				removeLoadingOverlay();
 				removeActionModal();
 				alert('Não foi possível abrir "' + label + '": ' + (err && err.message ? err.message : err));
+				onComboStepFailed('Não consegui abrir "' + label + '" a partir desta tela.');
 			});
 	}
 
@@ -2232,13 +2239,27 @@
 		// mesma etapa de novo.
 		run.phase = "running";
 		writeComboRun(run);
-		loadComboPreferences().then(function (all) {
-			const pref = findPref(all, step);
+		Promise.all([loadComboPreferences(), prepareComboScreen(step)]).then(function (data) {
+			const pref = findPref(data[0], step);
+			const screen = data[1];
 			if (!pref) {
 				setComboWaiting('A preferência "' + step.prefName + '" não existe mais. Pule esta etapa ou pare o combo.');
 				return;
 			}
-			logChainStep("combo: abrindo etapa " + (run.index + 1), { acao: step.label, preferencia: pref.name });
+			if (screen.navigate) {
+				navigateForCombo(screen.navigate, screen.message);
+				return;
+			}
+			if (screen.fail) {
+				setComboWaiting(screen.fail);
+				return;
+			}
+			const current = readComboRun();
+			if (current && current.hops) {
+				current.hops = 0;
+				writeComboRun(current);
+			}
+			logChainStep("combo: abrindo etapa " + (run.index + 1), { acao: step.label, preferencia: pref.name, abaLidaEmSegundoPlano: !!screen.eventsDoc });
 			if (step.label === JUNTAR_LABEL) {
 				startJuntarStep(pref);
 				return;
@@ -2247,10 +2268,142 @@
 			renderComboBar();
 			if (getCustomAction(step.label)) {
 				applyPreferenceCustom(step.label, pref);
+			} else if (screen.eventsDoc) {
+				applyPreferenceViaChain(step.label, pref, false, function (label) {
+					return resolveDialogUrl(label, screen.eventsDoc);
+				});
 			} else {
 				applyPreferenceViaChain(step.label, pref, false, resolveDialogUrlForCombo);
 			}
 		});
+	}
+
+	// --- Preparo da tela para uma etapa ----------------------------------
+	//
+	// Cada etapa precisa de um ponto de partida: as ações do painel, da
+	// lista de movimentações (ou da tela de Ações); o "Juntar Documento",
+	// do botão nativo da tela do processo; o "Alvará Eletrônico", do
+	// formulário do processo. Uma etapa anterior pode terminar noutra tela
+	// — o "Concluir Movimento" da juntada para numa tela com "Voltar para o
+	// Processo", e esse botão abre o processo na aba "Informações Gerais",
+	// sem a lista de movimentações. Por isso, antes de abrir a etapa:
+	// 1. se a tela já serve, abre direto;
+	// 2. na tela do processo, noutra aba: lê a aba "Movimentações" em
+	//    segundo plano (__pdpLerAbaProcesso, de habilitarAdvogado.js — a
+	//    mesma leitura validada para "Partes e Outros") e usa as
+	//    movimentações dela; se não der, abre a aba Movimentações pelo
+	//    próprio item de aba do Projudi (navega) e continua lá;
+	// 3. fora da tela do processo: clica (navega) no "Voltar para o
+	//    Processo" e continua lá.
+	// Navegações seguidas sem conseguir abrir a etapa são limitadas
+	// (COMBO_MAX_HOPS) para nunca entrar em laço.
+
+	const MOVIMENTACOES_TAB_ID = "tabMovimentacoesProcesso";
+	const COMBO_MAX_HOPS = 3;
+	const COMBO_NAVIGATION_FALLBACK_MS = 6000;
+
+	function hasProcessoForm() {
+		return !!document.getElementById("processoForm");
+	}
+
+	// Item de aba nativo "Movimentações" (onclick com setTab(...)).
+	function findMovimentacoesTab() {
+		return Array.prototype.find.call(document.querySelectorAll("[onclick]"), function (el) {
+			const onclick = el.getAttribute("onclick") || "";
+			return /setTab\(/.test(onclick) && onclick.indexOf(MOVIMENTACOES_TAB_ID) !== -1;
+		}) || null;
+	}
+
+	// "Voltar para o Processo" (document.location.href='/projudi/processo.do?_tj=...').
+	function findBackToProcessUrl() {
+		const candidates = [document.getElementById("backButton")].concat(Array.prototype.slice.call(document.querySelectorAll('input[type="button"], button')));
+		for (let i = 0; i < candidates.length; i++) {
+			const el = candidates[i];
+			if (!el) continue;
+			const text = (el.value || el.textContent || "").replace(/\s+/g, " ").trim();
+			if (el.id !== "backButton" && !/^Voltar para o Processo$/i.test(text)) continue;
+			const url = extractUrlFromOnclick(el.getAttribute("onclick"), window.location.href);
+			if (!url) continue;
+			try {
+				const parsed = new URL(url);
+				if (parsed.origin === window.location.origin && /\/processo\.do$/.test(parsed.pathname)) return url;
+			} catch (err) {
+				// URL inválida: tenta o próximo
+			}
+		}
+		return null;
+	}
+
+	// Resolve com { eventsDoc? } (pode abrir), { navigate, message } (ir
+	// para outra tela antes) ou { fail } (sem saída automática).
+	function prepareComboScreen(step) {
+		const backUrl = hasProcessoForm() ? null : findBackToProcessUrl();
+		function goBackOr(fail) {
+			return backUrl ? { navigate: { url: backUrl }, message: "Voltando para a tela do processo…" } : { fail: fail };
+		}
+
+		if (step.label === JUNTAR_LABEL) {
+			const api = window.__pdpJuntarDocumentoApi;
+			if (api && api.available()) return Promise.resolve({});
+			return Promise.resolve(goBackOr('Abra a tela do processo (com o botão "Juntar Documento") e clique em "Repetir etapa".'));
+		}
+		if (getCustomAction(step.label)) {
+			return Promise.resolve(hasProcessoForm() ? {} : goBackOr("Abra a tela do processo e clique em \"Repetir etapa\"."));
+		}
+		if (isOnAcoesScreen() || findMovimentarButton() || findLatestValidEventLink()) return Promise.resolve({});
+		if (!hasProcessoForm()) return Promise.resolve(goBackOr('Abra a aba "Movimentações" do processo e clique em "Repetir etapa".'));
+
+		function openTabOr(fail) {
+			const tab = findMovimentacoesTab();
+			return tab ? { navigate: { element: tab }, message: 'Abrindo a aba "Movimentações"…' } : { fail: fail };
+		}
+		if (!window.__pdpLerAbaProcesso) return Promise.resolve(openTabOr('Abra a aba "Movimentações" e clique em "Repetir etapa".'));
+		renderComboBar('Lendo a aba "Movimentações" em segundo plano…');
+		return window.__pdpLerAbaProcesso(MOVIMENTACOES_TAB_ID, "Movimentações")
+			.then(function (aba) {
+				if (findLatestValidEventLinkIn(aba.doc)) return { eventsDoc: aba.doc };
+				logChainStep("combo: aba Movimentações lida em segundo plano, mas sem movimentações válidas", null);
+				return openTabOr('Não encontrei movimentações neste processo. Abra a aba "Movimentações" e clique em "Repetir etapa".');
+			})
+			.catch(function (err) {
+				logChainStep("combo: falhou a leitura da aba Movimentações em segundo plano", String(err));
+				return openTabOr('Não consegui ler a aba "Movimentações" (' + (err && err.message ? err.message : err) + '). Abra-a e clique em "Repetir etapa".');
+			});
+	}
+
+	// Navega (Voltar para o Processo / aba Movimentações) com a etapa ainda
+	// pendente: a página nova continua o combo (maybeResumeCombo).
+	function navigateForCombo(target, message) {
+		const run = readComboRun();
+		if (!run) return;
+		run.hops = (run.hops || 0) + 1;
+		if (run.hops > COMBO_MAX_HOPS) {
+			run.hops = 0;
+			writeComboRun(run);
+			setComboWaiting('Não consegui chegar a uma tela de onde abrir esta etapa. Abra a aba "Movimentações" do processo e clique em "Repetir etapa".');
+			return;
+		}
+		run.phase = "pending";
+		writeComboRun(run);
+		renderComboBar(message);
+		logChainStep("combo: " + message, { destino: target.url || "item de aba Movimentações", tentativa: run.hops });
+		pageReloading = true;
+		if (target.element) target.element.click();
+		else window.location.href = target.url;
+		// Se a página não foi trocada (ex.: aba carregada sem recarregar a
+		// tela), continua daqui mesmo.
+		setTimeout(function () {
+			pageReloading = false;
+			runPendingComboStep();
+		}, COMBO_NAVIGATION_FALLBACK_MS);
+	}
+
+	// Uma etapa não chegou a abrir o popup (resolução falhou, "Cancelar"
+	// no "Abrindo…"): a barra pergunta como seguir.
+	function onComboStepFailed(message) {
+		if (!comboStep || comboStep.iframe) return;
+		comboStep = null;
+		setComboWaiting(message);
 	}
 
 	// Etapa "Juntar Documento": a juntada navega esta aba; o combo continua
@@ -2669,11 +2822,12 @@
 		activePanel = document.createElement("div");
 		activePanel.className = "pdp-qa-panel";
 
-		const canRun = isOnAcoesScreen() || !!findMovimentarButton() || !!findLatestValidEventLink();
+		// Qualquer aba da tela do processo serve (ver prepareComboScreen).
+		const canRun = isOnAcoesScreen() || !!findMovimentarButton() || !!findLatestValidEventLink() || hasProcessoForm() || !!findBackToProcessUrl();
 		if (!canRun) {
 			const note = document.createElement("div");
 			note.className = "pdp-qa-empty";
-			note.textContent = 'Para usar um combo, abra a aba "Movimentações" do processo. Aqui dá para criar e editar combos.';
+			note.textContent = "Para usar um combo, abra a tela do processo. Aqui dá para criar e editar combos.";
 			activePanel.appendChild(note);
 		}
 
@@ -2726,7 +2880,7 @@
 			runBtn.className = "pdp-qa-pref-btn";
 			runBtn.textContent = "▶ " + combo.name;
 			runBtn.disabled = !canRun;
-			runBtn.title = (canRun ? "Executar em sequência (cada etapa pede a confirmação de sempre):\n" : 'Abra a aba "Movimentações" para executar:\n') + describeComboSteps(combo.steps, all);
+			runBtn.title = (canRun ? "Executar em sequência (cada etapa pede a confirmação de sempre):\n" : 'Abra a tela do processo para executar:\n') + describeComboSteps(combo.steps, all);
 			runBtn.addEventListener("click", function () {
 				closePanel();
 				startCombo(combo);
