@@ -18,11 +18,20 @@
 				</select>
 			</label>
 			<button type="button" id="gerar-resumos">✨ Gerar resumos</button>
+			<button type="button" id="diagnostico-ia" title="Mostra se a IA do Chrome está disponível e por quê">🔍 Diagnóstico da IA</button>
 			<span class="barra-espaco"></span>
 			<button type="button" id="copiar">📋 Copiar texto</button>
 			<button type="button" id="imprimir" class="primario">🖨️ Imprimir / Salvar PDF</button>
 		</div>
 		<div class="barra-linha barra-opcoes">
+			<label title="Como os eventos aparecem na certidão">
+				Formato:
+				<select id="formato">
+					<option value="lista">Lista por evento (recomendado)</option>
+					<option value="corrido">Texto corrido (modelo eproc)</option>
+				</select>
+			</label>
+			<label title="Intimações, citações, leituras e prazos aparecem recuados, sob o evento a que se referem"><input type="checkbox" id="opt-subitens" checked> Intimações como subitens</label>
 			<label><input type="checkbox" id="opt-usuario"> Incluir quem movimentou</label>
 			<label><input type="checkbox" id="opt-invalidos" checked> Incluir movimentos invalidados</label>
 			<label><input type="checkbox" id="opt-seq" checked> Mostrar o sequencial dos eventos</label>

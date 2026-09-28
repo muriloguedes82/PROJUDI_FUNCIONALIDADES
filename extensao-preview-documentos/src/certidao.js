@@ -39,7 +39,7 @@ const el = (tag, attrs, ...filhos) => {
 
 let dados = null;
 let pecasUI = []; // [{ peca, raiz, resumo, trecho, estado, seletor, seloIA, incluir, texto, denuncia }]
-let opcoes = { usuario: false, invalidos: true, seq: true };
+let opcoes = { usuario: false, invalidos: true, seq: true, formato: "lista", subitens: true };
 
 // ---------------------------------------------------------------------
 // Utilidades
@@ -163,24 +163,57 @@ const SISTEMA_IA =
 let iaOpcoes = null;
 let iaBase = null;
 
+// Combinações testadas, nesta ordem: português declarado; sem declarar
+// idioma; inglês declarado (algumas versões só aceitam en/es/ja nas
+// opções, mas respondem em português quando o prompt pede).
+const IA_TENTATIVAS = [
+	{ nome: "português (pt)", opcoes: OPCOES_IA_PT },
+	{ nome: "sem idioma declarado", opcoes: {} },
+	{ nome: "inglês (en)", opcoes: { expectedInputs: [{ type: "text", languages: ["en"] }], expectedOutputs: [{ type: "text", languages: ["en"] }] } },
+];
+
 async function iaDisponibilidade() {
 	if (!("LanguageModel" in self)) return "unavailable";
-	try {
-		const disp = await self.LanguageModel.availability(OPCOES_IA_PT);
-		if (disp !== "unavailable") {
-			iaOpcoes = OPCOES_IA_PT;
-			return disp;
+	for (const t of IA_TENTATIVAS) {
+		try {
+			const disp = await self.LanguageModel.availability(t.opcoes);
+			if (disp !== "unavailable") {
+				iaOpcoes = t.opcoes;
+				return disp;
+			}
+		} catch (e) {
+			/* combinação não aceita nesta versão: tenta a próxima */
 		}
-	} catch (e) {
-		/* versões antigas não aceitam as opções de idioma */
 	}
-	try {
-		const disp = await self.LanguageModel.availability();
-		iaOpcoes = {};
-		return disp;
-	} catch (e) {
-		return "unavailable";
+	return "unavailable";
+}
+
+// Texto de diagnóstico, para o usuário saber POR QUE a IA não está
+// disponível (ver README: "Como ativar a IA do Chrome").
+async function iaDiagnostico() {
+	const linhas = [];
+	const versao = (/Chrome\/(\d+)/.exec(navigator.userAgent) || [])[1];
+	linhas.push("Versão do Chrome: " + (versao || "não identificada"));
+	if (!("LanguageModel" in self)) {
+		linhas.push("A API LanguageModel NÃO existe neste navegador (Chrome anterior ao 138, Edge/outro navegador, ou recurso desativado por política).");
+		return linhas;
 	}
+	linhas.push("API LanguageModel: presente.");
+	for (const t of IA_TENTATIVAS) {
+		let r;
+		try {
+			r = await self.LanguageModel.availability(t.opcoes);
+		} catch (e) {
+			r = "erro: " + e.message;
+		}
+		linhas.push("Disponibilidade (" + t.nome + "): " + r);
+	}
+	linhas.push(
+		"Significados: available = pronto; downloadable = o modelo será baixado no 1º uso (clique em Gerar resumos); " +
+			"downloading = baixando; unavailable = o Chrome considera este computador/configuração inelegível. " +
+			"Veja o motivo exato em chrome://on-device-internals (aba Model Status)."
+	);
+	return linhas;
 }
 
 async function iaSessaoBase() {
@@ -244,45 +277,149 @@ async function resumirComIA(ui) {
 // Montagem da certidão
 // ---------------------------------------------------------------------
 
-function paragrafoPrincipal() {
-	const p = el("p", { id: "texto-principal", contenteditable: "true" });
+// Quadro-resumo no início: número, classe, juízo, partes e advogados,
+// assuntos, valor da causa. Cada valor é editável.
+function quadroResumo() {
+	const tabela = el("table", { class: "quadro" });
+	const linha = (rotulo, ...valor) => tabela.append(el("tr", {}, el("th", { text: rotulo }), el("td", { contenteditable: "true" }, ...valor)));
+	linha("Processo nº", valorOuPendente(dados.numero));
+	linha("Classe processual", valorOuPendente(dados.classe));
+	linha("Juízo", valorOuPendente(dados.juizo));
+	if (dados.distribuicao) linha("Distribuição", dados.distribuicao);
+	if (dados.polos && dados.polos.length) {
+		dados.polos.forEach((polo) => {
+			const celula = polo.partes.map((p) => {
+				const bloco = el("div", { class: "parte" }, el("span", { class: "parte-nome", text: p.nome }));
+				if (p.documento) bloco.append(" – " + p.documento);
+				if (p.advogados && p.advogados.length) {
+					bloco.append(el("div", { class: "advogados", text: (p.advogados.length > 1 ? "Advogados: " : "Advogado(a): ") + p.advogados.join("; ") }));
+				}
+				return bloco;
+			});
+			linha(polo.titulo, ...celula);
+		});
+	} else {
+		linha("Partes", el("span", { class: "pendente", text: "[partes e advogados]" }));
+	}
+	linha("Assuntos", dados.assuntos && dados.assuntos.length ? T.juntarLista(dados.assuntos) : valorOuPendente(""));
+	linha("Valor da causa", valorOuPendente(dados.valorCausa));
+	return tabela;
+}
+
+// Agrupa as comunicações (intimação, citação, leitura, decurso de prazo,
+// DJEN...) sob o evento a que se referem ("Referente ao evento (seq. N)").
+// Devolve a lista já "achatada", na ordem de exibição, com o nível de
+// recuo de cada item.
+function arvoreEventos(movs) {
+	const porSeq = new Map();
+	const raizes = [];
+	for (const m of movs) {
+		const no = { m, nivel: 0, filhos: [], pai: null };
+		const ref = opcoes.subitens ? T.referenciaEvento(m.complemento || m.evento) : "";
+		const pai = ref && ref !== m.seq && T.ehComunicacao(m.titulo || m.evento) ? porSeq.get(ref) : null;
+		if (pai) {
+			no.nivel = Math.min(pai.nivel + 1, 3);
+			no.pai = pai;
+			pai.filhos.push(no);
+		} else {
+			raizes.push(no);
+		}
+		if (m.seq) porSeq.set(m.seq, no);
+	}
+	const plana = [];
+	const visitar = (no) => {
+		plana.push(no);
+		no.filhos.forEach(visitar);
+	};
+	raizes.forEach(visitar);
+	return plana;
+}
+
+function linhaEvento(no) {
+	const m = no.m;
+	const div = el("div", { class: "evento nivel-" + no.nivel + (m.invalido ? " invalidado" : "") });
+	if (no.nivel > 0) div.append(el("span", { class: "seta", text: "↳ " }));
+	div.append(el("span", { class: "ev-data", text: m.dataHora || "[data]" }), " – ");
+	const titulo = m.titulo || m.evento || "[evento]";
+	div.append(el("span", { class: "ev-titulo", text: titulo }));
+	let complemento = m.complemento || "";
+	if (no.pai) {
+		// No subitem, o recuo já mostra a que evento ele se refere: tira o
+		// "Referente ao evento (seq. N) <nome do evento>" do complemento.
+		complemento = complemento.replace(/^\s*refer[^\d]*\d+(?:\.\d+)?\s*\)?\s*[-–:]?\s*/i, "");
+		const tituloPai = no.pai.m.titulo || "";
+		if (tituloPai && complemento.toUpperCase().indexOf(tituloPai.toUpperCase()) === 0) complemento = complemento.slice(tituloPai.length);
+		complemento = complemento.replace(/^\s*[-–]\s*/, "").trim();
+	}
+	if (complemento && complemento !== titulo) div.append(" – " + complemento);
+	const extras = [];
+	if (opcoes.seq && m.seq) extras.push("seq. " + m.seq);
+	if (m.invalido) extras.push("invalidado");
+	if (extras.length) div.append(" (" + extras.join(", ") + ")");
+	if (opcoes.usuario && m.usuario) div.append(el("span", { class: "ev-usuario", text: " — " + m.usuario }));
+	return div;
+}
+
+function movimentosVisiveis() {
+	return dados.movimentos.filter((m) => opcoes.invalidos || !m.invalido);
+}
+
+function introEventos() {
+	const p = el("p", { contenteditable: "true" });
 	p.append(
-		"O Tribunal de Justiça do Estado do Paraná, com base nos registros processuais eletrônicos do sistema " + dados.sistema + ", acessados em " + agoraFormatado() + ", "
+		el("strong", { text: "CERTIFICO" }),
+		", com base nos registros processuais eletrônicos do sistema " + dados.sistema + ", acessados em " + agoraFormatado() +
+			", que no processo acima identificado constam os seguintes eventos, em ordem cronológica:"
 	);
+	return p;
+}
+
+// Formato "lista": um evento por linha, comunicações como subitens.
+function listaEventos() {
+	const caixa = el("div", { class: "eventos", contenteditable: "true" });
+	const movs = movimentosVisiveis();
+	if (!movs.length) caixa.append(el("span", { class: "pendente", text: "[nenhum movimento encontrado]" }));
+	arvoreEventos(movs).forEach((no) => caixa.append(linhaEvento(no)));
+	return caixa;
+}
+
+// Formato "corrido": parágrafo único no modelo da certidão do eproc.
+function paragrafoCorrido() {
+	const p = el("p", { contenteditable: "true" });
+	p.append("O Tribunal de Justiça do Estado do Paraná, com base nos registros processuais eletrônicos do sistema " + dados.sistema + ", acessados em " + agoraFormatado() + ", ");
 	p.append(el("strong", { text: "CERTIFICA" }));
 	p.append(" que, sobre o(a) ");
 	p.append(dados.classe ? document.createTextNode(dados.classe.toUpperCase()) : valorOuPendente(""));
 	p.append(", processo nº ", valorOuPendente(dados.numero));
 	if (dados.distribuicao) p.append(", distribuído em " + dados.distribuicao);
 	p.append(", em trâmite no(a) ", valorOuPendente(dados.juizo));
-	if (dados.comarca && !T.normalizar(dados.juizo).includes(T.normalizar(dados.comarca))) p.append(" (" + dados.comarca + ")");
 	if (dados.polos && dados.polos.length) {
 		p.append(", e no qual figuram, ");
 		dados.polos.forEach((polo, i) => {
 			if (i > 0) p.append(i === dados.polos.length - 1 ? " e, " : "; ");
 			p.append(T.frasePolo(polo));
 		});
-	} else {
-		p.append(", e no qual figuram, como ", el("span", { class: "pendente", text: "[partes]" }));
 	}
 	p.append(", constam os seguintes eventos: ");
-	const movs = dados.movimentos.filter((m) => opcoes.invalidos || !m.invalido);
-	if (!movs.length) p.append(el("span", { class: "pendente", text: "[nenhum movimento encontrado]" }));
+	const movs = movimentosVisiveis();
 	movs.forEach((m, i) => {
 		const mov = Object.assign({}, m, { seq: opcoes.seq ? m.seq : "" });
 		let frase = T.fraseMovimento(mov);
 		if (opcoes.usuario && m.usuario) frase += " — por " + m.usuario;
 		p.append(frase + (i === movs.length - 1 ? "." : "; "));
 	});
-	return p;
-}
-
-function paragrafoFinal() {
-	const p = el("p", { id: "texto-final", contenteditable: "true" });
-	p.append("Certifica, ainda, que os assuntos cadastrados no mencionado processo são: ");
+	if (!movs.length) p.append(el("span", { class: "pendente", text: "[nenhum movimento encontrado]" }), ".");
+	p.append(" Certifica, ainda, que os assuntos cadastrados são: ");
 	p.append(dados.assuntos && dados.assuntos.length ? document.createTextNode(T.juntarLista(dados.assuntos)) : valorOuPendente(""));
 	p.append(". Certifica, por fim, que o valor da causa é de ", valorOuPendente(dados.valorCausa), ".");
 	return p;
+}
+
+function secaoEventos() {
+	const sec = el("section", { id: "secao-eventos" }, el("h2", { class: "subtitulo", text: "II – EVENTOS DO PROCESSO" }));
+	if (opcoes.formato === "corrido") sec.append(paragrafoCorrido());
+	else sec.append(introEventos(), listaEventos());
+	return sec;
 }
 
 function blocoPeca(peca, indice) {
@@ -389,7 +526,7 @@ async function resumirUmaComIA(ui, interativo) {
 	if (disp === "unavailable") {
 		const msg = "A IA do Chrome não está disponível neste computador/versão do navegador — use o modo manual.";
 		estadoPeca(ui, msg, true);
-		if (interativo) alert(msg + "\n\nRequisitos: Chrome 138 ou superior, com o modelo Gemini Nano habilitado (ver README).");
+		if (interativo) alert(msg + "\n\n" + (await iaDiagnostico()).join("\n"));
 		return false;
 	}
 	await extrair(ui);
@@ -462,14 +599,16 @@ async function montar() {
 			el("div", { class: "juizo" }, valorOuPendente(dados.juizo))
 		),
 		el("h1", { class: "titulo", contenteditable: "true", text: "CERTIDÃO NARRATIVA" }),
-		paragrafoPrincipal()
+		el("section", { id: "secao-resumo" }, el("h2", { class: "subtitulo", text: "I – DADOS DO PROCESSO" }), quadroResumo()),
+		secaoEventos()
 	);
 
 	pecasUI = [];
 	if (dados.pecas && dados.pecas.length) {
 		const secao = el("section", { id: "pecas" });
 		secao.append(
-			el("p", { contenteditable: "true", text: "Certifica, também, que as peças principais do processo apresentam, em síntese, o seguinte conteúdo:" })
+			el("h2", { class: "subtitulo", text: "III – PEÇAS PRINCIPAIS" }),
+			el("p", { contenteditable: "true", text: "CERTIFICO, ainda, que as peças principais do processo apresentam, em síntese, o seguinte conteúdo:" })
 		);
 		dados.pecas.forEach((peca, i) => {
 			const ui = blocoPeca(peca, i);
@@ -478,8 +617,6 @@ async function montar() {
 		});
 		folha.append(secao);
 	}
-
-	folha.append(paragrafoFinal());
 
 	const local = el("p", { class: "fecho", contenteditable: "true" });
 	local.append((servidor.local || dados.comarca || PLACEHOLDER) + ", " + dataPorExtensoHoje() + ".");
@@ -501,21 +638,30 @@ async function montar() {
 	[nome, cargo, local].forEach((n) => n.addEventListener("blur", salvarServidor));
 }
 
-// Só o parágrafo dos eventos é refeito quando as opções mudam.
+// Só a seção dos eventos é refeita quando as opções mudam.
 function refazerParagrafoPrincipal() {
-	const atual = $("#texto-principal");
-	if (atual) atual.replaceWith(paragrafoPrincipal());
+	const atual = $("#secao-eventos");
+	if (atual) atual.replaceWith(secaoEventos());
 }
 
 function textoParaCopiar() {
 	const clone = $("#folha").cloneNode(true);
 	clone.querySelectorAll(".apoio, .peca.excluida").forEach((n) => n.remove());
 	const blocos = [];
-	clone.querySelectorAll(".cabecalho > div, h1, p, .assinatura > div").forEach((n) => {
-		const t = T.colapsar(n.textContent);
+	clone.querySelectorAll(".cabecalho > div, h1, h2, p, .quadro tr, .evento, .assinatura > div").forEach((n) => {
+		let t;
+		if (n.matches(".quadro tr")) {
+			const partes = Array.from(n.cells[1].querySelectorAll(".parte")).map((p) => T.colapsar(p.textContent));
+			t = T.colapsar(n.cells[0].textContent) + ": " + (partes.length ? partes.join("; ") : T.colapsar(n.cells[1].textContent));
+		} else if (n.matches(".evento")) {
+			const nivel = Number((/nivel-(\d)/.exec(n.className) || [])[1] || 0);
+			t = "    ".repeat(nivel) + T.colapsar(n.textContent);
+		} else {
+			t = T.colapsar(n.textContent);
+		}
 		if (t) blocos.push(t);
 	});
-	return blocos.join("\n\n");
+	return blocos.join("\n");
 }
 
 async function iniciar() {
@@ -533,7 +679,14 @@ async function iniciar() {
 	$("#opt-usuario").checked = opcoes.usuario;
 	$("#opt-invalidos").checked = opcoes.invalidos;
 	$("#opt-seq").checked = opcoes.seq;
-	[["#opt-usuario", "usuario"], ["#opt-invalidos", "invalidos"], ["#opt-seq", "seq"]].forEach(([sel, chaveOpcao]) => {
+	$("#opt-subitens").checked = opcoes.subitens;
+	$("#formato").value = opcoes.formato === "corrido" ? "corrido" : "lista";
+	$("#formato").addEventListener("change", () => {
+		opcoes.formato = $("#formato").value;
+		chrome.storage.local.set({ [OPCOES_KEY]: opcoes });
+		refazerParagrafoPrincipal();
+	});
+	[["#opt-usuario", "usuario"], ["#opt-invalidos", "invalidos"], ["#opt-seq", "seq"], ["#opt-subitens", "subitens"]].forEach(([sel, chaveOpcao]) => {
 		$(sel).addEventListener("change", () => {
 			opcoes[chaveOpcao] = $(sel).checked;
 			chrome.storage.local.set({ [OPCOES_KEY]: opcoes });
@@ -550,6 +703,9 @@ async function iniciar() {
 
 	$("#gerar-resumos").addEventListener("click", gerarResumos);
 	$("#imprimir").addEventListener("click", () => window.print());
+	$("#diagnostico-ia").addEventListener("click", async () => {
+		alert("Diagnóstico da IA do navegador\n\n" + (await iaDiagnostico()).join("\n\n"));
+	});
 	$("#copiar").addEventListener("click", async () => {
 		try {
 			await navigator.clipboard.writeText(textoParaCopiar());

@@ -848,21 +848,33 @@ a tela Juntar Documento for de outro processo. Só no Projudi.
 O botão **📜 Certidão**, na barra de botões da extensão (tela do processo,
 Projudi e SEEU), monta uma certidão no modelo da "Certidão Narrativa" do
 eproc e a abre numa janela própria, editável, com os botões **Imprimir /
-Salvar PDF** e **Copiar texto**. A certidão traz:
+Salvar PDF** e **Copiar texto**. A certidão é dividida em seções:
 
-- o cabeçalho do processo: classe, número, juízo, data da distribuição,
-  partes de cada polo com CPF/CNPJ e advogado(s) com OAB;
-- **todos os movimentos**, em ordem cronológica, no formato "em
-  dd/mm/aaaa hh:mm:ss, evento (seq. N)". Se a tabela de movimentações
-  estiver paginada, as demais páginas também são lidas. Opções na barra:
-  incluir quem movimentou, incluir movimentos invalidados (marcados como
-  "invalidado") e mostrar o sequencial;
-- um **resumo dos pedidos das peças principais** (petição inicial ou
-  denúncia, contestação ou resposta à acusação, sentença, recurso), uma
-  linha por peça: "Petição inicial (evento 2, 25/09/2026): …";
-- os assuntos cadastrados e o valor da causa;
+- **I – Dados do processo:** quadro-resumo com número único, classe
+  processual (sem o código numérico), juízo, distribuição, cada parte por
+  polo (Exequente, Executado, Autor, Réu…) com CPF/CNPJ e, logo abaixo,
+  os advogados com OAB ("NOME (OAB 116785N-PR)"), assuntos e valor da
+  causa;
+- **II – Eventos do processo:** todos os movimentos em ordem cronológica,
+  um por linha, com data e hora em negrito e o nome do movimento em
+  destaque. As **intimações, citações, leituras, confirmações e decursos
+  de prazo** que dizem "Referente ao evento (seq. N)" aparecem como
+  **subitens recuados (↳)** sob o evento a que se referem, sem repetir a
+  referência; uma leitura da intimação fica recuada sob a própria
+  intimação. Se a tabela de movimentações estiver paginada, as demais
+  páginas também são lidas. Opções na barra:
+  - formato: **lista por evento** (padrão) ou **texto corrido** (modelo
+    eproc, parágrafo único);
+  - intimações como subitens (liga/desliga o recuo);
+  - incluir quem movimentou, incluir movimentos invalidados (riscados e
+    marcados "invalidado") e mostrar o sequencial;
+- **III – Peças principais:** resumo dos pedidos da petição inicial ou
+  denúncia, da contestação ou resposta à acusação, da sentença e dos
+  recursos, uma linha por peça: "Petição inicial (evento 2, 25/09/2026): …";
 - local e data, e o nome e o cargo do(a) servidor(a). Nome, cargo e local
   ficam gravados para as próximas certidões.
+
+Na impressão, cada página traz "Página X de Y" no rodapé.
 
 Todo campo não encontrado aparece como `[preencher]`, em destaque. Ele
 não sai destacado na impressão, mas precisa ser preenchido.
@@ -903,7 +915,30 @@ Opções da extensão.
   - Na primeira vez, o modelo é baixado pelo Chrome depois de um clique em
     "✨ Gerar resumos".
   - Se a IA não estiver disponível, a certidão avisa e segue no modo
-    manual.
+    manual. O botão **🔍 Diagnóstico da IA** mostra a versão do Chrome e o
+    que o navegador responde para cada combinação de idioma.
+
+#### Como ativar a IA do Chrome
+
+1. Abra `chrome://on-device-internals` e veja a aba **Model Status**: ela
+   diz se o computador é elegível e, se não for, o motivo (desempenho do
+   aparelho, espaço em disco, política da organização etc.).
+2. Requisitos do Google para o Gemini Nano: Windows 10/11, macOS 13+ ou
+   Linux; pelo menos 22 GB livres no disco onde fica o perfil do Chrome;
+   e GPU com mais de 4 GB de VRAM **ou** CPU com 16 GB de RAM e 4 núcleos.
+   Conexão não tarifada no primeiro download.
+3. Computador do Tribunal: se `chrome://policy` mostrar
+   `GenAILocalFoundationalModelSettings` com valor `1`, a IA local está
+   bloqueada pela TI; só ela pode liberar (valor `0`).
+4. Se o computador estiver no limite de desempenho, em `chrome://flags`
+   ative **Enables optimization guide on device** com a opção
+   **"Enabled BypassPerfRequirement"** e reinicie o Chrome.
+5. Em `chrome://components`, no item **Optimization Guide On Device
+   Model**, clique em "Verificar se há atualizações" para forçar o
+   download do modelo (pode levar alguns minutos).
+6. Volte à certidão e clique em **✨ Gerar resumos** (o primeiro download
+   exige esse clique). O Diagnóstico deve passar a mostrar `available`
+   ou `downloadable`.
 
 ### De onde vêm os dados
 
@@ -912,17 +947,29 @@ Opções da extensão.
   cabeçalho tem "Data" e "Evento/Movimentação". As colunas "Seq.",
   "Data", "Evento" e "Movimentado Por" são localizadas pelo texto do
   cabeçalho.
-- **Peças principais:** reconhecidas pelo nome do movimento. Movimentos
-  que só *mencionam* a peça ficam de fora (intimação, prazo, certidão,
-  "Recebido o recurso", "cumprimento de sentença", audiência etc.). Os
+- **Peças principais:** reconhecidas por **aproximação** no nome do
+  movimento: o nome é quebrado em palavras e cada tipo é descrito por
+  radicais ("inicial"; "contestac"; "resposta … acusac"; "apelac",
+  "recurs", "razoes"; "sentenc", "julgad … procedent", "extint"…), que
+  casam com qualquer forma do nome ("JUNTADA DE PETIÇÃO DE INICIAL",
+  "Petição Inicial") e toleram um erro de digitação. Movimentos que só
+  *mencionam* a peça ficam de fora (intimação, prazo, certidão, "Recebida
+  a denúncia", "emenda à inicial", contrarrazões, "cumprimento de
+  sentença", audiência etc.). Da inicial e da denúncia vale só a primeira
+  ocorrência; recursos e sentenças entram todos. Os
   arquivos são carregados clicando no "+" da linha, como no Preview, e o
   primeiro arquivo do movimento é o usado; outro pode ser escolhido na
   lista "Arquivo".
 - **Cabeçalho:** rótulos "Classe Processual", "Assunto…", "Juízo",
   "Comarca", "Valor da Causa" e "Data da Distribuição" da tela atual e,
   no Projudi, da aba "Informações Gerais", lida em segundo plano.
-- **Partes:** aba "Partes e Outros" (no Projudi, lida em segundo plano):
-  tabela de cada polo, colunas CPF/CNPJ e Advogado(s).
+- **Número único:** título da tela do processo
+  (`h3#barraTituloStatusProcessual`, "Processo 0000068-38.2025.8.16.0038").
+- **Partes:** aba "Partes e Outros", lida em segundo plano (pelo item de
+  aba nativo ou, na falta dele, reenviando o formulário do processo com
+  `selectedIcon=tabPartes`): título `<h4>` de cada polo, colunas CPF/CNPJ e
+  Advogados (cada `<li>` "OAB 116785N-PR - NOME" vira "NOME (OAB
+  116785N-PR)"; "Parte sem advogado" é ignorado).
 - **Arquivos:** baixados pelo service worker, como no envio por e-mail e
   WhatsApp (o SEEU redireciona para o S3). O texto dos PDFs é extraído
   pelo pdf.js, que vai junto com a extensão em `src/lib/pdfjs/`.

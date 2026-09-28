@@ -73,7 +73,15 @@
 	// Cabeçalho
 	// -------------------------------------------------------------------
 
+	// Número único no padrão CNJ (NNNNNNN-DD.AAAA.J.TR.OOOO).
+	const RE_CNJ = /\b\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}\b/;
+
 	function numeroDoProcesso() {
+		// Projudi: "Processo 0000068-38.2025.8.16.0038" no título da tela
+		// (h3#barraTituloStatusProcessual), em qualquer aba do processo.
+		const barra = document.getElementById("barraTituloStatusProcessual");
+		const mb = barra && RE_CNJ.exec(barra.textContent || "");
+		if (mb) return mb[0];
 		const projudiEl = document.querySelector("em.attention");
 		if (projudiEl && projudiEl.textContent.trim()) return projudiEl.textContent.trim();
 		const seeuEl = document.querySelector("div.titulo.processo");
@@ -82,7 +90,9 @@
 			if (m) return m[1];
 		}
 		const m = document.title.match(/([\d.\-]{15,})/);
-		return m ? m[1] : "";
+		if (m) return m[1];
+		const mc = RE_CNJ.exec((document.body && document.body.textContent) || "");
+		return mc ? mc[0] : "";
 	}
 
 	// Pares "rótulo: valor" de um documento: células td.label/td.labelRadio
@@ -145,10 +155,10 @@
 		});
 		return {
 			numero: numeroDoProcesso(),
-			classe: primeiroCampo(campos, /^classe( processual| judicial)?$/),
+			classe: T.semCodigo(primeiroCampo(campos, /^classe( processual| judicial)?$/)),
 			juizo: primeiroCampo(campos, /^(juizo|vara|orgao julgador|juizo\/vara|unidade judiciaria)$/),
 			comarca: primeiroCampo(campos, /^(comarca|foro)$/),
-			assuntos: todosCampos(campos, /^assunto/),
+			assuntos: todosCampos(campos, /^assunto/).map(T.semCodigo),
 			valorCausa: primeiroCampo(campos, /^valor (da causa|da acao)/),
 			distribuicao: primeiroCampo(campos, /^(data (da )?distribuicao|distribuid[oa] em|data de autuacao|autuacao)$/),
 		};
@@ -168,14 +178,24 @@
 
 	const RE_OAB = /OAB\s*[:\-/]?\s*([A-Z]{2}\s*[\d.]+[A-Z]?|[\d.]+[A-Z]?\s*[\/\-]\s*[A-Z]{2})/i;
 
+	// Advogados da célula da coluna "Advogados" da aba Partes. No Projudi,
+	// cada um vem num <li> com quebras de linha internas ("OAB\n116785N-PR
+	// -\nNOME"), por isso o <li> inteiro é uma entrada.
 	function advogadosDaCelula(cell) {
 		if (!cell) return [];
-		const clone = cell.cloneNode(true);
-		clone.querySelectorAll("br").forEach(function (br) { br.replaceWith("\n"); });
-		clone.querySelectorAll("li, div, p").forEach(function (el) { el.append("\n"); });
-		return clone.textContent.split("\n").map(colapsar).filter(function (linha) {
-			return linha && !/^(nao (cadastrad|informad|possui)\w*|-+)$/.test(normalizar(linha));
-		});
+		let linhas;
+		const itens = cell.querySelectorAll("li");
+		if (itens.length) {
+			linhas = Array.prototype.map.call(itens, function (li) { return colapsar(li.textContent); });
+		} else {
+			const clone = cell.cloneNode(true);
+			clone.querySelectorAll("br").forEach(function (br) { br.replaceWith("\n"); });
+			clone.querySelectorAll("div, p").forEach(function (el) { el.append("\n"); });
+			linhas = clone.textContent.split("\n").map(colapsar);
+		}
+		return linhas.filter(function (linha) {
+			return linha && !/^(nao (cadastrad|informad|possui)\w*|parte sem advogad\w*|sem advogad\w*|-+)$/.test(normalizar(linha));
+		}).map(T.formatarAdvogado);
 	}
 
 	function lerPartes(doc) {
@@ -189,7 +209,11 @@
 		const vistos = new Set();
 		tables.forEach(function (table) {
 			const titulo = tituloDaTabela(table) || "Parte";
-			const ths = Array.prototype.slice.call(table.querySelectorAll("thead th, tr:first-child th"));
+			const ths = Array.prototype.slice.call(table.querySelectorAll(":scope > thead > tr > th"));
+			if (!ths.length) {
+				const primeira = Array.prototype.find.call(table.rows, function (tr) { return tr.querySelector("th"); });
+				if (primeira) ths.push.apply(ths, primeira.cells);
+			}
 			const col = function (re) { return ths.findIndex(function (th) { return re.test(normalizar(th.textContent)); }); };
 			const colDoc = col(/^(cpf|cnpj|documento)/);
 			const colAdv = col(/advogad|procurador|defensor/);
@@ -219,16 +243,39 @@
 		return polos;
 	}
 
+	// Reserva para quando o item de aba nativo não traz o setTab('...')
+	// (usado por __pdpLerAbaProcesso): reenvia o próprio #processoForm com
+	// selectedIcon=<aba>, como faz reusCabecalho.js.
+	async function lerAbaPorFormulario(tabId) {
+		const form = document.getElementById("processoForm");
+		if (!form) throw new Error("formulário do processo não encontrado");
+		const id = form.elements.namedItem("id") ? form.elements.namedItem("id").value : new URL(form.action, location.href).searchParams.get("id");
+		const corpo = new URLSearchParams();
+		for (const [k, v] of new FormData(form)) if (typeof v === "string") corpo.append(k, v);
+		corpo.set("selectedIcon", tabId);
+		if (id) corpo.set("id", id);
+		return lerPagina(new URL(form.getAttribute("action") || location.href, location.href).href, { method: "POST", body: corpo });
+	}
+
 	async function lerPolos(avisos) {
 		let polos = lerPartes(document);
+		let erro = null;
 		if (!polos.length && IS_PROJUDI && typeof window.__pdpLerAbaPartes === "function") {
 			try {
 				const aba = await window.__pdpLerAbaPartes();
 				polos = lerPartes(aba.doc);
 			} catch (e) {
-				avisos.push('Não foi possível ler a aba "Partes e Outros": ' + e.message);
+				erro = e;
 			}
 		}
+		if (!polos.length && IS_PROJUDI) {
+			try {
+				polos = lerPartes(await lerAbaPorFormulario("tabPartes"));
+			} catch (e) {
+				erro = erro || e;
+			}
+		}
+		if (!polos.length && erro) avisos.push('Não foi possível ler a aba "Partes e Outros": ' + erro.message);
 		if (!polos.length) avisos.push("Partes não encontradas automaticamente — preencha na certidão.");
 		return polos;
 	}
@@ -299,10 +346,16 @@
 				.sort(function (a, b) { return textoLimpo(b).length - textoLimpo(a).length; })[0] || null;
 		}
 		const evento = textoLimpo(eventoCell);
+		// Nome do movimento (o link/negrito) separado do complemento.
+		const tituloEl = (linkMov && eventoCell && eventoCell.contains(linkMov) && linkMov) || (eventoCell && eventoCell.querySelector("b, strong"));
+		const titulo = tituloEl ? textoLimpo(tituloEl) : evento.split(" - ")[0];
+		let complemento = evento;
+		if (titulo && complemento.indexOf(titulo) === 0) complemento = complemento.slice(titulo.length).replace(/^\s*-\s*/, "");
+		else if (titulo === evento.split(" - ")[0]) complemento = evento.split(" - ").slice(1).join(" - ");
 		const usuario = textoLimpo(cell(cols.usuario));
 		const invalido = /INVALIDO/i.test((linkMov && linkMov.id) || "") || !!tr.querySelector("strike a, s a, del a, strike, del");
 
-		return { seq: seq, dataHora: dataHora, evento: evento, usuario: usuario, invalido: invalido };
+		return { seq: seq, dataHora: dataHora, evento: evento, titulo: titulo, complemento: complemento, usuario: usuario, invalido: invalido };
 	}
 
 	// Paginação da tabela de movimentações (#navigator / a.arrowNextOn),
@@ -448,10 +501,15 @@
 
 	async function lerPecas(movimentos, avisos) {
 		const pecas = [];
-		for (const mov of movimentos) {
+		const unicas = new Set(); // inicial e denúncia: só a primeira
+		for (const mov of T.ordenarMovimentos(movimentos)) {
 			if (mov.invalido) continue;
-			const tipo = T.classificarMovimento(mov.evento);
+			const tipo = T.classificarMovimento(mov.titulo || mov.evento);
 			if (!tipo) continue;
+			if (tipo.tipo === "inicial" || tipo.tipo === "denuncia") {
+				if (unicas.has(tipo.tipo)) continue;
+				unicas.add(tipo.tipo);
+			}
 			let docs = mov.docsDiretos || [];
 			if (!docs.length && mov.row) docs = await arquivosDaLinha(mov.row);
 			pecas.push({
@@ -497,7 +555,7 @@
 			origem: location.origin,
 			polos: polos,
 			movimentos: T.ordenarMovimentos(movimentos.map(function (m) {
-				return { seq: m.seq, dataHora: m.dataHora, evento: m.evento, usuario: m.usuario, invalido: m.invalido };
+				return { seq: m.seq, dataHora: m.dataHora, evento: m.evento, titulo: m.titulo, complemento: m.complemento, usuario: m.usuario, invalido: m.invalido };
 			})),
 			pecas: T.ordenarMovimentos(pecas),
 			avisos: avisos,

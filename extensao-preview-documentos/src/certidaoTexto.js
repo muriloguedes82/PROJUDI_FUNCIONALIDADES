@@ -27,29 +27,128 @@
 	// Classificação dos movimentos
 	// ---------------------------------------------------------------
 
-	// A ordem importa: o primeiro padrão que casar define o tipo. Eventos
-	// que só MENCIONAM a peça (intimação, prazo, decurso, certidão, juntada
-	// de AR etc.) ficam de fora, para não confundir "Expedida intimação da
-	// sentença" com a própria sentença.
+	// Classificação por APROXIMAÇÃO: o nome do movimento é quebrado em
+	// palavras (sem acento, minúsculas) e cada tipo de peça é descrito por
+	// "radicais" que precisam aparecer em ordem, com até 3 palavras entre
+	// eles. Um radical casa com a palavra que começa por ele, tolerando um
+	// erro de digitação (distância de edição 1) nos radicais de 6+ letras.
+	// As exclusões e as comunicações usam só o começo exato da palavra.
+	// Assim "JUNTADA DE PETIÇÃO DE INICIAL", "PETIÇÃO INICIAL" e "Juntada de
+	// Peticao Inicial" caem todos em "inicial".
+	//
+	// Os movimentos que só MENCIONAM uma peça (intimação, prazo, certidão,
+	// "Recebida a denúncia", "cumprimento de sentença", emenda à inicial...)
+	// são descartados antes, pelas EXCLUSOES.
 	const TIPOS_PECA = [
-		{ tipo: "denuncia", rotulo: "Denúncia", re: /\b(oferecid[ao] (a )?denuncia|denuncia oferecida|^denuncia\b|(peticao|juntada) de denuncia)/ },
-		{ tipo: "inicial", rotulo: "Petição inicial", re: /\b(peticao inicial|^inicial\b|distribuid[oa] .*peticao inicial)/ },
-		{ tipo: "resposta", rotulo: "Resposta à acusação", re: /\b(resposta a acusacao|resposta previa|defesa previa|defesa preliminar)\b/ },
-		{ tipo: "contestacao", rotulo: "Contestação", re: /\bcontestacao\b/ },
-		{ tipo: "sentenca", rotulo: "Sentença", re: /\b(sentenca|julgad[oa]s? (procedente|improcedente|parcialmente)|homologad[ao] .*(acordo|transacao)|extint[oa] .*(processo|punibilidade)|condenacao|absolvic)/ },
-		{ tipo: "recurso", rotulo: "Recurso", re: /\b(apelacao|recurso inominado|recurso em sentido estrito|razoes (de|do) (apelacao|recurso)|embargos de declaracao|agravo|recurso)\b/ },
+		{ tipo: "denuncia", rotulo: "Denúncia", frases: [["denuncia"], ["queixa", "crime"]] },
+		{ tipo: "inicial", rotulo: "Petição inicial", frases: [["inicial"]] },
+		{ tipo: "resposta", rotulo: "Resposta à acusação", frases: [["resposta", "acusac"], ["resposta", "escrit"], ["resposta", "previ"], ["defesa", "previ"], ["defesa", "preliminar"]] },
+		{ tipo: "contestacao", rotulo: "Contestação", frases: [["contestac"]] },
+		{ tipo: "recurso", rotulo: "Recurso", frases: [["apelac"], ["recurs"], ["razoes"], ["embargos", "declarac"], ["agrav"]] },
+		{ tipo: "sentenca", rotulo: "Sentença", frases: [["sentenc"], ["julgad", "procedent"], ["julgad", "improcedent"], ["julgad", "parcial"], ["homologad", "acordo"], ["homologad", "transac"], ["extint"], ["extinc"], ["condenac"], ["absolvi"], ["pronunci"], ["impronunci"]] },
 	];
 
-	const EXCLUSOES = /\b(intimac|intimad|citac|citad|prazo|decurso|decorrid|certidao|certificad|expedid|expedicao|mandado|aviso de recebimento|leitura|ciencia|publicad|disponibilizad|remetid|recebidos? os autos|conclus|vista|carga|contrarraz|contra-raz|juntada de (ar|aviso)|audiencia|recebid|despach|cumprimento de sentenca|transit|arquivad)/;
+	const EXCLUSOES = [
+		["intima"], ["cita"], ["notifica"], ["prazo"], ["decurso"], ["decorr"], ["certida"], ["certific"], ["expedi"],
+		["mandado"], ["aviso", "recebimento"], ["leitura"], ["ciencia"], ["publica"], ["disponibiliz"], ["remet"],
+		["recebid"], ["recebiment"], ["conclus"], ["vista"], ["carga"], ["contrarraz"], ["contra", "razoes"],
+		["audiencia"], ["despach"], ["decisao"], ["cumprimento", "sentenc"], ["transit"], ["arquiv"], ["desarquiv"],
+		["emenda"], ["aditament"], ["rejeit"], ["desist"],
+	];
 
-	// Devolve { tipo, rotulo } ou null.
+	// Movimentos de comunicação (intimação, citação, leitura, prazo, DJEN...),
+	// que na certidão viram subitens do evento a que se referem.
+	const COMUNICACAO = [
+		["intima"], ["cita"], ["notifica"], ["leitura"], ["decurso"], ["decorr"], ["prazo"], ["disponibiliz"],
+		["publica"], ["expedi"], ["ciencia"], ["confirmad"], ["aviso", "recebimento"], ["mandado"], ["carta"],
+		["edital"], ["oficio"],
+	];
+
+	function palavras(texto) {
+		return normalizar(texto).replace(/[^a-z0-9]+/g, " ").trim().split(" ").filter(Boolean);
+	}
+
+	function distancia(a, b) {
+		if (a === b) return 0;
+		const m = a.length;
+		const n = b.length;
+		let anterior = [];
+		for (let j = 0; j <= n; j++) anterior[j] = j;
+		for (let i = 1; i <= m; i++) {
+			const atual = [i];
+			for (let j = 1; j <= n; j++) {
+				atual[j] = Math.min(anterior[j] + 1, atual[j - 1] + 1, anterior[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+			}
+			anterior = atual;
+		}
+		return anterior[n];
+	}
+
+	function palavraCasa(palavra, radical, aproximado) {
+		if (palavra.indexOf(radical) === 0) return true;
+		if (!aproximado || radical.length < 6 || palavra.length < radical.length - 1) return false;
+		// Um erro de digitação: troca, falta ou sobra de uma letra.
+		for (let k = radical.length - 1; k <= radical.length + 1; k++) {
+			if (k > 0 && k <= palavra.length && distancia(palavra.slice(0, k), radical) <= 1) return true;
+		}
+		return false;
+	}
+
+	function fraseCasa(lista, frase, aproximado) {
+		let inicio = 0;
+		let anterior = -1;
+		for (const radical of frase) {
+			let achou = -1;
+			for (let i = inicio; i < lista.length; i++) {
+				if (anterior >= 0 && i - anterior > 4) break;
+				if (palavraCasa(lista[i], radical, aproximado)) { achou = i; break; }
+			}
+			if (achou < 0) return false;
+			anterior = achou;
+			inicio = achou + 1;
+		}
+		return true;
+	}
+
+	function algumaCasa(lista, frases, aproximado) {
+		return frases.some(function (f) { return fraseCasa(lista, f, aproximado); });
+	}
+
+	// Recebe o NOME do movimento (sem o complemento) e devolve
+	// { tipo, rotulo } ou null.
 	function classificarMovimento(texto) {
-		const t = normalizar(texto);
-		if (!t || EXCLUSOES.test(t)) return null;
+		const lista = palavras(texto);
+		if (!lista.length || algumaCasa(lista, EXCLUSOES)) return null;
 		for (const def of TIPOS_PECA) {
-			if (def.re.test(t)) return { tipo: def.tipo, rotulo: def.rotulo };
+			if (algumaCasa(lista, def.frases, true)) return { tipo: def.tipo, rotulo: def.rotulo };
 		}
 		return null;
+	}
+
+	function ehComunicacao(texto) {
+		return algumaCasa(palavras(texto), COMUNICACAO);
+	}
+
+	// Número do evento a que um movimento se refere: "Referente ao evento
+	// (seq. 45)", "Refer. ao Evento: 5", "referente à movimentação 12",
+	// "Referente ao evento 2". Devolve a string do número ou "".
+	function referenciaEvento(texto) {
+		const t = normalizar(texto);
+		const m = /\brefer\w*\.?\s*(?:a|ao|as|aos)?\s*(?:o\s+)?(?:evento|movimentac\w*|mov\.?|seq\w*\.?)\s*(?:[:.\-]\s*)?(?:\(\s*)?(?:seq\.?\s*)?(\d+(?:\.\d+)?)/.exec(t);
+		return m ? m[1] : "";
+	}
+
+	// "OAB 116785N-PR - FULANA DE TAL" -> "FULANA DE TAL (OAB 116785N-PR)".
+	function formatarAdvogado(linha) {
+		const l = colapsar(linha);
+		const m = /^OAB\s*[:\-]?\s*(\S+)\s+-\s+(.+)$/i.exec(l);
+		if (m) return colapsar(m[2]) + " (OAB " + m[1] + ")";
+		return l;
+	}
+
+	// "12247 - Execução Extrajudicial de Alimentos" -> "Execução Extrajudicial de Alimentos".
+	function semCodigo(texto) {
+		return colapsar(texto).replace(/^\d+\s*-\s*/, "");
 	}
 
 	function rotuloDoTipo(tipo) {
@@ -397,6 +496,11 @@
 		normalizar: normalizar,
 		colapsar: colapsar,
 		classificarMovimento: classificarMovimento,
+		ehComunicacao: ehComunicacao,
+		referenciaEvento: referenciaEvento,
+		formatarAdvogado: formatarAdvogado,
+		semCodigo: semCodigo,
+		palavras: palavras,
 		rotuloDoTipo: rotuloDoTipo,
 		extrairTrechoPedidos: extrairTrechoPedidos,
 		extrairDenuncia: extrairDenuncia,

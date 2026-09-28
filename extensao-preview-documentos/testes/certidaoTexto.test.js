@@ -98,3 +98,32 @@ test("ordenação e frase do movimento", () => {
 	assert.equal(movs[0].seq, "1");
 	assert.equal(T.fraseMovimento(movs[0]), "em 25/09/2026 15:39:05, Distribuído por sorteio (seq. 1)");
 });
+
+test("classificação por aproximação (nomes reais do Projudi e erros de digitação)", () => {
+	const c = (s) => (T.classificarMovimento(s) || {}).tipo || null;
+	assert.equal(c("JUNTADA DE PETIÇÃO DE INICIAL"), "inicial");
+	assert.equal(c("JUNTADA DE PETIÇÃO DE PETIÇAO INICAL"), "inicial");
+	assert.equal(c("JUNTADA DE PETIÇÃO DE CONTESTAÇAO"), "contestacao");
+	assert.equal(c("JUNTADA DE PETIÇÃO DE DENÚNCIA"), "denuncia");
+	assert.equal(c("JUNTADA DE PETIÇÃO DE RAZÕES DE APELAÇÃO"), "recurso");
+	assert.equal(c("JUNTADA DE PETIÇÃO DE EMENDA A INICIAL"), null);
+	assert.equal(c("JUNTADA DE PETIÇÃO DE CONTRARRAZÕES"), null);
+	assert.equal(c("RECEBIDA A DENÚNCIA"), null);
+	assert.equal(c("EXTINTO O PROCESSO POR PAGAMENTO"), "sentenca");
+});
+
+test("intimações: referência ao evento e identificação", () => {
+	assert.equal(T.referenciaEvento("Referente ao evento (seq. 45) JUNTADA DE PETIÇÃO"), "45");
+	assert.equal(T.referenciaEvento("Refer. ao Evento: 5"), "5");
+	assert.equal(T.referenciaEvento("referente à movimentação 12"), "12");
+	assert.equal(T.referenciaEvento("Local JEC - Conciliações"), "");
+	assert.ok(T.ehComunicacao("EXPEDIÇÃO DE INTIMAÇÃO"));
+	assert.ok(T.ehComunicacao("LEITURA DE INTIMAÇÃO REALIZADA"));
+	assert.ok(T.ehComunicacao("DECORRIDO PRAZO DE FULANO"));
+	assert.ok(!T.ehComunicacao("JUNTADA DE PETIÇÃO DE INICIAL"));
+});
+
+test("advogado e classe no formato da aba Partes", () => {
+	assert.equal(T.formatarAdvogado("OAB 116785N-PR - DANIELLE DAS NEVES"), "DANIELLE DAS NEVES (OAB 116785N-PR)");
+	assert.equal(T.semCodigo("12247 - Execução Extrajudicial de Alimentos"), "Execução Extrajudicial de Alimentos");
+});
