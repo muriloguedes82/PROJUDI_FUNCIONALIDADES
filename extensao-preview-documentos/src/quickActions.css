@@ -197,18 +197,21 @@
 
 .pdp-qa-fav-grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-	gap: 6px;
+	grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+	gap: 5px;
 }
 
 .pdp-qa-fav-card {
 	display: flex;
 	flex-direction: column;
-	gap: 2px;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	gap: 1px;
 	background: #fff8e6;
 	border: 1px solid #e8cf8a;
 	border-radius: 6px;
-	padding: 6px 8px;
+	padding: 4px 6px;
 	cursor: pointer;
 	user-select: none;
 	font-family: Arial, Helvetica, sans-serif;
@@ -222,14 +225,14 @@
 }
 
 .pdp-qa-fav-card-action {
-	font-size: 10px;
+	font-size: 9.5px;
 	color: #8a6d1c;
 	text-transform: uppercase;
 	letter-spacing: 0.02em;
 }
 
 .pdp-qa-fav-card-name {
-	font-size: 12px;
+	font-size: 11.5px;
 	font-weight: bold;
 	color: #333;
 	word-break: break-word;
