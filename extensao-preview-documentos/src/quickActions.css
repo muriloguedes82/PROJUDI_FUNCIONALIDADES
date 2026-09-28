@@ -183,7 +183,7 @@
 
 /* Painel "⭐ Minhas Preferências" */
 .pdp-qa-fav-panel {
-	width: 400px;
+	width: 720px;
 	max-width: calc(100vw - 24px);
 }
 
@@ -197,7 +197,7 @@
 
 .pdp-qa-fav-grid {
 	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
 	gap: 6px;
 }
 
