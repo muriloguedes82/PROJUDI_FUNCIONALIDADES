@@ -623,9 +623,13 @@ diálogo como **preferência** e reaplicá-lo depois com poucos cliques:
    efetivamente realiza a ação processual**, então confira os campos
    preenchidos antes de confirmar.
 
-**Como a preferência é gravada e preenchida.** Cada campo guarda o valor
-e, nas listas, também o **texto da opção** escolhida (e o rótulo do campo
-na tela). Ao aplicar, a extensão preenche em rodadas, até cada campo
+**Como a preferência é gravada e preenchida.** A preferência guarda **só
+o que você preencheu ou selecionou** no diálogo: campos bloqueados (ex.:
+as seções não escolhidas de "Realizar Remessa"), textos e listas vazios,
+bolinhas não marcadas e caixas desmarcadas ficam de fora — salvo uma
+caixa que vinha marcada e você desmarcou. Cada campo guarda o valor e, nas
+listas, também o **texto da opção** escolhida (e o rótulo do campo na
+tela). Ao aplicar, a extensão preenche em rodadas, até cada campo
 "pegar":
 
 - bolinhas e caixas primeiro, com um clique de verdade — há telas que só
@@ -641,9 +645,11 @@ na tela). Ao aplicar, a extensão preenche em rodadas, até cada campo
 A barra "Sim, executar" só aparece no fim do preenchimento. Se algum
 campo não puder ser preenchido (ex.: a opção gravada não existe mais), a
 barra avisa "⚠ Não consegui preencher: …" e o "Sim, executar" **não
-envia** enquanto esse campo estiver vazio. Preferências gravadas antes
-desta versão continuam funcionando, mas salvar de novo guarda o texto das
-opções e deixa o preenchimento mais seguro.
+envia** enquanto esse campo estiver vazio. O aviso e a conferência valem
+só para os campos que a preferência preencheu. Preferências gravadas antes
+da versão 2.9.82 (que guardavam também campos vazios e de seções não
+escolhidas) continuam funcionando: esses campos são ignorados ao aplicar.
+Salvar de novo deixa a preferência só com o que interessa.
 
 Para **editar** uma preferência, clique no **✏️** ao lado dela (o 🗑
 continua removendo): a extensão abre o mesmo diálogo já preenchido com a
