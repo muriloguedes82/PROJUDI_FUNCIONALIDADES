@@ -22,7 +22,9 @@
 // deixá-la falsa quando o perfil for de advocacia. A identificação usa
 // várias camadas independentes, e qualquer uma delas basta para bloquear:
 //   1. campo "Atribuição:" do cabeçalho (#userinfo), ex. "Advogada
-//      (PR12345)" ou "Assessor de Advogado ...";
+//      (PR12345)", "Assessor de Advogado ..." ou "Assessor"/"Assessora"
+//      com número da OAB, ex. "Assessora (PR12345)" (assessor do
+//      Judiciário - de magistrado, gabinete... - continua liberado);
 //   2. título da mesa inicial ("Mesa do(a) Advogado ...") e o formulário
 //      #mesaAdvogadoForm;
 //   3. endereço do próprio frame em telas exclusivas da advocacia
@@ -49,6 +51,13 @@
 	// Qualquer menção a advogado(a) na atribuição cobre "Advogado",
 	// "Advogada", "Assessor de Advogado", "Assessora do(a) Advogado(a)"...
 	const RE_ATRIBUICAO_ADVOCACIA = /advogad/i;
+	// Atribuição "Assessor"/"Assessora"/"Assessor(a)" acompanhada do número
+	// da OAB do advogado assessorado (ex. "Assessora (PR12345)"): é o
+	// assessor de advogado. Por enquanto, só ele é bloqueado - assessores
+	// do Judiciário (de magistrado, de gabinete...) continuam liberados.
+	const RE_ATRIBUICAO_ASSESSOR = /^assessor(a|\(a\))?\b/i;
+	const RE_OAB = /\b(AC|AL|AP|AM|BA|CE|DF|ES|GO|MA|MT|MS|MG|PA|PB|PR|PE|PI|RJ|RN|RS|RO|RR|SC|SP|SE|TO)\s*[-/]?\s*\d{3,7}\s*[A-Z]?\b|\bOAB\b/;
+	const RE_ASSESSOR_JUDICIARIO = /magistrad|ju[ií]z|desembargad|gabinete|vara\b|turma|c[aâ]mara|judici[aá]ri|tribunal|minist[eé]rio\s+p[uú]blico|promotor|procurador|defensor/i;
 	const RE_TITULO_MESA = /mesa\s+do\(?a?\)?\s+(assessor\(?a?\)?\s+d[eoa]\(?a?\)?\s+)?advogad/i;
 	// Telas que só existem na área da advocacia. Não inclui telas que
 	// servidores também usam (ex. processo/advogadosParte.do).
@@ -105,6 +114,7 @@
 
 			const atribuicao = lerAtribuicao(doc);
 			if (atribuicao && RE_ATRIBUICAO_ADVOCACIA.test(atribuicao)) return "advocacia";
+			if (atribuicao && RE_ATRIBUICAO_ASSESSOR.test(atribuicao) && RE_OAB.test(atribuicao) && !RE_ASSESSOR_JUDICIARIO.test(atribuicao)) return "advocacia";
 
 			if (doc.getElementById("mesaAdvogadoForm")) return "advocacia";
 			if (doc.querySelector("form[name^='mesaAdvogado'], form[action*='mesaAdvogado.do'], form[action*='AssessorAdvogado']")) return "advocacia";

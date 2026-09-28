@@ -1394,7 +1394,14 @@ Para identificar o perfil, a extensão usa várias checagens independentes.
 Basta uma delas para bloquear:
 
 1. o campo **Atribuição:** do cabeçalho (ex. `Advogada (PR12345)`,
-   `Assessor de Advogado ...`): qualquer menção a "advogad" bloqueia;
+   `Assessor de Advogado ...`): qualquer menção a "advogad" bloqueia.
+   Também bloqueia a atribuição que começa com **Assessor**, **Assessora**
+   ou **Assessor(a)** e traz o número da OAB do advogado assessorado
+   (ex. `Assessora (PR12345)`). Por enquanto, só o assessor de advogado é
+   bloqueado. O assessor do Judiciário continua liberado: sem número da
+   OAB, ou quando a atribuição menciona magistrado, juiz, desembargador,
+   gabinete, vara, turma, câmara, tribunal, Ministério Público, promotor,
+   procurador ou defensor;
 2. o título da mesa inicial (`Mesa do(a) Advogado ...`) e o formulário
    `#mesaAdvogadoForm`;
 3. o endereço da própria tela, quando ela é exclusiva da advocacia
