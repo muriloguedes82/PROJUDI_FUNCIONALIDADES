@@ -62,7 +62,8 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/juntarDocumento.js",
 			"src/reusCabecalho.js",
 			"src/cpfPartesCumprimentos.js",
-			"src/bnmpMandadoPrisao.js"
+			"src/bnmpMandadoPrisao.js",
+			"src/listaTarefas.js"
 		],
 		css: [
 			"src/content.css",
@@ -75,7 +76,8 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/reusCabecalho.css",
 			"src/cpfPartesCumprimentos.css",
 			"src/bnmpMandadoPrisao.css",
-			"src/juntarDocumento.css"
+			"src/juntarDocumento.css",
+			"src/listaTarefas.css"
 		],
 		runAt: "document_idle",
 		allFrames: true,

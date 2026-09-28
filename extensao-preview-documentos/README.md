@@ -1220,6 +1220,41 @@ diretamente nele; a lista de pendências não é recarregada
 automaticamente, já que o Projudi não faz isso sozinho. Apenas uma
 finalização é processada por vez.
 
+## Listas de tarefas (cores/bolinhas e tarefas escritas)
+
+Nas telas **Análise de Juntadas** (`processo/analisarJuntada.do`),
+**Retorno de Conclusão** (`processo/conclusao.do`) e **Análise de Decurso
+de Prazo** (`processo/intimacaoBusca.do`), a extensão permite organizar os
+processos em listas de tarefas próprias do usuário (`src/listaTarefas.js`):
+
+- **Legenda**: acima da tabela de resultados aparece a barra "Listas de
+  tarefas", com uma bolinha colorida e o nome de cada lista criada, além
+  da quantidade de processos da página em cada uma. Clicar numa lista
+  filtra a tabela, mostrando só os processos dela (clicar de novo, ou em
+  "✕ limpar filtro", volta a mostrar todos).
+- **Na linha do processo**, ao lado do número: as bolinhas das listas em
+  que o processo está, um contador "✎ N" com as tarefas escritas ainda
+  pendentes (passe o mouse para ler o texto; "✎ ✓" quando todas foram
+  concluídas) e o botão **+**, que abre o painel do processo. Nele é
+  possível marcar/desmarcar as listas (cores), escrever tarefas, marcá-las
+  como concluídas, editá-las (✏️) e removê-las (🗑), e aplicar as
+  preferências com um clique.
+- **⚙ Gerenciar listas e preferências**: cria, edita (nome e cor —
+  paleta ou cor livre), reordena (▲/▼) e remove as **listas**; e cria,
+  edita, reordena e remove as **preferências** — tarefas prontas (texto
+  e, opcionalmente, uma lista) que, aplicadas a um processo, incluem a
+  tarefa escrita e já o colocam na lista associada. Remover uma lista a
+  retira de todos os processos (as tarefas escritas continuam). Há ainda
+  a opção de apagar, de uma vez, as tarefas concluídas de todos os
+  processos.
+
+As listas e tarefas são vinculadas ao **número do processo**, então o
+mesmo processo mostra as mesmas marcações nas três telas. Os dados ficam
+em `chrome.storage.local` (`pdpTarefasListas`, `pdpTarefasPreferencias` e
+`pdpTarefasProcessos`), valem para todos os hosts do Projudi, sobrevivem
+ao fechamento do navegador e são atualizados em todas as abas abertas.
+Ficam só neste navegador: não são compartilhados com outros servidores.
+
 ## Dispensar decursos de prazo
 
 Ainda no quadro **Pendências**, quando o item é uma intimação

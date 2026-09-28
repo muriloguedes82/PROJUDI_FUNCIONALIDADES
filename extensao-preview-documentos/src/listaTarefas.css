@@ -1,0 +1,387 @@
+/* Listas de tarefas (listaTarefas.js) */
+.pdp-tl-legenda {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 5px;
+	margin: 6px 0;
+	padding: 5px 8px;
+	background: #f7f9f3;
+	border: 1px solid #d5dcc8;
+	border-radius: 6px;
+	font: 12px Arial, Helvetica, sans-serif;
+	color: #333;
+}
+
+.pdp-tl-legenda-titulo {
+	font-weight: bold;
+	margin-right: 4px;
+}
+
+.pdp-tl-gerenciar {
+	margin-left: auto;
+}
+
+.pdp-tl-dot {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	border: 1px solid rgba(0, 0, 0, 0.25);
+	vertical-align: middle;
+	flex: 0 0 auto;
+	box-sizing: border-box;
+}
+
+.pdp-tl-dot-g {
+	width: 14px;
+	height: 14px;
+}
+
+.pdp-tl-dot-vazia {
+	background: transparent;
+	border-style: dashed;
+}
+
+.pdp-tl-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 2px 8px;
+	border: 1px solid #cfd6c2;
+	border-radius: 12px;
+	background: #fff;
+	font: 11.5px Arial, Helvetica, sans-serif;
+	color: #333;
+	cursor: pointer;
+}
+
+.pdp-tl-chip:hover {
+	background: #eef2e6;
+}
+
+.pdp-tl-chip-ativo {
+	background: #34422a;
+	border-color: #34422a;
+	color: #fff;
+}
+
+.pdp-tl-chip-ativo:hover {
+	background: #45583a;
+}
+
+.pdp-tl-btn {
+	padding: 3px 9px;
+	border: 1px solid #b9c4ad;
+	border-radius: 4px;
+	background: #f4f6ef;
+	color: #34422a;
+	font: 11.5px Arial, Helvetica, sans-serif;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.pdp-tl-btn:hover {
+	background: #e7ecdd;
+}
+
+.pdp-tl-link {
+	border: 0;
+	background: none;
+	padding: 2px 4px;
+	color: #2a5d9f;
+	font: 11.5px Arial, Helvetica, sans-serif;
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+.pdp-tl-link:disabled {
+	color: #999;
+	cursor: default;
+	text-decoration: none;
+}
+
+.pdp-tl-vazio {
+	color: #888;
+	font-style: italic;
+	font-size: 11px;
+}
+
+/* Linha do processo */
+.pdp-tl-linha {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+	margin-left: 4px;
+	vertical-align: middle;
+	white-space: nowrap;
+}
+
+.pdp-tl-contador {
+	display: inline-block;
+	padding: 0 4px;
+	border-radius: 8px;
+	background: #fff1cc;
+	border: 1px solid #e8cf8a;
+	color: #7a5a00;
+	font: bold 10px Arial, Helvetica, sans-serif;
+	line-height: 13px;
+	cursor: help;
+}
+
+.pdp-tl-contador-ok {
+	background: #e5f5e8;
+	border-color: #a9d6b2;
+	color: #216b32;
+}
+
+.pdp-tl-mais {
+	width: 16px;
+	height: 16px;
+	padding: 0;
+	border: 1px solid #b9c4ad;
+	border-radius: 50%;
+	background: #f4f6ef;
+	color: #34422a;
+	font: bold 12px/14px Arial, Helvetica, sans-serif;
+	cursor: pointer;
+	text-align: center;
+}
+
+.pdp-tl-mais:hover {
+	background: #34422a;
+	color: #fff;
+}
+
+tr.pdp-tl-oculta {
+	display: none !important;
+}
+
+/* Painel do processo */
+.pdp-tl-popover {
+	position: fixed;
+	z-index: 2147483000;
+	width: 360px;
+	max-width: calc(100vw - 16px);
+	max-height: calc(100vh - 16px);
+	overflow: auto;
+	box-sizing: border-box;
+	padding: 8px 10px;
+	background: #fff;
+	border: 1px solid #b9c4ad;
+	border-radius: 8px;
+	box-shadow: 0 6px 22px rgba(0, 0, 0, 0.22);
+	font: 12px Arial, Helvetica, sans-serif;
+	color: #333;
+	text-align: left;
+	white-space: normal;
+}
+
+.pdp-tl-pop-cab {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin-bottom: 4px;
+}
+
+.pdp-tl-x {
+	border: 0;
+	background: none;
+	font-size: 14px;
+	color: #666;
+	cursor: pointer;
+}
+
+.pdp-tl-sec {
+	margin: 8px 0 4px;
+	font-weight: bold;
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	color: #5a6b4a;
+}
+
+.pdp-tl-pop-listas,
+.pdp-tl-pop-prefs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+
+.pdp-tl-opcao {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 2px 7px 2px 3px;
+	border: 1px solid #ddd;
+	border-radius: 12px;
+	cursor: pointer;
+	font-size: 11.5px;
+}
+
+.pdp-tl-opcao input {
+	margin: 0;
+}
+
+.pdp-tl-opcao-on {
+	background: #eef2e6;
+	border-color: #b9c4ad;
+	font-weight: bold;
+}
+
+.pdp-tl-tarefas {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.pdp-tl-tarefa {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 2px 0;
+	border-bottom: 1px dotted #e3e3e3;
+}
+
+.pdp-tl-tarefa .pdp-tl-texto {
+	flex: 1 1 auto;
+	word-break: break-word;
+}
+
+.pdp-tl-feita .pdp-tl-texto {
+	text-decoration: line-through;
+	color: #888;
+}
+
+.pdp-tl-icone {
+	border: 0;
+	background: none;
+	padding: 0 2px;
+	font-size: 11px;
+	cursor: pointer;
+	opacity: 0.7;
+}
+
+.pdp-tl-icone:hover {
+	opacity: 1;
+}
+
+.pdp-tl-icone:disabled {
+	opacity: 0.2;
+	cursor: default;
+}
+
+.pdp-tl-linha-form {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	margin-top: 5px;
+}
+
+.pdp-tl-input {
+	flex: 1 1 auto;
+	min-width: 0;
+	padding: 3px 5px;
+	border: 1px solid #c8c8c8;
+	border-radius: 4px;
+	font: 12px Arial, Helvetica, sans-serif;
+}
+
+.pdp-tl-select {
+	max-width: 150px;
+	padding: 2px;
+	font: 12px Arial, Helvetica, sans-serif;
+}
+
+.pdp-tl-pop-rodape {
+	margin-top: 8px;
+	padding-top: 5px;
+	border-top: 1px solid #eee;
+	text-align: right;
+}
+
+/* Gerenciador */
+.pdp-tl-fundo {
+	position: fixed;
+	inset: 0;
+	z-index: 2147483001;
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	padding-top: 40px;
+	background: rgba(0, 0, 0, 0.35);
+}
+
+.pdp-tl-modal {
+	width: 560px;
+	max-width: calc(100vw - 24px);
+	max-height: calc(100vh - 60px);
+	overflow: auto;
+	box-sizing: border-box;
+	padding: 10px 14px;
+	background: #fff;
+	border-radius: 8px;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+	font: 12px Arial, Helvetica, sans-serif;
+	color: #333;
+	text-align: left;
+}
+
+.pdp-tl-ger-item {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 3px 0;
+	border-bottom: 1px dotted #e3e3e3;
+}
+
+.pdp-tl-ger-nome {
+	flex: 1 1 auto;
+	word-break: break-word;
+}
+
+.pdp-tl-ger-info {
+	color: #888;
+	font-size: 11px;
+	white-space: nowrap;
+}
+
+.pdp-tl-ger-form {
+	margin: 4px 0 6px;
+	padding: 6px;
+	background: #f7f9f3;
+	border: 1px dashed #cfd6c2;
+	border-radius: 6px;
+}
+
+.pdp-tl-paleta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px;
+	margin-top: 5px;
+}
+
+.pdp-tl-cor {
+	width: 18px;
+	height: 18px;
+	padding: 0;
+	border: 2px solid #fff;
+	border-radius: 50%;
+	box-shadow: 0 0 0 1px #bbb;
+	cursor: pointer;
+}
+
+.pdp-tl-cor-on {
+	box-shadow: 0 0 0 2px #34422a;
+}
+
+.pdp-tl-cor-livre {
+	width: 26px;
+	height: 20px;
+	padding: 0;
+	border: 0;
+	background: none;
+	cursor: pointer;
+}
