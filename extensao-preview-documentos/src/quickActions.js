@@ -2433,6 +2433,35 @@
 			nameEl.textContent = "★ " + item.pref.name;
 			card.appendChild(nameEl);
 
+			const tools = document.createElement("span");
+			tools.className = "pdp-qa-fav-tools";
+			card.appendChild(tools);
+
+			const editPrefBtn = document.createElement("button");
+			editPrefBtn.type = "button";
+			editPrefBtn.className = "pdp-qa-fav-edit";
+			editPrefBtn.textContent = "✏️";
+			editPrefBtn.draggable = false;
+			editPrefBtn.disabled = !mode;
+			editPrefBtn.title = mode
+				? "Editar esta preferência: abre o diálogo preenchido com ela para ajustar os campos (e o nome) e salvar de novo"
+				: '"' + item.label + '" não está disponível nesta tela para editar.';
+			editPrefBtn.addEventListener("click", function (e) {
+				e.stopPropagation();
+				if (!mode) return;
+				closePanel();
+				removeConfirmBar();
+				removeCaptureToolbar();
+				if (mode === "juntar") window.__pdpJuntarDocumento.edit(item.pref);
+				else if (mode === "custom") applyPreferenceCustom(item.label, item.pref, true);
+				else if (mode === "hop") applyPreferenceViaChain(item.label, item.pref, true);
+				else applyPreference(item.label, item.pref, true);
+			});
+			editPrefBtn.addEventListener("keydown", function (e) {
+				e.stopPropagation();
+			});
+			tools.appendChild(editPrefBtn);
+
 			const delBtn = document.createElement("button");
 			delBtn.type = "button";
 			delBtn.className = "pdp-qa-fav-del";
@@ -2454,7 +2483,7 @@
 			delBtn.addEventListener("keydown", function (e) {
 				e.stopPropagation();
 			});
-			card.appendChild(delBtn);
+			tools.appendChild(delBtn);
 
 			if (!mode) {
 				card.classList.add("pdp-qa-fav-unavailable");

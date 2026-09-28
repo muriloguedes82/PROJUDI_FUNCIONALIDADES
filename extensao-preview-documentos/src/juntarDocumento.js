@@ -1264,6 +1264,10 @@
 			closePanel();
 			iniciarJuntada("apply", pref);
 		},
+		edit: function (pref) {
+			closePanel();
+			iniciarJuntada("edit", pref);
+		},
 	};
 
 	function closePanel() {

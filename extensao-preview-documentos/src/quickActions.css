@@ -226,27 +226,41 @@
 
 .pdp-qa-fav-card {
 	position: relative;
-	padding-left: 18px;
-	padding-right: 18px;
+	padding: 13px 6px 4px;
 }
 
-.pdp-qa-fav-del {
+.pdp-qa-fav-tools {
 	position: absolute;
 	top: 1px;
 	right: 1px;
+	display: flex;
+	gap: 1px;
+}
+
+.pdp-qa-fav-edit,
+.pdp-qa-fav-del {
 	background: none;
 	border: none;
 	border-radius: 3px;
 	padding: 1px 3px;
-	font-size: 11px;
+	font-size: 10px;
 	line-height: 1;
 	cursor: pointer;
 	opacity: 0.45;
 }
 
+.pdp-qa-fav-card:hover .pdp-qa-fav-edit,
 .pdp-qa-fav-card:hover .pdp-qa-fav-del,
+.pdp-qa-fav-card:focus-within .pdp-qa-fav-edit,
 .pdp-qa-fav-card:focus-within .pdp-qa-fav-del {
 	opacity: 0.85;
+}
+
+.pdp-qa-fav-edit:hover,
+.pdp-qa-fav-edit:focus {
+	opacity: 1;
+	background: #dce9fb;
+	outline: none;
 }
 
 .pdp-qa-fav-del:hover,
@@ -256,8 +270,10 @@
 	outline: none;
 }
 
-.pdp-qa-fav-card.pdp-qa-fav-unavailable .pdp-qa-fav-del {
-	cursor: pointer;
+.pdp-qa-fav-edit:disabled {
+	opacity: 0.2 !important;
+	background: none !important;
+	cursor: default;
 }
 
 .pdp-qa-fav-card-action {
