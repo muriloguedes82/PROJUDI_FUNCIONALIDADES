@@ -104,8 +104,8 @@
 			const dataLabel = cell.getAttribute("data-label");
 			const ehRotulo = cell.matches("td.label, td.labelRadio") || /:\s*$/.test(cell.textContent || "") || !!dataLabel;
 			if (!ehRotulo) return;
-			const rotulo = colapsar(cell.textContent) || dataLabel;
-			if (rotulo.length > 60) return;
+			const rotulo = colapsar(cell.textContent) || colapsar(dataLabel);
+			if (!rotulo || rotulo.length > 60) return;
 			add(rotulo, textoLimpo(proxima));
 		});
 		return campos;
@@ -473,10 +473,21 @@
 
 	async function gerarCertidao() {
 		const avisos = [];
-		const cabecalho = await lerCabecalho(avisos);
-		const polos = await lerPolos(avisos);
-		const movimentos = await lerMovimentos(avisos);
-		const pecas = await lerPecas(movimentos, avisos);
+		// Cada etapa é independente: uma falha de leitura vira aviso na
+		// certidão (com o campo em branco para preencher), sem impedir o resto.
+		async function etapa(nome, fn, padrao) {
+			try {
+				return await fn();
+			} catch (e) {
+				console.error(TAG, "falha em", nome, e);
+				avisos.push("Falha ao ler " + nome + " (" + e.message + ") — confira e preencha na certidão.");
+				return padrao;
+			}
+		}
+		const cabecalho = await etapa("o cabeçalho do processo", function () { return lerCabecalho(avisos); }, { numero: numeroDoProcesso(), assuntos: [] });
+		const polos = await etapa("as partes", function () { return lerPolos(avisos); }, []);
+		const movimentos = await etapa("os movimentos", function () { return lerMovimentos(avisos); }, []);
+		const pecas = await etapa("as peças principais", function () { return lerPecas(movimentos, avisos); }, []);
 
 		const id = (crypto.randomUUID && crypto.randomUUID()) || String(Date.now()) + Math.random().toString(16).slice(2);
 		const payload = Object.assign({}, cabecalho, {
