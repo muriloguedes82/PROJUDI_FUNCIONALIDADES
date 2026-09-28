@@ -67,6 +67,17 @@
 	// Preferência gravada no clique em "Concluir Movimento", até o
 	// chrome.storage confirmar a gravação (a página pode navegar antes).
 	const PENDING_SAVE_KEY = "pdpJuntarDocumentoPendingSave";
+	// Combos de preferências (quickActions.js). Uma juntada iniciada por um
+	// combo anota COMBO_CONCLUIR_KEY no clique em "Concluir Movimento"; a
+	// tela seguinte do Projudi ("Dados registrados com sucesso!", em
+	// juntarDocumento.do — onde a fileira de botões e o motor do combo não
+	// rodam, ver uiVisibility.js) confirma a juntada: a extensão marca
+	// COMBO_DONE_KEY e clica sozinha em "Voltar para o Processo". De volta
+	// à tela do processo, o combo segue para a etapa seguinte.
+	const COMBO_CONCLUIR_KEY = "pdpComboJuntadaConcluir";
+	const COMBO_DONE_KEY = "pdpComboJuntadaConcluida";
+	const COMBO_CONCLUIR_MAX_AGE_MS = 5 * 60 * 1000;
+	const SUCCESS_RE = /dados registrados com sucesso/i;
 	// O usuário pode levar um bom tempo digitando o texto.
 	const JOB_MAX_AGE_MS = 60 * 60 * 1000;
 	const WAIT_TIMEOUT_MS = 8000;
@@ -395,11 +406,13 @@
 	}
 
 	// mode: null (só abrir) | "apply" | "capture" | "edit"
-	function iniciarJuntada(mode, pref) {
+	// `combo`: juntada iniciada por um combo de preferências (ver
+	// COMBO_DONE_KEY). Devolve false se não achou o botão nativo.
+	function iniciarJuntada(mode, pref, combo) {
 		const url = findJuntarUrl(document);
 		if (!url) {
 			alert('Não encontrei o botão nativo "Juntar Documento" nesta tela. Abra o processo (a barra com "Peticionar", "Juntar Documento", "Navegar"...) e tente de novo.');
-			return;
+			return false;
 		}
 		if (mode) {
 			writeJob({
@@ -408,13 +421,32 @@
 				pref: pref || null,
 				rec: {},
 				numero: numeroProcesso(document),
+				combo: !!combo,
 				createdAt: Date.now(),
 			});
 		} else {
 			clearJob();
 		}
 		location.href = url.href;
+		return true;
 	}
+
+	// Usado pelos combos de preferências (quickActions.js).
+	window.__pdpJuntarDocumentoApi = {
+		start: function (pref) {
+			return iniciarJuntada("apply", pref, true);
+		},
+		// Esta tela tem o botão nativo "Juntar Documento" (tela do processo).
+		available: function () {
+			return !!findJuntarUrl(document);
+		},
+		hasActiveJob: function () {
+			return !!readJob();
+		},
+		cancel: function () {
+			clearJob();
+		},
+	};
 
 	// -------------------------------------------------------------------
 	// Tela "Juntar Documento" (form#juntarDocumentoForm)
@@ -568,6 +600,13 @@
 						if (saved) showStatus('Preferência "' + saved.name + '" ' + (job.mode === "edit" ? "atualizada" : "salva") + ".", "ok");
 						else removeStatus();
 					} else {
+						if (job.combo) {
+							try {
+								sessionStorage.setItem(COMBO_CONCLUIR_KEY, JSON.stringify({ at: Date.now(), numero: job.numero || null }));
+							} catch (err) {
+								// sem sessionStorage: o combo pergunta como seguir
+							}
+						}
 						clearJob(true);
 					}
 				},
@@ -1187,8 +1226,48 @@
 	// Laço de verificação (cada frame cuida da sua tela)
 	// -------------------------------------------------------------------
 
+	// Tela depois do "Concluir Movimento" de uma juntada do combo: com a
+	// confirmação "Dados registrados com sucesso", marca a etapa como feita
+	// e volta para o processo (ver COMBO_CONCLUIR_KEY).
+	let comboBackClicked = false;
+	function tickComboAfterConcluir() {
+		if (comboBackClicked || !document.body) return;
+		let pending = null;
+		try {
+			pending = JSON.parse(sessionStorage.getItem(COMBO_CONCLUIR_KEY) || "null");
+		} catch (err) {
+			return;
+		}
+		if (!pending) return;
+		if (Date.now() - pending.at > COMBO_CONCLUIR_MAX_AGE_MS) {
+			sessionStorage.removeItem(COMBO_CONCLUIR_KEY);
+			return;
+		}
+		if (!SUCCESS_RE.test(document.body.textContent || "")) return;
+		const numero = numeroProcesso(document);
+		if (pending.numero && numero && pending.numero !== numero) return;
+		const voltar = findButton(document, "Voltar para o Processo");
+		comboBackClicked = true;
+		try {
+			sessionStorage.removeItem(COMBO_CONCLUIR_KEY);
+			sessionStorage.setItem(COMBO_DONE_KEY, String(Date.now()));
+		} catch (err) {
+			return;
+		}
+		console.info(LOG, "combo: juntada confirmada (\"Dados registrados com sucesso\")" + (voltar ? '; voltando para o processo.' : '; sem "Voltar para o Processo" nesta tela.'));
+		if (voltar) {
+			showStatus('Documento juntado. Voltando para o processo para continuar o combo…', "ok");
+			setTimeout(function () {
+				voltar.click();
+			}, 600);
+		} else {
+			showStatus('Documento juntado. Volte para o processo para o combo continuar.', "ok");
+		}
+	}
+
 	function tick() {
 		try {
+			tickComboAfterConcluir();
 			const juntar = isJuntarScreen();
 			const upload = !juntar && isUploadScreen();
 			const digitar = !juntar && !upload && isDigitarScreen();
