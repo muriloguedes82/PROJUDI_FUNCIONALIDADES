@@ -1,7 +1,8 @@
 // Restringe a extensão às telas do Projudi e do SEEU e a bloqueia nos
 // perfis de advogado(a) e de assessor(a) de advogado.
 //
-// Os blocos de content_scripts do manifest.json usam "*://*.tjpr.jus.br/*"
+// Os scripts do Projudi/SEEU (registrados em src/termosUso.js após o aceite
+// dos Termos de Uso) usam "*://*.tjpr.jus.br/*"
 // (o Chrome exige path "*" com `match_origin_as_fallback`), o que também
 // injeta os scripts em outras páginas do domínio, como o portal
 // www.tjpr.jus.br - onde a barra de botões aparecia indevidamente. Este

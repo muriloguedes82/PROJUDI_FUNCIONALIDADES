@@ -21,6 +21,9 @@
 
 "use strict";
 
+// Aceite dos Termos de Uso e registro dos scripts do Projudi/SEEU.
+importScripts("termosUso.js");
+
 const MESSAGE_SOURCE = "projudi-preview";
 const PENDING_KEY = "pdpWhatsappPending";
 const LOG_PREFIX = "[Projudi WhatsApp]";

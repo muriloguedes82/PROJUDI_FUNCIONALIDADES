@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Projudi/SEEU - Documentos: Pré-visualização, WhatsApp e E-mail",
-  "version": "2.9.79",
+  "version": "2.9.80",
   "description": "Ao passar o mouse sobre um documento na tela de Movimentações (Projudi ou SEEU), ou sobre uma pendência de análise de juntada/conclusão do Projudi, exibe a íntegra do(s) arquivo(s) em janela(s) sobreposta(s), sem precisar abri-los em outra aba. Também permite selecionar arquivos do processo e enviá-los por WhatsApp Web ou por e-mail via Outlook.",
   "permissions": [
     "identity",
@@ -29,71 +29,6 @@
   },
   "options_page": "src/options.html",
   "content_scripts": [
-    {
-      "matches": [
-        "*://*.tjpr.jus.br/*",
-        "*://seeu.pje.jus.br/*"
-      ],
-      "js": [
-        "src/hostGuard.js",
-        "src/closeShim.js"
-      ],
-      "run_at": "document_start",
-      "all_frames": true,
-      "match_origin_as_fallback": true
-    },
-    {
-      "matches": [
-        "*://*.tjpr.jus.br/*",
-        "*://seeu.pje.jus.br/*"
-      ],
-      "js": [
-        "src/hostGuard.js",
-        "src/uiVisibility.js",
-        "src/clipboardProcess.js",
-        "src/documentSelection.js",
-        "src/content.js",
-        "src/email.js",
-        "src/quickActions.js",
-        "src/remessaMultipla.js",
-        "src/buttonDrag.js",
-        "src/juntadaDrag.js",
-        "src/finalizarConclusao.js",
-        "src/mesaAnalistaContadores.js",
-        "src/ordenarCumprimentos.js",
-        "src/movementHighlight.js",
-        "src/expandMovements.js",
-        "src/sequencialProcessoPrincipal.js",
-        "src/decursoPrazoSequencial.js",
-        "src/suspensaoAtiva.js",
-        "src/monitoracaoAtiva.js",
-        "src/oraculoDirect.js",
-        "src/oraculo.js",
-        "src/habilitarAdvogado.js",
-        "src/editarPartes.js",
-        "src/alvaraEletronico.js",
-        "src/juntarDocumento.js",
-        "src/reusCabecalho.js",
-        "src/cpfPartesCumprimentos.js",
-        "src/bnmpMandadoPrisao.js"
-      ],
-      "css": [
-        "src/content.css",
-        "src/email.css",
-        "src/quickActions.css",
-        "src/remessaMultipla.css",
-        "src/juntadaDrag.css",
-        "src/ordenarCumprimentos.css",
-        "src/movementHighlight.css",
-        "src/reusCabecalho.css",
-        "src/cpfPartesCumprimentos.css",
-        "src/bnmpMandadoPrisao.css",
-        "src/juntarDocumento.css"
-      ],
-      "run_at": "document_idle",
-      "all_frames": true,
-      "match_origin_as_fallback": true
-    },
     {
       "matches": [
         "https://outlook.office.com/mail/*",

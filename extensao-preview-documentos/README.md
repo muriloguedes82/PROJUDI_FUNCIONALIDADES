@@ -939,7 +939,12 @@ partir do link **"Processo"** da ordenação:
    (`parteProcessoPena.do?actionType=visualizar`) e traz Data do Delito,
    Tipo (realização do crime, violência doméstica, hediondo...), Fração
    para Progressão de Regime, Fração para Livramento Condicional,
-   Reincidente (comum/específico) e anos/meses/dias da pena. Se o detalhe
+   Reincidente (comum/específico), anos/meses/dias da pena e **Data de
+   Prescrição** (ex.: "13/09/2031 (Ativa)" ou "Interrompida pelo
+   Acórdão"). Abaixo da tabela, **Próxima Prescrição** mostra a data ativa
+   mais próxima entre os crimes da tipificação (sem tipificação, entre as
+   imputações da denúncia); a tabela de imputações da denúncia também
+   ganha a coluna "Data de Prescrição". Se o detalhe
    não puder ser lido, a linha usa os dados da lista (data da infração e
    pena, quando for pena imposta e não uma faixa como "5 a 15 anos");
 5. aba **Prisões** da tela da parte (link do nome da parte na ordenação;
@@ -1425,13 +1430,40 @@ disso funcionam normalmente. Se o perfil de advocacia for identificado só
 depois que a tela carregou, os elementos da extensão (id/classe `pdp*`)
 são ocultados na hora.
 
+## Termos de Uso (aceite obrigatório)
+
+Logo após a instalação, a extensão abre a página **Termos de Uso**
+(`src/termos.html`), com as cores institucionais do TJPR. O usuário precisa
+marcar "Declaro que li os Termos de Uso e concordo com todas as condições"
+e clicar em **Aceitar e ativar a extensão**; o botão **Não concordo -
+remover extensão** desinstala a extensão (com confirmação do navegador).
+
+Enquanto não houver aceite, **nenhum script é injetado no Projudi ou no
+SEEU**: os scripts dessas telas não ficam mais em `content_scripts` do
+`manifest.json`, e sim são registrados por `src/termosUso.js`
+(`chrome.scripting.registerContentScripts`) somente após o aceite. Sem
+aceite, a página de termos volta a ser aberta ao iniciar o navegador, após
+uma atualização da extensão e ao abrir uma página do Projudi/SEEU. Depois
+de aceitar, recarregue as páginas do Projudi/SEEU que já estavam abertas.
+
+- O aceite fica gravado em `chrome.storage.local` (chave `pdpTermosUso`,
+  com versão dos termos, data/hora e versão da extensão).
+- Para consultar os termos ou revogar o aceite, use o link "Termos de Uso
+  da extensão" na página de opções.
+- Ao alterar o texto dos termos de forma relevante, incremente `versao` em
+  `src/termosConfig.js`: todos os usuários terão de aceitar de novo.
+- Ao criar um novo script para o Projudi/SEEU, inclua-o na lista de
+  `src/termosUso.js` (e não no `manifest.json`).
+
 ## Instalação (modo desenvolvedor)
 
 1. Acesse `chrome://extensions` (ou `edge://extensions`).
 2. Ative o "Modo do desenvolvedor".
 3. Clique em "Carregar sem compactação" e selecione a pasta
    `extensao-preview-documentos`.
-4. Abra um processo no Projudi (TJPR) ou no SEEU e passe o mouse sobre um
+4. Na aba de Termos de Uso que se abre, marque a concordância e clique em
+   "Aceitar e ativar a extensão".
+5. Abra um processo no Projudi (TJPR) ou no SEEU e passe o mouse sobre um
    documento na aba Movimentações.
 
 ## Convivência com o AzFlow no SEEU
