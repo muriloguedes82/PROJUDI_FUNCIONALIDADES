@@ -290,6 +290,21 @@
 	word-break: break-word;
 }
 
+.pdp-qa-fav-card.pdp-qa-fav-combo {
+	background: #eef4fc;
+	border-color: #b9d0f0;
+}
+
+.pdp-qa-fav-card.pdp-qa-fav-combo:hover,
+.pdp-qa-fav-card.pdp-qa-fav-combo:focus {
+	background: #dce9fb;
+	border-color: #8fb1e3;
+}
+
+.pdp-qa-fav-card.pdp-qa-fav-combo .pdp-qa-fav-card-action {
+	color: #1a5fb4;
+}
+
 .pdp-qa-fav-card.pdp-qa-fav-hidden {
 	display: none;
 }
