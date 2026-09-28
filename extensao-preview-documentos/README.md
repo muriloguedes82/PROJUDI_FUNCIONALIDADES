@@ -624,12 +624,24 @@ diálogo como **preferência** e reaplicá-lo depois com poucos cliques:
    preenchidos antes de confirmar.
 
 **Como a preferência é gravada e preenchida.** A preferência guarda **só
-o que você preencheu ou selecionou** no diálogo: campos bloqueados (ex.:
-as seções não escolhidas de "Realizar Remessa"), textos e listas vazios,
-bolinhas não marcadas e caixas desmarcadas ficam de fora — salvo uma
-caixa que vinha marcada e você desmarcou. Cada campo guarda o valor e, nas
-listas, também o **texto da opção** escolhida (e o rótulo do campo na
-tela). Ao aplicar, a extensão preenche em rodadas, até cada campo
+o que você preencheu ou selecionou** no diálogo — o que difere do padrão
+da tela: campos bloqueados (ex.: as seções não escolhidas de "Realizar
+Remessa"), blocos ocultos (ex.: o prazo individual de cada parte em
+"Intimar Partes", que só abre no "+"), textos e listas vazios ou no valor
+padrão, e bolinhas e caixas no estado padrão ficam de fora. Cada campo
+guarda o valor e, nas listas, também o **texto da opção** escolhida, além
+do rótulo do campo na tela e da seção do diálogo (ex.: "Urgente — Partes -
+Vítima").
+
+Quando vários campos têm o mesmo nome e valor — as caixas "marcar todos"
+de "Intimar Partes" são todas `checker` —, cada um é identificado pela
+**seção e pelo rótulo** (ex.: "Partes - Vítima | Advogado/Sociedade de
+Advogados"), o que vale também em outro processo, com outras seções;
+campos ocultos de mesmo nome (espelhos que o Projudi mantém) são
+ignorados. A caixa de uma parte específica (o valor dela é o código da
+parte) só é marcada no processo em que existe; noutro processo ela é
+ignorada — nunca é trocada por outra parte "na mesma posição" — e vale o
+"marcar todos" da coluna, se ele foi gravado. Ao aplicar, a extensão preenche em rodadas, até cada campo
 "pegar":
 
 - bolinhas e caixas primeiro, com um clique de verdade — há telas que só
@@ -649,8 +661,11 @@ barra avisa "⚠ Não consegui preencher: …" e o "Sim, executar" **não
 envia** enquanto esse campo estiver vazio. O aviso e a conferência valem
 só para os campos que a preferência preencheu. Preferências gravadas antes
 da versão 2.9.82 (que guardavam também campos vazios e de seções não
-escolhidas) continuam funcionando: esses campos são ignorados ao aplicar.
-Salvar de novo deixa a preferência só com o que interessa.
+escolhidas) continuam funcionando: esses campos são ignorados ao aplicar,
+assim como os campos que não existem no processo atual. Preferências de
+diálogos com caixas repetidas (ex.: "Intimar Partes") gravadas antes da
+versão 2.9.84 devem ser **salvas de novo**, para guardarem a seção e o
+rótulo de cada caixa.
 
 Para **editar** uma preferência, clique no **✏️** ao lado dela (o 🗑
 continua removendo): a extensão abre o mesmo diálogo já preenchido com a

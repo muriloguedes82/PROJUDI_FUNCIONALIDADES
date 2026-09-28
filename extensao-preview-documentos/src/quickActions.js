@@ -1275,24 +1275,132 @@
 	const FILL_TIMEOUT_MS = 8000;
 
 	function cleanLabel(text) {
-		return (text || "").replace(/\s+/g, " ").replace(/[*:]+\s*$/, "").replace(/^\s*\*\s*/, "").trim();
+		return (text || "").replace(/\(\*\)/g, "").replace(/\s+/g, " ").replace(/[*:]+\s*$/, "").replace(/^\s*\*\s*/, "").trim();
 	}
 
 	function normText(text) {
 		return (text || "").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
 	}
 
-	// Rótulo do campo na tela: <label for>, <label> em volta, ou a célula
-	// anterior da mesma linha (padrão das telas do Projudi).
-	function fieldLabel(el) {
-		const doc = el.ownerDocument;
+	// Texto do <label for> de um controle (ou null).
+	function labelForText(el) {
+		if (!el.id) return null;
 		try {
-			if (el.id) {
-				const forLabel = doc.querySelector('label[for="' + cssEscapeAttr(el.id) + '"]');
-				if (forLabel && cleanLabel(forLabel.textContent)) return cleanLabel(forLabel.textContent);
-			}
+			const forLabel = el.ownerDocument.querySelector('label[for="' + cssEscapeAttr(el.id) + '"]');
+			return forLabel && cleanLabel(forLabel.textContent) ? cleanLabel(forLabel.textContent).slice(0, 60) : null;
 		} catch (err) {
-			// seletor inválido: segue para as outras formas
+			return null;
+		}
+	}
+
+	// Caixa "marcar todos" da coluna de uma caixa de linha: a caixa rotulada
+	// na mesma coluna de uma linha acima, na mesma seção (ex.: "Intimação
+	// de Partes" — o cabeçalho de cada seção é uma linha comum da tabela,
+	// com as caixas "checker" "Intimação Pessoal" / "Advogado/Sociedade de
+	// Advogados"; o título da seção, um <h4> numa linha anterior). Também
+	// cobre tabelas com <thead>.
+	function columnHeaderCheckbox(el) {
+		const cell = el.closest("td, th");
+		const row = cell && cell.parentElement;
+		if (!row || !row.closest("table")) return null;
+		const col = cell.cellIndex;
+		for (let prev = row.previousElementSibling; prev; prev = prev.previousElementSibling) {
+			if (prev.querySelector("h1, h2, h3, h4, h5, legend")) break; // outra seção
+			const headerCell = prev.cells && prev.cells[col];
+			const box = headerCell && headerCell.querySelector('input[type="checkbox"]');
+			if (box && box !== el && labelForText(box)) return box;
+		}
+		const table = row.closest("table");
+		if (table.tHead && table.tHead.rows.length && row.parentElement !== table.tHead) {
+			const th = table.tHead.rows[0].cells[col];
+			return th ? th.querySelector('input[type="checkbox"]') : null;
+		}
+		return null;
+	}
+
+	// Caixa de uma linha de tabela: "coluna — parte" (ex.: "Advogado/
+	// Sociedade de Advogados — DEJAIR PORTES DE FRANÇA").
+	function tableColumnLabel(el) {
+		const header = columnHeaderCheckbox(el);
+		const headerText = header ? labelForText(header) || cleanLabel(header.closest("td, th").textContent) : null;
+		if (!headerText) return null;
+		const cell = el.closest("td, th");
+		const other = Array.prototype.filter
+			.call(cell.parentElement.cells, function (c) {
+				return c !== cell && !c.querySelector("input, select, textarea") && cleanLabel(c.textContent);
+			})
+			.map(function (c) {
+				return cleanLabel(c.textContent);
+			})
+			.join(" ");
+		return headerText.slice(0, 60) + (other ? " — " + other.slice(0, 50) : "");
+	}
+
+	// Âncora de uma caixa/bolinha: "seção | rótulo" (ex.: "Partes - Vítima |
+	// Advogado/Sociedade de Advogados"). Identifica o controle de um
+	// processo para outro mesmo quando nome e valor se repetem (as caixas
+	// "marcar todos" de "Intimar Partes" são todas name="checker"
+	// value="checker") e a numeração muda (quais seções o processo tem).
+	function controlAnchor(el) {
+		return (sectionTitle(el) || "") + " | " + (labelForText(el) || tableColumnLabel(el) || "");
+	}
+
+	// A lista está na opção padrão da tela (a marcada no HTML, ou a primeira).
+	function isDefaultOption(select) {
+		const options = Array.prototype.slice.call(select.options);
+		if (!options.length) return true;
+		const def = options.filter(function (o) {
+			return o.defaultSelected;
+		})[0] || options[0];
+		return select.selectedIndex === options.indexOf(def);
+	}
+
+	// O controle aparece na tela (blocos ocultos — ex.: o prazo individual de
+	// cada parte, que só abre no "+" — não foram preenchidos pelo usuário).
+	function isRendered(el) {
+		return el.getClientRects().length > 0;
+	}
+
+	// Texto logo antes do campo, até o campo anterior ("<b>Urgente:</b> ◉").
+	// Numa bolinha, a partir da primeira do grupo (senão "◉ Sim ○ Não"
+	// daria "Sim" como rótulo do "Não").
+	function inlineLabelBefore(el) {
+		let start = el;
+		if (el.type === "radio" && el.name && el.form) {
+			const first = formFieldsNamed(el.form, el.name)[0];
+			if (first) start = first;
+		}
+		let text = "";
+		for (let node = start.previousSibling; node; node = node.previousSibling) {
+			if (node.nodeType === 1 && (node.matches("input, select, textarea, br, hr, table, div") || node.querySelector("input, select, textarea"))) break;
+			text = (node.textContent || "") + text;
+		}
+		return cleanLabel(text).slice(0, 60) || null;
+	}
+
+	// Rótulo do campo na tela: <label for>, <label> em volta, coluna da
+	// tabela, texto logo antes, ou a célula anterior da mesma linha.
+	function fieldLabel(el) {
+		// Numa bolinha, o <label> é o da OPÇÃO ("Sim"/"Não"); o rótulo do
+		// campo é o texto antes da primeira bolinha do grupo ("Urgente").
+		if (el.type !== "radio") {
+			const forText = labelForText(el);
+			if (forText) return forText;
+			const wrap = el.closest("label");
+			if (wrap && cleanLabel(wrap.textContent)) return cleanLabel(wrap.textContent).slice(0, 60);
+		}
+		if (el.type === "checkbox" || el.type === "radio") {
+			const column = tableColumnLabel(el);
+			if (column) return column;
+		}
+		const inline = inlineLabelBefore(el);
+		if (inline) return inline;
+		// Campo sem rótulo próprio logo depois de outro (ex.: os dias do
+		// "Prazo: [Estipular em dias] [10]"): o rótulo do anterior.
+		const prevControl = el.previousElementSibling;
+		if (prevControl && /^(INPUT|SELECT|TEXTAREA)$/.test(prevControl.tagName)) {
+			const prevText = labelForText(prevControl) || inlineLabelBefore(prevControl);
+			if (prevText) return prevText;
 		}
 		const cell = el.closest("td");
 		if (cell) {
@@ -1300,9 +1408,32 @@
 			while (prev && !cleanLabel(prev.textContent)) prev = prev.previousElementSibling;
 			if (prev) return cleanLabel(prev.textContent).slice(0, 60);
 		}
-		const wrap = el.closest("label");
-		if (wrap && cleanLabel(wrap.textContent)) return cleanLabel(wrap.textContent).slice(0, 60);
 		return el.name || el.id || "(campo)";
+	}
+
+	// Título da seção do diálogo em que o campo está (último título antes
+	// dele — ex.: "Partes - Vítima"), para distinguir rótulos repetidos.
+	function sectionTitle(el) {
+		const headings = el.ownerDocument.querySelectorAll("h1, h2, h3, h4, legend");
+		let title = null;
+		for (let i = 0; i < headings.length; i++) {
+			if (headings[i].compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING) title = cleanLabel(headings[i].textContent);
+		}
+		return title;
+	}
+
+	// Controles "de verdade" com o mesmo nome (campos ocultos de mesmo nome,
+	// que o Projudi usa como espelho de listas e caixas, ficam de fora), do
+	// mesmo tipo do controle gravado.
+	function controlKind(type) {
+		if (type === "checkbox" || type === "radio") return type;
+		if (type === "select-one" || type === "select-multiple") return "select";
+		return "text";
+	}
+	function sameNameControls(form, name, kind) {
+		return formFieldsNamed(form, name).filter(function (c) {
+			return /^(INPUT|SELECT|TEXTAREA)$/.test(c.tagName) && c.type !== "hidden" && controlKind((c.type || "").toLowerCase()) === kind;
+		});
 	}
 
 	// Texto da opção de uma bolinha: o <label> dela, ou o texto logo depois
@@ -1362,12 +1493,44 @@
 			// ficam de fora — salvo a caixa que vinha marcada e foi
 			// desmarcada (essa escolha também é do usuário).
 			if (el.disabled) return;
-			if (type === "radio" && !el.checked) return;
-			if (type === "checkbox" && !el.checked && !el.defaultChecked) return;
+			if (!isRendered(el) && !(el.tagName === "SELECT" && isSelect2(el))) return; // o select2 esconde a lista original
+			// Bolinha, lista e texto: só se diferem do padrão da tela (o que
+			// já vem assim — ex.: "Urgente: Não", "Prazo: Estipular em dias"
+			// — não foi escolha do usuário).
+			if (type === "radio" && (!el.checked || el.defaultChecked)) return;
+			// (o select2 cria a opção escolhida já como "padrão" — ele fica
+			// de fora dessa regra; vazio, cai na regra abaixo)
+			if (type === "select-one" && !isSelect2(el) && isDefaultOption(el)) return;
+			if ((type === "text" || type === "textarea" || type === "number" || type === "date" || type === "email" || type === "tel") && el.value === el.defaultValue) return;
+			// Caixa: só se o estado difere do padrão da tela. As caixas de
+			// cada parte (valor = código da parte) só existem no processo em
+			// que a preferência foi gravada; noutro processo são ignoradas, e
+			// vale o "marcar todos" da coluna, se ele foi gravado.
+			if (type === "checkbox" && el.checked === el.defaultChecked) return;
 			if (type === "select-multiple" && !Array.prototype.some.call(el.options, function (o) { return o.selected; })) return;
 			if (type !== "radio" && type !== "checkbox" && type !== "select-multiple" && !(el.value || "").trim()) return;
 			const f = { name: el.name || "", type: type, label: fieldLabel(el) };
 			if (!el.name) f.id = el.id;
+			// Posição entre os controles de mesmo nome (e, nas caixas e
+			// bolinhas, entre os de mesmo nome E valor): há diálogos com
+			// várias caixas de mesmo nome/valor (ex.: os "marcar todos" de
+			// cada coluna/seção de "Intimar Partes") — sem a posição, a
+			// aplicação clicava sempre na primeira.
+			if (el.name) {
+				const kind = controlKind(type);
+				const same = sameNameControls(form, el.name, kind);
+				f.idx = same.indexOf(el);
+				f.count = same.length;
+				if (kind === "checkbox" || kind === "radio") {
+					f.vidx = same
+						.filter(function (c) {
+							return c.value === el.value;
+						})
+						.indexOf(el);
+				}
+			}
+			if (type === "checkbox" || type === "radio") f.anchor = controlAnchor(el);
+			f.section = sectionTitle(el);
 			if (type === "checkbox" || type === "radio") {
 				f.value = el.value;
 				f.checked = el.checked;
@@ -1392,15 +1555,57 @@
 			}
 			fields.push(f);
 		});
+		// Rótulos repetidos (ex.: "Urgente" em cada seção de partes) ganham
+		// o título da seção.
+		const counts = {};
+		fields.forEach(function (f) {
+			counts[f.label] = (counts[f.label] || 0) + 1;
+		});
+		fields.forEach(function (f) {
+			if (counts[f.label] > 1 && f.section && f.label.indexOf(f.section) === -1) f.label += " — " + f.section;
+		});
 		return fields;
 	}
 
-	// Controles do campo gravado no formulário (por name; campos sem name,
-	// pelo id no documento).
+	// O controle do campo gravado no formulário: por name (ignorando campos
+	// ocultos de mesmo nome), escolhido pela posição gravada quando há mais
+	// de um; campos sem name, pelo id no documento. Devolve [] ou [el].
 	function controlsFor(form, f) {
-		if (f.name) return formFieldsNamed(form, f.name);
-		const el = f.id ? form.ownerDocument.getElementById(f.id) : null;
-		return el ? [el] : [];
+		if (!f.name) {
+			const byId = f.id ? form.ownerDocument.getElementById(f.id) : null;
+			return byId ? [byId] : [];
+		}
+		const kind = controlKind(f.type);
+		const same = sameNameControls(form, f.name, kind);
+		if (!same.length) return [];
+		if (kind === "checkbox" || kind === "radio") {
+			const byValue = same.filter(function (c) {
+				return c.value === f.value;
+			});
+			if (byValue.length === 1) return byValue;
+			if (byValue.length > 1) {
+				// Várias com o mesmo valor: a de mesma âncora (seção + rótulo)
+				// — vale entre processos —; senão, a da posição gravada (entre
+				// as de mesmo valor; preferências antigas, sem posição, ficam
+				// com a primeira, como antes).
+				if (f.anchor) {
+					const byAnchor = byValue.filter(function (c) {
+						return controlAnchor(c) === f.anchor;
+					});
+					if (byAnchor.length === 1) return byAnchor;
+				}
+				if (f.vidx >= 0 && f.vidx < byValue.length) return [byValue[f.vidx]];
+				if (f.idx >= 0 && same[f.idx] && same[f.idx].value === f.value) return [same[f.idx]];
+				return [byValue[0]];
+			}
+			// Nenhuma com o valor gravado (ex.: a caixa de uma parte, cujo
+			// valor é o código dela, noutro processo): não existe aqui —
+			// nunca escolher outra "pela posição", que poderia ser outra
+			// parte.
+			return [];
+		}
+		if (f.idx >= 0 && same[f.idx]) return [same[f.idx]];
+		return [same[0]];
 	}
 
 	function fireFieldEvents(el) {
@@ -1441,9 +1646,7 @@
 		const els = controlsFor(form, f);
 		if (f.type === "radio") {
 			if (!f.checked) return true; // o grupo desmarca sozinho os outros
-			const el = els.filter(function (c) {
-				return c.value === f.value;
-			})[0];
+			const el = els[0];
 			if (!el || el.disabled) return false;
 			if (!el.checked) {
 				el.click();
@@ -1452,9 +1655,7 @@
 			return el.checked;
 		}
 		if (f.type === "checkbox") {
-			const el = els.filter(function (c) {
-				return c.value === f.value;
-			})[0] || (els.length === 1 ? els[0] : null);
+			const el = els[0];
 			if (!el || el.disabled) return false;
 			if (el.checked !== f.checked) {
 				el.click();
@@ -1533,15 +1734,8 @@
 
 	// O campo (ou a opção da bolinha/caixa) existe na tela, mas bloqueado.
 	function fieldDisabledNow(form, f) {
-		const els = controlsFor(form, f);
-		if (!els.length) return false;
-		if (f.type === "radio" || f.type === "checkbox") {
-			const el = els.filter(function (c) {
-				return c.value === f.value;
-			})[0];
-			return !!el && el.disabled;
-		}
-		return els[0].disabled;
+		const el = controlsFor(form, f)[0];
+		return !!el && el.disabled;
 	}
 
 	// Campo que continua bloqueado depois de marcadas as bolinhas e caixas
@@ -1590,7 +1784,11 @@
 			const pastGrace = Date.now() - start >= FILL_DISABLED_GRACE_MS;
 			const missing = ordered.filter(function (f) {
 				try {
-					if (pastGrace && fieldDisabledNow(form, f)) return false;
+					// Depois da carência: campo bloqueado (parte do diálogo que a
+					// preferência não usa) ou inexistente neste processo (ex.: o
+					// prazo de uma parte que só havia no processo em que a
+					// preferência foi gravada) não é preenchido nem cobrado.
+					if (pastGrace && (fieldDisabledNow(form, f) || !controlsFor(form, f).length)) return false;
 					const el = controlsFor(form, f)[0];
 					if (el && el.tagName === "SELECT" && el.options.length > 1) emptySince.delete(f);
 					return !applyField(form, f, ctx);
@@ -1622,15 +1820,15 @@
 	// preenchimento: uma troca feita pelo usuário nunca é desfeita.
 	function fieldIsEmptyNow(form, f) {
 		if (!isMeaningfulField(f) || fieldDisabledNow(form, f)) return false;
-		const els = controlsFor(form, f);
 		if (f.type === "radio") {
-			return f.checked && !els.some(function (c) {
+			// Grupo inteiro sem nenhuma marcada.
+			return f.checked && !!f.name && !sameNameControls(form, f.name, "radio").some(function (c) {
 				return c.checked;
 			});
 		}
 		if (f.type === "checkbox" || f.type === "select-multiple") return false;
-		const el = els[0];
-		if (!el) return f.value !== "";
+		const el = controlsFor(form, f)[0];
+		if (!el) return false; // não existe neste processo
 		return f.value !== "" && el.value === "";
 	}
 
