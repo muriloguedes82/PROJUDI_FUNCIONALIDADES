@@ -235,13 +235,16 @@ function promptPara(ui) {
 	if (ui.peca.tipo === "denuncia" && ui.denuncia) {
 		const d = ui.denuncia;
 		const blocos = [];
-		if (d.fatos.length) blocos.push("FATOS:\n" + d.fatos.map((f) => `Fato ${f.n} – ${f.crime}${f.data ? " (" + f.data + ")" : ""}: ${f.texto.slice(0, 400)}`).join("\n"));
-		if (d.capitulacao) blocos.push("CAPITULAÇÃO:\n" + d.capitulacao);
-		if (d.requerimentos.length) blocos.push("REQUERIMENTOS IDENTIFICADOS:\n" + d.requerimentos.join("; "));
+		if (d.denunciados.length) blocos.push("DENUNCIADO(S): " + d.denunciados.join(", "));
+		if (d.fatos.length) blocos.push("FATOS:\n" + d.fatos.map((f) => `Fato ${f.n} – ${f.crime}${f.data ? " (" + f.data + ")" : ""}: ${f.texto.slice(0, 700)}`).join("\n"));
+		const artigos = T.artigosImputacao(d.capitulacao);
+		if (artigos) blocos.push("ARTIGOS DA IMPUTAÇÃO: " + artigos);
 		const base = blocos.length ? blocos.join("\n\n") : ui.trecho.value;
 		return (
-			"Resuma a denúncia abaixo em no máximo 4 frases: liste os fatos (número, crime e data), o(s) denunciado(s), " +
-			"a capitulação legal e os requerimentos do Ministério Público. Mantenha as iniciais da vítima como no original.\n\n" +
+			"Resuma a denúncia abaixo de forma objetiva: para cada fato, escreva uma frase com número, crime, data e a conduta " +
+			"do denunciado (sem fórmulas como 'dolosamente, ciente da ilicitude', sem endereços completos e sem citar provas ou " +
+			"movimentos do processo). Ao final, escreva 'Imputação:' seguido APENAS dos artigos de lei, exatamente como informados. " +
+			"Não inclua requerimentos, assinaturas nem dados de validação do documento. Mantenha as iniciais da vítima como no original.\n\n" +
 			base
 		);
 	}
@@ -301,8 +304,21 @@ function quadroResumo() {
 	} else {
 		linha("Partes", el("span", { class: "pendente", text: "[partes e advogados]" }));
 	}
-	linha("Assuntos", dados.assuntos && dados.assuntos.length ? T.juntarLista(dados.assuntos) : valorOuPendente(""));
+	linha("Assunto principal", valorOuPendente((dados.assuntos || [])[0] || ""));
 	linha("Valor da causa", valorOuPendente(dados.valorCausa));
+	// Processos relacionados (cabeçalho do processo). null = campo não
+	// existe na tela; [] = existe, mas só com o próprio processo.
+	const relacionados = (rotulo, itens, semItens) => {
+		if (itens === undefined) return; // dados de versão anterior
+		if (!itens || !itens.length) {
+			if (semItens) linha(rotulo, semItens);
+			return;
+		}
+		linha(rotulo, ...itens.map((t) => el("div", { class: "relacionado", text: t })));
+	};
+	relacionados("Apensamentos", dados.apensamentos, "Não há processos apensados.");
+	relacionados("Vínculos", dados.vinculos, "Não há processos vinculados.");
+	relacionados("Processos dependentes", dados.dependentes, "");
 	return tabela;
 }
 
@@ -337,7 +353,8 @@ function arvoreEventos(movs) {
 
 function linhaEvento(no) {
 	const m = no.m;
-	const div = el("div", { class: "evento nivel-" + no.nivel + (m.invalido ? " invalidado" : "") });
+	const ehAudiencia = /\baudiencia/.test(T.normalizar(m.titulo || m.evento));
+	const div = el("div", { class: "evento nivel-" + no.nivel + (m.invalido ? " invalidado" : "") + (ehAudiencia ? " ev-audiencia" : "") });
 	if (no.nivel > 0) div.append(el("span", { class: "seta", text: "↳ " }));
 	div.append(el("span", { class: "ev-data", text: m.dataHora || "[data]" }), " – ");
 	const titulo = m.titulo || m.evento || "[evento]";
@@ -358,6 +375,51 @@ function linhaEvento(no) {
 	if (extras.length) div.append(" (" + extras.join(", ") + ")");
 	if (opcoes.usuario && m.usuario) div.append(el("span", { class: "ev-usuario", text: " — " + m.usuario }));
 	return div;
+}
+
+// Seção de audiências, em destaque: se há audiência designada (data
+// futura) e o histórico de designações, redesignações, cancelamentos e
+// realizações, a partir dos movimentos.
+function secaoAudiencias() {
+	const a = T.analisarAudiencias(dados.movimentos, Date.now());
+	const sec = el("section", { id: "secao-audiencias" }, el("h2", { class: "subtitulo", text: "II – AUDIÊNCIAS" }));
+	const caixa = el("div", { class: "audiencias", contenteditable: "true" });
+	const descrever = (e) => {
+		let s = e.tipo;
+		if (e.dataAudiencia) s += " em " + e.dataAudiencia.replace(" ", " às ");
+		if (e.seq) s += " (evento " + e.seq + ")";
+		return s;
+	};
+	if (a.pendentes.length) {
+		const p = el("p", { class: "aud-destaque aud-sim" }, el("strong", { text: a.pendentes.length > 1 ? "HÁ AUDIÊNCIAS DESIGNADAS: " : "HÁ AUDIÊNCIA DESIGNADA: " }));
+		p.append(a.pendentes.map(descrever).join("; ") + ".");
+		caixa.append(p);
+	} else {
+		caixa.append(el("p", { class: "aud-destaque aud-nao" }, el("strong", { text: "NÃO HÁ AUDIÊNCIA DESIGNADA" }), " (com data futura) nos registros do processo."));
+	}
+	if (a.eventos.length) {
+		const c = a.contagem;
+		const resumo = [
+			c.designada + (c.designada === 1 ? " designação" : " designações"),
+			c.redesignada + (c.redesignada === 1 ? " redesignação" : " redesignações"),
+			c.cancelada + (c.cancelada === 1 ? " cancelamento" : " cancelamentos"),
+			c.realizada + (c.realizada === 1 ? " realizada" : " realizadas"),
+		];
+		if (c["não realizada"]) resumo.push(c["não realizada"] + " não realizada(s)");
+		caixa.append(el("p", { class: "aud-resumo", text: "Histórico: " + resumo.join(" · ") + "." }));
+		a.eventos.forEach((e) => {
+			const linha = el("div", { class: "aud-item aud-" + e.situacao.replace(/\s+/g, "-").normalize("NFD").replace(/[\u0300-\u036f]/g, "") });
+			linha.append(el("span", { class: "ev-data", text: (e.dataHora || "").slice(0, 10) }), " – " + e.tipo + " – ");
+			linha.append(el("span", { class: "aud-situacao", text: e.situacao.toUpperCase() }));
+			if (e.dataAudiencia) linha.append((e.situacao === "redesignada" ? " para " : " — data: ") + e.dataAudiencia.replace(" ", " às "));
+			if (e.seq && opcoes.seq) linha.append(" (seq. " + e.seq + ")");
+			caixa.append(linha);
+		});
+	} else {
+		caixa.append(el("p", { class: "aud-resumo", text: "Não há registro de audiências (designadas, redesignadas, canceladas ou realizadas) nos movimentos do processo." }));
+	}
+	sec.append(caixa);
+	return sec;
 }
 
 function movimentosVisiveis() {
@@ -409,14 +471,14 @@ function paragrafoCorrido() {
 		p.append(frase + (i === movs.length - 1 ? "." : "; "));
 	});
 	if (!movs.length) p.append(el("span", { class: "pendente", text: "[nenhum movimento encontrado]" }), ".");
-	p.append(" Certifica, ainda, que os assuntos cadastrados são: ");
-	p.append(dados.assuntos && dados.assuntos.length ? document.createTextNode(T.juntarLista(dados.assuntos)) : valorOuPendente(""));
+	p.append(" Certifica, ainda, que o assunto principal cadastrado é ");
+	p.append(valorOuPendente((dados.assuntos || [])[0] || ""));
 	p.append(". Certifica, por fim, que o valor da causa é de ", valorOuPendente(dados.valorCausa), ".");
 	return p;
 }
 
 function secaoEventos() {
-	const sec = el("section", { id: "secao-eventos" }, el("h2", { class: "subtitulo", text: "II – EVENTOS DO PROCESSO" }));
+	const sec = el("section", { id: "secao-eventos" }, el("h2", { class: "subtitulo", text: "III – EVENTOS DO PROCESSO" }));
 	if (opcoes.formato === "corrido") sec.append(paragrafoCorrido());
 	else sec.append(introEventos(), listaEventos());
 	return sec;
@@ -600,6 +662,7 @@ async function montar() {
 		),
 		el("h1", { class: "titulo", contenteditable: "true", text: "CERTIDÃO NARRATIVA" }),
 		el("section", { id: "secao-resumo" }, el("h2", { class: "subtitulo", text: "I – DADOS DO PROCESSO" }), quadroResumo()),
+		secaoAudiencias(),
 		secaoEventos()
 	);
 
@@ -607,7 +670,7 @@ async function montar() {
 	if (dados.pecas && dados.pecas.length) {
 		const secao = el("section", { id: "pecas" });
 		secao.append(
-			el("h2", { class: "subtitulo", text: "III – PEÇAS PRINCIPAIS" }),
+			el("h2", { class: "subtitulo", text: "IV – PEÇAS PRINCIPAIS" }),
 			el("p", { contenteditable: "true", text: "CERTIFICO, ainda, que as peças principais do processo apresentam, em síntese, o seguinte conteúdo:" })
 		);
 		dados.pecas.forEach((peca, i) => {
@@ -642,17 +705,21 @@ async function montar() {
 function refazerParagrafoPrincipal() {
 	const atual = $("#secao-eventos");
 	if (atual) atual.replaceWith(secaoEventos());
+	const aud = $("#secao-audiencias");
+	if (aud) aud.replaceWith(secaoAudiencias());
 }
 
 function textoParaCopiar() {
 	const clone = $("#folha").cloneNode(true);
 	clone.querySelectorAll(".apoio, .peca.excluida").forEach((n) => n.remove());
 	const blocos = [];
-	clone.querySelectorAll(".cabecalho > div, h1, h2, p, .quadro tr, .evento, .assinatura > div").forEach((n) => {
+	clone.querySelectorAll(".cabecalho > div, h1, h2, p, .quadro tr, .aud-item, .evento, .assinatura > div").forEach((n) => {
 		let t;
 		if (n.matches(".quadro tr")) {
-			const partes = Array.from(n.cells[1].querySelectorAll(".parte")).map((p) => T.colapsar(p.textContent));
+			const partes = Array.from(n.cells[1].querySelectorAll(".parte, .relacionado")).map((p) => T.colapsar(p.textContent));
 			t = T.colapsar(n.cells[0].textContent) + ": " + (partes.length ? partes.join("; ") : T.colapsar(n.cells[1].textContent));
+		} else if (n.matches(".aud-item")) {
+			t = "    " + T.colapsar(n.textContent);
 		} else if (n.matches(".evento")) {
 			const nivel = Number((/nivel-(\d)/.exec(n.className) || [])[1] || 0);
 			t = "    ".repeat(nivel) + T.colapsar(n.textContent);

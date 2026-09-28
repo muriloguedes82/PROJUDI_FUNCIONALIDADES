@@ -207,7 +207,7 @@
 	// Devolve o trecho (texto) em que a peça formula os pedidos (ou, na
 	// sentença, o dispositivo). Para a denúncia, use extrairDenuncia().
 	function extrairTrechoPedidos(texto, tipo) {
-		const t = String(texto || "").replace(/\r/g, "").replace(/[ \t]+/g, " ");
+		const t = limparAssinaturas(texto).replace(/[ \t]+/g, " ");
 		if (!t.trim()) return "";
 		if (tipo === "denuncia") {
 			const d = extrairDenuncia(t);
@@ -295,7 +295,7 @@
 	// { fatos:[{n, crime, data, denunciados, vitima}], denunciados:[...],
 	//   capitulacao, requerimentos:[...], trecho, resumo }
 	function extrairDenuncia(texto) {
-		const t = String(texto || "").replace(/\r/g, "").replace(/[ \t]+/g, " ");
+		const t = limparAssinaturas(texto).replace(/[ \t]+/g, " ");
 		const semAcento = tiraAcentoMantendoTamanho(t);
 		const fatos = [];
 		TITULO_FATO.lastIndex = 0;
@@ -417,33 +417,179 @@
 		return itens.slice(0, -1).join(", ") + " e " + itens[itens.length - 1];
 	}
 
-	// Enxuga "Assim agindo, o denunciado FULANO incidiu nos crimes previstos
-	// no ..." para "crimes previstos no ...".
-	function capitulacaoEnxuta(cap) {
+	// ---------------------------------------------------------------
+	// Assinatura digital do Projudi
+	// ---------------------------------------------------------------
+
+	// Rodapé/carimbo que o Projudi imprime em todas as páginas dos arquivos:
+	//   "Documento assinado digitalmente, conforme MP nº 2.200-2/2001, Lei nº
+	//   11.419/2006, resolução do Projudi, do TJPR/OE Validação deste em
+	//   https://projudi.tjpr.jus.br/projudi/ - Identificador: PJ5GS H2PRA ...
+	//   PROJUDI - Processo: 0000002-92.2024.8.16.0038 - Ref. mov. 1.1 -
+	//   Assinado digitalmente por Fulano:06728036903 01/01/2024: JUNTADA DE
+	//   PETIÇÃO DE INICIAL. Arq: Ofício"
+	// Ele aparece no meio do texto extraído (a cada quebra de página) e é
+	// removido antes de qualquer extração.
+	const ASSINATURA_TRECHOS = [
+		/documento assinado digitalmente,?\s*conforme\s*MP[\s\S]{0,160}?(?:TJPR\s*\/\s*OE|resolu[çc][ãa]o do projudi[^\n]*)/gi,
+		/valida[çc][ãa]o deste em\s*\S+\s*(?:-\s*)?(?:identificador:?\s*(?:[A-Z0-9]{5}\b\s*){1,6})?/gi,
+		/identificador:?\s*(?:[A-Z0-9]{5}\b\s*){3,6}/g,
+		/PROJUDI\s*-\s*Processo:[\s\S]{0,400}?\bArq:[^\n]*/gi,
+		/PROJUDI\s*-\s*Processo:\s*[\d.\-]+\s*-\s*Ref\.?\s*mov\.?\s*[\d.]+/gi,
+		/assinado digitalmente por[^\n]*(?:\n\s*\d{2}\/\d{2}\/\d{4}:[^\n]*)?/gi,
+		/\d{2}\/\d{2}\/\d{4}:\s*[^\n]{0,200}?\bArq:[^\n]*/gi,
+	];
+	const ASSINATURA_LINHA = /(documento assinado digitalmente|MP\s*n[º°o]?\s*2\.200-2|Lei\s*n[º°o]?\s*11\.419\/2006|valida[çc][ãa]o deste em|identificador:\s*[A-Z0-9]{5}|PROJUDI\s*-\s*Processo:|Ref\.\s*mov\.\s*\d|assinado digitalmente por|^\s*Arq:\s|^\s*\d{2}\/\d{2}\/\d{4}:\s.*\bArq:)/i;
+
+	function limparAssinaturas(texto) {
+		let t = String(texto || "").replace(/\r/g, "");
+		ASSINATURA_TRECHOS.forEach(function (re) { t = t.replace(re, " "); });
+		return t
+			.split("\n")
+			.filter(function (linha) { return !ASSINATURA_LINHA.test(linha); })
+			.join("\n")
+			.replace(/[ \t]{2,}/g, " ");
+	}
+
+	// ---------------------------------------------------------------
+	// Resumo objetivo da denúncia: fatos + artigos da imputação
+	// ---------------------------------------------------------------
+
+	// Primeira frase do fato, sem as fórmulas de estilo ("dolosamente, ciente
+	// da ilicitude..."), sem endereço completo e sem a lista de provas
+	// ("tudo conforme: boletim de ocorrência ... (mov. 1.4)").
+	function descricaoObjetivaFato(texto) {
+		let t = colapsar(texto);
+		// Primeira frase: termina em ". " seguido de maiúscula (não corta em
+		// "nº 372", "L.A.d.S.," nem "mov. 1.4").
+		const fim = /\.\s+(?=[A-ZÀ-Ú])/.exec(t);
+		if (fim) t = t.slice(0, fim.index + 1);
+		t = t
+			.replace(/,?\s*(?:tudo\s+)?(?:conforme|consoante|segundo)\s*:?\s*(?:se\s+(?:v[eê]|infere)\s+d[oa]s?\s*)?(?:o\s+|a\s+|os\s+|as\s+)?(?:boletim|termos?|autos?|laudos?|atestado|depoimentos?|declara[çc][õo]es|relat[óo]rio|fotografias?|imagens?|documentos?)[\s\S]*$/i, ".")
+			.replace(/\s*\((?:mov|evento|seq|fl|fls)\.?[^)]*\)/gi, "")
+			.replace(/(?:,\s*|\s+)(?:de forma\s+)?(?:dolosamente|livre e conscientemente|com consci[êe]ncia e vontade)[^,]*?(?:,\s*ciente[^,]*?(?:conduta|a[çc][ãa]o|comportamento))?\s*,/gi, " ")
+			.replace(/(?:,\s*|\s+)por raz[õo]es d[ae] condi[çc][ãa]o d[eo] sexo feminino[^,]*?(?:contra a mulher)?\s*,/gi, " ")
+			.replace(/\s*situad[oa]s?\s+n[ao]s?\s[\s\S]*?(?=,\s*(?:o|a|os|as)\s+(?:ora\s+)?(?:denunciad|acusad|investigad))/i, "")
+			.replace(/\s*,\s*,/g, ",")
+			.replace(/,\s*\./g, ".")
+			.replace(/\s+/g, " ")
+			.trim();
+		if (t && !/[.!?]$/.test(t)) t += ".";
+		return limitar(t, 420);
+	}
+
+	// Só os dispositivos legais da imputação, a partir do parágrafo da
+	// capitulação: "art. 129, §13º, e art. 147, §1º, na forma do art. 69,
+	// todos do Código Penal e c/c art. 5º e 7º, incisos I e II, da Lei Maria
+	// da Penha".
+	function artigosImputacao(cap) {
 		let c = colapsar(cap);
-		const m = /\b(incidiu|incidiram|incorreu|incorreram|est[aã]o? incurs[oa]s?)\s+(n[oa]s?\s+)?/i.exec(c);
-		if (m) c = c.slice(m.index + m[0].length);
-		c = c.replace(/^(s)?an[cç][aã]o d[oa]s?\s+/i, "");
-		c = c.replace(/[.;:\s]+$/, "");
-		return c.charAt(0).toLowerCase() + c.slice(1);
+		if (!c) return "";
+		const inicio = /\bart(?:igo)?s?\.?\s*\d/i.exec(c);
+		if (!inicio) return "";
+		c = c.slice(inicio.index);
+		c = c
+			.replace(/\s*\((?:\d+\s*[ºo°]?\s*fato|fato)[^)]*\)/gi, "") // "(1º Fato – lesão corporal)"
+			.replace(/\s*\((?:concurso|crime continuado)[^)]*\)/gi, "")
+			.replace(/\bartigos\b/gi, "arts.")
+			.replace(/\bartigo\b/gi, "art.")
+			.replace(/\bart\s+(?=\d)/gi, "art. ")
+			.replace(/(\be|,)\s+n[oa]s?\s+(?=arts?\.)/gi, "$1 ")
+			.replace(/,?\s*(?:e\s+)?requer[\s\S]*$/i, "")
+			.replace(/\s*,\s*,/g, ",")
+			.replace(/[.;:\s]+$/, "")
+			.trim();
+		return c;
 	}
 
 	function resumoDenuncia(d) {
 		const partes = [];
 		let abertura = "Denúncia oferecida";
 		if (d.denunciados.length) abertura += " contra " + juntarLista(d.denunciados);
-		if (d.fatos.length) {
-			const fatos = d.fatos.map(function (f) {
-				let s = "Fato " + f.n + (f.crime ? " – " + f.crime : "");
-				if (f.data) s += " (" + f.data + ")";
-				return s;
-			});
-			abertura += " pela prática de: " + fatos.join("; ");
-		}
 		partes.push(abertura + ".");
-		if (d.capitulacao) partes.push("Capitulação: " + capitulacaoEnxuta(d.capitulacao) + ".");
-		if (d.requerimentos.length) partes.push("Requer " + juntarLista(d.requerimentos) + ".");
+		d.fatos.forEach(function (f) {
+			let s = "Fato " + f.n + (f.crime ? " – " + f.crime : "");
+			if (f.data) s += " (" + f.data + ")";
+			const desc = descricaoObjetivaFato(f.texto);
+			partes.push(s + (desc ? ": " + desc : "."));
+		});
+		const artigos = artigosImputacao(d.capitulacao);
+		if (artigos) partes.push("Imputação: " + artigos + ".");
 		return partes.join(" ");
+	}
+
+	// ---------------------------------------------------------------
+	// Audiências (a partir dos movimentos)
+	// ---------------------------------------------------------------
+
+	const SITUACAO_AUDIENCIA = [
+		{ situacao: "não realizada", re: /\b(nao realizad|nao ocorrid|frustrad|prejudicad|deixou de ser realizad)/ },
+		{ situacao: "cancelada", re: /\b(cancelad|desmarcad|retirad[ao] de pauta|sem efeito)/ },
+		{ situacao: "redesignada", re: /\b(redesignad|remarcad|reagendad|adiad|transferid)/ },
+		{ situacao: "realizada", re: /\b(realizad|ocorrid|encerrad|concluid)/ },
+		{ situacao: "designada", re: /\b(designad|marcad|agendad|pautad|redesignacao)/ },
+	];
+
+	// Tipo da audiência a partir do texto ("Audiência de Instrução e
+	// Julgamento", "de conciliação", "de custódia"...).
+	function tipoAudiencia(texto) {
+		const m = /audi[êe]ncia\s+(?:de\s+|do\s+|da\s+)?([A-Za-zÀ-ú ]{3,60}?)(?=\s+(?:designad|redesignad|realizad|cancelad|nao|não|marcad|agendad|remarcad|adiad|para|em|\(|-|–)|[,.;:(\-–]|$)/i.exec(texto);
+		return m ? "Audiência de " + colapsar(m[1]).toLowerCase() : "Audiência";
+	}
+
+	// Data e hora da audiência mencionadas no texto (não a data do
+	// movimento): "27/11/2026 13:20", "27/11/2026 às 13h20".
+	function dataAudiencia(texto) {
+		const m = /(\d{2}\/\d{2}\/\d{4})(?:\s*(?:às|as|-)?\s*(\d{1,2})[:h](\d{2}))?/i.exec(texto || "");
+		if (!m) return "";
+		return m[1] + (m[2] ? " " + pad2(m[2]) + ":" + m[3] : "");
+	}
+
+	// Devolve { eventos:[{seq, dataHora, tipo, situacao, dataAudiencia, texto}],
+	//           pendentes:[...], contagem:{designada, redesignada, cancelada, realizada, "não realizada"} }.
+	// "pendentes" são as audiências designadas para data futura que não
+	// foram depois canceladas, redesignadas ou realizadas.
+	function analisarAudiencias(movs, agora) {
+		const agoraMs = typeof agora === "number" ? agora : Date.now();
+		const eventos = [];
+		(movs || []).forEach(function (m) {
+			if (m.invalido) return;
+			const titulo = m.titulo || m.evento || "";
+			const completo = colapsar(titulo + " " + (m.complemento || ""));
+			const n = normalizar(completo);
+			if (!/\baudiencia/.test(normalizar(titulo)) && !/^audiencia/.test(n)) return;
+			const def = SITUACAO_AUDIENCIA.find(function (d) { return d.re.test(normalizar(titulo)); }) ||
+				SITUACAO_AUDIENCIA.find(function (d) { return d.re.test(n); });
+			if (!def) return;
+			eventos.push({
+				seq: m.seq,
+				dataHora: m.dataHora,
+				tipo: tipoAudiencia(completo),
+				situacao: def.situacao,
+				dataAudiencia: dataAudiencia(m.complemento || "") || dataAudiencia(titulo),
+				texto: completo,
+			});
+		});
+
+		const contagem = { designada: 0, redesignada: 0, cancelada: 0, realizada: 0, "não realizada": 0 };
+		eventos.forEach(function (e) { contagem[e.situacao]++; });
+
+		// Uma designação (ou redesignação, que traz a nova data) continua
+		// valendo se nenhum evento posterior do mesmo tipo a encerrou.
+		const pendentes = [];
+		eventos.forEach(function (e, i) {
+			if (e.situacao !== "designada" && e.situacao !== "redesignada") return;
+			const quando = chaveData(e.dataAudiencia);
+			if (!isNaN(quando) && quando < agoraMs - 12 * 3600 * 1000) return;
+			const encerrada = eventos.slice(i + 1).some(function (p) {
+				if (p.situacao === "designada" && p.dataAudiencia === e.dataAudiencia) return false;
+				const mesmaData = p.dataAudiencia && p.dataAudiencia === e.dataAudiencia;
+				const mesmoTipo = p.tipo === e.tipo || p.tipo === "Audiência" || e.tipo === "Audiência";
+				return mesmaData || (mesmoTipo && !p.dataAudiencia) || (mesmoTipo && p.situacao !== "realizada" && p.situacao !== "não realizada");
+			});
+			if (!encerrada) pendentes.push(e);
+		});
+		return { eventos: eventos, pendentes: pendentes, contagem: contagem };
 	}
 
 	// ---------------------------------------------------------------
@@ -505,6 +651,10 @@
 		extrairTrechoPedidos: extrairTrechoPedidos,
 		extrairDenuncia: extrairDenuncia,
 		resumoDenuncia: resumoDenuncia,
+		limparAssinaturas: limparAssinaturas,
+		descricaoObjetivaFato: descricaoObjetivaFato,
+		artigosImputacao: artigosImputacao,
+		analisarAudiencias: analisarAudiencias,
 		dataPorExtenso: dataPorExtenso,
 		fraseMovimento: fraseMovimento,
 		ordenarMovimentos: ordenarMovimentos,

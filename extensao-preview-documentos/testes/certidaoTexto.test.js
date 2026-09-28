@@ -44,7 +44,7 @@ dos danos causados à vítima, nos termos do art. 387, inciso IV, do CPP, ouvind
 Fazenda Rio Grande, 20 de setembro de 2026.
 Promotor de Justiça`;
 
-test("denúncia: fatos, datas herdadas, denunciado, capitulação e requerimentos", () => {
+test("denúncia: fatos objetivos, datas herdadas e só os artigos da imputação", () => {
 	const d = T.extrairDenuncia(DENUNCIA);
 	assert.equal(d.fatos.length, 2);
 	assert.deepEqual(d.fatos.map((f) => [f.n, f.crime, f.data]), [
@@ -53,13 +53,50 @@ test("denúncia: fatos, datas herdadas, denunciado, capitulação e requerimento
 	]);
 	assert.deepEqual(d.denunciados, ["VALDIR CARNEIRO"]);
 	assert.match(d.capitulacao, /^Assim agindo/);
-	assert.match(d.capitulacao, /Lei Maria da Penha\.$/);
 	assert.ok(d.requerimentos.includes("o recebimento da denúncia"));
-	assert.ok(d.requerimentos.includes("a condenação"));
-	assert.ok(d.requerimentos.some((r) => /387/.test(r)));
-	assert.match(d.resumo, /^Denúncia oferecida contra VALDIR CARNEIRO pela prática de: Fato 1 – lesão corporal \(06\/09\/2026\); Fato 2 – ameaça \(06\/09\/2026\)\./);
-	assert.match(d.resumo, /Capitulação: crimes previstos no artigo 129, §13º/);
+	assert.match(d.resumo, /^Denúncia oferecida contra VALDIR CARNEIRO\. Fato 1 – lesão corporal \(06\/09\/2026\): No dia 06 de setembro de 2026/);
+	assert.match(d.resumo, /o denunciado VALDIR CARNEIRO ofendeu a integridade corporal/);
+	// Sem fórmulas de estilo, endereço e lista de provas.
+	assert.doesNotMatch(d.resumo, /dolosamente|ciente da ilicitude|sexo feminino|Travessa|boletim|mov\. 1/);
+	assert.match(d.resumo, /Imputação: art\. 129, §13º, e art\. 147, §1º, na forma do art\. 69, todos do Código Penal e c\/c art\. 5º e 7º, incisos I e II, da Lei Maria da Penha\.$/);
+	assert.doesNotMatch(d.resumo, /Requer|1º Fato –/);
 	console.log(d.resumo);
+});
+
+test("remove o carimbo de assinatura digital do Projudi", () => {
+	const carimbo = "Documento assinado digitalmente, conforme MP nº 2.200-2/2001, Lei nº 11.419/2006, resolução do Projudi, do TJPR/OE\nValidação deste em https://projudi.tjpr.jus.br/projudi/ - Identificador: PJ5GS H2PRA 7JJ39 EE84U\nPROJUDI - Processo: 0000002-92.2024.8.16.0038 - Ref. mov. 1.1 - Assinado digitalmente por Michel Teixeira de Carvalho:06728036903\n01/01/2024: JUNTADA DE PETIÇÃO DE INICIAL. Arq: Ofício";
+	const texto = "FATO 01 – furto\nNo dia 02 de janeiro de 2024, o denunciado JOAO DA SILVA subtraiu\n" + carimbo + "\num celular da vítima.";
+	const limpo = T.limparAssinaturas(texto);
+	assert.doesNotMatch(limpo, /assinado|Identificador|PJ5GS|MP nº|11\.419|Arq:|Ref\. mov|TJPR\/OE/);
+	assert.match(limpo, /subtraiu/);
+	assert.match(limpo, /um celular da vítima/);
+	// Como o pdf.js entrega (sem o CPF após o nome, datas em outra linha).
+	const pdf = T.limparAssinaturas("contra a mulher\nDocumento assinado digitalmente, conforme MP nº 2.200-2/2001, Lei nº 11.419/2006, resolução do Projudi, do TJPR/OE\nValidação deste em https://projudi.tjpr.jus.br/projudi/ - Identificador: PJ5GS H2PRA 7JJ39 EE84U\nPROJUDI - Processo: 0000002-92.2024.8.16.0038 - Ref. mov. 1.1 - Assinado digitalmente por Michel Teixeira de Carvalho:\n01/01/2024: JUNTADA DE PETIÇÃO DE INICIAL. Arq: Ofício\nofendeu a vítima");
+	assert.equal(pdf.replace(/\s+/g, " ").trim(), "contra a mulher ofendeu a vítima");
+	// Também na versão em uma linha só (como às vezes sai do PDF).
+	const umaLinha = T.limparAssinaturas("texto antes " + carimbo.replace(/\n/g, " ") + " texto depois");
+	assert.doesNotMatch(umaLinha, /assinado|Identificador|Arq:/);
+	assert.match(umaLinha, /texto antes/);
+});
+
+test("audiências: designada, redesignada, cancelada e pendente", () => {
+	const agora = Date.UTC(2026, 8, 28);
+	const movs = [
+		{ seq: "3", dataHora: "25/09/2026 15:39:06", titulo: "AUDIÊNCIA DE CONCILIAÇÃO DESIGNADA", complemento: "Local JEC - Conciliações - 20/10/2026 13:20" },
+		{ seq: "8", dataHora: "15/10/2026 10:00:00", titulo: "AUDIÊNCIA DE CONCILIAÇÃO REDESIGNADA", complemento: "para 27/11/2026 às 14h00" },
+		{ seq: "9", dataHora: "16/10/2026 10:00:00", titulo: "AUDIÊNCIA DE INSTRUÇÃO E JULGAMENTO DESIGNADA", complemento: "03/12/2026 09:00" },
+		{ seq: "10", dataHora: "20/10/2026 10:00:00", titulo: "AUDIÊNCIA DE INSTRUÇÃO E JULGAMENTO CANCELADA", complemento: "03/12/2026 09:00" },
+		{ seq: "11", dataHora: "20/10/2026 11:00:00", titulo: "JUNTADA DE PETIÇÃO DE INICIAL", complemento: "" },
+	];
+	const a = T.analisarAudiencias(movs, agora);
+	assert.deepEqual(a.eventos.map((e) => e.situacao), ["designada", "redesignada", "designada", "cancelada"]);
+	assert.equal(a.contagem.redesignada, 1);
+	assert.equal(a.contagem.cancelada, 1);
+	assert.equal(a.pendentes.length, 1);
+	assert.equal(a.pendentes[0].seq, "8");
+	assert.equal(a.pendentes[0].dataAudiencia, "27/11/2026 14:00");
+	assert.equal(a.pendentes[0].tipo, "Audiência de conciliação");
+	assert.equal(T.analisarAudiencias([movs[4]], agora).eventos.length, 0);
 });
 
 test("petição inicial: pega a seção DOS PEDIDOS até o fecho", () => {

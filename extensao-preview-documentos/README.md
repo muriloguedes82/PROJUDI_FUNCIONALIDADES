@@ -853,9 +853,23 @@ Salvar PDF** e **Copiar texto**. A certidão é dividida em seções:
 - **I – Dados do processo:** quadro-resumo com número único, classe
   processual (sem o código numérico), juízo, distribuição, cada parte por
   polo (Exequente, Executado, Autor, Réu…) com CPF/CNPJ e, logo abaixo,
-  os advogados com OAB ("NOME (OAB 116785N-PR)"), assuntos e valor da
-  causa;
-- **II – Eventos do processo:** todos os movimentos em ordem cronológica,
+  os advogados com OAB ("NOME (OAB 116785N-PR)"), **assunto principal**
+  (só o campo "Assunto Principal", como aparece: "12194 - Contra a
+  Mulher"), valor da causa e os **processos relacionados** do cabeçalho:
+  **Apensamentos**, **Vínculos** (ex.: "Autos de Prisão em Flagrante:
+  282024 …") e **Processos dependentes** — sem repetir o próprio processo,
+  que é a raiz dessas árvores; quando não há, a certidão diz "Não há
+  processos apensados/vinculados";
+- **II – Audiências (em destaque):** diz com clareza se **há ou não
+  audiência designada** com data futura (tipo, data e hora, evento) e traz
+  o histórico: cada designação, **redesignação**, **cancelamento**,
+  realização ou não realização, com a data da audiência e a contagem de
+  cada situação. Os movimentos de audiência também ficam marcados com uma
+  barra lateral na lista de eventos. A análise é feita pelos nomes e
+  complementos dos movimentos ("AUDIÊNCIA DE CONCILIAÇÃO REDESIGNADA - para
+  27/11/2026 às 14h00"); uma designação deixa de valer se depois houver
+  cancelamento, redesignação ou realização da mesma audiência;
+- **III – Eventos do processo:** todos os movimentos em ordem cronológica,
   um por linha, com data e hora em negrito e o nome do movimento em
   destaque. As **intimações, citações, leituras, confirmações e decursos
   de prazo** que dizem "Referente ao evento (seq. N)" aparecem como
@@ -868,7 +882,7 @@ Salvar PDF** e **Copiar texto**. A certidão é dividida em seções:
   - intimações como subitens (liga/desliga o recuo);
   - incluir quem movimentou, incluir movimentos invalidados (riscados e
     marcados "invalidado") e mostrar o sequencial;
-- **III – Peças principais:** resumo dos pedidos da petição inicial ou
+- **IV – Peças principais:** resumo dos pedidos da petição inicial ou
   denúncia, da contestação ou resposta à acusação, da sentença e dos
   recursos, uma linha por peça: "Petição inicial (evento 2, 25/09/2026): …";
 - local e data, e o nome e o cargo do(a) servidor(a). Nome, cargo e local
@@ -898,11 +912,24 @@ Opções da extensão.
     "sob a mesma circunstância de data e local do fato 01" herda a data),
     denunciado(s), o parágrafo da capitulação ("Assim agindo, o denunciado
     … incidiu nos crimes previstos …") e os requerimentos finais
-    (recebimento, citação, testemunhas, condenação, reparação mínima do
-    art. 387, IV, do CPP). Com isso, o resumo já vem pré-montado, por
-    exemplo: "Denúncia oferecida contra FULANO pela prática de: Fato 1 –
-    lesão corporal (06/09/2026); Fato 2 – ameaça (06/09/2026).
-    Capitulação: … Requer …". Basta revisar.
+    (recebimento, citação, testemunhas…, que ficam só no trecho de
+    referência). O resumo já vem pré-montado e **objetivo**: para cada
+    fato, a primeira frase da narrativa, sem as fórmulas de estilo
+    ("dolosamente, ciente da ilicitude…", "por razões da condição do sexo
+    feminino…"), sem o endereço completo e sem a lista de provas ("tudo
+    conforme boletim de ocorrência… (mov. 1.4)"); ao final, **só os
+    artigos da imputação**. Exemplo: "Denúncia oferecida contra FULANO.
+    Fato 1 – lesão corporal (06/09/2026): No dia 06 de setembro de 2026,
+    por volta das 20h20min, no interior da residência, o denunciado FULANO
+    ofendeu a integridade corporal da vítima L.A.d.S. … Imputação: art.
+    129, §13º, e art. 147, §1º, na forma do art. 69, todos do Código Penal
+    e c/c art. 5º e 7º, incisos I e II, da Lei Maria da Penha." Basta
+    revisar.
+  - **Carimbo de assinatura digital.** Antes de qualquer extração, é
+    removido o carimbo que o Projudi imprime nas páginas ("Documento
+    assinado digitalmente, conforme MP nº 2.200-2/2001… Validação deste em
+    … Identificador: … PROJUDI - Processo: … - Ref. mov. 1.1 - Assinado
+    digitalmente por … Arq: …"), que antes aparecia no meio do texto.
 - **IA do navegador.** O trecho extraído é resumido pela IA embutida no
   Chrome (Prompt API / Gemini Nano). O processamento é **local**: o texto
   da peça não sai do computador. O resumo vem marcado "gerado por IA —

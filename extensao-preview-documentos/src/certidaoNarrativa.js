@@ -137,6 +137,38 @@
 		return lista;
 	}
 
+	// Linhas de um campo em árvore do cabeçalho (Apensamentos, Vínculos):
+	//   Processo: 0000002-92... - Ação Penal - ATIVO        <- o próprio processo (raiz)
+	//     └ Processo: 0000003-77... - Medidas Protetivas... - ARQUIVADO
+	// Devolve só os itens relacionados (sem a raiz, que é o próprio
+	// processo), ou null se o campo não existe na tela.
+	function linhasDoCampo(docs, re, numeroAtual) {
+		for (const doc of docs) {
+			const escopo = doc.getElementById("informacoesProcessuais") || doc;
+			const rotulos = escopo.querySelectorAll("td.label, td.labelRadio, th");
+			for (const cell of rotulos) {
+				if (!re.test(normalizar(cell.textContent).replace(/:$/, "").trim())) continue;
+				const valor = cell.nextElementSibling;
+				if (!valor) continue;
+				const clone = valor.cloneNode(true);
+				clone.querySelectorAll('script, style, input, button, select, img, [class^="pdp-"], [class*=" pdp-"], [id^="pdp-"]').forEach(function (n) { n.remove(); });
+				clone.querySelectorAll("br").forEach(function (br) { br.replaceWith("\n"); });
+				clone.querySelectorAll("div, li, tr, p, table, ul, dd, dt").forEach(function (n) { n.before("\n"); n.append("\n"); });
+				const digitos = String(numeroAtual || "").replace(/\D/g, "");
+				return clone.textContent
+					.split("\n")
+					.map(colapsar)
+					.filter(function (linha) {
+						if (!linha) return false;
+						// A raiz da árvore é o próprio processo.
+						if (digitos && linha.replace(/\D/g, "").indexOf(digitos) !== -1 && /^processo/i.test(linha)) return false;
+						return true;
+					});
+			}
+		}
+		return null;
+	}
+
 	async function lerCabecalho(avisos) {
 		const docs = [document];
 		if (IS_PROJUDI && typeof window.__pdpLerAbaProcesso === "function") {
@@ -147,18 +179,32 @@
 				avisos.push('Não foi possível ler a aba "Informações Gerais": ' + e.message);
 			}
 		}
+		// A tabela de informações do processo (#informacoesProcessuais) tem
+		// prioridade: fora dela há outros rótulos parecidos (ex.: "Assunto:"
+		// das anotações do processo, que levava a "... e juntar oráculo").
 		const campos = new Map();
-		docs.forEach(function (doc) {
-			lerCampos(doc).forEach(function (valores, rotulo) {
+		function juntar(mapa) {
+			mapa.forEach(function (valores, rotulo) {
 				if (!campos.has(rotulo)) campos.set(rotulo, valores);
 			});
+		}
+		docs.forEach(function (doc) {
+			const info = doc.getElementById("informacoesProcessuais");
+			if (info) juntar(lerCampos(info));
 		});
+		docs.forEach(function (doc) { juntar(lerCampos(doc)); });
+		const numero = numeroDoProcesso();
+		// Assunto: só o "Assunto Principal", como aparece ("12194 - Contra a Mulher").
+		const assuntoPrincipal = primeiroCampo(campos, /^assunto principal$/) || primeiroCampo(campos, /^assunto$/);
 		return {
-			numero: numeroDoProcesso(),
+			numero: numero,
 			classe: T.semCodigo(primeiroCampo(campos, /^classe( processual| judicial)?$/)),
 			juizo: primeiroCampo(campos, /^(juizo|vara|orgao julgador|juizo\/vara|unidade judiciaria)$/),
 			comarca: primeiroCampo(campos, /^(comarca|foro)$/),
-			assuntos: todosCampos(campos, /^assunto/).map(T.semCodigo),
+			assuntos: assuntoPrincipal ? [assuntoPrincipal] : [],
+			apensamentos: linhasDoCampo(docs, /^apensamentos?$/, numero),
+			vinculos: linhasDoCampo(docs, /^vinculos?$/, numero),
+			dependentes: linhasDoCampo(docs, /^processos? dependentes?$/, ""),
 			valorCausa: primeiroCampo(campos, /^valor (da causa|da acao)/),
 			distribuicao: primeiroCampo(campos, /^(data (da )?distribuicao|distribuid[oa] em|data de autuacao|autuacao)$/),
 		};

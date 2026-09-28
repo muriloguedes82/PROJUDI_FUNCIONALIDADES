@@ -171,6 +171,31 @@ table.quadro .advogados { padding-left: 1.2em; font-size: 10.5pt; color: #333; }
 .evento.invalidado { text-decoration: line-through; color: #777; }
 .evento .ev-usuario { font-size: 0.9em; color: #555; }
 
+table.quadro .relacionado + .relacionado { margin-top: 3px; padding-left: 1.2em; }
+
+/* Audiências (II) — em destaque */
+.audiencias {
+	border: 2px solid #1f5fa8;
+	border-radius: 4px;
+	padding: 8px 12px;
+	text-align: left;
+	font-size: 11pt;
+	line-height: 1.4;
+	break-inside: avoid;
+}
+.audiencias p { margin: 0 0 0.4em; }
+.aud-destaque { font-size: 12pt; }
+.aud-sim strong { color: #0b5a1e; }
+.aud-nao strong { color: #333; }
+.aud-resumo { color: #333; }
+.aud-item { padding-left: 1.4em; text-indent: -1.4em; margin: 0 0 0.25em 0.6em; }
+.aud-situacao { font-weight: bold; }
+.aud-redesignada .aud-situacao { color: #9a5b00; }
+.aud-cancelada .aud-situacao,
+.aud-nao-realizada .aud-situacao { color: #a1111b; }
+.aud-realizada .aud-situacao { color: #0b5a1e; }
+.evento.nivel-0.ev-audiencia { border-left: 3px solid #1f5fa8; padding-left: calc(1.4em - 3px); margin-left: -0.4em; }
+
 .peca { margin: 0 0 0.9em; }
 .peca.excluida .peca-texto { text-decoration: line-through; opacity: 0.45; }
 
@@ -218,6 +243,7 @@ table.quadro .advogados { padding-left: 1.2em; font-size: 10.5pt; color: #333; }
 	.no-print, .apoio, .peca.excluida { display: none !important; }
 	#folha { width: auto; max-width: none; min-height: 0; margin: 0; padding: 0; box-shadow: none; }
 	.pendente, .resumo:empty::before { background: none; }
+	.audiencias, .evento.nivel-0.ev-audiencia { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 	table.quadro th { background: #f2f2f2 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 	[contenteditable="true"]:hover, [contenteditable="true"]:focus { background: none; box-shadow: none; }
 }
