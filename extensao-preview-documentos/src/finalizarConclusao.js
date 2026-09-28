@@ -93,4 +93,34 @@
   }
   new MutationObserver(refresh).observe(document.documentElement, {childList:true, subtree:true});
   refresh();
+
+  // Mesma finalização, a partir da URL de análise da conclusão (link
+  // "Analisar" do Retorno de Conclusão ou do quadro Pendências) - usada
+  // pelas preferências na linha do processo (preferenciasNaLinha.js).
+  // Resolve com {ok, message, uncertain}; `uncertain` indica que o envio foi
+  // feito, mas a resposta não confirmou o resultado.
+  window.__pdpDispensas = window.__pdpDispensas || {};
+  window.__pdpDispensas.conclusao = async function (value) {
+    let url;
+    try { url = safeURL(value); } catch (error) { return {ok:false, message:error.message}; }
+    if (busy || states.has(url)) return {ok:false, message:'Esta conclusão já está sendo finalizada.'};
+    busy = true;
+    states.set(url, {label:'Finalizando…'}); refresh();
+    let submitted = false;
+    try {
+      const data = prepare(await request(url));
+      submitted = true;
+      const result = await request(data.url, {method:'POST', body:data.body});
+      if (!succeeded(result)) throw new Error('A resposta não confirmou a finalização.');
+      states.set(url, {label:'Conclusão finalizada', success:true});
+      return {ok:true, message:'Conclusão pendente finalizada.'};
+    } catch (error) {
+      if (submitted) {
+        states.set(url, {label:'Verifique a conclusão', uncertain:true});
+        return {ok:false, uncertain:true, message:'Não foi possível confirmar a finalização da conclusão - verifique no Projudi.'};
+      }
+      states.delete(url);
+      return {ok:false, message:'Conclusão não finalizada: ' + error.message};
+    } finally { busy = false; refresh(); }
+  };
 })();

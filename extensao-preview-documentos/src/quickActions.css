@@ -521,6 +521,255 @@
 	display: block;
 }
 
+/* Combos de preferências (ver "Combos de preferências" em quickActions.js):
+   lista no painel "🔗 Combos", editor com uma caixa por etapa e a barra de
+   andamento, embaixo e ao centro, acima do popup da etapa. */
+.pdp-qa-combo-item + .pdp-qa-combo-item {
+	margin-top: 8px;
+	padding-top: 6px;
+	border-top: 1px solid #e5e5e5;
+}
+
+.pdp-qa-combo-item .pdp-qa-pref-chip {
+	background: #eef4fc;
+	border-color: #b9d0f0;
+}
+
+.pdp-qa-combo-item .pdp-qa-pref-btn {
+	color: #1a5fb4;
+	font-weight: bold;
+}
+
+.pdp-qa-combo-item .pdp-qa-pref-btn:disabled {
+	color: #888;
+	cursor: default;
+	text-decoration: none;
+}
+
+.pdp-qa-combo-item-steps {
+	margin-top: 4px;
+	font-size: 11px;
+	color: #666;
+}
+
+.pdp-qa-combo-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 2147483647;
+	background: rgba(30, 30, 30, 0.45);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+.pdp-qa-combo-box {
+	display: flex;
+	flex-direction: column;
+	width: min(560px, 94vw);
+	max-height: 90vh;
+	background: #fff;
+	border-radius: 6px;
+	overflow: hidden;
+	box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+.pdp-qa-combo-body {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	padding: 12px 14px;
+	font-size: 12.5px;
+	color: #333;
+}
+
+.pdp-qa-combo-help {
+	margin: 0 0 10px;
+	font-size: 12px;
+	color: #555;
+	line-height: 1.4;
+}
+
+.pdp-qa-combo-name {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 12px;
+	font-weight: bold;
+}
+
+.pdp-qa-combo-name input {
+	flex: 1;
+	font-size: 12.5px;
+	padding: 5px 6px;
+	border: 1px solid #adadad;
+	border-radius: 3px;
+}
+
+.pdp-qa-combo-step {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px;
+	margin-bottom: 6px;
+	background: #fafafa;
+	border: 1px solid #d5d5d5;
+	border-radius: 4px;
+}
+
+.pdp-qa-combo-step-num {
+	flex-shrink: 0;
+	width: 22px;
+	height: 22px;
+	line-height: 22px;
+	text-align: center;
+	border-radius: 50%;
+	background: #1a5fb4;
+	color: #fff;
+	font-weight: bold;
+	font-size: 12px;
+}
+
+.pdp-qa-combo-select-wrap {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.pdp-qa-combo-step-action {
+	font-size: 10.5px;
+	font-weight: bold;
+	color: #5a6b80;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+
+.pdp-qa-combo-select {
+	width: 100%;
+	min-width: 0;
+	font-size: 12.5px;
+	padding: 4px;
+}
+
+.pdp-qa-combo-step-tools {
+	display: inline-flex;
+	gap: 3px;
+}
+
+.pdp-qa-combo-step-tools button {
+	font-size: 12px;
+	width: 26px;
+	padding: 3px 0;
+	background: #fff;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+	cursor: pointer;
+}
+
+.pdp-qa-combo-step-tools button:disabled {
+	opacity: 0.35;
+	cursor: default;
+}
+
+.pdp-qa-combo-add {
+	margin-top: 4px;
+	font-size: 12px;
+	color: #1a5fb4;
+	background: #eef4fc;
+	border: 1px dashed #7da3dc;
+	border-radius: 3px;
+	padding: 6px 10px;
+	cursor: pointer;
+}
+
+.pdp-qa-combo-add:disabled {
+	color: #999;
+	background: #f5f5f5;
+	border-color: #ccc;
+	cursor: default;
+}
+
+.pdp-qa-combo-footer {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+	padding: 10px 14px;
+	border-top: 1px solid #ddd;
+	background: #fafafa;
+}
+
+.pdp-qa-combo-footer button {
+	font-size: 12.5px;
+	border-radius: 3px;
+	padding: 6px 12px;
+	cursor: pointer;
+}
+
+.pdp-qa-combo-save {
+	border: 1px solid #7a7;
+	background: #e3f5e3;
+}
+
+.pdp-qa-combo-cancel {
+	border: 1px solid #ccc;
+	background: #f5f5f5;
+}
+
+.pdp-qa-combo-bar {
+	position: fixed;
+	bottom: 10px;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 2147483647;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	max-width: 92vw;
+	background: #eef4fc;
+	border: 1px solid #7da3dc;
+	border-radius: 4px;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+	padding: 8px 12px;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 12.5px;
+	color: #183c6b;
+}
+
+.pdp-qa-combo-bar-text {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.pdp-qa-combo-bar-msg {
+	font-size: 11.5px;
+	color: #5a4a12;
+}
+
+.pdp-qa-combo-bar button {
+	font-size: 12px;
+	border: 1px solid #b9d0f0;
+	background: #fff;
+	border-radius: 3px;
+	padding: 5px 9px;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.pdp-qa-combo-bar-done {
+	background: #eaf7ea;
+	border-color: #9bcf9b;
+	color: #234d23;
+}
+
+.pdp-qa-confirm-combo {
+	font-weight: bold;
+	color: #1a5fb4;
+}
+
 /* O gerenciador nativo de janelas do Projudi inicia acima da camada 10.
    Mantém os atalhos e seus menus abaixo dos diálogos e da máscara modal.
    Os diálogos da própria extensão conservam suas camadas superiores. */
@@ -534,4 +783,31 @@
 #pdp-buttons-drag,
 #pdp-buttons-toggle {
 	z-index: 9 !important;
+}
+
+/* Barra do combo visível: espaço no fim da página para ela não cobrir os
+   últimos botões nativos (ex.: "Concluir Movimento" do Juntar Documento). */
+html.pdp-qa-combo-active body {
+	padding-bottom: 90px !important;
+}
+
+/* Preenchimento de preferência em andamento e aviso de campos que não
+   foi possível preencher (ver fillFormFields em quickActions.js). */
+.pdp-qa-filling-bar {
+	background: #f3f6fa;
+	border-color: #b9c7d8;
+	color: #34495e;
+}
+
+.pdp-qa-confirm-bar.pdp-qa-confirm-warn {
+	background: #fff4e5;
+	border-color: #e0a44a;
+	color: #5a3d0c;
+	flex-wrap: wrap;
+}
+
+.pdp-qa-confirm-missing {
+	flex-basis: 100%;
+	font-weight: bold;
+	color: #a04b00;
 }
