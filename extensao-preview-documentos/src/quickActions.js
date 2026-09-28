@@ -954,7 +954,31 @@
 			}
 
 			checkFlagClosePopup(win);
+			checkComboStepResult(iframe);
 		});
+	}
+
+	// Etapa de combo já confirmada ("Sim, executar") cujo popup parou numa
+	// tela de resultado com "sucesso" (sem formulário para preencher): a
+	// ação terminou — fecha o popup e o combo segue sozinho. Telas de erro
+	// ou com formulário ficam abertas para o usuário.
+	const COMBO_RESULT_CLOSE_MS = 1500;
+	function checkComboStepResult(iframe) {
+		if (!comboStep || comboStep.iframe !== iframe || !comboStep.confirmed) return;
+		let doc;
+		try {
+			doc = iframe.contentDocument;
+		} catch (err) {
+			return;
+		}
+		if (!doc || !doc.body) return;
+		const text = doc.body.textContent || "";
+		if (!/sucesso/i.test(text) || /erro|n[aã]o foi poss[ií]vel|inv[aá]lid/i.test(text)) return;
+		if (findLikelyDialogFormIn(doc)) return;
+		logChainStep("combo: tela de sucesso no popup da etapa — fechando e seguindo", null);
+		setTimeout(function () {
+			if (activeModalIframe === iframe) removeActionModal("auto");
+		}, COMBO_RESULT_CLOSE_MS);
 	}
 
 	// O diálogo final de ações como "Ordenar Cumprimentos" NUNCA chama
@@ -1209,42 +1233,386 @@
 		return String(value).replace(/["\\]/g, "\\$&");
 	}
 
+	// -------------------------------------------------------------------
+	// Gravação e preenchimento de preferências
+	//
+	// Cada campo gravado guarda, além de name/type/value (e checked):
+	// - `text`: o texto da opção escolhida numa lista (<select>) — há listas
+	//   que nascem vazias no diálogo novo e só ganham as opções por AJAX
+	//   (ex.: "Finalidade" de "Outras Remessas", que depende do Destino; o
+	//   próprio "Destino" é um select2 alimentado por busca). Com o texto
+	//   dá para achar a opção mesmo com outro value, e, em último caso,
+	//   recriá-la (mesma técnica validada ao vivo em remessaMultipla.js);
+	// - `id` (campos sem name) e `label` (rótulo na tela, para o usuário
+	//   conferir o que foi gravado e ser avisado do que não foi preenchido).
+	//
+	// O preenchimento (fillFormFields) é feito em rodadas, até cada campo
+	// "pegar" ou o tempo acabar:
+	// - bolinhas (radio) e caixas (checkbox) primeiro, com .click() de
+	//   verdade — a tela liga/desliga os campos de cada opção pelo onclick,
+	//   que um `checked = true` não dispara (visto ao vivo em "Outras
+	//   Remessas": o Destino ficava de fora do envio);
+	// - depois os demais, na ordem da tela; campo ainda desabilitado, ou
+	//   lista sem a opção gravada (carregando), fica para a rodada
+	//   seguinte;
+	// - as listas e bolinhas são conferidas de novo a cada rodada (uma
+	//   escolha pode recarregar/zerar outra) e o preenchimento só termina
+	//   com tudo certo em duas rodadas seguidas;
+	// - lista vazia (select2 alimentado por busca) ganha de volta a opção
+	//   gravada, com o value/texto que o usuário escolheu; lista com opções
+	//   sem a gravada é aguardada até FILL_TIMEOUT_MS e, se não aparecer,
+	//   entra no aviso;
+	// - depois, por FILL_GUARD_MS, e de novo no "Sim, executar", campos
+	//   gravados que a tela tenha ESVAZIADO (recarga por AJAX) são repostos
+	//   — uma troca feita pelo usuário nunca é desfeita; ainda vazios, o
+	//   "Sim, executar" avisa e não envia.
+	// Só no fim aparece a barra "Sim, executar", com aviso dos campos que
+	// não foi possível preencher.
+	// -------------------------------------------------------------------
+
+	const FILL_ROUND_MS = 300;
+	const FILL_INJECT_AFTER_MS = 2500;
+	const FILL_TIMEOUT_MS = 8000;
+
+	function cleanLabel(text) {
+		return (text || "").replace(/\s+/g, " ").replace(/[*:]+\s*$/, "").replace(/^\s*\*\s*/, "").trim();
+	}
+
+	function normText(text) {
+		return (text || "").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
+	}
+
+	// Rótulo do campo na tela: <label for>, <label> em volta, ou a célula
+	// anterior da mesma linha (padrão das telas do Projudi).
+	function fieldLabel(el) {
+		const doc = el.ownerDocument;
+		try {
+			if (el.id) {
+				const forLabel = doc.querySelector('label[for="' + cssEscapeAttr(el.id) + '"]');
+				if (forLabel && cleanLabel(forLabel.textContent)) return cleanLabel(forLabel.textContent);
+			}
+		} catch (err) {
+			// seletor inválido: segue para as outras formas
+		}
+		const cell = el.closest("td");
+		if (cell) {
+			let prev = cell.previousElementSibling;
+			while (prev && !cleanLabel(prev.textContent)) prev = prev.previousElementSibling;
+			if (prev) return cleanLabel(prev.textContent).slice(0, 60);
+		}
+		const wrap = el.closest("label");
+		if (wrap && cleanLabel(wrap.textContent)) return cleanLabel(wrap.textContent).slice(0, 60);
+		return el.name || el.id || "(campo)";
+	}
+
+	// Texto da opção de uma bolinha: o <label> dela, ou o texto logo depois
+	// dela até o próximo campo ("◉ Sim ○ Não" → "Sim").
+	function radioOptionLabel(el) {
+		const doc = el.ownerDocument;
+		try {
+			if (el.id) {
+				const forLabel = doc.querySelector('label[for="' + cssEscapeAttr(el.id) + '"]');
+				if (forLabel && cleanLabel(forLabel.textContent)) return cleanLabel(forLabel.textContent).slice(0, 60);
+			}
+		} catch (err) {
+			// seletor inválido: segue
+		}
+		const wrap = el.closest("label");
+		if (wrap && cleanLabel(wrap.textContent)) return cleanLabel(wrap.textContent).slice(0, 60);
+		let text = "";
+		for (let node = el.nextSibling; node; node = node.nextSibling) {
+			if (node.nodeType === 1 && (node.matches("input, select, textarea, br") || node.querySelector("input, select, textarea"))) break;
+			text += node.textContent || "";
+		}
+		return cleanLabel(text).slice(0, 60) || el.value;
+	}
+
+	// Texto do valor gravado, para mostrar ao usuário.
+	function describeFieldValue(f) {
+		if (f.type === "checkbox") return f.checked ? "marcado" : "desmarcado";
+		if (f.type === "radio") return f.optionLabel || f.value;
+		if (f.type === "select-multiple") return (f.texts || f.values || []).join(", ") || "(nenhum)";
+		if (f.type === "select-one") return f.text || f.value || "(vazio)";
+		return f.value ? (f.value.length > 60 ? f.value.slice(0, 60) + "…" : f.value) : "(vazio)";
+	}
+
+	function describeFields(fields) {
+		return fields
+			.filter(function (f) {
+				return f.type !== "radio" || f.checked;
+			})
+			.map(function (f) {
+				return "• " + (f.label || f.name || f.id) + ": " + describeFieldValue(f);
+			})
+			.join("\n");
+	}
+
 	function captureFormFields(form) {
 		const fields = [];
 		const elements = formControls(form).filter(function (el) {
 			return /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName);
 		});
 		elements.forEach(function (el) {
-			if (!el.name) return;
+			if (!el.name && !el.id) return;
 			const type = (el.type || el.tagName || "").toLowerCase();
-			if (type === "hidden" || type === "submit" || type === "button" || type === "reset" || type === "file" || type === "password") return;
+			if (type === "hidden" || type === "submit" || type === "button" || type === "reset" || type === "file" || type === "password" || type === "image") return;
+			const f = { name: el.name || "", type: type, label: fieldLabel(el) };
+			if (!el.name) f.id = el.id;
 			if (type === "checkbox" || type === "radio") {
-				fields.push({ name: el.name, type: type, value: el.value, checked: el.checked });
+				f.value = el.value;
+				f.checked = el.checked;
+				if (type === "radio" && el.checked) f.optionLabel = radioOptionLabel(el);
+			} else if (type === "select-multiple") {
+				const selected = Array.prototype.filter.call(el.options, function (o) {
+					return o.selected;
+				});
+				f.values = selected.map(function (o) {
+					return o.value;
+				});
+				f.texts = selected.map(function (o) {
+					return cleanLabel(o.textContent);
+				});
+			} else if (type === "select-one") {
+				f.value = el.value;
+				const option = el.options[el.selectedIndex];
+				f.text = option ? cleanLabel(option.textContent) : "";
 			} else {
-				fields.push({ name: el.name, type: type, value: el.value });
+				f.value = el.value;
 			}
+			fields.push(f);
 		});
 		return fields;
 	}
 
+	// Controles do campo gravado no formulário (por name; campos sem name,
+	// pelo id no documento).
+	function controlsFor(form, f) {
+		if (f.name) return formFieldsNamed(form, f.name);
+		const el = f.id ? form.ownerDocument.getElementById(f.id) : null;
+		return el ? [el] : [];
+	}
+
+	function fireFieldEvents(el) {
+		el.dispatchEvent(new Event("input", { bubbles: true }));
+		el.dispatchEvent(new Event("change", { bubbles: true }));
+	}
+
+	function findOption(select, value, text) {
+		const options = Array.prototype.slice.call(select.options);
+		const wanted = normText(text);
+		return (
+			options.filter(function (o) {
+				return o.value === value && (!wanted || normText(o.textContent) === wanted);
+			})[0] ||
+			(wanted
+				? options.filter(function (o) {
+						return normText(o.textContent) === wanted;
+					})[0]
+				: null) ||
+			(value !== ""
+				? options.filter(function (o) {
+						return o.value === value;
+					})[0]
+				: null) ||
+			null
+		);
+	}
+
+	// Aplica um campo; devolve true se ele já está como gravado. `ctx`
+	// (opcional, só durante fillFormFields): ctx.changed() avisa que um
+	// campo foi alterado; ctx.canInject(f, el) diz se a opção gravada pode
+	// ser recriada numa lista vazia.
+	function applyField(form, f, ctx) {
+		function changed(el) {
+			fireFieldEvents(el);
+			if (ctx) ctx.changed();
+		}
+		const els = controlsFor(form, f);
+		if (f.type === "radio") {
+			if (!f.checked) return true; // o grupo desmarca sozinho os outros
+			const el = els.filter(function (c) {
+				return c.value === f.value;
+			})[0];
+			if (!el || el.disabled) return false;
+			if (!el.checked) {
+				el.click();
+				if (ctx) ctx.changed();
+			}
+			return el.checked;
+		}
+		if (f.type === "checkbox") {
+			const el = els.filter(function (c) {
+				return c.value === f.value;
+			})[0] || (els.length === 1 ? els[0] : null);
+			if (!el || el.disabled) return false;
+			if (el.checked !== f.checked) {
+				el.click();
+				if (ctx) ctx.changed();
+			}
+			return el.checked === f.checked;
+		}
+		const el = els[0];
+		if (!el || el.disabled) return false;
+		if (f.type === "select-multiple") {
+			let changed = false;
+			let ok = true;
+			(f.values || []).forEach(function (value, i) {
+				const option = findOption(el, value, (f.texts || [])[i]);
+				if (!option) {
+					ok = false;
+					return;
+				}
+				if (!option.selected) {
+					option.selected = true;
+					changed = true;
+				}
+			});
+			if (changed) {
+				fireFieldEvents(el);
+				if (ctx) ctx.changed();
+			}
+			return ok;
+		}
+		if (f.type === "select-one") {
+			let option = findOption(el, f.value, f.text);
+			// Lista vazia (só o "selecione", ex.: select2 alimentado por
+			// busca): recria a opção gravada. Lista COM opções sem a
+			// gravada: espera (pode estar carregando) e, se não aparecer,
+			// avisa — recriar ali enviaria um valor que o Projudi não
+			// oferece mais.
+			if (!option && f.value !== "" && el.options.length <= 1 && ctx && ctx.canInject(f, el)) {
+				option = new Option(f.text || f.value, f.value);
+				el.add(option);
+				logChainStep("preferência: opção recriada na lista", { campo: f.label || f.name, opcao: f.text || f.value });
+			}
+			if (!option) return f.value === "" && !f.text;
+			if (el.value !== option.value) {
+				el.value = option.value;
+				changed(el);
+			}
+			return el.value === option.value;
+		}
+		// Texto: aplica uma vez (máscaras podem reformatar o valor); só
+		// reaplica se o campo voltar vazio.
+		if (el.value !== f.value && !(el.__pdpFilled && el.value)) {
+			el.value = f.value;
+			el.__pdpFilled = true;
+			changed(el);
+		}
+		return true;
+	}
+
+	// Preenche `fields` em rodadas (ver acima) e chama done(faltando).
+	function fillFormFields(form, fields, done) {
+		const ordered = fields
+			.filter(function (f) {
+				return f.type === "radio" || f.type === "checkbox";
+			})
+			.concat(
+				fields.filter(function (f) {
+					return f.type !== "radio" && f.type !== "checkbox";
+				})
+			);
+		const start = Date.now();
+		let stableRounds = 0;
+		let lastMissing = ordered;
+		// Uma alteração pode fazer a tela recarregar outras listas (ex.:
+		// Destino → Finalidade): lista vazia só ganha a opção recriada
+		// depois de FILL_INJECT_AFTER_MS vazia e sem nenhuma alteração.
+		let lastChangeAt = start;
+		const emptySince = new Map();
+		const ctx = {
+			changed: function () {
+				lastChangeAt = Date.now();
+			},
+			canInject: function (f, el) {
+				if (!emptySince.has(f)) emptySince.set(f, Date.now());
+				return Date.now() - Math.max(emptySince.get(f), lastChangeAt) >= FILL_INJECT_AFTER_MS;
+			},
+		};
+
+		function round() {
+			// Popup fechado/diálogo trocado no meio: não há o que preencher.
+			if (!form.isConnected) return;
+			const missing = ordered.filter(function (f) {
+				try {
+					const el = controlsFor(form, f)[0];
+					if (el && el.tagName === "SELECT" && el.options.length > 1) emptySince.delete(f);
+					return !applyField(form, f, ctx);
+				} catch (err) {
+					logChainStep("preferência: erro ao preencher um campo", { campo: f.label || f.name, erro: String(err) });
+					return true;
+				}
+			});
+			lastMissing = missing;
+			stableRounds = missing.length || Date.now() - lastChangeAt < FILL_ROUND_MS ? 0 : stableRounds + 1;
+			if (stableRounds >= 3 || Date.now() - start >= FILL_TIMEOUT_MS) {
+				if (missing.length) logChainStep("preferência: campos não preenchidos", missing.map(function (f) { return (f.label || f.name) + " = " + describeFieldValue(f); }));
+				guardEmptyFields(form, ordered);
+				done(missing);
+				return;
+			}
+			setTimeout(round, FILL_ROUND_MS);
+		}
+		round();
+		return function () {
+			return lastMissing;
+		};
+	}
+
+	// Campo gravado com valor que está VAZIO agora (lista no "selecione",
+	// texto em branco, grupo de bolinhas sem nenhuma marcada) — o que uma
+	// recarga por AJAX costuma fazer. Só esses são repostos depois do
+	// preenchimento: uma troca feita pelo usuário nunca é desfeita.
+	function fieldIsEmptyNow(form, f) {
+		const els = controlsFor(form, f);
+		if (f.type === "radio") {
+			return f.checked && !els.some(function (c) {
+				return c.checked;
+			});
+		}
+		if (f.type === "checkbox" || f.type === "select-multiple") return false;
+		const el = els[0];
+		if (!el) return f.value !== "";
+		return f.value !== "" && el.value === "";
+	}
+
+	function restoreEmptyFields(form, fields) {
+		return fields.filter(function (f) {
+			if (!fieldIsEmptyNow(form, f)) return false;
+			try {
+				applyField(form, f);
+			} catch (err) {
+				return true;
+			}
+			return fieldIsEmptyNow(form, f);
+		});
+	}
+
+	// Por alguns segundos depois do preenchimento, repõe campos que uma
+	// recarga tardia (AJAX) tenha esvaziado.
+	const FILL_GUARD_MS = 6000;
+	function guardEmptyFields(form, fields) {
+		const until = Date.now() + FILL_GUARD_MS;
+		const iv = setInterval(function () {
+			if (!form.isConnected || Date.now() > until) {
+				clearInterval(iv);
+				return;
+			}
+			const restored = fields.filter(function (f) {
+				return fieldIsEmptyNow(form, f);
+			});
+			if (restored.length) {
+				logChainStep("preferência: repondo campo(s) esvaziado(s) pela tela", restored.map(function (f) { return f.label || f.name; }));
+				restoreEmptyFields(form, restored);
+			}
+		}, FILL_ROUND_MS);
+	}
+
+	// Compatível com o uso antigo (uma passada, sem esperar).
 	function applyFormFields(form, fields) {
 		fields.forEach(function (f) {
-			if (f.type === "checkbox" || f.type === "radio") {
-				const el = formFieldsNamed(form, f.name).filter(function (c) {
-					return c.value === f.value;
-				})[0];
-				if (el) {
-					el.checked = f.checked;
-					el.dispatchEvent(new Event("change", { bubbles: true }));
-				}
-			} else {
-				const el = formFieldsNamed(form, f.name)[0];
-				if (el) {
-					el.value = f.value;
-					el.dispatchEvent(new Event("input", { bubbles: true }));
-					el.dispatchEvent(new Event("change", { bubbles: true }));
-				}
-			}
+			applyField(form, f);
 		});
 	}
 
@@ -1320,23 +1688,44 @@
 				alert('Não encontrei o formulário do diálogo "' + label + '" para capturar. Ele ainda está aberto na tela?');
 				return;
 			}
-			const name = prompt('Nome para esta preferência de "' + label + '":', editingPref ? editingPref.name : "");
-			if (!name) return;
 			const custom = getCustomAction(label);
 			const fields = captureFormFields(form).filter(function (f) {
 				return !custom || !custom.prefFields || custom.prefFields.indexOf(f.name) !== -1;
 			});
+			if (!fields.length) {
+				alert('Não encontrei nenhum campo preenchível no diálogo "' + label + '". Nada foi gravado.');
+				return;
+			}
+			// Mostra o que vai ser gravado: dá para conferir na hora se algum
+			// campo (ex.: uma lista que carrega depois) ficou de fora.
+			const name = prompt(
+				"Campos que serão gravados:\n" + describeFields(fields) + "\n\nSe algum estiver errado, cancele, ajuste o diálogo e salve de novo.\n\nNome para esta preferência de \"" + label + '":',
+				editingPref ? editingPref.name : ""
+			);
+			if (!name || !name.trim()) return;
 			const extra = getExtra ? getExtra() : null;
 			const saving = editingPref
 				? updatePreference(label, editingPref.id, name.trim(), fields, extra)
 				: addPreference(label, name.trim(), fields, extra);
-			saving.then(function () {
-				removeCaptureToolbar();
-				alert(
-					'Preferência "' + name.trim() + '" ' + (editingPref ? "atualizada" : "salva") + ' para "' + label +
-					'". Você ainda pode revisar e enviar este formulário normalmente.'
-				);
-			});
+			saving
+				.then(function () {
+					// Confere a gravação lendo de volta do armazenamento.
+					return loadPreferencesFor(label);
+				})
+				.then(function (prefs) {
+					const saved = prefs.filter(function (p) {
+						return p.name === name.trim() && (p.fields || []).length === fields.length;
+					})[0];
+					if (!saved) throw new Error("a preferência não foi encontrada ao reler o armazenamento");
+					removeCaptureToolbar();
+					alert(
+						'Preferência "' + name.trim() + '" ' + (editingPref ? "atualizada" : "salva") + ' para "' + label +
+						'" (' + fields.length + " campos). Você ainda pode revisar e enviar este formulário normalmente."
+					);
+				})
+				.catch(function (err) {
+					alert("Não foi possível salvar a preferência: " + (err && err.message ? err.message : err) + ". Tente de novo.");
+				});
 		});
 	}
 
@@ -1351,12 +1740,51 @@
 		}
 	}
 
-	function showConfirmBar(label, pref, form) {
+	// Barra provisória enquanto fillFormFields preenche o diálogo.
+	function showFillingBar(label, pref) {
 		removeConfirmBar();
 		confirmBar = document.createElement("div");
-		confirmBar.className = "pdp-qa-confirm-bar";
+		confirmBar.className = "pdp-qa-confirm-bar pdp-qa-filling-bar";
 		confirmBar.innerHTML =
 			(comboStep ? '<span class="pdp-qa-confirm-combo">' + escapeHtml(comboStepCaption()) + "</span>" : "") +
+			'<span>Preenchendo "' + escapeHtml(label) + '" com a preferência "' + escapeHtml(pref.name) + '"…</span>';
+		document.body.appendChild(confirmBar);
+	}
+
+	function missingFieldsText(missing) {
+		return missing
+			.map(function (f) {
+				return (f.label || f.name || f.id) + " (" + describeFieldValue(f) + ")";
+			})
+			.join("; ");
+	}
+
+	// Aviso fora da barra de confirmação (edição, ações sem "Sim, executar").
+	function warnMissingFields(label, pref, missing) {
+		if (!missing || !missing.length) return;
+		alert('Não consegui preencher estes campos da preferência "' + pref.name + '" em "' + label + '":\n' + missingFieldsText(missing) + "\n\nPreencha-os manualmente.");
+	}
+
+	// Preenche o diálogo com a preferência e, no fim, mostra a barra certa.
+	function fillPreference(label, pref, form, doc, editing) {
+		showFillingBar(label, pref);
+		fillFormFields(form, pref.fields, function (missing) {
+			removeConfirmBar();
+			afterPreferenceFilled(label, pref, form, doc, editing, missing);
+		});
+	}
+
+	// `missing`: campos que não foi possível preencher — a barra avisa
+	// (confira e preencha antes de confirmar).
+	function showConfirmBar(label, pref, form, missing) {
+		removeConfirmBar();
+		confirmBar = document.createElement("div");
+		confirmBar.className = "pdp-qa-confirm-bar" + (missing && missing.length ? " pdp-qa-confirm-warn" : "");
+		confirmBar.innerHTML =
+			(comboStep ? '<span class="pdp-qa-confirm-combo">' + escapeHtml(comboStepCaption()) + "</span>" : "") +
+			(missing && missing.length
+				? '<span class="pdp-qa-confirm-missing">⚠ Não consegui preencher: ' + escapeHtml(missingFieldsText(missing)) + ". Preencha antes de confirmar.</span>"
+				: "") +
 			'<span>Confirmar "' + escapeHtml(label) + '" com a preferência "' + escapeHtml(pref.name) + '"?</span>' +
 			'<button type="button" class="pdp-qa-confirm-yes">✅ Sim, executar</button>' +
 			'<button type="button" class="pdp-qa-confirm-cancel">Cancelar</button>';
@@ -1364,6 +1792,13 @@
 
 		confirmBar.querySelector(".pdp-qa-confirm-cancel").addEventListener("click", removeConfirmBar);
 		confirmBar.querySelector(".pdp-qa-confirm-yes").addEventListener("click", function () {
+			// Última conferência antes de enviar: repõe o que a tela tenha
+			// esvaziado e não envia com campo gravado ainda vazio.
+			const stillEmpty = form.isConnected ? restoreEmptyFields(form, pref.fields || []) : [];
+			if (stillEmpty.length) {
+				alert("Antes de confirmar, preencha: " + missingFieldsText(stillEmpty) + ". Depois clique de novo em \"Sim, executar\".");
+				return;
+			}
 			const submit = findSubmitControl(form);
 			removeConfirmBar();
 			if (!submit) {
@@ -1378,11 +1813,12 @@
 	// Depois de preencher o diálogo com uma preferência: no uso normal, a
 	// barra "Sim, executar"; na edição (✏️), a barra "Atualizar
 	// preferência" — nada é enviado ao Projudi.
-	function afterPreferenceFilled(label, pref, form, doc, editing) {
+	function afterPreferenceFilled(label, pref, form, doc, editing, missing) {
 		if (editing) {
+			warnMissingFields(label, pref, missing);
 			showCaptureToolbar(label, doc, null, pref);
 		} else {
-			showConfirmBar(label, pref, form);
+			showConfirmBar(label, pref, form, missing);
 		}
 	}
 
@@ -1429,15 +1865,14 @@
 		}
 		const fieldNames = pref.fields.map(function (f) {
 			return f.name;
-		});
+		}).filter(Boolean);
 		link.click();
 		waitForFormWithFieldNames(fieldNames, function (form) {
 			if (!form) {
 				alert('A janela de "' + label + '" não apareceu a tempo (ou os campos mudaram). Preencha manualmente desta vez.');
 				return;
 			}
-			applyFormFields(form, pref.fields);
-			afterPreferenceFilled(label, pref, form, document, editing);
+			fillPreference(label, pref, form, document, editing);
 		});
 	}
 
@@ -1690,7 +2125,7 @@
 			}
 			const fieldNamesForAcoes = pref.fields.map(function (f) {
 				return f.name;
-			});
+			}).filter(Boolean);
 			if (needsAcoesParent(label, result)) {
 				openInsideAcoesScreen(label, result, function (dialogDoc) {
 					const form = dialogDoc && (findFormContainingFieldNamesIn(dialogDoc, fieldNamesForAcoes) || findLikelyDialogFormIn(dialogDoc));
@@ -1698,8 +2133,7 @@
 						alert('Carreguei "' + label + '", mas não encontrei o formulário para preencher automaticamente. Preencha manualmente.');
 						return;
 					}
-					applyFormFields(form, pref.fields);
-					afterPreferenceFilled(label, pref, form, dialogDoc, editing);
+					fillPreference(label, pref, form, dialogDoc, editing);
 				});
 				return;
 			}
@@ -1716,14 +2150,13 @@
 					}
 					const fieldNames = pref.fields.map(function (f) {
 						return f.name;
-					});
+					}).filter(Boolean);
 					const form = findFormContainingFieldNamesIn(doc, fieldNames) || findLikelyDialogFormIn(doc);
 					if (!form) {
 						alert('Carreguei "' + label + '", mas não encontrei o formulário para preencher automaticamente. Preencha manualmente.');
 						return;
 					}
-					applyFormFields(form, pref.fields);
-					afterPreferenceFilled(label, pref, form, doc, editing);
+					fillPreference(label, pref, form, doc, editing);
 				},
 				{ once: true }
 			);
@@ -1903,37 +2336,43 @@
 		openCustomAction(label, editing ? "edit" : "apply", pref, function (doc, ctx, iframe) {
 			const fieldNames = pref.fields.map(function (f) {
 				return f.name;
-			});
+			}).filter(Boolean);
 			const form = findCustomForm(label, doc) || findFormContainingFieldNamesIn(doc, fieldNames) || findLikelyDialogFormIn(doc);
 			if (!form) {
 				alert('Carreguei "' + label + '", mas não encontrei o formulário para preencher automaticamente. Preencha manualmente.');
 				return;
 			}
-			applyFormFields(form, pref.fields);
-			if (editing) {
-				// Mantém os dados extras da preferência (ex.: a modalidade),
-				// salvo se o usuário escolheu outros nesta abertura.
-				showCaptureToolbar(
-					label,
-					function () {
-						try {
-							return iframe.contentDocument || doc;
-						} catch (err) {
-							return doc;
-						}
-					},
-					function () {
-						const kept = {};
-						Object.keys(pref).forEach(function (key) {
-							if (["id", "name", "fields", "createdAt", "updatedAt"].indexOf(key) === -1) kept[key] = pref[key];
-						});
-						return Object.assign(kept, ctx.extra);
-					},
-					pref
-				);
-			} else if (!custom || custom.confirmAfterApply !== false) {
-				showConfirmBar(label, pref, form);
-			}
+			showFillingBar(label, pref);
+			fillFormFields(form, pref.fields, function (missing) {
+				removeConfirmBar();
+				if (editing) {
+					warnMissingFields(label, pref, missing);
+					// Mantém os dados extras da preferência (ex.: a modalidade),
+					// salvo se o usuário escolheu outros nesta abertura.
+					showCaptureToolbar(
+						label,
+						function () {
+							try {
+								return iframe.contentDocument || doc;
+							} catch (err) {
+								return doc;
+							}
+						},
+						function () {
+							const kept = {};
+							Object.keys(pref).forEach(function (key) {
+								if (["id", "name", "fields", "createdAt", "updatedAt"].indexOf(key) === -1) kept[key] = pref[key];
+							});
+							return Object.assign(kept, ctx.extra);
+						},
+						pref
+					);
+				} else if (!custom || custom.confirmAfterApply !== false) {
+					showConfirmBar(label, pref, form, missing);
+				} else {
+					warnMissingFields(label, pref, missing);
+				}
+			});
 		});
 	}
 
@@ -1984,6 +2423,7 @@
 	const JUNTAR_LABEL = "Juntar Documento";
 	const JUNTAR_PREFS_KEY = "pdpJuntarDocumentoPrefs"; // mantido por juntarDocumento.js
 	const COMBO_JUNTAR_DONE_KEY = "pdpComboJuntadaConcluida"; // idem
+	const COMBO_JUNTAR_CONCLUIR_KEY = "pdpComboJuntadaConcluir"; // idem
 	let comboResumeChecked = false;
 
 	function loadCombos() {
@@ -2300,6 +2740,7 @@
 
 	const MOVIMENTACOES_TAB_ID = "tabMovimentacoesProcesso";
 	const COMBO_MAX_HOPS = 3;
+	const COMBO_MAX_AUTO_RETRIES = 2;
 	const COMBO_NAVIGATION_FALLBACK_MS = 6000;
 
 	function hasProcessoForm() {
@@ -2416,6 +2857,7 @@
 		}
 		try {
 			sessionStorage.removeItem(COMBO_JUNTAR_DONE_KEY);
+			sessionStorage.removeItem(COMBO_JUNTAR_CONCLUIR_KEY);
 		} catch (err) {
 			// sem marca antiga a limpar
 		}
@@ -2423,11 +2865,22 @@
 		if (!api.start(pref)) setComboWaiting('Não consegui abrir "Juntar Documento" nesta tela. Abra a tela do processo e clique em "Repetir etapa".');
 	}
 
+	// A juntada da etapa terminou: confirmada pela tela "Dados registrados
+	// com sucesso" (juntarDocumento.js marca COMBO_JUNTAR_DONE_KEY), ou —
+	// se o Projudi voltar direto à tela do processo depois do "Concluir
+	// Movimento" — pela chegada a esta tela com o clique anotado.
 	function juntarStepDone() {
 		try {
-			if (!sessionStorage.getItem(COMBO_JUNTAR_DONE_KEY)) return false;
-			sessionStorage.removeItem(COMBO_JUNTAR_DONE_KEY);
-			return true;
+			if (sessionStorage.getItem(COMBO_JUNTAR_DONE_KEY)) {
+				sessionStorage.removeItem(COMBO_JUNTAR_DONE_KEY);
+				sessionStorage.removeItem(COMBO_JUNTAR_CONCLUIR_KEY);
+				return true;
+			}
+			if (sessionStorage.getItem(COMBO_JUNTAR_CONCLUIR_KEY) && hasProcessoForm()) {
+				sessionStorage.removeItem(COMBO_JUNTAR_CONCLUIR_KEY);
+				return true;
+			}
+			return false;
 		} catch (err) {
 			return false;
 		}
@@ -2463,6 +2916,7 @@
 		const run = readComboRun();
 		if (!run) return;
 		run.index++;
+		run.retries = 0;
 		// Com a tela recarregando, o aviso de conclusão fica para a página
 		// nova (runPendingComboStep chama finishCombo).
 		if (run.index >= run.steps.length && !pageReloading) {
@@ -2566,6 +3020,15 @@
 				setComboWaiting('A juntada não chegou ao "Concluir Movimento" pelo combo. Se ela foi concluída, clique em "Próxima etapa"; senão, em "Repetir etapa".');
 				return;
 			}
+		}
+		// Etapa (do popup) interrompida pela troca de tela antes do "Sim,
+		// executar": nada foi executado, então é reaberta sozinha (ela só
+		// abre e preenche) — no máximo COMBO_MAX_AUTO_RETRIES vezes.
+		if (run.phase === "running" && step && step.label !== JUNTAR_LABEL && (run.retries || 0) < COMBO_MAX_AUTO_RETRIES) {
+			run.retries = (run.retries || 0) + 1;
+			run.phase = "pending";
+			writeComboRun(run);
+			logChainStep("combo: etapa interrompida pela troca de tela — reabrindo", { etapa: run.index + 1, tentativa: run.retries });
 		}
 		if (run.phase === "pending") {
 			renderComboBar(run.index < run.steps.length ? "Continuando o combo…" : "");

@@ -642,3 +642,24 @@
 html.pdp-qa-combo-active body {
 	padding-bottom: 90px !important;
 }
+
+/* Preenchimento de preferência em andamento e aviso de campos que não
+   foi possível preencher (ver fillFormFields em quickActions.js). */
+.pdp-qa-filling-bar {
+	background: #f3f6fa;
+	border-color: #b9c7d8;
+	color: #34495e;
+}
+
+.pdp-qa-confirm-bar.pdp-qa-confirm-warn {
+	background: #fff4e5;
+	border-color: #e0a44a;
+	color: #5a3d0c;
+	flex-wrap: wrap;
+}
+
+.pdp-qa-confirm-missing {
+	flex-basis: 100%;
+	font-weight: bold;
+	color: #a04b00;
+}

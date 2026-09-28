@@ -607,8 +607,12 @@ diálogo como **preferência** e reaplicá-lo depois com poucos cliques:
    ordem, texto, etc.).
 3. Com o diálogo ainda aberto, clique em **"💾 Salvar como preferência"**
    (uma barra aparece no topo da tela) e dê um nome a ela — ex.: "Intimar
-   assistente social padrão". Nada é enviado ao Projudi nesse passo: você
-   ainda decide se confirma o formulário manualmente, como sempre.
+   assistente social padrão". Antes do nome, a extensão **mostra a lista
+   dos campos que serão gravados** (rótulo e valor, ex.: "Finalidade:
+   Elaboração de Relatório") — se faltar algum, cancele, ajuste o diálogo
+   e salve de novo. Depois de salvar, a gravação é conferida relendo o
+   armazenamento. Nada é enviado ao Projudi nesse passo: você ainda decide
+   se confirma o formulário manualmente, como sempre.
 4. Da próxima vez, clique na preferência salva (aparece como um chip
    **"★ nome-da-preferência"** abaixo da ação, com um 🗑 para remover) — a
    extensão abre o mesmo diálogo, repreenche os mesmos campos
@@ -618,6 +622,28 @@ diálogo como **preferência** e reaplicá-lo depois com poucos cliques:
    botão de confirmar/enviar do próprio Projudi — **esse é o passo que
    efetivamente realiza a ação processual**, então confira os campos
    preenchidos antes de confirmar.
+
+**Como a preferência é gravada e preenchida.** Cada campo guarda o valor
+e, nas listas, também o **texto da opção** escolhida (e o rótulo do campo
+na tela). Ao aplicar, a extensão preenche em rodadas, até cada campo
+"pegar":
+
+- bolinhas e caixas primeiro, com um clique de verdade — há telas que só
+  liberam os campos de uma opção pelo clique (ex.: "Outras Remessas");
+- listas que carregam depois de outro campo (ex.: a **Finalidade**, que
+  depende do **Destino**) são aguardadas; a opção é achada pelo valor ou
+  pelo texto. Lista que continua vazia (ex.: o Destino, alimentado por
+  busca) ganha de volta a opção gravada;
+- por alguns segundos depois do preenchimento, e de novo no clique em
+  "Sim, executar", campos que a própria tela tenha esvaziado (recarga
+  tardia) são repostos — uma alteração feita por você nunca é desfeita.
+
+A barra "Sim, executar" só aparece no fim do preenchimento. Se algum
+campo não puder ser preenchido (ex.: a opção gravada não existe mais), a
+barra avisa "⚠ Não consegui preencher: …" e o "Sim, executar" **não
+envia** enquanto esse campo estiver vazio. Preferências gravadas antes
+desta versão continuam funcionando, mas salvar de novo guarda o texto das
+opções e deixa o preenchimento mais seguro.
 
 Para **editar** uma preferência, clique no **✏️** ao lado dela (o 🗑
 continua removendo): a extensão abre o mesmo diálogo já preenchido com a
@@ -700,13 +726,22 @@ próxima (se ela foi concluída à mão — é o caso do "Alvará Eletrônico",
 que só preenche e deixa o "Salvar" para o usuário) ou pare. Se outro
 processo for aberto na mesma aba, o combo não continua nele.
 
+**Início automático.** Cada etapa começa sozinha; o combo só para quando
+precisa de você — o "Sim, executar", a assinatura da juntada, um erro do
+Projudi ou um campo que não foi possível preencher. Uma etapa interrompida
+pela troca de tela antes do "Sim, executar" é reaberta sozinha (até 2
+vezes); um popup que, depois do "Sim, executar", fica numa tela de
+"sucesso" é fechado sozinho.
+
 **Etapa "Juntar Documento"**: não usa o popup — a extensão abre a tela
 "Juntar Documento" na própria aba e faz a juntada com a preferência, como
 o "★" do painel "📎 Juntar Documento" (ver abaixo): preenche cada tela,
 chama o assinador (o usuário assina) e clica em "Confirmar Inclusão" e em
 "Concluir Movimento". A confirmação dessa etapa é a própria assinatura.
-No "Concluir Movimento" a extensão anota que a etapa terminou; de volta à
-tela do processo, o combo segue para a etapa seguinte. Se a juntada for
+Depois do "Concluir Movimento", o Projudi mostra a tela "Dados registrados
+com sucesso! Movimentar Processo" (onde os botões da extensão não
+aparecem): com essa confirmação, a extensão clica sozinha em **"Voltar
+para o Processo"**, e o combo segue para a etapa seguinte. Se a juntada for
 interrompida ("Parar" na faixa do Juntar Documento, ou outra tela aberta),
 a barra do combo pergunta como seguir.
 
