@@ -1387,6 +1387,49 @@ Limitações:
 - Nenhum arquivo, número de telefone ou mensagem é armazenado além do
   tempo necessário para abrir a conversa e anexar os documentos.
 
+## Bloqueio para advogados e assessores de advogado
+
+A extensão é de uso interno e **não funciona** quando o usuário do Projudi
+está logado com perfil de **advogado(a)** ou de **assessor(a) de
+advogado**. O bloqueio fica em `src/hostGuard.js`, que roda antes de todos
+os demais scripts. Quando o perfil é de advocacia, ele deixa falsa a marca
+`window.__pdpHostPermitido`, e assim nenhuma função é carregada.
+
+Para identificar o perfil, a extensão usa várias checagens independentes.
+Basta uma delas para bloquear:
+
+1. o campo **Atribuição:** do cabeçalho (ex. `Advogada (PR12345)`,
+   `Assessor de Advogado ...`): qualquer menção a "advogad" bloqueia.
+   Também bloqueia a atribuição que começa com **Assessor**, **Assessora**
+   ou **Assessor(a)** e traz o número da OAB do advogado assessorado
+   (ex. `Assessora (PR12345)`). Por enquanto, só o assessor de advogado é
+   bloqueado. O assessor do Judiciário continua liberado: sem número da
+   OAB, ou quando a atribuição menciona magistrado, juiz, desembargador,
+   gabinete, vara, turma, câmara, tribunal, Ministério Público, promotor,
+   procurador ou defensor;
+2. o título da mesa inicial (`Mesa do(a) Advogado ...`) e o formulário
+   `#mesaAdvogadoForm`;
+3. o endereço da própria tela, quando ela é exclusiva da advocacia
+   (`mesaAdvogado.do`, `processosAdvogado.do`, `intimacaoAdvogado.do`,
+   `citacaoAdvogado.do`, `sustentacaoOralAdvogado.do`...);
+4. os links do menu que só aparecem para advogados, como "Início" (que
+   volta para a página inicial da área do advogado), Intimações e Citações
+   do advogado;
+5. as checagens acima também nos frames ancestrais e nos demais frames
+   da aba (o cabeçalho e o menu ficam em frames separados das telas do
+   processo);
+6. a memória do perfil detectado, gravada em `localStorage`/
+   `sessionStorage` (leitura imediata) e em `chrome.storage.local` (vale
+   também para os outros hosts e sobrevive ao fechamento do navegador).
+
+A memória só é apagada quando o campo **Atribuição:** mostra um perfil que
+não é de advocacia, por exemplo depois de trocar de perfil ou quando outro
+usuário faz login. Nessa troca, o frameset e o menu que já tinham carregado
+continuam bloqueados até a próxima navegação. As telas abertas depois
+disso funcionam normalmente. Se o perfil de advocacia for identificado só
+depois que a tela carregou, os elementos da extensão (id/classe `pdp*`)
+são ocultados na hora.
+
 ## Termos de Uso (aceite obrigatório)
 
 Logo após a instalação, a extensão abre a página **Termos de Uso**
