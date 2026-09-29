@@ -1087,6 +1087,44 @@ cada vez, uma única vez por processo, e o resultado fica em
 `sessionStorage` (por número do processo), para aparecer na hora ao
 filtrar de novo, trocar de página ou abrir o cumprimento. Só no Projudi.
 
+## Endereço da parte e Mandado Regionalizado na ordenação
+
+No diálogo **Ordenar Cumprimentos**, a linha "Referente a(s) parte(s):"
+mostra só o tipo e o nome da parte — para saber o endereço (e se o mandado
+vai para outra comarca) era preciso abrir a aba "Partes e Outros".
+
+- Ao **marcar uma parte**, aparece logo abaixo dela o(s) endereço(s)
+  cadastrado(s) na aba **"Partes e Outros"** do processo
+  (`📍 (1) R ..., 23 Bairro: ... Cidade: CURITIBA/PR CEP: ...`).
+- Com o Tipo de Cumprimento **MANDADO**, a extensão confere a cidade do
+  (primeiro) endereço das partes marcadas e compara com a **comarca do
+  juízo**, lida do link **"Atuação"** do cabeçalho (ex.: "Vara Criminal de
+  Pinhais" → comarca de Pinhais):
+  - cidade de **outra comarca** que consta da lista **"Comarca de
+    Destino"** → "Tipo do Mandado" passa para **Mandado Regionalizado** e
+    a comarca é marcada (a linha "Comarca de Destino" aparece e a Central
+    de Mandados é carregada pelo próprio Projudi; havendo uma só central,
+    ela já fica marcada);
+  - cidade da **própria comarca** → fica **Mandado Comum** (se tinha sido
+    a extensão que escolheu "Regionalizado", volta para "Comum");
+  - endereço **sem cidade** identificável, partes em **comarcas
+    diferentes** ou cidade **fora da lista** de Comarcas de Destino (ex.:
+    outro estado) → **nada é alterado**.
+
+  Uma nota amarela abaixo de "Tipo do Mandado" explica o que foi feito (ou
+  por que nada foi alterado). A escolha manual do usuário sempre prevalece:
+  a extensão só age quando o usuário marca/desmarca partes ou escolhe o
+  Tipo de Cumprimento — nunca durante o reenvio em segundo plano do
+  "🔁 Nova Ordenação".
+
+Os endereços vêm da mesma aba "Partes e Outros" (linhas ocultas de
+endereço de cada parte), lida da tela do processo por trás do diálogo ou,
+se ela estiver em outra aba, buscada em segundo plano (POST com
+`selectedIcon=tabPartes`, mesma técnica do "Réus/Indiciados/Noticiados no
+cabeçalho"). A cidade é lida do trecho "CIDADE/UF" do endereço (ex.: "... -
+Jardim Carvalho - PONTA GROSSA/PR - CEP: ...") ou de "Cidade: NOME/UF"; na falta, pelo nome de
+uma comarca conhecida no texto do endereço. Só no Projudi.
+
 ## Informações processuais nas ordenações BNMP (exceto guias)
 
 Na ordenação do BNMP de uma **guia** (Guia de Recolhimento, Guia de

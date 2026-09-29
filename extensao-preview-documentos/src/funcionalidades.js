@@ -200,6 +200,13 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					descricao: "Dados processuais nas ordenações BNMP que não são guias.",
 					js: ["src/bnmpMandadoPrisao.js"],
 					css: ["src/bnmpMandadoPrisao.css"]
+				},
+				{
+					id: "enderecoMandado",
+					nome: "Endereço da parte e Mandado Regionalizado",
+					descricao: "Endereço da parte ao ordenar e Mandado Regionalizado automático.",
+					js: ["src/enderecoMandado.js"],
+					css: ["src/enderecoMandado.css"]
 				}
 			]
 		}
