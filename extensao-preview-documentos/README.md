@@ -921,7 +921,12 @@ Salvar PDF** e **Copiar texto**. A certidão é dividida em seções:
   **"autoPrisaoFlagrante"** são ignorados: em processo criminal, a
   "inicial" costuma ser a juntada do auto de prisão em flagrante, que não
   precisa de resumo, e o movimento que só tem esse arquivo não entra;
-- **V – Entenda esta certidão (linguagem simples):** resumo para qualquer
+- **Resumo em linguagem simples ("Entenda sua certidão") — documento
+  separado:** não faz parte da certidão (não sai na impressão nem no
+  "Copiar texto" dela). Na tela, fica numa folha própria abaixo da
+  certidão, editável, com os botões "🖨️ Abrir para imprimir / Salvar PDF"
+  (abre o resumo numa página própria, com cabeçalho do Tribunal, e chama a
+  impressão) e "📋 Copiar resumo". É um resumo para qualquer
   cidadão, no espírito do Pacto Nacional do Judiciário pela Linguagem
   Simples (CNJ): frases curtas, sem jargão, datas por extenso e termos
   explicados. Blocos (só os que tiverem dados): *Que processo é este?*
@@ -929,10 +934,13 @@ Salvar PDF** e **Copiar texto**. A certidão é dividida em seções:
   advogados; vítimas só pelas iniciais), *Qual é a acusação?* (crimes e
   datas, com a ressalva de que acusação não é culpa), *O que já
   aconteceu?* (início, denúncia, recebimento, citação, sentença, recurso,
-  trânsito em julgado, arquivamento), *O que o juiz decidiu?* (a partir
+  trânsito em julgado, arquivamento), *O processo já tem sentença?* (sempre presente: se ainda não há
+  sentença; se há, a data e o resultado — condenação/absolvição, com os
+  nomes, no criminal; procedência/improcedência/extinção no cível — e se
+  há recurso posterior a ela ou se já transitou em julgado), *O que o juiz
+  decidiu?* (a partir
   da sentença criminal), *Qual é a situação agora?* (audiência marcada,
-  arquivamento, último registro), *Existem outros processos ligados a
-  este?*, um glossário só com as palavras que aparecem na certidão e o
+  arquivamento, último registro), um glossário só com as palavras que aparecem na certidão e o
   aviso de que o resumo não substitui a certidão. Gerado por **modelo
   fixo** (sempre igual para os mesmos dados; refeito automaticamente
   depois dos resumos das peças, a menos que tenha sido editado) ou

@@ -296,3 +296,34 @@ test("sentença criminal: substituição/suspensão negadas ou incabíveis não 
 	assert.equal(r.condenacoes[0].regime, "fechado");
 	assert.ok(T.penaEmAnos(r.condenacoes[0].pena) > 8);
 });
+
+test("linguagem simples: bloco 'O processo já tem sentença?' e sem apensados/vinculados", () => {
+	const L = require("../src/certidaoSimples.js");
+	const bloco = (b) => (b.find((x) => x.titulo === "O processo já tem sentença?") || { paragrafos: [] }).paragrafos.join(" ");
+	const base = { classe: "Ação Penal - Procedimento Ordinário", criminal: true, polos: [], apensamentos: ["Processo: 0000003-77.2024.8.16.0038 - Medidas Protetivas"], vinculos: ["Autos de Prisão em Flagrante: 282024"] };
+	// Sem sentença.
+	let b = L.gerarLinguagemSimples(Object.assign({}, base, { movimentos: [{ seq: "5", dataHora: "10/01/2024 09:00:00", titulo: "JUNTADA DE DENÚNCIA" }] }), { textoCertidao: "Apensamentos Vínculos denúncia" });
+	assert.match(bloco(b), /^Ainda não há sentença\. O juiz ainda não decidiu se o acusado deve ser condenado ou absolvido\./);
+	const tudo = L.blocosEmTexto(b);
+	assert.doesNotMatch(tudo, /apensad|vinculad|Vínculo|Apensamento/i);
+	// Sentença criminal (lida do texto) com recurso depois; recurso ANTES da sentença não conta.
+	const movs = [
+		{ seq: "3", dataHora: "01/01/2024 09:00:00", titulo: "JUNTADA DE PETIÇÃO DE RECURSO EM SENTIDO ESTRITO" },
+		{ seq: "20", dataHora: "10/05/2024 16:00:00", titulo: "JULGADO PARCIALMENTE PROCEDENTE O PEDIDO" },
+		{ seq: "25", dataHora: "20/05/2024 10:00:00", titulo: "JUNTADA DE PETIÇÃO DE APELAÇÃO" },
+	];
+	b = L.gerarLinguagemSimples(Object.assign({}, base, { movimentos: movs }), { sentencaCriminal: T.extrairSentencaCriminal(SENTENCA_CRIMINAL) });
+	assert.match(bloco(b), /Sim\. A sentença foi dada em 10 de maio de 2024: o juiz condenou Ezequiel Rocha Leal e absolveu Marcos Antonio Silva\./);
+	assert.match(bloco(b), /Houve recurso contra a sentença, apresentado em 20 de maio de 2024/);
+	// Sem recurso depois da sentença: o de janeiro não conta.
+	b = L.gerarLinguagemSimples(Object.assign({}, base, { movimentos: movs.slice(0, 2) }), {});
+	assert.match(bloco(b), /o juiz aceitou em parte a acusação/);
+	assert.match(bloco(b), /não há registro de recurso contra a sentença/);
+	// Cível improcedente com trânsito em julgado.
+	b = L.gerarLinguagemSimples({ classe: "Procedimento Comum Cível", criminal: false, polos: [], movimentos: [
+		{ seq: "30", dataHora: "01/03/2025 10:00:00", titulo: "JULGADO IMPROCEDENTE O PEDIDO" },
+		{ seq: "35", dataHora: "15/04/2025 00:00:01", titulo: "TRANSITADO EM JULGADO" },
+	] }, {});
+	assert.match(bloco(b), /o juiz não deu razão a quem entrou com o processo \(pedido improcedente\)/);
+	assert.match(bloco(b), /Não houve recurso, e a sentença se tornou definitiva .* em 15 de abril de 2025/);
+});

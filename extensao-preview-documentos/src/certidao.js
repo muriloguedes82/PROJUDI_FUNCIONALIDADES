@@ -1493,6 +1493,9 @@ async function reescreverSimplesComIA() {
 			"- mantenha as vítimas pelas iniciais;\n" +
 			"- mantenha os mesmos títulos, cada um sozinho numa linha;\n" +
 			"- NÃO escreva glossário nem lista de palavras (ele é acrescentado automaticamente);\n" +
+			"- mantenha o bloco 'O processo já tem sentença?' dizendo claramente se há sentença, se houve condenação ou absolvição " +
+			"(ou procedência/improcedência) e se há recurso;\n" +
+			"- não mencione processos apensados ou vinculados;\n" +
 			"- se o TEXTO A REESCREVER e as PEÇAS divergirem (por exemplo, sobre pena, substituição ou suspensão da pena, indenização ou " +
 			"honorários), siga o que está nas PEÇAS; nunca afirme que houve substituição ou suspensão da pena, indenização ou honorários " +
 			"se isso não estiver expressamente nas PEÇAS;\n" +
@@ -1531,20 +1534,76 @@ async function reescreverSimplesComIA() {
 }
 
 function secaoSimples() {
-	const sec = el("section", { id: "secao-simples" });
+	const sec = el("section", { id: "secao-simples", class: "no-print folha-separada" });
 	sec.append(
-		el("h2", { class: "subtitulo", text: "V – ENTENDA ESTA CERTIDÃO (LINGUAGEM SIMPLES)" }),
+		el("div", { class: "separada-aviso" }, "📄 Documento separado — não faz parte da certidão. Use “Abrir para imprimir” para gerar o resumo em uma página própria."),
+		el("h2", { class: "subtitulo", text: "ENTENDA SUA CERTIDÃO — RESUMO EM LINGUAGEM SIMPLES" }),
 		el(
 			"div",
-			{ class: "simples-acoes no-print" },
+			{ class: "simples-acoes" },
 			el("button", { type: "button", id: "simples-fixo", text: "↻ Gerar com modelo fixo", onclick: () => gerarSimplesFixo(true) }),
 			el("button", { type: "button", id: "simples-ia", class: "btn-ia", text: "✨ Reescrever com IA", onclick: reescreverSimplesComIA }),
+			el("button", { type: "button", id: "simples-abrir", class: "primario", text: "🖨️ Abrir para imprimir / Salvar PDF", onclick: abrirSimplesSeparado }),
+			el("button", { type: "button", id: "simples-copiar", text: "📋 Copiar resumo", onclick: copiarSimples }),
 			el("span", { id: "simples-selo", class: "selo-ia", hidden: true, text: "✨ Reescrito pela IA — revise" }),
 			el("span", { id: "simples-estado", class: "simples-estado" })
 		),
 		el("div", { id: "simples-conteudo", class: "simples", contenteditable: "true", oninput: () => (simplesEditado = true) })
 	);
 	return sec;
+}
+
+function textoSimples() {
+	const linhas = [];
+	$("#simples-conteudo").querySelectorAll("h3, p, li").forEach((n) => {
+		const t = T.colapsar(n.textContent);
+		if (t) linhas.push((n.matches("li") ? "• " : "") + t);
+	});
+	return linhas.join("\n");
+}
+
+async function copiarSimples() {
+	try {
+		await navigator.clipboard.writeText(textoSimples());
+		$("#simples-estado").textContent = "Resumo copiado.";
+	} catch (e) {
+		$("#simples-estado").textContent = "Não foi possível copiar: " + e.message;
+	}
+}
+
+// Abre o resumo em uma página própria (documento separado da certidão),
+// com cabeçalho do Tribunal, e chama a impressão (Imprimir / Salvar PDF).
+function abrirSimplesSeparado() {
+	const esc = (t) => String(t || "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+	const conteudo = $("#simples-conteudo").cloneNode(true);
+	conteudo.removeAttribute("contenteditable");
+	conteudo.removeAttribute("id");
+	const css = chrome.runtime.getURL("src/certidao.css");
+	const html =
+		'<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8">' +
+		"<title>Resumo em linguagem simples — " + esc(dados.numero || "processo") + "</title>" +
+		'<link rel="stylesheet" href="' + css + '">' +
+		"<style>body{background:#e9ecef} #folha{min-height:0} .simples-meta{text-align:center;margin:-0.6em 0 1.4em;font-size:11pt}" +
+		"@media print{body{background:#fff}}</style></head><body>" +
+		'<main id="folha">' +
+		'<div class="cabecalho"><div>PODER JUDICIÁRIO</div><div>TRIBUNAL DE JUSTIÇA DO ESTADO DO PARANÁ</div>' +
+		'<div class="juizo">' + esc(dados.juizo) + "</div></div>" +
+		'<h1 class="titulo">ENTENDA SUA CERTIDÃO</h1>' +
+		'<p class="simples-meta">Resumo em linguagem simples da certidão narrativa do processo nº ' + esc(dados.numero) +
+		" — " + esc(dataPorExtensoHoje()) + "</p>" +
+		conteudo.outerHTML +
+		"</main></body></html>";
+	const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+	const janela = window.open(url, "_blank");
+	if (!janela) {
+		alert("O navegador bloqueou a nova janela. Permita pop-ups para a extensão e tente de novo.");
+		return;
+	}
+	janela.addEventListener("load", () => {
+		janela.focus();
+		janela.print();
+		setTimeout(() => URL.revokeObjectURL(url), 60000);
+	});
 }
 
 // Mostra/oculta a seção V (e a tira da impressão e do "Copiar texto").
@@ -1626,9 +1685,6 @@ async function montar() {
 		renumerarPecas();
 	}
 
-	folha.append(secaoSimples());
-	aplicarOpcaoSimples();
-
 	const local = el("p", { class: "fecho", contenteditable: "true" });
 	local.append((servidor.local || dados.comarca || PLACEHOLDER) + ", " + dataPorExtensoHoje() + ".");
 	const nome = el("div", { contenteditable: "true", "data-campo": "nome", text: servidor.nome || "" });
@@ -1636,6 +1692,14 @@ async function montar() {
 	if (!servidor.nome) nome.append(el("span", { class: "pendente", text: "[nome do(a) servidor(a)]" }));
 	if (!servidor.cargo) cargo.append(el("span", { class: "pendente", text: "[cargo]" }));
 	folha.append(local, el("div", { class: "assinatura" }, nome, cargo));
+
+	// Resumo em linguagem simples: documento SEPARADO da certidão. Fica
+	// abaixo da folha (editor na tela), não sai na impressão da certidão
+	// nem no "Copiar texto", e tem impressão própria.
+	const antigo = $("#secao-simples");
+	if (antigo) antigo.remove();
+	folha.after(secaoSimples());
+	aplicarOpcaoSimples();
 
 	// Lembra nome, cargo e local para as próximas certidões.
 	const salvarServidor = () => {

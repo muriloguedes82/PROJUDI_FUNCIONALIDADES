@@ -252,6 +252,27 @@ table.quadro tr:hover .btn-remover-linha { opacity: 1; border-color: #f1a7ae; ba
 .simples-acoes button:disabled { opacity: 0.5; cursor: not-allowed; }
 .simples-estado { color: #555; }
 .simples { font: inherit; text-align: justify; }
+/* O resumo em linguagem simples é um documento separado: na tela, fica em
+   uma "folha" própria abaixo da certidão, e não sai na impressão dela. */
+.folha-separada {
+	width: 21cm;
+	max-width: calc(100% - 24px);
+	margin: 0 auto 40px;
+	padding: 1.2cm 2.2cm 2cm;
+	background: var(--cor-folha);
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+	font: 12pt/1.5 "Times New Roman", Times, serif;
+}
+.separada-aviso {
+	margin: 0 0 0.8em;
+	padding: 6px 10px;
+	background: #fff4d6;
+	border: 1px solid #e0b200;
+	border-radius: 4px;
+	font: 12.5px/1.4 Arial, Helvetica, sans-serif;
+	text-align: left;
+}
+.simples-acoes button.primario { background: var(--cor-destaque); border: 1px solid var(--cor-destaque); color: #fff; border-radius: 3px; }
 .simples h3.simples-titulo { font-size: 12pt; font-weight: bold; margin: 1em 0 0.3em; break-after: avoid; }
 .simples h3.simples-titulo:first-child { margin-top: 0; }
 .simples p { margin: 0 0 0.5em; }

@@ -157,8 +157,10 @@
 	function marcosDoProcesso(movs) {
 		const linhas = [];
 		const usados = new Set();
+		let houveSentenca = false;
 		(movs || []).forEach(function (m) {
 			if (m.invalido) return;
+			if (ehTipo(m, "sentenca")) houveSentenca = true;
 			const titulo = normalizar(m.titulo || m.evento);
 			MARCOS.forEach(function (def, i) {
 				if (def.unico && usados.has(i)) return;
@@ -166,6 +168,8 @@
 				if (def.tipo) {
 					const c = T.classificarMovimento(m.titulo || m.evento);
 					casa = c && c.tipo === def.tipo;
+					// Recurso só conta depois de uma sentença (é contra ela).
+					if (casa && def.tipo === "recurso" && !houveSentenca) casa = false;
 				} else {
 					casa = def.re.test(titulo) && !(def.excluir && def.excluir.test(titulo));
 				}
@@ -252,7 +256,67 @@
 		sent.honorarios.forEach(function (h) {
 			linhas.push("O Estado deverá pagar " + (h.valor ? h.valor + " " : "") + "ao advogado nomeado pelo juiz para fazer a defesa (advogado dativo)" + (h.nome ? ", " + nomeProprio(h.nome) : "") + ".");
 		});
-		if (linhas.length) linhas.push("Enquanto for possível recorrer, a sentença ainda pode ser modificada.");
+		return linhas;
+	}
+
+	// ---------------------------------------------------------------
+	// O processo já tem sentença? Resultado e recurso.
+	// ---------------------------------------------------------------
+
+	function ehTipo(m, tipo) {
+		const c = T.classificarMovimento(m.titulo || m.evento);
+		return !!(c && c.tipo === tipo);
+	}
+
+	// Resultado lido do nome do movimento da sentença, quando não há a
+	// leitura da própria sentença criminal.
+	function resultadoPeloMovimento(m, criminal) {
+		const t = normalizar((m.titulo || m.evento || "") + " " + (m.complemento || ""));
+		if (/absolv/.test(t)) return criminal ? "o juiz absolveu o acusado (decidiu que ele não deve ser condenado)" : "";
+		if (/condena/.test(t)) return criminal ? "o juiz condenou o acusado" : "o juiz condenou a parte ré";
+		if (/parcialmente procedente|procedente em parte|procedencia parcial/.test(t)) return criminal ? "o juiz aceitou em parte a acusação (condenação parcial)" : "o juiz deu razão em parte a quem entrou com o processo (pedido parcialmente procedente)";
+		if (/improcedente|improcedencia/.test(t)) return criminal ? "o juiz não aceitou a acusação (absolvição)" : "o juiz não deu razão a quem entrou com o processo (pedido improcedente)";
+		if (/procedente|procedencia/.test(t)) return criminal ? "o juiz aceitou a acusação (condenação)" : "o juiz deu razão a quem entrou com o processo (pedido procedente)";
+		if (/extint|extincao/.test(t)) return criminal && /punibilidade/.test(t) ? "o juiz declarou extinta a punibilidade (o Estado não pode mais punir pelo fato)" : "o juiz encerrou o processo (extinção)";
+		if (/homolog/.test(t)) return "o juiz aprovou o acordo feito entre as partes (homologação)";
+		if (/impronunci/.test(t)) return "o juiz decidiu que o acusado não vai a júri (impronúncia)";
+		if (/pronunci/.test(t)) return "o juiz decidiu que o acusado vai a julgamento pelo Tribunal do Júri (pronúncia)";
+		return "";
+	}
+
+	function blocoSentenca(d, extras) {
+		const movs = (d.movimentos || []).filter(function (m) { return !m.invalido; });
+		let iSent = -1;
+		movs.forEach(function (m, i) { if (ehTipo(m, "sentenca")) iSent = i; });
+		if (iSent < 0) {
+			return [d.criminal ? "Ainda não há sentença. O juiz ainda não decidiu se o acusado deve ser condenado ou absolvido." : "Ainda não há sentença. O juiz ainda não decidiu o pedido principal do processo."];
+		}
+		const sent = movs[iSent];
+		const linhas = [];
+		// Resultado: pela leitura da sentença criminal (nomes), ou pelo nome do movimento.
+		const sc = extras.sentencaCriminal;
+		let resultado = "";
+		if (sc && (sc.condenacoes.length || sc.absolvidos.length)) {
+			const partes = [];
+			if (sc.condenacoes.length) partes.push("condenou " + juntar(sc.condenacoes.map(function (c) { return nomeProprio(c.nome); })));
+			if (sc.absolvidos.length) partes.push("absolveu " + juntar(sc.absolvidos.map(nomeProprio)));
+			resultado = "o juiz " + partes.join(" e ");
+		} else {
+			resultado = resultadoPeloMovimento(sent, d.criminal);
+		}
+		linhas.push("Sim. A sentença foi dada em " + dataExtenso(sent.dataHora) + (resultado ? ": " + resultado + "." : ". O resultado está resumido na parte IV da certidão."));
+
+		// Recurso contra a sentença: só os apresentados depois dela.
+		const depois = movs.slice(iSent + 1);
+		const recursos = depois.filter(function (m) { return ehTipo(m, "recurso"); });
+		const transito = depois.filter(function (m) { return /transit/.test(normalizar(m.titulo || m.evento)); }).pop();
+		if (recursos.length) {
+			linhas.push("Houve recurso contra a sentença, apresentado em " + dataExtenso(recursos[0].dataHora) + ". Por isso, a decisão ainda pode ser mudada por um tribunal.");
+		} else if (transito) {
+			linhas.push("Não houve recurso, e a sentença se tornou definitiva (não cabe mais recurso) em " + dataExtenso(transito.dataHora) + ".");
+		} else {
+			linhas.push("Até agora, não há registro de recurso contra a sentença. Enquanto o prazo estiver aberto, as partes ainda podem recorrer.");
+		}
 		return linhas;
 	}
 
@@ -272,8 +336,6 @@
 		[/\brecursos?\b|\bapelac/, "Recurso", "pedido para que um tribunal revise uma decisão."],
 		[/transit/, "Trânsito em julgado", "momento em que a decisão se torna definitiva e não cabe mais recurso."],
 		[/\barquivad/, "Arquivamento", "encerramento do andamento do processo, que fica guardado."],
-		[/apensament|apensad/, "Apensamento", "ligação entre processos relacionados, que passam a andar juntos."],
-		[/\bvinculo/, "Vínculo", "relação registrada entre este processo e outro procedimento."],
 		[/ministerio publico/, "Ministério Público", "instituição que defende os interesses da sociedade e faz a acusação nos processos criminais."],
 		[/\bdativ/, "Advogado dativo", "advogado nomeado pelo juiz para defender quem não tem advogado; é pago pelo Estado."],
 		[/defensoria/, "Defensoria Pública", "instituição que presta assistência jurídica gratuita a quem não pode pagar advogado."],
@@ -327,16 +389,13 @@
 		const marcos = marcosDoProcesso(d.movimentos);
 		if (marcos.length) blocos.push({ titulo: "O que já aconteceu?", paragrafos: marcos });
 
+		blocos.push({ titulo: "O processo já tem sentença?", paragrafos: blocoSentenca(d, extras) });
+
 		const decisao = blocoDecisao(extras.sentencaCriminal);
 		if (decisao.length) blocos.push({ titulo: "O que o juiz decidiu?", paragrafos: decisao });
 
 		const situacao = situacaoAtual(d, extras.agora);
 		if (situacao.length) blocos.push({ titulo: "Qual é a situação agora?", paragrafos: situacao });
-
-		const relacionados = [];
-		if (d.apensamentos && d.apensamentos.length) relacionados.push("Este processo tem " + d.apensamentos.length + (d.apensamentos.length > 1 ? " processos apensados (ligados a ele e que andam juntos)." : " processo apensado (ligado a ele e que anda junto)."));
-		if (d.vinculos && d.vinculos.length) relacionados.push("Há " + d.vinculos.length + (d.vinculos.length > 1 ? " procedimentos vinculados" : " procedimento vinculado") + " a este processo, como registros da polícia.");
-		if (relacionados.length) blocos.push({ titulo: "Existem outros processos ligados a este?", paragrafos: relacionados });
 
 		const g = glossario(extras.textoCertidao || "");
 		if (g.length) blocos.push({ titulo: "Palavras que aparecem nesta certidão", paragrafos: [], glossario: g });
@@ -369,7 +428,7 @@
 		iniciais: iniciais,
 		explicarClasse: explicarClasse,
 		glossario: glossario,
-		TITULOS: ["Que processo é este?", "Quem participa?", "Qual é a acusação?", "O que já aconteceu?", "O que cada parte pediu?", "O que o juiz decidiu?", "Houve recurso?", "Qual é a situação agora?", "Existem outros processos ligados a este?", "Palavras que aparecem nesta certidão", "Importante"],
+		TITULOS: ["Que processo é este?", "Quem participa?", "Qual é a acusação?", "O que já aconteceu?", "O que cada parte pediu?", "O processo já tem sentença?", "O que o juiz decidiu?", "Houve recurso?", "Qual é a situação agora?", "Palavras que aparecem nesta certidão", "Importante"],
 	};
 	root.PdpCertidaoSimples = api;
 	if (typeof module !== "undefined" && module.exports) module.exports = api;
