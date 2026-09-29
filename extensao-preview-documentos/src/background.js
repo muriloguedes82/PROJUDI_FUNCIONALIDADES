@@ -851,3 +851,16 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
     .catch(error => reply({ ok: false, error: error.message }));
   return true;
 });
+
+// Menu da extensão (src/menuExtensao.js): páginas da própria extensão não
+// podem ser abertas direto pelo content script, então ele pede aqui.
+chrome.runtime.onMessage.addListener((message, _sender, reply) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'abrir-pagina-extensao') return false;
+  const paginas = { manual: 'src/manual.html', termos: 'src/termos.html' };
+  const pagina = paginas[message.pagina];
+  if (!pagina) { reply({ ok: false, error: 'Página desconhecida.' }); return false; }
+  chrome.tabs.create({ url: chrome.runtime.getURL(pagina), active: true })
+    .then(() => reply({ ok: true }))
+    .catch(error => reply({ ok: false, error: String(error.message || error) }));
+  return true;
+});

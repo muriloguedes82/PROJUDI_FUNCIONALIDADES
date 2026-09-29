@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Projudi/SEEU - Manual do Usuário</title>
+<link rel="stylesheet" href="manual.css" />
+</head>
+<body>
+	<header class="topo">
+		<svg class="topo-emblema" viewBox="0 0 24 24" aria-hidden="true">
+			<circle class="cheio" cx="12" cy="4" r="1.3" />
+			<path d="M12 5.3V19.5M8 20.5h8M4.5 7.5h15M4.5 7.5L2 13M4.5 7.5L7 13M19.5 7.5L17 13M19.5 7.5L22 13" />
+			<path class="cheio" d="M1.8 13a2.7 2.2 0 0 0 5.4 0zM16.8 13a2.7 2.2 0 0 0 5.4 0z" />
+		</svg>
+		<div>
+			<p class="topo-sobretitulo">Extensão Projudi/SEEU · <span id="versao"></span></p>
+			<h1 class="topo-titulo">Manual do Usuário</h1>
+		</div>
+		<label class="busca">
+			<span class="sr">Buscar no manual</span>
+			<input id="busca" type="search" placeholder="Buscar no manual…" autocomplete="off" />
+		</label>
+	</header>
+	<nav class="indice" id="indice" aria-label="Índice"></nav>
+	<main class="conteudo" id="conteudo" tabindex="-1">
+		<p class="carregando">Carregando o manual…</p>
+	</main>
+	<script src="manual.js"></script>
+</body>
+</html>

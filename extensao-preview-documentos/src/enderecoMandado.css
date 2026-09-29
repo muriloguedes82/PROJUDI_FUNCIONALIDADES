@@ -1,0 +1,25 @@
+/* Endereço da parte e Mandado Regionalizado na ordenação (ver enderecoMandado.js) */
+span.pdp-end-parte {
+	display: block;
+	margin: 1px 0 4px 22px;
+	font-size: 11px;
+	white-space: pre-line;
+}
+
+span.pdp-end-parte.pdp-end-valor {
+	color: #1f3f66;
+}
+
+span.pdp-end-parte.pdp-end-status {
+	color: #777;
+	font-style: italic;
+}
+
+div.pdp-end-mandado {
+	margin-top: 4px;
+	padding: 3px 6px;
+	font-size: 11px;
+	background: #fff8dc;
+	border-left: 3px solid #d4a017;
+	max-width: 620px;
+}

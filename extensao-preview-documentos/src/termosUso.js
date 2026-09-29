@@ -16,7 +16,7 @@
 
 "use strict";
 
-importScripts("termosConfig.js");
+importScripts("termosConfig.js", "funcionalidades.js");
 
 const PDP_TERMOS_MATCHES = ["*://*.tjpr.jus.br/*", "*://seeu.pje.jus.br/*"];
 const PDP_TERMOS_HOST_TRIBUNAL = /^https?:\/\/((projudi|tst)[^./]*\.tjpr\.jus\.br|seeu\.pje\.jus\.br)\//i;
@@ -63,8 +63,11 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/reusCabecalho.js",
 			"src/cpfPartesCumprimentos.js",
 			"src/bnmpMandadoPrisao.js",
+			"src/enderecoMandado.js",
 			"src/preferenciasNaLinha.js",
-			"src/listaTarefas.js"
+			"src/listaTarefas.js",
+			"src/funcionalidades.js",
+			"src/menuExtensao.js"
 		],
 		css: [
 			"src/content.css",
@@ -77,6 +80,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/reusCabecalho.css",
 			"src/cpfPartesCumprimentos.css",
 			"src/bnmpMandadoPrisao.css",
+			"src/enderecoMandado.css",
 			"src/juntarDocumento.css",
 			"src/listaTarefas.css"
 		],
@@ -119,7 +123,21 @@ async function pdpSincronizarScriptsTribunal() {
 			ids: registrados.map(function (script) { return script.id; })
 		});
 	}
-	if (await pdpTermosAceitos()) await pdpRegistrarScripts(PDP_SCRIPTS_TRIBUNAL);
+	if (await pdpTermosAceitos()) await pdpRegistrarScripts(await pdpScriptsAtivos());
+}
+
+// Retira dos blocos os arquivos das funcionalidades desativadas no Menu da
+// extensão (ver src/funcionalidades.js). A ordem dos demais é mantida.
+async function pdpScriptsAtivos() {
+	const data = await chrome.storage.local.get(PDP_FUNCIONALIDADES.chave);
+	const fora = pdpArquivosDesativados(data[PDP_FUNCIONALIDADES.chave]);
+	const manter = function (arquivo) { return !fora.has(arquivo); };
+	return PDP_SCRIPTS_TRIBUNAL.map(function (script) {
+		const copia = Object.assign({}, script, { js: script.js.filter(manter) });
+		if (script.css) copia.css = script.css.filter(manter);
+		if (copia.css && !copia.css.length) delete copia.css;
+		return copia;
+	});
 }
 
 // Serializa as sincronizações (instalação e aceite podem ocorrer quase ao
@@ -160,7 +178,7 @@ chrome.runtime.onStartup.addListener(function () {
 });
 
 chrome.storage.onChanged.addListener(function (changes, area) {
-	if (area === "local" && changes[PDP_TERMOS.chave]) pdpSincronizar();
+	if (area === "local" && (changes[PDP_TERMOS.chave] || changes[PDP_FUNCIONALIDADES.chave])) pdpSincronizar();
 });
 
 // Sem aceite, abrir o Projudi/SEEU traz a página de termos para a frente.
