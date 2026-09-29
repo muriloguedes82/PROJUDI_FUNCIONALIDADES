@@ -395,13 +395,19 @@ async function carregarConfigIA() {
 	try {
 		const salvo = (await chrome.storage.local.get(IA_CONFIG_KEY))[IA_CONFIG_KEY];
 		if (salvo) iaConfig = Object.assign(iaConfig, salvo);
+		// A IA local (Chrome) é SEMPRE a padrão ao abrir a certidão: o Claude
+		// precisa ser escolhido manualmente a cada vez (a chave e o modelo
+		// continuam salvos).
+		iaConfig.provedor = "chrome";
 	} catch (e) {
 		/* segue com o padrão */
 	}
 }
 
+// Guarda chave, modelo e aceite do aviso — nunca a escolha do provedor.
 function salvarConfigIA() {
-	return chrome.storage.local.set({ [IA_CONFIG_KEY]: iaConfig });
+	const { provedor, ...resto } = iaConfig;
+	return chrome.storage.local.set({ [IA_CONFIG_KEY]: resto });
 }
 
 function chaveMascarada() {

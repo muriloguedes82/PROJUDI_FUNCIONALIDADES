@@ -1045,7 +1045,10 @@ opções da lista de eventos, linguagem simples). **IA:** escolhe quem faz
 os resumos (das peças e da linguagem simples):
 
 - **Chrome (local, gratuita)** — a IA embutida no navegador; nada sai do
-  computador (ver "Como ativar a IA do Chrome" abaixo).
+  computador (ver "Como ativar a IA do Chrome" abaixo). **É sempre a IA
+  padrão:** toda certidão abre com ela, e o Claude precisa ser escolhido
+  manualmente a cada vez (a chave e o modelo do Claude continuam salvos;
+  só a escolha do provedor não é guardada).
 - **Claude – Anthropic (chave própria)** — usa a API da Anthropic. Modelo
   (em ⚙️ Configurações): **Claude Haiku 4.5** (`claude-haiku-4-5`, o mais
   barato, padrão), **Claude Sonnet 5.5** (`claude-sonnet-5-5`, equilibrado)
