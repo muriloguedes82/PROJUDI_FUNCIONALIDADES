@@ -91,6 +91,13 @@ const PDP_SCRIPTS_TRIBUNAL = [
 	}
 ];
 
+// O bloco principal é registrado uma vez por sistema (cada um com o seu
+// endereço e a sua lista de funcionalidades desativadas - ver
+// src/funcionalidades.js). Os ids antigos, de antes da separação, são
+// removidos a cada sincronização.
+const PDP_MATCHES_SISTEMA = { projudi: ["*://*.tjpr.jus.br/*"], seeu: ["*://seeu.pje.jus.br/*"] };
+const PDP_ID_PRINCIPAL_ANTIGO = "pdp-tribunal-principal";
+
 async function pdpTermosAceitos() {
 	const data = await chrome.storage.local.get(PDP_TERMOS.chave);
 	const aceite = data[PDP_TERMOS.chave];
@@ -116,7 +123,7 @@ async function pdpRegistrarScripts(scripts) {
 // extensão que inclua/retire arquivos passa a valer, e a revogação do
 // aceite (ou uma nova versão dos termos) desliga os scripts.
 async function pdpSincronizarScriptsTribunal() {
-	const ids = PDP_SCRIPTS_TRIBUNAL.map(function (script) { return script.id; });
+	const ids = pdpScriptsBase().map(function (script) { return script.id; }).concat(PDP_ID_PRINCIPAL_ANTIGO);
 	const registrados = await chrome.scripting.getRegisteredContentScripts({ ids: ids });
 	if (registrados.length) {
 		await chrome.scripting.unregisterContentScripts({
@@ -126,13 +133,25 @@ async function pdpSincronizarScriptsTribunal() {
 	if (await pdpTermosAceitos()) await pdpRegistrarScripts(await pdpScriptsAtivos());
 }
 
+// Blocos registrados: o de início (comum) e um bloco principal por sistema.
+function pdpScriptsBase() {
+	const inicio = PDP_SCRIPTS_TRIBUNAL.filter(function (script) { return script.id !== PDP_ID_PRINCIPAL_ANTIGO; });
+	const principal = PDP_SCRIPTS_TRIBUNAL.find(function (script) { return script.id === PDP_ID_PRINCIPAL_ANTIGO; });
+	return inicio.concat(PDP_FUNCIONALIDADES.sistemas.map(function (sistema) {
+		return Object.assign({}, principal, { id: principal.id + "-" + sistema.id, matches: PDP_MATCHES_SISTEMA[sistema.id] });
+	}));
+}
+
 // Retira dos blocos os arquivos das funcionalidades desativadas no Menu da
-// extensão (ver src/funcionalidades.js). A ordem dos demais é mantida.
+// extensão (ver src/funcionalidades.js), conforme o sistema do bloco. A
+// ordem dos demais é mantida.
 async function pdpScriptsAtivos() {
-	const data = await chrome.storage.local.get(PDP_FUNCIONALIDADES.chave);
-	const fora = pdpArquivosDesativados(data[PDP_FUNCIONALIDADES.chave]);
-	const manter = function (arquivo) { return !fora.has(arquivo); };
-	return PDP_SCRIPTS_TRIBUNAL.map(function (script) {
+	const data = await chrome.storage.local.get([PDP_FUNCIONALIDADES.chave, PDP_FUNCIONALIDADES.chaveAntiga]);
+	return pdpScriptsBase().map(function (script) {
+		const sistema = PDP_FUNCIONALIDADES.sistemas.find(function (s) { return script.id === PDP_ID_PRINCIPAL_ANTIGO + "-" + s.id; });
+		if (!sistema) return script;
+		const fora = pdpArquivosDesativados(pdpDesativadasDoSistema(data, sistema.id));
+		const manter = function (arquivo) { return !fora.has(arquivo); };
 		const copia = Object.assign({}, script, { js: script.js.filter(manter) });
 		if (script.css) copia.css = script.css.filter(manter);
 		if (copia.css && !copia.css.length) delete copia.css;
@@ -178,7 +197,7 @@ chrome.runtime.onStartup.addListener(function () {
 });
 
 chrome.storage.onChanged.addListener(function (changes, area) {
-	if (area === "local" && (changes[PDP_TERMOS.chave] || changes[PDP_FUNCIONALIDADES.chave])) pdpSincronizar();
+	if (area === "local" && (changes[PDP_TERMOS.chave] || changes[PDP_FUNCIONALIDADES.chave] || changes[PDP_FUNCIONALIDADES.chaveAntiga])) pdpSincronizar();
 });
 
 // Sem aceite, abrir o Projudi/SEEU traz a página de termos para a frente.
