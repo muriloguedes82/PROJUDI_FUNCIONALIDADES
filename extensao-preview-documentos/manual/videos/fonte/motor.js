@@ -3,7 +3,7 @@
 // (gravar.mjs): cada setTimeout/Date.now é controlado quadro a quadro.
 "use strict";
 
-const VERSAO_EXTENSAO = "2.9.92";
+const VERSAO_EXTENSAO = "2.9.94";
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const easeInOut = p => (p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2);
 async function tween(ms, fn, ease = easeInOut) {
