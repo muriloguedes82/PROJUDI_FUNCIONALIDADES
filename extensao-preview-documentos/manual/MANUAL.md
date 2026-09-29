@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.9.92 |
-| **Versão da extensão** | 2.9.92 |
+| **Versão do manual** | 2.9.93 |
+| **Versão da extensão** | 2.9.93 |
 | **Data desta versão** | 29/09/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -298,13 +298,21 @@ desativadas.
 **O que há no Menu:**
 
 **1. Funcionalidades** — a lista de todas as funções, agrupadas por assunto,
-cada uma com uma **chave liga/desliga**. No topo aparece "Funcionalidades: N
-de 25 ativas".
+cada uma com uma **chave liga/desliga**. No topo do Menu há **duas abas,
+PROJUDI e SEEU**, com a mesma lista: cada sistema guarda as suas próprias
+escolhas. Por padrão, **tudo vem ativo nos dois**. A extensão reconhece em que
+sistema você está pelo endereço da página e abre o Menu na aba dele (marcada
+com "(este)"); você pode clicar na outra aba para configurá-la também. Acima
+da lista aparece "Funcionalidades no PROJUDI: N de 25 ativas" (ou no SEEU).
 
-1. Clique na chave da função que quer ligar ou desligar.
-2. A mudança vale para **todas as páginas** do Projudi e do SEEU, a partir da
+1. Clique na aba do sistema que quer configurar (PROJUDI ou SEEU).
+2. Clique na chave da função que quer ligar ou desligar.
+3. A mudança vale para **todas as páginas daquele sistema**, a partir da
    próxima vez que a página for carregada. Clique em **Recarregar agora** para
-   aplicar na página atual.
+   aplicar na página atual (o aviso só aparece quando você mexeu na aba do
+   sistema em que está).
+4. Para deixar o outro sistema igual, use o link **Copiar para o SEEU** (ou
+   **Copiar para o PROJUDI**), ao lado do total de funções ativas, e confirme.
 
 Algumas funções dependem de outras (aparece em dourado, sob o nome:
 "Requer: …"). O Menu cuida disso e avisa o que fez:
@@ -332,12 +340,13 @@ computador:
 
 - **⬇ Exportar**: baixa um arquivo `.json` com as suas preferências, combos,
   listas de tarefas, contatos do WhatsApp, destinatários e remetentes de
-  e-mail, destaques de movimentações e as funções desligadas.
+  e-mail, destaques de movimentações e as funções desligadas em cada sistema.
 - **⬆ Importar**: no outro computador (com a mesma extensão instalada), escolha
   o arquivo. O Menu mostra um **resumo do que ele contém**; depois de você
   **confirmar**, as preferências daquele computador são **substituídas** pelas
   do arquivo. Recarregue as páginas abertas.
-- **↺ Padrão**: religa todas as funções. **Não** apaga nenhuma preferência.
+- **↺ Padrão**: religa todas as funções **do sistema da aba aberta** (o outro
+  não muda). **Não** apaga nenhuma preferência.
 
 ⚠️ O arquivo **não** leva o aceite dos Termos de Uso (cada instalação aceita os
 seus), nem login do Microsoft Graph, nem trabalhos em andamento (envios,
@@ -348,9 +357,12 @@ seus contatos.
 lateral e busca**. Os links **▶ Vídeo** tocam na própria página (feche com
 **✕ Fechar** ou **Esc**). Logo acima fica o link **Termos de Uso**.
 
-**Bom saber:** se um botão da extensão "sumiu", confira no Menu se a função
-não foi desligada (e se alguma função de que ela depende não foi desligada
-junto).
+**Bom saber:** se um botão da extensão "sumiu", confira no Menu, **na aba do
+sistema em que você está**, se a função não foi desligada (e se alguma função
+de que ela depende não foi desligada junto). O **pontinho vermelho** do ícone
+refere-se ao sistema em que a página está aberta. Quem já tinha funções
+desligadas antes desta versão continua com elas desligadas nos dois sistemas,
+até mudar em uma das abas.
 
 ---
 
@@ -1379,5 +1391,6 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.9.93 | 29/09/2026 | Menu da extensão (seção 2.6): duas abas, **PROJUDI** e **SEEU**, para ligar e desligar as funções de cada sistema separadamente (tudo ativo por padrão nos dois), com **Copiar para o outro sistema**; a extensão reconhece o sistema pelo endereço da página. O vídeo V34 ainda mostra o Menu sem as abas e será regravado. |
 | 2.9.92 | 29/09/2026 | O manual passa a ser aberto pelo botão **📖 Manual do Usuário** do Menu, com índice, busca e vídeos na própria página. Novos: seção 2.6 (Menu da extensão: funcionalidades liga/desliga, exportar/importar/padrão) e 9.7 (Endereço da parte e Mandado Regionalizado, versões 2.9.89–2.9.91). Vídeos V34 e V35; todos os demais foram regravados com o ícone do Menu na tela. |
 | 2.9.88 | 29/09/2026 | Primeira edição do manual: todas as funções da extensão até a versão 2.9.88, com 33 vídeos instrutivos (Anexo A). |

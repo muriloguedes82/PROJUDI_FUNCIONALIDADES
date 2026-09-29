@@ -10,15 +10,19 @@
 //
 // Ao clicar, abre o Menu com:
 //   1. todas as funcionalidades (src/funcionalidades.js), cada uma com uma
-//      chave liga/desliga. A escolha é gravada em chrome.storage.local e o
-//      service worker (src/termosUso.js) passa a injetar só os arquivos das
-//      funcionalidades ativas - vale a partir do próximo carregamento da
-//      página (o Menu oferece "Recarregar agora");
+//      chave liga/desliga, em duas abas iguais: PROJUDI e SEEU. A aba que
+//      abre é a do sistema em que a página está (reconhecido pelo endereço),
+//      mas as duas podem ser editadas. A escolha é gravada em
+//      chrome.storage.local, por sistema, e o service worker
+//      (src/termosUso.js) passa a injetar em cada sistema só os arquivos das
+//      funcionalidades ativas nele - vale a partir do próximo carregamento
+//      da página (o Menu oferece "Recarregar agora");
 //   2. backup das preferências: "Exportar" baixa um arquivo .json com todas
 //      as preferências (inclusive as funcionalidades desativadas), combos,
 //      listas de tarefas, destinatários etc.; "Importar" lê esse arquivo em
 //      outro computador e substitui as preferências de lá; "Padrão" reativa
-//      todas as funcionalidades, sem apagar preferências;
+//      todas as funcionalidades do sistema da aba aberta, sem apagar
+//      preferências;
 //   3. "Manual do Usuário" (src/manual.html) e os Termos de Uso.
 //
 // O backup nunca leva o aceite dos Termos de Uso (é pessoal e por
@@ -38,6 +42,10 @@
 	const ITENS = CAT.grupos.flatMap(function (g) { return g.itens; });
 	const POR_ID = new Map(ITENS.map(function (item) { return [item.id, item]; }));
 	const IS_SEEU = /(^|\.)seeu\.pje\.jus\.br$/i.test(location.hostname);
+	const SISTEMAS = CAT.sistemas;
+	const SISTEMA_ATUAL = self.pdpSistemaDoHost(location.hostname);
+	const outroSistema = function (id) { return SISTEMAS.find(function (s) { return s.id !== id; }); };
+	const nomeSistema = function (id) { return SISTEMAS.find(function (s) { return s.id === id; }).nome; };
 	const IS_TOPO = window.top === window;
 
 	const FORMATO_BACKUP = "projudi-seeu-extensao-backup";
@@ -156,8 +164,28 @@
 	// Estado: funcionalidades desativadas
 	// ------------------------------------------------------------------
 
-	let desativadas = new Set();
+	// Uma lista de desativadas por sistema; `desativadas` é a da aba aberta.
+	const listas = {};
+	SISTEMAS.forEach(function (s) { listas[s.id] = new Set(); });
+	let abaAtiva = SISTEMA_ATUAL;
+	let desativadas = listas[abaAtiva];
 	let alterouNestaPagina = false;
+
+	function definirListas(dados) {
+		SISTEMAS.forEach(function (s) {
+			listas[s.id] = new Set(self.pdpDesativadasDoSistema(dados, s.id).filter(function (id) { return POR_ID.has(id); }));
+		});
+		desativadas = listas[abaAtiva];
+	}
+
+	function trocarAba(id) {
+		if (id === abaAtiva) return;
+		abaAtiva = id;
+		desativadas = listas[id];
+		aviso = null;
+		confirmacao = null;
+		render();
+	}
 
 	// Inclui as dependentes das desativadas (a mesma regra do service worker).
 	function efetivamenteDesativadas(conjunto) {
@@ -195,8 +223,8 @@
 				if (!novo.has(x)) { novo.add(x); extras.push(x); }
 			});
 		}
-		desativadas = novo;
-		alterouNestaPagina = true;
+		listas[abaAtiva] = desativadas = novo;
+		if (abaAtiva === SISTEMA_ATUAL) alterouNestaPagina = true;
 		gravar();
 		if (extras.length) {
 			avisar((ativar ? "Também ativada(s), pois são necessárias: " : "Também desativada(s), pois dependem dela: ") + nomes(extras) + ".", "info");
@@ -205,7 +233,9 @@
 	}
 
 	function gravar() {
-		chrome.storage.local.set({ [CHAVE]: [...desativadas] }).catch(function (err) {
+		const valor = {};
+		SISTEMAS.forEach(function (s) { valor[s.id] = [...listas[s.id]]; });
+		chrome.storage.local.set({ [CHAVE]: valor }).catch(function (err) {
 			avisar("Não foi possível gravar a preferência: " + err.message, "erro");
 		});
 	}
@@ -226,8 +256,10 @@
 			["destinatário(s) de e-mail", tamanho(local.pdpEmailRecipients)],
 			["remetente(s) de e-mail", tamanho(local.pdpFromAccounts)]
 		].filter(function (l) { return l[1] > 0; }).map(function (l) { return l[1] + " " + l[0]; });
-		const fora = tamanho(local[CHAVE]);
-		linhas.push(fora ? fora + " funcionalidade(s) desativada(s)" : "todas as funcionalidades ativas");
+		SISTEMAS.forEach(function (s) {
+			const fora = self.pdpDesativadasDoSistema(local, s.id).length;
+			linhas.push(fora ? fora + " funcionalidade(s) desativada(s) no " + s.nome : "todas as funcionalidades ativas no " + s.nome);
+		});
 		return linhas;
 	}
 
@@ -302,7 +334,7 @@
 			if (remover.length) await chrome.storage.local.remove(remover);
 			await chrome.storage.local.set(local);
 			if (Object.keys(sync).length) await chrome.storage.sync.set(sync);
-			desativadas = new Set(Array.isArray(local[CHAVE]) ? local[CHAVE].filter(function (id) { return POR_ID.has(id); }) : []);
+			definirListas(local);
 			alterouNestaPagina = true;
 			avisar("Preferências importadas. Recarregue as páginas do Projudi/SEEU abertas para aplicá-las.", "ok");
 		} catch (err) {
@@ -311,16 +343,31 @@
 		render();
 	}
 
+	function copiarPara(destino) {
+		confirmacao = {
+			titulo: "Copiar para o " + nomeSistema(destino) + "?",
+			texto: "O " + nomeSistema(destino) + " passará a ter as mesmas funcionalidades ativas e desativadas do " + nomeSistema(abaAtiva) + " (as escolhas atuais do " + nomeSistema(destino) + " serão substituídas).",
+			rotulo: "Copiar",
+			acao: function () {
+				listas[destino] = new Set(desativadas);
+				if (destino === SISTEMA_ATUAL) alterouNestaPagina = true;
+				gravar();
+				avisar("Configuração copiada para o " + nomeSistema(destino) + ".", "ok");
+			}
+		};
+		render();
+	}
+
 	function restaurarPadrao() {
 		confirmacao = {
-			titulo: "Restaurar o padrão?",
-			texto: "Todas as funcionalidades voltam a ficar ativas. Preferências, combos, listas e contatos salvos não são apagados.",
+			titulo: "Restaurar o padrão do " + nomeSistema(abaAtiva) + "?",
+			texto: "Todas as funcionalidades do " + nomeSistema(abaAtiva) + " voltam a ficar ativas (o outro sistema não muda). Preferências, combos, listas e contatos salvos não são apagados.",
 			rotulo: "Reativar tudo",
 			acao: function () {
-				desativadas = new Set();
-				alterouNestaPagina = true;
+				listas[abaAtiva] = desativadas = new Set();
+				if (abaAtiva === SISTEMA_ATUAL) alterouNestaPagina = true;
 				gravar();
-				avisar("Todas as funcionalidades foram reativadas.", "ok");
+				avisar("Todas as funcionalidades do " + nomeSistema(abaAtiva) + " foram reativadas.", "ok");
 				render();
 			}
 		};
@@ -374,6 +421,16 @@
 .cab small { display: block; font-size: 11px; opacity: .8; }
 .cab .fechar { margin-left: auto; background: none; border: 0; color: #fff; font-size: 18px; cursor: pointer; opacity: .8; padding: 0 4px; }
 .cab .fechar:hover { opacity: 1; }
+.abas { display: flex; gap: 4px; padding: 8px 12px 0; background: #f4f6fa; border-bottom: 1px solid #d5deea; }
+.aba {
+	flex: 1; padding: 7px 8px; border: 1px solid #d5deea; border-bottom: 0; border-radius: 7px 7px 0 0;
+	background: #e8eff8; color: #5b6980; font-size: 12.5px; font-weight: 700; letter-spacing: .03em; cursor: pointer;
+}
+.aba:hover { background: #dbe6f4; }
+.aba[aria-selected="true"] { background: #fff; color: #13396b; box-shadow: inset 0 3px 0 #c9a227; margin-bottom: -1px; padding-bottom: 8px; }
+.aba small { font-weight: 400; font-size: 10.5px; opacity: .8; margin-left: 4px; }
+.aba:focus-visible { outline: 2px solid #c9a227; outline-offset: -2px; }
+.copiar { background: none; border: 0; padding: 0; color: #1f5591; font-size: 12px; text-decoration: underline; cursor: pointer; }
 .corpo { overflow-y: auto; padding: 4px 12px 8px; }
 .resumo { display: flex; justify-content: space-between; align-items: center; margin: 6px 0 2px; color: #5b6980; font-size: 12px; }
 .grupo h3 { margin: 12px 0 4px; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #1f5591; }
@@ -461,7 +518,7 @@ button.bt.primario:hover { background: #1f5591; }
 
 	function render() {
 		if (icone) {
-			const qtd = efetivamenteDesativadas(desativadas).size;
+			const qtd = efetivamenteDesativadas(listas[SISTEMA_ATUAL]).size;
 			icone.classList.toggle("desativadas", qtd > 0);
 		}
 		if (!aberto) return;
@@ -493,9 +550,24 @@ button.bt.primario:hover { background: #1f5591; }
 			el("button", { type: "button", class: "fechar", title: "Fechar (Esc)", "aria-label": "Fechar", text: "✕", onclick: fechar })
 		]);
 
-		const corpo = el("div", { class: "corpo" }, [
+		const abas = el("div", { class: "abas", role: "tablist", "aria-label": "Sistema" }, SISTEMAS.map(function (sis) {
+			const selecionada = sis.id === abaAtiva;
+			return el("button", {
+				type: "button", class: "aba", role: "tab", "aria-selected": selecionada ? "true" : "false", "data-aba": sis.id,
+				title: sis.id === SISTEMA_ATUAL ? "Sistema em que você está agora" : "Configurar também o " + sis.nome,
+				onclick: function () { trocarAba(sis.id); }
+			}, [sis.nome, sis.id === SISTEMA_ATUAL ? el("small", { text: "(este)" }) : null]);
+		}));
+
+		const outro = outroSistema(abaAtiva);
+		const corpo = el("div", { class: "corpo", role: "tabpanel" }, [
 			el("div", { class: "resumo" }, [
-				el("span", { text: "Funcionalidades: " + ativas + " de " + ITENS.length + " ativas" })
+				el("span", { text: "Funcionalidades no " + nomeSistema(abaAtiva) + ": " + ativas + " de " + ITENS.length + " ativas" }),
+				el("button", {
+					type: "button", class: "copiar", text: "Copiar para o " + outro.nome,
+					title: "Deixa o " + outro.nome + " com as mesmas funcionalidades ativas do " + nomeSistema(abaAtiva),
+					onclick: function () { copiarPara(outro.id); }
+				})
 			])
 		]);
 		CAT.grupos.forEach(function (grupo) {
@@ -522,7 +594,7 @@ button.bt.primario:hover { background: #1f5591; }
 			corpo.append(bloco);
 		});
 
-		const filhos = [cab];
+		const filhos = [cab, abas];
 		if (alterouNestaPagina) {
 			filhos.push(el("div", { class: "recarregar" }, [
 				el("span", { text: "As mudanças valem a partir do próximo carregamento da página." }),
@@ -616,15 +688,17 @@ button.bt.primario:hover { background: #1f5591; }
 		}, true);
 	}
 
-	chrome.storage.local.get(CHAVE).then(function (data) {
-		desativadas = new Set((data[CHAVE] || []).filter(function (id) { return POR_ID.has(id); }));
+	chrome.storage.local.get([CHAVE, CAT.chaveAntiga]).then(function (data) {
+		definirListas(data);
 		iniciar(0);
 	});
 
 	// Mudanças feitas em outra aba (ou por uma importação) aparecem aqui também.
 	chrome.storage.onChanged.addListener(function (changes, area) {
-		if (area !== "local" || !changes[CHAVE]) return;
-		desativadas = new Set((changes[CHAVE].newValue || []).filter(function (id) { return POR_ID.has(id); }));
-		render();
+		if (area !== "local" || !(changes[CHAVE] || changes[CAT.chaveAntiga])) return;
+		chrome.storage.local.get([CHAVE, CAT.chaveAntiga]).then(function (data) {
+			definirListas(data);
+			render();
+		});
 	});
 })();

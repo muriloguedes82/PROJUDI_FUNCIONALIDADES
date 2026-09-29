@@ -11,11 +11,24 @@
 // (ex.: os atalhos que abrem telas no popup das Ações rápidas). O Menu ativa
 // as exigidas junto e desativa as dependentes em cascata.
 //
+// Preferência por sistema: cada funcionalidade pode ficar ativa ou desativada
+// separadamente no Projudi e no SEEU (abas do Menu). O sistema é reconhecido
+// pelo endereço da página (seeu.pje.jus.br = SEEU; demais hosts do Tribunal =
+// Projudi). Por padrão, tudo vem ativo nos dois.
+//
 // Os arquivos que não aparecem aqui (hostGuard.js, uiVisibility.js,
 // clipboardProcess.js, documentSelection.js, buttonDrag.js e o próprio Menu)
 // são infraestrutura e são sempre carregados.
 self.PDP_FUNCIONALIDADES = Object.freeze({
-	chave: "pdpFuncionalidadesDesativadas", // [id] em chrome.storage.local
+	// { projudi: [id], seeu: [id] } em chrome.storage.local
+	chave: "pdpFuncionalidadesDesativadasPorSistema",
+	// Chave antiga (uma só lista para os dois sistemas): usada enquanto a nova
+	// não existe, para não perder a escolha de quem já desativou algo.
+	chaveAntiga: "pdpFuncionalidadesDesativadas",
+	sistemas: [
+		{ id: "projudi", nome: "PROJUDI" },
+		{ id: "seeu", nome: "SEEU" }
+	],
 	grupos: [
 		{
 			nome: "Documentos e movimentações",
@@ -234,4 +247,23 @@ self.pdpArquivosDesativados = function (desativadas) {
 		(item.js || []).concat(item.css || []).forEach(function (arq) { arquivos.add(arq); });
 	});
 	return arquivos;
+};
+
+// Sistema ("projudi" ou "seeu") a que pertence um endereço/host.
+self.pdpSistemaDoHost = function (endereco) {
+	let host = String(endereco || "");
+	try { host = new URL(host).hostname; } catch (e) { /* já é um host */ }
+	return /(^|\.)seeu\.pje\.jus\.br$/i.test(host) ? "seeu" : "projudi";
+};
+
+// Lista de ids desativados de um sistema, a partir do que está em
+// chrome.storage.local (`dados` = resultado de get com as duas chaves).
+self.pdpDesativadasDoSistema = function (dados, sistema) {
+	const cat = self.PDP_FUNCIONALIDADES;
+	dados = dados || {};
+	const porSistema = dados[cat.chave];
+	const lista = porSistema && typeof porSistema === "object" && !Array.isArray(porSistema)
+		? porSistema[sistema]
+		: dados[cat.chaveAntiga];
+	return Array.isArray(lista) ? lista : [];
 };
