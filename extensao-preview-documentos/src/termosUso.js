@@ -146,11 +146,13 @@ function pdpScriptsBase() {
 // extensão (ver src/funcionalidades.js), conforme o sistema do bloco. A
 // ordem dos demais é mantida.
 async function pdpScriptsAtivos() {
-	const data = await chrome.storage.local.get([PDP_FUNCIONALIDADES.chave, PDP_FUNCIONALIDADES.chaveAntiga]);
+	const data = await chrome.storage.local.get([PDP_FUNCIONALIDADES.chave, PDP_FUNCIONALIDADES.chaveAntiga, PDP_FUNCIONALIDADES.chaveExtensao]);
+	const todos = PDP_FUNCIONALIDADES.grupos.flatMap(function (g) { return g.itens.map(function (i) { return i.id; }); });
 	return pdpScriptsBase().map(function (script) {
 		const sistema = PDP_FUNCIONALIDADES.sistemas.find(function (s) { return script.id === PDP_ID_PRINCIPAL_ANTIGO + "-" + s.id; });
 		if (!sistema) return script;
-		const fora = pdpArquivosDesativados(pdpDesativadasDoSistema(data, sistema.id));
+		// Extensão desligada no sistema: só a infraestrutura e o Menu carregam.
+		const fora = pdpArquivosDesativados(pdpExtensaoDesligada(data, sistema.id) ? todos : pdpDesativadasDoSistema(data, sistema.id));
 		const manter = function (arquivo) { return !fora.has(arquivo); };
 		const copia = Object.assign({}, script, { js: script.js.filter(manter) });
 		if (script.css) copia.css = script.css.filter(manter);
@@ -197,7 +199,7 @@ chrome.runtime.onStartup.addListener(function () {
 });
 
 chrome.storage.onChanged.addListener(function (changes, area) {
-	if (area === "local" && (changes[PDP_TERMOS.chave] || changes[PDP_FUNCIONALIDADES.chave] || changes[PDP_FUNCIONALIDADES.chaveAntiga])) pdpSincronizar();
+	if (area === "local" && (changes[PDP_TERMOS.chave] || changes[PDP_FUNCIONALIDADES.chave] || changes[PDP_FUNCIONALIDADES.chaveAntiga] || changes[PDP_FUNCIONALIDADES.chaveExtensao])) pdpSincronizar();
 });
 
 // Sem aceite, abrir o Projudi/SEEU traz a página de termos para a frente.
