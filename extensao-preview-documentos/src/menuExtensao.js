@@ -170,12 +170,28 @@
 	let abaAtiva = SISTEMA_ATUAL;
 	let desativadas = listas[abaAtiva];
 	let alterouNestaPagina = false;
+	// Chave geral: extensão desligada por sistema (só o Menu segue carregado).
+	const desligada = {};
+	SISTEMAS.forEach(function (s) { desligada[s.id] = false; });
+	const CHAVE_GERAL = CAT.chaveExtensao;
 
 	function definirListas(dados) {
 		SISTEMAS.forEach(function (s) {
 			listas[s.id] = new Set(self.pdpDesativadasDoSistema(dados, s.id).filter(function (id) { return POR_ID.has(id); }));
 		});
 		desativadas = listas[abaAtiva];
+		SISTEMAS.forEach(function (s) { desligada[s.id] = self.pdpExtensaoDesligada(dados, s.id); });
+	}
+
+	function alternarExtensao(ligar) {
+		desligada[abaAtiva] = !ligar;
+		if (abaAtiva === SISTEMA_ATUAL) alterouNestaPagina = true;
+		const valor = {};
+		SISTEMAS.forEach(function (s) { valor[s.id] = desligada[s.id]; });
+		chrome.storage.local.set({ [CHAVE_GERAL]: valor }).catch(function (err) {
+			avisar("Não foi possível gravar a preferência: " + err.message, "erro");
+		});
+		render();
 	}
 
 	function trocarAba(id) {
@@ -421,6 +437,13 @@
 .cab small { display: block; font-size: 11px; opacity: .8; }
 .cab .fechar { margin-left: auto; background: none; border: 0; color: #fff; font-size: 18px; cursor: pointer; opacity: .8; padding: 0 4px; }
 .cab .fechar:hover { opacity: 1; }
+.geral { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: #e6f4ea; border-bottom: 1px solid #d5deea; cursor: pointer; }
+.geral.off { background: #fdecea; }
+.geral .txt { flex: 1; min-width: 0; }
+.geral .nome { font-weight: 700; color: #1e6b34; }
+.geral.off .nome { color: #a12622; }
+.geral .desc { color: #5b6980; font-size: 11.5px; }
+.corpo.pausado .grupo, .corpo.pausado .copiar { opacity: .45; }
 .abas { display: flex; gap: 4px; padding: 8px 12px 0; background: #f4f6fa; border-bottom: 1px solid #d5deea; }
 .aba {
 	flex: 1; padding: 7px 8px; border: 1px solid #d5deea; border-bottom: 0; border-radius: 7px 7px 0 0;
@@ -519,7 +542,7 @@ button.bt.primario:hover { background: #1f5591; }
 	function render() {
 		if (icone) {
 			const qtd = efetivamenteDesativadas(listas[SISTEMA_ATUAL]).size;
-			icone.classList.toggle("desativadas", qtd > 0);
+			icone.classList.toggle("desativadas", qtd > 0 || desligada[SISTEMA_ATUAL]);
 		}
 		if (!aberto) return;
 		const foco = shadow.activeElement && shadow.activeElement.dataset ? shadow.activeElement.dataset.id : null;
@@ -560,7 +583,18 @@ button.bt.primario:hover { background: #1f5591; }
 		}));
 
 		const outro = outroSistema(abaAtiva);
-		const corpo = el("div", { class: "corpo", role: "tabpanel" }, [
+		const ligada = !desligada[abaAtiva];
+		const geral = el("label", { class: "geral" + (ligada ? "" : " off"), for: "pdp-menu-geral" }, [
+			el("span", { class: "chave" }, [
+				el("input", { type: "checkbox", id: "pdp-menu-geral", "data-id": "geral", checked: ligada, onchange: function (ev) { alternarExtensao(ev.target.checked); } }),
+				el("span")
+			]),
+			el("span", { class: "txt" }, [
+				el("div", { class: "nome", text: ligada ? "Extensão ativada no " + nomeSistema(abaAtiva) : "Extensão desativada no " + nomeSistema(abaAtiva) }),
+				el("div", { class: "desc", text: ligada ? "Desligue para pausar todas as funcionalidades sem perder suas escolhas." : "Nenhuma funcionalidade funciona até você ativar de novo. Suas escolhas ficam guardadas." })
+			])
+		]);
+		const corpo = el("div", { class: "corpo" + (ligada ? "" : " pausado"), role: "tabpanel" }, [
 			el("div", { class: "resumo" }, [
 				el("span", { text: "Funcionalidades no " + nomeSistema(abaAtiva) + ": " + ativas + " de " + ITENS.length + " ativas" }),
 				el("button", {
@@ -594,7 +628,7 @@ button.bt.primario:hover { background: #1f5591; }
 			corpo.append(bloco);
 		});
 
-		const filhos = [cab, abas];
+		const filhos = [cab, geral, abas];
 		if (alterouNestaPagina) {
 			filhos.push(el("div", { class: "recarregar" }, [
 				el("span", { text: "As mudanças valem a partir do próximo carregamento da página." }),
@@ -688,15 +722,15 @@ button.bt.primario:hover { background: #1f5591; }
 		}, true);
 	}
 
-	chrome.storage.local.get([CHAVE, CAT.chaveAntiga]).then(function (data) {
+	chrome.storage.local.get([CHAVE, CAT.chaveAntiga, CHAVE_GERAL]).then(function (data) {
 		definirListas(data);
 		iniciar(0);
 	});
 
 	// Mudanças feitas em outra aba (ou por uma importação) aparecem aqui também.
 	chrome.storage.onChanged.addListener(function (changes, area) {
-		if (area !== "local" || !(changes[CHAVE] || changes[CAT.chaveAntiga])) return;
-		chrome.storage.local.get([CHAVE, CAT.chaveAntiga]).then(function (data) {
+		if (area !== "local" || !(changes[CHAVE] || changes[CAT.chaveAntiga] || changes[CHAVE_GERAL])) return;
+		chrome.storage.local.get([CHAVE, CAT.chaveAntiga, CHAVE_GERAL]).then(function (data) {
 			definirListas(data);
 			render();
 		});

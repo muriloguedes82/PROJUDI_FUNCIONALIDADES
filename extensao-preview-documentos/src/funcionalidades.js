@@ -25,6 +25,9 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 	// Chave antiga (uma só lista para os dois sistemas): usada enquanto a nova
 	// não existe, para não perder a escolha de quem já desativou algo.
 	chaveAntiga: "pdpFuncionalidadesDesativadas",
+	// { projudi: true|false, seeu: true|false } em chrome.storage.local:
+	// true = extensão desligada naquele sistema (chave geral do Menu).
+	chaveExtensao: "pdpExtensaoDesligadaPorSistema",
 	sistemas: [
 		{ id: "projudi", nome: "PROJUDI" },
 		{ id: "seeu", nome: "SEEU" }
@@ -266,4 +269,11 @@ self.pdpDesativadasDoSistema = function (dados, sistema) {
 		? porSistema[sistema]
 		: dados[cat.chaveAntiga];
 	return Array.isArray(lista) ? lista : [];
+};
+
+// A extensão está desligada (chave geral do Menu) neste sistema? Desligada,
+// só o Menu continua carregado, para poder religá-la.
+self.pdpExtensaoDesligada = function (dados, sistema) {
+	const porSistema = (dados || {})[self.PDP_FUNCIONALIDADES.chaveExtensao];
+	return !!(porSistema && typeof porSistema === "object" && porSistema[sistema] === true);
 };

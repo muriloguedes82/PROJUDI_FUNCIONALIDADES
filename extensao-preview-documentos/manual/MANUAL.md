@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.9.93 |
-| **Versão da extensão** | 2.9.93 |
+| **Versão do manual** | 2.9.94 |
+| **Versão da extensão** | 2.9.94 |
 | **Data desta versão** | 29/09/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -296,6 +296,16 @@ desativadas.
 **Esc** ou clique fora do Menu.
 
 **O que há no Menu:**
+
+**0. Chave geral: ativar e desativar a extensão** — logo abaixo do título do
+Menu há uma faixa com uma chave **"Extensão ativada no PROJUDI"** (ou SEEU,
+conforme a aba aberta). Verde = extensão funcionando; ao desligar, a faixa fica
+vermelha ("Extensão desativada…") e **nenhuma função** atua naquele sistema a
+partir do próximo carregamento da página (clique em **Recarregar agora**). Só o
+ícone da balança continua na tela, para você poder ligar de novo. As escolhas
+da lista de funções ficam guardadas e **não** são perdidas. Cada sistema tem a
+sua chave (PROJUDI e SEEU), e o pontinho vermelho do ícone também aparece
+quando a extensão está desativada.
 
 **1. Funcionalidades** — a lista de todas as funções, agrupadas por assunto,
 cada uma com uma **chave liga/desliga**. No topo do Menu há **duas abas,
@@ -1391,6 +1401,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.9.94 | 29/09/2026 | Menu da extensão (seção 2.6): nova **chave geral "Extensão ativada/desativada"** no topo do Menu, uma por sistema (PROJUDI e SEEU), que pausa todas as funções sem apagar as escolhas. O vídeo V34 ainda não mostra a chave e será regravado. |
 | 2.9.93 | 29/09/2026 | Menu da extensão (seção 2.6): duas abas, **PROJUDI** e **SEEU**, para ligar e desligar as funções de cada sistema separadamente (tudo ativo por padrão nos dois), com **Copiar para o outro sistema**; a extensão reconhece o sistema pelo endereço da página. O vídeo V34 ainda mostra o Menu sem as abas e será regravado. |
 | 2.9.92 | 29/09/2026 | O manual passa a ser aberto pelo botão **📖 Manual do Usuário** do Menu, com índice, busca e vídeos na própria página. Novos: seção 2.6 (Menu da extensão: funcionalidades liga/desliga, exportar/importar/padrão) e 9.7 (Endereço da parte e Mandado Regionalizado, versões 2.9.89–2.9.91). Vídeos V34 e V35; todos os demais foram regravados com o ícone do Menu na tela. |
 | 2.9.88 | 29/09/2026 | Primeira edição do manual: todas as funções da extensão até a versão 2.9.88, com 33 vídeos instrutivos (Anexo A). |
