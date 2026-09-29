@@ -327,3 +327,19 @@ test("linguagem simples: bloco 'O processo já tem sentença?' e sem apensados/v
 	assert.match(bloco(b), /o juiz não deu razão a quem entrou com o processo \(pedido improcedente\)/);
 	assert.match(bloco(b), /Não houve recurso, e a sentença se tornou definitiva .* em 15 de abril de 2025/);
 });
+
+test("movimento que começa com JULGADA/JULGADO é sempre sentença", () => {
+	const c = (s) => (T.classificarMovimento(s) || {}).tipo || null;
+	for (const s of [
+		"JULGADA PROCEDENTE A AÇÃO",
+		"JULGADA IMPROCEDENTE A AÇÃO",
+		"JULGADA PROCEDENTE EM PARTE A AÇÃO",
+		"JULGADA PROCEDENTE A AÇÃO - Referente ao prazo de recurso",
+		"JULGADA DESERTA A APELAÇÃO",
+		"Julgado procedente o pedido",
+		"JULGADOS IMPROCEDENTES OS EMBARGOS",
+	]) assert.equal(c(s), "sentenca", s);
+	// Movimentos que só mencionam a sentença continuam de fora.
+	assert.equal(c("EXPEDIÇÃO DE INTIMAÇÃO - Referente a JULGADA PROCEDENTE A AÇÃO"), null);
+	assert.equal(c("TRANSITADO EM JULGADO"), null);
+});

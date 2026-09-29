@@ -1139,7 +1139,11 @@ os resumos (das peças e da linguagem simples):
   *mencionam* a peça ficam de fora (intimação, prazo, certidão, "Recebida
   a denúncia", "emenda à inicial", contrarrazões, "cumprimento de
   sentença", audiência etc.). Da inicial e da denúncia vale só a primeira
-  ocorrência; recursos e sentenças entram todos. Os
+  ocorrência; recursos e sentenças entram todos. **Sentença:** todo
+  movimento cujo nome começa com "JULGADA"/"JULGADO" ("JULGADA PROCEDENTE A
+  AÇÃO", "JULGADA IMPROCEDENTE A AÇÃO", "JULGADA DESERTA A APELAÇÃO"…) é
+  sempre tratado como sentença e entra nas peças principais, qualquer que
+  seja o complemento (mesmo que cite prazo ou recurso). Os
   arquivos são carregados clicando no "+" da linha, como no Preview, e o
   primeiro arquivo do movimento é o usado; outro pode ser escolhido na
   lista "Arquivo".

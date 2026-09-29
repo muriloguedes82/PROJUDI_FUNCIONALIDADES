@@ -118,7 +118,13 @@
 	// { tipo, rotulo } ou null.
 	function classificarMovimento(texto) {
 		const lista = palavras(texto);
-		if (!lista.length || algumaCasa(lista, EXCLUSOES)) return null;
+		if (!lista.length) return null;
+		// No Projudi a sentença SEMPRE é lançada num movimento que começa com
+		// "JULGADA"/"JULGADO" ("JULGADA PROCEDENTE A AÇÃO", "JULGADA
+		// IMPROCEDENTE A AÇÃO"...): é peça essencial e entra sempre, antes de
+		// qualquer exclusão (o complemento pode citar "prazo", "recurso" etc.).
+		if (/^julgad/.test(lista[0])) return { tipo: "sentenca", rotulo: "Sentença" };
+		if (algumaCasa(lista, EXCLUSOES)) return null;
 		for (const def of TIPOS_PECA) {
 			if (algumaCasa(lista, def.frases, true)) return { tipo: def.tipo, rotulo: def.rotulo };
 		}
