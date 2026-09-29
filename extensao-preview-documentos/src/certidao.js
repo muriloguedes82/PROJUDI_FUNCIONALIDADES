@@ -221,30 +221,35 @@ const IA_ROTULOS = {
 function mostrarEstadoIA(estado, detalhe) {
 	iaEstado = estado;
 	const r = IA_ROTULOS[estado] || IA_ROTULOS.verificando;
+	const nomeIA = usandoClaude() ? "Claude (" + CLAUDE_MODELO_NOME + ")" : "IA do Chrome";
 	const badge = $("#ia-status");
 	if (badge) {
 		badge.className = "ia-status " + r.classe;
-		badge.textContent = detalhe || r.texto;
-		badge.title = estado === "unavailable" ? "Clique para ver o diagnóstico" : "";
+		let texto = detalhe || r.texto;
+		if (usandoClaude() && !detalhe) {
+			texto = estado === "available" ? "✅ " + nomeIA + ": PRONTO (chave configurada)" : estado === "unavailable" ? "⛔ Claude: informe a chave da API — clique aqui" : texto;
+		}
+		badge.textContent = texto;
+		badge.title = estado === "unavailable" ? (usandoClaude() ? "Clique para informar a chave" : "Clique para ver o diagnóstico") : "";
 	}
 	const opcaoIA = document.querySelector('#modo option[value="ia"]');
 	if (opcaoIA) {
 		opcaoIA.disabled = estado === "unavailable";
-		opcaoIA.textContent = "IA do navegador (Chrome)" + (estado === "unavailable" ? " — indisponível" : "");
+		opcaoIA.textContent = "IA — " + nomeIA + (estado === "unavailable" ? " (indisponível)" : "");
 	}
 	if (estado === "unavailable" && $("#modo").value === "ia") $("#modo").value = "manual";
 	pecasUI.forEach(atualizarBotaoIA);
 	const botaoSimplesIA = $("#simples-ia");
 	if (botaoSimplesIA) {
 		botaoSimplesIA.disabled = estado === "unavailable";
-		botaoSimplesIA.title = estado === "unavailable" ? "A IA do Chrome não está disponível neste computador (veja o Diagnóstico)" : "Reescrever o resumo com a IA do Chrome";
+		botaoSimplesIA.title = estado === "unavailable" ? "A IA escolhida não está disponível (veja o selo na barra)" : "Reescrever o resumo com a IA escolhida";
 	}
 }
 
 function atualizarBotaoIA(ui) {
 	if (!ui.botaoIA) return;
 	ui.botaoIA.disabled = iaEstado === "unavailable";
-	ui.botaoIA.title = iaEstado === "unavailable" ? "A IA do Chrome não está disponível neste computador (veja o Diagnóstico)" : "Resumir esta peça com a IA do Chrome";
+	ui.botaoIA.title = iaEstado === "unavailable" ? "A IA escolhida não está disponível (veja o selo na barra)" : "Resumir esta peça com a IA escolhida";
 }
 
 async function verificarIA() {
@@ -263,6 +268,7 @@ const IA_TENTATIVAS = [
 ];
 
 async function iaDisponibilidade() {
+	if (usandoClaude()) return iaConfig.chave ? "available" : "unavailable";
 	if (!("LanguageModel" in self)) return "unavailable";
 	for (const t of IA_TENTATIVAS) {
 		try {
@@ -282,6 +288,12 @@ async function iaDisponibilidade() {
 // disponível (ver README: "Como ativar a IA do Chrome").
 async function iaDiagnostico() {
 	const linhas = [];
+	if (usandoClaude()) {
+		linhas.push("IA escolhida: Claude (API da Anthropic), modelo " + CLAUDE_MODELO_NOME + " (" + CLAUDE_MODELO + ").");
+		linhas.push("Chave: " + chaveMascarada() + (iaConfig.chave ? "" : " — informe-a em ⚙️ Chave da API Claude."));
+		linhas.push("Use “Testar conexão” no painel da chave para confirmar que ela funciona.");
+		return linhas;
+	}
 	const versao = (/Chrome\/(\d+)/.exec(navigator.userAgent) || [])[1];
 	linhas.push("Versão do Chrome: " + (versao || "não identificada"));
 	if (!("LanguageModel" in self)) {
@@ -321,6 +333,207 @@ async function iaSessaoBase() {
 	});
 	mostrarEstadoIA("available");
 	return iaBase;
+}
+
+// ---------------------------------------------------------------------
+// Provedor de IA: Chrome (local) ou Claude (API da Anthropic, chave própria)
+// ---------------------------------------------------------------------
+//
+// A extensão não tem etapa de build (é carregada direto no Chrome), por
+// isso a API da Anthropic é chamada por HTTP (fetch), sem o SDK.
+// Modelo: o mais barato disponível (Claude Haiku 4.5). A chave fica só no
+// armazenamento local da extensão (chrome.storage.local), neste navegador.
+
+const IA_CONFIG_KEY = "pdpCertidaoIA";
+const CLAUDE_URL = "https://api.anthropic.com/v1/messages";
+const CLAUDE_MODELO = "claude-haiku-4-5";
+const CLAUDE_MODELO_NOME = "Claude Haiku 4.5";
+const LIMITE_ENTRADA_CLAUDE = 120000; // caracteres (~30 mil tokens), bem abaixo do contexto do modelo
+
+let iaConfig = { provedor: "chrome", chave: "", avisoAceito: false };
+let sigiloConfirmado = false;
+
+function usandoClaude() {
+	return iaConfig.provedor === "claude";
+}
+
+function limiteEntradaIA() {
+	return usandoClaude() ? LIMITE_ENTRADA_CLAUDE : LIMITE_ENTRADA_IA;
+}
+
+async function carregarConfigIA() {
+	try {
+		const salvo = (await chrome.storage.local.get(IA_CONFIG_KEY))[IA_CONFIG_KEY];
+		if (salvo) iaConfig = Object.assign(iaConfig, salvo);
+	} catch (e) {
+		/* segue com o padrão */
+	}
+}
+
+function salvarConfigIA() {
+	return chrome.storage.local.set({ [IA_CONFIG_KEY]: iaConfig });
+}
+
+function chaveMascarada() {
+	const c = iaConfig.chave || "";
+	return c ? c.slice(0, 7) + "…" + c.slice(-4) : "(não informada)";
+}
+
+function mensagemErroClaude(status, corpo) {
+	const detalhe = corpo && corpo.error && corpo.error.message ? " (" + corpo.error.message + ")" : "";
+	switch (status) {
+		case 400: return "requisição recusada pela API" + detalhe;
+		case 401: return "chave da API inválida ou revogada — confira em ⚙️ Chave da API Claude";
+		case 402: return "problema de cobrança na conta da Anthropic (sem créditos?)" + detalhe;
+		case 403: return "a chave não tem permissão para este uso" + detalhe;
+		case 404: return "modelo " + CLAUDE_MODELO + " não disponível para esta conta" + detalhe;
+		case 413: return "o texto enviado é grande demais";
+		case 429: return "limite de uso da API atingido — tente de novo em instantes";
+		case 529: return "a API da Anthropic está sobrecarregada — tente de novo em instantes";
+		default: return "erro " + status + " na API da Anthropic" + detalhe;
+	}
+}
+
+// Uma chamada à API (Messages). Tenta de novo, até 2 vezes, nos erros
+// temporários (429, 5xx, 529 e falha de rede).
+async function claudeGerar(prompt, maxTokens) {
+	if (!iaConfig.chave) throw new Error("informe a chave da API Claude em ⚙️ Chave da API Claude");
+	let ultimoErro;
+	for (let tentativa = 0; tentativa < 3; tentativa++) {
+		const controller = new AbortController();
+		const timer = setTimeout(() => controller.abort(), 120000);
+		let resp;
+		try {
+			resp = await fetch(CLAUDE_URL, {
+				method: "POST",
+				signal: controller.signal,
+				headers: {
+					"content-type": "application/json",
+					"x-api-key": iaConfig.chave,
+					"anthropic-version": "2023-06-01",
+					// Necessário para chamar a API direto de uma página de navegador/extensão.
+					"anthropic-dangerous-direct-browser-access": "true",
+				},
+				body: JSON.stringify({
+					model: CLAUDE_MODELO,
+					max_tokens: maxTokens || 2000,
+					system: SISTEMA_IA,
+					messages: [{ role: "user", content: prompt }],
+				}),
+			});
+		} catch (e) {
+			ultimoErro = new Error(e.name === "AbortError" ? "a API da Anthropic não respondeu a tempo" : "falha de conexão com a API da Anthropic (" + e.message + ")");
+			await new Promise((r) => setTimeout(r, 1500 * (tentativa + 1)));
+			continue;
+		} finally {
+			clearTimeout(timer);
+		}
+		const corpo = await resp.json().catch(() => null);
+		if (resp.ok) {
+			if (corpo && corpo.stop_reason === "refusal") throw new Error("o modelo recusou a solicitação");
+			const texto = ((corpo && corpo.content) || []).filter((b) => b.type === "text").map((b) => b.text).join("\n").trim();
+			if (!texto) throw new Error("a API não devolveu texto");
+			if (corpo.stop_reason === "max_tokens") return texto + " […]";
+			return texto;
+		}
+		ultimoErro = new Error(mensagemErroClaude(resp.status, corpo));
+		if (resp.status === 429 || resp.status >= 500) {
+			const espera = Math.min(20, parseFloat(resp.headers.get("retry-after")) || 2 * (tentativa + 1));
+			await new Promise((r) => setTimeout(r, espera * 1000));
+			continue;
+		}
+		throw ultimoErro;
+	}
+	throw ultimoErro;
+}
+
+// Antes de enviar texto do processo à Anthropic: aviso (uma vez) e, se o
+// processo tiver sigilo, confirmação (uma vez por janela).
+function confirmarEnvioClaude() {
+	if (!usandoClaude()) return true;
+	if (!iaConfig.avisoAceito) {
+		const ok = confirm(
+			"Com o Claude, o texto das peças deste processo é enviado à Anthropic (empresa dos EUA) para processamento.\n\n" +
+				"Use somente se permitido pelas normas do Tribunal, observando a LGPD e o segredo de justiça.\n\nContinuar?"
+		);
+		if (!ok) return false;
+		iaConfig.avisoAceito = true;
+		salvarConfigIA();
+	}
+	const sigilo = T.normalizar(dados.sigilo || "");
+	if (sigilo && !/publico|sem sigilo|nenhum|nivel 0/.test(sigilo) && !sigiloConfirmado) {
+		if (!confirm("Este processo tem nível de sigilo “" + dados.sigilo + "”. Enviar o texto das peças à Anthropic mesmo assim?")) return false;
+		sigiloConfirmado = true;
+	}
+	return true;
+}
+
+// Ponto único de geração de texto, qualquer que seja o provedor.
+async function iaGerar(prompt, maxTokens) {
+	if (usandoClaude()) {
+		if (!confirmarEnvioClaude()) throw new Error("envio ao Claude cancelado");
+		return claudeGerar(prompt, maxTokens);
+	}
+	const base = await iaSessaoBase();
+	const sessao = await base.clone();
+	try {
+		return await sessao.prompt(prompt);
+	} finally {
+		sessao.destroy();
+	}
+}
+
+// Painel "⚙️ Chave da API Claude" na barra.
+function prepararPainelClaude() {
+	const painel = $("#painel-claude");
+	const campo = $("#claude-chave");
+	const estado = $("#claude-estado");
+	const atualizar = () => {
+		estado.textContent = iaConfig.chave ? "Chave salva neste navegador: " + chaveMascarada() : "Nenhuma chave salva.";
+	};
+	$("#ia-config").addEventListener("click", () => {
+		painel.hidden = !painel.hidden;
+		campo.value = "";
+		atualizar();
+	});
+	$("#claude-mostrar").addEventListener("click", () => (campo.type = campo.type === "password" ? "text" : "password"));
+	$("#claude-salvar").addEventListener("click", async () => {
+		const chave = campo.value.trim();
+		if (!/^sk-ant-[\w-]{20,}$/.test(chave)) {
+			estado.textContent = "A chave deve começar com “sk-ant-”. Confira e cole de novo.";
+			return;
+		}
+		iaConfig.chave = chave;
+		await salvarConfigIA();
+		campo.value = "";
+		atualizar();
+		if (usandoClaude()) verificarIA();
+	});
+	$("#claude-apagar").addEventListener("click", async () => {
+		if (!confirm("Apagar a chave da API Claude salva neste navegador?")) return;
+		iaConfig.chave = "";
+		await salvarConfigIA();
+		atualizar();
+		if (usandoClaude()) verificarIA();
+	});
+	$("#claude-testar").addEventListener("click", async () => {
+		estado.textContent = "Testando a conexão…";
+		try {
+			const r = await claudeGerar("Responda apenas: OK", 10);
+			estado.textContent = "Conexão OK (" + CLAUDE_MODELO_NOME + " respondeu: " + T.colapsar(r).slice(0, 20) + "). Chave: " + chaveMascarada();
+		} catch (e) {
+			estado.textContent = "Falhou: " + e.message;
+		}
+	});
+	const sel = $("#ia-provedor");
+	sel.value = usandoClaude() ? "claude" : "chrome";
+	sel.addEventListener("change", async () => {
+		iaConfig.provedor = sel.value;
+		await salvarConfigIA();
+		if (usandoClaude() && !iaConfig.chave) painel.hidden = false;
+		atualizar();
+		verificarIA();
+	});
 }
 
 // Prompts por tipo de peça. A IA recebe o texto já limpo (sem o carimbo
@@ -383,7 +596,13 @@ function promptPara(ui) {
 	// Trecho curto (título não encontrado, peça atípica): manda também o
 	// final do texto, onde costumam estar os pedidos ou o dispositivo.
 	let base = ui.relevante || "";
-	if (T.colapsar(base).length < 400 && ui.texto) base = T.limparAssinaturas(ui.texto).slice(-4000);
+	if (usandoClaude() && ui.texto) {
+		// O Claude comporta a peça inteira: vai o texto integral (sem o
+		// carimbo de assinatura), para um resumo mais completo.
+		base = T.limparAssinaturas(ui.texto).slice(0, LIMITE_ENTRADA_CLAUDE - 4000);
+	} else if (T.colapsar(base).length < 400 && ui.texto) {
+		base = T.limparAssinaturas(ui.texto).slice(-4000);
+	}
 	return instrucao + "\n\nTexto:\n" + delimitar(base);
 }
 
@@ -400,22 +619,18 @@ function limparRespostaIA(resposta) {
 }
 
 async function resumirComIA(ui) {
-	const base = await iaSessaoBase();
 	let prompt = promptPara(ui);
-	if (prompt.length > LIMITE_ENTRADA_IA) prompt = prompt.slice(0, LIMITE_ENTRADA_IA);
+	if (prompt.length > limiteEntradaIA()) prompt = prompt.slice(0, limiteEntradaIA());
 	for (let tentativa = 0; tentativa < 3; tentativa++) {
-		const sessao = await base.clone();
 		try {
-			const resposta = await sessao.prompt(prompt);
-			return limparRespostaIA(resposta);
+			return limparRespostaIA(await iaGerar(prompt, 1500));
 		} catch (e) {
-			if (/quota|too large|context/i.test(e.name + " " + e.message) && prompt.length > 1500) {
+			// A IA do Chrome tem janela pequena: reduz o texto e tenta de novo.
+			if (!usandoClaude() && /quota|too large|context/i.test(e.name + " " + e.message) && prompt.length > 1500) {
 				prompt = prompt.slice(0, Math.floor(prompt.length / 2));
 				continue;
 			}
 			throw e;
-		} finally {
-			sessao.destroy();
 		}
 	}
 	throw new Error("o trecho é grande demais para a IA do navegador");
@@ -1111,16 +1326,40 @@ function textoIAparaBlocos(texto) {
 	return blocos;
 }
 
+// Resumos (e textos) das peças principais, para a IA explicar os pedidos,
+// a sentença e o recurso em linguagem simples. "orcamento" limita o total
+// de caracteres (a IA do Chrome tem janela pequena; o Claude, grande).
+function pecasParaSimples(orcamento) {
+	const pecas = pecasUI.filter((ui) => ui.incluir.checked);
+	if (!pecas.length) return "";
+	const porPeca = Math.floor(orcamento / pecas.length);
+	const partes = pecas.map((ui) => {
+		const p = ui.peca;
+		const cab = `PEÇA: ${p.rotulo} (${p.seq ? "evento " + p.seq + ", " : ""}${dataDe(p.dataHora) || "sem data"})`;
+		const resumo = T.colapsar(ui.resumo.textContent);
+		let texto = "";
+		const cabe = porPeca - resumo.length - cab.length - 40;
+		if (cabe > 300) {
+			// Para entender pedidos, sentença e argumento do recurso: o texto
+			// da peça (integral no Claude; o trecho relevante na IA do Chrome).
+			const fonte = usandoClaude() && ui.texto ? T.limparAssinaturas(ui.texto) : ui.relevante || "";
+			texto = T.colapsar(fonte).slice(0, cabe);
+		}
+		return cab + (resumo ? "\nRESUMO NA CERTIDÃO: " + resumo : "") + (texto ? '\nTEXTO DA PEÇA:\n"""\n' + texto + '\n"""' : "");
+	});
+	return "\n\nPEÇAS PRINCIPAIS DO PROCESSO (use para os pedidos, a sentença e o recurso):\n\n" + partes.join("\n\n");
+}
+
 async function reescreverSimplesComIA() {
 	const botao = $("#simples-ia");
 	const estado = $("#simples-estado");
 	if ((await iaDisponibilidade()) === "unavailable") {
 		mostrarEstadoIA("unavailable");
-		estado.textContent = "A IA do Chrome não está disponível neste computador — use o modelo fixo.";
+		estado.textContent = "A IA escolhida não está disponível — use o modelo fixo" + (usandoClaude() ? " ou informe a chave da API Claude." : ".");
 		return;
 	}
 	botao.disabled = true;
-	estado.textContent = "Reescrevendo com a IA do navegador…";
+	estado.textContent = "Reescrevendo com " + (usandoClaude() ? "o Claude" : "a IA do navegador") + "…";
 	try {
 		const fixo = S.blocosEmTexto(S.gerarLinguagemSimples(dados, extrasSimples()));
 		const prompt =
@@ -1132,22 +1371,23 @@ async function reescreverSimplesComIA() {
 			"- mantenha EXATAMENTE os nomes, números, datas, horários e valores; não acrescente nenhuma informação que não esteja no texto;\n" +
 			"- mantenha as vítimas pelas iniciais;\n" +
 			"- mantenha os mesmos títulos, cada um sozinho numa linha, e os itens do glossário no formato '• Termo: explicação';\n" +
+			"- depois do bloco 'O que já aconteceu?', inclua o bloco 'O que cada parte pediu?', com os pedidos de cada parte " +
+			"(petição inicial ou denúncia, contestação ou resposta), resumidos em 1 ou 2 frases por parte, a partir das PEÇAS abaixo;\n" +
+			"- no bloco 'O que o juiz decidiu?', explique também, em poucas frases, o entendimento da sentença: por que o juiz " +
+			"decidiu assim e o que isso significa na prática para as partes (use as PEÇAS abaixo);\n" +
+			"- se houver recurso nas PEÇAS, inclua o bloco 'Houve recurso?' dizendo quem recorreu, contra qual decisão e, " +
+			"brevemente, qual é o principal argumento;\n" +
+			"- se não houver informação para algum bloco, não o inclua (não escreva 'não consta');\n" +
 			"- não use markdown.\n\n" +
-			'Texto:\n"""\n' + fixo + '\n"""';
-		const base = await iaSessaoBase();
-		const sessao = await base.clone();
-		let resposta;
-		try {
-			resposta = await sessao.prompt(prompt);
-		} finally {
-			sessao.destroy();
-		}
+			'TEXTO A REESCREVER:\n"""\n' + fixo + '\n"""' +
+			pecasParaSimples(Math.max(2000, limiteEntradaIA() - fixo.length - 3000));
+		const resposta = await iaGerar(prompt, 4000);
 		const blocos = textoIAparaBlocos(limparRespostaIA(resposta));
 		if (!blocos.length) throw new Error("a IA não devolveu texto");
 		renderizarSimples(blocos);
 		simplesEditado = true; // não é refeito automaticamente por cima
 		$("#simples-selo").hidden = false;
-		estado.textContent = "Reescrito pela IA do navegador — confira nomes, datas e valores antes de imprimir.";
+		estado.textContent = "Reescrito " + (usandoClaude() ? "pelo Claude" : "pela IA do navegador") + " — confira nomes, datas e valores antes de imprimir.";
 	} catch (e) {
 		estado.textContent = "A IA não conseguiu reescrever: " + e.message;
 	} finally {
@@ -1347,14 +1587,18 @@ async function iniciar() {
 	$("#modo").addEventListener("change", () => chrome.storage.sync.set({ certidaoModo: $("#modo").value }));
 
 	mostrarAvisos(dados.avisos);
+	await carregarConfigIA();
 	await montar();
+	prepararPainelClaude();
 	await verificarIA();
 	gerarSimplesFixo();
 
 	$("#gerar-resumos").addEventListener("click", gerarResumos);
 	$("#imprimir").addEventListener("click", () => window.print());
 	$("#ia-status").addEventListener("click", async () => {
-		if (iaEstado === "unavailable") alert("Diagnóstico da IA do navegador\n\n" + (await iaDiagnostico()).join("\n\n"));
+		if (iaEstado !== "unavailable") return;
+		if (usandoClaude()) $("#painel-claude").hidden = false;
+		else alert("Diagnóstico da IA do navegador\n\n" + (await iaDiagnostico()).join("\n\n"));
 	});
 	$("#diagnostico-ia").addEventListener("click", async () => {
 		alert("Diagnóstico da IA do navegador\n\n" + (await iaDiagnostico()).join("\n\n"));

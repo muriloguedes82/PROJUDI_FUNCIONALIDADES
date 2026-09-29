@@ -369,7 +369,7 @@
 		iniciais: iniciais,
 		explicarClasse: explicarClasse,
 		glossario: glossario,
-		TITULOS: ["Que processo é este?", "Quem participa?", "Qual é a acusação?", "O que já aconteceu?", "O que o juiz decidiu?", "Qual é a situação agora?", "Existem outros processos ligados a este?", "Palavras que aparecem nesta certidão", "Importante"],
+		TITULOS: ["Que processo é este?", "Quem participa?", "Qual é a acusação?", "O que já aconteceu?", "O que cada parte pediu?", "O que o juiz decidiu?", "Houve recurso?", "Qual é a situação agora?", "Existem outros processos ligados a este?", "Palavras que aparecem nesta certidão", "Importante"],
 	};
 	root.PdpCertidaoSimples = api;
 	if (typeof module !== "undefined" && module.exports) module.exports = api;

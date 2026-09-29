@@ -18,11 +18,33 @@
 				</select>
 			</label>
 			<button type="button" id="gerar-resumos">✨ Gerar resumos</button>
+			<label title="Qual IA faz os resumos">
+				IA:
+				<select id="ia-provedor">
+					<option value="chrome">Chrome (local, gratuita)</option>
+					<option value="claude">Claude – Anthropic (chave própria)</option>
+				</select>
+			</label>
+			<button type="button" id="ia-config" title="Informar, testar ou apagar a chave da API da Anthropic">⚙️ Chave da API Claude</button>
 			<span id="ia-status" class="ia-status ia-verificando" role="status">IA do Chrome: verificando…</span>
 			<button type="button" id="diagnostico-ia" title="Mostra se a IA do Chrome está disponível e por quê">🔍 Diagnóstico da IA</button>
 			<span class="barra-espaco"></span>
 			<button type="button" id="copiar">📋 Copiar texto</button>
 			<button type="button" id="imprimir" class="primario">🖨️ Imprimir / Salvar PDF</button>
+		</div>
+		<div id="painel-claude" class="barra-linha painel-claude" hidden>
+			<strong>Chave da API Claude (Anthropic)</strong>
+			<input type="password" id="claude-chave" autocomplete="off" spellcheck="false" placeholder="sk-ant-...">
+			<button type="button" id="claude-mostrar">👁️</button>
+			<button type="button" id="claude-salvar" class="primario">Salvar</button>
+			<button type="button" id="claude-testar">Testar conexão</button>
+			<button type="button" id="claude-apagar">Apagar chave</button>
+			<span id="claude-estado"></span>
+			<p class="painel-claude-nota">
+				A chave fica salva só neste navegador (armazenamento local da extensão), sem sincronização. Modelo usado: Claude Haiku 4.5,
+				o mais barato da Anthropic; o custo é cobrado na conta dona da chave. Com o Claude, o texto das peças é enviado à Anthropic:
+				use somente se permitido pelas normas do Tribunal, observando a LGPD e o segredo de justiça.
+			</p>
 		</div>
 		<div class="barra-linha barra-opcoes">
 			<label title="Como os eventos aparecem na certidão">

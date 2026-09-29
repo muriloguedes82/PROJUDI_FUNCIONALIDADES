@@ -196,6 +196,12 @@ table.quadro .relacionado + .relacionado { margin-top: 3px; padding-left: 1.2em;
 .aud-realizada .aud-situacao { color: #0b5a1e; }
 .evento.nivel-0.ev-audiencia { border-left: 3px solid #1f5fa8; padding-left: calc(1.4em - 3px); margin-left: -0.4em; }
 
+/* Painel da chave da API Claude */
+.painel-claude { margin-top: 6px; padding: 8px 10px; background: #f4f0fa; border: 1px solid #cbb8e6; border-radius: 6px; font-size: 13px; }
+.painel-claude input { font: 13px Consolas, "Courier New", monospace; padding: 3px 6px; min-width: 320px; }
+.painel-claude-nota { flex-basis: 100%; margin: 4px 0 0; font-size: 12px; color: #4a3a63; }
+#claude-estado { color: #4a3a63; font-weight: bold; }
+
 /* ✕ para excluir linhas do quadro-resumo */
 table.quadro th { position: relative; padding-right: 26px; }
 .btn-remover-linha {

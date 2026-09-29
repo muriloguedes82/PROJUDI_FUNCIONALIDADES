@@ -206,6 +206,7 @@
 			vinculos: linhasDoCampo(docs, /^vinculos?$/, numero),
 			dependentes: linhasDoCampo(docs, /^processos? dependentes?$/, ""),
 			valorCausa: primeiroCampo(campos, /^valor (da causa|da acao)/),
+			sigilo: primeiroCampo(campos, /^nivel de sigilo$/),
 			distribuicao: primeiroCampo(campos, /^(data (da )?distribuicao|distribuid[oa] em|data de autuacao|autuacao)$/),
 		};
 	}

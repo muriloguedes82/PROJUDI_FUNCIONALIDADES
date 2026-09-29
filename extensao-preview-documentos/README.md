@@ -935,8 +935,12 @@ Salvar PDF** e **Copiar texto**. A certidão é dividida em seções:
   aviso de que o resumo não substitui a certidão. Gerado por **modelo
   fixo** (sempre igual para os mesmos dados; refeito automaticamente
   depois dos resumos das peças, a menos que tenha sido editado) ou
-  **reescrito pela IA do Chrome** (botão "✨ Reescrever com IA", com a
-  instrução de manter nomes, números, datas e valores). Pode ser desligado
+  **reescrito pela IA escolhida** (botão "✨ Reescrever com IA", com a
+  instrução de manter nomes, números, datas e valores). Na versão por IA,
+  a IA recebe também as peças principais e acrescenta **o que cada parte
+  pediu**, o **entendimento da sentença** (por que o juiz decidiu assim e
+  o que isso significa na prática) e, se houver recurso, **quem recorreu
+  e o principal argumento** — sempre em linguagem simples. Pode ser desligado
   na barra ("Resumo em linguagem simples");
 - local e data, e o nome e o cargo do(a) servidor(a). Nome, cargo e local
   ficam gravados para as próximas certidões.
@@ -1025,6 +1029,35 @@ Opções da extensão.
     IA recebe também o final do texto.
   - O botão **🔍 Diagnóstico da IA** mostra a versão do Chrome e o
     que o navegador responde para cada combinação de idioma.
+
+#### Escolha da IA: Chrome (local) ou Claude (Anthropic)
+
+Na barra da janela, **IA:** escolhe quem faz os resumos (das peças e da
+linguagem simples):
+
+- **Chrome (local, gratuita)** — a IA embutida no navegador; nada sai do
+  computador (ver "Como ativar a IA do Chrome" abaixo).
+- **Claude – Anthropic (chave própria)** — usa a API da Anthropic com o
+  modelo mais barato disponível, **Claude Haiku 4.5**
+  (`claude-haiku-4-5`). O botão **⚙️ Chave da API Claude** abre o painel
+  para colar a chave (`sk-ant-…`), **Salvar**, **Testar conexão** e
+  **Apagar chave**. A chave fica salva **só neste navegador**
+  (`chrome.storage.local`, sem sincronização) e é enviada apenas à API da
+  Anthropic; o custo é cobrado na conta dona da chave.
+  - Com o Claude, a peça vai **na íntegra** (sem o carimbo de assinatura),
+    o que dá resumos mais completos que a IA do Chrome, que tem janela
+    pequena e recebe só o trecho relevante.
+  - **Privacidade:** o texto das peças sai do computador e vai à Anthropic
+    (EUA). Na primeira vez, a janela pede confirmação; em processo com
+    **nível de sigilo** diferente de "Público", pede confirmação de novo
+    antes do envio. Use somente se permitido pelas normas do Tribunal,
+    observando a LGPD e o segredo de justiça.
+  - Erros da API aparecem em português (chave inválida, sem créditos,
+    limite de uso, sobrecarga); limite de uso e sobrecarga são repetidos
+    automaticamente até duas vezes.
+  - A chamada é feita direto da janela da certidão, por HTTP (a extensão
+    não tem etapa de build), com o cabeçalho
+    `anthropic-dangerous-direct-browser-access`.
 
 #### Como ativar a IA do Chrome
 
