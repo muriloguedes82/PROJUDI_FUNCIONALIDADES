@@ -589,6 +589,191 @@
 	}
 
 	// ---------------------------------------------------------------
+	// Processo criminal e sentença criminal
+	// ---------------------------------------------------------------
+
+	const RE_CLASSE_CRIMINAL = /(acao penal|\bpenal\b|criminal|\bcrime|inquerito|prisao em flagrante|termo circunstanciado|medidas? protetivas?|\bjuri\b|execucao penal|habeas|queixa|contraven|antitoxico|entorpecente|lei 11\.?343|carta precatoria criminal)/;
+
+	// Criminal pela classe processual ou pela existência de denúncia.
+	function ehProcessoCriminal(classe, movimentos) {
+		if (RE_CLASSE_CRIMINAL.test(normalizar(classe))) return true;
+		return (movimentos || []).some(function (m) {
+			const c = classificarMovimento(m.titulo || m.evento);
+			return c && c.tipo === "denuncia";
+		});
+	}
+
+	const NUM_EXT = "\\d+(?:\\s*\\([^)]{1,40}\\))?";
+	// "1 (um) ano, 2 (dois) meses e 10 (dez) dias de detenção"
+	const RE_PENA = new RegExp("((?:" + NUM_EXT + "\\s*(?:anos?|m[eê]s(?:es)?|dias?)(?![-\\w])\\s*(?:,\\s*|\\s+e\\s+)?)+)\\s*(?:de\\s+)?(reclus[ãa]o|deten[çc][ãa]o|pris[ãa]o simples)", "gi");
+	const RE_MULTA = new RegExp("(" + NUM_EXT + "\\s*dias?-multa)", "gi");
+	const RE_REGIME = /regime\s+(?:inicial(?:mente)?\s+|prisional\s+)?(?:de cumprimento\s+)?(?:o\s+)?(fechado|semi-?aberto|aberto)/gi;
+	const RE_NOME = "([A-ZÀ-Ý][A-ZÀ-Ý'´`.\\-]+(?:\\s+(?:D[AEO]S?|E|[A-ZÀ-Ý][A-ZÀ-Ý'´`.\\-]+))+)";
+
+	// Divide em frases sem quebrar em abreviações ("art. 77", "Dr. João",
+	// "nº 45.678", "L.A.d.S.").
+	const ABREVIACOES = /(?:\b(?:arts?|n|nº|inc|incs|al|dr|dra|drs|sr|sra|fl|fls|mov|p|pg|pag|págs?|cf|ex|obs|res|par|c|s|ss|av|min|des|proc|prof|profa|adv|op|cit|v|vol|ed|ltda|cia)\.|\b[A-Za-zÀ-ÿ]\.)$/i;
+	function frasesDe(texto) {
+		const pedacos = colapsar(texto).split(/(?<=[.;])\s+(?=[A-ZÀ-Ý0-9"“(a-z])/);
+		const frases = [];
+		pedacos.forEach(function (p) {
+			const anterior = frases[frases.length - 1];
+			if (anterior && (ABREVIACOES.test(anterior) || !/^[A-ZÀ-Ý0-9"“(]/.test(p) && !/;$/.test(anterior))) frases[frases.length - 1] = anterior + " " + p;
+			else frases.push(p);
+		});
+		return frases;
+	}
+
+	function ultimo(re, texto) {
+		re.lastIndex = 0;
+		let m, u = null;
+		while ((m = re.exec(texto))) u = m;
+		return u;
+	}
+
+	function nomesApos(re, texto) {
+		const nomes = [];
+		let m;
+		re.lastIndex = 0;
+		while ((m = re.exec(texto))) {
+			const n = colapsar(m[m.length - 1]).replace(/\s+(D[AEO]S?|E)$/, "");
+			if (n.split(" ").length >= 2 && !/^(PELA|PELO|NOS|NAS|COMO|AS|OS)\b/.test(n) && nomes.indexOf(n) === -1) nomes.push(n);
+		}
+		return nomes;
+	}
+
+	// Sentença criminal: quem foi absolvido/condenado, pena de cada um,
+	// substituição/suspensão, indenização à vítima e honorários do dativo.
+	// Só entram no resumo os itens encontrados.
+	function extrairSentencaCriminal(texto) {
+		const t = colapsar(limparAssinaturas(texto));
+		const qualif = "(?:o|a|os|as)?\\s*(?:r[ée]us?|r[ée]|acusad[oa]s?|denunciad[oa]s?|sentenciad[oa]s?)?\\s*,?\\s*";
+		const absolvidos = nomesApos(new RegExp("\\b(?:[Aa]bsolv(?:o|er|endo)|ABSOLV(?:O|ER|ENDO))\\s+" + qualif + RE_NOME, "g"), t);
+		const condenados = nomesApos(new RegExp("\\b(?:[Cc]onden(?:o|ar|ando)|CONDEN(?:O|AR|ANDO))\\s+" + qualif + RE_NOME, "g"), t)
+			.filter(function (n) { return absolvidos.indexOf(n) === -1 && !/^(ESTADO|MUNIC[ÍI]PIO|UNI[ÃA]O|FAZENDA|INSS|DISTRITO)\b/.test(n); });
+
+		// Pena de cada condenado: procura, nos trechos em que o nome aparece
+		// (até o nome de outro condenado), a última pena "definitiva".
+		function penaEm(trecho) {
+			const frases = frasesDe(trecho);
+			const definitivas = frases.filter(function (f) { return /definitiv|pena final|totaliz|resta(?:ndo)? (?:a pena|fixada)|concretiz/i.test(f) && (RE_PENA.test(f) || (RE_PENA.lastIndex = 0, false)); });
+			RE_PENA.lastIndex = 0;
+			const base = definitivas.length ? definitivas[definitivas.length - 1] : trecho;
+			const mp = ultimo(RE_PENA, base);
+			const mm = ultimo(RE_MULTA, definitivas.length ? definitivas.join(" ") : trecho);
+			const mr = ultimo(RE_REGIME, trecho);
+			return {
+				pena: mp ? colapsar(mp[1]).replace(/[,\s]+$/, "") + " de " + mp[2].toLowerCase() : "",
+				multa: mm ? colapsar(mm[1]) : "",
+				regime: mr ? mr[1].toLowerCase().replace("semi-aberto", "semiaberto") : "",
+			};
+		}
+		const condenacoes = condenados.map(function (nome) {
+			let trechos = [];
+			if (condenados.length === 1) trechos = [t];
+			else {
+				const re = new RegExp(nome.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g");
+				let m;
+				while ((m = re.exec(t))) {
+					let fim = t.length;
+					condenados.forEach(function (outro) {
+						if (outro === nome) return;
+						const i = t.indexOf(outro, m.index + nome.length);
+						if (i !== -1 && i < fim) fim = i;
+					});
+					trechos.push(t.slice(m.index, fim));
+				}
+			}
+			return Object.assign({ nome: nome }, penaEm(trechos.join(" ")));
+		});
+
+		const frases = frasesDe(t);
+		const achar = function (re, filtro) {
+			const f = frases.filter(function (x) { return re.test(x) && (!filtro || filtro.test(x)); });
+			return f.length ? f[f.length - 1] : "";
+		};
+		const curta = function (f) { return limitar(f.replace(/\s+/g, " ").trim(), 260); };
+
+		// Substituição e suspensão: só entram se CONCEDIDAS (negadas ou não
+		// tratadas não são mencionadas). Fica só a parte decisória da frase
+		// ("substituo a pena ... por ...", "concedo a suspensão ...").
+		const NEGA = /\b(n[ãa]o\s+(?:h[áa]\s+)?(?:cab|faz|preench|conce|substitu|aplic|é\s+cab|sendo\s+cab|se\s+mostra)|incab[ií]ve|invi[áa]ve|deixo\s+de|descab|vedad|prejudicad|inaplic)/i;
+		const decisoria = function (f) {
+			const m = /\b(substituo|substitui-se|substituindo|converto|concedo|conceder|defiro|suspendo|aplico|fica(?:ndo)?\s+suspens)[\s\S]*$/i.exec(f);
+			return curta(m ? m[0].charAt(0).toUpperCase() + m[0].slice(1) : f);
+		};
+		const fraseSubst = achar(/substitu/i, /restritiv|presta[çc][ãa]o|multa substitutiva|interdi[çc][ãa]o|limita[çc][ãa]o de fim/i);
+		const substituicao = fraseSubst && !NEGA.test(fraseSubst) ? decisoria(fraseSubst) : "";
+		const fraseSusp = achar(/suspens[ãa]o condicional da pena|sursis|suspendo a execu/i);
+		const suspensao = fraseSusp && !NEGA.test(fraseSusp) ? decisoria(fraseSusp) : "";
+
+		// Indenização à vítima (art. 387, IV, do CPP / danos morais ou materiais).
+		const fraseInd = achar(/387,?\s*(?:inciso\s*)?iv|repara[çc][ãa]o (?:dos |de )?danos|danos? (?:morais|materiais)|indeniza/i, /R\$\s*[\d.,]+|valor m[ií]nimo|deixo de fixar|n[ãa]o fix/i);
+		let indenizacao = "";
+		if (fraseInd && !/deixo de fixar|n[ãa]o (?:h[áa]|cabe|fixo|ser[áa]) (?:fixad|fix)/i.test(fraseInd)) {
+			const v = /R\$\s*[\d.]+(?:,\d{2})?/.exec(fraseInd);
+			const tipo = /morais/i.test(fraseInd) && /materiais/i.test(fraseInd) ? "danos morais e materiais" : /morais/i.test(fraseInd) ? "danos morais" : /materiais/i.test(fraseInd) ? "danos materiais" : "reparação de danos";
+			indenizacao = (v ? v[0].replace(/\s+/, " ") + ", a título de " : "") + tipo + (v ? "" : ": " + curta(fraseInd));
+		}
+
+		// Honorários ao advogado dativo: nome, OAB, valor e item da tabela.
+		const honorarios = [];
+		frases.forEach(function (f) {
+			if (!/honor[áa]rios/i.test(f) || !/dativ|nomead|defensor/i.test(f)) return;
+			const nome = /(?:Dr\.?|Dra\.?|advogad[oa]\s+(?:dativ[oa]\s+)?|defensor[a]?\s+(?:dativ[oa]\s+)?|a\(o\)\s+)\s*([A-ZÀ-Ý][A-Za-zÀ-ÿ'´.\-]+(?:\s+(?:d[aeo]s?|e|[A-ZÀ-Ý][A-Za-zÀ-ÿ'´.\-]+))+)/.exec(f);
+			const oab = /OAB\s*(?:\/\s*[A-Z]{2})?\s*(?:n[º°o.]*\s*)?[\d.]+[A-Z]?(?:\s*[-\/]\s*[A-Z]{2})?/i.exec(f);
+			const valor = /R\$\s*[\d.]+(?:,\d{2})?/.exec(f);
+			const item = /\bite(?:m|ns)\s+(?:n[º°o.]*\s*)?(\d+(?:\.\d+)*(?:\s*(?:e|,)\s*\d+(?:\.\d+)*)*)/i.exec(f);
+			const h = {
+				nome: nome ? colapsar(nome[1]).replace(/[,.]$/, "") : "",
+				oab: oab ? colapsar(oab[0]) : "",
+				valor: valor ? valor[0].replace(/\s+/, " ") : "",
+				item: item ? item[1].replace(/\.$/, "") : "",
+			};
+			if ((h.valor || h.oab || h.nome) && !honorarios.some(function (x) { return x.valor === h.valor && x.nome === h.nome; })) honorarios.push(h);
+		});
+
+		const resultado = {
+			absolvidos: absolvidos,
+			condenacoes: condenacoes,
+			substituicao: substituicao,
+			suspensao: suspensao,
+			indenizacao: indenizacao,
+			honorarios: honorarios,
+		};
+		resultado.resumo = resumoSentencaCriminal(resultado);
+		// Trecho de referência: as frases que tratam desses pontos.
+		const relevantes = frases.filter(function (f) {
+			return /absolv|condeno|condenar|definitiv|regime|substitu|suspens[ãa]o condicional|sursis|387|indeniza|danos? (?:morais|materiais)|honor[áa]rios|dativ|julgo (?:procedente|improcedente|parcialmente)/i.test(f);
+		});
+		resultado.trecho = relevantes.join("\n") || limitar(t.slice(-LIMITE_FALLBACK), LIMITE_FALLBACK + 10);
+		return resultado;
+	}
+
+	function resumoSentencaCriminal(r) {
+		const linhas = [];
+		if (r.absolvidos.length) linhas.push((r.absolvidos.length > 1 ? "Absolvidos: " : "Absolvido(a): ") + juntarLista(r.absolvidos) + ".");
+		r.condenacoes.forEach(function (c) {
+			const partes = [];
+			if (c.pena) partes.push("pena de " + c.pena);
+			if (c.multa) partes.push(c.multa);
+			if (c.regime) partes.push("regime inicial " + c.regime);
+			linhas.push("Condenado(a): " + c.nome + (partes.length ? " — " + partes.join(", ") : "") + ".");
+		});
+		if (r.substituicao) linhas.push("Substituição da pena: " + r.substituicao.replace(/\.$/, "") + ".");
+		if (r.suspensao) linhas.push("Suspensão da pena: " + r.suspensao.replace(/\.$/, "") + ".");
+		if (r.indenizacao) linhas.push("Indenização à vítima: " + r.indenizacao.replace(/\.$/, "") + ".");
+		r.honorarios.forEach(function (h) {
+			const partes = [h.nome, h.oab ? "(" + h.oab + ")" : ""].filter(Boolean).join(" ");
+			let s = "Honorários ao advogado dativo" + (partes ? " " + partes : "");
+			if (h.valor) s += ": " + h.valor;
+			if (h.item) s += ", item " + h.item + " da tabela";
+			linhas.push(s + ".");
+		});
+		return linhas.join("\n");
+	}
+
+	// ---------------------------------------------------------------
 	// Audiências (a partir dos movimentos)
 	// ---------------------------------------------------------------
 
@@ -732,6 +917,8 @@
 		extrairDenuncia: extrairDenuncia,
 		resumoDenuncia: resumoDenuncia,
 		limparAssinaturas: limparAssinaturas,
+		ehProcessoCriminal: ehProcessoCriminal,
+		extrairSentencaCriminal: extrairSentencaCriminal,
 		fatosIntegrais: fatosIntegrais,
 		tituloDoFato: tituloDoFato,
 		descricaoObjetivaFato: descricaoObjetivaFato,

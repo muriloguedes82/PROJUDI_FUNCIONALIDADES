@@ -192,6 +192,59 @@ test("títulos por extenso: PRIMEIRO FATO / SEGUNDO FATO", () => {
 	assert.deepEqual(d.fatos.map((f) => [f.n, f.crime, f.data]), [[1, "furto", "02/01/2024"], [2, "receptação", "03/01/2024"]]);
 });
 
+const SENTENCA_CRIMINAL = `SENTENÇA
+I - RELATÓRIO
+O Ministério Público ofereceu denúncia em face de EZEQUIEL ROCHA LEAL e MARCOS ANTONIO SILVA, imputando-lhes o crime do art. 147 do Código Penal.
+II - FUNDAMENTAÇÃO
+A materialidade e a autoria restaram comprovadas quanto ao réu EZEQUIEL ROCHA LEAL. Quanto ao réu MARCOS ANTONIO SILVA, não há prova suficiente.
+III - DISPOSITIVO
+Ante o exposto, JULGO PARCIALMENTE PROCEDENTE a denúncia para:
+a) ABSOLVER o réu MARCOS ANTONIO SILVA, com fundamento no art. 386, VII, do Código de Processo Penal;
+b) CONDENAR o réu EZEQUIEL ROCHA LEAL, qualificado nos autos, como incurso nas sanções do art. 147 do Código Penal, c/c Lei 11.340/2006.
+Passo à dosimetria da pena.
+Na primeira fase, fixo a pena-base em 1 (um) mês de detenção. Na segunda fase, presente a agravante do art. 61, II, f, elevo a pena para 1 (um) mês e 5 (cinco) dias de detenção. Na terceira fase, ausentes causas de aumento ou diminuição, torno a pena definitiva em 1 (um) mês e 5 (cinco) dias de detenção.
+Fixo o regime inicial aberto para cumprimento da pena, nos termos do art. 33, §2º, c, do CP.
+Deixo de substituir a pena privativa de liberdade por restritivas de direitos, por se tratar de crime cometido com grave ameaça (art. 44, I, do CP).
+Presentes os requisitos do art. 77 do CP, concedo a suspensão condicional da pena pelo prazo de 2 (dois) anos, mediante as condições do art. 78, §2º, do CP.
+Com fundamento no art. 387, IV, do CPP, fixo o valor mínimo de R$ 1.000,00 (mil reais) para reparação dos danos morais causados à vítima.
+Condeno o Estado do Paraná ao pagamento de honorários advocatícios ao advogado dativo nomeado, Dr. João Pereira da Costa, OAB/PR nº 45.678, que fixo em R$ 1.200,00, nos termos do item 2.4 da tabela da Resolução Conjunta PGE/SEFA nº 15/2019.
+Publique-se. Registre-se. Intimem-se.
+Almirante Tamandaré, 10 de maio de 2024.`;
+
+test("sentença criminal: absolvidos, condenados, pena, suspensão, indenização e dativo", () => {
+	const r = T.extrairSentencaCriminal(SENTENCA_CRIMINAL);
+	assert.deepEqual(r.absolvidos, ["MARCOS ANTONIO SILVA"]);
+	assert.equal(r.condenacoes.length, 1);
+	assert.equal(r.condenacoes[0].nome, "EZEQUIEL ROCHA LEAL");
+	assert.equal(r.condenacoes[0].pena, "1 (um) mês e 5 (cinco) dias de detenção");
+	assert.equal(r.condenacoes[0].regime, "aberto");
+	assert.equal(r.substituicao, ""); // negada -> não aparece
+	assert.match(r.suspensao, /^Concedo a suspensão condicional da pena pelo prazo de 2 \(dois\) anos/);
+	assert.equal(r.indenizacao, "R$ 1.000,00, a título de danos morais");
+	assert.deepEqual(r.honorarios, [{ nome: "João Pereira da Costa", oab: "OAB/PR nº 45.678", valor: "R$ 1.200,00", item: "2.4" }]);
+	assert.doesNotMatch(r.resumo, /Substituição|Negad/);
+	assert.match(r.resumo, /Honorários ao advogado dativo João Pereira da Costa \(OAB\/PR nº 45\.678\): R\$ 1\.200,00, item 2\.4 da tabela\./);
+});
+
+test("sentença criminal: substituição concedida, multa, e itens ausentes omitidos", () => {
+	const r = T.extrairSentencaCriminal("Ante o exposto, JULGO PROCEDENTE a denúncia para CONDENAR a ré MARIA DE SOUZA como incursa no art. 155 do CP. Torno definitiva a pena em 1 (um) ano de reclusão e 10 (dez) dias-multa. Fixo o regime inicial aberto. Presentes os requisitos do art. 44 do CP, substituo a pena privativa de liberdade por uma pena restritiva de direitos, consistente em prestação de serviços à comunidade. Publique-se.");
+	assert.deepEqual(r.absolvidos, []);
+	assert.equal(r.condenacoes[0].nome, "MARIA DE SOUZA");
+	assert.equal(r.condenacoes[0].pena, "1 (um) ano de reclusão");
+	assert.equal(r.condenacoes[0].multa, "10 (dez) dias-multa");
+	assert.match(r.substituicao, /^Substituo a pena privativa de liberdade por uma pena restritiva de direitos/);
+	assert.equal(r.suspensao, "");
+	assert.equal(r.indenizacao, "");
+	assert.deepEqual(r.honorarios, []);
+	assert.doesNotMatch(r.resumo, /Absolvid|Suspensão|Indenização|Honorários/);
+});
+
+test("processo criminal pela classe ou pela denúncia", () => {
+	assert.ok(T.ehProcessoCriminal("Ação Penal - Procedimento Ordinário", []));
+	assert.ok(T.ehProcessoCriminal("", [{ titulo: "JUNTADA DE DENÚNCIA" }]));
+	assert.ok(!T.ehProcessoCriminal("Procedimento do Juizado Especial Cível", [{ titulo: "JUNTADA DE PETIÇÃO DE INICIAL" }]));
+});
+
 test("advogado e classe no formato da aba Partes", () => {
 	assert.equal(T.formatarAdvogado("OAB 116785N-PR - DANIELLE DAS NEVES"), "DANIELLE DAS NEVES (OAB 116785N-PR)");
 	assert.equal(T.semCodigo("12247 - Execução Extrajudicial de Alimentos"), "Execução Extrajudicial de Alimentos");

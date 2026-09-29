@@ -892,7 +892,21 @@ Salvar PDF** e **Copiar texto**. A certidão é dividida em seções:
   evento, data, movimento, arquivo, "incluir na certidão"); o quadro
   **① Texto extraído do arquivo** (referência, não sai na impressão); e o
   quadro **② Resumo que vai para a certidão**, que é exatamente o
-  parágrafo impresso. Arquivos cujo nome começa com
+  parágrafo impresso. Botões **▲ / ▼** no cabeçalho de cada cartão mudam
+  a ordem das peças (a ordem da tela é a ordem impressa) e **✕** remove a
+  peça. O botão **+ Adicionar peça**, ao final da seção, inclui uma peça
+  que não foi identificada automaticamente: escolha o tipo (petição
+  inicial, denúncia, contestação, resposta à acusação, sentença, recurso,
+  decisão ou outra, com nome livre), o movimento (a lista mostra os
+  movimentos com arquivos) e o arquivo — os arquivos do movimento são
+  carregados na hora, na aba do Projudi que gerou a certidão (que precisa
+  continuar aberta). A peça entra marcada "incluída manualmente" e o
+  texto é extraído como nas demais.
+  **Processo criminal** (classe penal/criminal ou existência de denúncia):
+  a peça inicial é a **denúncia** ("JUNTADA DE DENÚNCIA"); movimentos de
+  "petição inicial" não entram, e **os movimentos anteriores à denúncia**
+  (inquérito, APF, cautelares…) são ignorados para as peças principais —
+  continuam normalmente na lista de eventos. Arquivos cujo nome começa com
   **"autoPrisaoFlagrante"** são ignorados: em processo criminal, a
   "inicial" costuma ser a juntada do auto de prisão em flagrante, que não
   precisa de resumo, e o movimento que só tem esse arquivo não entra;
@@ -943,6 +957,15 @@ Opções da extensão.
     129, §13º, e art. 147, §1º, na forma do art. 69, todos do Código Penal
     e c/c art. 5º e 7º, incisos I e II, da Lei Maria da Penha." Basta
     revisar.
+  - **Sentença criminal.** O resumo pré-montado (e o prompt da IA) traz,
+    **só quando existirem na sentença**: (a) quem foi absolvido e quem foi
+    condenado; (b) a pena definitiva de cada condenado (espécie,
+    dias-multa e regime inicial); (c) a substituição da pena ou a
+    suspensão condicional, quando concedidas; (d) a indenização à vítima
+    por danos materiais ou morais, com o valor; (e) os honorários do
+    advogado dativo, com nome, OAB, valor e item da tabela. Itens
+    ausentes — ou negados, como "deixo de substituir" — não são
+    mencionados.
   - **Carimbo de assinatura digital.** Antes de qualquer extração, é
     removido o carimbo que o Projudi imprime nas páginas ("Documento
     assinado digitalmente, conforme MP nº 2.200-2/2001… Validação deste em

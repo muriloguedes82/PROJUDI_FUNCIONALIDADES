@@ -292,6 +292,18 @@ const INSTRUCOES_IA = {
 	sentenca:
 		"Resuma o que foi decidido na sentença abaixo em no máximo 4 frases: resultado (procedência, improcedência, condenação, " +
 		"absolvição, extinção), condenações e valores, e, se criminal, o crime, a pena, o regime e eventual substituição ou suspensão.",
+	sentencaCriminal:
+		"Resuma a sentença criminal abaixo para uma certidão, em linhas curtas, trazendo SOMENTE os itens que existirem no texto, " +
+		"nesta ordem: (a) quem foi absolvido e quem foi condenado (nomes); (b) a pena definitiva aplicada a cada condenado, com a " +
+		"espécie (reclusão/detenção), os dias-multa e o regime inicial; (c) se houve substituição da pena privativa de liberdade ou " +
+		"suspensão condicional da pena, e em que termos; (d) se houve condenação ao pagamento de indenização por danos materiais ou " +
+		"morais à vítima, com o valor; (e) se houve condenação ao pagamento de honorários ao advogado dativo, com o nome do advogado, " +
+		"a OAB, o valor fixado e o item da tabela. Se algum desses itens não existir na sentença, NÃO o mencione (não escreva " +
+		"'não houve' nem 'não consta'). Não inclua fundamentação, relatório, dosimetria intermediária nem dados de assinatura.",
+	decisao:
+		"Resuma em no máximo 3 frases objetivas o que foi decidido na decisão abaixo (o que foi deferido ou indeferido e as determinações).",
+	outra:
+		"Resuma em no máximo 3 frases objetivas o conteúdo principal da peça abaixo (o que se pede ou o que se decide).",
 	recurso:
 		"Resuma o recurso abaixo em no máximo 3 frases: quem recorre (se constar), qual decisão é atacada, o que se pede ao tribunal " +
 		"(reforma, anulação, redução de pena etc.) e os principais fundamentos.",
@@ -317,7 +329,8 @@ function promptPara(ui) {
 			partes.join("\n\n")
 		);
 	}
-	const instrucao = INSTRUCOES_IA[ui.peca.tipo] || INSTRUCOES_IA.inicial;
+	const chave = ui.peca.tipo === "sentenca" && dados.criminal ? "sentencaCriminal" : ui.peca.tipo;
+	const instrucao = INSTRUCOES_IA[chave] || INSTRUCOES_IA.outra;
 	// Trecho curto (título não encontrado, peça atípica): manda também o
 	// final do texto, onde costumam estar os pedidos ou o dispositivo.
 	let base = ui.trecho.value;
@@ -596,17 +609,23 @@ function blocoPeca(peca, indice, total) {
 	const usarIntegral = el("button", { type: "button", hidden: peca.tipo !== "denuncia", text: "Usar os fatos na íntegra ↓" });
 	const usarObjetivo = el("button", { type: "button", hidden: peca.tipo !== "denuncia", text: "Usar resumo objetivo ↓" });
 
+	const numero = el("span", { class: "peca-num", text: `Peça ${indice + 1} de ${total}` });
+	const subir = el("button", { type: "button", class: "btn-ordem", title: "Subir esta peça (muda a ordem na certidão)", text: "▲" });
+	const descer = el("button", { type: "button", class: "btn-ordem", title: "Descer esta peça (muda a ordem na certidão)", text: "▼" });
+	const remover = el("button", { type: "button", class: "btn-ordem", title: "Remover esta peça da certidão", text: "✕" });
 	const cabecalho = el(
 		"div",
 		{ class: "peca-cab no-print" },
 		el(
 			"div",
 			{ class: "peca-cab-linha" },
-			el("span", { class: "peca-num", text: `Peça ${indice + 1} de ${total}` }),
+			numero,
 			el("span", { class: "peca-nome", text: peca.rotulo }),
+			peca.manual ? el("span", { class: "peca-manual", text: "incluída manualmente" }) : null,
 			el("span", { class: "peca-info", text: [peca.seq ? "evento " + peca.seq : "", dataDe(peca.dataHora)].filter(Boolean).join(" · ") }),
 			el("span", { class: "barra-espaco" }),
-			el("label", { class: "peca-incluir" }, incluir, " incluir na certidão")
+			el("label", { class: "peca-incluir" }, incluir, " incluir na certidão"),
+			el("span", { class: "peca-ordem" }, subir, descer, remover)
 		),
 		el("div", { class: "peca-cab-linha peca-evento", text: "Movimento: " + (peca.evento || "") }),
 		el("div", { class: "peca-cab-linha" }, el("label", {}, "Arquivo: ", seletor), abrir, releer)
@@ -630,7 +649,12 @@ function blocoPeca(peca, indice, total) {
 	);
 
 	const raiz = el("div", { class: "peca" }, cabecalho, referencia, saida);
-	const ui = { peca, raiz, resumo, trecho, estado, seletor, seloIA, incluir, indice, botaoIA, texto: "", denuncia: null };
+	const ui = { peca, raiz, resumo, trecho, estado, seletor, seloIA, incluir, indice, botaoIA, numero, subir, descer, texto: "", denuncia: null };
+	subir.addEventListener("click", () => moverPeca(ui, -1));
+	descer.addEventListener("click", () => moverPeca(ui, +1));
+	remover.addEventListener("click", () => {
+		if (confirm("Remover a peça \"" + peca.rotulo + "\" desta certidão?")) removerPeca(ui);
+	});
 
 	incluir.addEventListener("change", () => raiz.classList.toggle("excluida", !incluir.checked));
 	abrir.addEventListener("click", () => {
@@ -654,6 +678,162 @@ function blocoPeca(peca, indice, total) {
 	resumo.addEventListener("input", () => (seloIA.hidden = true));
 	atualizarBotaoIA(ui);
 	return ui;
+}
+
+// ---------------------------------------------------------------------
+// Peças: ordem e inclusão manual
+// ---------------------------------------------------------------------
+
+const TIPOS_MANUAIS = [
+	["inicial", "Petição inicial"],
+	["denuncia", "Denúncia"],
+	["contestacao", "Contestação"],
+	["resposta", "Resposta à acusação"],
+	["sentenca", "Sentença"],
+	["recurso", "Recurso"],
+	["decisao", "Decisão"],
+	["outra", "Outra peça (informar o nome)"],
+];
+
+// "Peça N de M" e os botões ▲/▼ refletem a ordem atual.
+function renumerarPecas() {
+	pecasUI.forEach((ui, i) => {
+		ui.numero.textContent = `Peça ${i + 1} de ${pecasUI.length}`;
+		ui.subir.disabled = i === 0;
+		ui.descer.disabled = i === pecasUI.length - 1;
+	});
+	const vazio = $("#pecas-vazio");
+	if (vazio) vazio.hidden = pecasUI.length > 0;
+}
+
+// Move a peça uma posição (delta -1 = sobe, +1 = desce), na tela e na
+// impressão (a ordem do DOM é a ordem impressa).
+function moverPeca(ui, delta) {
+	const i = pecasUI.indexOf(ui);
+	const j = i + delta;
+	if (i < 0 || j < 0 || j >= pecasUI.length) return;
+	const outro = pecasUI[j];
+	if (delta < 0) outro.raiz.before(ui.raiz);
+	else outro.raiz.after(ui.raiz);
+	pecasUI[i] = outro;
+	pecasUI[j] = ui;
+	renumerarPecas();
+	ui.raiz.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+
+function removerPeca(ui) {
+	const i = pecasUI.indexOf(ui);
+	if (i < 0) return;
+	pecasUI.splice(i, 1);
+	ui.raiz.remove();
+	renumerarPecas();
+}
+
+function descricaoMovimento(m) {
+	return `seq. ${m.seq || "?"} – ${(m.dataHora || "").slice(0, 10)} – ${m.titulo || m.evento || ""}`;
+}
+
+// Formulário "+ Adicionar peça": tipo, movimento e arquivo. Os arquivos do
+// movimento escolhido são carregados na aba do Projudi que gerou a
+// certidão (pelo "+" da linha, como na coleta inicial).
+function formularioNovaPeca() {
+	const caixa = el("div", { class: "peca-nova no-print" });
+	const abrir = el("button", { type: "button", class: "btn-nova-peca", text: "+ Adicionar peça" });
+	const form = el("div", { class: "peca-nova-form", hidden: true });
+
+	const tipo = el("select", {});
+	TIPOS_MANUAIS.forEach(([v, r]) => tipo.append(el("option", { value: v, text: r })));
+	const nomeOutra = el("input", { type: "text", placeholder: "Nome da peça (ex.: Alegações finais)", hidden: true });
+	tipo.addEventListener("change", () => (nomeOutra.hidden = tipo.value !== "outra"));
+
+	const comArquivos = dados.movimentos.filter((m) => m.temArquivos && !m.invalido);
+	const lista = comArquivos.length ? comArquivos : dados.movimentos.filter((m) => !m.invalido);
+	const movimento = el("select", {});
+	movimento.append(el("option", { value: "", text: "— escolha o movimento —" }));
+	lista
+		.slice()
+		.reverse() // mais recentes primeiro, como na tela do Projudi
+		.forEach((m) => movimento.append(el("option", { value: String(dados.movimentos.indexOf(m)), text: descricaoMovimento(m) })));
+
+	const arquivo = el("select", { disabled: true }, el("option", { value: "", text: "— escolha o movimento primeiro —" }));
+	const estado = el("span", { class: "estado" });
+	const adicionar = el("button", { type: "button", class: "primario", text: "Adicionar à certidão", disabled: true });
+	const cancelar = el("button", { type: "button", text: "Cancelar" });
+	let docsCarregados = [];
+
+	movimento.addEventListener("change", async () => {
+		docsCarregados = [];
+		arquivo.textContent = "";
+		arquivo.disabled = true;
+		adicionar.disabled = true;
+		const m = dados.movimentos[Number(movimento.value)];
+		if (!m) return;
+		estado.textContent = "Carregando os arquivos do movimento na tela do processo…";
+		estado.classList.remove("erro");
+		const r = await chrome.runtime
+			.sendMessage({ source: "projudi-preview", type: "certidao-arquivos", id: dados.id, seq: m.seq, dataHora: m.dataHora })
+			.catch((e) => ({ ok: false, error: e.message }));
+		if (!r || !r.ok) {
+			estado.textContent = (r && r.error) || "Não foi possível carregar os arquivos.";
+			estado.classList.add("erro");
+			return;
+		}
+		docsCarregados = (r.docs || []).map((d) => ({ nome: d.nome, url: d.url }));
+		if (!docsCarregados.length) {
+			arquivo.append(el("option", { value: "", text: "(este movimento não tem arquivos)" }));
+			estado.textContent = "Este movimento não tem arquivos.";
+			estado.classList.add("erro");
+			return;
+		}
+		docsCarregados.forEach((d, i) => arquivo.append(el("option", { value: String(i), text: d.nome || "Documento " + (i + 1) })));
+		arquivo.disabled = false;
+		adicionar.disabled = false;
+		estado.textContent = docsCarregados.length + " arquivo(s) encontrado(s).";
+	});
+
+	adicionar.addEventListener("click", async () => {
+		const m = dados.movimentos[Number(movimento.value)];
+		const escolhido = Number(arquivo.value);
+		if (!m || !docsCarregados[escolhido]) return;
+		const rotulo = tipo.value === "outra" ? T.colapsar(nomeOutra.value) || "Peça" : TIPOS_MANUAIS.find(([v]) => v === tipo.value)[1];
+		// O arquivo escolhido vem primeiro; os demais do movimento continuam
+		// disponíveis na lista "Arquivo" do cartão.
+		const docs = [docsCarregados[escolhido]].concat(docsCarregados.filter((_, i) => i !== escolhido));
+		const peca = { tipo: tipo.value, rotulo, seq: m.seq, dataHora: m.dataHora, evento: m.evento, docs, manual: true };
+		const ui = blocoPeca(peca, pecasUI.length, pecasUI.length + 1);
+		pecasUI.push(ui);
+		caixa.before(ui.raiz);
+		renumerarPecas();
+		form.hidden = true;
+		abrir.hidden = false;
+		movimento.value = "";
+		arquivo.textContent = "";
+		arquivo.disabled = true;
+		adicionar.disabled = true;
+		estado.textContent = "";
+		ui.raiz.scrollIntoView({ block: "center", behavior: "smooth" });
+		await extrair(ui);
+		if ($("#modo").value === "ia" && iaEstado === "available") await resumirUmaComIA(ui, false);
+	});
+
+	abrir.addEventListener("click", () => {
+		form.hidden = false;
+		abrir.hidden = true;
+	});
+	cancelar.addEventListener("click", () => {
+		form.hidden = true;
+		abrir.hidden = false;
+	});
+
+	form.append(
+		el("div", { class: "peca-bloco-titulo" }, "Nova peça"),
+		el("div", { class: "peca-nova-linha" }, el("label", {}, "Tipo: ", tipo), nomeOutra),
+		el("div", { class: "peca-nova-linha" }, el("label", {}, "Movimento: ", movimento)),
+		el("div", { class: "peca-nova-linha" }, el("label", {}, "Arquivo: ", arquivo)),
+		el("div", { class: "peca-nova-linha" }, adicionar, cancelar, estado)
+	);
+	caixa.append(abrir, form);
+	return caixa;
 }
 
 function estadoPeca(ui, texto, erro) {
@@ -692,8 +872,19 @@ async function extrair(ui, forcar) {
 					!nf
 				);
 			} else {
-				ui.trecho.value = T.extrairTrechoPedidos(texto, ui.peca.tipo);
-				estadoPeca(ui, "Trecho extraído — revise e escreva o resumo (ou use a IA).");
+				if (ui.peca.tipo === "sentenca" && dados.criminal) {
+					// Sentença criminal: absolvidos, condenados e pena de cada
+					// um, substituição/suspensão, indenização e honorários do
+					// dativo — só os itens que existem na sentença.
+					ui.sentenca = T.extrairSentencaCriminal(texto);
+					ui.trecho.value = ui.sentenca.trecho;
+					if (!T.colapsar(ui.resumo.textContent) && ui.sentenca.resumo) ui.resumo.textContent = ui.sentenca.resumo;
+					estadoPeca(ui, ui.sentenca.resumo ? "Resumo da sentença criminal pré-montado — revise." : "Não identifiquei absolvição/condenação no texto — confira o quadro ① e escreva o resumo (ou use a IA).", !ui.sentenca.resumo);
+				} else {
+					const tipoTrecho = ui.peca.tipo === "decisao" ? "sentenca" : ui.peca.tipo === "outra" ? "inicial" : ui.peca.tipo;
+					ui.trecho.value = T.extrairTrechoPedidos(texto, tipoTrecho);
+					estadoPeca(ui, "Trecho extraído — revise e escreva o resumo (ou use a IA).");
+				}
 			}
 		} catch (e) {
 			estadoPeca(ui, "Não foi possível ler o arquivo: " + e.message, true);
@@ -790,18 +981,22 @@ async function montar() {
 	);
 
 	pecasUI = [];
-	if (dados.pecas && dados.pecas.length) {
+	{
+		const pecas = dados.pecas || [];
 		const secao = el("section", { id: "pecas" });
 		secao.append(
 			el("h2", { class: "subtitulo", text: "IV – PEÇAS PRINCIPAIS" }),
-			el("p", { contenteditable: "true", text: "CERTIFICO, ainda, que as peças principais do processo apresentam, em síntese, o seguinte conteúdo:" })
+			el("p", { contenteditable: "true", text: "CERTIFICO, ainda, que as peças principais do processo apresentam, em síntese, o seguinte conteúdo:" }),
+			el("p", { id: "pecas-vazio", class: "no-print aviso-vazio", text: "Nenhuma peça principal foi identificada automaticamente. Use “+ Adicionar peça” para incluir." })
 		);
-		dados.pecas.forEach((peca, i) => {
-			const ui = blocoPeca(peca, i, dados.pecas.length);
+		pecas.forEach((peca, i) => {
+			const ui = blocoPeca(peca, i, pecas.length);
 			pecasUI.push(ui);
 			secao.append(ui.raiz);
 		});
+		secao.append(formularioNovaPeca());
 		folha.append(secao);
+		renumerarPecas();
 	}
 
 	const local = el("p", { class: "fecho", contenteditable: "true" });
@@ -834,7 +1029,7 @@ function refazerParagrafoPrincipal() {
 
 function textoParaCopiar() {
 	const clone = $("#folha").cloneNode(true);
-	clone.querySelectorAll(".apoio, .peca.excluida").forEach((n) => n.remove());
+	clone.querySelectorAll(".apoio, .peca.excluida, .no-print").forEach((n) => n.remove());
 	const blocos = [];
 	clone.querySelectorAll(".cabecalho > div, h1, h2, p, .quadro tr, .aud-item, .evento, .assinatura > div").forEach((n) => {
 		let t;

@@ -401,7 +401,8 @@
 		const usuario = textoLimpo(cell(cols.usuario));
 		const invalido = /INVALIDO/i.test((linkMov && linkMov.id) || "") || !!tr.querySelector("strike a, s a, del a, strike, del");
 
-		return { seq: seq, dataHora: dataHora, evento: evento, titulo: titulo, complemento: complemento, usuario: usuario, invalido: invalido };
+		const temArquivos = !!toggleDaLinha(tr) || linksDeArquivo(tr).length > 0;
+		return { seq: seq, dataHora: dataHora, evento: evento, titulo: titulo, complemento: complemento, usuario: usuario, invalido: invalido, temArquivos: temArquivos };
 	}
 
 	// Paginação da tabela de movimentações (#navigator / a.arrowNextOn),
@@ -547,13 +548,26 @@
 
 	const RE_ARQUIVO_IGNORADO = /^auto\s*_?(de\s*)?pris[aã]o\s*_?(em\s*)?flagrante/i;
 
-	async function lerPecas(movimentos, avisos) {
+	async function lerPecas(movimentos, avisos, criminal) {
 		const pecas = [];
 		const unicas = new Set(); // inicial e denúncia: só a primeira
-		for (const mov of T.ordenarMovimentos(movimentos)) {
+		let ordenados = T.ordenarMovimentos(movimentos);
+		// Processo criminal: a peça inicial é a denúncia ("JUNTADA DE
+		// DENÚNCIA"). Os movimentos anteriores a ela (inquérito, APF,
+		// medidas cautelares...) não entram nas peças principais — continuam
+		// normalmente na lista de eventos.
+		if (criminal) {
+			const iDen = ordenados.findIndex(function (m) {
+				const c = !m.invalido && T.classificarMovimento(m.titulo || m.evento);
+				return c && c.tipo === "denuncia";
+			});
+			if (iDen > 0) ordenados = ordenados.slice(iDen);
+		}
+		for (const mov of ordenados) {
 			if (mov.invalido) continue;
 			const tipo = T.classificarMovimento(mov.titulo || mov.evento);
 			if (!tipo) continue;
+			if (criminal && tipo.tipo === "inicial") continue;
 			if ((tipo.tipo === "inicial" || tipo.tipo === "denuncia") && unicas.has(tipo.tipo)) continue;
 			let docs = mov.docsDiretos || [];
 			if (!docs.length && mov.row) docs = await arquivosDaLinha(mov.row);
@@ -598,7 +612,8 @@
 		const cabecalho = await etapa("o cabeçalho do processo", function () { return lerCabecalho(avisos); }, { numero: numeroDoProcesso(), assuntos: [] });
 		const polos = await etapa("as partes", function () { return lerPolos(avisos); }, []);
 		const movimentos = await etapa("os movimentos", function () { return lerMovimentos(avisos); }, []);
-		const pecas = await etapa("as peças principais", function () { return lerPecas(movimentos, avisos); }, []);
+		const criminal = T.ehProcessoCriminal(cabecalho.classe, movimentos);
+		const pecas = await etapa("as peças principais", function () { return lerPecas(movimentos, avisos, criminal); }, []);
 
 		const id = (crypto.randomUUID && crypto.randomUUID()) || String(Date.now()) + Math.random().toString(16).slice(2);
 		const payload = Object.assign({}, cabecalho, {
@@ -606,9 +621,10 @@
 			criadoEm: Date.now(),
 			sistema: IS_SEEU ? "SEEU" : "Projudi",
 			origem: location.origin,
+			criminal: criminal,
 			polos: polos,
 			movimentos: T.ordenarMovimentos(movimentos.map(function (m) {
-				return { seq: m.seq, dataHora: m.dataHora, evento: m.evento, titulo: m.titulo, complemento: m.complemento, usuario: m.usuario, invalido: m.invalido };
+				return { seq: m.seq, dataHora: m.dataHora, evento: m.evento, titulo: m.titulo, complemento: m.complemento, usuario: m.usuario, invalido: m.invalido, temArquivos: !!(m.temArquivos || (m.docsDiretos && m.docsDiretos.length)) };
 			})),
 			pecas: T.ordenarMovimentos(pecas),
 			avisos: avisos,
@@ -620,6 +636,25 @@
 		if (!resposta || !resposta.ok) throw new Error((resposta && resposta.error) || "Não foi possível abrir a janela da certidão.");
 	}
 	window.__pdpGerarCertidao = gerarCertidao;
+
+	// "+ Adicionar peça" na janela da certidão: carrega, nesta aba, os
+	// arquivos de um movimento escolhido (pelo sequencial), do mesmo jeito
+	// que na coleta inicial (clicando no "+" da linha, sem deixá-la aberta).
+	chrome.runtime.onMessage.addListener(function (msg, _sender, responder) {
+		if (!msg || msg.source !== "projudi-preview" || msg.type !== "certidao-arquivos-movimento") return false;
+		const linha = linhasDeMovimento(document).find(function (tr) {
+			const m = lerMovimento(tr);
+			return m.seq === msg.seq && (!msg.dataHora || m.dataHora === msg.dataHora);
+		});
+		if (!linha) {
+			responder({ ok: false, error: "O movimento " + msg.seq + " não está na página de movimentações aberta (talvez esteja em outra página, ou a aba do processo foi fechada/trocada)." });
+			return false;
+		}
+		arquivosDaLinha(linha)
+			.then(function (docs) { responder({ ok: true, docs: docs }); })
+			.catch(function (e) { responder({ ok: false, error: e.message }); });
+		return true;
+	});
 
 	// -------------------------------------------------------------------
 	// Botão na barra da extensão (#pdp-qa-row, ver quickActions.js)

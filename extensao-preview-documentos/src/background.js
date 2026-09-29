@@ -875,6 +875,11 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
     const origin = new URL(sender.url || '');
     if (!sender.tab || !PDP_CERTIDAO_HOSTS.test(origin.hostname)) throw new Error('Origem inválida.');
     if (!/^[\w-]{8,80}$/.test(message.id || '')) throw new Error('Identificador inválido.');
+    // Guarda de onde veio (aba e frame), para "+ Adicionar peça" poder
+    // pedir os arquivos de outro movimento a essa mesma tela.
+    const chave = PDP_CERTIDAO_PREFIX + message.id;
+    const registro = (await chrome.storage.local.get(chave))[chave];
+    if (registro) await chrome.storage.local.set({ [chave]: { ...registro, tabId: sender.tab.id, frameId: sender.frameId || 0 } });
     let left, top, width = 960, height = 900;
     try {
       const current = await chrome.windows.get(sender.tab.windowId);
@@ -913,5 +918,22 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
       return { ok: true, contentType: resp.headers.get('content-type') || '', base64: bytesToBase64(bytes) };
     } finally { clearTimeout(timer); }
   })().then(reply).catch(error => reply({ ok: false, error: error.name === 'AbortError' ? 'Tempo esgotado ao baixar o arquivo.' : error.message }));
+  return true;
+});
+
+chrome.runtime.onMessage.addListener((message, sender, reply) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'certidao-arquivos') return false;
+  (async () => {
+    if (!(sender.url || '').startsWith(PDP_CERTIDAO_PAGE)) throw new Error('Origem inválida.');
+    const chave = PDP_CERTIDAO_PREFIX + String(message.id || '');
+    const registro = (await chrome.storage.local.get(chave))[chave];
+    if (!registro || typeof registro.tabId !== 'number') throw new Error('A aba do processo não foi encontrada. Gere a certidão de novo.');
+    const tab = await chrome.tabs.get(registro.tabId).catch(() => null);
+    if (!tab || !PDP_CERTIDAO_HOSTS.test(new URL(tab.url || 'about:blank').hostname)) throw new Error('A aba do processo foi fechada ou saiu do Projudi/SEEU.');
+    const resposta = await chrome.tabs.sendMessage(registro.tabId, {
+      source: 'projudi-preview', type: 'certidao-arquivos-movimento', seq: String(message.seq || ''), dataHora: String(message.dataHora || ''),
+    }, { frameId: registro.frameId || 0 });
+    return resposta || { ok: false, error: 'A tela do processo não respondeu.' };
+  })().then(reply).catch(error => reply({ ok: false, error: error.message }));
   return true;
 });

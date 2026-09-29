@@ -283,6 +283,30 @@ table.quadro .relacionado + .relacionado { margin-top: 3px; padding-left: 1.2em;
 .peca-estado .estado { color: #555; }
 .peca-estado .estado.erro { color: #b00020; }
 .selo-ia { color: #7a3fb0; font: bold 12px Arial, Helvetica, sans-serif; }
+.peca-ordem { display: inline-flex; gap: 3px; }
+.peca-cab .btn-ordem { padding: 1px 7px; min-width: 26px; }
+.peca-cab .btn-ordem:disabled { opacity: 0.35; cursor: default; }
+.peca-manual { font-size: 11px; color: #7a5200; background: #fff4d6; border: 1px solid #e0b200; border-radius: 8px; padding: 0 6px; }
+.aviso-vazio { font: italic 12.5px Arial, Helvetica, sans-serif; color: #7a5200; }
+.peca-nova { margin: 0.4em 0 1.4em; text-align: left; font: 12.5px/1.4 Arial, Helvetica, sans-serif; }
+.btn-nova-peca {
+	font: bold 13px Arial, Helvetica, sans-serif;
+	padding: 6px 14px;
+	border: 1px dashed #1f5fa8;
+	border-radius: 6px;
+	background: #f4f8fd;
+	color: #1f5fa8;
+	cursor: pointer;
+}
+.peca-nova-form { border: 1px solid #b9c6d6; border-radius: 6px; background: #fbfcfe; padding: 8px 10px; }
+.peca-nova-linha { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 6px; }
+.peca-nova-form select { max-width: 100%; font: inherit; }
+.peca-nova-form input[type="text"] { font: inherit; padding: 2px 6px; min-width: 260px; }
+.peca-nova-form button { font: inherit; padding: 3px 10px; cursor: pointer; }
+.peca-nova-form button.primario { background: #1f5fa8; border: 1px solid #1f5fa8; color: #fff; border-radius: 3px; }
+.peca-nova-form button:disabled { opacity: 0.5; cursor: default; }
+.peca-nova .estado { color: #555; }
+.peca-nova .estado.erro { color: #b00020; }
 
 .apoio {
 	margin: 0.3em 0 1.1em;
