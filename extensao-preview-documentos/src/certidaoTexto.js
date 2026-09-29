@@ -245,7 +245,7 @@
 	};
 
 	function dataPorExtenso(texto) {
-		const m = /\b(\d{1,2})(?:º|o)? de ([a-zç]+) de (\d{4})\b/i.exec(texto);
+		const m = /\b(\d{1,2})(?:º|o)?(?:\s*\([^)]{1,20}\))? de ([a-zç]+) de (\d{4})\b/i.exec(texto);
 		if (m) {
 			const mes = MESES[normalizar(m[2])];
 			if (mes) return pad2(m[1]) + "/" + pad2(mes) + "/" + m[3];
@@ -258,11 +258,46 @@
 		return String(n).padStart(2, "0");
 	}
 
-	// "FATO 01 – lesão corporal", "1º FATO - Furto", "FATO ÚNICO – ameaça"
-	const TITULO_FATO = /(^|\n)[ \t]*(?:(\d{1,2})\s*[ºo°]?\s*FATO|(PRIMEIRO|SEGUNDO|TERCEIRO|QUARTO|QUINTO|SEXTO|S[ÉE]TIMO|OITAVO|NONO|D[ÉE]CIMO)\s+FATO|FATO\s*(\d{1,2}|[ÚU]NICO))\s*[–—\-:.]?\s*([^\n]*)/gi;
-	const ORDINAIS = { primeiro: 1, segundo: 2, terceiro: 3, quarto: 4, quinto: 5, sexto: 6, setimo: 7, oitavo: 8, nono: 9, decimo: 10 };
+	// "FATO 01 – lesão corporal", "1º FATO - Furto", "FATO ÚNICO – ameaça",
+	// e as variações com "CONDUTA" ou "CRIME": "1ª Conduta:", "SEGUNDA
+	// CONDUTA", "Conduta 02", "1º CRIME – roubo". O título tem de começar a
+	// linha (um "(1ª Conduta)" citado na capitulação não é título).
+	const TITULO_FATO = /(^|\n)[ \t]*(?:(\d{1,2})\s*[ºªo°]?\s*(FATO|CONDUTA|CRIME)|(PRIMEIR[OA]|SEGUND[OA]|TERCEIR[OA]|QUART[OA]|QUINT[OA]|SEXT[OA]|S[ÉE]TIM[OA]|OITAV[OA]|NON[OA]|D[ÉE]CIM[OA])\s+(FATO|CONDUTA|CRIME)|(FATO|CONDUTA|CRIME)[ \t]*(\d{1,2}|[ÚU]NIC[OA]))(?![\wÀ-ú])[ \t]*[–—\-:.]?[ \t]*([^\n]*)/gi;
+	const ORDINAIS = {
+		primeiro: 1, segundo: 2, terceiro: 3, quarto: 4, quinto: 5, sexto: 6, setimo: 7, oitavo: 8, nono: 9, decimo: 10,
+		primeira: 1, segunda: 2, terceira: 3, quarta: 4, quinta: 5, sexta: 6, setima: 7, oitava: 8, nona: 9, decima: 10,
+	};
+	// "(1ª Conduta)", "(2º Fato – ameaça)", "(fato 3)" dentro da capitulação.
+	const REF_FATO_CAPITULACAO = /\(\s*(?:(\d{1,2})\s*[ºªo°]?\s*(?:fato|conduta|crime)|(?:fato|conduta|crime)\s*(\d{1,2}))\s*(?:[–—\-:]\s*([^)]*))?\)/gi;
 
-	const INICIO_REQUERIMENTOS = /(^|\n|\.\s)\s*((o ministerio publico )?(requer|pugna|requer-se)|diante do exposto|pelo exposto|ante o exposto|isto posto|posto isso|razao pela qual)/i;
+	// Na denúncia com cota (requerimentos ao juiz nas primeiras páginas,
+	// antes da peça), a peça começa na linha "DENÚNCIA".
+	function semCotaMinisterial(t) {
+		const m = /\n[ \t]*DEN[ÚU]NCIA[ \t]*(?=\n)/.exec(t);
+		if (!m || m.index === 0) return t;
+		const resto = t.slice(m.index);
+		return resto.length > 400 ? resto : t;
+	}
+
+	// Artigos de cada fato, quando a capitulação os separa: "artigo 157,
+	// §2º, inciso II, do Código Penal (1ª Conduta) e artigo 244-B, caput,
+	// da Lei nº 8.069/1990 (2ª Conduta)" -> {1: {artigos}, 2: {artigos}}.
+	function artigosPorFato(cap) {
+		const c = colapsar(cap);
+		const mapa = {};
+		let anterior = 0;
+		let m;
+		REF_FATO_CAPITULACAO.lastIndex = 0;
+		while ((m = REF_FATO_CAPITULACAO.exec(c))) {
+			const n = parseInt(m[1] || m[2], 10);
+			const artigos = artigosImputacao(c.slice(anterior, m.index)).replace(/^(?:e|,)\s+/, "");
+			if (!mapa[n]) mapa[n] = { artigos: artigos, crime: colapsar(m[3] || "").replace(/[.;,]+$/, "") };
+			anterior = m.index + m[0].length;
+		}
+		return mapa;
+	}
+
+	const INICIO_REQUERIMENTOS = /(^|\n|[.,]\s)\s*((o ministerio publico )?(requer|pugna|requer-se)|diante do exposto|pelo exposto|ante o exposto|isto posto|posto isso|razao pela qual)/i;
 
 	const PEDIDOS_DENUNCIA = [
 		{ re: /receb\w* (d[ae] )?(presente )?denuncia|seja (a presente )?denuncia recebida/i, rotulo: "o recebimento da denúncia" },
@@ -333,8 +368,10 @@
 	}
 
 	function tituloDoFato(f) {
-		let s = f.unico ? "Fato único" : "Fato " + f.n;
+		const rotulo = f.rotulo || "Fato";
+		let s = f.unico ? rotulo + (rotulo === "Fato" || rotulo === "Crime" ? " único" : " única") : rotulo + " " + f.n;
 		if (f.crime) s += " – " + f.crime;
+		else if (f.artigos) s += " – " + f.artigos;
 		if (f.data) s += " (" + f.data + ")";
 		return s;
 	}
@@ -349,7 +386,7 @@
 	}
 
 	function extrairDenuncia(texto) {
-		const t = limparAssinaturas(texto).replace(/[ \t]+/g, " ");
+		const t = semCotaMinisterial(limparAssinaturas(texto).replace(/[ \t]+/g, " "));
 		const semAcento = tiraAcentoMantendoTamanho(t);
 		const fatos = [];
 		TITULO_FATO.lastIndex = 0;
@@ -357,10 +394,12 @@
 		const titulos = [];
 		while ((m = TITULO_FATO.exec(t))) {
 			const inicio = m.index + (m[1] ? m[1].length : 0);
-			const numeroTxt = m[2] || m[4] || "";
-			const n = m[3] ? ORDINAIS[normalizar(m[3])] || 1 : /^\d+$/.test(numeroTxt) ? parseInt(numeroTxt, 10) : 1;
-			const crime = colapsar(m[5]).replace(/[.:;]+$/, "");
-			titulos.push({ inicio: inicio, fimTitulo: TITULO_FATO.lastIndex, n: n, crime: crime });
+			const numeroTxt = m[2] || m[7] || "";
+			const n = m[4] ? ORDINAIS[normalizar(m[4])] || 1 : /^\d+$/.test(numeroTxt) ? parseInt(numeroTxt, 10) : 1;
+			const palavra = normalizar(m[3] || m[5] || m[6] || "fato");
+			const rotulo = palavra.charAt(0).toUpperCase() + palavra.slice(1);
+			const crime = colapsar(m[8]).replace(/^[–—\-:.)\s]+/, "").replace(/[.:;]+$/, "");
+			titulos.push({ inicio: inicio, fimTitulo: TITULO_FATO.lastIndex, n: n, crime: crime, rotulo: rotulo, unico: /^[uú]nic/i.test(numeroTxt) });
 		}
 
 		// Onde começa a capitulação ("Assim agindo, o denunciado ... incidiu
@@ -397,8 +436,10 @@
 			// no início dos requerimentos.
 			const fimReq = INICIO_REQUERIMENTOS.exec(restoSemAcento.slice(20));
 			const fimPonto = /\.\s*\n/.exec(resto);
+			const fimRazao = /,?\s*\b(razao\s+pela\s+qual|motivo\s+pelo\s+qual|pelo\s+que\s+requer|pelo\s+que\s+o\s+ministerio)/i.exec(restoSemAcento.slice(20));
 			let fim = resto.length;
 			if (fimReq) fim = Math.min(fim, 20 + fimReq.index + (fimReq[1] ? fimReq[1].length : 0));
+			if (fimRazao) fim = Math.min(fim, 20 + fimRazao.index);
 			if (fimPonto) fim = Math.min(fim, fimPonto.index + 1);
 			capitulacao = colapsar(resto.slice(0, fim));
 			fimCapitulacao = inicioCapitulacao + fim;
@@ -418,6 +459,8 @@
 			}
 			fatos.push({
 				n: tit.n,
+				rotulo: tit.rotulo,
+				unico: tit.unico,
 				crime: tit.crime,
 				data: data,
 				denunciados: denunciadosDe(corpo),
@@ -446,6 +489,14 @@
 				});
 			}
 		}
+		// Artigos (e crime, se o título não tiver) de cada fato, pela capitulação.
+		const porFato = artigosPorFato(capitulacao);
+		fatos.forEach(function (f) {
+			const ref = porFato[f.n];
+			if (!ref) return;
+			if (ref.artigos) f.artigos = ref.artigos;
+			if (!f.crime && ref.crime) f.crime = ref.crime;
+		});
 		let denunciados = [];
 		fatos.forEach(function (f) {
 			f.denunciados.forEach(function (d) { if (denunciados.indexOf(d) === -1) denunciados.push(d); });
@@ -519,11 +570,34 @@
 	function limparAssinaturas(texto) {
 		let t = String(texto || "").replace(/\r/g, "");
 		ASSINATURA_TRECHOS.forEach(function (re) { t = t.replace(re, " "); });
-		return t
-			.split("\n")
-			.filter(function (linha) { return !ASSINATURA_LINHA.test(linha); })
-			.join("\n")
-			.replace(/[ \t]{2,}/g, " ");
+		return semCabecalhosRepetidos(
+			t
+				.split("\n")
+				.filter(function (linha) { return !ASSINATURA_LINHA.test(linha); })
+				.join("\n")
+		).replace(/[ \t]{2,}/g, " ");
+	}
+
+	// Cabeçalho/rodapé que o PDF repete em toda página ("4ª Promotoria de
+	// Justiça de …", "Página 4 de 6"), o separador de páginas da tela
+	// ("──── Página 2 de 6 ────") e números soltos de nota de rodapé: saem
+	// do texto para não cortar a narrativa no meio.
+	function semCabecalhosRepetidos(texto) {
+		const linhas = String(texto).split("\n");
+		const vezes = {};
+		linhas.forEach(function (l) {
+			const k = colapsar(l);
+			if (k.length >= 8) vezes[k] = (vezes[k] || 0) + 1;
+		});
+		return linhas
+			.filter(function (l) {
+				const k = colapsar(l);
+				if (/^─+.*─+$/.test(k)) return false;
+				if (/^(p[áa]gina|p[áa]g\.|fls?\.)\s*\d+(\s*(de|\/)\s*\d+)?$/i.test(k)) return false;
+				if (/^\d{1,2}$/.test(k)) return false;
+				return !(vezes[k] >= 3 && k.length <= 120);
+			})
+			.join("\n");
 	}
 
 	// ---------------------------------------------------------------
@@ -546,6 +620,16 @@
 			.replace(/,?\s*(?:tudo\s+)?(?:conforme|consoante|segundo)\s*:?\s*(?:se\s+(?:v[eê]|infere)\s+d[oa]s?\s*)?(?:o\s+|a\s+|os\s+|as\s+)?(?:boletim|termos?|autos?|laudos?|atestado|depoimentos?|declara[çc][õo]es|relat[óo]rio|fotografias?|imagens?|documentos?)[\s\S]*$/i, ".")
 			.replace(/\s*\((?:mov|evento|seq|fl|fls)\.?[^)]*\)/gi, "")
 			.replace(/(?:,\s*|\s+)(?:de forma\s+)?(?:dolosamente|livre e conscientemente|com consci[êe]ncia e vontade|com vontade livre e consciente|de forma livre e consciente|volunt[áa]ria e conscientemente)[^,]*?(?:,\s*ciente[^,]*?(?:conduta|a[çc][ãa]o|comportamento))?\s*,/gi, " ")
+			// "com ciência e vontade de realizarem os elementos objetivos do tipo,
+			// portanto, dolosamente, sabendo de que não estavam acobertados …
+			// exigindo-se deles uma atitude conforme o direito, SUBTRAÍRAM"
+			.replace(/,\s*(?:com\s+(?:ci[êe]ncia|consci[êe]ncia|vontade)|ciente[s]?\s+d[oa]s?\s+elementos|conscientes?\s+e\s+volunt)[\s\S]{0,600}?(?:conforme\s+(?:a[oa]?\s+|o\s+)?direito|diversa)\s*,/i, ",")
+			// Endereço: fica só o tipo de local e o município.
+			.replace(/,\s*n[ao]\s+(?:Avenida|Av\.|Rua|R\.|Travessa|Rodovia|Alameda|Estrada|Pra[çc]a)\s[^,]{1,80},\s*(?:s\/n|n[º°o.]*\s*[\d.]+)\s*(?=,)/gi, "")
+			.replace(/,\s*(?:no\s+)?bairro\s[^,]{1,60}(?=,)/gi, "")
+			.replace(/,\s*na\s+Comarca\s+d[ae]\s[^,]{1,80}(?=,)/gi, "")
+			.replace(/,\s*com unidade de des[ií]gnios\s*(?=,)/i, "")
+			.replace(/,\s*um aderindo [àa] conduta[^,]*?d[oa]s? outr[oa]s?\s*(?=,)/i, "")
 			.replace(/(?:,\s*|\s+)por raz[õo]es d[ae] condi[çc][ãa]o d[eo] sexo feminino[^,]*?(?:contra a mulher)?\s*,/gi, " ")
 			.replace(/\s*situad[oa]s?\s+n[ao]s?\s[\s\S]*?(?=,\s*(?:o|a|os|as)\s+(?:ora\s+)?(?:denunciad|acusad|investigad))/i, "")
 			.replace(/\s*,\s*,/g, ",")
@@ -567,7 +651,7 @@
 		if (!inicio) return "";
 		c = c.slice(inicio.index);
 		c = c
-			.replace(/\s*\((?:\d+\s*[ºo°]?\s*fato|fato)[^)]*\)/gi, "") // "(1º Fato – lesão corporal)"
+			.replace(/\s*\((?:\d+\s*[ºªo°]?\s*(?:fato|conduta|crime)|(?:fato|conduta|crime))[^)]*\)/gi, "") // "(1º Fato – lesão corporal)", "(2ª Conduta)"
 			.replace(/\s*\((?:concurso|crime continuado)[^)]*\)/gi, "")
 			.replace(/\bartigos\b/gi, "arts.")
 			.replace(/\bartigo\b/gi, "art.")
@@ -618,7 +702,9 @@
 
 	// Divide em frases sem quebrar em abreviações ("art. 77", "Dr. João",
 	// "nº 45.678", "L.A.d.S.").
-	const ABREVIACOES = /(?:\b(?:arts?|n|nº|inc|incs|al|dr|dra|drs|sr|sra|fl|fls|mov|p|pg|pag|págs?|cf|ex|obs|res|par|c|s|ss|av|min|des|proc|prof|profa|adv|op|cit|v|vol|ed|ltda|cia)\.|\b[A-Za-zÀ-ÿ]\.)$/i;
+	// (Sem a flag "u", "\b" vê fronteira depois de letra acentuada: por isso
+	// o início da abreviação é marcado por espaço, parêntese ou início.)
+	const ABREVIACOES = /(?:^|[\s(])(?:arts?|n|nº|inc|incs|al|dr|dra|drs|sr|sra|fl|fls|mov|p|pg|pag|págs?|cf|ex|obs|res|par|c|s|ss|av|min|des|proc|prof|profa|adv|op|cit|v|vol|ed|ltda|cia|[A-Za-zÀ-ÿ])\.$/i;
 	function frasesDe(texto) {
 		const pedacos = colapsar(texto).split(/(?<=[.;])\s+(?=[A-ZÀ-Ý0-9"“(a-z])/);
 		const frases = [];
@@ -655,23 +741,68 @@
 		const t = colapsar(limparAssinaturas(texto));
 		const qualif = "(?:o|a|os|as)?\\s*(?:r[ée]us?|r[ée]|acusad[oa]s?|denunciad[oa]s?|sentenciad[oa]s?)?\\s*,?\\s*";
 		const absolvidos = nomesApos(new RegExp("\\b(?:[Aa]bsolv(?:o|er|endo)|ABSOLV(?:O|ER|ENDO))\\s+" + qualif + RE_NOME, "g"), t);
+		// Um réu pode ser absolvido de um crime e condenado por outro: fica
+		// nas duas listas.
 		const condenados = nomesApos(new RegExp("\\b(?:[Cc]onden(?:o|ar|ando)|CONDEN(?:O|AR|ANDO))\\s+" + qualif + RE_NOME, "g"), t)
-			.filter(function (n) { return absolvidos.indexOf(n) === -1 && !/^(ESTADO|MUNIC[ÍI]PIO|UNI[ÃA]O|FAZENDA|INSS|DISTRITO)\b/.test(n); });
+			.filter(function (n) { return !/^(ESTADO|MUNIC[ÍI]PIO|UNI[ÃA]O|FAZENDA|INSS|DISTRITO)\b/.test(n); });
+		// Crime de que cada um foi absolvido ("absolvo X da imputação do crime de ...").
+		const absolvicoes = absolvidos.map(function (nome) {
+			const f = frasesDe(t).find(function (x) { return /absolv/i.test(x) && x.indexOf(nome) !== -1; });
+			const depois = f ? f.slice(f.indexOf(nome) + nome.length) : "";
+			return { nome: nome, crime: depois ? crimeNaFrase(depois.slice(0, 300)) : "" };
+		});
 
-		// Pena de cada condenado: procura, nos trechos em que o nome aparece
-		// (até o nome de outro condenado), a última pena "definitiva".
+		// Pena de cada condenado: nos trechos em que o nome aparece (até o
+		// nome de outro condenado), a pena "definitiva" de cada crime (o
+		// crime é o último citado antes dela) e a pena total (concurso de
+		// crimes, soma, unificação); com um só crime, a total é a dele.
 		function penaEm(trecho) {
 			const frases = frasesDe(trecho);
-			const definitivas = frases.filter(function (f) { return /definitiv|pena final|totaliz|resta(?:ndo)? (?:a pena|fixada)|concretiz/i.test(f) && (RE_PENA.test(f) || (RE_PENA.lastIndex = 0, false)); });
-			RE_PENA.lastIndex = 0;
-			const base = definitivas.length ? definitivas[definitivas.length - 1] : trecho;
-			const mp = ultimo(RE_PENA, base);
-			const mm = ultimo(RE_MULTA, definitivas.length ? definitivas.join(" ") : trecho);
+			const temPena = function (f) { RE_PENA.lastIndex = 0; const ok = RE_PENA.test(f); RE_PENA.lastIndex = 0; return ok; };
+			const DEFINITIVA = /definitiv|pena final|totaliz|resta(?:ndo)? (?:a pena|fixada)|concretiz/i;
+			const TOTAL = /concurso material|concurso formal|c[úu]mulo material|somad[ao]s?|soma das penas|somando|totaliz|unific|pena total|pena final|continuidade delitiva|crime continuado|\bart(?:igo)?\.?\s*(?:69|70|71)\b/i;
+			const porCrime = [];
+			let total = null;
+			let crimeAtual = "";
+			frases.forEach(function (f) {
+				const citado = crimeNaFrase(f);
+				if (!temPena(f) || !DEFINITIVA.test(f)) {
+					if (citado) crimeAtual = citado;
+					return;
+				}
+				const mp = ultimo(RE_PENA, f);
+				const mm = ultimo(RE_MULTA, f);
+				const item = {
+					pena: colapsar(mp[1]).replace(/[,\s]+$/, "") + " de " + mp[2].toLowerCase(),
+					multa: mm ? colapsar(mm[1]) : "",
+				};
+				if (TOTAL.test(f) && (porCrime.length || /totaliz|soma|unific|pena total|concurso|c[úu]mulo/i.test(f))) {
+					total = item;
+					return;
+				}
+				item.crime = citado || crimeAtual;
+				const igual = porCrime.findIndex(function (x) { return x.crime === item.crime; });
+				if (igual >= 0) porCrime[igual] = item;
+				else porCrime.push(item);
+			});
 			const mr = ultimo(RE_REGIME, trecho);
+			const regime = mr ? mr[1].toLowerCase().replace("semi-aberto", "semiaberto") : "";
+			if (!total && porCrime.length) total = porCrime[porCrime.length - 1];
+			if (!total) {
+				const mp = ultimo(RE_PENA, trecho);
+				const mm = ultimo(RE_MULTA, trecho);
+				total = { pena: mp ? colapsar(mp[1]).replace(/[,\s]+$/, "") + " de " + mp[2].toLowerCase() : "", multa: mm ? colapsar(mm[1]) : "" };
+			}
+			if (!total.multa && porCrime.length) {
+				const comMulta = porCrime.filter(function (x) { return x.multa; });
+				if (comMulta.length === 1 && porCrime.length === 1) total.multa = comMulta[0].multa;
+			}
 			return {
-				pena: mp ? colapsar(mp[1]).replace(/[,\s]+$/, "") + " de " + mp[2].toLowerCase() : "",
-				multa: mm ? colapsar(mm[1]) : "",
-				regime: mr ? mr[1].toLowerCase().replace("semi-aberto", "semiaberto") : "",
+				crimes: porCrime.length > 1 ? porCrime : [],
+				crime: porCrime.length === 1 ? porCrime[0].crime : "",
+				pena: total.pena,
+				multa: total.multa,
+				regime: regime,
 			};
 		}
 		const condenacoes = condenados.map(function (nome) {
@@ -690,7 +821,9 @@
 					trechos.push(t.slice(m.index, fim));
 				}
 			}
-			return Object.assign({ nome: nome }, penaEm(trechos.join(" ")));
+			const r = Object.assign({ nome: nome }, penaEm(trechos.join(" ")));
+			Object.defineProperty(r, "_trecho", { value: trechos.join(" "), enumerable: false });
+			return r;
 		});
 
 		const frases = frasesDe(t);
@@ -723,6 +856,16 @@
 		let substituicao = concedida(frasesSubst, CONCEDE_SUBST);
 		let suspensao = concedida(frasesSusp, CONCEDE_SUSP);
 
+		// Substituição e suspensão de cada condenado (no trecho dele), com a
+		// conferência legal: pena acima de 4 anos ou regime fechado impedem a
+		// substituição (art. 44, I, CP) e a suspensão (art. 77, CP).
+		condenacoes.forEach(function (c) {
+			const fr = condenacoes.length === 1 ? frases : frasesDe(c._trecho);
+			const impede = penaEmAnos(c.pena) > 4 || c.regime === "fechado";
+			c.substituicao = impede ? "" : concedida(fr.filter(function (x) { return frasesSubst.indexOf(x) !== -1 || (/substitu|convert/i.test(x) && /restritiv|presta[çc][ãa]o|multa substitutiva|interdi[çc][ãa]o|limita[çc][ãa]o de fim/i.test(x)); }), CONCEDE_SUBST);
+			c.suspensao = impede ? "" : concedida(fr.filter(function (x) { return /suspens[ãa]o condicional da pena|sursis|suspendo a execu/i.test(x); }), CONCEDE_SUSP);
+		});
+
 		// Indenização à vítima (art. 387, IV, do CPP / danos morais ou materiais).
 		const fraseInd = achar(/387,?\s*(?:inciso\s*)?iv|repara[çc][ãa]o (?:dos |de )?danos|danos? (?:morais|materiais)|indeniza/i, /R\$\s*[\d.,]+|valor m[ií]nimo|deixo de fixar|n[ãa]o fix/i);
 		let indenizacao = "";
@@ -735,13 +878,13 @@
 		// Honorários ao advogado dativo: nome, OAB, valor e item da tabela.
 		const honorarios = [];
 		frases.forEach(function (f) {
-			if (!/honor[áa]rios/i.test(f) || !/dativ|nomead|defensor/i.test(f)) return;
+			if (!/honor[áa]rios/i.test(f) || !/dativ|nomead|defensor|Estado do Paran[áa]/i.test(f)) return;
 			const nome = /(?:Dr\.?|Dra\.?|advogad[oa]\s+(?:dativ[oa]\s+)?|defensor[a]?\s+(?:dativ[oa]\s+)?|a\(o\)\s+)\s*([A-ZÀ-Ý][A-Za-zÀ-ÿ'´.\-]+(?:\s+(?:d[aeo]s?|e|[A-ZÀ-Ý][A-Za-zÀ-ÿ'´.\-]+))+)/.exec(f);
 			const oab = /OAB\s*(?:\/\s*[A-Z]{2})?\s*(?:n[º°o.]*\s*)?[\d.]+[A-Z]?(?:\s*[-\/]\s*[A-Z]{2})?/i.exec(f);
 			const valor = /R\$\s*[\d.]+(?:,\d{2})?/.exec(f);
 			const item = /\bite(?:m|ns)\s+(?:n[º°o.]*\s*)?(\d+(?:\.\d+)*(?:\s*(?:e|,)\s*\d+(?:\.\d+)*)*)/i.exec(f);
 			const h = {
-				nome: nome ? colapsar(nome[1]).replace(/[,.]$/, "") : "",
+				nome: nome ? colapsar(nome[1]).replace(/[,.]$/, "").replace(/^Dra?\.?\s+/, "") : "",
 				oab: oab ? colapsar(oab[0]) : "",
 				valor: valor ? valor[0].replace(/\s+/, " ") : "",
 				item: item ? item[1].replace(/\.$/, "") : "",
@@ -763,6 +906,7 @@
 
 		const resultado = {
 			absolvidos: absolvidos,
+			absolvicoes: absolvicoes,
 			condenacoes: condenacoes,
 			substituicao: substituicao,
 			suspensao: suspensao,
@@ -772,7 +916,7 @@
 		resultado.resumo = resumoSentencaCriminal(resultado);
 		// Trecho de referência: as frases que tratam desses pontos.
 		const relevantes = frases.filter(function (f) {
-			return /absolv|condeno|condenar|definitiv|regime|substitu|suspens[ãa]o condicional|sursis|387|indeniza|danos? (?:morais|materiais)|honor[áa]rios|dativ|julgo (?:procedente|improcedente|parcialmente)/i.test(f);
+			return /absolv|condeno|condenar|definitiv|totaliz|concurso material|crime de|delito de|regime|substitu|suspens[ãa]o condicional|sursis|387|indeniza|danos? (?:morais|materiais)|honor[áa]rios|dativ|julgo (?:procedente|improcedente|parcialmente)/i.test(f);
 		});
 		resultado.trecho = relevantes.join("\n") || limitar(t.slice(-LIMITE_FALLBACK), LIMITE_FALLBACK + 10);
 		return resultado;
@@ -790,27 +934,58 @@
 		return num(/(\d+|[a-z]+)\s+anos?\b/) + num(/(\d+|[a-z]+)\s+m[eê]s(?:es)?\b/) / 12 + num(/(\d+|[a-z]+)\s+dias?\b(?!-)/) / 365;
 	}
 
+	function penaComMulta(c) {
+		return [c.pena, c.multa].filter(Boolean).join(" e ");
+	}
+
+	// Por réu: crimes e pena de cada um, pena total, regime, e se houve ou
+	// não substituição e suspensão. Depois, indenização e honorários do
+	// dativo (só se existirem).
 	function resumoSentencaCriminal(r) {
 		const linhas = [];
-		if (r.absolvidos.length) linhas.push((r.absolvidos.length > 1 ? "Absolvidos: " : "Absolvido(a): ") + juntarLista(r.absolvidos) + ".");
-		r.condenacoes.forEach(function (c) {
-			const partes = [];
-			if (c.pena) partes.push("pena de " + c.pena);
-			if (c.multa) partes.push(c.multa);
-			if (c.regime) partes.push("regime inicial " + c.regime);
-			linhas.push("Condenado(a): " + c.nome + (partes.length ? " — " + partes.join(", ") : "") + ".");
+		(r.absolvicoes || r.absolvidos.map(function (n) { return { nome: n }; })).forEach(function (a) {
+			linhas.push("Absolvido(a): " + a.nome + (a.crime ? " (quanto ao crime de " + a.crime + ")" : "") + ".");
 		});
-		if (r.substituicao) linhas.push("Substituição da pena: " + r.substituicao.replace(/\.$/, "") + ".");
-		if (r.suspensao) linhas.push("Suspensão da pena: " + r.suspensao.replace(/\.$/, "") + ".");
+		r.condenacoes.forEach(function (c) {
+			const comp = [];
+			if (c.crimes && c.crimes.length) {
+				linhas.push("Condenado(a): " + c.nome + ":");
+				c.crimes.forEach(function (x) {
+					linhas.push("– " + (x.crime ? x.crime.charAt(0).toUpperCase() + x.crime.slice(1) : "Crime") + ": " + penaComMulta(x) + ";");
+				});
+				if (c.pena) comp.push("pena total de " + penaComMulta(c));
+			} else {
+				let s = "Condenado(a): " + c.nome;
+				if (c.crime) s += " (" + c.crime + ")";
+				linhas.push(s + (c.pena ? " — pena de " + penaComMulta(c) : "") + ".");
+			}
+			if (c.regime) comp.push("regime inicial " + c.regime);
+			const subst = c.substituicao !== undefined ? c.substituicao : r.substituicao;
+			const susp = c.suspensao !== undefined ? c.suspensao : r.suspensao;
+			comp.push(subst ? "substituição da pena: sim (" + subst.replace(/\.$/, "") + ")" : "sem substituição da pena privativa de liberdade");
+			comp.push(susp ? "suspensão condicional da pena: sim (" + susp.replace(/\.$/, "") + ")" : "sem suspensão condicional da pena");
+			const txt = comp.join("; ");
+			linhas.push(txt.charAt(0).toUpperCase() + txt.slice(1) + ".");
+		});
 		if (r.indenizacao) linhas.push("Indenização à vítima: " + r.indenizacao.replace(/\.$/, "") + ".");
 		r.honorarios.forEach(function (h) {
 			const partes = [h.nome, h.oab ? "(" + h.oab + ")" : ""].filter(Boolean).join(" ");
-			let s = "Honorários ao advogado dativo" + (partes ? " " + partes : "");
+			let s = "Honorários ao advogado dativo" + (partes ? " " + partes : "") + ", a cargo do Estado";
 			if (h.valor) s += ": " + h.valor;
 			if (h.item) s += ", item " + h.item + " da tabela";
 			linhas.push(s + ".");
 		});
 		return linhas.join("\n");
+	}
+
+	// Crime citado numa frase: "crime de roubo majorado", "delito de
+	// ameaça"; senão, o artigo ("art. 157, §2º, II, do CP").
+	function crimeNaFrase(f) {
+		const m = /\b(?:[Cc]rimes?|[Dd]elitos?|[Ii]nfra[çc][ãa]o penal|CRIMES?|DELITOS?)\s+(?:de|do|da|dos|das|DE|DO|DA)\s+([a-zà-ú][a-zà-ú ]{2,45}?|[A-ZÀ-Ý][A-ZÀ-Ý ]{2,45}?)(?=\s*(?:\(|,|\.|;|:|previst|tipificad|descrit|capitulad|praticad|cometid|imputad|narrad|\bem\b|\bpelo\b|\bpela\b|\bque\b|$)|\s+[A-ZÀ-Ý][a-zà-ú])/.exec(f);
+		if (m && !/^(que|qual|cuja|tal)$/i.test(m[1].trim())) return colapsar(m[1]).toLowerCase();
+		const a = /\bart(?:igo)?\.?\s*(\d+[-‑]?[A-Z]?(?:\s*,\s*(?:§\s*\d+[ºo°]?|caput|inc(?:iso)?\.?\s*[IVX]+|[IVX]+\b))*)(?:\s*,?\s*(?:do|da)\s+(C[óo]digo Penal|CP|ECA|Lei\s*n?[º°.]*\s*[\d./]+))?/.exec(f);
+		if (a && a[2]) return "art. " + colapsar(a[1]) + " " + (/^C[óo]digo Penal$/i.test(a[2]) ? "do CP" : /^CP$|^ECA$/.test(a[2]) ? "do " + a[2] : "da " + a[2]);
+		return "";
 	}
 
 	// ---------------------------------------------------------------
@@ -958,6 +1133,8 @@
 		extrairDenuncia: extrairDenuncia,
 		resumoDenuncia: resumoDenuncia,
 		limparAssinaturas: limparAssinaturas,
+		semCotaMinisterial: semCotaMinisterial,
+		artigosPorFato: artigosPorFato,
 		ehProcessoCriminal: ehProcessoCriminal,
 		penaEmAnos: penaEmAnos,
 		extrairSentencaCriminal: extrairSentencaCriminal,

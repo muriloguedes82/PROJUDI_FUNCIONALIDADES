@@ -942,8 +942,10 @@ Salvar PDF** e **Copiar texto**. A certidão é dividida em seções:
   sentença; se há, a data e o resultado — condenação/absolvição, com os
   nomes, no criminal; procedência/improcedência/extinção no cível — e se
   há recurso posterior a ela ou se já transitou em julgado), *O que o juiz
-  decidiu?* (a partir
-  da sentença criminal), *Qual é a situação agora?* (audiência marcada,
+  decidiu?* (a partir da sentença criminal: para cada réu, os crimes, a
+  pena de cada um e a total, a multa, o regime explicado em palavras
+  simples e se a pena foi ou não trocada por outra — substituição — ou
+  suspensa), *Qual é a situação agora?* (audiência marcada,
   arquivamento, último registro), um glossário só com as palavras que aparecem na certidão e o
   aviso de que o resumo não substitui a certidão. Gerado por **modelo
   fixo** (sempre igual para os mesmos dados; refeito automaticamente
@@ -983,7 +985,15 @@ Opções da extensão.
   "Copiar trecho para o resumo" serve de ponto de partida.
   - **Denúncia.** A extensão usa o padrão das denúncias do Ministério
     Público: títulos "FATO 01 – crime", "1º FATO", "PRIMEIRO FATO" ou
-    "FATO ÚNICO". **Sem títulos** (fato único narrado direto), a narrativa
+    "FATO ÚNICO", e as mesmas formas com **"Conduta"** ou **"Crime"** ("1ª
+    Conduta:", "SEGUNDA CONDUTA", "1º CRIME – roubo"). Quando o título não
+    traz o crime, os artigos de cada fato vêm da capitulação ("artigo 157,
+    §2º, II, do CP (1ª Conduta) e artigo 244-B do ECA (2ª Conduta)"). A
+    **cota ministerial** que antecede a peça (antecedentes, sigilo,
+    diligências, motivos para não propor acordo) é descartada: a leitura
+    começa na linha "DENÚNCIA". Cabeçalhos e rodapés repetidos em todas as
+    páginas ("4ª Promotoria de Justiça…", "Página 4 de 6") também são
+    retirados. **Sem títulos** (fato único narrado direto), a narrativa
     é localizada entre o fim da qualificação ("… pela prática do seguinte
     fato delituoso:", "DOS FATOS", "Consta dos inclusos autos…" ou o
     primeiro "No dia…") e a frase da capitulação ("Assim agindo… incorreu
@@ -1005,20 +1015,29 @@ Opções da extensão.
     ofendeu a integridade corporal da vítima L.A.d.S. … Imputação: art.
     129, §13º, e art. 147, §1º, na forma do art. 69, todos do Código Penal
     e c/c art. 5º e 7º, incisos I e II, da Lei Maria da Penha." Basta
-    revisar.
+    revisar. Na IA, o Claude recebe a denúncia **integral** (sem a cota) e a
+    separação feita pela extensão apenas como referência, com a instrução
+    de contar os fatos/condutas pela capitulação; a IA do Chrome recebe os
+    fatos já separados e a capitulação.
   - **Sentença criminal.** O resumo pré-montado (e o prompt da IA) traz,
-    **só quando existirem na sentença**: (a) quem foi absolvido e quem foi
-    condenado; (b) a pena definitiva de cada condenado (espécie,
-    dias-multa e regime inicial); (c) a substituição da pena ou a
-    suspensão condicional, quando concedidas; (d) a indenização à vítima
-    por danos materiais ou morais, com o valor; (e) os honorários do
-    advogado dativo, com nome, OAB, valor e item da tabela. Itens
-    ausentes — ou negados, como "deixo de substituir", "não se aplica a
-    suspensão", "ausentes os requisitos" — não são mencionados.
+    **separado por réu e por crime**: quem foi absolvido (e de qual
+    crime, se a absolvição for parcial); para cada condenado, a pena
+    definitiva de cada crime (o crime é o último citado antes da "pena
+    definitiva") e, ao final, a **pena total** (soma/concurso), os
+    dias-multa, o **regime inicial** e se **houve ou não** substituição e
+    suspensão condicional da pena. Depois, só quando existirem: a
+    indenização à vítima, com o valor, e os honorários do advogado dativo
+    a cargo do Estado, com nome, OAB, valor e item da tabela. Exemplo:
+    "Condenado(a): FULANO: – Roubo majorado: 5 anos e 4 meses de
+    reclusão e 13 dias-multa; – Corrupção de menores: 1 ano de reclusão;
+    Pena total de 6 anos e 4 meses de reclusão e 13 dias-multa; regime
+    inicial semiaberto; sem substituição da pena privativa de liberdade;
+    sem suspensão condicional da pena."
     Substituição e suspensão só contam quando **concedidas de forma
     expressa** ("substituo a pena…", "concedo a suspensão…"), e nunca com
     pena acima de 4 anos ou regime inicial fechado (arts. 44 e 77 do CP).
-    No resumo feito pela IA, frases do tipo "Não houve…" são retiradas.
+    No resumo feito pela IA, frases do tipo "Não houve indenização/
+    honorários" são retiradas (as de substituição e suspensão ficam).
   - **Carimbo de assinatura digital.** Antes de qualquer extração, é
     removido o carimbo que o Projudi imprime nas páginas ("Documento
     assinado digitalmente, conforme MP nº 2.200-2/2001… Validação deste em

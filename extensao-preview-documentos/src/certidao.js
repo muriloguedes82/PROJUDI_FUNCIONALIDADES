@@ -625,13 +625,25 @@ const INSTRUCOES_IA = {
 		"preliminares ou nulidades alegadas, em até 3 frases (se a defesa apenas se reservar para discutir o mérito depois, diga isso); " +
 		"(2) PEDIDOS — absolvição sumária, rejeição da denúncia (com o fundamento) e requerimentos de prova (testemunhas, diligências)." + IMPARCIAL,
 	sentencaCriminal:
-		"Resuma a sentença criminal abaixo para uma certidão, em linhas curtas, trazendo SOMENTE os itens que existirem no texto, " +
-		"nesta ordem: (a) quem foi absolvido e quem foi condenado (nomes); (b) a pena definitiva aplicada a cada condenado, com a " +
-		"espécie (reclusão/detenção), os dias-multa e o regime inicial; (c) se houve substituição da pena privativa de liberdade ou " +
-		"suspensão condicional da pena, e em que termos; (d) se houve condenação ao pagamento de indenização por danos materiais ou " +
-		"morais à vítima, com o valor; (e) se houve condenação ao pagamento de honorários ao advogado dativo, com o nome do advogado, " +
-		"a OAB, o valor fixado e o item da tabela. Se algum desses itens não existir na sentença, NÃO o mencione (não escreva " +
-		"'não houve' nem 'não consta'). Não inclua fundamentação, relatório, dosimetria intermediária nem dados de assinatura.",
+		"Resuma a sentença criminal abaixo para uma certidão, em linhas curtas, sem markdown, SEPARANDO POR RÉU e, dentro de " +
+		"cada réu, POR CRIME, assim:\n" +
+		"- Absolvido(a): <NOME> (quanto ao crime de <crime>, se a absolvição for só de parte das imputações).\n" +
+		"- Condenado(a): <NOME>:\n" +
+		"  – <Crime> (<artigo>): <pena definitiva desse crime, com a espécie — reclusão/detenção — e os dias-multa>;\n" +
+		"  (uma linha para cada crime pelo qual foi condenado)\n" +
+		"  Pena total: <soma ou unificação das penas, com os dias-multa; se houver um só crime, a própria pena>; regime inicial " +
+		"<regime>; substituição da pena: <sim, por quais penas restritivas de direitos | não>; suspensão condicional da pena: " +
+		"<sim, por quanto tempo | não>.\n" +
+		"Depois de todos os réus, SOMENTE se existirem na sentença:\n" +
+		"- Indenização à vítima: <valor> (<danos morais/materiais, art. 387, IV, do CPP>).\n" +
+		"- Honorários ao advogado dativo <nome> (<OAB>), a cargo do Estado: <valor>, item <item> da tabela. Procure com atenção: " +
+		"a condenação do Estado ao pagamento de honorários ao defensor dativo/nomeado costuma estar nas últimas linhas do " +
+		"dispositivo; inclua uma linha para cada advogado.\n" +
+		"Regras: use a pena DEFINITIVA de cada crime (não a pena-base nem as fases intermediárias); para substituição e " +
+		"suspensão, diga 'sim' apenas se o juiz as CONCEDEU expressamente (se foram negadas, consideradas incabíveis ou não " +
+		"tratadas, diga 'não'); lembre que pena acima de 4 anos ou regime fechado não admitem substituição nem suspensão. " +
+		"Não escreva 'não houve' para indenização ou honorários: se não existirem, omita a linha. Não inclua fundamentação, " +
+		"relatório nem dados de assinatura.",
 	decisao:
 		"Resuma em no máximo 3 frases objetivas o que foi decidido na decisão abaixo (o que foi deferido ou indeferido e as determinações).",
 	outra:
@@ -643,24 +655,7 @@ const INSTRUCOES_IA = {
 
 function promptPara(ui) {
 	const delimitar = (t) => '"""\n' + t + '\n"""';
-	if (ui.peca.tipo === "denuncia" && ui.denuncia && ui.denuncia.fatos.length) {
-		const d = ui.denuncia;
-		const partes = [];
-		if (d.denunciados.length) partes.push("DENUNCIADO(S): " + d.denunciados.join(", "));
-		d.fatos.forEach((f) => partes.push(T.tituloDoFato(f).toUpperCase() + " — NARRATIVA INTEGRAL:\n" + delimitar(f.texto)));
-		const artigos = T.artigosImputacao(d.capitulacao);
-		partes.push("ARTIGOS DA IMPUTAÇÃO (copie exatamente): " + (artigos || "não identificados — extraia do texto da capitulação: " + d.capitulacao));
-		return (
-			"A seguir estão os fatos narrados numa denúncia criminal, cada um na íntegra. Escreva o resumo para uma certidão, assim:\n" +
-			"- uma linha por fato, começando por 'Fato N – <crime> (<data>):' (use 'Fato único' se houver só um);\n" +
-			"- em cada linha, 1 ou 2 frases objetivas dizendo QUANDO (data e hora), ONDE (só o tipo de local e o município, sem endereço), " +
-			"QUEM (o denunciado), O QUE FEZ (a conduta, com o meio empregado) e CONTRA QUEM (a vítima pelas iniciais, como no original), " +
-			"e o resultado, se houver;\n" +
-			"- não use fórmulas como 'dolosamente, ciente da ilicitude', não cite provas, movimentos do processo nem assinaturas;\n" +
-			"- na última linha, escreva 'Imputação:' seguido APENAS dos artigos de lei informados.\n\n" +
-			partes.join("\n\n")
-		);
-	}
+	if (ui.peca.tipo === "denuncia" && (ui.denuncia || ui.texto)) return promptDenuncia(ui, delimitar);
 	const chave = ui.peca.tipo === "sentenca" && dados.criminal ? "sentencaCriminal" : ui.peca.tipo;
 	const instrucao = INSTRUCOES_IA[chave] || INSTRUCOES_IA.outra;
 	// Trecho curto (título não encontrado, peça atípica): manda também o
@@ -681,6 +676,52 @@ function promptPara(ui) {
 		base = T.limparAssinaturas(ui.texto).slice(-4000);
 	}
 	return instrucao + "\n\nTexto:\n" + delimitar(base);
+}
+
+// Denúncia: a IA recebe a peça (sem a cota ministerial e sem o carimbo de
+// assinatura) e, como apoio, a separação dos fatos feita pela extensão e a
+// capitulação. A contagem de fatos é conferida pela própria IA: as
+// denúncias chamam os fatos de "Fato", "Conduta" ou "Crime", às vezes sem
+// número, e a capitulação costuma indicar entre parênteses a que fato se
+// refere cada artigo.
+function promptDenuncia(ui, delimitar) {
+	const d = ui.denuncia || { fatos: [], denunciados: [], capitulacao: "" };
+	const regras =
+		"Você vai resumir uma DENÚNCIA criminal para uma certidão.\n" +
+		"1) Identifique TODOS os fatos imputados. A denúncia pode chamá-los de 'Fato', 'Conduta', 'Crime' ou 'Delito' " +
+		"('1º Fato', 'FATO 02', '1ª Conduta', 'Segunda conduta', 'Fato único'...), ou narrá-los sem título. Confira a contagem com a " +
+		"CAPITULAÇÃO (o parágrafo 'Assim agindo/Assim procedendo, incorreu/incidiu...'): cada artigo seguido de '(1º Fato)', " +
+		"'(2ª Conduta)' etc. corresponde a um fato; crimes diferentes na capitulação indicam fatos diferentes.\n" +
+		"2) Escreva uma linha por fato, começando por '<Termo usado na denúncia> N – <crime> (<data>):' — por exemplo " +
+		"'Conduta 1 – roubo majorado (15/01/2019):' ou 'Fato 2 – ameaça (06/09/2026):' (use 'Fato único' se houver só um). " +
+		"O crime é o nome do delito (roubo, furto, ameaça, corrupção de menores...), deduzido da conduta e do artigo.\n" +
+		"3) Em cada linha, 1 ou 2 frases objetivas: QUANDO (data e hora), ONDE (só o tipo de local e o município, sem endereço), " +
+		"QUEM (denunciado(s) e eventuais coautores ou adolescentes, pelas iniciais se assim estiverem), O QUE FEZ (a conduta, com o " +
+		"meio empregado) e CONTRA QUEM (a vítima pelas iniciais, como no original), e o resultado, se houver.\n" +
+		"4) Ignore a cota do Ministério Público que vem antes da denúncia (pedidos de antecedentes, sigilo, diligências, motivos para " +
+		"não propor acordo ou suspensão), o rol de testemunhas, as provas citadas ('Tudo conforme boletim...'), as fórmulas como " +
+		"'dolosamente, ciente da ilicitude', os movimentos do processo e as assinaturas.\n" +
+		"5) Na última linha, escreva 'Imputação:' seguido APENAS dos artigos de lei, indicando entre parênteses o fato de cada um " +
+		"quando a denúncia fizer essa indicação, e o concurso de crimes, se houver (ex.: 'na forma do art. 69 do CP').\n" +
+		"Não invente dados; não use markdown.";
+	const partes = [];
+	if (d.denunciados.length) partes.push("DENUNCIADO(S) (identificados pela extensão): " + d.denunciados.join(", "));
+	if (d.capitulacao) partes.push("CAPITULAÇÃO (copiada da denúncia):\n" + delimitar(d.capitulacao));
+	const artigos = T.artigosImputacao(d.capitulacao);
+	if (artigos) partes.push("ARTIGOS DA IMPUTAÇÃO (copie exatamente): " + artigos);
+	if (usandoClaude() && ui.texto) {
+		// O Claude comporta a peça inteira: vai a denúncia integral e, como
+		// referência, a separação feita pela extensão (que pode ter falhado).
+		if (d.fatos.length) partes.push("SEPARAÇÃO PRÉVIA FEITA PELA EXTENSÃO (apenas referência — confira no texto; pode haver mais fatos): " + d.fatos.map((f) => T.tituloDoFato(f)).join("; "));
+		const integral = T.semCotaMinisterial(T.limparAssinaturas(ui.texto)).slice(0, LIMITE_ENTRADA_CLAUDE - 8000);
+		partes.push("TEXTO INTEGRAL DA DENÚNCIA:\n" + delimitar(integral));
+	} else if (d.fatos.length) {
+		// IA do Chrome (janela pequena): os fatos já separados, na íntegra.
+		d.fatos.forEach((f) => partes.push(T.tituloDoFato(f).toUpperCase() + " — NARRATIVA INTEGRAL:\n" + delimitar(f.texto)));
+	} else {
+		partes.push("TEXTO DA DENÚNCIA:\n" + delimitar(T.semCotaMinisterial(T.limparAssinaturas(ui.texto || ui.relevante || "")).slice(0, 6000)));
+	}
+	return regras + "\n\n" + partes.join("\n\n");
 }
 
 // Resposta da IA: sem markdown, espaços normalizados, mas mantendo as
@@ -1253,7 +1294,7 @@ async function extrair(ui, forcar) {
 				estadoPeca(
 					ui,
 					nf
-						? `Resumo objetivo pré-montado (${nf === 1 && ui.denuncia.fatos[0].unico ? "fato único, sem título" : nf + " fato(s)"}) — revise. No quadro ① estão os fatos na íntegra.`
+						? `Resumo objetivo pré-montado (${nf === 1 && ui.denuncia.fatos[0].unico ? "fato único, sem título" : nf + (ui.denuncia.fatos[0].rotulo === "Conduta" ? " conduta(s)" : " fato(s)")}) — revise. No quadro ① estão os fatos na íntegra.`
 						: "Não identifiquei a narrativa dos fatos — confira o quadro ① e escreva o resumo (ou use a IA).",
 					!nf
 				);
@@ -1283,8 +1324,9 @@ async function extrair(ui, forcar) {
 
 // Sentença criminal: tira do resumo da IA as frases sobre itens que NÃO
 // existem ("Não houve substituição…", "Não houve condenação…").
+// (Substituição e suspensão ficam: o resumo diz, por réu, se houve ou não.)
 function semAusencias(texto) {
-	const AUSENCIA = /^(n[ãa]o\s+(?:houve|h[áa]|consta|constam|foi|foram|se\s+aplic|cabe|cab[ií]vel)|inexist|sem\s+(?:condena|substitu|suspens|indeniza|honor|fixa))/i;
+	const AUSENCIA = /^(?=[^]*(?:indeniza|honor[áa]rio|danos? mora|danos? materi|repara[çc]))(n[ãa]o\s+(?:houve|h[áa]|consta|constam|foi|foram|se\s+aplic|cabe|cab[ií]vel)|inexist|sem\s+(?:condena|indeniza|honor|fixa))/i;
 	return texto
 		.split("\n")
 		.map((linha) =>
@@ -1503,6 +1545,10 @@ async function reescreverSimplesComIA() {
 			"se isso não estiver expressamente nas PEÇAS;\n" +
 			"- depois do bloco 'O que já aconteceu?', inclua o bloco 'O que cada parte pediu?', com os pedidos de cada parte " +
 			"(petição inicial ou denúncia, contestação ou resposta), resumidos em 1 ou 2 frases por parte, a partir das PEÇAS abaixo;\n" +
+			"- no bloco 'O que o juiz decidiu?', para CADA pessoa condenada, diga por quais crimes, a pena de cada crime e a pena " +
+			"total, a multa, o regime em que a pena começa a ser cumprida (explicando o que ele significa) e se houve ou não troca " +
+			"da pena de prisão por outra pena (substituição) e se houve ou não suspensão da pena (suspensão condicional), sempre " +
+			"conforme as PEÇAS;\n" +
 			"- no bloco 'O que o juiz decidiu?', explique também, em poucas frases, o entendimento da sentença: por que o juiz " +
 			"decidiu assim e o que isso significa na prática para as partes (use as PEÇAS abaixo);\n" +
 			"- se houver recurso nas PEÇAS, inclua o bloco 'Houve recurso?' dizendo quem recorreu, contra qual decisão e, " +

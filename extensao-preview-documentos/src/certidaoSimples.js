@@ -223,32 +223,62 @@
 		fechado: "no regime fechado (a pena começa na prisão)",
 	};
 
-	function penaSimples(pena) {
+	// Explica "reclusão"/"detenção" só na primeira vez em que aparecem
+	// ("explicados" é compartilhado dentro do bloco).
+	function penaSimples(pena, explicados) {
+		const ja = explicados || {};
 		return pena
 			.replace(/\s*\([^)]*\)/g, "")
-			.replace(/\breclus[ãa]o\b/i, "reclusão (pena de prisão para crimes mais graves)")
-			.replace(/\bdeten[çc][ãa]o\b/i, "detenção (pena de prisão para crimes menos graves)");
+			.replace(/\breclus[ãa]o\b/i, function (m) { return ja.reclusao ? m : ((ja.reclusao = true), m + " (pena de prisão para crimes mais graves)"); })
+			.replace(/\bdeten[çc][ãa]o\b/i, function (m) { return ja.detencao ? m : ((ja.detencao = true), m + " (pena de prisão para crimes menos graves)"); });
+	}
+
+	// "roubo majorado" -> "roubo majorado"; "art. 157 do CP" -> "crime do art. 157 do CP".
+	function nomeCrime(c) {
+		return /^art/i.test(c) ? "crime do " + c : c;
 	}
 
 	function blocoDecisao(sent) {
 		if (!sent) return [];
 		const linhas = [];
-		sent.absolvidos.forEach(function (n) {
-			linhas.push(nomeProprio(n) + " foi absolvido(a): o juiz decidiu que não deve ser condenado(a).");
+		const explicados = {};
+		(sent.absolvicoes || sent.absolvidos.map(function (n) { return { nome: n }; })).forEach(function (a) {
+			linhas.push(
+				nomeProprio(a.nome) + " foi absolvido(a)" + (a.crime ? " da acusação de " + nomeCrime(a.crime) : "") +
+				": o juiz decidiu que não deve ser condenado(a)" + (a.crime ? " por esse crime" : "") + "."
+			);
 		});
 		sent.condenacoes.forEach(function (c) {
-			let s = nomeProprio(c.nome) + " foi condenado(a)";
-			if (c.pena) s += " a " + penaSimples(c.pena);
-			if (c.regime && REGIMES[c.regime]) s += ", " + REGIMES[c.regime];
+			const nome = nomeProprio(c.nome);
+			const crimes = (c.crimes || []).filter(function (x) { return x.crime; });
+			let s = nome + " foi condenado(a)";
+			if (crimes.length) s += " por " + juntar(crimes.map(function (x) { return nomeCrime(x.crime); }));
+			else if (c.crime) s += " por " + nomeCrime(c.crime);
 			s += ".";
+			if (crimes.length > 1) {
+				s += " As penas de cada crime foram: " + juntar(crimes.map(function (x) { return nomeCrime(x.crime) + ", " + penaSimples(x.pena, explicados); })) + ".";
+				if (c.pena) s += " Somadas, a pena total é de " + penaSimples(c.pena, explicados) + ".";
+			} else if (c.pena) {
+				s += " A pena é de " + penaSimples(c.pena, explicados) + ".";
+			}
 			if (c.multa) s += " Também deverá pagar multa (" + c.multa.replace(/\s*\([^)]*\)/g, "") + ", valor calculado pelo juiz).";
+			if (c.regime && REGIMES[c.regime]) s += " A pena deve começar a ser cumprida " + REGIMES[c.regime] + ".";
 			linhas.push(s);
+
+			const subst = c.substituicao !== undefined ? c.substituicao : sent.substituicao;
+			const susp = c.suspensao !== undefined ? c.suspensao : sent.suspensao;
+			if (subst) {
+				linhas.push("A pena de prisão de " + nome + " foi trocada por outra pena, como prestação de serviços à comunidade ou pagamento em dinheiro (substituição da pena).");
+			} else if (c.pena) {
+				linhas.push("A pena de prisão de " + nome + " não foi trocada por outra pena (não houve substituição da pena).");
+			}
+			if (susp) {
+				const prazo = /prazo de\s+(\d+)(?:\s*\([^)]*\))?\s*anos?/i.exec(susp);
+				linhas.push("A pena ficou suspensa" + (prazo ? " por " + prazo[1] + (prazo[1] === "1" ? " ano" : " anos") : "") + ": " + nome + " não precisa cumpri-la se respeitar as condições fixadas pelo juiz nesse período (suspensão condicional da pena).");
+			} else if (c.pena && !subst) {
+				linhas.push("A pena também não foi suspensa (não houve suspensão condicional da pena).");
+			}
 		});
-		if (sent.substituicao) linhas.push("A pena de prisão foi trocada por outra pena, como prestação de serviços à comunidade ou pagamento em dinheiro (substituição da pena).");
-		if (sent.suspensao) {
-			const prazo = /prazo de\s+(\d+)(?:\s*\([^)]*\))?\s*anos?/i.exec(sent.suspensao);
-			linhas.push("A pena ficou suspensa" + (prazo ? " por " + prazo[1] + (prazo[1] === "1" ? " ano" : " anos") : "") + ": a pessoa não precisa cumpri-la se respeitar as condições fixadas pelo juiz nesse período (suspensão condicional da pena).");
-		}
 		if (sent.indenizacao) {
 			const v = /R\$\s*[\d.]+(?:,\d{2})?/.exec(sent.indenizacao);
 			linhas.push("Também foi determinado o pagamento " + (v ? "de " + v[0] + " " : "de indenização ") + "à vítima, para reparar os danos causados.");
@@ -299,7 +329,11 @@
 		if (sc && (sc.condenacoes.length || sc.absolvidos.length)) {
 			const partes = [];
 			if (sc.condenacoes.length) partes.push("condenou " + juntar(sc.condenacoes.map(function (c) { return nomeProprio(c.nome); })));
-			if (sc.absolvidos.length) partes.push("absolveu " + juntar(sc.absolvidos.map(nomeProprio)));
+			const condenadosNomes = sc.condenacoes.map(function (c) { return c.nome; });
+			const soAbsolvidos = sc.absolvidos.filter(function (n) { return condenadosNomes.indexOf(n) === -1; });
+			const emParte = sc.absolvidos.filter(function (n) { return condenadosNomes.indexOf(n) !== -1; });
+			if (soAbsolvidos.length) partes.push("absolveu " + juntar(soAbsolvidos.map(nomeProprio)));
+			if (emParte.length) partes.push("absolveu " + juntar(emParte.map(nomeProprio)) + " de parte das acusações");
 			resultado = "o juiz " + partes.join(" e ");
 		} else {
 			resultado = resultadoPeloMovimento(sent, d.criminal);

@@ -223,7 +223,7 @@ test("sentença criminal: absolvidos, condenados, pena, suspensão, indenizaçã
 	assert.equal(r.indenizacao, "R$ 1.000,00, a título de danos morais");
 	assert.deepEqual(r.honorarios, [{ nome: "João Pereira da Costa", oab: "OAB/PR nº 45.678", valor: "R$ 1.200,00", item: "2.4" }]);
 	assert.doesNotMatch(r.resumo, /Substituição|Negad/);
-	assert.match(r.resumo, /Honorários ao advogado dativo João Pereira da Costa \(OAB\/PR nº 45\.678\): R\$ 1\.200,00, item 2\.4 da tabela\./);
+	assert.match(r.resumo, /Honorários ao advogado dativo João Pereira da Costa \(OAB\/PR nº 45\.678\), a cargo do Estado: R\$ 1\.200,00, item 2\.4 da tabela\./);
 });
 
 test("sentença criminal: substituição concedida, multa, e itens ausentes omitidos", () => {
@@ -273,7 +273,10 @@ test("linguagem simples: modelo fixo", () => {
 	assert.doesNotMatch(texto, /MARIA|Maria da Silva/);
 	assert.match(texto, /A acusação \(denúncia\) foi apresentada ao juiz em 10 de janeiro de 2024/);
 	assert.match(texto, /Há uma audiência de instrução e julgamento marcada para 27 de novembro de 2026, às 14h/);
-	assert.match(texto, /foi condenado\(a\) a 1 mês e 5 dias de detenção/);
+	assert.match(texto, /Ezequiel Rocha Leal foi condenado\(a\) por crime do art\. 147 do CP\. A pena é de 1 mês e 5 dias de detenção \(pena de prisão para crimes menos graves\)\./);
+	assert.match(texto, /A pena deve começar a ser cumprida no regime aberto/);
+	assert.match(texto, /não foi trocada por outra pena \(não houve substituição da pena\)/);
+	assert.match(texto, /A pena ficou suspensa por 2 anos/);
 	assert.match(texto, /• Denúncia: /);
 	assert.match(texto, /Importante\nEste resumo explica/);
 });
@@ -342,4 +345,60 @@ test("movimento que começa com JULGADA/JULGADO é sempre sentença", () => {
 	// Movimentos que só mencionam a sentença continuam de fora.
 	assert.equal(c("EXPEDIÇÃO DE INTIMAÇÃO - Referente a JULGADA PROCEDENTE A AÇÃO"), null);
 	assert.equal(c("TRANSITADO EM JULGADO"), null);
+});
+
+test("denúncia com fatos chamados de 'Conduta', cota ministerial e cabeçalho repetido", () => {
+	const fs = require("node:fs");
+	const texto = fs.readFileSync(require("node:path").join(__dirname, "fixtures", "denuncia_condutas.txt"), "utf8");
+	const d = T.extrairDenuncia(texto);
+	assert.equal(d.fatos.length, 2);
+	assert.equal(T.tituloDoFato(d.fatos[0]), "Conduta 1 – art. 157, §2º, inciso II, do Código Penal (15/01/2019)");
+	assert.equal(T.tituloDoFato(d.fatos[1]), "Conduta 2 – art. 244-B, caput, da Lei nº 8.069/1990 (15/01/2019)");
+	assert.deepEqual(d.denunciados, ["JOÃO CARLOS DA SILVA PEREIRA"]);
+	assert.doesNotMatch(d.fatos[0].texto, /Promotoria|Página \d/);
+	assert.doesNotMatch(d.resumo, /antecedentes|sigilo|Avenida Exemplo|dolosamente/);
+	assert.match(d.resumo, /Imputação: art\. 157, §2º, inciso II, do Código Penal e art\. 244-B, caput, da Lei nº 8\.069\/1990, na forma do art\. 69, do Código Penal\./);
+	assert.match(d.resumo, /SUBTRAÍRAM/);
+	assert.match(d.resumo, /CORROMPEU/);
+});
+
+test("sentença criminal: pena por crime e por réu, total, regime, substituição/suspensão de cada réu", () => {
+	const fs = require("node:fs");
+	const texto = fs.readFileSync(require("node:path").join(__dirname, "fixtures", "sentenca_dois_reus.txt"), "utf8");
+	const r = T.extrairSentencaCriminal(texto);
+	assert.deepEqual(r.absolvicoes, [{ nome: "PEDRO HENRIQUE LIMA", crime: "corrupção de menores" }]);
+	assert.equal(r.condenacoes.length, 2);
+	const [jair, pedro] = r.condenacoes;
+	assert.deepEqual(jair.crimes.map((c) => [c.crime, c.pena]), [
+		["roubo majorado", "5 (cinco) anos e 4 (quatro) meses de reclusão"],
+		["corrupção de menores", "1 (um) ano de reclusão"],
+	]);
+	assert.equal(jair.pena, "6 (seis) anos e 4 (quatro) meses de reclusão");
+	assert.equal(jair.regime, "semiaberto");
+	assert.equal(pedro.crime, "roubo majorado");
+	assert.equal(pedro.pena, "5 (cinco) anos e 4 (quatro) meses de reclusão");
+	const linhas = r.resumo.split("\n");
+	assert.deepEqual(linhas.slice(0, 5), [
+		"Absolvido(a): PEDRO HENRIQUE LIMA (quanto ao crime de corrupção de menores).",
+		"Condenado(a): JOÃO CARLOS DA SILVA PEREIRA:",
+		"– Roubo majorado: 5 (cinco) anos e 4 (quatro) meses de reclusão e 13 (treze) dias-multa;",
+		"– Corrupção de menores: 1 (um) ano de reclusão;",
+		"Pena total de 6 (seis) anos e 4 (quatro) meses de reclusão e 13 (treze) dias-multa; regime inicial semiaberto; sem substituição da pena privativa de liberdade; sem suspensão condicional da pena.",
+	]);
+	assert.match(r.resumo, /Indenização à vítima: R\$ 800,00/);
+	assert.match(r.resumo, /Honorários ao advogado dativo Carlos Alberto Souza \(OAB\/PR nº 12\.345\), a cargo do Estado: R\$ 1\.500,00, item 2\.1 da tabela\./);
+});
+
+test("linguagem simples: pena de cada crime, total, regime, substituição e suspensão por réu", () => {
+	const L = require("../src/certidaoSimples.js");
+	const fs = require("node:fs");
+	const sent = T.extrairSentencaCriminal(fs.readFileSync(require("node:path").join(__dirname, "fixtures", "sentenca_dois_reus.txt"), "utf8"));
+	const b = L.gerarLinguagemSimples({ classe: "Ação Penal", criminal: true, polos: [], movimentos: [{ seq: "9", dataHora: "01/02/2024 10:00:00", titulo: "JULGADA PROCEDENTE EM PARTE A AÇÃO" }] }, { sentencaCriminal: sent });
+	const texto = L.blocosEmTexto(b);
+	assert.match(texto, /o juiz condenou João Carlos da Silva Pereira e Pedro Henrique Lima e absolveu Pedro Henrique Lima de parte das acusações\./);
+	assert.match(texto, /João Carlos da Silva Pereira foi condenado\(a\) por roubo majorado e corrupção de menores\. As penas de cada crime foram: roubo majorado, 5 anos e 4 meses de reclusão \(pena de prisão para crimes mais graves\) e corrupção de menores, 1 ano de reclusão\. Somadas, a pena total é de 6 anos e 4 meses de reclusão\./);
+	assert.match(texto, /no regime semiaberto/);
+	assert.match(texto, /A pena de prisão de Pedro Henrique Lima não foi trocada por outra pena/);
+	assert.match(texto, /A pena também não foi suspensa/);
+	assert.match(texto, /O Estado deverá pagar R\$ 1\.500,00 ao advogado nomeado/);
 });
