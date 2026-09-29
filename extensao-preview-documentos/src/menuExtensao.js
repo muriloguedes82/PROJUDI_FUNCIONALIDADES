@@ -339,23 +339,26 @@
 	// Interface
 	// ------------------------------------------------------------------
 
-	const ICONE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></svg>';
+	// Balança da Justiça (pratos preenchidos com a mesma cor do traço).
+	const ICONE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle class="cheio" cx="12" cy="4" r="1.3"/>' +
+		'<path d="M12 5.3V19.5M8 20.5h8M4.5 7.5h15M4.5 7.5L2 13M4.5 7.5L7 13M19.5 7.5L17 13M19.5 7.5L22 13"/>' +
+		'<path class="cheio" d="M1.8 13a2.7 2.2 0 0 0 5.4 0zM16.8 13a2.7 2.2 0 0 0 5.4 0z"/></svg>';
 
 	const CSS = `
 :host { all: initial; }
 * { box-sizing: border-box; font-family: "Segoe UI", Roboto, Arial, Helvetica, sans-serif; }
 .icone {
 	position: fixed; z-index: 2147483000; width: 22px; height: 22px; padding: 0; margin: 0;
-	border-radius: 50%; border: 1px solid rgba(19,57,107,.35); background: rgba(255,255,255,.92);
-	color: #13396b; cursor: pointer; opacity: .7; display: flex; align-items: center; justify-content: center;
-	box-shadow: 0 1px 2px rgba(0,0,0,.15); transition: opacity .15s, transform .15s, box-shadow .15s;
+	border-radius: 6px; border: 1.5px solid #0b2545; background: linear-gradient(135deg, #f7d774, #c9a227 55%, #9c7a12);
+	color: #0b2545; cursor: pointer; display: flex; align-items: center; justify-content: center;
+	box-shadow: 0 1px 4px rgba(156,122,18,.55); transition: transform .15s, box-shadow .15s, filter .15s;
 }
-.icone:hover, .icone:focus-visible, .icone[aria-expanded="true"] { opacity: 1; transform: scale(1.08); box-shadow: 0 1px 5px rgba(0,0,0,.3); outline: none; }
-.icone svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
-.icone circle { fill: #fff; }
+.icone:hover, .icone:focus-visible, .icone[aria-expanded="true"] { transform: scale(1.1); filter: brightness(1.06); box-shadow: 0 2px 7px rgba(11,37,69,.45); outline: none; }
+.icone svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.icone svg .cheio, .cab svg .cheio { fill: currentColor; }
 .icone.desativadas::after {
-	content: ""; position: absolute; top: -1px; right: -1px; width: 7px; height: 7px; border-radius: 50%;
-	background: #c9a227; border: 1px solid #fff;
+	content: ""; position: absolute; top: -4px; right: -4px; width: 8px; height: 8px; border-radius: 50%;
+	background: #d6453d; border: 1.5px solid #fff;
 }
 .painel {
 	position: fixed; z-index: 2147483001; width: 400px; max-width: calc(100vw - 16px);
@@ -366,8 +369,7 @@
 	display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: #fff;
 	background: linear-gradient(120deg, #0b2545, #13396b 60%, #1f5591); border-bottom: 3px solid #c9a227;
 }
-.cab svg { width: 20px; height: 20px; fill: none; stroke: #c9a227; stroke-width: 2; stroke-linecap: round; flex: none; }
-.cab svg circle { fill: #13396b; }
+.cab svg { width: 22px; height: 22px; fill: none; stroke: currentColor; color: #e6c14a; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 .cab h2 { margin: 0; font-size: 14px; font-weight: 600; }
 .cab small { display: block; font-size: 11px; opacity: .8; }
 .cab .fechar { margin-left: auto; background: none; border: 0; color: #fff; font-size: 18px; cursor: pointer; opacity: .8; padding: 0 4px; }

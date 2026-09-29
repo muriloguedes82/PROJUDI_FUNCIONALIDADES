@@ -45,14 +45,14 @@ extensão funciona da mesma forma nos dois sistemas:
 
 ## Menu da extensão (ícone fixo)
 
-Com a extensão ativa, um ícone pequeno e discreto (duas "chavinhas" de
-ajuste, num círculo) fica sempre visível no cabeçalho:
+Com a extensão ativa, um ícone pequeno (a balança da Justiça em azul-marinho,
+num quadrado arredondado dourado) fica sempre visível no cabeçalho:
 
 - **Projudi:** no canto superior direito, logo abaixo do link **Sair**;
 - **SEEU:** na faixa azul do menu, abaixo do nome do usuário.
 
 Ao rolar a página, o ícone acompanha o cabeçalho e, quando ele sai da
-tela, fica preso no topo. Um pontinho dourado no ícone indica que há
+tela, fica preso no topo. Um pontinho vermelho no ícone indica que há
 funcionalidades desativadas. Clique no ícone para abrir o **Menu**
 (fecha com o ✕, a tecla Esc ou um clique fora dele):
 

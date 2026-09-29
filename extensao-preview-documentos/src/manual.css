@@ -29,8 +29,8 @@ body {
 	background: linear-gradient(120deg, var(--azul-escuro) 0%, var(--azul) 60%, var(--azul-medio) 100%);
 	border-bottom: 4px solid var(--dourado);
 }
-.topo-emblema { width: 40px; height: 40px; flex: none; fill: none; stroke: var(--dourado); stroke-width: 1.8; stroke-linecap: round; }
-.topo-emblema circle { fill: var(--azul); }
+.topo-emblema { width: 40px; height: 40px; flex: none; fill: none; stroke: var(--dourado); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.topo-emblema .cheio { fill: var(--dourado); }
 .topo-sobretitulo { margin: 0 0 2px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.72); }
 .topo-titulo { margin: 0; font-size: 24px; font-weight: 600; }
 .busca { margin-left: auto; }
