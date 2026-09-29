@@ -890,7 +890,15 @@ Salvar PDF** e **Copiar texto**. A certidão é dividida em seções:
   recursos, uma linha por peça: "Petição inicial (evento 2, 25/09/2026): …".
   Na tela, cada peça é um cartão com: o cabeçalho (peça N de M, tipo,
   evento, data, movimento, arquivo, "incluir na certidão"); o quadro
-  **① Texto extraído do arquivo** (referência, não sai na impressão); e o
+  **① Texto integral do arquivo** — todo o texto do PDF/HTML, com a
+  marcação "Página X de N", para o servidor conferir o resumo (não sai na
+  impressão). O carimbo "Documento assinado digitalmente…" que o Projudi
+  repete em cada página fica oculto, mas pode ser mostrado ("mostrar
+  carimbos de assinatura"); o botão **🔎 Localizar trecho relevante**
+  seleciona e rola até o trecho que a extensão usou (pedidos,
+  dispositivo, fatos), e "Copiar trecho relevante para o resumo" leva
+  esse trecho ao quadro ②. A IA continua recebendo o trecho relevante
+  (e, na denúncia, os fatos na íntegra); e o
   quadro **② Resumo que vai para a certidão**, que é exatamente o
   parágrafo impresso. Botões **▲ / ▼** no cabeçalho de cada cartão mudam
   a ordem das peças (a ordem da tela é a ordem impressa) e **✕** remove a

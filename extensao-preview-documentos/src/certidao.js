@@ -113,8 +113,9 @@ async function textoDoPdf(bytes) {
 		partes.push(linhas.map((l) => l.replace(/\s+/g, " ").trim()).filter(Boolean).join("\n"));
 		pagina.cleanup();
 	}
+	const totalReal = pdf.numPages;
 	await pdf.destroy();
-	return partes.join("\n");
+	return { texto: partes.join("\n"), paginas: partes, totalPaginas: totalReal };
 }
 
 function textoDoHtml(bytes, contentType) {
@@ -137,11 +138,54 @@ function textoDoHtml(bytes, contentType) {
 		.join("\n");
 }
 
+// Texto integral do arquivo para o quadro ① (conferência do resumo), com
+// a marcação de cada página. O carimbo de assinatura digital, repetido em
+// todas as páginas, só aparece se "mostrar carimbos" estiver marcado.
+function textoIntegral(arquivo, comCarimbo) {
+	const n = arquivo.paginas.length;
+	const partes = arquivo.paginas.map((p, i) => {
+		const conteudo = (comCarimbo ? p : T.limparAssinaturas(p)).replace(/[ \t]+/g, " ").replace(/\n[ \t]*(?=\n)/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+		return n > 1 ? `──────── Página ${i + 1} de ${arquivo.totalPaginas} ────────\n${conteudo}` : conteudo;
+	});
+	if (arquivo.totalPaginas > n) partes.push(`──────── (páginas ${n + 1} a ${arquivo.totalPaginas} não foram lidas — abra o arquivo) ────────`);
+	return partes.join("\n\n");
+}
+
+// Seleciona, no texto integral, o trecho que a extensão usou (pedidos,
+// dispositivo, fatos): procura as primeiras palavras do trecho, tolerando
+// diferenças de espaços e quebras de linha.
+function localizarNoIntegral(ui) {
+	// Na denúncia, a 1ª linha do trecho é o título montado pela extensão
+	// ("Fato único (31/12/2023)"), que não existe no arquivo.
+	let alvo = String(ui.relevante || "");
+	if (/^Fato [^\n]*\n/.test(alvo)) alvo = alvo.replace(/^Fato [^\n]*\n/, "");
+	const palavras = T.colapsar(alvo).split(/[^\p{L}\p{N}]+/u).filter((w) => w.length > 1);
+	if (!palavras.length) return false;
+	const texto = ui.trecho.value;
+	for (let n = Math.min(palavras.length, 10); n >= 3; n--) {
+		const re = new RegExp(palavras.slice(0, n).join("[^\\p{L}\\p{N}]+"), "iu");
+		const m = re.exec(texto);
+		if (!m) continue;
+		const fim = Math.min(texto.length, m.index + Math.max(m[0].length, T.colapsar(alvo).length + 40));
+		ui.trecho.focus();
+		ui.trecho.setSelectionRange(m.index, fim);
+		// Rola até a seleção (o textarea não faz isso sozinho com setSelectionRange).
+		const antes = texto.slice(0, m.index).split("\n").length;
+		const altura = parseFloat(getComputedStyle(ui.trecho).lineHeight) || 17;
+		ui.trecho.scrollTop = Math.max(0, (antes - 2) * altura);
+		return true;
+	}
+	return false;
+}
+
 async function textoDoArquivo(url) {
 	const { bytes, contentType } = await baixarArquivo(url);
 	const cabeca = new TextDecoder("latin1").decode(bytes.slice(0, 5));
 	if (cabeca === "%PDF-" || /pdf/i.test(contentType)) return textoDoPdf(bytes);
-	if (/html|text/i.test(contentType) || /^\s*</.test(new TextDecoder("latin1").decode(bytes.slice(0, 200)))) return textoDoHtml(bytes, contentType);
+	if (/html|text/i.test(contentType) || /^\s*</.test(new TextDecoder("latin1").decode(bytes.slice(0, 200)))) {
+		const texto = textoDoHtml(bytes, contentType);
+		return { texto, paginas: [texto], totalPaginas: 1 };
+	}
 	throw new Error("formato de arquivo não suportado (" + (contentType || "desconhecido") + ")");
 }
 
@@ -333,7 +377,7 @@ function promptPara(ui) {
 	const instrucao = INSTRUCOES_IA[chave] || INSTRUCOES_IA.outra;
 	// Trecho curto (título não encontrado, peça atípica): manda também o
 	// final do texto, onde costumam estar os pedidos ou o dispositivo.
-	let base = ui.trecho.value;
+	let base = ui.relevante || "";
 	if (T.colapsar(base).length < 400 && ui.texto) base = T.limparAssinaturas(ui.texto).slice(-4000);
 	return instrucao + "\n\nTexto:\n" + delimitar(base);
 }
@@ -601,11 +645,14 @@ function blocoPeca(peca, indice, total) {
 	if (!(peca.docs || []).length) seletor.append(el("option", { value: "", text: "(nenhum arquivo encontrado)" }));
 	const estado = el("span", { class: "estado", text: "" });
 	const seloIA = el("span", { class: "selo-ia", hidden: true, text: "✨ Gerado pela IA — revise antes de imprimir" });
-	const trecho = el("textarea", { spellcheck: "false", rows: "9", placeholder: "O texto extraído do arquivo aparecerá aqui." });
+	const trecho = el("textarea", { spellcheck: "false", rows: "16", readonly: true, placeholder: "O texto integral do arquivo aparecerá aqui." });
+	const infoTexto = el("span", { class: "peca-info-texto" });
+	const carimbos = el("input", { type: "checkbox" });
+	const localizar = el("button", { type: "button", text: "🔎 Localizar trecho relevante" });
 	const abrir = el("button", { type: "button", text: "📄 Abrir arquivo" });
 	const releer = el("button", { type: "button", text: "↻ Reextrair" });
 	const botaoIA = el("button", { type: "button", class: "btn-ia", text: "✨ Resumir com IA" });
-	const usarTrecho = el("button", { type: "button", text: "Copiar trecho para o resumo ↓" });
+	const usarTrecho = el("button", { type: "button", text: "Copiar trecho relevante para o resumo ↓" });
 	const usarIntegral = el("button", { type: "button", hidden: peca.tipo !== "denuncia", text: "Usar os fatos na íntegra ↓" });
 	const usarObjetivo = el("button", { type: "button", hidden: peca.tipo !== "denuncia", text: "Usar resumo objetivo ↓" });
 
@@ -634,7 +681,8 @@ function blocoPeca(peca, indice, total) {
 	const referencia = el(
 		"div",
 		{ class: "peca-bloco peca-ref no-print" },
-		el("div", { class: "peca-bloco-titulo" }, el("span", { class: "passo", text: "1" }), "Texto extraído do arquivo ", el("em", { text: "(referência — não sai na impressão)" })),
+		el("div", { class: "peca-bloco-titulo" }, el("span", { class: "passo", text: "1" }), "Texto integral do arquivo ", el("em", { text: "(para conferir o resumo — não sai na impressão)" })),
+		el("div", { class: "peca-acoes peca-acoes-topo" }, localizar, el("label", { title: "Mostrar o carimbo “Documento assinado digitalmente…” que o Projudi repete em cada página" }, carimbos, " mostrar carimbos de assinatura"), infoTexto),
 		trecho,
 		el("div", { class: "peca-acoes" }, usarTrecho, usarIntegral, usarObjetivo)
 	);
@@ -649,7 +697,13 @@ function blocoPeca(peca, indice, total) {
 	);
 
 	const raiz = el("div", { class: "peca" }, cabecalho, referencia, saida);
-	const ui = { peca, raiz, resumo, trecho, estado, seletor, seloIA, incluir, indice, botaoIA, numero, subir, descer, texto: "", denuncia: null };
+	const ui = { peca, raiz, resumo, trecho, estado, seletor, seloIA, incluir, indice, botaoIA, numero, subir, descer, infoTexto, carimbos, texto: "", relevante: "", denuncia: null };
+	carimbos.addEventListener("change", () => {
+		if (ui.arquivo) ui.trecho.value = textoIntegral(ui.arquivo, carimbos.checked);
+	});
+	localizar.addEventListener("click", () => {
+		if (!localizarNoIntegral(ui)) alert("Não encontrei o trecho relevante no texto integral (ou a extensão não identificou um trecho para esta peça).");
+	});
 	subir.addEventListener("click", () => moverPeca(ui, -1));
 	descer.addEventListener("click", () => moverPeca(ui, +1));
 	remover.addEventListener("click", () => {
@@ -668,7 +722,7 @@ function blocoPeca(peca, indice, total) {
 		resumo.textContent = texto;
 		seloIA.hidden = true;
 	};
-	usarTrecho.addEventListener("click", () => definirResumo(T.colapsar(trecho.value)));
+	usarTrecho.addEventListener("click", () => definirResumo(T.colapsar(ui.relevante || "")));
 	usarIntegral.addEventListener("click", () => {
 		if (!ui.denuncia) return;
 		const d = ui.denuncia;
@@ -852,16 +906,22 @@ async function extrair(ui, forcar) {
 	estadoPeca(ui, "Lendo o arquivo…");
 	ui.extraindo = (async () => {
 		try {
-			const texto = await textoDoArquivo(d.url);
+			const arquivo = await textoDoArquivo(d.url);
+			const texto = arquivo.texto;
 			ui.texto = texto;
+			ui.arquivo = arquivo;
+			ui.relevante = "";
 			if (T.colapsar(texto).length < 80) {
 				estadoPeca(ui, "Documento sem texto (provavelmente digitalizado) — preencha o resumo manualmente.", true);
 				ui.trecho.value = "";
+				ui.infoTexto.textContent = "";
 				return;
 			}
+			ui.trecho.value = textoIntegral(arquivo, ui.carimbos.checked);
+			ui.infoTexto.textContent = `${arquivo.totalPaginas} página(s) · ${T.colapsar(texto).length.toLocaleString("pt-BR")} caracteres`;
 			if (ui.peca.tipo === "denuncia") {
 				ui.denuncia = T.extrairDenuncia(texto);
-				ui.trecho.value = ui.denuncia.trecho;
+				ui.relevante = ui.denuncia.trecho;
 				if (!T.colapsar(ui.resumo.textContent)) ui.resumo.textContent = ui.denuncia.resumo;
 				const nf = ui.denuncia.fatos.length;
 				estadoPeca(
@@ -877,13 +937,13 @@ async function extrair(ui, forcar) {
 					// um, substituição/suspensão, indenização e honorários do
 					// dativo — só os itens que existem na sentença.
 					ui.sentenca = T.extrairSentencaCriminal(texto);
-					ui.trecho.value = ui.sentenca.trecho;
+					ui.relevante = ui.sentenca.trecho;
 					if (!T.colapsar(ui.resumo.textContent) && ui.sentenca.resumo) ui.resumo.textContent = ui.sentenca.resumo;
 					estadoPeca(ui, ui.sentenca.resumo ? "Resumo da sentença criminal pré-montado — revise." : "Não identifiquei absolvição/condenação no texto — confira o quadro ① e escreva o resumo (ou use a IA).", !ui.sentenca.resumo);
 				} else {
 					const tipoTrecho = ui.peca.tipo === "decisao" ? "sentenca" : ui.peca.tipo === "outra" ? "inicial" : ui.peca.tipo;
-					ui.trecho.value = T.extrairTrechoPedidos(texto, tipoTrecho);
-					estadoPeca(ui, "Trecho extraído — revise e escreva o resumo (ou use a IA).");
+					ui.relevante = T.extrairTrechoPedidos(texto, tipoTrecho);
+					estadoPeca(ui, "Texto lido. Use “Localizar trecho relevante” para ver os pedidos/dispositivo no texto integral e escreva o resumo (ou use a IA).");
 				}
 			}
 		} catch (e) {
@@ -905,7 +965,7 @@ async function resumirUmaComIA(ui, interativo) {
 		return false;
 	}
 	await extrair(ui);
-	if (!T.colapsar(ui.trecho.value) && !(ui.denuncia && ui.denuncia.fatos.length)) return false;
+	if (!T.colapsar(ui.relevante || "") && !(ui.denuncia && ui.denuncia.fatos.length)) return false;
 	estadoPeca(ui, "Resumindo com a IA do navegador…");
 	try {
 		const texto = await resumirComIA(ui);

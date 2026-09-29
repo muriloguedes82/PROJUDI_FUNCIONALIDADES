@@ -276,6 +276,10 @@ table.quadro .relacionado + .relacionado { margin-top: 3px; padding-left: 1.2em;
 	color: #333;
 }
 .peca-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 6px; }
+.peca-acoes-topo { margin: 0 0 6px; font: 12px Arial, Helvetica, sans-serif; }
+.peca-info-texto { color: #555; margin-left: auto; }
+.peca-ref textarea { min-height: 260px; }
+.peca-ref textarea::selection { background: #ffe27a; color: #000; }
 .peca-saida { background: #fff; border-left: 4px solid #1f5fa8; }
 .peca-saida .peca-texto { margin: 0; }
 .peca-saida .resumo { white-space: pre-wrap; }
