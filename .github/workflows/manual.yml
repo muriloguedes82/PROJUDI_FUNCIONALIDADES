@@ -1,0 +1,17 @@
+name: Manual da extensão
+
+on:
+  pull_request:
+  push:
+    branches: [principal]
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Manual coerente com a versão da extensão e com os vídeos
+        run: node manual/verificar-manual.mjs

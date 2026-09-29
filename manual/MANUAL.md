@@ -1,0 +1,1211 @@
+# Manual do Usuário — Extensão Projudi/SEEU
+
+**Documentos, Ações Rápidas, WhatsApp e E-mail**
+
+| | |
+|---|---|
+| **Versão do manual** | 2.9.88 |
+| **Versão da extensão** | 2.9.88 |
+| **Data desta versão** | 29/09/2026 |
+| **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
+
+> **Como ler este manual.** Cada função tem a mesma estrutura: *Para que
+> serve*, *Onde fica*, *Passo a passo* e *Bom saber*. Sempre que houver um
+> vídeo curto mostrando a função, o link **▶ Vídeo** aparece no início da
+> seção. Todos os vídeos estão reunidos no [Anexo A](#anexo-a).
+>
+> O número da versão do manual é **igual** ao da extensão. Se a sua
+> extensão estiver numa versão diferente (veja em `chrome://extensions`),
+> algumas telas podem não bater com o que está descrito aqui — veja o
+> [Anexo B](#anexo-b) para saber o que mudou.
+
+---
+
+## Sumário
+
+1. [Apresentação](#cap-1)
+   - 1.1 [Para quem é este manual](#cap-1-1)
+   - 1.2 [Convenções usadas](#cap-1-2)
+   - 1.3 [Onde a extensão funciona](#cap-1-3)
+   - 1.4 [Regras de segurança da extensão](#cap-1-4)
+2. [Primeiros passos](#cap-2)
+   - 2.1 [Instalação](#cap-2-1)
+   - 2.2 [Termos de Uso](#cap-2-2)
+   - 2.3 [Atualização da extensão](#cap-2-3)
+   - 2.4 [A barra de botões da extensão](#cap-2-4)
+   - 2.5 [Página de opções](#cap-2-5)
+3. [Leitura do processo (aba Movimentações)](#cap-3)
+   - 3.1 [Pré-visualização de documentos](#cap-3-1)
+   - 3.2 [Pré-visualização das pendências](#cap-3-2)
+   - 3.3 [Expandir movimentações e ocultar as sem arquivo](#cap-3-3)
+   - 3.4 [Destacar movimentações por tipo de usuário](#cap-3-4)
+4. [Informações extras na tela do processo](#cap-4)
+   - 4.1 [Suspensão ativa no cabeçalho](#cap-4-1)
+   - 4.2 [Monitoração eletrônica ativa no cabeçalho](#cap-4-2)
+   - 4.3 [Réus, indiciados e noticiados no cabeçalho](#cap-4-3)
+   - 4.4 [Sequencial do processo principal (apensos)](#cap-4-4)
+5. [Envio de documentos](#cap-5)
+   - 5.1 [Envio por WhatsApp Web](#cap-5-1)
+   - 5.2 [Envio por e-mail (Outlook)](#cap-5-2)
+   - 5.3 [Destinatários favoritos e remetentes do e-mail](#cap-5-3)
+6. [Quadro Pendências](#cap-6)
+   - 6.1 [Dispensar juntadas](#cap-6-1)
+   - 6.2 [Finalizar conclusão pendente](#cap-6-2)
+   - 6.3 [Dispensar decursos de prazo](#cap-6-3)
+7. [Ações rápidas e preferências](#cap-7)
+   - 7.1 [Ações rápidas](#cap-7-1)
+   - 7.2 [Preferências (preencher e confirmar com um clique)](#cap-7-2)
+   - 7.3 [Minhas Preferências](#cap-7-3)
+   - 7.4 [Combos de preferências](#cap-7-4)
+   - 7.5 [Nova Ordenação](#cap-7-5)
+   - 7.6 [Nova Remessa](#cap-7-6)
+8. [Atalhos para telas do processo](#cap-8)
+   - 8.1 [Alvará Eletrônico](#cap-8-1)
+   - 8.2 [Juntar Documento com preferências](#cap-8-2)
+   - 8.3 [(Des)Habilitar Advogado](#cap-8-3)
+   - 8.4 [Editar Partes/Outros](#cap-8-4)
+   - 8.5 [Processo copiado](#cap-8-5)
+   - 8.6 [Oráculo](#cap-8-6)
+9. [Telas de análise, mesas e cumprimentos](#cap-9)
+   - 9.1 [Filtro por Sequencial na Análise de Decurso de Prazo](#cap-9-1)
+   - 9.2 [Listas de tarefas](#cap-9-2)
+   - 9.3 [Minhas Preferências na linha do processo (⭐)](#cap-9-3)
+   - 9.4 [Mesa do Analista sem itens zerados](#cap-9-4)
+   - 9.5 [RG e CPF das partes nos cumprimentos](#cap-9-5)
+   - 9.6 [Dados processuais nas ordenações BNMP](#cap-9-6)
+10. [Privacidade e convivência com outras extensões](#cap-10)
+    - 10.1 [O que fica guardado no seu navegador](#cap-10-1)
+    - 10.2 [Convivência com o AzFlow](#cap-10-2)
+    - 10.3 [Bloqueio para perfis de advocacia](#cap-10-3)
+11. [Solução de problemas](#cap-11)
+- [Anexo A — Vídeos instrutivos](#anexo-a)
+- [Anexo B — Histórico de versões do manual](#anexo-b)
+
+---
+
+<a id="cap-1"></a>
+## 1. Apresentação
+
+A extensão é um complemento instalado no navegador (Google Chrome ou
+Microsoft Edge) que acrescenta botões, painéis e informações às telas do
+**Projudi** (TJPR) e, em parte, do **SEEU**. Ela não substitui nenhuma tela
+do sistema: tudo o que o Projudi já faz continua disponível exatamente como
+antes — a extensão só encurta caminhos.
+
+<a id="cap-1-1"></a>
+### 1.1 Para quem é este manual
+
+Para quem já usa o Projudi no dia a dia e sabe:
+
+- localizar e abrir um processo;
+- reconhecer as abas do processo (**Informações Gerais**, **Informações
+  Adicionais**, **Partes e Outros**, **Movimentações** etc.);
+- reconhecer as áreas do sistema (mesas, telas de análise, cumprimentos).
+
+Não é preciso saber nada de informática além disso.
+
+<a id="cap-1-2"></a>
+### 1.2 Convenções usadas
+
+| Símbolo / formato | Significado |
+|---|---|
+| **Negrito** | Nome de um botão, aba, campo ou tela, exatamente como aparece |
+| ▶ **Vídeo Vnn** | Link para o vídeo daquela função (ver [Anexo A](#anexo-a)) |
+| ⚠️ | Atenção: cuidado para não praticar um ato sem conferir |
+| *Só no Projudi* | A função não existe no SEEU |
+| ✅ **Sim, executar** | O único botão da extensão que confirma um ato processual — sempre depois de você conferir |
+
+> Os vídeos usam **telas simuladas** do Projudi, com dados fictícios, só
+> para mostrar onde clicar. Cores e posições podem variar um pouco no
+> sistema real.
+
+<a id="cap-1-3"></a>
+### 1.3 Onde a extensão funciona
+
+| Sistema | O que funciona |
+|---|---|
+| **Projudi (TJPR)** | Todas as funções deste manual |
+| **SEEU** | Pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)) |
+
+A extensão **não funciona** quando o usuário está logado com perfil de
+advogado(a) ou de assessor(a) de advogado — veja [10.3](#cap-10-3).
+
+<a id="cap-1-4"></a>
+### 1.4 Regras de segurança da extensão
+
+1. **Nenhum ato processual é praticado sem o seu clique.** Quando a
+   extensão preenche um formulário, ela sempre para e mostra o botão
+   ✅ **Sim, executar** (ou deixa o **Salvar**/**Assinar** do próprio
+   Projudi para você). Confira os campos antes de clicar.
+2. As exceções, que agem ao clicar, são os botões do quadro Pendências
+   (**Dispensar juntadas**, **Finalizar conclusão**, **Dispensar
+   decursos**): o próprio clique neles é a sua decisão. Use-os só depois
+   de conferir as pendências.
+3. **Nada sai do seu computador** por conta da extensão: preferências,
+   listas e contatos ficam guardados no seu navegador. Documentos só são
+   enviados quando você clica em enviar no WhatsApp Web ou no Outlook.
+4. Documentos do processo são sensíveis: **confira sempre o destinatário**
+   antes de enviar.
+
+---
+
+<a id="cap-2"></a>
+## 2. Primeiros passos
+
+<a id="cap-2-1"></a>
+### 2.1 Instalação
+
+▶ [**Vídeo V01** — Instalação e Termos de Uso](videos/V01-instalacao-e-termos-de-uso.mp4)
+
+**Para que serve:** colocar a extensão no navegador.
+
+**Passo a passo:**
+
+1. Tenha a pasta **extensao-preview-documentos** no computador (fornecida
+   pelo responsável pela extensão, ou baixada deste repositório).
+2. No Chrome, abra o endereço `chrome://extensions` (no Edge,
+   `edge://extensions`).
+3. Ative o botão **Modo do desenvolvedor** (canto superior direito).
+4. Clique em **Carregar sem compactação**.
+5. Escolha a pasta **extensao-preview-documentos** (a que contém o
+   arquivo `manifest.json`) e confirme.
+6. A extensão aparece na lista e a página de **Termos de Uso** se abre
+   sozinha — siga o item [2.2](#cap-2-2).
+
+**Bom saber:** não apague nem mova a pasta depois de instalar: o navegador
+usa os arquivos dela.
+
+<a id="cap-2-2"></a>
+### 2.2 Termos de Uso
+
+▶ [**Vídeo V01** — Instalação e Termos de Uso](videos/V01-instalacao-e-termos-de-uso.mp4)
+
+**Para que serve:** a extensão só é ativada depois que você lê e aceita os
+Termos de Uso. Enquanto não houver aceite, **nenhuma função aparece** no
+Projudi/SEEU.
+
+**Passo a passo:**
+
+1. Leia os termos na página que se abriu.
+2. Marque **Declaro que li os Termos de Uso e concordo com todas as
+   condições**.
+3. Clique em **Aceitar e ativar a extensão**.
+4. Recarregue (tecla **F5**) as páginas do Projudi/SEEU que já estavam
+   abertas.
+
+**Bom saber:**
+
+- **Não concordo - remover extensão** desinstala a extensão.
+- Sem aceite, a página de termos volta a abrir ao iniciar o navegador, após
+  uma atualização e ao abrir o Projudi/SEEU.
+- Para reler os termos ou **revogar o aceite**, use o link **Termos de Uso
+  da extensão** na página de opções ([2.5](#cap-2-5)).
+- Quando o texto dos termos muda de forma relevante, todos precisam aceitar
+  de novo.
+
+<a id="cap-2-3"></a>
+### 2.3 Atualização da extensão
+
+Quando receber uma versão nova:
+
+1. Substitua o conteúdo da pasta **extensao-preview-documentos** pelos
+   arquivos novos (mesmo lugar de antes).
+2. Em `chrome://extensions`, clique no ícone de **recarregar** (↻) no card
+   da extensão.
+3. Recarregue (**F5**) as abas do Projudi, SEEU, WhatsApp Web e Outlook que
+   estavam abertas — só recarregar a página, sem o passo 2, não basta.
+
+A versão instalada aparece no card da extensão, em `chrome://extensions`.
+Compare com a versão na capa deste manual.
+
+<a id="cap-2-4"></a>
+### 2.4 A barra de botões da extensão
+
+▶ [**Vídeo V02** — A barra de botões da extensão](videos/V02-barra-de-botoes-da-extensao.mp4)
+
+**Onde fica:** com um processo aberto, no **canto inferior direito** da
+tela, "flutuando" sobre a página.
+
+| Botão | O que faz | Seção |
+|---|---|---|
+| **▸ Ações** / **▾ Ações** | Mostra ou recolhe os grupos de ações rápidas (**Concluso**, **Remessa**, **Ordenações**, **Partes**, **Suspender**, **Transitar**, **Arquivar**, **🏦 Alvará Eletrônico**, **Outras**) | [7.1](#cap-7-1) |
+| **⭐ Minhas Preferências** | Todas as preferências salvas, em cards | [7.3](#cap-7-3) |
+| **📋 Processo copiado** | Pesquisa o número de processo que você copiou | [8.5](#cap-8-5) |
+| **⚖️ (Des)Habilitar Advogado** | Tela de Advogados em popup | [8.3](#cap-8-3) |
+| **👥 Editar Partes/Outros** | Tela Partes do Processo em popup | [8.4](#cap-8-4) |
+| **📎 Juntar Documento** | Juntada com preferências gravadas | [8.2](#cap-8-2) |
+| **🖍️ Destacar movimentações** | Cores por tipo de usuário | [3.4](#cap-3-4) |
+| **🔗 Combos** | Várias preferências em sequência | [7.4](#cap-7-4) |
+| **Oráculo** | Consulta de antecedentes da parte | [8.6](#cap-8-6) |
+| **📱 Enviar por WhatsApp** | Envia documentos marcados | [5.1](#cap-5-1) |
+| **✉️ Enviar por e-mail** e **▼** | Envia documentos marcados pelo Outlook; ▼ = Alterar Remetente | [5.2](#cap-5-2) |
+| **↕ Mover** | Arraste para cima/baixo se a barra cobrir algo (vale só para a página atual; também funciona com as setas do teclado) | — |
+| **Ocultar** / **Mostrar** | Esconde ou mostra todos os botões da extensão | — |
+
+**Bom saber:**
+
+- Passe o mouse sobre qualquer botão para ver uma dica.
+- A barra acompanha a rolagem da página.
+- No SEEU aparecem só os botões de envio (WhatsApp e e-mail).
+- A barra aparece na tela do processo. Em algumas telas (ex.: **Juntar
+  Documento**, **Análise de Juntadas**, **Retorno de Conclusão**, telas de
+  cumprimento) ela fica oculta — a pré-visualização continua funcionando.
+
+<a id="cap-2-5"></a>
+### 2.5 Página de opções
+
+**Onde fica:** `chrome://extensions` → **Detalhes** (no card da extensão) →
+**Opções da extensão**.
+
+| Campo | Para que serve |
+|---|---|
+| **Modo de envio** | Como o e-mail é preparado: **Automático** (padrão), **Sempre via Microsoft Graph** ou **Sempre via Outlook Web (sem Azure AD)** — veja [5.2](#cap-5-2) |
+| **Client ID** / **Tenant ID** | Dados fornecidos pelo setor de TI para o modo Microsoft Graph. Não preencha se o TI não informou |
+| **Termos de Uso da extensão** | Consultar os termos ou revogar o aceite |
+
+Clique em **Salvar** depois de alterar.
+
+---
+
+<a id="cap-3"></a>
+## 3. Leitura do processo (aba Movimentações)
+
+<a id="cap-3-1"></a>
+### 3.1 Pré-visualização de documentos
+
+▶ [**Vídeo V03** — Pré-visualização de documentos](videos/V03-pre-visualizacao-de-documentos.mp4)
+
+**Para que serve:** ler a íntegra de um documento **sem abrir outra aba**.
+
+**Onde fica:** aba **Movimentações** do processo (Projudi e SEEU).
+
+**Passo a passo:**
+
+1. Abra os arquivos de uma movimentação (ícone **+**), como de costume.
+2. **Pare o mouse sobre o nome do arquivo** (ex.: `Certidao de Baixa.pdf`)
+   por meio segundo.
+3. O documento aparece num painel sobre a tela. Role dentro dele
+   normalmente.
+4. Para fechar: tire o mouse do link e do painel, clique no **✕** ou tecle
+   **Esc**.
+
+**Bom saber:**
+
+- Também funciona parando o mouse sobre o **texto da movimentação** que tem
+  o controle **+** — mesmo com os arquivos recolhidos.
+- Se a movimentação tiver **mais de um arquivo**, o painel não abre;
+  aparece o aviso **"Múltiplos documentos"** com a quantidade. Abra o **+** e
+  passe o mouse sobre cada arquivo.
+- O link **Abrir em nova aba**, no topo do painel, mantém o jeito
+  tradicional.
+- Arquivos que o navegador não consegue exibir (alguns formatos que não
+  são PDF) podem ser baixados em vez de exibidos.
+
+<a id="cap-3-2"></a>
+### 3.2 Pré-visualização das pendências
+
+▶ [**Vídeo V04** — Pré-visualização das pendências](videos/V04-pre-visualizacao-das-pendencias.mp4)
+
+**Para que serve:** ver os documentos de juntadas e conclusões **pendentes**
+sem abrir a tela de análise. *Só no Projudi.*
+
+**Onde fica:** quadro **Pendências** da capa do processo, nos links como
+"Há 1 pendência(s) de análise de juntada".
+
+**Passo a passo:**
+
+1. Pare o mouse sobre o link da pendência.
+2. Aguarde um instante: a extensão lê a tela de análise em segundo plano.
+3. Abre-se uma janela de pré-visualização para **cada** pendência, em
+   cascata.
+
+**Bom saber:**
+
+- A extensão só **lê**: nada é aceito, rejeitado ou dispensado.
+- Se nenhum documento for encontrado, um aviso oferece abrir a análise
+  completa em nova aba. O clique normal no link continua funcionando.
+
+<a id="cap-3-3"></a>
+### 3.3 Expandir movimentações e ocultar as sem arquivo
+
+▶ [**Vídeo V05** — Expandir e ocultar movimentações](videos/V05-expandir-e-ocultar-movimentacoes.mp4)
+
+**Para que serve:** abrir de uma vez os anexos de todas as movimentações da
+página e esconder as movimentações que não têm documento.
+
+**Onde fica:** última linha do quadro **Pendências** (na tela **Análise de
+Juntadas**, na linha do botão **Filtrar**).
+
+**Passo a passo:**
+
+1. **Expandir movimentações** abre todos os controles **+** da página. O
+   botão passa a se chamar **Recolher movimentações**.
+2. **(Des)ocultar sem arquivo (+)** esconde (ou volta a mostrar) as linhas
+   sem nenhum documento.
+3. Marque a caixinha **sempre**, dentro desse botão, para que o ocultamento
+   já venha ligado em todos os processos. Desmarque para desligar.
+
+**Bom saber:** vale só para a página atual — a extensão não percorre as
+outras páginas da lista de movimentações. Os botões só aparecem com um
+processo aberto.
+
+<a id="cap-3-4"></a>
+### 3.4 Destacar movimentações por tipo de usuário
+
+▶ [**Vídeo V06** — Destacar movimentações](videos/V06-destacar-movimentacoes.mp4)
+
+**Para que serve:** colorir automaticamente as movimentações feitas por
+**Magistrado(a)**, **Ministério Público** e/ou **Advogado(a)**, em
+**todos os processos**.
+
+**Onde fica:** botão **🖍️ Destacar movimentações** da barra da extensão
+(com a aba **Movimentações** aberta).
+
+**Passo a passo:**
+
+1. Clique em **🖍️ Destacar movimentações**.
+2. Marque os tipos que quer destacar.
+3. Clique numa cor da paleta abaixo de cada tipo.
+4. Clique em **Salvar**.
+
+**Bom saber:**
+
+- Duas categorias nunca ficam com a mesma cor: escolher a cor já usada por
+  outro tipo troca as cores entre os dois (a cor em uso aparece com ✓).
+- Para mudar, abra o botão de novo — ele vem preenchido com o que foi
+  salvo.
+- É independente do quadro nativo **Realces** do Projudi (que tem cores
+  fixas e não lembra a escolha entre processos).
+
+---
+
+<a id="cap-4"></a>
+## 4. Informações extras na tela do processo
+
+Estas funções não têm botão: aparecem sozinhas ao abrir o processo. *Só no
+Projudi.*
+
+<a id="cap-4-1"></a>
+### 4.1 Suspensão ativa no cabeçalho
+
+▶ [**Vídeo V10** — Suspensão e monitoração no cabeçalho](videos/V10-suspensao-e-monitoracao-no-cabecalho.mp4)
+
+**Para que serve:** saber, sem abrir a aba **Informações Adicionais**, se o
+processo tem uma suspensão **ATIVA**.
+
+**Onde fica:** no cabeçalho, logo depois de "(N dia(s) em tramitação)".
+
+**Como funciona:**
+
+1. Ao abrir o processo, a extensão lê a aba **Informações Adicionais** em
+   segundo plano.
+2. Para cada suspensão com status **ATIVA** e um destes motivos — **Art.
+   366, CPP**; **Art. 89, L. 9.099/95**; **Insanidade Mental**; **ANPP**;
+   **Transação Penal** — aparece um card, ex.: "Suspenso: Art. 366 do CPP -
+   NOME DO RÉU".
+3. Em seguida o card ganha a data de início: "(desde 14/05/2025)".
+
+**Bom saber:**
+
+- Suspensões encerradas ou por outros motivos **não** geram card.
+- Com vários réus, cada suspensão ativa tem o seu card.
+- Os cards continuam no cabeçalho ao trocar de aba.
+- Passe o mouse sobre o card para ler a informação completa.
+
+<a id="cap-4-2"></a>
+### 4.2 Monitoração eletrônica ativa no cabeçalho
+
+▶ [**Vídeo V10** — Suspensão e monitoração no cabeçalho](videos/V10-suspensao-e-monitoracao-no-cabecalho.mp4)
+
+**Para que serve:** saber se há **monitoração eletrônica** em vigor e desde
+quando.
+
+**Como funciona:** quando o campo **Medidas Cautelares (Ex. Monitoração
+Eletrônica)** da aba **Informações Adicionais** indica medida cautelar, a
+extensão abre a tela da medida em segundo plano. Se houver "Monitoração
+Eletrônica" sem data de término e com status **ATIVA**, aparece o card
+"Monitorado eletronicamente: NOME DA PARTE (desde dd/mm/aaaa)" — um para
+cada parte monitorada.
+
+**Bom saber:** o card só aparece depois que a consulta termina (alguns
+segundos). Outras medidas cautelares (ex.: recolhimento domiciliar) não
+geram card.
+
+<a id="cap-4-3"></a>
+### 4.3 Réus, indiciados e noticiados no cabeçalho
+
+▶ [**Vídeo V11** — Réus no cabeçalho](videos/V11-reus-no-cabecalho.mp4)
+
+**Para que serve:** ver as partes do polo passivo com RG e CPF sem abrir a
+aba **Partes e Outros**.
+
+**Onde fica:** na tabela de informações do processo, logo abaixo da linha
+**Assunto**. O rótulo é o título do polo (ex.: **Réu:**, **Indiciado:**).
+
+**Passo a passo:**
+
+1. Veja a lista: `NOME (RG: ...; CPF: ...)`, uma parte por linha (só os
+   documentos cadastrados aparecem).
+2. Clique no **nome** para abrir a ficha da parte (a mesma da aba Partes e
+   Outros, com **Alterar Parte**, **Alterar Polo**, **Dar Baixa**,
+   **Atualizar Dados IIPR** etc.) num popup.
+3. Feche com **✕ Fechar**.
+
+<a id="cap-4-4"></a>
+### 4.4 Sequencial do processo principal (apensos)
+
+▶ [**Vídeo V12** — Sequencial do processo principal](videos/V12-sequencial-do-processo-principal.mp4)
+
+**Para que serve:** num processo **apenso**, ver o **Sequencial** do
+processo principal sem abri-lo.
+
+**Onde fica:** aba **Informações Gerais** do apenso, na nova linha
+**Sequencial do Processo Principal:**, logo abaixo de **Processo
+Principal:**.
+
+**Bom saber:** a linha mostra "carregando…" por um instante. No próprio
+processo principal ela não aparece.
+
+---
+
+<a id="cap-5"></a>
+## 5. Envio de documentos
+
+Funciona no **Projudi** e no **SEEU**. Nas duas formas de envio, você marca
+os documentos pelas caixinhas que a extensão coloca ao lado de cada arquivo
+da aba **Movimentações** (abra o **+** da movimentação para vê-las). A
+seleção é a mesma para WhatsApp e e-mail.
+
+<a id="cap-5-1"></a>
+### 5.1 Envio por WhatsApp Web
+
+▶ [**Vídeo V07** — Envio por WhatsApp](videos/V07-envio-por-whatsapp.mp4)
+
+**Antes de começar:** o WhatsApp Web precisa estar conectado (QR Code lido)
+neste navegador.
+
+**Passo a passo:**
+
+1. Marque a caixinha de um ou mais documentos.
+2. Clique em **📱 Enviar por WhatsApp**.
+3. Digite o número com DDD (sem DDI, a extensão assume +55) **ou** clique
+   num destinatário salvo.
+4. Clique em **Enviar**.
+5. O WhatsApp Web abre **na conversa do número informado** e os arquivos
+   são anexados sozinhos. Um aviso no canto inferior esquerdo mostra o
+   andamento ("anexando arquivo(s)…", "arquivo(s) anexado(s)").
+6. ⚠️ Confira o destinatário e os anexos, escreva uma legenda se quiser e
+   **clique você mesmo em enviar** no WhatsApp.
+
+**Destinatários salvos** (dentro do painel de envio):
+
+- **+ Novo**: nome e número (se já houver número digitado, ele vem
+  preenchido);
+- clique num destinatário para usá-lo;
+- ☆/★ marca como favorito (favoritos ficam no topo);
+- o campo de busca filtra pelo nome;
+- ✕ remove (pede confirmação).
+
+**Bom saber:**
+
+- Se já houver uma aba do WhatsApp Web aberta, ela é reaproveitada (pode
+  recarregar para trocar de conversa — o login continua).
+- Se os arquivos não forem anexados, anexe manualmente; veja também
+  [Solução de problemas](#cap-11).
+
+<a id="cap-5-2"></a>
+### 5.2 Envio por e-mail (Outlook)
+
+▶ [**Vídeo V08** — Envio por e-mail](videos/V08-envio-por-email.mp4)
+
+**Onde fica:** botão **✉️ Enviar por e-mail**, sempre visível no canto
+inferior direito. Com documentos marcados ele mostra a quantidade, ex.:
+"Enviar por e-mail (2)".
+
+**Passo a passo:**
+
+1. Marque os documentos (ou nenhum, para um e-mail sem anexos).
+2. Clique em **✉️ Enviar por e-mail**.
+3. Se houver destinatários salvos, marque um ou mais e clique em
+   **Prosseguir** — ou em **Pular** para preencher no Outlook.
+4. Abre-se um **rascunho do Outlook** numa janela menor, com:
+   - os documentos anexados;
+   - o campo **Para** (se escolheu destinatário);
+   - no início do texto: `REF. AUTOS Nº (número)` e `JUÍZO: (vara)`.
+5. Preencha o assunto e o texto, confira e clique em **Enviar** no Outlook.
+
+**Os dois modos de envio** (escolhidos em [2.5](#cap-2-5)):
+
+| Modo | Quando usar | Anexos |
+|---|---|---|
+| **Microsoft Graph** | Quando o TI cadastrou o aplicativo e informou o Client ID | Anexados automaticamente. No primeiro uso, a Microsoft pede login/autorização |
+| **Outlook Web (sem Azure AD)** | Sem cadastro do TI (é o que o modo **Automático** usa nesse caso) | Os arquivos são baixados para a pasta **Downloads**; um aviso no Outlook orienta: **Anexar arquivo → Navegar neste computador** → escolha os arquivos |
+
+**Bom saber:** anexos grandes seguem o limite do Outlook da instituição
+(normalmente 25 MB por e-mail). Se o navegador pergunta onde salvar cada
+download, uma janela aparecerá por arquivo.
+
+<a id="cap-5-3"></a>
+### 5.3 Destinatários favoritos e remetentes do e-mail
+
+▶ [**Vídeo V09** — Destinatários e remetentes](videos/V09-destinatarios-e-remetentes-do-email.mp4)
+
+**Destinatários** (a lista aparece ao clicar em **✉️ Enviar por e-mail**,
+depois que houver pelo menos um salvo):
+
+- **Adicionar**: Nome + E-mail → **+ Adicionar** (até 200);
+- **Priorizar**: ☆ → ★ (prioritários primeiro; dentro de cada grupo,
+  ordem alfabética);
+- **Buscar**: 🔍 filtra por nome ou e-mail;
+- **Remover**: 🗑.
+
+**Remetentes (campo "De")** — modo Outlook Web:
+
+1. Clique na seta **▼** ao lado de **Enviar por e-mail** → **Alterar
+   Remetente**.
+2. Cadastre até 20 contas (Nome + E-mail), edite (✏️), remova (🗑) e marque
+   a **padrão** com ★.
+3. Ao abrir o Outlook, a extensão mostra o campo **De** e tenta selecionar a
+   conta padrão.
+
+⚠️ A sua conta precisa ter a permissão **"Enviar como"** na caixa escolhida
+(configurada pelo TI). Sem ela, o Outlook não oferece a conta e o remetente
+não muda.
+
+---
+
+<a id="cap-6"></a>
+## 6. Quadro Pendências
+
+Botões que a extensão coloca ao lado dos links do quadro **Pendências** da
+capa do processo. *Só no Projudi.*
+
+⚠️ Estes botões **agem ao clicar**. Confira antes as pendências (a
+pré-visualização do item [3.2](#cap-3-2) ajuda).
+
+<a id="cap-6-1"></a>
+### 6.1 Dispensar juntadas
+
+▶ [**Vídeo V13** — Dispensar juntadas](videos/V13-dispensar-juntadas.mp4)
+
+**Passo a passo:**
+
+1. Ao lado de "Há N pendência(s) de análise de juntada", clique em
+   **Dispensar juntadas**.
+2. Aguarde: "Dispensando juntadas selecionáveis desta página…".
+3. Resultado: **"Juntada(s) já dispensada(s) - Movimentação permitida."**
+
+**Bom saber:** dispensa as juntadas selecionáveis da primeira página da
+análise. Em caso de falha, **Ver detalhes** mostra a tela onde parou. O
+botão fica desabilitado durante a operação.
+
+<a id="cap-6-2"></a>
+### 6.2 Finalizar conclusão pendente
+
+▶ [**Vídeo V14** — Finalizar conclusão](videos/V14-finalizar-conclusao.mp4)
+
+**Passo a passo:**
+
+1. Ao lado de "Há N pendência(s) de conclusão", clique em **Finalizar
+   conclusão**.
+2. O botão mostra **Finalizando…** e depois **Conclusão finalizada**.
+
+**Bom saber:**
+
+- A extensão só age se encontrar o botão nativo **Finalizar Conclusão
+  Pendente** habilitado; senão, cancela com aviso.
+- Se aparecer **Verifique a conclusão**, confira manualmente no Projudi
+  **antes** de tentar de novo (evita finalizar duas vezes).
+- O quadro Pendências só se atualiza quando você recarregar a página.
+
+<a id="cap-6-3"></a>
+### 6.3 Dispensar decursos de prazo
+
+▶ [**Vídeo V15** — Dispensar decursos](videos/V15-dispensar-decursos.mp4)
+
+**Passo a passo:**
+
+1. Ao lado do link de intimações **aguardando análise de decurso de
+   prazo**, clique em **Dispensar decursos**.
+2. Acompanhe "Dispensando decurso 1 de N…".
+3. Resultado: **"Decurso(s) já dispensado(s) - Movimentação permitida."**
+
+**Bom saber:** qualquer erro (inclusive demora maior que 60 s numa etapa)
+**interrompe** a sequência e nada mais é dispensado; **Ver detalhes** mostra
+onde parou. Uma operação por vez.
+
+---
+
+<a id="cap-7"></a>
+## 7. Ações rápidas e preferências
+
+*Só no Projudi.*
+
+<a id="cap-7-1"></a>
+### 7.1 Ações rápidas
+
+▶ [**Vídeo V16** — Ações rápidas](videos/V16-acoes-rapidas.mp4)
+
+**Para que serve:** abrir as ações do painel lateral **Ações** do Projudi
+(Enviar Concluso, Realizar Remessa, Intimar Partes…) sem rolar a tela e sem
+sair da aba em que você está.
+
+**Grupos e ações:**
+
+| Grupo | Ações |
+|---|---|
+| **Concluso** | Enviar Concluso |
+| **Remessa** | Realizar Remessa; Remessa Eletrônica para o Tribunal de Justiça |
+| **Ordenações** | Ordenar Cumprimentos; Ordenar RPV; Ordenar Expedição BNMP |
+| **Partes** | Intimar Partes; Notificar Partes; Citar Partes; Intimar Peritos e Auxiliares da Justiça |
+| **Suspender** | Suspender ou Sobrestar Processo |
+| **Transitar** | Transitar em Julgado |
+| **Arquivar** | Arquivar Processo |
+| **🏦 Alvará Eletrônico** | Cadastrar Alvará Eletrônico ([8.1](#cap-8-1)) |
+| **Outras** | Interromper Prazo; Declínio de competência para a Segunda Instância; Apensar; Desapensar |
+
+**Passo a passo:**
+
+1. Clique em **▸ Ações** para mostrar os grupos.
+2. Clique no grupo desejado — abre um painel com as ações dele.
+3. Clique em:
+   - **Abrir** — quando você está na tela de Ações do Projudi;
+   - **Ir e abrir** — em qualquer outra tela do processo com a lista de
+     movimentações (capa, aba Movimentações, detalhe de movimentação).
+4. Aparece "Abrindo '...'…" (com **Cancelar**) por um ou dois segundos e o
+   **diálogo original do Projudi** abre num popup sobre a tela.
+5. Preencha e confirme como sempre, ou feche com **✕ Fechar**.
+
+**Bom saber:**
+
+- Na tela de Ações, só aparecem as ações disponíveis para aquele processo
+  (ex.: já apensado → só **Desapensar**).
+- Em outra aba (ex.: **Partes e Outros**), o painel pede para abrir a aba
+  **Movimentações** primeiro.
+- Ao terminar ações como **Ordenar Cumprimentos**, o popup se fecha e a
+  página é recarregada sozinha.
+
+<a id="cap-7-2"></a>
+### 7.2 Preferências (preencher e confirmar com um clique)
+
+▶ [**Vídeo V17** — Preferências](videos/V17-preferencias.mp4)
+
+**Para que serve:** gravar o preenchimento de um diálogo (ex.: "Intimar o
+MP para ciência, 5 dias") e reaplicá-lo em outros processos.
+
+**Criar:**
+
+1. No painel da ação, clique em **+ Nova preferência** — o diálogo do
+   Projudi abre em branco.
+2. Preencha como faria normalmente.
+3. Com o diálogo aberto, clique em **💾 Salvar como preferência** (barra no
+   topo da tela).
+4. Confira a **lista de campos que serão gravados** (se faltar algum,
+   cancele, ajuste e salve de novo).
+5. Dê um nome e salve. **Nada foi enviado ao Projudi** — você ainda pode
+   confirmar ou cancelar o diálogo normalmente.
+
+**Usar:**
+
+1. No painel da ação, clique no chip **★ nome-da-preferência**.
+2. O diálogo abre **já preenchido** e aparece a barra: *Confirmar "Ação" com
+   a preferência "..."?*
+3. ⚠️ Confira os campos e clique em ✅ **Sim, executar** — é esse clique
+   que pratica o ato. **Cancelar** desiste.
+
+**Editar e remover:** ✏️ abre o diálogo preenchido com o botão **💾
+Atualizar preferência** (nada é enviado); 🗑 remove.
+
+**Bom saber:**
+
+- Só o que você preencheu ou mudou em relação ao padrão é gravado.
+- Uma parte específica (ex.: um réu) só é marcada no processo em que ela
+  existe; em outro processo vale a caixa "marcar todos" da coluna, se ela
+  foi gravada.
+- Se algum campo não puder ser preenchido, a barra avisa **⚠ Não consegui
+  preencher: …** e o **Sim, executar** não envia enquanto ele estiver vazio.
+- Preferências de **Intimar Partes** gravadas antes da versão 2.9.84 devem
+  ser salvas de novo.
+- As preferências são separadas por ação e ficam no seu navegador.
+
+<a id="cap-7-3"></a>
+### 7.3 Minhas Preferências
+
+▶ [**Vídeo V18** — Minhas Preferências](videos/V18-minhas-preferencias.mp4)
+
+**Para que serve:** ver **todas** as preferências salvas (das ações rápidas
+e do Juntar Documento) e os combos, em cards, num só lugar.
+
+**Passo a passo:**
+
+1. Clique em **⭐ Minhas Preferências**.
+2. Clique no card desejado — o fluxo é o mesmo do item [7.2](#cap-7-2)
+   (diálogo preenchido + ✅ **Sim, executar**).
+3. Para mudar a ordem: **✏️ Editar posição**, arraste os cards e clique em
+   **✅ Concluir**. A ordem é salva na hora.
+
+**Bom saber:** só os primeiros cards aparecem de início; marque **Mostrar
+todas** para ver o restante.
+
+<a id="cap-7-4"></a>
+### 7.4 Combos de preferências
+
+▶ [**Vídeo V19** — Combos](videos/V19-combos-de-preferencias.mp4)
+
+**Para que serve:** executar várias preferências **em sequência**, ex.:
+"Intimar MP" → "Juntar certidão de decurso" → "Enviar concluso para
+sentença".
+
+**Criar:**
+
+1. Clique em **🔗 Combos** → **+ Novo combo**.
+2. Dê um nome.
+3. Na **caixa 1**, escolha a preferência que roda primeiro.
+4. **+ Adicionar preferência** abre a caixa seguinte. Use ↑/↓ para mudar a
+   ordem e ✕ para remover uma caixa.
+5. **💾 Salvar combo** (mínimo de 2 preferências).
+
+**Executar:**
+
+1. Em **🔗 Combos** (ou em **⭐ Minhas Preferências**), clique em **▶ nome**.
+2. Cada etapa abre sozinha, preenchida, com a barra "Combo ... — etapa i de
+   N".
+3. ⚠️ **Cada etapa pede o seu ✅ Sim, executar.** O combo nunca confirma um
+   ato sozinho.
+4. Se uma etapa for fechada sem executar, a barra de baixo oferece **↻
+   Repetir etapa**, **⏭ Próxima etapa** (se você a fez à mão) e **⏹ Parar
+   combo**.
+
+**Bom saber:**
+
+- Etapas de **Juntar Documento** são feitas na própria aba e param na
+  assinatura (você digita o PIN) — ver [8.2](#cap-8-2).
+- Etapas de **Alvará Eletrônico** só preenchem; clique em **Salvar** do
+  Projudi e depois em **⏭ Próxima etapa**.
+- O combo continua mesmo depois de a página recarregar, mas **não**
+  continua se você abrir outro processo na mesma aba.
+- Editar uma preferência vale também para os combos que a usam; se ela for
+  removida, o combo avisa.
+
+<a id="cap-7-5"></a>
+### 7.5 Nova Ordenação
+
+▶ [**Vídeo V26** — Nova Ordenação](videos/V26-nova-ordenacao.mp4)
+
+**Para que serve:** ordenar **vários cumprimentos seguidos** (mandado,
+ofício, edital…) sem reabrir o diálogo a cada um. Vale para **Ordenar
+Cumprimentos**, **Ordenar RPV** e **Ordenar Expedição BNMP**.
+
+**Passo a passo:**
+
+1. Abra o diálogo de ordenação e preencha o primeiro cumprimento.
+2. Clique em **🔁 Nova Ordenação** (ao lado de **Ordenar**). O item vai para
+   a fila — nada é enviado — e o formulário fica limpo.
+3. Repita para os demais. O botão mostra a fila, ex.: "🔁 Nova Ordenação (2
+   na fila)"; ✕ remove um item.
+4. No último, clique no **Ordenar** do Projudi: todos os itens são enviados,
+   um a um.
+
+**Bom saber:**
+
+- Se algum item falhar, a extensão **para** e diz qual; o restante continua
+  na fila.
+- **Cancelar** descarta a fila.
+- ⚠️ Confira nos autos se todos os cumprimentos foram registrados,
+  especialmente em ordenações com prazo.
+
+<a id="cap-7-6"></a>
+### 7.6 Nova Remessa
+
+▶ [**Vídeo V27** — Nova Remessa](videos/V27-nova-remessa.mp4)
+
+**Para que serve:** fazer mais de uma remessa seguida (ex.: Delegacia e
+Ministério Público) na mesma tela de **Realizar Remessa**.
+
+**Passo a passo:**
+
+1. Em **Realizar Remessa**, escolha e preencha a primeira remessa.
+2. Clique em **🔁 Nova Remessa** — ela vai para a fila e a tela é limpa.
+3. Preencha a próxima; repita se precisar.
+4. Termine com o **Realizar Remessa** do Projudi: todas são enviadas.
+
+**Bom saber:** mesmas regras da Nova Ordenação (para no primeiro erro;
+confira nos autos).
+
+---
+
+<a id="cap-8"></a>
+## 8. Atalhos para telas do processo
+
+*Só no Projudi.* Todos abrem num **popup** sobre a tela atual — a aba do
+processo não sai do lugar. Feche com **✕ Fechar**.
+
+<a id="cap-8-1"></a>
+### 8.1 Alvará Eletrônico
+
+▶ [**Vídeo V20** — Alvará Eletrônico](videos/V20-alvara-eletronico.mp4)
+
+**Para que serve:** chegar ao **Cadastrar Alvará Eletrônico** sem passar
+por Informações Adicionais → Depósitos/Alvarás → Novo Alvará, e já com os
+campos repetitivos preenchidos.
+
+**Onde fica:** **▸ Ações** → **🏦 Alvará Eletrônico**.
+
+**Passo a passo:**
+
+- **Abrir**: mostra a tela de **Modalidade** para você escolher.
+- **+ Nova preferência**: escolha a modalidade, preencha os campos fixos no
+  formulário completo e clique em **💾 Salvar como preferência**. Crie uma
+  preferência para cada modalidade que usa.
+- **★ preferência**: a modalidade é escolhida sozinha e você já vê o
+  formulário preenchido.
+
+**Campos gravados:** Magistrado, Urgente, Natureza do Alvará, Representação
+Processual, Finalidade do Pagamento, Tipo de Crédito e Observação.
+
+⚠️ Conta judicial, beneficiário, sacadores, dados bancários, datas e
+**valores** são sempre preenchidos por você. Não há ✅ **Sim, executar**:
+confira e clique em **Salvar** do próprio Projudi.
+
+<a id="cap-8-2"></a>
+### 8.2 Juntar Documento com preferências
+
+▶ [**Vídeo V21** — Juntar Documento](videos/V21-juntar-documento.mp4)
+
+**Para que serve:** juntar documentos digitados de rotina (certidões,
+informações, termos) refazendo sozinha todas as telas — você só digita o
+PIN do certificado.
+
+**Onde fica:** botão **📎 Juntar Documento** da barra da extensão (não
+confundir com o botão nativo de mesmo nome).
+
+| Opção | O que faz |
+|---|---|
+| **Abrir** | Vai para a tela Juntar Documento, como o botão nativo |
+| **+ Nova preferência** | Grava o fluxo que você fizer |
+| **★ nome** | Refaz o fluxo sozinha |
+| **✏️** | Refaz o fluxo com as telas preenchidas, sem clicar em nada, para você ajustar e atualizar |
+| **🗑** | Remove a preferência |
+
+**Gravar (+ Nova preferência):** uma faixa **● Gravando** no topo diz o que
+fazer em cada tela.
+
+1. **Juntar Documento**: escolha o **Tipo de Documento** → **Adicionar**.
+2. **Inserir Arquivo**: **Tipo do Arquivo** (e **Modelo**, se usar) →
+   **Digitar Texto**.
+3. **Digitar Documento**: escreva o texto → **Continuar**.
+4. Pré-visualização: **Concluir**.
+5. De volta ao **Inserir Arquivo**: **Assinar Arquivos** — a extensão pede o
+   **nome** da preferência e salva. O assinador segue normalmente.
+
+**Usar (★ nome):** a extensão faz Tipo de Documento → Adicionar → Tipo do
+Arquivo/Modelo → texto → Continuar → Concluir → **Assinar Arquivos**. Você
+digita o PIN; depois ela clica em **Confirmar Inclusão** e **Concluir
+Movimento**.
+
+**Bom saber:**
+
+- Só o texto que **você** escreveu é gravado; cabeçalho, número dos autos,
+  data e texto do Modelo são gerados pelo Projudi em cada processo.
+- O PIN **nunca** é guardado.
+- Se um passo automático falhar, faça-o à mão: a extensão continua do
+  seguinte. **Parar**, na faixa, encerra sem gravar.
+- O acompanhamento expira em 1 hora e para se você abrir outro processo.
+
+<a id="cap-8-3"></a>
+### 8.3 (Des)Habilitar Advogado
+
+▶ [**Vídeo V22** — (Des)Habilitar Advogado](videos/V22-des-habilitar-advogado.mp4)
+
+**Para que serve:** abrir a tela do botão nativo **Advogados** (aba Partes e
+Outros) num popup, para habilitar, desabilitar, adicionar ou remover
+advogado.
+
+**Passo a passo:** clique em **⚖️ (Des)Habilitar Advogado**, faça a
+alteração no popup e feche com **✕ Fechar**. Funciona mesmo sem advogado
+cadastrado (para incluir o primeiro).
+
+<a id="cap-8-4"></a>
+### 8.4 Editar Partes/Outros
+
+▶ [**Vídeo V23** — Editar Partes/Outros](videos/V23-editar-partes-outros.mp4)
+
+**Para que serve:** abrir a tela **Partes do Processo** (botão nativo
+**Partes e Outros**, com **Adicionar** e **Voltar**) num popup.
+
+**Passo a passo:** clique em **👥 Editar Partes/Outros**, faça as
+alterações e feche com **✕ Fechar**.
+
+<a id="cap-8-5"></a>
+### 8.5 Processo copiado
+
+▶ [**Vídeo V24** — Processo copiado](videos/V24-processo-copiado.mp4)
+
+**Para que serve:** abrir a busca de um processo cujo número você copiou de
+outro lugar (e-mail, planilha, documento).
+
+**Passo a passo:**
+
+1. Selecione o número e copie (**Ctrl+C**). Pode ter pontos e traços ou
+   não, mas deve ser **um único** número no padrão CNJ (20 dígitos).
+2. No Projudi, clique em **📋 Processo copiado**.
+3. Uma **nova aba** abre a **Busca de Processos**, marca "Número Único",
+   preenche o número e pesquisa.
+
+**Bom saber:** se aparecer "Há mais de um número de processo copiado",
+copie só um. Na primeira vez, o navegador pode pedir permissão para ler a
+área de transferência — autorize.
+
+<a id="cap-8-6"></a>
+### 8.6 Oráculo
+
+▶ [**Vídeo V25** — Oráculo](videos/V25-oraculo.mp4)
+
+**Para que serve:** abrir a consulta de **antecedentes criminais (Oráculo)**
+da parte sem ir até a ficha dela.
+
+**Passo a passo:**
+
+1. Clique em **Oráculo**.
+2. Se houver mais de uma parte que pode ser consultada (réu, investigado,
+   noticiado…), escolha na lista.
+3. Abre-se a janela nativa **Antecedentes Criminais - Oráculo**.
+
+**Bom saber:** se você já estiver na ficha de uma parte, o atalho usa o
+botão Oráculo dela.
+
+---
+
+<a id="cap-9"></a>
+## 9. Telas de análise, mesas e cumprimentos
+
+*Só no Projudi.*
+
+<a id="cap-9-1"></a>
+### 9.1 Filtro por Sequencial na Análise de Decurso de Prazo
+
+▶ [**Vídeo V28** — Sequencial no Decurso de Prazo](videos/V28-sequencial-no-decurso-de-prazo.mp4)
+
+**Para que serve:** dividir a fila de decursos entre servidores pelo último
+dígito do **Seq.**, como já existe em outras telas de análise.
+
+**Onde fica:** menu **Decurso de Prazo** (tela **Análise de Decurso de
+Prazo**), no formulário de busca, campo **Sequencial:**.
+
+**Passo a passo:**
+
+1. Digite um dígito de **0 a 9**.
+2. Clique em **Filtrar**.
+3. A extensão percorre **todas as páginas** do resultado e mostra só os
+   processos cujo Seq. termina nesse dígito, com um resumo no lugar da
+   paginação.
+
+**Bom saber:** o campo começa sempre em branco. Deixe-o vazio para a busca
+normal.
+
+<a id="cap-9-2"></a>
+### 9.2 Listas de tarefas
+
+▶ [**Vídeo V29** — Listas de tarefas](videos/V29-listas-de-tarefas.mp4)
+
+**Onde fica:** telas **Análise de Juntadas**, **Retorno de Conclusão** e
+**Análise de Decurso de Prazo**.
+
+**Criar listas e preferências:** clique em **⚙ Gerenciar listas e
+preferências**:
+
+- **Listas (cores da legenda)**: nome (ex.: "Urgente", "Cobrar AR") + cor →
+  **+ Criar lista**. ▲/▼ reordenam, ✏️ edita, 🗑 remove (a lista sai de
+  todos os processos; as tarefas escritas continuam).
+- **Preferências (tarefas prontas)**: texto (ex.: "Certificar decurso") e,
+  se quiser, uma lista → **+ Criar preferência**.
+- **Apagar tarefas concluídas de todos os processos**, quando quiser
+  limpar.
+
+**Usar na linha do processo:**
+
+1. Clique no **+** ao lado do número do processo.
+2. Marque as listas (cores) do processo.
+3. Escreva tarefas e tecle **Enter**; marque-as como concluídas (☑), edite
+   (✏️) ou remova (🗑). Ou use uma preferência (**Adicionar esta tarefa**).
+4. A linha mostra as bolinhas das listas e **✎ N** (tarefas pendentes —
+   passe o mouse para ler; "✎ ✓" quando todas foram concluídas).
+
+**Filtrar:** clique numa lista da legenda **Listas de tarefas** para ver só
+os processos dela; **✕ limpar filtro** volta a mostrar todos.
+
+**Bom saber:** as marcações seguem o **número do processo** (valem nas três
+telas), ficam só no seu navegador e aparecem em todas as abas abertas.
+
+<a id="cap-9-3"></a>
+### 9.3 Minhas Preferências na linha do processo (⭐)
+
+▶ [**Vídeo V30** — ⭐ na linha do processo](videos/V30-minhas-preferencias-na-linha.mp4)
+
+**Para que serve:** executar uma preferência ou combo num processo direto
+da tela de análise, sem abri-lo.
+
+**Passo a passo:**
+
+1. Clique no **⭐** da linha (ao lado do **+**).
+2. Escolha um card.
+3. A extensão pergunta, conforme a tela, se deve antes **dispensar as
+   juntadas**, **finalizar a conclusão** ou **dispensar os decursos**
+   pendentes do processo. **Sim** acrescenta essa etapa; **Não** segue sem
+   ela; **✕** (ou Esc) cancela tudo.
+4. O diálogo abre preenchido no popup; confira e clique em ✅ **Sim,
+   executar**.
+5. A linha mostra o andamento e o resultado, ex.: "✅ Juntada(s) já
+   dispensada(s) · ★ Remessa MP: concluída".
+
+**Bom saber:**
+
+- A lista **não** é recarregada ao final, para não perder a busca feita.
+- Preferências avulsas de **Juntar Documento** e **Alvará Eletrônico**
+  aparecem esmaecidas (use-as na tela do processo).
+- Combos com essas etapas abrem o processo numa **nova aba** e rodam lá.
+- Um card por vez.
+
+<a id="cap-9-4"></a>
+### 9.4 Mesa do Analista sem itens zerados
+
+▶ [**Vídeo V31** — Mesa do Analista](videos/V31-mesa-do-analista-sem-zerados.mp4)
+
+**Como funciona:** na **Mesa do Analista** e na **Mesa do Escrivão**, as
+linhas cujos contadores estão **todos em zero** ficam ocultas. Em "Outros
+Cumprimentos", uma linha só some se todas as colunas (Para Expedir, Com
+Urgência, Para Assinar…) estiverem zeradas. Quando surge pendência, a linha
+reaparece sozinha.
+
+<a id="cap-9-5"></a>
+### 9.5 RG e CPF das partes nos cumprimentos
+
+▶ [**Vídeo V32** — RG e CPF nos cumprimentos](videos/V32-rg-e-cpf-nos-cumprimentos.mp4)
+
+**Onde aparece:**
+
+- na **lista de cumprimentos** (ao clicar num contador da lista de
+  ordenações, ex.: "Demais cumprimentos" › "Para Expedir"), coluna
+  **Referente a(s) parte(s)**;
+- na tela do cumprimento (**Visualizar**), linha **Referente a(s)
+  parte(s):**.
+
+Formato: `NOME (Réu) — RG: ...; CPF: ...`. Enquanto busca, mostra
+"RG/CPF: carregando…"; documento ausente aparece como "não cadastrado".
+
+<a id="cap-9-6"></a>
+### 9.6 Dados processuais nas ordenações BNMP
+
+▶ [**Vídeo V33** — Ordenações BNMP](videos/V33-dados-processuais-nas-ordenacoes-bnmp.mp4)
+
+**Para que serve:** ter, também nas peças que **não são guias** (Mandado de
+Prisão, Alvará de Soltura, Mandado de Internação, Contramandado, Mandado de
+Monitoramento Eletrônico etc.), os dados que ajudam a preencher o **BNMP
+3** — nas guias o Projudi já os mostra.
+
+**Seções montadas (para cada parte da ordenação):**
+
+| Seção | Conteúdo |
+|---|---|
+| **Dados da Peça** | Local da Prisão (a prisão sem soltura/conversão; senão "Sem informação") |
+| **Dados do Processo Criminal** | Classe, data da infração, datas de oferecimento/recebimento da denúncia (e do aditamento), imputações |
+| **Cadastro de Sentença** | Datas da sentença e do acórdão, recurso, regime inicial, pena, dias-multa, trânsito em julgado (relativo à sentença) |
+| **Tipificação penal** | Por crime: data do delito, tipo, frações de progressão/livramento, reincidência, pena e **Data de Prescrição**; abaixo, **Próxima Prescrição** |
+| **Cadastro das Prisões** | Data, motivo, local, soltura/conversão, período e total |
+
+**Bom saber:** clique em **⊟** para recolher uma seção. Se alguma tela não
+puder ser lida, aparece a seção **Avisos da extensão** com o motivo. "Medida
+de Segurança" não é exibida. Se a lista de infrações tiver mais de uma
+página, há aviso de lista parcial.
+
+---
+
+<a id="cap-10"></a>
+## 10. Privacidade e convivência com outras extensões
+
+<a id="cap-10-1"></a>
+### 10.1 O que fica guardado no seu navegador
+
+A extensão **não tem servidor próprio**. Tudo fica no navegador/perfil onde
+ela está instalada (não vai para outro computador):
+
+| O que | Onde |
+|---|---|
+| Aceite dos Termos de Uso | Armazenamento da extensão |
+| Preferências, combos, ordem dos cards | Armazenamento da extensão |
+| Cores de destaque e "sempre ocultar sem arquivo" | Armazenamento da extensão |
+| Listas de tarefas e tarefas | Armazenamento da extensão |
+| Destinatários (WhatsApp e e-mail) e remetentes | Armazenamento da extensão |
+| Documentos a anexar | Só até serem anexados (alguns minutos) |
+| Cards do cabeçalho, réus, RG/CPF | Só na aba atual, enquanto ela estiver aberta |
+
+Documentos são sempre lidos do Projudi/SEEU na hora; não há cópia guardada.
+A senha/PIN do certificado **nunca** é guardada.
+
+<a id="cap-10-2"></a>
+### 10.2 Convivência com o AzFlow
+
+No **SEEU**, se o AzFlow estiver ativo, a pré-visualização desta extensão
+fica desligada para não conflitar — o AzFlow cuida disso. O envio por
+WhatsApp e e-mail continua funcionando. No Projudi, as duas convivem
+normalmente.
+
+<a id="cap-10-3"></a>
+### 10.3 Bloqueio para perfis de advocacia
+
+A extensão é de uso interno e **não carrega** quando o perfil logado é de
+advogado(a) ou de assessor(a) de advogado (identificado pelo campo
+**Atribuição**, pela mesa inicial e pelo menu). Assessores do Judiciário
+continuam liberados. Ao trocar para um perfil que não é de advocacia, as
+telas abertas a partir daí voltam a funcionar.
+
+---
+
+<a id="cap-11"></a>
+## 11. Solução de problemas
+
+| Problema | O que fazer |
+|---|---|
+| Nenhum botão da extensão aparece | Confira se aceitou os Termos de Uso ([2.2](#cap-2-2)); recarregue a página (F5); confira se a extensão está ativada em `chrome://extensions`; confira se o perfil não é de advocacia ([10.3](#cap-10-3)) |
+| Atualizei a extensão e nada mudou | Clique em ↻ no card da extensão em `chrome://extensions` e depois recarregue as páginas ([2.3](#cap-2-3)) |
+| A barra de botões cobre algo da tela | Arraste **↕ Mover** ou clique em **Ocultar** ([2.4](#cap-2-4)) |
+| O painel de ações diz para abrir a aba Movimentações | Abra a aba **Movimentações** do processo e tente de novo ([7.1](#cap-7-1)) |
+| Preferência abre com "⚠ Não consegui preencher" | A opção gravada não existe neste processo; preencha o campo à mão, ou edite/recrie a preferência ([7.2](#cap-7-2)) |
+| Preferência de Intimar Partes não marca as caixas certas | Grave-a de novo (preferências anteriores à versão 2.9.84) |
+| Combo parou numa etapa | Use **↻ Repetir etapa**, **⏭ Próxima etapa** ou **⏹ Parar combo** ([7.4](#cap-7-4)) |
+| WhatsApp abre a conversa, mas sem anexos | Confira se o WhatsApp Web está conectado; recarregue a extensão; anexe manualmente se precisar |
+| E-mail pede Client ID / dá erro de configuração | Mude o **Modo de envio** para **Automático** ou **Outlook Web** nas opções ([2.5](#cap-2-5)), ou peça o Client ID ao TI |
+| No Outlook Web os anexos não entram sozinhos | É o esperado nesse modo: **Anexar arquivo → Navegar neste computador** e escolha os arquivos na pasta **Downloads** |
+| O campo "De" não muda para a conta escolhida | Falta a permissão "Enviar como" nessa caixa — peça ao TI ([5.3](#cap-5-3)) |
+| "Verifique a conclusão" | Confira a conclusão no Projudi antes de repetir ([6.2](#cap-6-2)) |
+| Dispensa de juntadas/decursos parou com erro | Clique em **Ver detalhes**, resolva no Projudi e tente de novo ([6.1](#cap-6-1), [6.3](#cap-6-3)) |
+| Card de suspensão/monitoração não aparece | Só são sinalizados status **ATIVA** e os motivos listados em [4.1](#cap-4-1)/[4.2](#cap-4-2); aguarde alguns segundos após abrir o processo |
+| Processo copiado: "Não encontrei um número de processo" | Copie o número completo (20 dígitos), só um ([8.5](#cap-8-5)) |
+
+Se o problema continuar, anote a versão da extensão, a tela e o que
+aconteceu, e informe o responsável pela extensão.
+
+---
+
+<a id="anexo-a"></a>
+## Anexo A — Vídeos instrutivos
+
+Vídeos curtos (MP4, sem áudio, com legendas na tela), um por função. Eles
+usam **telas simuladas** com dados fictícios; a aparência real do Projudi
+pode variar um pouco. Clique no título para assistir.
+
+<!-- tabela-videos:inicio -->
+<!-- tabela-videos:fim -->
+
+---
+
+<a id="anexo-b"></a>
+## Anexo B — Histórico de versões do manual
+
+A versão do manual acompanha a da extensão. A cada nova função ou correção
+de erro na extensão, este manual ganha uma nova linha aqui (o procedimento
+está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
+
+| Versão | Data | Alterações no manual |
+|---|---|---|
+| 2.9.88 | 29/09/2026 | Primeira edição do manual: todas as funções da extensão até a versão 2.9.88, com 33 vídeos instrutivos (Anexo A). |
