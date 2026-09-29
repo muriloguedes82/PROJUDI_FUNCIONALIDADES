@@ -97,6 +97,14 @@ test("audiências: designada, redesignada, cancelada e pendente", () => {
 	assert.equal(a.pendentes[0].dataAudiencia, "27/11/2026 14:00");
 	assert.equal(a.pendentes[0].tipo, "Audiência de conciliação");
 	assert.equal(T.analisarAudiencias([movs[4]], agora).eventos.length, 0);
+	// Só o último evento de cada audiência: a designação de 20/11 (seq. 3)
+	// foi substituída pela redesignação (seq. 8); a de 03/12 (seq. 9), pelo
+	// cancelamento (seq. 10).
+	assert.deepEqual(a.finais.map((e) => [e.seq, e.situacao]), [["8", "redesignada"], ["10", "cancelada"]]);
+	// Designada com data passada e sem resultado registrado.
+	const passada = T.analisarAudiencias([{ seq: "1", dataHora: "01/08/2026 10:00:00", titulo: "AUDIÊNCIA DE INSTRUÇÃO DESIGNADA", complemento: "10/09/2026 14:00" }], agora);
+	assert.equal(passada.pendentes.length, 0);
+	assert.equal(passada.finais[0].semResultado, true);
 });
 
 test("petição inicial: pega a seção DOS PEDIDOS até o fecho", () => {
@@ -158,6 +166,30 @@ test("intimações: referência ao evento e identificação", () => {
 	assert.ok(T.ehComunicacao("LEITURA DE INTIMAÇÃO REALIZADA"));
 	assert.ok(T.ehComunicacao("DECORRIDO PRAZO DE FULANO"));
 	assert.ok(!T.ehComunicacao("JUNTADA DE PETIÇÃO DE INICIAL"));
+});
+
+test("denúncia com fato único, sem título FATO", () => {
+	const d = T.extrairDenuncia("O MINISTÉRIO PÚBLICO vem oferecer DENÚNCIA em face de EZEQUIEL ROCHA LEAL, brasileiro, RG nº 80024193, pela prática do seguinte fato delituoso:\nNo dia 31 de dezembro de 2023, por volta das 23h, na residência situada na Rua das Flores, nº 50, nesta cidade, o denunciado EZEQUIEL ROCHA LEAL, dolosamente, ameaçou a vítima M.S.L., sua ex-companheira, de causar-lhe mal injusto e grave, conforme boletim de ocorrência (mov. 1.3).\nDessa forma, a vítima acionou a polícia.\nAssim agindo, o denunciado EZEQUIEL ROCHA LEAL incorreu nas sanções do artigo 147, caput, do Código Penal, com as implicações da Lei nº 11.340/2006.\nDiante do exposto, requer o recebimento da denúncia.");
+	assert.equal(d.fatos.length, 1);
+	assert.equal(d.fatos[0].unico, true);
+	assert.equal(d.fatos[0].data, "31/12/2023");
+	assert.doesNotMatch(d.fatos[0].texto, /RG nº|brasileiro|pela prática/);
+	assert.match(d.fatos[0].texto, /Dessa forma, a vítima acionou a polícia\.$/);
+	assert.match(d.capitulacao, /^Assim agindo/);
+	assert.match(d.resumo, /Fato único \(31\/12\/2023\): No dia 31 de dezembro de 2023/);
+	assert.match(d.resumo, /Imputação: art\. 147, caput, do Código Penal, com as implicações da Lei nº 11\.340\/2006\.$/);
+	// "Consta dos autos que..." e imputação sem "razão pela qual".
+	const b = T.extrairDenuncia("Consta dos inclusos autos de inquérito policial que, no dia 05/03/2024, na Rua Um, o denunciado JOÃO DA SILVA, com vontade livre e consciente, subtraiu um celular da vítima C.A.P.\nAo assim agir, o denunciado JOÃO DA SILVA incidiu no crime de furto, previsto no artigo 155, caput, do Código Penal, razão pela qual requer o recebimento desta denúncia.");
+	assert.equal(b.fatos[0].crime, "furto");
+	assert.match(b.resumo, /Fato único – furto \(05\/03\/2024\): No dia 05\/03\/2024, na Rua Um, o denunciado JOÃO DA SILVA subtraiu/);
+	assert.match(b.resumo, /Imputação: art\. 155, caput, do Código Penal\.$/);
+	// Fatos na íntegra (para a IA e para o botão "fatos na íntegra").
+	assert.match(T.fatosIntegrais(d), /^Fato único \(31\/12\/2023\): No dia 31[\s\S]*conforme boletim de ocorrência \(mov\. 1\.3\)\./);
+});
+
+test("títulos por extenso: PRIMEIRO FATO / SEGUNDO FATO", () => {
+	const d = T.extrairDenuncia("PRIMEIRO FATO – furto\nNo dia 02 de janeiro de 2024, o denunciado PEDRO SOUZA subtraiu uma bicicleta.\nSEGUNDO FATO – receptação\nEm data de 03 de janeiro de 2024, o denunciado PEDRO SOUZA adquiriu coisa produto de crime.\nAssim agindo, o denunciado PEDRO SOUZA incidiu nos crimes do artigo 155, caput (1º fato) e artigo 180, caput (2º fato), ambos do Código Penal.");
+	assert.deepEqual(d.fatos.map((f) => [f.n, f.crime, f.data]), [[1, "furto", "02/01/2024"], [2, "receptação", "03/01/2024"]]);
 });
 
 test("advogado e classe no formato da aba Partes", () => {

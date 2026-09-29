@@ -253,7 +253,8 @@
 	}
 
 	// "FATO 01 – lesão corporal", "1º FATO - Furto", "FATO ÚNICO – ameaça"
-	const TITULO_FATO = /(^|\n)[ \t]*(?:(\d{1,2})\s*[ºo°]?\s*FATO|FATO\s*(\d{1,2}|[ÚU]NICO))\s*[–—\-:.]?\s*([^\n]*)/gi;
+	const TITULO_FATO = /(^|\n)[ \t]*(?:(\d{1,2})\s*[ºo°]?\s*FATO|(PRIMEIRO|SEGUNDO|TERCEIRO|QUARTO|QUINTO|SEXTO|S[ÉE]TIMO|OITAVO|NONO|D[ÉE]CIMO)\s+FATO|FATO\s*(\d{1,2}|[ÚU]NICO))\s*[–—\-:.]?\s*([^\n]*)/gi;
+	const ORDINAIS = { primeiro: 1, segundo: 2, terceiro: 3, quarto: 4, quinto: 5, sexto: 6, setimo: 7, oitavo: 8, nono: 9, decimo: 10 };
 
 	const INICIO_REQUERIMENTOS = /(^|\n|\.\s)\s*((o ministerio publico )?(requer|pugna|requer-se)|diante do exposto|pelo exposto|ante o exposto|isto posto|posto isso|razao pela qual)/i;
 
@@ -294,6 +295,53 @@
 	// Devolve:
 	// { fatos:[{n, crime, data, denunciados, vitima}], denunciados:[...],
 	//   capitulacao, requerimentos:[...], trecho, resumo }
+	// Onde começa a narrativa dos fatos numa denúncia sem títulos "FATO":
+	// depois de "pela prática do(s) seguinte(s) fato(s)...:", "DOS FATOS",
+	// "consta dos inclusos autos...", ou no primeiro "No dia / Em data...".
+	const MARCADORES_NARRATIVA = [
+		/pel[ao]s? pratica d[oa]s? seguintes? (fatos?|condutas?)[^:\n]{0,60}:/i,
+		/pel[ao]s? (fatos?|condutas?) (a seguir|seguintes?) [^:\n]{0,60}:/i,
+		/(^|\n)\s*(dos fatos|do fato|da conduta|dos fatos e fundamentos|narrativa fatica|exposicao do fato)\s*[:.\n]/i,
+		/(^|\n)\s*(consta d[oa]s? (inclus[oa]s?|presentes?|anexos?)? ?(autos|inquerito|procedimento))/i,
+		/(^|\n|[.:]\s)\s*(no dia|em data|na data|no periodo|no mes|nos dias|em \d{1,2} de [a-z]+ de \d{4}|em meados|em horario|desde)\b/i,
+	];
+
+	function inicioDaNarrativa(texto) {
+		const semAc = tiraAcentoMantendoTamanho(texto);
+		for (const re of MARCADORES_NARRATIVA) {
+			const m = re.exec(semAc);
+			if (!m) continue;
+			// Marcador que termina em ":" -> a narrativa começa depois dele;
+			// senão, no próprio marcador ("No dia...", "Consta dos autos...").
+			if (/:\s*$/.test(m[0])) return m.index + m[0].length;
+			const pre = m[1] ? m[1].length : 0;
+			return m.index + pre;
+		}
+		return 0;
+	}
+
+	// "incidiu no crime de ameaça (art. 147 do CP)" -> "ameaça".
+	function crimeDaCapitulacao(cap) {
+		const m = /crimes?\s+(?:de|do|da)\s+([a-zà-ú][a-zà-ú ]{2,50}?)\s*(?:\(|,|previst|tipificad|descrit|capitulad|$)/i.exec(cap || "");
+		return m ? colapsar(m[1]) : "";
+	}
+
+	function tituloDoFato(f) {
+		let s = f.unico ? "Fato único" : "Fato " + f.n;
+		if (f.crime) s += " – " + f.crime;
+		if (f.data) s += " (" + f.data + ")";
+		return s;
+	}
+
+	// Os fatos como narrados na denúncia, na íntegra (sem o carimbo de
+	// assinatura), um parágrafo por fato, e a imputação.
+	function fatosIntegrais(d) {
+		const partes = d.fatos.map(function (f) { return tituloDoFato(f) + ": " + f.texto; });
+		const artigos = artigosImputacao(d.capitulacao);
+		if (artigos) partes.push("Imputação: " + artigos + ".");
+		return partes.join("\n\n");
+	}
+
 	function extrairDenuncia(texto) {
 		const t = limparAssinaturas(texto).replace(/[ \t]+/g, " ");
 		const semAcento = tiraAcentoMantendoTamanho(t);
@@ -303,9 +351,9 @@
 		const titulos = [];
 		while ((m = TITULO_FATO.exec(t))) {
 			const inicio = m.index + (m[1] ? m[1].length : 0);
-			const numeroTxt = m[2] || m[3] || "";
-			const n = /^\d+$/.test(numeroTxt) ? parseInt(numeroTxt, 10) : 1;
-			const crime = colapsar(m[4]).replace(/[.:;]+$/, "");
+			const numeroTxt = m[2] || m[4] || "";
+			const n = m[3] ? ORDINAIS[normalizar(m[3])] || 1 : /^\d+$/.test(numeroTxt) ? parseInt(numeroTxt, 10) : 1;
+			const crime = colapsar(m[5]).replace(/[.:;]+$/, "");
 			titulos.push({ inicio: inicio, fimTitulo: TITULO_FATO.lastIndex, n: n, crime: crime });
 		}
 
@@ -315,21 +363,26 @@
 		let capitulacao = "";
 		let fimCapitulacao = -1;
 		let inicioCapitulacao = -1;
-		const reCap = /(^|\n|\.\s)\s*(assim agindo|assim procedendo|ao assim agir|agindo assim|com tais condutas|com (essa|esta) conduta|dessa forma|desta forma)\b/gi;
-		reCap.lastIndex = aPartirDe;
-		const mc = reCap.exec(semAcento);
-		if (mc) {
-			inicioCapitulacao = mc.index + mc[0].length - mc[2].length;
-		} else {
-			const reInc = /\b(incidiu|incidiram|incorreu|incorreram|esta(o)? incurs[oa]s?)\b/gi;
-			reInc.lastIndex = aPartirDe;
-			const mi = reInc.exec(semAcento);
-			if (mi) {
-				// Volta até o começo da frase.
-				const antes = t.lastIndexOf(".", mi.index);
-				const quebra = t.lastIndexOf("\n", mi.index);
-				inicioCapitulacao = Math.max(antes + 1, quebra + 1, aPartirDe);
-			}
+		// A capitulação é a frase que contém "incidiu / incorreu / está
+		// incurso"; ela começa na expressão "Assim agindo…" (ou similar) que
+		// estiver logo antes, ou no início da frase. Assim um "Dessa forma"
+		// no meio da narrativa não é confundido com a capitulação.
+		const reInc = /\b(incidiu|incidiram|incorreu|incorreram|incorrendo|incidindo|esta(o)? incurs[oa]s?|restou incurs[oa]|praticou o crime|cometeu o crime|praticaram o crime)\b/gi;
+		reInc.lastIndex = aPartirDe;
+		const mi = reInc.exec(semAcento);
+		if (mi) {
+			const janela = semAcento.slice(Math.max(aPartirDe, mi.index - 500), mi.index);
+			const base = Math.max(aPartirDe, mi.index - 500);
+			const reCap = /(assim agindo|assim procedendo|ao assim agir|agindo assim|com tais condutas|com (essa|esta) conduta|dessa forma|desta forma|ao agir assim|com isso)\b/gi;
+			let ultimaCap = null;
+			let mc;
+			while ((mc = reCap.exec(janela))) ultimaCap = mc;
+			// Início da frase: último ". " seguido de maiúscula antes do verbo.
+			const reFrase = /[.;]\s+(?=[A-ZÀ-Ú])/g;
+			let inicioFrase = base;
+			let mf;
+			while ((mf = reFrase.exec(janela))) inicioFrase = base + mf.index + mf[0].length;
+			inicioCapitulacao = ultimaCap && base + ultimaCap.index >= inicioFrase - 2 ? base + ultimaCap.index : inicioFrase;
 		}
 		if (inicioCapitulacao >= 0) {
 			const resto = t.slice(inicioCapitulacao);
@@ -367,9 +420,26 @@
 			});
 		});
 
-		// Fato único sem título: tenta ao menos a data e os denunciados do
-		// texto anterior à capitulação.
+		// Fato único sem título ("... pela prática do seguinte fato delituoso:
+		// No dia ..."): a narrativa vai do fim da qualificação (marcadores
+		// abaixo) até a capitulação.
 		const corpoGeral = inicioCapitulacao > 0 ? t.slice(0, inicioCapitulacao) : t;
+		if (!titulos.length) {
+			const inicioFatos = inicioDaNarrativa(corpoGeral);
+			const corpo = corpoGeral.slice(inicioFatos);
+			if (colapsar(corpo).length > 40) {
+				const primeira = colapsar(corpo).slice(0, 300);
+				fatos.push({
+					n: 1,
+					unico: true,
+					crime: crimeDaCapitulacao(capitulacao),
+					data: dataPorExtenso(primeira),
+					denunciados: denunciadosDe(corpo),
+					vitima: vitimaDe(corpo),
+					texto: colapsar(corpo),
+				});
+			}
+		}
 		let denunciados = [];
 		fatos.forEach(function (f) {
 			f.denunciados.forEach(function (d) { if (denunciados.indexOf(d) === -1) denunciados.push(d); });
@@ -392,9 +462,8 @@
 		}
 
 		const partesTrecho = [];
-		titulos.forEach(function (tit, i) {
-			const f = fatos[i];
-			partesTrecho.push(colapsar(t.slice(tit.inicio, tit.fimTitulo)) + "\n" + f.texto.slice(0, 450) + (f.texto.length > 450 ? " […]" : ""));
+		fatos.forEach(function (f) {
+			partesTrecho.push(tituloDoFato(f) + "\n" + f.texto);
 		});
 		if (capitulacao) partesTrecho.push(capitulacao);
 		if (textoRequerimentos) partesTrecho.push(limitar(cortarNoFecho(textoRequerimentos), 900));
@@ -464,10 +533,13 @@
 		// "nº 372", "L.A.d.S.," nem "mov. 1.4").
 		const fim = /\.\s+(?=[A-ZÀ-Ú])/.exec(t);
 		if (fim) t = t.slice(0, fim.index + 1);
+		// "Consta dos inclusos autos de inquérito policial que, no dia..." -> "No dia..."
+		t = t.replace(/^consta d[oa]s?\s+(?:inclus[oa]s?\s+|presentes\s+)?(?:autos|inqu[ée]rito|procedimento)[^,]{0,80}?\bque,?\s*/i, "");
+		t = t.charAt(0).toUpperCase() + t.slice(1);
 		t = t
 			.replace(/,?\s*(?:tudo\s+)?(?:conforme|consoante|segundo)\s*:?\s*(?:se\s+(?:v[eê]|infere)\s+d[oa]s?\s*)?(?:o\s+|a\s+|os\s+|as\s+)?(?:boletim|termos?|autos?|laudos?|atestado|depoimentos?|declara[çc][õo]es|relat[óo]rio|fotografias?|imagens?|documentos?)[\s\S]*$/i, ".")
 			.replace(/\s*\((?:mov|evento|seq|fl|fls)\.?[^)]*\)/gi, "")
-			.replace(/(?:,\s*|\s+)(?:de forma\s+)?(?:dolosamente|livre e conscientemente|com consci[êe]ncia e vontade)[^,]*?(?:,\s*ciente[^,]*?(?:conduta|a[çc][ãa]o|comportamento))?\s*,/gi, " ")
+			.replace(/(?:,\s*|\s+)(?:de forma\s+)?(?:dolosamente|livre e conscientemente|com consci[êe]ncia e vontade|com vontade livre e consciente|de forma livre e consciente|volunt[áa]ria e conscientemente)[^,]*?(?:,\s*ciente[^,]*?(?:conduta|a[çc][ãa]o|comportamento))?\s*,/gi, " ")
 			.replace(/(?:,\s*|\s+)por raz[õo]es d[ae] condi[çc][ãa]o d[eo] sexo feminino[^,]*?(?:contra a mulher)?\s*,/gi, " ")
 			.replace(/\s*situad[oa]s?\s+n[ao]s?\s[\s\S]*?(?=,\s*(?:o|a|os|as)\s+(?:ora\s+)?(?:denunciad|acusad|investigad))/i, "")
 			.replace(/\s*,\s*,/g, ",")
@@ -495,7 +567,7 @@
 			.replace(/\bartigo\b/gi, "art.")
 			.replace(/\bart\s+(?=\d)/gi, "art. ")
 			.replace(/(\be|,)\s+n[oa]s?\s+(?=arts?\.)/gi, "$1 ")
-			.replace(/,?\s*(?:e\s+)?requer[\s\S]*$/i, "")
+			.replace(/,?\s*(?:e\s+)?(?:requer|raz[ãa]o pela qual|motivo pelo qual|pelo que|diante do exposto|ante o exposto|pelo exposto)[\s\S]*$/i, "")
 			.replace(/\s*,\s*,/g, ",")
 			.replace(/[.;:\s]+$/, "")
 			.trim();
@@ -508,10 +580,8 @@
 		if (d.denunciados.length) abertura += " contra " + juntarLista(d.denunciados);
 		partes.push(abertura + ".");
 		d.fatos.forEach(function (f) {
-			let s = "Fato " + f.n + (f.crime ? " – " + f.crime : "");
-			if (f.data) s += " (" + f.data + ")";
 			const desc = descricaoObjetivaFato(f.texto);
-			partes.push(s + (desc ? ": " + desc : "."));
+			partes.push(tituloDoFato(f) + (desc ? ": " + desc : "."));
 		});
 		const artigos = artigosImputacao(d.capitulacao);
 		if (artigos) partes.push("Imputação: " + artigos + ".");
@@ -574,22 +644,32 @@
 		const contagem = { designada: 0, redesignada: 0, cancelada: 0, realizada: 0, "não realizada": 0 };
 		eventos.forEach(function (e) { contagem[e.situacao]++; });
 
-		// Uma designação (ou redesignação, que traz a nova data) continua
-		// valendo se nenhum evento posterior do mesmo tipo a encerrou.
-		const pendentes = [];
+		// Cada evento de audiência pode ser "substituído" por um evento
+		// posterior da mesma audiência (mesma data marcada, ou mesmo tipo):
+		// designada -> redesignada -> realizada, por exemplo. Na certidão só
+		// aparece o último evento de cada audiência ("finais"); a situação
+		// "designada" fica só para as que ainda não têm resultado.
+		function mesmaAudiencia(a, b) {
+			if (a.dataAudiencia && b.dataAudiencia && a.dataAudiencia === b.dataAudiencia) return true;
+			return a.tipo === b.tipo || a.tipo === "Audiência" || b.tipo === "Audiência";
+		}
 		eventos.forEach(function (e, i) {
 			if (e.situacao !== "designada" && e.situacao !== "redesignada") return;
-			const quando = chaveData(e.dataAudiencia);
-			if (!isNaN(quando) && quando < agoraMs - 12 * 3600 * 1000) return;
-			const encerrada = eventos.slice(i + 1).some(function (p) {
-				if (p.situacao === "designada" && p.dataAudiencia === e.dataAudiencia) return false;
-				const mesmaData = p.dataAudiencia && p.dataAudiencia === e.dataAudiencia;
-				const mesmoTipo = p.tipo === e.tipo || p.tipo === "Audiência" || e.tipo === "Audiência";
-				return mesmaData || (mesmoTipo && !p.dataAudiencia) || (mesmoTipo && p.situacao !== "realizada" && p.situacao !== "não realizada");
-			});
-			if (!encerrada) pendentes.push(e);
+			const sucessor = eventos.slice(i + 1).find(function (p) { return mesmaAudiencia(e, p); });
+			if (sucessor) e.substituidaPor = sucessor.seq || true;
 		});
-		return { eventos: eventos, pendentes: pendentes, contagem: contagem };
+		const finais = eventos.filter(function (e) { return !e.substituidaPor; });
+		const pendentes = [];
+		finais.forEach(function (e) {
+			if (e.situacao !== "designada" && e.situacao !== "redesignada") return;
+			const quando = chaveData(e.dataAudiencia);
+			if (!isNaN(quando) && quando < agoraMs - 12 * 3600 * 1000) {
+				e.semResultado = true; // data já passou e não há registro do resultado
+				return;
+			}
+			pendentes.push(e);
+		});
+		return { eventos: eventos, finais: finais, pendentes: pendentes, contagem: contagem };
 	}
 
 	// ---------------------------------------------------------------
@@ -652,6 +732,8 @@
 		extrairDenuncia: extrairDenuncia,
 		resumoDenuncia: resumoDenuncia,
 		limparAssinaturas: limparAssinaturas,
+		fatosIntegrais: fatosIntegrais,
+		tituloDoFato: tituloDoFato,
 		descricaoObjetivaFato: descricaoObjetivaFato,
 		artigosImputacao: artigosImputacao,
 		analisarAudiencias: analisarAudiencias,

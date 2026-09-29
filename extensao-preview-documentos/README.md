@@ -867,8 +867,11 @@ Salvar PDF** e **Copiar texto**. A certidão é dividida em seções:
   cada situação. Os movimentos de audiência também ficam marcados com uma
   barra lateral na lista de eventos. A análise é feita pelos nomes e
   complementos dos movimentos ("AUDIÊNCIA DE CONCILIAÇÃO REDESIGNADA - para
-  27/11/2026 às 14h00"); uma designação deixa de valer se depois houver
-  cancelamento, redesignação ou realização da mesma audiência;
+  27/11/2026 às 14h00"). Na lista, **cada audiência aparece só com o seu
+  último evento**: uma designação que depois foi redesignada, cancelada ou
+  realizada não é repetida, e a situação "designada" fica só para as que
+  ainda não têm resultado (se a data já passou sem resultado registrado,
+  aparece "designada (sem registro de resultado)");
 - **III – Eventos do processo:** todos os movimentos em ordem cronológica,
   um por linha, com data e hora em negrito e o nome do movimento em
   destaque. As **intimações, citações, leituras, confirmações e decursos
@@ -884,7 +887,15 @@ Salvar PDF** e **Copiar texto**. A certidão é dividida em seções:
     marcados "invalidado") e mostrar o sequencial;
 - **IV – Peças principais:** resumo dos pedidos da petição inicial ou
   denúncia, da contestação ou resposta à acusação, da sentença e dos
-  recursos, uma linha por peça: "Petição inicial (evento 2, 25/09/2026): …";
+  recursos, uma linha por peça: "Petição inicial (evento 2, 25/09/2026): …".
+  Na tela, cada peça é um cartão com: o cabeçalho (peça N de M, tipo,
+  evento, data, movimento, arquivo, "incluir na certidão"); o quadro
+  **① Texto extraído do arquivo** (referência, não sai na impressão); e o
+  quadro **② Resumo que vai para a certidão**, que é exatamente o
+  parágrafo impresso. Arquivos cujo nome começa com
+  **"autoPrisaoFlagrante"** são ignorados: em processo criminal, a
+  "inicial" costuma ser a juntada do auto de prisão em flagrante, que não
+  precisa de resumo, e o movimento que só tem esse arquivo não entra;
 - local e data, e o nome e o cargo do(a) servidor(a). Nome, cargo e local
   ficam gravados para as próximas certidões.
 
@@ -908,7 +919,14 @@ Opções da extensão.
   na impressão, e o servidor escreve o resumo no campo ao lado. O botão
   "Copiar trecho para o resumo" serve de ponto de partida.
   - **Denúncia.** A extensão usa o padrão das denúncias do Ministério
-    Público: títulos "FATO 01 – crime", data de cada fato (o fato que diz
+    Público: títulos "FATO 01 – crime", "1º FATO", "PRIMEIRO FATO" ou
+    "FATO ÚNICO". **Sem títulos** (fato único narrado direto), a narrativa
+    é localizada entre o fim da qualificação ("… pela prática do seguinte
+    fato delituoso:", "DOS FATOS", "Consta dos inclusos autos…" ou o
+    primeiro "No dia…") e a frase da capitulação ("Assim agindo… incorreu
+    / incidiu…"), e vira "Fato único". O quadro ① traz os **fatos na
+    íntegra**; os botões "Usar os fatos na íntegra" e "Usar resumo
+    objetivo" alternam o que vai para o quadro ②. Data de cada fato (o fato que diz
     "sob a mesma circunstância de data e local do fato 01" herda a data),
     denunciado(s), o parágrafo da capitulação ("Assim agindo, o denunciado
     … incidiu nos crimes previstos …") e os requerimentos finais
@@ -941,8 +959,20 @@ Opções da extensão.
     modelo.
   - Na primeira vez, o modelo é baixado pelo Chrome depois de um clique em
     "✨ Gerar resumos".
-  - Se a IA não estiver disponível, a certidão avisa e segue no modo
-    manual. O botão **🔍 Diagnóstico da IA** mostra a versão do Chrome e o
+  - A barra da janela mostra, em destaque, se a IA está **DISPONÍVEL**
+    (verde), **disponível com download no 1º uso** (amarelo) ou
+    **INDISPONÍVEL** (vermelho, clicável para ver o motivo). Quando está
+    indisponível, a opção "IA do navegador" e os botões "Resumir com IA"
+    ficam desativados e a certidão segue no modo manual.
+  - Prompts por tipo de peça: na denúncia, a IA recebe cada fato **na
+    íntegra** e escreve uma linha por fato (quando, onde, quem, o que fez,
+    contra quem, resultado) e, ao final, "Imputação:" só com os artigos já
+    isolados pela extensão; na inicial, os pedidos com valores; na
+    contestação e na resposta à acusação, preliminares, teses e pedidos;
+    na sentença, o dispositivo (resultado, valores, pena e regime); no
+    recurso, o que se pede ao tribunal. Se o trecho extraído for curto, a
+    IA recebe também o final do texto.
+  - O botão **🔍 Diagnóstico da IA** mostra a versão do Chrome e o
     que o navegador responde para cada combinação de idioma.
 
 #### Como ativar a IA do Chrome

@@ -21,7 +21,7 @@ const SERVIDOR_KEY = "pdpCertidaoServidor";
 const OPCOES_KEY = "pdpCertidaoOpcoes";
 const PLACEHOLDER = "[preencher]";
 const MAX_PAGINAS_PDF = 120;
-const LIMITE_ENTRADA_IA = 6000;
+const LIMITE_ENTRADA_IA = 9000;
 
 const $ = (sel) => document.querySelector(sel);
 const el = (tag, attrs, ...filhos) => {
@@ -162,6 +162,47 @@ const SISTEMA_IA =
 
 let iaOpcoes = null;
 let iaBase = null;
+let iaEstado = "verificando"; // available | downloadable | downloading | unavailable | verificando
+
+const IA_ROTULOS = {
+	verificando: { classe: "ia-verificando", texto: "IA do Chrome: verificando…" },
+	available: { classe: "ia-ok", texto: "✅ IA do Chrome: DISPONÍVEL" },
+	downloadable: { classe: "ia-baixar", texto: "⬇️ IA do Chrome: disponível — o modelo será baixado ao clicar em “Gerar resumos”" },
+	downloading: { classe: "ia-baixar", texto: "⏳ IA do Chrome: baixando o modelo…" },
+	unavailable: { classe: "ia-nao", texto: "⛔ IA do Chrome: INDISPONÍVEL neste computador — clique para ver o motivo" },
+};
+
+// Mostra, na barra, se a IA pode ser usada; desativa a opção e os botões
+// "Resumir com IA" quando não pode.
+function mostrarEstadoIA(estado, detalhe) {
+	iaEstado = estado;
+	const r = IA_ROTULOS[estado] || IA_ROTULOS.verificando;
+	const badge = $("#ia-status");
+	if (badge) {
+		badge.className = "ia-status " + r.classe;
+		badge.textContent = detalhe || r.texto;
+		badge.title = estado === "unavailable" ? "Clique para ver o diagnóstico" : "";
+	}
+	const opcaoIA = document.querySelector('#modo option[value="ia"]');
+	if (opcaoIA) {
+		opcaoIA.disabled = estado === "unavailable";
+		opcaoIA.textContent = "IA do navegador (Chrome)" + (estado === "unavailable" ? " — indisponível" : "");
+	}
+	if (estado === "unavailable" && $("#modo").value === "ia") $("#modo").value = "manual";
+	pecasUI.forEach(atualizarBotaoIA);
+}
+
+function atualizarBotaoIA(ui) {
+	if (!ui.botaoIA) return;
+	ui.botaoIA.disabled = iaEstado === "unavailable";
+	ui.botaoIA.title = iaEstado === "unavailable" ? "A IA do Chrome não está disponível neste computador (veja o Diagnóstico)" : "Resumir esta peça com a IA do Chrome";
+}
+
+async function verificarIA() {
+	mostrarEstadoIA("verificando");
+	mostrarEstadoIA(await iaDisponibilidade());
+	return iaEstado;
+}
 
 // Combinações testadas, nesta ordem: português declarado; sem declarar
 // idioma; inglês declarado (algumas versões só aceitam en/es/ja nas
@@ -223,35 +264,77 @@ async function iaSessaoBase() {
 		initialPrompts: [{ role: "system", content: SISTEMA_IA }],
 		monitor(m) {
 			m.addEventListener("downloadprogress", (e) => {
-				status("Baixando o modelo de IA do Chrome: " + Math.round((e.loaded || 0) * 100) + "%");
+				const pct = Math.round((e.loaded || 0) * 100);
+				status("Baixando o modelo de IA do Chrome: " + pct + "%");
+				mostrarEstadoIA("downloading", "⏳ IA do Chrome: baixando o modelo… " + pct + "%");
 			});
 		},
 	});
+	mostrarEstadoIA("available");
 	return iaBase;
 }
 
+// Prompts por tipo de peça. A IA recebe o texto já limpo (sem o carimbo
+// de assinatura) e, na denúncia, os fatos NA ÍNTEGRA, separados por fato,
+// e os artigos da imputação já isolados.
+const INSTRUCOES_IA = {
+	inicial:
+		"Liste, de forma objetiva, os PEDIDOS formulados na petição inicial abaixo (por exemplo: condenação ao pagamento de valores, " +
+		"obrigação de fazer, tutela de urgência, gratuidade), com os valores quando houver. Comece com 'Requer' e use no máximo 4 frases. " +
+		"Não repita a qualificação das partes nem a fundamentação jurídica.",
+	contestacao:
+		"Resuma a contestação abaixo em no máximo 4 frases: primeiro as preliminares (se houver), depois as principais teses de mérito " +
+		"e, por fim, o pedido final (improcedência, extinção etc.).",
+	resposta:
+		"Resuma a resposta à acusação abaixo em no máximo 4 frases: preliminares e nulidades alegadas, pedido de absolvição sumária " +
+		"ou rejeição da denúncia (com o fundamento), e requerimentos de prova (testemunhas, diligências). Se a defesa apenas se reservar " +
+		"para discutir o mérito depois, diga isso.",
+	sentenca:
+		"Resuma o que foi decidido na sentença abaixo em no máximo 4 frases: resultado (procedência, improcedência, condenação, " +
+		"absolvição, extinção), condenações e valores, e, se criminal, o crime, a pena, o regime e eventual substituição ou suspensão.",
+	recurso:
+		"Resuma o recurso abaixo em no máximo 3 frases: quem recorre (se constar), qual decisão é atacada, o que se pede ao tribunal " +
+		"(reforma, anulação, redução de pena etc.) e os principais fundamentos.",
+};
+
 function promptPara(ui) {
-	const rotulo = ui.peca.rotulo.toLowerCase();
-	if (ui.peca.tipo === "denuncia" && ui.denuncia) {
+	const delimitar = (t) => '"""\n' + t + '\n"""';
+	if (ui.peca.tipo === "denuncia" && ui.denuncia && ui.denuncia.fatos.length) {
 		const d = ui.denuncia;
-		const blocos = [];
-		if (d.denunciados.length) blocos.push("DENUNCIADO(S): " + d.denunciados.join(", "));
-		if (d.fatos.length) blocos.push("FATOS:\n" + d.fatos.map((f) => `Fato ${f.n} – ${f.crime}${f.data ? " (" + f.data + ")" : ""}: ${f.texto.slice(0, 700)}`).join("\n"));
+		const partes = [];
+		if (d.denunciados.length) partes.push("DENUNCIADO(S): " + d.denunciados.join(", "));
+		d.fatos.forEach((f) => partes.push(T.tituloDoFato(f).toUpperCase() + " — NARRATIVA INTEGRAL:\n" + delimitar(f.texto)));
 		const artigos = T.artigosImputacao(d.capitulacao);
-		if (artigos) blocos.push("ARTIGOS DA IMPUTAÇÃO: " + artigos);
-		const base = blocos.length ? blocos.join("\n\n") : ui.trecho.value;
+		partes.push("ARTIGOS DA IMPUTAÇÃO (copie exatamente): " + (artigos || "não identificados — extraia do texto da capitulação: " + d.capitulacao));
 		return (
-			"Resuma a denúncia abaixo de forma objetiva: para cada fato, escreva uma frase com número, crime, data e a conduta " +
-			"do denunciado (sem fórmulas como 'dolosamente, ciente da ilicitude', sem endereços completos e sem citar provas ou " +
-			"movimentos do processo). Ao final, escreva 'Imputação:' seguido APENAS dos artigos de lei, exatamente como informados. " +
-			"Não inclua requerimentos, assinaturas nem dados de validação do documento. Mantenha as iniciais da vítima como no original.\n\n" +
-			base
+			"A seguir estão os fatos narrados numa denúncia criminal, cada um na íntegra. Escreva o resumo para uma certidão, assim:\n" +
+			"- uma linha por fato, começando por 'Fato N – <crime> (<data>):' (use 'Fato único' se houver só um);\n" +
+			"- em cada linha, 1 ou 2 frases objetivas dizendo QUANDO (data e hora), ONDE (só o tipo de local e o município, sem endereço), " +
+			"QUEM (o denunciado), O QUE FEZ (a conduta, com o meio empregado) e CONTRA QUEM (a vítima pelas iniciais, como no original), " +
+			"e o resultado, se houver;\n" +
+			"- não use fórmulas como 'dolosamente, ciente da ilicitude', não cite provas, movimentos do processo nem assinaturas;\n" +
+			"- na última linha, escreva 'Imputação:' seguido APENAS dos artigos de lei informados.\n\n" +
+			partes.join("\n\n")
 		);
 	}
-	if (ui.peca.tipo === "sentenca") {
-		return "Resuma em no máximo 3 frases objetivas o que foi decidido na sentença (dispositivo) abaixo: resultado, condenações, valores e penas, se houver.\n\n" + ui.trecho.value;
-	}
-	return `Resuma em no máximo 3 frases objetivas os pedidos formulados na ${rotulo} abaixo, com valores quando houver.\n\n` + ui.trecho.value;
+	const instrucao = INSTRUCOES_IA[ui.peca.tipo] || INSTRUCOES_IA.inicial;
+	// Trecho curto (título não encontrado, peça atípica): manda também o
+	// final do texto, onde costumam estar os pedidos ou o dispositivo.
+	let base = ui.trecho.value;
+	if (T.colapsar(base).length < 400 && ui.texto) base = T.limparAssinaturas(ui.texto).slice(-4000);
+	return instrucao + "\n\nTexto:\n" + delimitar(base);
+}
+
+// Resposta da IA: sem markdown, espaços normalizados, mas mantendo as
+// quebras de linha (um fato por linha na denúncia).
+function limparRespostaIA(resposta) {
+	return String(resposta || "")
+		.replace(/\*\*|__|^#+\s*/gm, "")
+		.replace(/^\s*[-•*]\s*/gm, "")
+		.split("\n")
+		.map((l) => l.replace(/\s+/g, " ").trim())
+		.filter(Boolean)
+		.join("\n");
 }
 
 async function resumirComIA(ui) {
@@ -262,7 +345,7 @@ async function resumirComIA(ui) {
 		const sessao = await base.clone();
 		try {
 			const resposta = await sessao.prompt(prompt);
-			return String(resposta || "").replace(/\*\*/g, "").replace(/^\s*[-•]\s*/gm, "").replace(/\s+/g, " ").trim();
+			return limparRespostaIA(resposta);
 		} catch (e) {
 			if (/quota|too large|context/i.test(e.name + " " + e.message) && prompt.length > 1500) {
 				prompt = prompt.slice(0, Math.floor(prompt.length / 2));
@@ -406,11 +489,12 @@ function secaoAudiencias() {
 			c.realizada + (c.realizada === 1 ? " realizada" : " realizadas"),
 		];
 		if (c["não realizada"]) resumo.push(c["não realizada"] + " não realizada(s)");
-		caixa.append(el("p", { class: "aud-resumo", text: "Histórico: " + resumo.join(" · ") + "." }));
-		a.eventos.forEach((e) => {
+		caixa.append(el("p", { class: "aud-resumo", text: "Ocorrências no histórico: " + resumo.join(" · ") + "." }));
+		caixa.append(el("p", { class: "aud-resumo", text: "Situação de cada audiência (último evento registrado):" }));
+		a.finais.forEach((e) => {
 			const linha = el("div", { class: "aud-item aud-" + e.situacao.replace(/\s+/g, "-").normalize("NFD").replace(/[\u0300-\u036f]/g, "") });
 			linha.append(el("span", { class: "ev-data", text: (e.dataHora || "").slice(0, 10) }), " – " + e.tipo + " – ");
-			linha.append(el("span", { class: "aud-situacao", text: e.situacao.toUpperCase() }));
+			linha.append(el("span", { class: "aud-situacao", text: e.situacao.toUpperCase() + (e.semResultado ? " (sem registro de resultado)" : "") }));
 			if (e.dataAudiencia) linha.append((e.situacao === "redesignada" ? " para " : " — data: ") + e.dataAudiencia.replace(" ", " às "));
 			if (e.seq && opcoes.seq) linha.append(" (seq. " + e.seq + ")");
 			caixa.append(linha);
@@ -484,47 +568,69 @@ function secaoEventos() {
 	return sec;
 }
 
-function blocoPeca(peca, indice) {
+// Cartão de cada peça principal. Na tela:
+//   cabeçalho (peça N de M, tipo, evento, data, incluir, arquivo)
+//   ① Texto extraído do arquivo — referência, não sai na impressão
+//   ② Resumo que vai para a certidão — exatamente o parágrafo impresso
+// Na impressão só o parágrafo ② aparece.
+function blocoPeca(peca, indice, total) {
 	const titulo = `${peca.rotulo} (${peca.seq ? "evento " + peca.seq + ", " : ""}${dataDe(peca.dataHora) || "data não informada"})`;
 	const resumo = el("span", {
 		class: "resumo",
 		contenteditable: "true",
-		"data-placeholder": "[escreva aqui o resumo dos pedidos]",
+		"data-placeholder": "[escreva aqui o resumo — ou use os botões do quadro ①]",
 	});
-	const raiz = el("div", { class: "peca" }, el("p", { class: "peca-texto" }, el("strong", { text: titulo + ": " }), resumo));
+	const paragrafo = el("p", { class: "peca-texto" }, el("strong", { text: titulo + ": " }), resumo);
 
 	const incluir = el("input", { type: "checkbox", checked: true });
 	const seletor = el("select", { title: "Arquivo usado para extrair o texto" });
 	(peca.docs || []).forEach((d, i) => seletor.append(el("option", { value: String(i), text: d.nome || "Documento " + (i + 1) })));
 	if (!(peca.docs || []).length) seletor.append(el("option", { value: "", text: "(nenhum arquivo encontrado)" }));
 	const estado = el("span", { class: "estado", text: "" });
-	const seloIA = el("span", { class: "selo-ia", hidden: true, text: "✨ gerado por IA — revise antes de imprimir" });
-	const trecho = el("textarea", { spellcheck: "false", placeholder: "O trecho extraído da peça aparecerá aqui." });
-	const abrir = el("button", { type: "button", text: "Abrir arquivo" });
-	const releer = el("button", { type: "button", text: "Reextrair" });
-	const botaoIA = el("button", { type: "button", text: "✨ Resumir com IA" });
-	const usarTrecho = el("button", { type: "button", text: "Copiar trecho para o resumo" });
+	const seloIA = el("span", { class: "selo-ia", hidden: true, text: "✨ Gerado pela IA — revise antes de imprimir" });
+	const trecho = el("textarea", { spellcheck: "false", rows: "9", placeholder: "O texto extraído do arquivo aparecerá aqui." });
+	const abrir = el("button", { type: "button", text: "📄 Abrir arquivo" });
+	const releer = el("button", { type: "button", text: "↻ Reextrair" });
+	const botaoIA = el("button", { type: "button", class: "btn-ia", text: "✨ Resumir com IA" });
+	const usarTrecho = el("button", { type: "button", text: "Copiar trecho para o resumo ↓" });
+	const usarIntegral = el("button", { type: "button", hidden: peca.tipo !== "denuncia", text: "Usar os fatos na íntegra ↓" });
+	const usarObjetivo = el("button", { type: "button", hidden: peca.tipo !== "denuncia", text: "Usar resumo objetivo ↓" });
 
-	const apoio = el(
+	const cabecalho = el(
 		"div",
-		{ class: "apoio" },
+		{ class: "peca-cab no-print" },
 		el(
 			"div",
-			{ class: "apoio-linha" },
-			el("label", {}, incluir, " incluir na certidão"),
-			el("label", {}, "Arquivo: ", seletor),
-			abrir,
-			releer,
-			botaoIA,
-			usarTrecho,
-			seloIA
+			{ class: "peca-cab-linha" },
+			el("span", { class: "peca-num", text: `Peça ${indice + 1} de ${total}` }),
+			el("span", { class: "peca-nome", text: peca.rotulo }),
+			el("span", { class: "peca-info", text: [peca.seq ? "evento " + peca.seq : "", dataDe(peca.dataHora)].filter(Boolean).join(" · ") }),
+			el("span", { class: "barra-espaco" }),
+			el("label", { class: "peca-incluir" }, incluir, " incluir na certidão")
 		),
-		el("div", { class: "apoio-linha" }, estado),
-		el("details", {}, el("summary", { text: "Trecho extraído (referência — não sai na impressão)" }), trecho)
+		el("div", { class: "peca-cab-linha peca-evento", text: "Movimento: " + (peca.evento || "") }),
+		el("div", { class: "peca-cab-linha" }, el("label", {}, "Arquivo: ", seletor), abrir, releer)
 	);
-	raiz.append(apoio);
 
-	const ui = { peca, raiz, resumo, trecho, estado, seletor, seloIA, incluir, indice, texto: "", denuncia: null };
+	const referencia = el(
+		"div",
+		{ class: "peca-bloco peca-ref no-print" },
+		el("div", { class: "peca-bloco-titulo" }, el("span", { class: "passo", text: "1" }), "Texto extraído do arquivo ", el("em", { text: "(referência — não sai na impressão)" })),
+		trecho,
+		el("div", { class: "peca-acoes" }, usarTrecho, usarIntegral, usarObjetivo)
+	);
+
+	const saida = el(
+		"div",
+		{ class: "peca-bloco peca-saida" },
+		el("div", { class: "peca-bloco-titulo no-print" }, el("span", { class: "passo", text: "2" }), "Resumo que vai para a certidão ", el("em", { text: "(editável — é este texto que sai impresso)" })),
+		paragrafo,
+		el("div", { class: "peca-acoes no-print" }, botaoIA, seloIA),
+		el("div", { class: "peca-estado no-print" }, estado)
+	);
+
+	const raiz = el("div", { class: "peca" }, cabecalho, referencia, saida);
+	const ui = { peca, raiz, resumo, trecho, estado, seletor, seloIA, incluir, indice, botaoIA, texto: "", denuncia: null };
 
 	incluir.addEventListener("change", () => raiz.classList.toggle("excluida", !incluir.checked));
 	abrir.addEventListener("click", () => {
@@ -534,11 +640,19 @@ function blocoPeca(peca, indice) {
 	releer.addEventListener("click", () => extrair(ui, true));
 	seletor.addEventListener("change", () => extrair(ui, true));
 	botaoIA.addEventListener("click", () => resumirUmaComIA(ui, true));
-	usarTrecho.addEventListener("click", () => {
-		resumo.textContent = T.colapsar(trecho.value);
+	const definirResumo = (texto) => {
+		resumo.textContent = texto;
 		seloIA.hidden = true;
+	};
+	usarTrecho.addEventListener("click", () => definirResumo(T.colapsar(trecho.value)));
+	usarIntegral.addEventListener("click", () => {
+		if (!ui.denuncia) return;
+		const d = ui.denuncia;
+		definirResumo((d.denunciados.length ? "Denúncia oferecida contra " + T.juntarLista(d.denunciados) + ".\n" : "") + T.fatosIntegrais(d));
 	});
+	usarObjetivo.addEventListener("click", () => ui.denuncia && definirResumo(ui.denuncia.resumo));
 	resumo.addEventListener("input", () => (seloIA.hidden = true));
+	atualizarBotaoIA(ui);
 	return ui;
 }
 
@@ -569,7 +683,14 @@ async function extrair(ui, forcar) {
 				ui.denuncia = T.extrairDenuncia(texto);
 				ui.trecho.value = ui.denuncia.trecho;
 				if (!T.colapsar(ui.resumo.textContent)) ui.resumo.textContent = ui.denuncia.resumo;
-				estadoPeca(ui, `Resumo pré-montado a partir da denúncia (${ui.denuncia.fatos.length} fato(s)) — revise.`);
+				const nf = ui.denuncia.fatos.length;
+				estadoPeca(
+					ui,
+					nf
+						? `Resumo objetivo pré-montado (${nf === 1 && ui.denuncia.fatos[0].unico ? "fato único, sem título" : nf + " fato(s)"}) — revise. No quadro ① estão os fatos na íntegra.`
+						: "Não identifiquei a narrativa dos fatos — confira o quadro ① e escreva o resumo (ou use a IA).",
+					!nf
+				);
 			} else {
 				ui.trecho.value = T.extrairTrechoPedidos(texto, ui.peca.tipo);
 				estadoPeca(ui, "Trecho extraído — revise e escreva o resumo (ou use a IA).");
@@ -586,13 +707,14 @@ async function extrair(ui, forcar) {
 async function resumirUmaComIA(ui, interativo) {
 	const disp = await iaDisponibilidade();
 	if (disp === "unavailable") {
+		mostrarEstadoIA("unavailable");
 		const msg = "A IA do Chrome não está disponível neste computador/versão do navegador — use o modo manual.";
 		estadoPeca(ui, msg, true);
 		if (interativo) alert(msg + "\n\n" + (await iaDiagnostico()).join("\n"));
 		return false;
 	}
 	await extrair(ui);
-	if (!T.colapsar(ui.trecho.value) && !ui.denuncia) return false;
+	if (!T.colapsar(ui.trecho.value) && !(ui.denuncia && ui.denuncia.fatos.length)) return false;
 	estadoPeca(ui, "Resumindo com a IA do navegador…");
 	try {
 		const texto = await resumirComIA(ui);
@@ -614,6 +736,7 @@ async function gerarResumos() {
 		if (modo === "ia") {
 			const disp = await iaDisponibilidade();
 			if (disp === "unavailable") {
+				mostrarEstadoIA("unavailable");
 				mostrarAvisos(["A IA do Chrome não está disponível neste computador/versão — os trechos foram extraídos para preenchimento manual."]);
 				$("#modo").value = "manual";
 			}
@@ -674,7 +797,7 @@ async function montar() {
 			el("p", { contenteditable: "true", text: "CERTIFICO, ainda, que as peças principais do processo apresentam, em síntese, o seguinte conteúdo:" })
 		);
 		dados.pecas.forEach((peca, i) => {
-			const ui = blocoPeca(peca, i);
+			const ui = blocoPeca(peca, i, dados.pecas.length);
 			pecasUI.push(ui);
 			secao.append(ui.raiz);
 		});
@@ -767,9 +890,13 @@ async function iniciar() {
 
 	mostrarAvisos(dados.avisos);
 	await montar();
+	await verificarIA();
 
 	$("#gerar-resumos").addEventListener("click", gerarResumos);
 	$("#imprimir").addEventListener("click", () => window.print());
+	$("#ia-status").addEventListener("click", async () => {
+		if (iaEstado === "unavailable") alert("Diagnóstico da IA do navegador\n\n" + (await iaDiagnostico()).join("\n\n"));
+	});
 	$("#diagnostico-ia").addEventListener("click", async () => {
 		alert("Diagnóstico da IA do navegador\n\n" + (await iaDiagnostico()).join("\n\n"));
 	});

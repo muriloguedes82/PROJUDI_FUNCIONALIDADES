@@ -545,6 +545,8 @@
 		});
 	}
 
+	const RE_ARQUIVO_IGNORADO = /^auto\s*_?(de\s*)?pris[aã]o\s*_?(em\s*)?flagrante/i;
+
 	async function lerPecas(movimentos, avisos) {
 		const pecas = [];
 		const unicas = new Set(); // inicial e denúncia: só a primeira
@@ -552,12 +554,17 @@
 			if (mov.invalido) continue;
 			const tipo = T.classificarMovimento(mov.titulo || mov.evento);
 			if (!tipo) continue;
-			if (tipo.tipo === "inicial" || tipo.tipo === "denuncia") {
-				if (unicas.has(tipo.tipo)) continue;
-				unicas.add(tipo.tipo);
-			}
+			if ((tipo.tipo === "inicial" || tipo.tipo === "denuncia") && unicas.has(tipo.tipo)) continue;
 			let docs = mov.docsDiretos || [];
 			if (!docs.length && mov.row) docs = await arquivosDaLinha(mov.row);
+			// Processo criminal: a "inicial" costuma ser a juntada do auto de
+			// prisão em flagrante, que não precisa de resumo. Arquivos
+			// "autoPrisaoFlagrante..." são ignorados; se o movimento só tiver
+			// esse tipo de arquivo, a peça não entra na certidão.
+			const total = docs.length;
+			docs = docs.filter(function (d) { return !RE_ARQUIVO_IGNORADO.test(colapsar(d.nome)); });
+			if (total && !docs.length) continue;
+			if (tipo.tipo === "inicial" || tipo.tipo === "denuncia") unicas.add(tipo.tipo);
 			pecas.push({
 				tipo: tipo.tipo,
 				rotulo: tipo.rotulo,

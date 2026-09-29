@@ -196,8 +196,93 @@ table.quadro .relacionado + .relacionado { margin-top: 3px; padding-left: 1.2em;
 .aud-realizada .aud-situacao { color: #0b5a1e; }
 .evento.nivel-0.ev-audiencia { border-left: 3px solid #1f5fa8; padding-left: calc(1.4em - 3px); margin-left: -0.4em; }
 
-.peca { margin: 0 0 0.9em; }
-.peca.excluida .peca-texto { text-decoration: line-through; opacity: 0.45; }
+/* Indicador de disponibilidade da IA (barra superior) */
+.ia-status {
+	display: inline-block;
+	padding: 4px 10px;
+	border-radius: 12px;
+	font-size: 12.5px;
+	font-weight: bold;
+	border: 1px solid transparent;
+}
+.ia-verificando { background: #eef1f4; color: #555; border-color: #d0d5db; }
+.ia-ok { background: #e3f4e8; color: #0b5a1e; border-color: #9fd3ae; }
+.ia-baixar { background: #fff4d6; color: #7a5200; border-color: #e0b200; }
+.ia-nao { background: #fde7e9; color: #a1111b; border-color: #f1a7ae; cursor: pointer; }
+
+/* Peças principais (IV) — um cartão por peça na tela */
+.peca {
+	margin: 0 0 1.2em;
+	border: 1px solid #b9c6d6;
+	border-radius: 6px;
+	background: #fbfcfe;
+	overflow: hidden;
+}
+.peca.excluida { opacity: 0.55; }
+.peca.excluida .peca-texto { text-decoration: line-through; }
+.peca-cab {
+	background: #e8eef6;
+	border-bottom: 1px solid #b9c6d6;
+	padding: 6px 10px;
+	font: 12.5px/1.4 Arial, Helvetica, sans-serif;
+	text-align: left;
+}
+.peca-cab-linha { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.peca-cab-linha + .peca-cab-linha { margin-top: 4px; }
+.peca-num {
+	background: #1f5fa8;
+	color: #fff;
+	border-radius: 10px;
+	padding: 1px 8px;
+	font-size: 11px;
+	font-weight: bold;
+}
+.peca-nome { font-weight: bold; font-size: 14px; color: #12355f; }
+.peca-info { color: #444; }
+.peca-evento { color: #555; font-size: 11.5px; }
+.peca-incluir { font-weight: bold; white-space: nowrap; }
+.peca-cab select { max-width: 280px; font: inherit; }
+.peca-cab button, .peca-acoes button { font: 12px Arial, Helvetica, sans-serif; padding: 2px 8px; cursor: pointer; }
+.peca-acoes button:disabled { cursor: not-allowed; opacity: 0.55; }
+.peca-bloco { padding: 8px 10px; }
+.peca-bloco-titulo {
+	font: bold 12.5px/1.4 Arial, Helvetica, sans-serif;
+	color: #12355f;
+	margin-bottom: 5px;
+	text-align: left;
+}
+.peca-bloco-titulo em { font-weight: normal; color: #666; }
+.passo {
+	display: inline-block;
+	width: 18px;
+	height: 18px;
+	line-height: 18px;
+	margin-right: 6px;
+	border-radius: 50%;
+	background: #12355f;
+	color: #fff;
+	text-align: center;
+	font-size: 11px;
+}
+.peca-ref { background: #f3f4f6; border-bottom: 1px dashed #b9c6d6; }
+.peca-ref textarea {
+	width: 100%;
+	min-height: 120px;
+	font: 12px/1.45 Consolas, "Courier New", monospace;
+	background: #fff;
+	border: 1px solid #cfd4da;
+	border-radius: 3px;
+	resize: vertical;
+	color: #333;
+}
+.peca-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 6px; }
+.peca-saida { background: #fff; border-left: 4px solid #1f5fa8; }
+.peca-saida .peca-texto { margin: 0; }
+.peca-saida .resumo { white-space: pre-wrap; }
+.peca-estado { font: 12px/1.4 Arial, Helvetica, sans-serif; margin-top: 4px; text-align: left; }
+.peca-estado .estado { color: #555; }
+.peca-estado .estado.erro { color: #b00020; }
+.selo-ia { color: #7a3fb0; font: bold 12px Arial, Helvetica, sans-serif; }
 
 .apoio {
 	margin: 0.3em 0 1.1em;
@@ -241,6 +326,9 @@ table.quadro .relacionado + .relacionado { margin-top: 3px; padding-left: 1.2em;
 @media print {
 	body { background: #fff; }
 	.no-print, .apoio, .peca.excluida { display: none !important; }
+	.peca { border: none; background: none; margin: 0 0 0.9em; overflow: visible; }
+	.peca-bloco { padding: 0; }
+	.peca-saida { border: none; }
 	#folha { width: auto; max-width: none; min-height: 0; margin: 0; padding: 0; box-shadow: none; }
 	.pendente, .resumo:empty::before { background: none; }
 	.audiencias, .evento.nivel-0.ev-audiencia { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
