@@ -1,0 +1,88 @@
+/* Manual do Usuário - mesma paleta dos Termos de Uso (termos.css). */
+:root {
+	--azul-escuro: #0b2545;
+	--azul: #13396b;
+	--azul-medio: #1f5591;
+	--azul-claro: #e8eff8;
+	--dourado: #c9a227;
+	--dourado-claro: #f7efd6;
+	--texto: #25324a;
+	--texto-suave: #5b6980;
+	--borda: #d5deea;
+	--fundo: #f4f6fa;
+	--altura-topo: 76px;
+	--largura-indice: 290px;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+	font-family: "Segoe UI", Roboto, Arial, Helvetica, sans-serif;
+	color: var(--texto);
+	background: var(--fundo);
+}
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+.topo {
+	position: fixed; inset: 0 0 auto 0; height: var(--altura-topo); z-index: 10;
+	display: flex; align-items: center; gap: 14px; padding: 0 24px; color: #fff;
+	background: linear-gradient(120deg, var(--azul-escuro) 0%, var(--azul) 60%, var(--azul-medio) 100%);
+	border-bottom: 4px solid var(--dourado);
+}
+.topo-emblema { width: 40px; height: 40px; flex: none; fill: none; stroke: var(--dourado); stroke-width: 1.8; stroke-linecap: round; }
+.topo-emblema circle { fill: var(--azul); }
+.topo-sobretitulo { margin: 0 0 2px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.72); }
+.topo-titulo { margin: 0; font-size: 24px; font-weight: 600; }
+.busca { margin-left: auto; }
+.busca input {
+	width: 280px; max-width: 40vw; padding: 8px 12px; border-radius: 18px; border: 1px solid rgba(255,255,255,.4);
+	background: rgba(255,255,255,.12); color: #fff; font-size: 14px; outline: none;
+}
+.busca input::placeholder { color: rgba(255,255,255,.7); }
+.busca input:focus { background: #fff; color: var(--texto); }
+
+.indice {
+	position: fixed; top: var(--altura-topo); bottom: 0; left: 0; width: var(--largura-indice);
+	overflow-y: auto; padding: 16px 10px 24px; background: #fff; border-right: 1px solid var(--borda);
+	font-size: 13px;
+}
+.indice a { display: block; padding: 5px 10px; border-radius: 6px; color: var(--texto); text-decoration: none; line-height: 1.3; }
+.indice a.sub { padding-left: 24px; font-size: 12px; color: var(--texto-suave); }
+.indice a:hover { background: var(--azul-claro); }
+.indice a.atual { background: var(--azul-claro); color: var(--azul); font-weight: 600; box-shadow: inset 3px 0 0 var(--dourado); }
+.indice a.oculto { display: none; }
+
+.conteudo {
+	position: fixed; top: var(--altura-topo); bottom: 0; left: var(--largura-indice); right: 0;
+	overflow-y: auto; padding: 24px 32px 48px; outline: none;
+}
+.conteudo > * { max-width: 900px; }
+.secao {
+	background: #fff; border: 1px solid var(--borda); border-radius: 10px;
+	padding: 18px 26px 10px; margin-bottom: 16px; line-height: 1.65; font-size: 14.5px;
+}
+.secao.oculta { display: none; }
+.secao.intro { border-left: 6px solid var(--dourado); }
+.secao h1 { font-size: 24px; margin: 4px 0 12px; color: var(--azul-escuro); }
+.secao h2 { font-size: 20px; margin: 4px 0 12px; color: var(--azul-escuro); }
+.secao h3 { font-size: 16px; margin: 20px 0 8px; color: var(--azul); }
+.secao h4 { font-size: 14.5px; margin: 16px 0 6px; color: var(--azul); }
+.secao p { margin: 0 0 12px; }
+.secao ul, .secao ol { margin: 0 0 12px; padding-left: 24px; }
+.secao li { margin-bottom: 4px; }
+.secao code { background: var(--azul-claro); padding: 1px 5px; border-radius: 4px; font-size: 12.5px; font-family: Consolas, "Courier New", monospace; }
+.secao pre { background: #0b2545; color: #e8eff8; padding: 12px 14px; border-radius: 8px; overflow-x: auto; font-size: 12.5px; }
+.secao pre code { background: none; padding: 0; color: inherit; }
+.secao blockquote { margin: 0 0 12px; padding: 8px 14px; border-left: 4px solid var(--dourado); background: var(--dourado-claro); border-radius: 0 6px 6px 0; }
+.secao table { border-collapse: collapse; margin: 0 0 12px; font-size: 13px; }
+.secao th, .secao td { border: 1px solid var(--borda); padding: 6px 10px; text-align: left; vertical-align: top; }
+.secao th { background: var(--azul-claro); }
+.secao a { color: var(--azul-medio); }
+mark { background: #ffe58a; padding: 0 1px; border-radius: 2px; }
+.sem-resultado, .carregando { color: var(--texto-suave); font-style: italic; }
+
+@media (max-width: 800px) {
+	.indice { display: none; }
+	.conteudo { left: 0; padding: 16px; }
+	.busca input { width: 160px; }
+}
