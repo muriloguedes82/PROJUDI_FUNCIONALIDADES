@@ -1,7 +1,7 @@
 // Verifica se o manual está coerente com a extensão e com os vídeos.
 //
 // Uso (na raiz do repositório):
-//   node extensao-preview-documentos/manual/verificar-manual.mjs              -> só verifica (usado no CI)
+//   node extensao-preview-documentos/manual/verificar-manual.mjs              -> só verifica (rodar antes de cada commit)
 //   node extensao-preview-documentos/manual/verificar-manual.mjs --corrigir   -> também regrava a tabela do Anexo A
 //
 // Regras verificadas:

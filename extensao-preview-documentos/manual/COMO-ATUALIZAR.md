@@ -5,8 +5,8 @@ manual é sempre igual ao `version` do
 [`manifest.json`](../manifest.json). Toda
 alteração que muda a versão da extensão — função nova, mudança de
 comportamento ou correção de erro — deve atualizar o manual **no mesmo pull
-request**. O CI ([`.github/workflows/manual.yml`](../../.github/workflows/manual.yml))
-reprova o PR se o manual ficar para trás.
+request**. Não há verificação automática no GitHub: antes de commitar, rode
+`node extensao-preview-documentos/manual/verificar-manual.mjs` (passo 7).
 
 O manual fica **dentro da extensão** porque o botão **📖 Manual do Usuário**
 do Menu (ícone da balança no Projudi/SEEU) abre `manual/MANUAL.md` numa aba,

@@ -14,8 +14,8 @@ Toda mudança que altera `version` em `extensao-preview-documentos/manifest.json
    `node extensao-preview-documentos/manual/videos/fonte/gravar.mjs Vnn`);
 4. linha nova no Anexo B (histórico);
 5. `node extensao-preview-documentos/manual/verificar-manual.mjs --corrigir` e depois
-   `node extensao-preview-documentos/manual/verificar-manual.mjs` até sair "Manual OK" (o CI roda a
-   mesma verificação).
+   `node extensao-preview-documentos/manual/verificar-manual.mjs` até sair "Manual OK" (não há CI
+   automático: a verificação é feita à mão antes do commit).
 
 O manual fica dentro da extensão porque o botão **📖 Manual do Usuário** do
 Menu (ícone da balança) o abre a partir de `manual/MANUAL.md`, com os
