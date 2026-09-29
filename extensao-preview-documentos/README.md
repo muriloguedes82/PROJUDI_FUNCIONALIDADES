@@ -1121,7 +1121,8 @@ Os endereços vêm da mesma aba "Partes e Outros" (linhas ocultas de
 endereço de cada parte), lida da tela do processo por trás do diálogo ou,
 se ela estiver em outra aba, buscada em segundo plano (POST com
 `selectedIcon=tabPartes`, mesma técnica do "Réus/Indiciados/Noticiados no
-cabeçalho"). A cidade é lida de "Cidade: NOME/UF"; na falta, pelo nome de
+cabeçalho"). A cidade é lida do trecho "CIDADE/UF" do endereço (ex.: "... -
+Jardim Carvalho - PONTA GROSSA/PR - CEP: ...") ou de "Cidade: NOME/UF"; na falta, pelo nome de
 uma comarca conhecida no texto do endereço. Só no Projudi.
 
 ## Informações processuais nas ordenações BNMP (exceto guias)

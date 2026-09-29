@@ -317,10 +317,21 @@
 	}
 
 	// "... Cidade: CURITIBA/PR CEP: ..." -> { cidade: "CURITIBA", uf: "PR" }
+	// Formato da aba "Partes e Outros": "RUA X, 716, S/N - Jardim Carvalho -
+	// PONTA GROSSA/PR - CEP: 84.016-630" -> { cidade: "PONTA GROSSA", uf: "PR" }
+	// (também aceita "PONTA GROSSA - PR").
 	function cidadeDoTexto(t) {
 		const m = /\b(?:cidade|munic[ií]pio)\s*:\s*([^\/,;:]+?)\s*(?:[\/-]\s*([A-Za-z]{2})\b|(?=\s+(?:cep|uf|estado|telefone|complemento)\b)|[,;]|$)/i.exec(t);
-		if (!m) return { cidade: "", uf: "" };
-		return { cidade: collapse(m[1]), uf: (m[2] || "").toUpperCase() };
+		if (m) return { cidade: collapse(m[1]), uf: (m[2] || "").toUpperCase() };
+		const trechos = t.split(/\s+[-–]\s+/).map(collapse);
+		for (let i = trechos.length - 1; i >= 0; i--) {
+			const barra = /^([^\/\d:]*[A-Za-zÀ-ÿ][^\/\d:]*?)\s*\/\s*([A-Z]{2})$/.exec(trechos[i]);
+			if (barra) return { cidade: collapse(barra[1].replace(/^.*,\s*/, "")), uf: barra[2] };
+			if (i > 0 && /^[A-Z]{2}$/.test(trechos[i]) && /^[^\d:\/]+$/.test(trechos[i - 1])) {
+				return { cidade: collapse(trechos[i - 1].replace(/^.*,\s*/, "")), uf: trechos[i] };
+			}
+		}
+		return { cidade: "", uf: "" };
 	}
 
 	// [{ nome, titulo, enderecos: [{ texto, cidade, uf }] }] ou null se o
