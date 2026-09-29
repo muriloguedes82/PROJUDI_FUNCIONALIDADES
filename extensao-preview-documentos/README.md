@@ -43,6 +43,50 @@ extensão funciona da mesma forma nos dois sistemas:
    — é preciso repetir isso pendência por pendência (veja "Finalizar
    conclusão pendente" abaixo).
 
+## Menu da extensão (ícone fixo)
+
+Com a extensão ativa, um ícone pequeno (a balança da Justiça em azul-marinho,
+num quadrado arredondado dourado) fica sempre visível no cabeçalho:
+
+- **Projudi:** no canto superior direito, logo abaixo do link **Sair**;
+- **SEEU:** na faixa azul do menu, abaixo do nome do usuário.
+
+Ao rolar a página, o ícone acompanha o cabeçalho e, quando ele sai da
+tela, fica preso no topo. Um pontinho vermelho no ícone indica que há
+funcionalidades desativadas. Clique no ícone para abrir o **Menu**
+(fecha com o ✕, a tecla Esc ou um clique fora dele):
+
+1. **Funcionalidades** - todas as funcionalidades da extensão, agrupadas
+   por assunto, cada uma com uma chave liga/desliga. A escolha vale para
+   todas as páginas do Projudi e do SEEU a partir do próximo carregamento
+   da página (o Menu mostra o botão **Recarregar agora**). Algumas
+   dependem de outras (ex.: "Editar Partes/Outros" usa o popup das "Ações
+   rápidas"): ao desativar uma, as que dependem dela também são
+   desativadas; ao ativar uma, as que ela exige são ativadas junto - o
+   Menu avisa quais.
+2. **Preferências e combos** - backup para levar tudo a outro computador:
+   - **⬇ Exportar** baixa um arquivo `.json` com todas as preferências -
+     inclusive quais funcionalidades estão desativadas -, as preferências
+     e os combos das Ações rápidas e do Juntar Documento, as listas de
+     tarefas, os contatos do WhatsApp, os destinatários e remetentes de
+     e-mail, os destaques de movimentações etc.;
+   - **⬆ Importar** lê esse arquivo (no outro computador, com a mesma
+     extensão instalada), mostra um resumo do que ele contém e, após a
+     confirmação, substitui as preferências daquele computador pelas do
+     arquivo;
+   - **↺ Padrão** reativa todas as funcionalidades, sem apagar nenhuma
+     preferência salva.
+
+   O arquivo não leva o aceite dos Termos de Uso (cada instalação aceita
+   os seus), nem login/token do Microsoft Graph, nem trabalhos em
+   andamento (envios, combos e juntadas pendentes).
+3. **📖 Manual do Usuário** - abre este manual numa nova aba, com índice
+   e busca. Há também o link para consultar os **Termos de Uso**.
+
+Tecnicamente, desativar uma funcionalidade faz com que os arquivos dela
+simplesmente deixem de ser injetados nas páginas (o catálogo fica em
+`src/funcionalidades.js`; o registro, em `src/termosUso.js`).
+
 ## Pré-visualização de Documentos
 
 Com a extensão instalada, basta **passar o mouse sobre o nome do arquivo**
