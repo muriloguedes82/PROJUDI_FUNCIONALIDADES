@@ -173,11 +173,8 @@ table.quadro .advogados { padding-left: 1.2em; font-size: 10.5pt; color: #333; }
 
 table.quadro .relacionado + .relacionado { margin-top: 3px; padding-left: 1.2em; }
 
-/* Audiências (II) — em destaque */
+/* Audiências (II) — sem moldura, como o restante da certidão */
 .audiencias {
-	border: 2px solid #1f5fa8;
-	border-radius: 4px;
-	padding: 8px 12px;
 	text-align: left;
 	font-size: 11pt;
 	line-height: 1.4;
@@ -194,7 +191,6 @@ table.quadro .relacionado + .relacionado { margin-top: 3px; padding-left: 1.2em;
 .aud-cancelada .aud-situacao,
 .aud-nao-realizada .aud-situacao { color: #a1111b; }
 .aud-realizada .aud-situacao { color: #0b5a1e; }
-.evento.nivel-0.ev-audiencia { border-left: 3px solid #1f5fa8; padding-left: calc(1.4em - 3px); margin-left: -0.4em; }
 
 /* Painel "⚙️ Configurações" (escondido por padrão) */
 #config-toggle.ativo { background: #e3ecf7; border-color: #1f5fa8; }
@@ -425,7 +421,7 @@ table.quadro tr:hover .btn-remover-linha { opacity: 1; border-color: #f1a7ae; ba
 	.peca-saida { border: none; }
 	#folha { width: auto; max-width: none; min-height: 0; margin: 0; padding: 0; box-shadow: none; }
 	.pendente, .resumo:empty::before { background: none; }
-	.audiencias, .evento.nivel-0.ev-audiencia { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+	.audiencias { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 	.simples { break-inside: auto; }
 	table.quadro th { padding-right: 8px; }
 	[hidden] { display: none !important; }

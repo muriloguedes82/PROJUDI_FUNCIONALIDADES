@@ -866,8 +866,7 @@ Salvar PDF** e **Copiar texto**. A certidão é dividida em seções:
   audiência designada** com data futura (tipo, data e hora, evento) e traz
   o histórico: cada designação, **redesignação**, **cancelamento**,
   realização ou não realização, com a data da audiência e a contagem de
-  cada situação. Os movimentos de audiência também ficam marcados com uma
-  barra lateral na lista de eventos. A análise é feita pelos nomes e
+  cada situação. A análise é feita pelos nomes e
   complementos dos movimentos ("AUDIÊNCIA DE CONCILIAÇÃO REDESIGNADA - para
   27/11/2026 às 14h00"). Na lista, **cada audiência aparece só com o seu
   último evento**: uma designação que depois foi redesignada, cancelada ou
