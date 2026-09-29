@@ -859,7 +859,9 @@ Salvar PDF** e **Copiar texto**. A certidão é dividida em seções:
   **Apensamentos**, **Vínculos** (ex.: "Autos de Prisão em Flagrante:
   282024 …") e **Processos dependentes** — sem repetir o próprio processo,
   que é a raiz dessas árvores; quando não há, a certidão diz "Não há
-  processos apensados/vinculados";
+  processos apensados/vinculados". Cada linha do quadro tem um **✕**
+  (não impresso) para excluí-la da certidão; "↺ Restaurar linha(s)
+  removida(s)" as devolve na posição original;
 - **II – Audiências (em destaque):** diz com clareza se **há ou não
   audiência designada** com data futura (tipo, data e hora, evento) e traz
   o histórico: cada designação, **redesignação**, **cancelamento**,
@@ -918,6 +920,24 @@ Salvar PDF** e **Copiar texto**. A certidão é dividida em seções:
   **"autoPrisaoFlagrante"** são ignorados: em processo criminal, a
   "inicial" costuma ser a juntada do auto de prisão em flagrante, que não
   precisa de resumo, e o movimento que só tem esse arquivo não entra;
+- **V – Entenda esta certidão (linguagem simples):** resumo para qualquer
+  cidadão, no espírito do Pacto Nacional do Judiciário pela Linguagem
+  Simples (CNJ): frases curtas, sem jargão, datas por extenso e termos
+  explicados. Blocos (só os que tiverem dados): *Que processo é este?*
+  (a classe explicada), *Quem participa?* (o papel de cada parte e os
+  advogados; vítimas só pelas iniciais), *Qual é a acusação?* (crimes e
+  datas, com a ressalva de que acusação não é culpa), *O que já
+  aconteceu?* (início, denúncia, recebimento, citação, sentença, recurso,
+  trânsito em julgado, arquivamento), *O que o juiz decidiu?* (a partir
+  da sentença criminal), *Qual é a situação agora?* (audiência marcada,
+  arquivamento, último registro), *Existem outros processos ligados a
+  este?*, um glossário só com as palavras que aparecem na certidão e o
+  aviso de que o resumo não substitui a certidão. Gerado por **modelo
+  fixo** (sempre igual para os mesmos dados; refeito automaticamente
+  depois dos resumos das peças, a menos que tenha sido editado) ou
+  **reescrito pela IA do Chrome** (botão "✨ Reescrever com IA", com a
+  instrução de manter nomes, números, datas e valores). Pode ser desligado
+  na barra ("Resumo em linguagem simples");
 - local e data, e o nome e o cargo do(a) servidor(a). Nome, cargo e local
   ficam gravados para as próximas certidões.
 

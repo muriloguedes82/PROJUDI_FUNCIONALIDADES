@@ -788,8 +788,9 @@
 	// Tipo da audiência a partir do texto ("Audiência de Instrução e
 	// Julgamento", "de conciliação", "de custódia"...).
 	function tipoAudiencia(texto) {
-		const m = /audi[êe]ncia\s+(?:de\s+|do\s+|da\s+)?([A-Za-zÀ-ú ]{3,60}?)(?=\s+(?:designad|redesignad|realizad|cancelad|nao|não|marcad|agendad|remarcad|adiad|para|em|\(|-|–)|[,.;:(\-–]|$)/i.exec(texto);
-		return m ? "Audiência de " + colapsar(m[1]).toLowerCase() : "Audiência";
+		const m = /audi[êe]ncia\s+((?:de|do|da)\s+)?([A-Za-zÀ-ú ]{3,60}?)(?=\s+(?:designad|redesignad|realizad|cancelad|nao|não|marcad|agendad|remarcad|adiad|para|em|\(|-|–)|[,.;:(\-–]|$)/i.exec(texto);
+		// Mantém a preposição original: "de conciliação", mas "admonitória".
+		return m ? "Audiência " + (m[1] ? m[1].toLowerCase().trim() + " " : "") + colapsar(m[2]).toLowerCase() : "Audiência";
 	}
 
 	// Data e hora da audiência mencionadas no texto (não a data do

@@ -39,7 +39,7 @@ const el = (tag, attrs, ...filhos) => {
 
 let dados = null;
 let pecasUI = []; // [{ peca, raiz, resumo, trecho, estado, seletor, seloIA, incluir, texto, denuncia }]
-let opcoes = { usuario: false, invalidos: true, seq: true, formato: "lista", subitens: true };
+let opcoes = { usuario: false, invalidos: true, seq: true, formato: "lista", subitens: true, simples: true };
 
 // ---------------------------------------------------------------------
 // Utilidades
@@ -234,6 +234,11 @@ function mostrarEstadoIA(estado, detalhe) {
 	}
 	if (estado === "unavailable" && $("#modo").value === "ia") $("#modo").value = "manual";
 	pecasUI.forEach(atualizarBotaoIA);
+	const botaoSimplesIA = $("#simples-ia");
+	if (botaoSimplesIA) {
+		botaoSimplesIA.disabled = estado === "unavailable";
+		botaoSimplesIA.title = estado === "unavailable" ? "A IA do Chrome não está disponível neste computador (veja o Diagnóstico)" : "Reescrever o resumo com a IA do Chrome";
+	}
 }
 
 function atualizarBotaoIA(ui) {
@@ -424,7 +429,18 @@ async function resumirComIA(ui) {
 // assuntos, valor da causa. Cada valor é editável.
 function quadroResumo() {
 	const tabela = el("table", { class: "quadro" });
-	const linha = (rotulo, ...valor) => tabela.append(el("tr", {}, el("th", { text: rotulo }), el("td", { contenteditable: "true" }, ...valor)));
+	const linha = (rotulo, ...valor) => {
+		const tr = el("tr", {});
+		const remover = el("button", {
+			type: "button",
+			class: "btn-remover-linha no-print",
+			title: "Excluir a linha “" + rotulo + "” desta certidão",
+			text: "✕",
+			onclick: () => removerLinhaQuadro(tr),
+		});
+		tr.append(el("th", {}, el("span", { text: rotulo }), remover), el("td", { contenteditable: "true" }, ...valor));
+		tabela.append(tr);
+	};
 	linha("Processo nº", valorOuPendente(dados.numero));
 	linha("Classe processual", valorOuPendente(dados.classe));
 	linha("Juízo", valorOuPendente(dados.juizo));
@@ -1000,6 +1016,7 @@ async function gerarResumos() {
 			await extrair(ui);
 			if (usarIA) await resumirUmaComIA(ui, false);
 		}
+		gerarSimplesFixo();
 		status("Pronto. Revise o texto antes de imprimir.");
 	} finally {
 		botao.disabled = false;
@@ -1020,6 +1037,175 @@ function mostrarAvisos(lista) {
 	box.hidden = false;
 }
 
+// ---------------------------------------------------------------------
+// V – Entenda esta certidão (linguagem simples)
+// ---------------------------------------------------------------------
+
+const S = globalThis.PdpCertidaoSimples;
+let simplesEditado = false;
+
+// Dados extras já extraídos das peças (denúncia, sentença criminal).
+function extrasSimples() {
+	const den = pecasUI.find((ui) => ui.denuncia && ui.denuncia.fatos && ui.denuncia.fatos.length && ui.incluir.checked);
+	const sent = pecasUI.find((ui) => ui.sentenca && ui.incluir.checked);
+	const clone = $("#folha").cloneNode(true);
+	clone.querySelectorAll("#secao-simples, .no-print, .apoio").forEach((n) => n.remove());
+	return {
+		denuncia: den ? den.denuncia : null,
+		sentencaCriminal: sent ? sent.sentenca : null,
+		textoCertidao: clone.textContent,
+		agora: Date.now(),
+	};
+}
+
+// Blocos -> DOM: título (h3), parágrafos e glossário (lista).
+function renderizarSimples(blocos) {
+	const caixa = $("#simples-conteudo");
+	caixa.textContent = "";
+	blocos.forEach((b) => {
+		caixa.append(el("h3", { class: "simples-titulo", text: b.titulo }));
+		b.paragrafos.forEach((p) => caixa.append(el("p", { text: p })));
+		if (b.glossario && b.glossario.length) {
+			const ul = el("ul", { class: "simples-glossario" });
+			b.glossario.forEach(([termo, def]) => ul.append(el("li", {}, el("strong", { text: termo + ": " }), def)));
+			caixa.append(ul);
+		}
+	});
+}
+
+// Modelo fixo: sempre o mesmo texto para os mesmos dados.
+function gerarSimplesFixo(forcar) {
+	if (!S || !$("#simples-conteudo")) return;
+	if (simplesEditado && !forcar) {
+		$("#simples-estado").textContent = "O texto foi editado; clique em “Gerar com modelo fixo” para refazê-lo com os dados atuais.";
+		return;
+	}
+	renderizarSimples(S.gerarLinguagemSimples(dados, extrasSimples()));
+	simplesEditado = false;
+	$("#simples-selo").hidden = true;
+	$("#simples-estado").textContent = "Gerado com modelo fixo a partir dos dados da certidão — revise antes de imprimir.";
+}
+
+// Texto da IA -> blocos: linhas iguais aos títulos (ou terminadas em "?")
+// viram títulos; linhas com "•" ou "-" viram itens do glossário.
+function textoIAparaBlocos(texto) {
+	const blocos = [];
+	let atual = null;
+	texto.split("\n").forEach((linha) => {
+		const l = linha.trim();
+		if (!l) return;
+		const ehTitulo = S.TITULOS.some((t) => T.normalizar(l).replace(/[:#*]/g, "").trim() === T.normalizar(t)) || (/\?$/.test(l) && l.length < 70);
+		if (ehTitulo) {
+			atual = { titulo: l.replace(/[:#*]/g, "").trim(), paragrafos: [], glossario: [] };
+			blocos.push(atual);
+			return;
+		}
+		if (!atual) {
+			atual = { titulo: "Resumo", paragrafos: [], glossario: [] };
+			blocos.push(atual);
+		}
+		const item = /^[•\-–*]\s*([^:]{2,60}):\s*(.+)$/.exec(l);
+		if (item) atual.glossario.push([item[1].trim(), item[2].trim()]);
+		else atual.paragrafos.push(l.replace(/^[•\-–*]\s*/, ""));
+	});
+	return blocos;
+}
+
+async function reescreverSimplesComIA() {
+	const botao = $("#simples-ia");
+	const estado = $("#simples-estado");
+	if ((await iaDisponibilidade()) === "unavailable") {
+		mostrarEstadoIA("unavailable");
+		estado.textContent = "A IA do Chrome não está disponível neste computador — use o modelo fixo.";
+		return;
+	}
+	botao.disabled = true;
+	estado.textContent = "Reescrevendo com a IA do navegador…";
+	try {
+		const fixo = S.blocosEmTexto(S.gerarLinguagemSimples(dados, extrasSimples()));
+		const prompt =
+			"Reescreva o texto abaixo em LINGUAGEM SIMPLES, seguindo o Pacto Nacional do Judiciário pela Linguagem Simples (CNJ), " +
+			"para que QUALQUER CIDADÃO entenda, mesmo sem conhecimento jurídico:\n" +
+			"- frases curtas (até 20 palavras), na ordem direta e na voz ativa;\n" +
+			"- palavras do dia a dia; se precisar de um termo jurídico, explique-o na mesma frase;\n" +
+			"- sem latim, sem juridiquês, sem siglas sem explicação;\n" +
+			"- mantenha EXATAMENTE os nomes, números, datas, horários e valores; não acrescente nenhuma informação que não esteja no texto;\n" +
+			"- mantenha as vítimas pelas iniciais;\n" +
+			"- mantenha os mesmos títulos, cada um sozinho numa linha, e os itens do glossário no formato '• Termo: explicação';\n" +
+			"- não use markdown.\n\n" +
+			'Texto:\n"""\n' + fixo + '\n"""';
+		const base = await iaSessaoBase();
+		const sessao = await base.clone();
+		let resposta;
+		try {
+			resposta = await sessao.prompt(prompt);
+		} finally {
+			sessao.destroy();
+		}
+		const blocos = textoIAparaBlocos(limparRespostaIA(resposta));
+		if (!blocos.length) throw new Error("a IA não devolveu texto");
+		renderizarSimples(blocos);
+		simplesEditado = true; // não é refeito automaticamente por cima
+		$("#simples-selo").hidden = false;
+		estado.textContent = "Reescrito pela IA do navegador — confira nomes, datas e valores antes de imprimir.";
+	} catch (e) {
+		estado.textContent = "A IA não conseguiu reescrever: " + e.message;
+	} finally {
+		botao.disabled = iaEstado === "unavailable";
+	}
+}
+
+function secaoSimples() {
+	const sec = el("section", { id: "secao-simples" });
+	sec.append(
+		el("h2", { class: "subtitulo", text: "V – ENTENDA ESTA CERTIDÃO (LINGUAGEM SIMPLES)" }),
+		el(
+			"div",
+			{ class: "simples-acoes no-print" },
+			el("button", { type: "button", id: "simples-fixo", text: "↻ Gerar com modelo fixo", onclick: () => gerarSimplesFixo(true) }),
+			el("button", { type: "button", id: "simples-ia", class: "btn-ia", text: "✨ Reescrever com IA", onclick: reescreverSimplesComIA }),
+			el("span", { id: "simples-selo", class: "selo-ia", hidden: true, text: "✨ Reescrito pela IA — revise" }),
+			el("span", { id: "simples-estado", class: "simples-estado" })
+		),
+		el("div", { id: "simples-conteudo", class: "simples", contenteditable: "true", oninput: () => (simplesEditado = true) })
+	);
+	return sec;
+}
+
+// Mostra/oculta a seção V (e a tira da impressão e do "Copiar texto").
+function aplicarOpcaoSimples() {
+	const sec = $("#secao-simples");
+	if (sec) sec.hidden = !opcoes.simples;
+}
+
+// ---------------------------------------------------------------------
+// ✕ nas linhas do quadro "I – Dados do processo"
+// ---------------------------------------------------------------------
+
+const linhasRemovidas = [];
+
+function removerLinhaQuadro(tr) {
+	linhasRemovidas.push({ tr, depoisDe: tr.previousElementSibling, tabela: tr.parentElement });
+	tr.remove();
+	atualizarRestaurar();
+}
+
+function restaurarLinhasQuadro() {
+	while (linhasRemovidas.length) {
+		const { tr, depoisDe, tabela } = linhasRemovidas.pop();
+		if (depoisDe && depoisDe.isConnected) depoisDe.after(tr);
+		else tabela.prepend(tr);
+	}
+	atualizarRestaurar();
+}
+
+function atualizarRestaurar() {
+	const b = $("#quadro-restaurar");
+	if (!b) return;
+	b.hidden = !linhasRemovidas.length;
+	b.textContent = `↺ Restaurar ${linhasRemovidas.length} linha(s) removida(s)`;
+}
+
 async function montar() {
 	const folha = $("#folha");
 	folha.textContent = "";
@@ -1035,7 +1221,13 @@ async function montar() {
 			el("div", { class: "juizo" }, valorOuPendente(dados.juizo))
 		),
 		el("h1", { class: "titulo", contenteditable: "true", text: "CERTIDÃO NARRATIVA" }),
-		el("section", { id: "secao-resumo" }, el("h2", { class: "subtitulo", text: "I – DADOS DO PROCESSO" }), quadroResumo()),
+		el(
+			"section",
+			{ id: "secao-resumo" },
+			el("h2", { class: "subtitulo", text: "I – DADOS DO PROCESSO" }),
+			quadroResumo(),
+			el("button", { type: "button", id: "quadro-restaurar", class: "no-print", hidden: true, onclick: restaurarLinhasQuadro })
+		),
 		secaoAudiencias(),
 		secaoEventos()
 	);
@@ -1058,6 +1250,9 @@ async function montar() {
 		folha.append(secao);
 		renumerarPecas();
 	}
+
+	folha.append(secaoSimples());
+	aplicarOpcaoSimples();
 
 	const local = el("p", { class: "fecho", contenteditable: "true" });
 	local.append((servidor.local || dados.comarca || PLACEHOLDER) + ", " + dataPorExtensoHoje() + ".");
@@ -1089,13 +1284,15 @@ function refazerParagrafoPrincipal() {
 
 function textoParaCopiar() {
 	const clone = $("#folha").cloneNode(true);
-	clone.querySelectorAll(".apoio, .peca.excluida, .no-print").forEach((n) => n.remove());
+	clone.querySelectorAll(".apoio, .peca.excluida, .no-print, [hidden]").forEach((n) => n.remove());
 	const blocos = [];
-	clone.querySelectorAll(".cabecalho > div, h1, h2, p, .quadro tr, .aud-item, .evento, .assinatura > div").forEach((n) => {
+	clone.querySelectorAll(".cabecalho > div, h1, h2, h3, p, li, .quadro tr, .aud-item, .evento, .assinatura > div").forEach((n) => {
 		let t;
 		if (n.matches(".quadro tr")) {
 			const partes = Array.from(n.cells[1].querySelectorAll(".parte, .relacionado")).map((p) => T.colapsar(p.textContent));
 			t = T.colapsar(n.cells[0].textContent) + ": " + (partes.length ? partes.join("; ") : T.colapsar(n.cells[1].textContent));
+		} else if (n.matches("li")) {
+			t = "• " + T.colapsar(n.textContent);
 		} else if (n.matches(".aud-item")) {
 			t = "    " + T.colapsar(n.textContent);
 		} else if (n.matches(".evento")) {
@@ -1125,6 +1322,12 @@ async function iniciar() {
 	$("#opt-invalidos").checked = opcoes.invalidos;
 	$("#opt-seq").checked = opcoes.seq;
 	$("#opt-subitens").checked = opcoes.subitens;
+	$("#opt-simples").checked = opcoes.simples;
+	$("#opt-simples").addEventListener("change", () => {
+		opcoes.simples = $("#opt-simples").checked;
+		chrome.storage.local.set({ [OPCOES_KEY]: opcoes });
+		aplicarOpcaoSimples();
+	});
 	$("#formato").value = opcoes.formato === "corrido" ? "corrido" : "lista";
 	$("#formato").addEventListener("change", () => {
 		opcoes.formato = $("#formato").value;
@@ -1146,6 +1349,7 @@ async function iniciar() {
 	mostrarAvisos(dados.avisos);
 	await montar();
 	await verificarIA();
+	gerarSimplesFixo();
 
 	$("#gerar-resumos").addEventListener("click", gerarResumos);
 	$("#imprimir").addEventListener("click", () => window.print());

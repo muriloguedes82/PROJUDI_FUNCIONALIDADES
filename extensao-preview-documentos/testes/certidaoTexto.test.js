@@ -249,3 +249,31 @@ test("advogado e classe no formato da aba Partes", () => {
 	assert.equal(T.formatarAdvogado("OAB 116785N-PR - DANIELLE DAS NEVES"), "DANIELLE DAS NEVES (OAB 116785N-PR)");
 	assert.equal(T.semCodigo("12247 - Execução Extrajudicial de Alimentos"), "Execução Extrajudicial de Alimentos");
 });
+
+test("linguagem simples: modelo fixo", () => {
+	const L = require("../src/certidaoSimples.js");
+	assert.equal(L.dataExtenso("01/01/2024 10:00"), "1º de janeiro de 2024");
+	assert.equal(L.horaExtenso("27/11/2026 14:00"), "às 14h");
+	assert.equal(L.nomeProprio("DAVI DE BARROS representado(a) por JOSIANE DA SILVA"), "Davi de Barros representado(a) por Josiane da Silva");
+	assert.equal(L.iniciais("MARIA DA SILVA SANTOS"), "M. S. S.");
+	const d = {
+		numero: "0000002-92.2024.8.16.0038", classe: "Ação Penal - Procedimento Ordinário", criminal: true, assuntos: ["12194 - Contra a Mulher"],
+		polos: [{ titulo: "Réu", partes: [{ nome: "EZEQUIEL ROCHA LEAL", advogados: ["JOÃO DA COSTA (OAB 45678N-PR)"] }] }, { titulo: "Vítima", partes: [{ nome: "MARIA DA SILVA" }] }],
+		movimentos: [
+			{ seq: "1", dataHora: "01/01/2024 10:00:00", titulo: "DISTRIBUÍDO POR SORTEIO" },
+			{ seq: "5", dataHora: "10/01/2024 09:00:00", titulo: "JUNTADA DE DENÚNCIA" },
+			{ seq: "9", dataHora: "01/09/2026 10:00:00", titulo: "AUDIÊNCIA DE INSTRUÇÃO E JULGAMENTO DESIGNADA", complemento: "27/11/2026 14:00" },
+		],
+	};
+	const b = L.gerarLinguagemSimples(d, { sentencaCriminal: T.extrairSentencaCriminal(SENTENCA_CRIMINAL), textoCertidao: "denúncia audiência regime aberto", agora: Date.UTC(2026, 8, 29) });
+	const texto = L.blocosEmTexto(b);
+	assert.match(texto, /É um processo criminal/);
+	assert.match(texto, /Ezequiel Rocha Leal \(réu\) é a pessoa acusada/);
+	assert.match(texto, /M\. S\. \(vítima\) é a pessoa que sofreu o crime/); // vítima só pelas iniciais
+	assert.doesNotMatch(texto, /MARIA|Maria da Silva/);
+	assert.match(texto, /A acusação \(denúncia\) foi apresentada ao juiz em 10 de janeiro de 2024/);
+	assert.match(texto, /Há uma audiência de instrução e julgamento marcada para 27 de novembro de 2026, às 14h/);
+	assert.match(texto, /foi condenado\(a\) a 1 mês e 5 dias de detenção/);
+	assert.match(texto, /• Denúncia: /);
+	assert.match(texto, /Importante\nEste resumo explica/);
+});
