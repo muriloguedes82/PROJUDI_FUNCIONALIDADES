@@ -300,6 +300,8 @@ table.quadro tr:hover .btn-remover-linha { opacity: 1; border-color: #f1a7ae; ba
 	font-weight: bold;
 }
 .peca-nome { font-weight: bold; font-size: 14px; color: #12355f; }
+.peca-cab .btn-renomear { padding: 0 5px; border: 1px solid transparent; background: none; opacity: 0.6; }
+.peca-cab .btn-renomear:hover { opacity: 1; border-color: #b9c6d6; background: #fff; }
 .peca-info { color: #444; }
 .peca-evento { color: #555; font-size: 11.5px; }
 .peca-incluir { font-weight: bold; white-space: nowrap; }

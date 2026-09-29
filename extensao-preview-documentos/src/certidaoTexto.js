@@ -694,18 +694,28 @@
 		};
 		const curta = function (f) { return limitar(f.replace(/\s+/g, " ").trim(), 260); };
 
-		// Substituição e suspensão: só entram se CONCEDIDAS (negadas ou não
-		// tratadas não são mencionadas). Fica só a parte decisória da frase
-		// ("substituo a pena ... por ...", "concedo a suspensão ...").
-		const NEGA = /\b(n[ãa]o\s+(?:h[áa]\s+)?(?:cab|faz|preench|conce|substitu|aplic|é\s+cab|sendo\s+cab|se\s+mostra)|incab[ií]ve|invi[áa]ve|deixo\s+de|descab|vedad|prejudicad|inaplic)/i;
-		const decisoria = function (f) {
-			const m = /\b(substituo|substitui-se|substituindo|converto|concedo|conceder|defiro|suspendo|aplico|fica(?:ndo)?\s+suspens)[\s\S]*$/i.exec(f);
-			return curta(m ? m[0].charAt(0).toUpperCase() + m[0].slice(1) : f);
+		// Substituição e suspensão: só entram se CONCEDIDAS de forma expressa
+		// ("substituo a pena…", "concedo a suspensão…"), sem negação na mesma
+		// frase. Negadas, não tratadas ou apenas citadas não são mencionadas.
+		const NEGA = /\b(n[ãa]o\s+(?:se\s+|é\s+|h[áa]\s+|ser[áa]\s+|sendo\s+|estão\s+|est[áa]\s+)?(?:\w+\s+){0,2}?(?:aplic|cab|poss[ií]v|permit|preench|faz|conce|substitu|suspend|recomend|adequ|suficien|atend|presentes|autoriz)|incab[ií]ve|invi[áa]ve|imposs[ií]ve|deixo\s+de|descab|vedad|prejudicad|inaplic|ausentes?\s+(?:os\s+)?(?:requisitos|pressupostos)|n[ãa]o\s+preench|supera(?:ndo|r)?\s+(?:a\s+)?(?:4|quatro)|superior\s+a\s+(?:4|quatro)|acima\s+de\s+(?:4|quatro)|pelo\s+mesmo\s+motivo)/i;
+		const decisoria = function (f, re) {
+			const m = re.exec(f);
+			return m ? curta(m[0].charAt(0).toUpperCase() + m[0].slice(1)) : "";
 		};
-		const fraseSubst = achar(/substitu/i, /restritiv|presta[çc][ãa]o|multa substitutiva|interdi[çc][ãa]o|limita[çc][ãa]o de fim/i);
-		const substituicao = fraseSubst && !NEGA.test(fraseSubst) ? decisoria(fraseSubst) : "";
-		const fraseSusp = achar(/suspens[ãa]o condicional da pena|sursis|suspendo a execu/i);
-		const suspensao = fraseSusp && !NEGA.test(fraseSusp) ? decisoria(fraseSusp) : "";
+		const CONCEDE_SUBST = /\b(substituo|substitui-se|substituindo|converto|convertendo|procedo [àa] substitui[çc][ãa]o|fica(?:ndo)? substitu[ií]d)[\s\S]*$/i;
+		const CONCEDE_SUSP = /\b(concedo|conceder|defiro|suspendo|aplico|fica(?:ndo)?\s+suspens)[\s\S]*$/i;
+		const frasesSubst = frases.filter(function (x) { return /substitu|convert/i.test(x) && /restritiv|presta[çc][ãa]o|multa substitutiva|interdi[çc][ãa]o|limita[çc][ãa]o de fim/i.test(x); });
+		const frasesSusp = frases.filter(function (x) { return /suspens[ãa]o condicional da pena|sursis|suspendo a execu/i.test(x); });
+		const concedida = function (lista, re) {
+			for (let i = lista.length - 1; i >= 0; i--) {
+				if (NEGA.test(lista[i])) continue;
+				const d = decisoria(lista[i], re);
+				if (d) return d;
+			}
+			return "";
+		};
+		let substituicao = concedida(frasesSubst, CONCEDE_SUBST);
+		let suspensao = concedida(frasesSusp, CONCEDE_SUSP);
 
 		// Indenização à vítima (art. 387, IV, do CPP / danos morais ou materiais).
 		const fraseInd = achar(/387,?\s*(?:inciso\s*)?iv|repara[çc][ãa]o (?:dos |de )?danos|danos? (?:morais|materiais)|indeniza/i, /R\$\s*[\d.,]+|valor m[ií]nimo|deixo de fixar|n[ãa]o fix/i);
@@ -733,6 +743,18 @@
 			if ((h.valor || h.oab || h.nome) && !honorarios.some(function (x) { return x.valor === h.valor && x.nome === h.nome; })) honorarios.push(h);
 		});
 
+		// Conferência legal: com pena privativa acima de 4 anos, ou regime
+		// inicial fechado, não cabem substituição (art. 44, I, CP) nem
+		// suspensão condicional (art. 77, CP). Evita falso positivo quando a
+		// sentença só cita esses institutos.
+		const impedem = condenacoes.length && condenacoes.every(function (c) {
+			return penaEmAnos(c.pena) > 4 || c.regime === "fechado";
+		});
+		if (impedem) {
+			substituicao = "";
+			suspensao = "";
+		}
+
 		const resultado = {
 			absolvidos: absolvidos,
 			condenacoes: condenacoes,
@@ -748,6 +770,18 @@
 		});
 		resultado.trecho = relevantes.join("\n") || limitar(t.slice(-LIMITE_FALLBACK), LIMITE_FALLBACK + 10);
 		return resultado;
+	}
+
+	const NUMEROS_EXTENSO = { um: 1, uma: 1, dois: 2, duas: 2, tres: 3, quatro: 4, cinco: 5, seis: 6, sete: 7, oito: 8, nove: 9, dez: 10, onze: 11, doze: 12 };
+	// "08 (oito) anos e 02 (dois) meses de reclusão" -> 8.17
+	function penaEmAnos(pena) {
+		const t = normalizar(pena).replace(/\([^)]*\)/g, " ");
+		const num = function (re) {
+			const m = re.exec(t);
+			if (!m) return 0;
+			return /^\d+$/.test(m[1]) ? parseInt(m[1], 10) : NUMEROS_EXTENSO[m[1]] || 0;
+		};
+		return num(/(\d+|[a-z]+)\s+anos?\b/) + num(/(\d+|[a-z]+)\s+m[eê]s(?:es)?\b/) / 12 + num(/(\d+|[a-z]+)\s+dias?\b(?!-)/) / 365;
 	}
 
 	function resumoSentencaCriminal(r) {
@@ -919,6 +953,7 @@
 		resumoDenuncia: resumoDenuncia,
 		limparAssinaturas: limparAssinaturas,
 		ehProcessoCriminal: ehProcessoCriminal,
+		penaEmAnos: penaEmAnos,
 		extrairSentencaCriminal: extrairSentencaCriminal,
 		fatosIntegrais: fatosIntegrais,
 		tituloDoFato: tituloDoFato,

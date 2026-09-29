@@ -277,3 +277,22 @@ test("linguagem simples: modelo fixo", () => {
 	assert.match(texto, /• Denúncia: /);
 	assert.match(texto, /Importante\nEste resumo explica/);
 });
+
+test("sentença criminal: substituição/suspensão negadas ou incabíveis não aparecem", () => {
+	const casos = [
+		"Ante o exposto, JULGO PROCEDENTE a denúncia para CONDENAR o réu LUIS RICARDO XAVIER como incurso no art. 157, § 2º, II, do CP. Torno a pena definitiva em 08 (oito) anos e 02 (dois) meses de reclusão e 700 (setecentos) dias-multa. Fixo o regime inicial fechado. Incabível a substituição da pena privativa de liberdade por restritivas de direitos, uma vez que a pena aplicada supera 4 anos (art. 44, I, do CP). Pelo mesmo motivo, não se aplica a suspensão condicional da pena (art. 77 do CP). Publique-se.",
+		"CONDENO o réu JOSE DA SILVA à pena de 2 (dois) anos de reclusão, em regime aberto. Não é possível substituir a pena privativa de liberdade por restritiva de direitos, pois o crime foi cometido com violência. Ausentes os requisitos, não se concede a suspensão condicional da pena. Publique-se.",
+		// Só cita os institutos, sem decidir.
+		"CONDENO a ré ANA DE SOUZA a 6 (seis) anos de reclusão, em regime semiaberto. O art. 44 do CP prevê a substituição por penas restritivas de direitos quando a pena não supera 4 anos. Publique-se.",
+	];
+	casos.forEach((c) => {
+		const r = T.extrairSentencaCriminal(c);
+		assert.equal(r.substituicao, "", c.slice(0, 60));
+		assert.equal(r.suspensao, "", c.slice(0, 60));
+		assert.doesNotMatch(r.resumo, /Substituição|Suspensão/);
+	});
+	const r = T.extrairSentencaCriminal(casos[0]);
+	assert.equal(r.condenacoes[0].nome, "LUIS RICARDO XAVIER");
+	assert.equal(r.condenacoes[0].regime, "fechado");
+	assert.ok(T.penaEmAnos(r.condenacoes[0].pena) > 8);
+});

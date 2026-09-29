@@ -903,7 +903,9 @@ Salvar PDF** e **Copiar texto**. A certidão é dividida em seções:
   quadro **② Resumo que vai para a certidão**, que é exatamente o
   parágrafo impresso. Botões **▲ / ▼** no cabeçalho de cada cartão mudam
   a ordem das peças (a ordem da tela é a ordem impressa) e **✕** remove a
-  peça. O botão **+ Adicionar peça**, ao final da seção, inclui uma peça
+  peça; **✏️** ao lado do nome renomeia a peça (útil para a peça genérica
+  "Peça" ou "Outra": o nome novo sai no título impresso). O botão
+  **+ Adicionar peça**, ao final da seção, inclui uma peça
   que não foi identificada automaticamente: escolha o tipo (petição
   inicial, denúncia, contestação, resposta à acusação, sentença, recurso,
   decisão ou outra, com nome livre), o movimento (a lista mostra os
@@ -935,7 +937,11 @@ Salvar PDF** e **Copiar texto**. A certidão é dividida em seções:
   fixo** (sempre igual para os mesmos dados; refeito automaticamente
   depois dos resumos das peças, a menos que tenha sido editado) ou
   **reescrito pela IA escolhida** (botão "✨ Reescrever com IA", com a
-  instrução de manter nomes, números, datas e valores). Na versão por IA,
+  instrução de manter nomes, números, datas e valores e, se o texto de
+  base e as peças divergirem, seguir as peças). O **glossário** é sempre o
+  da extensão, só com palavras que aparecem na certidão: a IA não escreve
+  glossário, e qualquer lista de termos que ela devolva é descartada. Na
+  versão por IA,
   a IA recebe também as peças principais e acrescenta **o que cada parte
   pediu**, o **entendimento da sentença** (por que o juiz decidiu assim e
   o que isso significa na prática) e, se houver recurso, **quem recorreu
@@ -995,8 +1001,12 @@ Opções da extensão.
     suspensão condicional, quando concedidas; (d) a indenização à vítima
     por danos materiais ou morais, com o valor; (e) os honorários do
     advogado dativo, com nome, OAB, valor e item da tabela. Itens
-    ausentes — ou negados, como "deixo de substituir" — não são
-    mencionados.
+    ausentes — ou negados, como "deixo de substituir", "não se aplica a
+    suspensão", "ausentes os requisitos" — não são mencionados.
+    Substituição e suspensão só contam quando **concedidas de forma
+    expressa** ("substituo a pena…", "concedo a suspensão…"), e nunca com
+    pena acima de 4 anos ou regime inicial fechado (arts. 44 e 77 do CP).
+    No resumo feito pela IA, frases do tipo "Não houve…" são retiradas.
   - **Carimbo de assinatura digital.** Antes de qualquer extração, é
     removido o carimbo que o Projudi imprime nas páginas ("Documento
     assinado digitalmente, conforme MP nº 2.200-2/2001… Validação deste em

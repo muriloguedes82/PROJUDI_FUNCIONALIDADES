@@ -937,13 +937,14 @@ function secaoEventos() {
 //   ② Resumo que vai para a certidão — exatamente o parágrafo impresso
 // Na impressão só o parágrafo ② aparece.
 function blocoPeca(peca, indice, total) {
-	const titulo = `${peca.rotulo} (${peca.seq ? "evento " + peca.seq + ", " : ""}${dataDe(peca.dataHora) || "data não informada"})`;
+	const tituloDaPeca = () => `${peca.rotulo} (${peca.seq ? "evento " + peca.seq + ", " : ""}${dataDe(peca.dataHora) || "data não informada"})`;
+	const tituloForte = el("strong", { text: tituloDaPeca() + ": " });
 	const resumo = el("span", {
 		class: "resumo",
 		contenteditable: "true",
 		"data-placeholder": "[escreva aqui o resumo — ou use os botões do quadro ①]",
 	});
-	const paragrafo = el("p", { class: "peca-texto" }, el("strong", { text: titulo + ": " }), resumo);
+	const paragrafo = el("p", { class: "peca-texto" }, tituloForte, resumo);
 
 	const incluir = el("input", { type: "checkbox", checked: true });
 	const seletor = el("select", { title: "Arquivo usado para extrair o texto" });
@@ -963,6 +964,22 @@ function blocoPeca(peca, indice, total) {
 	const usarObjetivo = el("button", { type: "button", hidden: peca.tipo !== "denuncia", text: "Usar resumo objetivo ↓" });
 
 	const numero = el("span", { class: "peca-num", text: `Peça ${indice + 1} de ${total}` });
+	// Nome da peça, editável ("Peça" genérica -> "Alegações finais" etc.):
+	// muda o cabeçalho do cartão e o título impresso.
+	const nomeSpan = el("span", { class: "peca-nome", text: peca.rotulo });
+	const renomear = el("button", {
+		type: "button",
+		class: "btn-renomear",
+		title: "Renomear esta peça (o nome sai no título impresso)",
+		text: "✏️",
+		onclick: () => {
+			const novo = prompt("Nome da peça:", peca.rotulo);
+			if (novo === null || !T.colapsar(novo)) return;
+			peca.rotulo = T.colapsar(novo);
+			nomeSpan.textContent = peca.rotulo;
+			tituloForte.textContent = tituloDaPeca() + ": ";
+		},
+	});
 	const subir = el("button", { type: "button", class: "btn-ordem", title: "Subir esta peça (muda a ordem na certidão)", text: "▲" });
 	const descer = el("button", { type: "button", class: "btn-ordem", title: "Descer esta peça (muda a ordem na certidão)", text: "▼" });
 	const remover = el("button", { type: "button", class: "btn-ordem", title: "Remover esta peça da certidão", text: "✕" });
@@ -973,7 +990,8 @@ function blocoPeca(peca, indice, total) {
 			"div",
 			{ class: "peca-cab-linha" },
 			numero,
-			el("span", { class: "peca-nome", text: peca.rotulo }),
+			nomeSpan,
+			renomear,
 			peca.manual ? el("span", { class: "peca-manual", text: "incluída manualmente" }) : null,
 			el("span", { class: "peca-info", text: [peca.seq ? "evento " + peca.seq : "", dataDe(peca.dataHora)].filter(Boolean).join(" · ") }),
 			el("span", { class: "barra-espaco" }),
@@ -1261,6 +1279,23 @@ async function extrair(ui, forcar) {
 	return ui.extraindo;
 }
 
+// Sentença criminal: tira do resumo da IA as frases sobre itens que NÃO
+// existem ("Não houve substituição…", "Não houve condenação…").
+function semAusencias(texto) {
+	const AUSENCIA = /^(n[ãa]o\s+(?:houve|h[áa]|consta|constam|foi|foram|se\s+aplic|cabe|cab[ií]vel)|inexist|sem\s+(?:condena|substitu|suspens|indeniza|honor|fixa))/i;
+	return texto
+		.split("\n")
+		.map((linha) =>
+			linha
+				.split(/(?<=[.;])\s+(?=[A-ZÀ-Ý])/)
+				.filter((f) => !AUSENCIA.test(f.trim()))
+				.join(" ")
+				.trim()
+		)
+		.filter(Boolean)
+		.join("\n");
+}
+
 async function resumirUmaComIA(ui, interativo) {
 	const disp = await iaDisponibilidade();
 	if (disp === "unavailable") {
@@ -1276,7 +1311,8 @@ async function resumirUmaComIA(ui, interativo) {
 	if (!T.colapsar(ui.relevante || "") && !(ui.denuncia && ui.denuncia.fatos.length)) return false;
 	estadoPeca(ui, "Resumindo com " + nomeIAAtual() + "…");
 	try {
-		const texto = await resumirComIA(ui);
+		let texto = await resumirComIA(ui);
+		if (ui.peca.tipo === "sentenca" && dados.criminal) texto = semAusencias(texto);
 		ui.resumo.textContent = texto;
 		ui.seloIA.hidden = false;
 		ui.seloIA.textContent = "✨ Gerado " + porIAAtual() + " — revise antes de imprimir";
@@ -1442,7 +1478,11 @@ async function reescreverSimplesComIA() {
 	botao.disabled = true;
 	estado.textContent = "Reescrevendo com " + nomeIAAtual() + "…";
 	try {
-		const fixo = S.blocosEmTexto(S.gerarLinguagemSimples(dados, extrasSimples()));
+		// O glossário NÃO vai para a IA: ele é sempre o da extensão (só com
+		// palavras que aparecem na certidão), acrescentado depois.
+		const blocosFixos = S.gerarLinguagemSimples(dados, extrasSimples());
+		const glossarioFixo = blocosFixos.find((b) => b.glossario && b.glossario.length);
+		const fixo = S.blocosEmTexto(blocosFixos.filter((b) => b !== glossarioFixo));
 		const prompt =
 			"Reescreva o texto abaixo em LINGUAGEM SIMPLES, seguindo o Pacto Nacional do Judiciário pela Linguagem Simples (CNJ), " +
 			"para que QUALQUER CIDADÃO entenda, mesmo sem conhecimento jurídico:\n" +
@@ -1451,7 +1491,11 @@ async function reescreverSimplesComIA() {
 			"- sem latim, sem juridiquês, sem siglas sem explicação;\n" +
 			"- mantenha EXATAMENTE os nomes, números, datas, horários e valores; não acrescente nenhuma informação que não esteja no texto;\n" +
 			"- mantenha as vítimas pelas iniciais;\n" +
-			"- mantenha os mesmos títulos, cada um sozinho numa linha, e os itens do glossário no formato '• Termo: explicação';\n" +
+			"- mantenha os mesmos títulos, cada um sozinho numa linha;\n" +
+			"- NÃO escreva glossário nem lista de palavras (ele é acrescentado automaticamente);\n" +
+			"- se o TEXTO A REESCREVER e as PEÇAS divergirem (por exemplo, sobre pena, substituição ou suspensão da pena, indenização ou " +
+			"honorários), siga o que está nas PEÇAS; nunca afirme que houve substituição ou suspensão da pena, indenização ou honorários " +
+			"se isso não estiver expressamente nas PEÇAS;\n" +
 			"- depois do bloco 'O que já aconteceu?', inclua o bloco 'O que cada parte pediu?', com os pedidos de cada parte " +
 			"(petição inicial ou denúncia, contestação ou resposta), resumidos em 1 ou 2 frases por parte, a partir das PEÇAS abaixo;\n" +
 			"- no bloco 'O que o juiz decidiu?', explique também, em poucas frases, o entendimento da sentença: por que o juiz " +
@@ -1463,7 +1507,16 @@ async function reescreverSimplesComIA() {
 			'TEXTO A REESCREVER:\n"""\n' + fixo + '\n"""' +
 			pecasParaSimples(Math.max(2000, limiteEntradaIA() - fixo.length - 3000));
 		const resposta = await iaGerar(prompt, 4000);
-		const blocos = textoIAparaBlocos(limparRespostaIA(resposta));
+		let blocos = textoIAparaBlocos(limparRespostaIA(resposta))
+			// Descarta qualquer glossário que a IA tenha escrito…
+			.filter((b) => !/palavras|glossario|termos/.test(T.normalizar(b.titulo)))
+			.map((b) => Object.assign(b, { glossario: [] }));
+		// …e usa o da extensão, antes do bloco "Importante".
+		if (glossarioFixo) {
+			const iImp = blocos.findIndex((b) => /^importante/.test(T.normalizar(b.titulo)));
+			if (iImp >= 0) blocos.splice(iImp, 0, glossarioFixo);
+			else blocos.push(glossarioFixo);
+		}
 		if (!blocos.length) throw new Error("a IA não devolveu texto");
 		renderizarSimples(blocos);
 		simplesEditado = true; // não é refeito automaticamente por cima
