@@ -1019,6 +1019,11 @@ Opções da extensão.
     **INDISPONÍVEL** (vermelho, clicável para ver o motivo). Quando está
     indisponível, a opção "IA do navegador" e os botões "Resumir com IA"
     ficam desativados e a certidão segue no modo manual.
+  - Resumos de **petição inicial, contestação, resposta à acusação e
+    recurso** trazem, de forma objetiva e **imparcial**, os **fatos** (a
+    versão de cada parte, atribuída a ela: "a autora alega que…") e os
+    **pedidos**. Com a IA do Chrome, ela recebe o início da peça (fatos) e
+    o trecho dos pedidos.
   - Prompts por tipo de peça: na denúncia, a IA recebe cada fato **na
     íntegra** e escreve uma linha por fato (quando, onde, quem, o que fez,
     contra quem, resultado) e, ao final, "Imputação:" só com os artigos já
@@ -1032,18 +1037,31 @@ Opções da extensão.
 
 #### Escolha da IA: Chrome (local) ou Claude (Anthropic)
 
-Na barra da janela, **IA:** escolhe quem faz os resumos (das peças e da
-linguagem simples):
+A barra da janela mostra só as ações (✨ Gerar resumos, o selo da IA em
+uso, 📋 Copiar texto, 🖨️ Imprimir). As opções ficam no painel
+**⚙️ Configurações**, fechado por padrão, em três grupos: *Resumos das
+peças* (manual ou IA; qual IA; diagnóstico), *Claude (Anthropic)* (só
+aparece com o Claude escolhido: modelo e chave) e *Certidão* (formato e
+opções da lista de eventos, linguagem simples). **IA:** escolhe quem faz
+os resumos (das peças e da linguagem simples):
 
 - **Chrome (local, gratuita)** — a IA embutida no navegador; nada sai do
   computador (ver "Como ativar a IA do Chrome" abaixo).
-- **Claude – Anthropic (chave própria)** — usa a API da Anthropic com o
-  modelo mais barato disponível, **Claude Haiku 4.5**
-  (`claude-haiku-4-5`). O botão **⚙️ Chave da API Claude** abre o painel
-  para colar a chave (`sk-ant-…`), **Salvar**, **Testar conexão** e
-  **Apagar chave**. A chave fica salva **só neste navegador**
+- **Claude – Anthropic (chave própria)** — usa a API da Anthropic. Modelo
+  (em ⚙️ Configurações): **Claude Haiku 4.5** (`claude-haiku-4-5`, o mais
+  barato, padrão), **Claude Sonnet 5.5** (`claude-sonnet-5-5`, equilibrado)
+  ou **Claude Opus 5.5** (`claude-opus-5-5`, mais preciso). Sonnet e Opus
+  são chamados com esforço baixo (suficiente para resumir) e com o
+  fallback automático da API em caso de recusa. No mesmo grupo: colar a
+  chave (`sk-ant-…`), **Salvar**, **Testar conexão** e **Apagar chave**. A chave fica salva **só neste navegador**
   (`chrome.storage.local`, sem sincronização) e é enviada apenas à API da
   Anthropic; o custo é cobrado na conta dona da chave.
+  - **Só texto é enviado, nunca o PDF**: o PDF é lido no próprio
+    computador (pdf.js) e o texto extraído vai sem o carimbo de assinatura
+    e com espaços e quebras de linha compactados, para gastar menos tokens.
+    O aviso de cada resumo mostra quantos caracteres foram enviados.
+  - Os avisos dizem qual IA gerou o texto ("Resumo gerado pelo Claude
+    (Claude Sonnet 5.5)…" ou "…pela IA do navegador (Chrome)").
   - Com o Claude, a peça vai **na íntegra** (sem o carimbo de assinatura),
     o que dá resumos mais completos que a IA do Chrome, que tem janela
     pequena e recebe só o trecho relevante.

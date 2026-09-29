@@ -196,11 +196,38 @@ table.quadro .relacionado + .relacionado { margin-top: 3px; padding-left: 1.2em;
 .aud-realizada .aud-situacao { color: #0b5a1e; }
 .evento.nivel-0.ev-audiencia { border-left: 3px solid #1f5fa8; padding-left: calc(1.4em - 3px); margin-left: -0.4em; }
 
-/* Painel da chave da API Claude */
-.painel-claude { margin-top: 6px; padding: 8px 10px; background: #f4f0fa; border: 1px solid #cbb8e6; border-radius: 6px; font-size: 13px; }
-.painel-claude input { font: 13px Consolas, "Courier New", monospace; padding: 3px 6px; min-width: 320px; }
-.painel-claude-nota { flex-basis: 100%; margin: 4px 0 0; font-size: 12px; color: #4a3a63; }
-#claude-estado { color: #4a3a63; font-weight: bold; }
+/* Painel "⚙️ Configurações" (escondido por padrão) */
+#config-toggle.ativo { background: #e3ecf7; border-color: #1f5fa8; }
+.painel-config {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 8px;
+	margin-top: 8px;
+	padding: 10px 12px;
+	background: #f7f9fb;
+	border: 1px solid var(--cor-borda);
+	border-radius: 6px;
+}
+.painel-config[hidden] { display: none; }
+.cfg-grupo {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 14px;
+	margin: 0;
+	padding: 6px 10px 8px;
+	border: 1px solid #d5dbe2;
+	border-radius: 5px;
+	background: #fff;
+	font-size: 13px;
+}
+.cfg-grupo[hidden] { display: none; }
+.cfg-grupo legend { font-weight: bold; color: #12355f; padding: 0 4px; }
+.cfg-grupo select, .cfg-grupo input { font: inherit; }
+.cfg-grupo input[type="password"], .cfg-grupo input#claude-chave { font: 13px Consolas, "Courier New", monospace; padding: 3px 6px; min-width: 280px; }
+.cfg-nota { flex-basis: 100%; margin: 2px 0 0; font-size: 12px; color: #555; }
+#claude-estado { color: #12355f; font-weight: bold; }
+#status { font-size: 13px; }
 
 /* ✕ para excluir linhas do quadro-resumo */
 table.quadro th { position: relative; padding-right: 26px; }
@@ -221,24 +248,19 @@ table.quadro th { position: relative; padding-right: 26px; }
 table.quadro tr:hover .btn-remover-linha { opacity: 1; border-color: #f1a7ae; background: #fde7e9; }
 #quadro-restaurar { margin-top: 6px; font: 12px Arial, Helvetica, sans-serif; padding: 2px 10px; cursor: pointer; }
 
-/* V – Entenda esta certidão (linguagem simples) */
-.simples-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0 0 8px; font: 12px/1.4 Arial, Helvetica, sans-serif; }
+/* V – Entenda esta certidão (linguagem simples) — mesma formatação do
+   restante da certidão: mesma fonte, parágrafos justificados, títulos em
+   negrito como os das peças, sem caixa colorida. */
+.simples-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0 0 8px; font: 12px/1.4 Arial, Helvetica, sans-serif; text-align: left; }
 .simples-acoes button { font: 12px Arial, Helvetica, sans-serif; padding: 3px 10px; cursor: pointer; }
 .simples-acoes button:disabled { opacity: 0.5; cursor: not-allowed; }
 .simples-estado { color: #555; }
-.simples {
-	border: 2px solid #2e7d4f;
-	border-radius: 6px;
-	padding: 10px 14px;
-	background: #f7fbf8;
-	font: 12.5pt/1.55 Arial, Helvetica, sans-serif;
-	text-align: left;
-}
-.simples h3.simples-titulo { font-size: 12.5pt; color: #1f5a37; margin: 0.9em 0 0.3em; }
+.simples { font: inherit; text-align: justify; }
+.simples h3.simples-titulo { font-size: 12pt; font-weight: bold; margin: 1em 0 0.3em; break-after: avoid; }
 .simples h3.simples-titulo:first-child { margin-top: 0; }
-.simples p { margin: 0 0 0.45em; }
-.simples-glossario { margin: 0.2em 0 0.4em; padding-left: 1.2em; font-size: 11.5pt; }
-.simples-glossario li { margin-bottom: 0.2em; }
+.simples p { margin: 0 0 0.5em; }
+.simples-glossario { margin: 0.2em 0 0.5em; padding-left: 1.4em; }
+.simples-glossario li { margin-bottom: 0.25em; }
 
 /* Indicador de disponibilidade da IA (barra superior) */
 .ia-status {
@@ -404,7 +426,7 @@ table.quadro tr:hover .btn-remover-linha { opacity: 1; border-color: #f1a7ae; ba
 	#folha { width: auto; max-width: none; min-height: 0; margin: 0; padding: 0; box-shadow: none; }
 	.pendente, .resumo:empty::before { background: none; }
 	.audiencias, .evento.nivel-0.ev-audiencia { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-	.simples { -webkit-print-color-adjust: exact; print-color-adjust: exact; break-inside: auto; }
+	.simples { break-inside: auto; }
 	table.quadro th { padding-right: 8px; }
 	[hidden] { display: none !important; }
 	table.quadro th { background: #f2f2f2 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }

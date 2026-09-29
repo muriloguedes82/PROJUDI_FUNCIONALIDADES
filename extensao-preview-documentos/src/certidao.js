@@ -209,11 +209,11 @@ let iaBase = null;
 let iaEstado = "verificando"; // available | downloadable | downloading | unavailable | verificando
 
 const IA_ROTULOS = {
-	verificando: { classe: "ia-verificando", texto: "IA do Chrome: verificando…" },
-	available: { classe: "ia-ok", texto: "✅ IA do Chrome: DISPONÍVEL" },
-	downloadable: { classe: "ia-baixar", texto: "⬇️ IA do Chrome: disponível — o modelo será baixado ao clicar em “Gerar resumos”" },
-	downloading: { classe: "ia-baixar", texto: "⏳ IA do Chrome: baixando o modelo…" },
-	unavailable: { classe: "ia-nao", texto: "⛔ IA do Chrome: INDISPONÍVEL neste computador — clique para ver o motivo" },
+	verificando: { classe: "ia-verificando", texto: "IA: verificando…" },
+	available: { classe: "ia-ok", texto: "✅ IA: Chrome (local)" },
+	downloadable: { classe: "ia-baixar", texto: "⬇️ IA: Chrome — modelo será baixado no 1º uso" },
+	downloading: { classe: "ia-baixar", texto: "⏳ IA: Chrome — baixando o modelo…" },
+	unavailable: { classe: "ia-nao", texto: "⛔ IA do Chrome indisponível — clique para ver o motivo" },
 };
 
 // Mostra, na barra, se a IA pode ser usada; desativa a opção e os botões
@@ -221,13 +221,13 @@ const IA_ROTULOS = {
 function mostrarEstadoIA(estado, detalhe) {
 	iaEstado = estado;
 	const r = IA_ROTULOS[estado] || IA_ROTULOS.verificando;
-	const nomeIA = usandoClaude() ? "Claude (" + CLAUDE_MODELO_NOME + ")" : "IA do Chrome";
+	const nomeIA = usandoClaude() ? "Claude (" + claudeModelo().nome + ")" : "IA do Chrome";
 	const badge = $("#ia-status");
 	if (badge) {
 		badge.className = "ia-status " + r.classe;
 		let texto = detalhe || r.texto;
 		if (usandoClaude() && !detalhe) {
-			texto = estado === "available" ? "✅ " + nomeIA + ": PRONTO (chave configurada)" : estado === "unavailable" ? "⛔ Claude: informe a chave da API — clique aqui" : texto;
+			texto = estado === "available" ? "✅ IA: " + claudeModelo().nome : estado === "unavailable" ? "⛔ Claude sem chave — clique para configurar" : texto;
 		}
 		badge.textContent = texto;
 		badge.title = estado === "unavailable" ? (usandoClaude() ? "Clique para informar a chave" : "Clique para ver o diagnóstico") : "";
@@ -289,7 +289,7 @@ async function iaDisponibilidade() {
 async function iaDiagnostico() {
 	const linhas = [];
 	if (usandoClaude()) {
-		linhas.push("IA escolhida: Claude (API da Anthropic), modelo " + CLAUDE_MODELO_NOME + " (" + CLAUDE_MODELO + ").");
+		linhas.push("IA escolhida: Claude (API da Anthropic), modelo " + claudeModelo().nome + " (" + claudeModelo().id + ").");
 		linhas.push("Chave: " + chaveMascarada() + (iaConfig.chave ? "" : " — informe-a em ⚙️ Chave da API Claude."));
 		linhas.push("Use “Testar conexão” no painel da chave para confirmar que ela funciona.");
 		return linhas;
@@ -346,12 +346,42 @@ async function iaSessaoBase() {
 
 const IA_CONFIG_KEY = "pdpCertidaoIA";
 const CLAUDE_URL = "https://api.anthropic.com/v1/messages";
-const CLAUDE_MODELO = "claude-haiku-4-5";
-const CLAUDE_MODELO_NOME = "Claude Haiku 4.5";
+// Modelos oferecidos. O padrão é o mais barato; Sonnet e Opus são mais
+// precisos (e mais caros). Preços por milhão de tokens (entrada / saída).
+const CLAUDE_MODELOS = [
+	{ id: "claude-haiku-4-5", nome: "Claude Haiku 4.5", descricao: "mais barato (US$ 1 / US$ 5)" },
+	{ id: "claude-sonnet-5-5", nome: "Claude Sonnet 5.5", descricao: "equilibrado (US$ 2 / US$ 10)", raciocinio: true },
+	{ id: "claude-opus-5-5", nome: "Claude Opus 5.5", descricao: "mais preciso (US$ 4 / US$ 20)", raciocinio: true },
+];
+function claudeModelo() {
+	return CLAUDE_MODELOS.find((m) => m.id === iaConfig.modelo) || CLAUDE_MODELOS[0];
+}
 const LIMITE_ENTRADA_CLAUDE = 120000; // caracteres (~30 mil tokens), bem abaixo do contexto do modelo
 
-let iaConfig = { provedor: "chrome", chave: "", avisoAceito: false };
+let iaConfig = { provedor: "chrome", chave: "", modelo: "claude-haiku-4-5", avisoAceito: false };
 let sigiloConfirmado = false;
+
+// "o Claude (Claude Haiku 4.5)" ou "a IA do navegador (Chrome)"
+function nomeIAAtual() {
+	return usandoClaude() ? "o Claude (" + claudeModelo().nome + ")" : "a IA do navegador (Chrome)";
+}
+
+// "pelo Claude (Claude Haiku 4.5)" ou "pela IA do navegador (Chrome)"
+function porIAAtual() {
+	return usandoClaude() ? "pelo Claude (" + claudeModelo().nome + ")" : "pela IA do navegador (Chrome)";
+}
+
+// Só TEXTO vai para a IA (nunca o PDF): espaços e quebras de linha
+// repetidos são compactados para gastar menos tokens de entrada.
+function compactarParaIA(texto) {
+	return String(texto || "")
+		.replace(/[ \t\u00a0]+/g, " ")
+		.replace(/ *\n */g, "\n")
+		.replace(/\n{2,}/g, "\n")
+		.trim();
+}
+
+let ultimoEnvioIA = 0; // caracteres enviados na última chamada
 
 function usandoClaude() {
 	return iaConfig.provedor === "claude";
@@ -386,7 +416,7 @@ function mensagemErroClaude(status, corpo) {
 		case 401: return "chave da API inválida ou revogada — confira em ⚙️ Chave da API Claude";
 		case 402: return "problema de cobrança na conta da Anthropic (sem créditos?)" + detalhe;
 		case 403: return "a chave não tem permissão para este uso" + detalhe;
-		case 404: return "modelo " + CLAUDE_MODELO + " não disponível para esta conta" + detalhe;
+		case 404: return "modelo " + claudeModelo().id + " não disponível para esta conta" + detalhe;
 		case 413: return "o texto enviado é grande demais";
 		case 429: return "limite de uso da API atingido — tente de novo em instantes";
 		case 529: return "a API da Anthropic está sobrecarregada — tente de novo em instantes";
@@ -403,23 +433,35 @@ async function claudeGerar(prompt, maxTokens) {
 		const controller = new AbortController();
 		const timer = setTimeout(() => controller.abort(), 120000);
 		let resp;
+		const modelo = claudeModelo();
+		const headers = {
+			"content-type": "application/json",
+			"x-api-key": iaConfig.chave,
+			"anthropic-version": "2023-06-01",
+			// Necessário para chamar a API direto de uma página de navegador/extensão.
+			"anthropic-dangerous-direct-browser-access": "true",
+		};
+		const corpoReq = {
+			model: modelo.id,
+			max_tokens: maxTokens || 2000,
+			system: SISTEMA_IA,
+			messages: [{ role: "user", content: prompt }], // texto puro, sem anexos
+		};
+		if (modelo.raciocinio) {
+			// Sonnet 5.5 / Opus 5.5 raciocinam antes de responder (e isso conta
+			// em max_tokens): esforço baixo basta para resumir, e sobra espaço
+			// para a resposta. Se o modelo recusar, a API tenta outro modelo.
+			corpoReq.max_tokens = Math.max(8000, (maxTokens || 2000) * 4);
+			corpoReq.output_config = { effort: "low" };
+			corpoReq.fallbacks = "default";
+			headers["anthropic-beta"] = "server-side-fallback-2026-07-01";
+		}
 		try {
 			resp = await fetch(CLAUDE_URL, {
 				method: "POST",
 				signal: controller.signal,
-				headers: {
-					"content-type": "application/json",
-					"x-api-key": iaConfig.chave,
-					"anthropic-version": "2023-06-01",
-					// Necessário para chamar a API direto de uma página de navegador/extensão.
-					"anthropic-dangerous-direct-browser-access": "true",
-				},
-				body: JSON.stringify({
-					model: CLAUDE_MODELO,
-					max_tokens: maxTokens || 2000,
-					system: SISTEMA_IA,
-					messages: [{ role: "user", content: prompt }],
-				}),
+				headers,
+				body: JSON.stringify(corpoReq),
 			});
 		} catch (e) {
 			ultimoErro = new Error(e.name === "AbortError" ? "a API da Anthropic não respondeu a tempo" : "falha de conexão com a API da Anthropic (" + e.message + ")");
@@ -470,6 +512,8 @@ function confirmarEnvioClaude() {
 
 // Ponto único de geração de texto, qualquer que seja o provedor.
 async function iaGerar(prompt, maxTokens) {
+	prompt = compactarParaIA(prompt);
+	ultimoEnvioIA = prompt.length;
 	if (usandoClaude()) {
 		if (!confirmarEnvioClaude()) throw new Error("envio ao Claude cancelado");
 		return claudeGerar(prompt, maxTokens);
@@ -491,11 +535,25 @@ function prepararPainelClaude() {
 	const atualizar = () => {
 		estado.textContent = iaConfig.chave ? "Chave salva neste navegador: " + chaveMascarada() : "Nenhuma chave salva.";
 	};
-	$("#ia-config").addEventListener("click", () => {
-		painel.hidden = !painel.hidden;
-		campo.value = "";
-		atualizar();
+	// Painel "⚙️ Configurações" (escondido por padrão).
+	const config = $("#painel-config");
+	const toggle = $("#config-toggle");
+	window.abrirConfiguracoes = (abrir) => {
+		config.hidden = abrir === undefined ? !config.hidden : !abrir;
+		toggle.setAttribute("aria-expanded", String(!config.hidden));
+		toggle.classList.toggle("ativo", !config.hidden);
+	};
+	toggle.addEventListener("click", () => window.abrirConfiguracoes());
+	// Modelo do Claude
+	const selModelo = $("#claude-modelo");
+	CLAUDE_MODELOS.forEach((m) => selModelo.append(el("option", { value: m.id, text: m.nome + " — " + m.descricao })));
+	selModelo.value = claudeModelo().id;
+	selModelo.addEventListener("change", async () => {
+		iaConfig.modelo = selModelo.value;
+		await salvarConfigIA();
+		verificarIA();
 	});
+	painel.hidden = !usandoClaude();
 	$("#claude-mostrar").addEventListener("click", () => (campo.type = campo.type === "password" ? "text" : "password"));
 	$("#claude-salvar").addEventListener("click", async () => {
 		const chave = campo.value.trim();
@@ -520,7 +578,7 @@ function prepararPainelClaude() {
 		estado.textContent = "Testando a conexão…";
 		try {
 			const r = await claudeGerar("Responda apenas: OK", 10);
-			estado.textContent = "Conexão OK (" + CLAUDE_MODELO_NOME + " respondeu: " + T.colapsar(r).slice(0, 20) + "). Chave: " + chaveMascarada();
+			estado.textContent = "Conexão OK (" + claudeModelo().nome + " respondeu: " + T.colapsar(r).slice(0, 20) + "). Chave: " + chaveMascarada();
 		} catch (e) {
 			estado.textContent = "Falhou: " + e.message;
 		}
@@ -530,7 +588,7 @@ function prepararPainelClaude() {
 	sel.addEventListener("change", async () => {
 		iaConfig.provedor = sel.value;
 		await salvarConfigIA();
-		if (usandoClaude() && !iaConfig.chave) painel.hidden = false;
+		painel.hidden = !usandoClaude();
 		atualizar();
 		verificarIA();
 	});
@@ -539,21 +597,25 @@ function prepararPainelClaude() {
 // Prompts por tipo de peça. A IA recebe o texto já limpo (sem o carimbo
 // de assinatura) e, na denúncia, os fatos NA ÍNTEGRA, separados por fato,
 // e os artigos da imputação já isolados.
+// Regras comuns aos resumos de peças das partes: objetivo e IMPARCIAL,
+// sempre atribuindo as afirmações a quem as fez.
+const IMPARCIAL =
+	" Seja objetivo e imparcial: atribua cada afirmação à parte que a fez ('a autora alega que…', 'segundo a defesa…'), " +
+	"sem adjetivos, sem juízo de valor e sem tomar partido. Não repita a qualificação das partes nem citações de lei e de jurisprudência.";
+
 const INSTRUCOES_IA = {
 	inicial:
-		"Liste, de forma objetiva, os PEDIDOS formulados na petição inicial abaixo (por exemplo: condenação ao pagamento de valores, " +
-		"obrigação de fazer, tutela de urgência, gratuidade), com os valores quando houver. Comece com 'Requer' e use no máximo 4 frases. " +
-		"Não repita a qualificação das partes nem a fundamentação jurídica.",
+		"Resuma a petição inicial abaixo em dois parágrafos curtos: (1) FATOS — o que a parte autora narra que aconteceu " +
+		"(quem, quando, o quê), em até 3 frases; (2) PEDIDOS — o que ela pede ao juiz (condenação a pagar valores, obrigação " +
+		"de fazer, tutela de urgência, gratuidade etc.), com os valores quando houver, começando por 'Pede'." + IMPARCIAL,
 	contestacao:
-		"Resuma a contestação abaixo em no máximo 4 frases: primeiro as preliminares (se houver), depois as principais teses de mérito " +
-		"e, por fim, o pedido final (improcedência, extinção etc.).",
+		"Resuma a contestação abaixo em dois parágrafos curtos: (1) FATOS E DEFESA — a versão dos fatos apresentada pela parte ré " +
+		"e as preliminares e teses de mérito, em até 3 frases; (2) PEDIDOS — o que ela pede (improcedência, extinção, " +
+		"acolhimento de preliminar, pedido contraposto etc.), começando por 'Pede'." + IMPARCIAL,
 	resposta:
-		"Resuma a resposta à acusação abaixo em no máximo 4 frases: preliminares e nulidades alegadas, pedido de absolvição sumária " +
-		"ou rejeição da denúncia (com o fundamento), e requerimentos de prova (testemunhas, diligências). Se a defesa apenas se reservar " +
-		"para discutir o mérito depois, diga isso.",
-	sentenca:
-		"Resuma o que foi decidido na sentença abaixo em no máximo 4 frases: resultado (procedência, improcedência, condenação, " +
-		"absolvição, extinção), condenações e valores, e, se criminal, o crime, a pena, o regime e eventual substituição ou suspensão.",
+		"Resuma a resposta à acusação abaixo em dois parágrafos curtos: (1) FATOS E DEFESA — a versão da defesa sobre os fatos e as " +
+		"preliminares ou nulidades alegadas, em até 3 frases (se a defesa apenas se reservar para discutir o mérito depois, diga isso); " +
+		"(2) PEDIDOS — absolvição sumária, rejeição da denúncia (com o fundamento) e requerimentos de prova (testemunhas, diligências)." + IMPARCIAL,
 	sentencaCriminal:
 		"Resuma a sentença criminal abaixo para uma certidão, em linhas curtas, trazendo SOMENTE os itens que existirem no texto, " +
 		"nesta ordem: (a) quem foi absolvido e quem foi condenado (nomes); (b) a pena definitiva aplicada a cada condenado, com a " +
@@ -565,10 +627,10 @@ const INSTRUCOES_IA = {
 	decisao:
 		"Resuma em no máximo 3 frases objetivas o que foi decidido na decisão abaixo (o que foi deferido ou indeferido e as determinações).",
 	outra:
-		"Resuma em no máximo 3 frases objetivas o conteúdo principal da peça abaixo (o que se pede ou o que se decide).",
+		"Resuma a peça abaixo em até 2 parágrafos curtos: os fatos ou fundamentos apresentados e o que se pede (ou o que se decide)." + IMPARCIAL,
 	recurso:
-		"Resuma o recurso abaixo em no máximo 3 frases: quem recorre (se constar), qual decisão é atacada, o que se pede ao tribunal " +
-		"(reforma, anulação, redução de pena etc.) e os principais fundamentos.",
+		"Resuma o recurso abaixo em dois parágrafos curtos: (1) quem recorre (se constar), qual decisão é atacada e os principais " +
+		"argumentos, em até 3 frases; (2) PEDIDOS — o que se pede ao tribunal (reforma, anulação, redução de pena etc.)." + IMPARCIAL,
 };
 
 function promptPara(ui) {
@@ -600,6 +662,13 @@ function promptPara(ui) {
 		// O Claude comporta a peça inteira: vai o texto integral (sem o
 		// carimbo de assinatura), para um resumo mais completo.
 		base = T.limparAssinaturas(ui.texto).slice(0, LIMITE_ENTRADA_CLAUDE - 4000);
+	} else if (ui.texto && ["inicial", "contestacao", "resposta", "recurso", "outra"].includes(ui.peca.tipo)) {
+		// IA do Chrome (janela pequena): o começo da peça, onde ficam os
+		// fatos, e o trecho dos pedidos.
+		const limpo = T.limparAssinaturas(ui.texto);
+		const inicio = limpo.slice(0, 3500);
+		const pedidos = T.colapsar(base).length >= 200 ? base.slice(0, 3500) : limpo.slice(-3500);
+		base = inicio + "\n[…]\n" + pedidos;
 	} else if (T.colapsar(base).length < 400 && ui.texto) {
 		base = T.limparAssinaturas(ui.texto).slice(-4000);
 	}
@@ -633,7 +702,7 @@ async function resumirComIA(ui) {
 			throw e;
 		}
 	}
-	throw new Error("o trecho é grande demais para a IA do navegador");
+	throw new Error("o trecho é grande demais para a IA escolhida");
 }
 
 // ---------------------------------------------------------------------
@@ -1190,19 +1259,22 @@ async function resumirUmaComIA(ui, interativo) {
 	const disp = await iaDisponibilidade();
 	if (disp === "unavailable") {
 		mostrarEstadoIA("unavailable");
-		const msg = "A IA do Chrome não está disponível neste computador/versão do navegador — use o modo manual.";
+		const msg = usandoClaude()
+			? "O Claude não está configurado (falta a chave da API) — abra ⚙️ Configurações ou use o modo manual."
+			: "A IA do Chrome não está disponível neste computador/versão do navegador — use o modo manual.";
 		estadoPeca(ui, msg, true);
 		if (interativo) alert(msg + "\n\n" + (await iaDiagnostico()).join("\n"));
 		return false;
 	}
 	await extrair(ui);
 	if (!T.colapsar(ui.relevante || "") && !(ui.denuncia && ui.denuncia.fatos.length)) return false;
-	estadoPeca(ui, "Resumindo com a IA do navegador…");
+	estadoPeca(ui, "Resumindo com " + nomeIAAtual() + "…");
 	try {
 		const texto = await resumirComIA(ui);
 		ui.resumo.textContent = texto;
 		ui.seloIA.hidden = false;
-		estadoPeca(ui, "Resumo gerado pela IA do navegador — revise antes de imprimir.");
+		ui.seloIA.textContent = "✨ Gerado " + porIAAtual() + " — revise antes de imprimir";
+		estadoPeca(ui, "Resumo gerado " + porIAAtual() + " (" + ultimoEnvioIA.toLocaleString("pt-BR") + " caracteres de texto enviados) — revise antes de imprimir.");
 		return true;
 	} catch (e) {
 		estadoPeca(ui, "A IA não conseguiu resumir: " + e.message, true);
@@ -1219,7 +1291,10 @@ async function gerarResumos() {
 			const disp = await iaDisponibilidade();
 			if (disp === "unavailable") {
 				mostrarEstadoIA("unavailable");
-				mostrarAvisos(["A IA do Chrome não está disponível neste computador/versão — os trechos foram extraídos para preenchimento manual."]);
+				mostrarAvisos([
+					(usandoClaude() ? "O Claude não está configurado (falta a chave da API)" : "A IA do Chrome não está disponível neste computador/versão") +
+						" — os textos foram extraídos para preenchimento manual.",
+				]);
 				$("#modo").value = "manual";
 			}
 		}
@@ -1359,7 +1434,7 @@ async function reescreverSimplesComIA() {
 		return;
 	}
 	botao.disabled = true;
-	estado.textContent = "Reescrevendo com " + (usandoClaude() ? "o Claude" : "a IA do navegador") + "…";
+	estado.textContent = "Reescrevendo com " + nomeIAAtual() + "…";
 	try {
 		const fixo = S.blocosEmTexto(S.gerarLinguagemSimples(dados, extrasSimples()));
 		const prompt =
@@ -1387,7 +1462,8 @@ async function reescreverSimplesComIA() {
 		renderizarSimples(blocos);
 		simplesEditado = true; // não é refeito automaticamente por cima
 		$("#simples-selo").hidden = false;
-		estado.textContent = "Reescrito " + (usandoClaude() ? "pelo Claude" : "pela IA do navegador") + " — confira nomes, datas e valores antes de imprimir.";
+		$("#simples-selo").textContent = "✨ Reescrito " + porIAAtual() + " — revise";
+		estado.textContent = "Reescrito " + porIAAtual() + " (" + ultimoEnvioIA.toLocaleString("pt-BR") + " caracteres de texto enviados) — confira nomes, datas e valores antes de imprimir.";
 	} catch (e) {
 		estado.textContent = "A IA não conseguiu reescrever: " + e.message;
 	} finally {
@@ -1597,11 +1673,11 @@ async function iniciar() {
 	$("#imprimir").addEventListener("click", () => window.print());
 	$("#ia-status").addEventListener("click", async () => {
 		if (iaEstado !== "unavailable") return;
-		if (usandoClaude()) $("#painel-claude").hidden = false;
-		else alert("Diagnóstico da IA do navegador\n\n" + (await iaDiagnostico()).join("\n\n"));
+		if (usandoClaude()) window.abrirConfiguracoes(true);
+		else alert("Diagnóstico da IA\n\n" + (await iaDiagnostico()).join("\n\n"));
 	});
 	$("#diagnostico-ia").addEventListener("click", async () => {
-		alert("Diagnóstico da IA do navegador\n\n" + (await iaDiagnostico()).join("\n\n"));
+		alert("Diagnóstico da IA\n\n" + (await iaDiagnostico()).join("\n\n"));
 	});
 	$("#copiar").addEventListener("click", async () => {
 		try {
@@ -1625,7 +1701,7 @@ async function iniciar() {
 		if (disp !== "available") {
 			status("Extraindo os trechos das peças…");
 			for (const ui of pecasUI) await extrair(ui);
-			status('Clique em "✨ Gerar resumos" para resumir com a IA do navegador (na primeira vez, o Chrome baixa o modelo).');
+			status('Clique em "✨ Gerar resumos" para resumir com ' + nomeIAAtual() + (usandoClaude() ? "." : " (na primeira vez, o Chrome baixa o modelo)."));
 			return;
 		}
 	}
