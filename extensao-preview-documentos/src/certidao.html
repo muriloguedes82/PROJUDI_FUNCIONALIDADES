@@ -12,12 +12,16 @@
 			<strong class="barra-titulo">📜 Certidão narrativa</strong>
 			<button type="button" id="gerar-resumos" title="Ler as peças e preencher os resumos (modo e IA definidos em Configurações)">✨ Gerar resumos</button>
 			<span id="ia-status" class="ia-status ia-verificando" role="status" title="IA usada nos resumos">IA: verificando…</span>
-			<span id="status" role="status" aria-live="polite"></span>
 			<span class="barra-espaco"></span>
 			<button type="button" id="config-toggle" aria-expanded="false" aria-controls="painel-config">⚙️ Configurações</button>
-			<button type="button" id="copiar">📋 Copiar texto</button>
-			<button type="button" id="imprimir" class="primario">🖨️ Imprimir / Salvar PDF</button>
+			<button type="button" id="copiar" title="Copiar o texto da certidão">📋 Copiar</button>
+			<span class="grupo-imprimir">
+				<button type="button" id="imprimir" class="primario">🖨️ Imprimir / Salvar PDF</button>
+				<label class="opcao-imprimir" title="Gera também o resumo em linguagem simples (Pacto do CNJ), em arquivo separado da certidão"><input type="checkbox" id="opt-simples" checked> + Linguagem simples</label>
+			</span>
 		</div>
+
+		<div class="barra-status"><span id="status" role="status" aria-live="polite"></span></div>
 
 		<div id="painel-config" class="painel-config" hidden>
 			<fieldset class="cfg-grupo">
@@ -71,7 +75,6 @@
 					</select>
 				</label>
 				<label title="Intimações, citações, leituras e prazos aparecem recuados, sob o evento a que se referem"><input type="checkbox" id="opt-subitens" checked> Intimações como subitens</label>
-				<label title="Inclui, ao final, a seção “Entenda esta certidão”, em linguagem simples (Pacto do CNJ)"><input type="checkbox" id="opt-simples" checked> Resumo em linguagem simples</label>
 				<label><input type="checkbox" id="opt-usuario"> Quem movimentou</label>
 				<label><input type="checkbox" id="opt-invalidos" checked> Movimentos invalidados</label>
 				<label><input type="checkbox" id="opt-seq" checked> Sequencial dos eventos</label>

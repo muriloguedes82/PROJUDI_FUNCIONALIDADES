@@ -209,11 +209,11 @@ let iaBase = null;
 let iaEstado = "verificando"; // available | downloadable | downloading | unavailable | verificando
 
 const IA_ROTULOS = {
-	verificando: { classe: "ia-verificando", texto: "IA: verificando…" },
-	available: { classe: "ia-ok", texto: "✅ IA: Chrome (local)" },
-	downloadable: { classe: "ia-baixar", texto: "⬇️ IA: Chrome — modelo será baixado no 1º uso" },
-	downloading: { classe: "ia-baixar", texto: "⏳ IA: Chrome — baixando o modelo…" },
-	unavailable: { classe: "ia-nao", texto: "⛔ IA do Chrome indisponível — clique para ver o motivo" },
+	verificando: { classe: "ia-verificando", texto: "IA: verificando…", dica: "Verificando a IA escolhida" },
+	available: { classe: "ia-ok", texto: "✅ IA: Chrome", dica: "IA do Chrome (local) pronta para uso" },
+	downloadable: { classe: "ia-baixar", texto: "⬇️ IA: Chrome", dica: "IA do Chrome disponível: o modelo será baixado ao clicar em “Gerar resumos” (1ª vez)" },
+	downloading: { classe: "ia-baixar", texto: "⏳ IA: Chrome", dica: "Baixando o modelo da IA do Chrome…" },
+	unavailable: { classe: "ia-nao", texto: "⛔ IA: Chrome", dica: "IA do Chrome indisponível neste computador — clique para ver o motivo" },
 };
 
 // Mostra, na barra, se a IA pode ser usada; desativa a opção e os botões
@@ -227,10 +227,12 @@ function mostrarEstadoIA(estado, detalhe) {
 		badge.className = "ia-status " + r.classe;
 		let texto = detalhe || r.texto;
 		if (usandoClaude() && !detalhe) {
-			texto = estado === "available" ? "✅ IA: " + claudeModelo().nome : estado === "unavailable" ? "⛔ Claude sem chave — clique para configurar" : texto;
+			texto = estado === "available" ? "✅ IA: " + claudeModelo().nome : estado === "unavailable" ? "⛔ Claude sem chave" : texto;
 		}
 		badge.textContent = texto;
-		badge.title = estado === "unavailable" ? (usandoClaude() ? "Clique para informar a chave" : "Clique para ver o diagnóstico") : "";
+		badge.title = usandoClaude()
+			? estado === "unavailable" ? "Claude sem chave da API — clique para configurar" : "Resumos pelo " + claudeModelo().nome + " (Anthropic)"
+			: detalhe || r.dica || "";
 	}
 	const opcaoIA = document.querySelector('#modo option[value="ia"]');
 	if (opcaoIA) {
@@ -1536,15 +1538,13 @@ async function reescreverSimplesComIA() {
 function secaoSimples() {
 	const sec = el("section", { id: "secao-simples", class: "no-print folha-separada" });
 	sec.append(
-		el("div", { class: "separada-aviso" }, "📄 Documento separado — não faz parte da certidão. Use “Abrir para imprimir” para gerar o resumo em uma página própria."),
+		el("div", { class: "separada-aviso" }, "📄 Documento separado — não faz parte da certidão. Sai em arquivo próprio, junto com a certidão, ao clicar em “🖨️ Imprimir / Salvar PDF” (para não gerar, desmarque “+ Linguagem simples” ao lado desse botão)."),
 		el("h2", { class: "subtitulo", text: "ENTENDA SUA CERTIDÃO — RESUMO EM LINGUAGEM SIMPLES" }),
 		el(
 			"div",
 			{ class: "simples-acoes" },
 			el("button", { type: "button", id: "simples-fixo", text: "↻ Gerar com modelo fixo", onclick: () => gerarSimplesFixo(true) }),
 			el("button", { type: "button", id: "simples-ia", class: "btn-ia", text: "✨ Reescrever com IA", onclick: reescreverSimplesComIA }),
-			el("button", { type: "button", id: "simples-abrir", class: "primario", text: "🖨️ Abrir para imprimir / Salvar PDF", onclick: abrirSimplesSeparado }),
-			el("button", { type: "button", id: "simples-copiar", text: "📋 Copiar resumo", onclick: copiarSimples }),
 			el("span", { id: "simples-selo", class: "selo-ia", hidden: true, text: "✨ Reescrito pela IA — revise" }),
 			el("span", { id: "simples-estado", class: "simples-estado" })
 		),
@@ -1560,15 +1560,6 @@ function textoSimples() {
 		if (t) linhas.push((n.matches("li") ? "• " : "") + t);
 	});
 	return linhas.join("\n");
-}
-
-async function copiarSimples() {
-	try {
-		await navigator.clipboard.writeText(textoSimples());
-		$("#simples-estado").textContent = "Resumo copiado.";
-	} catch (e) {
-		$("#simples-estado").textContent = "Não foi possível copiar: " + e.message;
-	}
 }
 
 // Abre o resumo em uma página própria (documento separado da certidão),
@@ -1596,20 +1587,37 @@ function abrirSimplesSeparado() {
 	const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
 	const janela = window.open(url, "_blank");
 	if (!janela) {
-		alert("O navegador bloqueou a nova janela. Permita pop-ups para a extensão e tente de novo.");
-		return;
+		alert("O navegador bloqueou a janela do resumo em linguagem simples. Permita pop-ups para a extensão e tente de novo.");
+		return null;
 	}
 	janela.addEventListener("load", () => {
 		janela.focus();
 		janela.print();
 		setTimeout(() => URL.revokeObjectURL(url), 60000);
 	});
+	return janela;
+}
+
+// Botão "🖨️ Imprimir / Salvar PDF": imprime a certidão e, se "+ Linguagem
+// simples" estiver marcado, abre o resumo em linguagem simples em outra
+// janela, para ser impresso/salvo como ARQUIVO SEPARADO. A janela do resumo
+// é aberta antes (enquanto vale o clique do usuário, para não ser
+// bloqueada) e imprime sozinha ao carregar.
+function imprimirTudo() {
+	const comSimples = opcoes.simples && $("#simples-conteudo") && T.colapsar($("#simples-conteudo").textContent);
+	if (comSimples) {
+		abrirSimplesSeparado();
+		status("A certidão e o resumo em linguagem simples (em arquivo separado) foram enviados para impressão.");
+	}
+	window.print();
 }
 
 // Mostra/oculta a seção V (e a tira da impressão e do "Copiar texto").
 function aplicarOpcaoSimples() {
 	const sec = $("#secao-simples");
 	if (sec) sec.hidden = !opcoes.simples;
+	const imp = $("#imprimir");
+	if (imp) imp.title = opcoes.simples ? "Imprime a certidão e gera, em arquivo separado, o resumo em linguagem simples" : "Imprime a certidão";
 }
 
 // ---------------------------------------------------------------------
@@ -1793,7 +1801,7 @@ async function iniciar() {
 	gerarSimplesFixo();
 
 	$("#gerar-resumos").addEventListener("click", gerarResumos);
-	$("#imprimir").addEventListener("click", () => window.print());
+	$("#imprimir").addEventListener("click", imprimirTudo);
 	$("#ia-status").addEventListener("click", async () => {
 		if (iaEstado !== "unavailable") return;
 		if (usandoClaude()) window.abrirConfiguracoes(true);

@@ -880,10 +880,10 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
     const chave = PDP_CERTIDAO_PREFIX + message.id;
     const registro = (await chrome.storage.local.get(chave))[chave];
     if (registro) await chrome.storage.local.set({ [chave]: { ...registro, tabId: sender.tab.id, frameId: sender.frameId || 0 } });
-    let left, top, width = 960, height = 900;
+    let left, top, width = 1120, height = 900;
     try {
       const current = await chrome.windows.get(sender.tab.windowId);
-      width = Math.min(960, current.width || 960);
+      width = Math.min(1120, current.width || 1120);
       height = Math.min(1000, Math.max(600, (current.height || 900) - 40));
       left = (current.left || 0) + Math.max(0, Math.round(((current.width || width) - width) / 2));
       top = (current.top || 0) + 20;

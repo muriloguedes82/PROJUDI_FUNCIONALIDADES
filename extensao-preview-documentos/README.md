@@ -921,12 +921,16 @@ Salvar PDF** e **Copiar texto**. A certidão é dividida em seções:
   **"autoPrisaoFlagrante"** são ignorados: em processo criminal, a
   "inicial" costuma ser a juntada do auto de prisão em flagrante, que não
   precisa de resumo, e o movimento que só tem esse arquivo não entra;
-- **Resumo em linguagem simples ("Entenda sua certidão") — documento
-  separado:** não faz parte da certidão (não sai na impressão nem no
-  "Copiar texto" dela). Na tela, fica numa folha própria abaixo da
-  certidão, editável, com os botões "🖨️ Abrir para imprimir / Salvar PDF"
-  (abre o resumo numa página própria, com cabeçalho do Tribunal, e chama a
-  impressão) e "📋 Copiar resumo". É um resumo para qualquer
+- **Resumo em linguagem simples ("Entenda sua certidão") — arquivo
+  separado, no mesmo botão:** não faz parte da certidão (não sai na
+  impressão nem no "Copiar" dela), mas é gerado pelo **mesmo botão
+  🖨️ Imprimir / Salvar PDF**: a certidão é impressa na janela dela e o
+  resumo abre numa janela própria (cabeçalho do Tribunal, título "ENTENDA
+  SUA CERTIDÃO") e é impresso/salvo como **outro arquivo**. Para incluir ou
+  não o resumo, use a caixa **"+ Linguagem simples"**, colada ao botão
+  Imprimir (desmarcada, só a certidão é gerada e o resumo some da tela).
+  Na tela, o resumo fica numa folha própria abaixo da certidão, editável,
+  com "↻ Gerar com modelo fixo" e "✨ Reescrever com IA". É um resumo para qualquer
   cidadão, no espírito do Pacto Nacional do Judiciário pela Linguagem
   Simples (CNJ): frases curtas, sem jargão, datas por extenso e termos
   explicados. Blocos (só os que tiverem dados): *Que processo é este?*
@@ -1055,11 +1059,11 @@ Opções da extensão.
 #### Escolha da IA: Chrome (local) ou Claude (Anthropic)
 
 A barra da janela mostra só as ações (✨ Gerar resumos, o selo da IA em
-uso, 📋 Copiar texto, 🖨️ Imprimir). As opções ficam no painel
+uso, 📋 Copiar, 🖨️ Imprimir / Salvar PDF com "+ Linguagem simples"). As opções ficam no painel
 **⚙️ Configurações**, fechado por padrão, em três grupos: *Resumos das
 peças* (manual ou IA; qual IA; diagnóstico), *Claude (Anthropic)* (só
 aparece com o Claude escolhido: modelo e chave) e *Certidão* (formato e
-opções da lista de eventos, linguagem simples). **IA:** escolhe quem faz
+opções da lista de eventos). **IA:** escolhe quem faz
 os resumos (das peças e da linguagem simples):
 
 - **Chrome (local, gratuita)** — a IA embutida no navegador; nada sai do

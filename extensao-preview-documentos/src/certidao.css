@@ -35,7 +35,7 @@ body {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	gap: 8px 14px;
+	gap: 8px 10px;
 }
 
 .barra-opcoes {
@@ -223,7 +223,26 @@ table.quadro .relacionado + .relacionado { margin-top: 3px; padding-left: 1.2em;
 .cfg-grupo input[type="password"], .cfg-grupo input#claude-chave { font: 13px Consolas, "Courier New", monospace; padding: 3px 6px; min-width: 280px; }
 .cfg-nota { flex-basis: 100%; margin: 2px 0 0; font-size: 12px; color: #555; }
 #claude-estado { color: #12355f; font-weight: bold; }
-#status { font-size: 13px; }
+#status { font-size: 12.5px; }
+.barra-status { min-height: 1.2em; margin-top: 3px; text-align: left; }
+.barra-status:empty, .barra-status:has(#status:empty) { min-height: 0; margin: 0; }
+/* "+ Linguagem simples" colado ao botão Imprimir */
+.grupo-imprimir { display: inline-flex; align-items: stretch; margin-left: auto; }
+.grupo-imprimir #imprimir { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.opcao-imprimir {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 0 10px;
+	border: 1px solid var(--cor-destaque);
+	border-left: none;
+	border-radius: 0 4px 4px 0;
+	background: #eef4fb;
+	color: #12355f;
+	font-size: 12.5px;
+	cursor: pointer;
+	white-space: nowrap;
+}
 
 /* ✕ para excluir linhas do quadro-resumo */
 table.quadro th { position: relative; padding-right: 26px; }
