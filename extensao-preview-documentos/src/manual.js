@@ -1,12 +1,16 @@
 // Manual do Usuário (src/manual.html), aberto pelo botão "📖 Manual do
 // Usuário" do Menu da extensão (src/menuExtensao.js).
 //
-// O conteúdo é o próprio README.md da extensão, convertido aqui para HTML -
-// assim o manual acompanha automaticamente cada nova versão. Cada seção
-// "## ..." vira um card, com índice lateral e busca por palavras.
+// O conteúdo é o manual em manual/MANUAL.md, convertido aqui para HTML -
+// assim o botão do Menu sempre abre a versão que acompanha a extensão.
+// Cada capítulo "## ..." vira um card, com índice lateral e busca por
+// palavras. Os links "videos/....mp4" abrem o vídeo num player sobre a
+// página (manual/videos/); os links "#..." rolam até a seção.
 // O conversor cobre só o Markdown usado no README (títulos, parágrafos,
 // listas, citações, tabelas, blocos de código, negrito, itálico, código e
-// links); todo texto é escapado antes da formatação.
+// links); todo texto é escapado antes da formatação. Linhas com âncora
+// (<a id="x"></a>) viram destinos dos links internos e comentários HTML
+// são ignorados.
 (function () {
 	"use strict";
 
@@ -31,8 +35,10 @@
 		t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
 			.replace(/(^|[^*\w])\*([^*\s][^*]*)\*(?!\w)/g, "$1<em>$2</em>")
 			.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function (_, rotulo, url) {
-				const seguro = /^(https?:|#)/i.test(url) ? url : "#";
-				return '<a href="' + seguro + '" target="_blank" rel="noopener">' + rotulo + "</a>";
+				if (/^videos\/[\w.-]+\.mp4$/i.test(url)) return '<a href="#" class="video" data-video="' + url + '">' + rotulo + "</a>";
+				if (/^#[\w-]+$/.test(url)) return '<a href="' + url + '" class="interno">' + rotulo + "</a>";
+				if (/^https?:/i.test(url)) return '<a href="' + url + '" target="_blank" rel="noopener">' + rotulo + "</a>";
+				return rotulo; // arquivos do repositório, que não existem aqui
 			});
 		return t.replace(/\u0000(\d+)\u0000/g, function (_, i) { return "<code>" + codigos[i] + "</code>"; });
 	}
@@ -43,10 +49,13 @@
 		const html = [];
 		let i = 0;
 		const ehLista = function (l) { return /^\s*([-*]|\d+\.)\s+/.test(l); };
-		const ehEspecial = function (l) { return /^(#{1,6}\s|```|>|\|)/.test(l) || ehLista(l); };
+		const ehEspecial = function (l) { return /^(#{1,6}\s|```|>|\||<a id=|-{3,}\s*$)/.test(l) || ehLista(l); };
 		while (i < linhas.length) {
 			const linha = linhas[i];
 			if (!linha.trim()) { i++; continue; }
+			if (/^-{3,}\s*$/.test(linha)) { html.push("<hr>"); i++; continue; }
+			const ancora = /^<a id="([\w-]+)"><\/a>\s*$/.exec(linha);
+			if (ancora) { html.push('<span class="ancora" id="' + ancora[1] + '"></span>'); i++; continue; }
 			if (/^```/.test(linha)) {
 				const bloco = [];
 				i++;
@@ -116,17 +125,24 @@
 		return html.join("\n");
 	}
 
-	// Divide o README nas seções "## ..." (a primeira é a introdução).
+	const semComentarios = function (md) { return md.replace(/<!--[\s\S]*?-->/g, ""); };
+
+	// Divide o manual nos capítulos "## ..." (a primeira é a introdução).
 	function secoes(md) {
 		const lista = [];
 		let atual = { titulo: "Apresentação", nivel: 1, linhas: [] };
 		let emCodigo = false;
-		md.replace(/\r/g, "").split("\n").forEach(function (linha) {
+		semComentarios(md).replace(/\r/g, "").split("\n").forEach(function (linha) {
 			if (/^```/.test(linha)) emCodigo = !emCodigo;
 			const m = !emCodigo && /^##\s+(.*)$/.exec(linha);
 			if (m) {
+				// Âncoras (e linhas em branco) logo antes do título pertencem a este capítulo.
+				const antes = [];
+				while (atual.linhas.length && (!atual.linhas[atual.linhas.length - 1].trim() || /^<a id="[\w-]+"><\/a>\s*$/.test(atual.linhas[atual.linhas.length - 1]))) {
+					antes.unshift(atual.linhas.pop());
+				}
 				lista.push(atual);
-				atual = { titulo: m[1], nivel: 2, linhas: [linha] };
+				atual = { titulo: m[1], nivel: 2, linhas: antes.concat([linha]) };
 			} else {
 				atual.linhas.push(linha);
 			}
@@ -242,7 +258,54 @@
 		});
 	}
 
-	fetch(chrome.runtime.getURL("README.md"))
+	// Player dos vídeos (links "videos/....mp4" do manual).
+	function abrirVideo(arquivo, titulo) {
+		const fundo = document.createElement("div");
+		fundo.className = "video-fundo";
+		const caixa = document.createElement("div");
+		caixa.className = "video-caixa";
+		const cab = document.createElement("div");
+		cab.className = "video-cab";
+		const nome = document.createElement("span");
+		nome.textContent = titulo;
+		const fechar = document.createElement("button");
+		fechar.type = "button";
+		fechar.textContent = "✕ Fechar";
+		const video = document.createElement("video");
+		video.controls = true;
+		video.autoplay = true;
+		video.src = chrome.runtime.getURL("manual/" + arquivo);
+		const fim = function () { document.removeEventListener("keydown", aoTeclar); fundo.remove(); };
+		const aoTeclar = function (e) { if (e.key === "Escape") fim(); };
+		fechar.addEventListener("click", fim);
+		fundo.addEventListener("click", function (e) { if (e.target === fundo) fim(); });
+		document.addEventListener("keydown", aoTeclar);
+		cab.append(nome, fechar);
+		caixa.append(cab, video);
+		fundo.append(caixa);
+		document.body.append(fundo);
+	}
+
+	conteudo.addEventListener("click", function (e) {
+		const link = e.target.closest && e.target.closest("a");
+		if (!link) return;
+		if (link.classList.contains("video")) {
+			e.preventDefault();
+			abrirVideo(link.dataset.video, link.textContent.replace(/^▶\s*/, ""));
+		} else if (link.classList.contains("interno")) {
+			e.preventDefault();
+			const id = link.getAttribute("href").slice(1);
+			const limpar = busca.value !== "";
+			if (limpar) { busca.value = ""; busca.dispatchEvent(new Event("input")); }
+			// Com filtro ativo, as seções são refeitas após a busca (200 ms): procura o destino só depois.
+			setTimeout(function () {
+				const alvo = conteudo.querySelector("#" + id);
+				if (alvo) alvo.scrollIntoView({ behavior: "smooth", block: "start" });
+			}, limpar ? 300 : 0);
+		}
+	});
+
+	fetch(chrome.runtime.getURL("manual/MANUAL.md"))
 		.then(function (r) {
 			if (!r.ok) throw new Error("HTTP " + r.status);
 			return r.text();

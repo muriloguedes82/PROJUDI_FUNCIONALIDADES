@@ -1,5 +1,5 @@
 // Gera manual/MANUAL.pdf a partir de MANUAL.md (Markdown -> HTML -> PDF via Chromium/Playwright).
-// Uso: node manual/gerar-pdf.mjs   (requer python3 com o pacote "markdown" e o playwright)
+// Uso: node extensao-preview-documentos/manual/gerar-pdf.mjs   (requer python3 com o pacote "markdown" e o playwright)
 import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
 import fs from "node:fs";
@@ -34,4 +34,4 @@ await page.pdf({ path: path.join(aqui, "MANUAL.pdf"), format: "A4", printBackgro
 	footerTemplate: '<div style="font-size:8px;width:100%;text-align:center;color:#666">Manual da extensão Projudi/SEEU — versão 2.9.88 — página <span class="pageNumber"></span> de <span class="totalPages"></span></div>' });
 await browser.close();
 if (!process.env.MANTER_HTML) fs.unlinkSync(tmp);
-console.log("manual/MANUAL.pdf gerado");
+console.log("MANUAL.pdf gerado");

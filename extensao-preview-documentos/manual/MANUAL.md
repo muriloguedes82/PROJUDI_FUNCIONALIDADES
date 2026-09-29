@@ -2,13 +2,18 @@
 
 **Documentos, Ações Rápidas, WhatsApp e E-mail**
 
-| | |
+| Item | Informação |
 |---|---|
-| **Versão do manual** | 2.9.88 |
-| **Versão da extensão** | 2.9.88 |
+| **Versão do manual** | 2.9.92 |
+| **Versão da extensão** | 2.9.92 |
 | **Data desta versão** | 29/09/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
+> **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
+> (canto superior direito, abaixo de **Sair**) e depois em **📖 Manual do
+> Usuário**. Ele abre numa nova aba, com índice e busca, e os links **▶
+> Vídeo** tocam na própria página. Veja [2.6](#cap-2-6).
+>
 > **Como ler este manual.** Cada função tem a mesma estrutura: *Para que
 > serve*, *Onde fica*, *Passo a passo* e *Bom saber*. Sempre que houver um
 > vídeo curto mostrando a função, o link **▶ Vídeo** aparece no início da
@@ -34,6 +39,7 @@
    - 2.3 [Atualização da extensão](#cap-2-3)
    - 2.4 [A barra de botões da extensão](#cap-2-4)
    - 2.5 [Página de opções](#cap-2-5)
+   - 2.6 [Menu da extensão (ícone da balança)](#cap-2-6)
 3. [Leitura do processo (aba Movimentações)](#cap-3)
    - 3.1 [Pré-visualização de documentos](#cap-3-1)
    - 3.2 [Pré-visualização das pendências](#cap-3-2)
@@ -73,6 +79,7 @@
    - 9.4 [Mesa do Analista sem itens zerados](#cap-9-4)
    - 9.5 [RG e CPF das partes nos cumprimentos](#cap-9-5)
    - 9.6 [Dados processuais nas ordenações BNMP](#cap-9-6)
+   - 9.7 [Endereço da parte e Mandado Regionalizado](#cap-9-7)
 10. [Privacidade e convivência com outras extensões](#cap-10)
     - 10.1 [O que fica guardado no seu navegador](#cap-10-1)
     - 10.2 [Convivência com o AzFlow](#cap-10-2)
@@ -125,7 +132,7 @@ Não é preciso saber nada de informática além disso.
 | Sistema | O que funciona |
 |---|---|
 | **Projudi (TJPR)** | Todas as funções deste manual |
-| **SEEU** | Pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)) |
+| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)) |
 
 A extensão **não funciona** quando o usuário está logado com perfil de
 advogado(a) ou de assessor(a) de advogado — veja [10.3](#cap-10-3).
@@ -244,6 +251,8 @@ tela, "flutuando" sobre a página.
 
 **Bom saber:**
 
+- O **ícone da balança** (canto superior direito, abaixo de **Sair**) não faz
+  parte desta barra: ele abre o **Menu da extensão** — veja [2.6](#cap-2-6).
 - Passe o mouse sobre qualquer botão para ver uma dica.
 - A barra acompanha a rolagem da página.
 - No SEEU aparecem só os botões de envio (WhatsApp e e-mail).
@@ -264,6 +273,84 @@ tela, "flutuando" sobre a página.
 | **Termos de Uso da extensão** | Consultar os termos ou revogar o aceite |
 
 Clique em **Salvar** depois de alterar.
+
+<a id="cap-2-6"></a>
+### 2.6 Menu da extensão (ícone da balança)
+
+▶ [**Vídeo V34** — Menu da extensão](videos/V34-menu-da-extensao.mp4)
+
+**Para que serve:** ligar e desligar funções da extensão, levar as suas
+preferências para outro computador e abrir este manual.
+
+**Onde fica:** um ícone pequeno — a **balança da Justiça** em azul-marinho,
+num quadrado dourado — sempre visível no cabeçalho:
+
+- **Projudi:** no canto superior direito, logo abaixo do link **Sair**;
+- **SEEU:** na faixa azul do menu, abaixo do nome do usuário.
+
+Ao rolar a página ele acompanha o cabeçalho e, quando este sai da tela, fica
+preso no topo. Um **pontinho vermelho** no ícone avisa que há funções
+desativadas.
+
+**Como abrir e fechar:** clique no ícone. Para fechar, use o **✕**, a tecla
+**Esc** ou clique fora do Menu.
+
+**O que há no Menu:**
+
+**1. Funcionalidades** — a lista de todas as funções, agrupadas por assunto,
+cada uma com uma **chave liga/desliga**. No topo aparece "Funcionalidades: N
+de 25 ativas".
+
+1. Clique na chave da função que quer ligar ou desligar.
+2. A mudança vale para **todas as páginas** do Projudi e do SEEU, a partir da
+   próxima vez que a página for carregada. Clique em **Recarregar agora** para
+   aplicar na página atual.
+
+Algumas funções dependem de outras (aparece em dourado, sob o nome:
+"Requer: …"). O Menu cuida disso e avisa o que fez:
+
+- ao **desligar** uma função, as que dependem dela também são desligadas;
+- ao **ligar** uma função, as que ela exige são ligadas junto.
+
+Exemplo: **Editar Partes/Outros** exige **Ações rápidas e Minhas
+Preferências** e **(Des)Habilitar Advogado**.
+
+| Grupo | Funções que podem ser ligadas/desligadas | Seção |
+|---|---|---|
+| **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
+| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · (Des)Habilitar Advogado · Editar Partes/Outros · Alvará Eletrônico · Juntar Documento · Oráculo · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
+| **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica | [4](#cap-4) |
+| **Pendências, mesa e listas** | Dispensar juntadas e decursos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
+| **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
+
+Botões como **📋 Processo copiado**, **🔗 Combos** e **🖍️ Destacar
+movimentações** fazem parte das funções acima (as duas primeiras, das
+**Ações rápidas**; a última, do **Destaque de movimentações**).
+
+**2. Preferências e combos** — cópia de segurança para levar tudo a outro
+computador:
+
+- **⬇ Exportar**: baixa um arquivo `.json` com as suas preferências, combos,
+  listas de tarefas, contatos do WhatsApp, destinatários e remetentes de
+  e-mail, destaques de movimentações e as funções desligadas.
+- **⬆ Importar**: no outro computador (com a mesma extensão instalada), escolha
+  o arquivo. O Menu mostra um **resumo do que ele contém**; depois de você
+  **confirmar**, as preferências daquele computador são **substituídas** pelas
+  do arquivo. Recarregue as páginas abertas.
+- **↺ Padrão**: religa todas as funções. **Não** apaga nenhuma preferência.
+
+⚠️ O arquivo **não** leva o aceite dos Termos de Uso (cada instalação aceita os
+seus), nem login do Microsoft Graph, nem trabalhos em andamento (envios,
+combos e juntadas pendentes). Guarde o arquivo com cuidado: ele contém os
+seus contatos.
+
+**3. 📖 Manual do Usuário** — abre este manual numa nova aba, com **índice
+lateral e busca**. Os links **▶ Vídeo** tocam na própria página (feche com
+**✕ Fechar** ou **Esc**). Logo acima fica o link **Termos de Uso**.
+
+**Bom saber:** se um botão da extensão "sumiu", confira no Menu se a função
+não foi desligada (e se alguma função de que ela depende não foi desligada
+junto).
 
 ---
 
@@ -1118,6 +1205,47 @@ puder ser lida, aparece a seção **Avisos da extensão** com o motivo. "Medida
 de Segurança" não é exibida. Se a lista de infrações tiver mais de uma
 página, há aviso de lista parcial.
 
+<a id="cap-9-7"></a>
+### 9.7 Endereço da parte e Mandado Regionalizado
+
+▶ [**Vídeo V35** — Endereço e Mandado Regionalizado](videos/V35-endereco-e-mandado-regionalizado.mp4)
+
+**Para que serve:** ver o **endereço** de cada parte no próprio diálogo
+**Ordenar Cumprimentos** e deixar a extensão escolher entre **Mandado Comum**
+e **Mandado Regionalizado**, conforme a cidade da parte.
+
+**Onde fica:** diálogo **Ordenar Cumprimentos**, linha **Referente a(s)
+parte(s)**.
+
+**Passo a passo:**
+
+1. Abra **Ordenar Cumprimentos** ([7.1](#cap-7-1)).
+2. **Marque uma parte**: logo abaixo dela aparece o endereço cadastrado na
+   aba **Partes e Outros**, ex.: `📍 (1) R ..., 23 Bairro: ... Cidade:
+   CURITIBA/PR CEP: ...`.
+3. Escolha o **Tipo de Cumprimento: MANDADO**. A extensão compara a cidade
+   da parte com a **comarca do seu juízo** (lida do link **Atuação** do
+   cabeçalho) e:
+
+| Situação | O que a extensão faz |
+|---|---|
+| Cidade de **outra comarca** que consta em **Comarca de Destino** | Muda o **Tipo do Mandado** para **Mandado Regionalizado** e marca a comarca (havendo uma só Central de Mandados, ela já fica marcada) |
+| Cidade da **própria comarca** | Deixa **Mandado Comum** (se foi a extensão que tinha escolhido Regionalizado, volta para Comum) |
+| Endereço **sem cidade** identificável, partes em **comarcas diferentes** ou cidade **fora da lista** (ex.: outro estado) | **Nada é alterado** |
+
+4. Uma **nota amarela** abaixo de **Tipo do Mandado** explica o que foi feito
+   (ou por que nada foi alterado). Confira e siga como sempre.
+
+**Bom saber:**
+
+- **A sua escolha manual sempre prevalece.** A extensão só age quando você
+  marca ou desmarca partes, ou escolhe o Tipo de Cumprimento — nunca durante o
+  envio em segundo plano da **Nova Ordenação** ([7.5](#cap-7-5)).
+- Se a aba **Partes e Outros** não estiver aberta, a extensão a lê em segundo
+  plano.
+- O endereço deve estar cadastrado na aba **Partes e Outros**; sem ele, nada é
+  mostrado.
+
 ---
 
 <a id="cap-10"></a>
@@ -1138,6 +1266,9 @@ ela está instalada (não vai para outro computador):
 | Destinatários (WhatsApp e e-mail) e remetentes | Armazenamento da extensão |
 | Documentos a anexar | Só até serem anexados (alguns minutos) |
 | Cards do cabeçalho, réus, RG/CPF | Só na aba atual, enquanto ela estiver aberta |
+
+Para levar esses dados a outro computador, use **⬇ Exportar** / **⬆ Importar**
+no Menu ([2.6](#cap-2-6)).
 
 Documentos são sempre lidos do Projudi/SEEU na hora; não há cópia guardada.
 A senha/PIN do certificado **nunca** é guardada.
@@ -1166,12 +1297,14 @@ telas abertas a partir daí voltam a funcionar.
 
 | Problema | O que fazer |
 |---|---|
+| Um botão da extensão sumiu | Abra o Menu (ícone da balança) e confira se a função não foi desligada — ou se alguma função de que ela depende foi ([2.6](#cap-2-6)). **↺ Padrão** religa todas |
 | Nenhum botão da extensão aparece | Confira se aceitou os Termos de Uso ([2.2](#cap-2-2)); recarregue a página (F5); confira se a extensão está ativada em `chrome://extensions`; confira se o perfil não é de advocacia ([10.3](#cap-10-3)) |
 | Atualizei a extensão e nada mudou | Clique em ↻ no card da extensão em `chrome://extensions` e depois recarregue as páginas ([2.3](#cap-2-3)) |
 | A barra de botões cobre algo da tela | Arraste **↕ Mover** ou clique em **Ocultar** ([2.4](#cap-2-4)) |
 | O painel de ações diz para abrir a aba Movimentações | Abra a aba **Movimentações** do processo e tente de novo ([7.1](#cap-7-1)) |
 | Preferência abre com "⚠ Não consegui preencher" | A opção gravada não existe neste processo; preencha o campo à mão, ou edite/recrie a preferência ([7.2](#cap-7-2)) |
 | Preferência de Intimar Partes não marca as caixas certas | Grave-a de novo (preferências anteriores à versão 2.9.84) |
+| Importei o arquivo de backup e nada mudou | Recarregue (F5) as páginas do Projudi/SEEU abertas ([2.6](#cap-2-6)) |
 | Combo parou numa etapa | Use **↻ Repetir etapa**, **⏭ Próxima etapa** ou **⏹ Parar combo** ([7.4](#cap-7-4)) |
 | WhatsApp abre a conversa, mas sem anexos | Confira se o WhatsApp Web está conectado; recarregue a extensão; anexe manualmente se precisar |
 | E-mail pede Client ID / dá erro de configuração | Mude o **Modo de envio** para **Automático** ou **Outlook Web** nas opções ([2.5](#cap-2-5)), ou peça o Client ID ao TI |
@@ -1180,6 +1313,7 @@ telas abertas a partir daí voltam a funcionar.
 | "Verifique a conclusão" | Confira a conclusão no Projudi antes de repetir ([6.2](#cap-6-2)) |
 | Dispensa de juntadas/decursos parou com erro | Clique em **Ver detalhes**, resolva no Projudi e tente de novo ([6.1](#cap-6-1), [6.3](#cap-6-3)) |
 | Card de suspensão/monitoração não aparece | Só são sinalizados status **ATIVA** e os motivos listados em [4.1](#cap-4-1)/[4.2](#cap-4-2); aguarde alguns segundos após abrir o processo |
+| Mandado não virou Regionalizado | Só muda se a cidade da parte for de outra comarca **e** constar em Comarca de Destino; veja a nota amarela do diálogo ([9.7](#cap-9-7)) |
 | Processo copiado: "Não encontrei um número de processo" | Copie o número completo (20 dígitos), só um ([8.5](#cap-8-5)) |
 
 Se o problema continuar, anote a versão da extensão, a tela e o que
@@ -1190,7 +1324,7 @@ aconteceu, e informe o responsável pela extensão.
 <a id="anexo-a"></a>
 ## Anexo A — Vídeos instrutivos
 
-Vídeos curtos (MP4, sem áudio, com legendas na tela), um por função. Eles
+Vídeos curtos (MP4, sem áudio, com legendas na tela), um por função. No Menu da extensão, clique no título para assistir na própria página. Eles
 usam **telas simuladas** com dados fictícios; a aparência real do Projudi
 pode variar um pouco. Clique no título para assistir.
 
@@ -1243,4 +1377,5 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.9.92 | 29/09/2026 | O manual passa a ser aberto pelo botão **📖 Manual do Usuário** do Menu, com índice, busca e vídeos na própria página. Novos: seção 2.6 (Menu da extensão: funcionalidades liga/desliga, exportar/importar/padrão) e 9.7 (Endereço da parte e Mandado Regionalizado, versões 2.9.89–2.9.91). Vídeos V34 e V35; todos os demais foram regravados com o ícone do Menu na tela. |
 | 2.9.88 | 29/09/2026 | Primeira edição do manual: todas as funções da extensão até a versão 2.9.88, com 33 vídeos instrutivos (Anexo A). |

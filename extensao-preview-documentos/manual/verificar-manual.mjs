@@ -1,8 +1,8 @@
 // Verifica se o manual está coerente com a extensão e com os vídeos.
 //
 // Uso (na raiz do repositório):
-//   node manual/verificar-manual.mjs              -> só verifica (usado no CI)
-//   node manual/verificar-manual.mjs --corrigir   -> também regrava a tabela do Anexo A
+//   node extensao-preview-documentos/manual/verificar-manual.mjs              -> só verifica (usado no CI)
+//   node extensao-preview-documentos/manual/verificar-manual.mjs --corrigir   -> também regrava a tabela do Anexo A
 //
 // Regras verificadas:
 //  1. "Versão do manual" e "Versão da extensão" (capa) = version do manifest.json;
@@ -16,12 +16,12 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const aqui = path.dirname(fileURLToPath(import.meta.url));
-const raiz = path.resolve(aqui, "..");
+const ext = path.resolve(aqui, "..");
 const manualPath = path.join(aqui, "MANUAL.md");
 const corrigir = process.argv.includes("--corrigir");
 const erros = [];
 
-const versao = JSON.parse(fs.readFileSync(path.join(raiz, "extensao-preview-documentos", "manifest.json"), "utf8")).version;
+const versao = JSON.parse(fs.readFileSync(path.join(ext, "manifest.json"), "utf8")).version;
 let md = fs.readFileSync(manualPath, "utf8");
 
 // 1 e 2 — versões
@@ -62,7 +62,7 @@ const linhas = ["| Vídeo | Função | Seção do manual | Duração |", "|---|-
 for (const c of cenas) {
 	const arq = path.join(aqui, "videos", c.arquivo);
 	let dur = "—";
-	if (!fs.existsSync(arq)) erros.push(`${c.id}: vídeo não encontrado (manual/videos/${c.arquivo}). Gere com: node manual/videos/fonte/gravar.mjs ${c.id}`);
+	if (!fs.existsSync(arq)) erros.push(`${c.id}: vídeo não encontrado (manual/videos/${c.arquivo}). Gere com: node extensao-preview-documentos/manual/videos/fonte/gravar.mjs ${c.id}`);
 	else dur = mmss(duracaoMp4(arq));
 	const ancora = "cap-" + c.secao.replace(/\./g, "-");
 	if (!ids.has(ancora)) erros.push(`${c.id}: seção ${c.secao} não existe no manual.`);
@@ -86,7 +86,7 @@ else {
 			md = md.slice(0, a) + nova + md.slice(b + fim.length);
 			fs.writeFileSync(manualPath, md);
 			console.log("Anexo A: tabela de vídeos regravada.");
-		} else erros.push("Anexo A: tabela de vídeos desatualizada. Rode: node manual/verificar-manual.mjs --corrigir");
+		} else erros.push("Anexo A: tabela de vídeos desatualizada. Rode: node extensao-preview-documentos/manual/verificar-manual.mjs --corrigir");
 	}
 }
 

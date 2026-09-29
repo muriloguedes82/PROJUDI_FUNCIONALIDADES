@@ -1,6 +1,6 @@
 # PROJUDI_FUNCIONALIDADES
 
-> 📘 **[Manual do usuário da extensão](manual/MANUAL.md)** — todas as funções,
+> 📘 **[Manual do usuário da extensão](extensao-preview-documentos/manual/MANUAL.md)** — todas as funções,
 > passo a passo, com vídeos curtos de cada uma.
 
 ## Tela de Apresentação de Documentos, Envio por WhatsApp e por E-mail

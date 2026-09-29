@@ -16,7 +16,7 @@ button { font-family: inherit; }
 #app .scroll { position: absolute; left: 0; top: 0; right: 0; }
 
 /* ---------- Projudi simulado ---------- */
-.pj-header { background: linear-gradient(#174a7c, #0d3560); color: #fff; height: 46px; display: flex; align-items: center; padding: 0 14px; gap: 16px; }
+.pj-header { position: relative; background: linear-gradient(#174a7c, #0d3560); color: #fff; height: 46px; display: flex; align-items: center; padding: 0 14px; gap: 16px; }
 .pj-logo { font-weight: bold; font-size: 22px; letter-spacing: 1px; }
 .pj-logo small { font-size: 11px; font-weight: normal; letter-spacing: 0; display: block; color: #cfe0f2; }
 .pj-user { margin-left: auto; font-size: 11px; text-align: right; line-height: 15px; color: #e8f0f8; }
@@ -115,3 +115,38 @@ a.link { color: #0645ad; text-decoration: underline; cursor: pointer; }
 #titlecard .sub { font-size: 19px; color: #d6e4f2; max-width: 900px; line-height: 27px; }
 #titlecard .foot { position: absolute; bottom: 26px; font-size: 14px; color: #b9cde2; }
 #watermark { position: absolute; left: 8px; bottom: 6px; font-size: 11px; color: rgba(0,0,0,.45); background: rgba(255,255,255,.7); padding: 1px 6px; border-radius: 3px; }
+
+/* Ícone do Menu da extensão (balança) sob o link "Sair" e o próprio Menu */
+#x-menuicon { position: absolute; right: 12px; top: 50px; z-index: 30; width: 24px; height: 24px; border-radius: 6px; background: #c9a227; border: 1px solid #a8861a; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+#x-menuicon .dot { position: absolute; right: -3px; top: -3px; width: 9px; height: 9px; border-radius: 50%; background: #d32f2f; border: 1.5px solid #fff; }
+#x-menu { position: fixed; z-index: 65; right: 12px; top: 84px; width: 384px; height: 620px; background: #fff; border-radius: 8px; box-shadow: 0 8px 30px rgba(0,0,0,.4); overflow: hidden; display: flex; flex-direction: column; font-size: 12px; }
+#x-menu .mh { background: linear-gradient(120deg, #0b2545, #1f5591); color: #fff; padding: 12px 14px; border-bottom: 3px solid #c9a227; display: flex; justify-content: space-between; align-items: flex-start; }
+#x-menu .mh b { font-size: 16px; display: block; } #x-menu .mh small { color: #cfe0f2; font-size: 11px; }
+#x-menu .mx { border: 1px solid rgba(255,255,255,.4); border-radius: 4px; padding: 2px 8px; font-size: 14px; }
+#x-menu .mb { flex: 1; overflow: hidden; position: relative; }
+#x-menu .mb-in { position: absolute; left: 0; right: 0; top: 0; padding: 8px 14px; }
+#x-menu .cnt { color: #5b6980; margin-bottom: 8px; }
+#x-menu .gh { font-size: 11px; font-weight: bold; letter-spacing: .05em; text-transform: uppercase; color: #13396b; margin: 12px 0 6px; }
+#x-menu .it { display: flex; gap: 10px; align-items: flex-start; padding: 5px 0; }
+#x-menu .sw { flex: none; width: 34px; height: 18px; border-radius: 9px; background: #1f5591; position: relative; margin-top: 2px; }
+#x-menu .sw:after { content: ""; position: absolute; top: 2px; left: 18px; width: 14px; height: 14px; border-radius: 50%; background: #fff; }
+#x-menu .sw.off { background: #aeb8c6; } #x-menu .sw.off:after { left: 2px; }
+#x-menu .nm { font-weight: bold; color: #25324a; font-size: 13px; } #x-menu .ds { color: #5b6980; font-size: 11px; }
+#x-menu .rq { color: #9a7b10; font-size: 11px; }
+#x-menu .aviso { position: absolute; left: 10px; right: 10px; bottom: 8px; padding: 8px 10px; border-radius: 6px; background: #e8eff8; border: 1px solid #9db6d6; color: #13396b; font-size: 12px; }
+#x-menu .aviso.ok { background: #e7f5e1; border-color: #7fb069; color: #2c5e1a; }
+#x-menu .mf { border-top: 1px solid #d5deea; padding: 8px 14px 12px; background: #fff; }
+#x-menu .mf h4 { margin: 0 0 6px; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: #13396b; }
+#x-menu .btns { display: flex; gap: 6px; } #x-menu .bt { flex: 1; text-align: center; border: 1px solid #b8c6d6; border-radius: 4px; padding: 7px 4px; font-weight: bold; background: #f4f6fa; color: #13396b; }
+#x-menu .bt.manual { margin-top: 8px; } #x-menu .bt.prim { background: #13396b; color: #fff; }
+#x-menu .nota { color: #5b6980; font-size: 11px; margin-top: 6px; }
+.manual-app { position: fixed; inset: 44px 0 0 0; background: #f4f6fa; z-index: 20; }
+.manual-app .topo { height: 76px; background: linear-gradient(120deg, #0b2545, #13396b 60%, #1f5591); border-bottom: 4px solid #c9a227; color: #fff; padding: 0 24px; display: flex; align-items: center; gap: 14px; }
+.manual-app .topo small { display: block; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.72); } .manual-app .topo b { font-size: 24px; font-weight: 600; }
+.manual-app .busca { margin-left: auto; width: 280px; border: 1px solid rgba(255,255,255,.4); border-radius: 18px; background: rgba(255,255,255,.12); padding: 8px 12px; font-size: 14px; }
+.manual-app .idx { position: absolute; top: 76px; bottom: 0; left: 0; width: 290px; background: #fff; border-right: 1px solid #d5deea; padding: 12px; font-size: 13px; line-height: 24px; color: #13396b; }
+.manual-app .ct { position: absolute; top: 76px; bottom: 0; left: 290px; right: 0; padding: 22px 30px; overflow: hidden; }
+.manual-app .card { background: #fff; border: 1px solid #d5deea; border-radius: 8px; padding: 18px 24px; max-width: 900px; } .manual-app .card h3 { color: #13396b; margin: 0 0 8px; } .manual-app .card p { line-height: 22px; font-size: 14px; }
+.vid-fundo { position: fixed; inset: 0; z-index: 80; background: rgba(8,20,40,.78); display: flex; align-items: center; justify-content: center; }
+.vid-caixa { width: 760px; background: #0b2545; border-radius: 8px; overflow: hidden; } .vid-cab { display: flex; justify-content: space-between; padding: 10px 16px; color: #fff; font-weight: 600; border-bottom: 3px solid #c9a227; }
+.vid-tela { height: 380px; background: #000; color: #9db6d6; display: flex; align-items: center; justify-content: center; font-size: 42px; }

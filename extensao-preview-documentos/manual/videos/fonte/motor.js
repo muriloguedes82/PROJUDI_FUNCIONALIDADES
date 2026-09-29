@@ -3,7 +3,7 @@
 // (gravar.mjs): cada setTimeout/Date.now é controlado quadro a quadro.
 "use strict";
 
-const VERSAO_EXTENSAO = "2.9.88";
+const VERSAO_EXTENSAO = "2.9.92";
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const easeInOut = p => (p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2);
 async function tween(ms, fn, ease = easeInOut) {
@@ -176,9 +176,10 @@ const MOVS = [
 ];
 
 // ---------------------------------------------------------------- telas do Projudi
+const ICONE_BALANCA = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#0b2545" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="1.3" fill="#0b2545"/><path d="M12 5.3V19.5M8 20.5h8M4.5 7.5h15M4.5 7.5L2 13M4.5 7.5L7 13M19.5 7.5L17 13M19.5 7.5L22 13"/><path fill="#0b2545" d="M1.8 13a2.7 2.2 0 0 0 5.4 0zM16.8 13a2.7 2.2 0 0 0 5.4 0z"/></svg>';
 function pjHeader() {
 	return '<div class="pj-header"><div class="pj-logo">PROJUDI<small>Processo Judicial Digital</small></div>' +
-		'<div class="pj-user">Usuário: ANA SERVIDORA · Atribuição: Analista Judiciário<br><span id="areaatuacao">Vara Criminal de Exemplo</span></div></div>' +
+		'<div class="pj-user">Usuário: ANA SERVIDORA · Atribuição: Analista Judiciário · <u>Sair</u><br><span id="areaatuacao">Vara Criminal de Exemplo</span></div><div id="x-menuicon" title="Menu da extensão">' + ICONE_BALANCA + '<span class="dot" hidden></span></div></div>' +
 		'<div class="pj-menu"><span>Início</span><span>Processos</span><span>Citações/Intimações</span><span>Busca</span><span>Análises</span><span>Relatórios</span><span>Outros</span></div>';
 }
 

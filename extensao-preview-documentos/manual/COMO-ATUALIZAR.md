@@ -2,11 +2,16 @@
 
 O [manual](MANUAL.md) é **versionado junto com a extensão**: a versão do
 manual é sempre igual ao `version` do
-[`manifest.json`](../extensao-preview-documentos/manifest.json). Toda
+[`manifest.json`](../manifest.json). Toda
 alteração que muda a versão da extensão — função nova, mudança de
 comportamento ou correção de erro — deve atualizar o manual **no mesmo pull
-request**. O CI ([`.github/workflows/manual.yml`](../.github/workflows/manual.yml))
+request**. O CI ([`.github/workflows/manual.yml`](../../.github/workflows/manual.yml))
 reprova o PR se o manual ficar para trás.
+
+O manual fica **dentro da extensão** porque o botão **📖 Manual do Usuário**
+do Menu (ícone da balança no Projudi/SEEU) abre `manual/MANUAL.md` numa aba,
+com índice, busca e os vídeos (`src/manual.html` e `src/manual.js`). Por isso
+a pasta `manual/videos/` é distribuída junto com a extensão.
 
 ## Passo a passo
 
@@ -25,16 +30,16 @@ reprova o PR se o manual ficar para trás.
 3. **Vídeo** (quando a função é nova ou o que aparece na tela mudou):
    - crie ou ajuste a cena em `videos/fonte/cenas1.js`, `cenas2.js` ou
      `cenas3.js` (cada cena tem `arquivo`, `titulo` e `secao`);
-   - grave só ela: `node manual/videos/fonte/gravar.mjs V34`;
+   - grave só ela: `node extensao-preview-documentos/manual/videos/fonte/gravar.mjs V34`;
    - cite o vídeo na seção: `▶ [**Vídeo V34** — Título](videos/V34-nome.mp4)`.
 4. **Anexo B**: acrescente uma linha no topo da tabela do histórico com a
    versão, a data e o que mudou no manual.
 5. **Anexo A**: não edite à mão — rode
-   `node manual/verificar-manual.mjs --corrigir` (atualiza títulos, seções e
+   `node extensao-preview-documentos/manual/verificar-manual.mjs --corrigir` (atualiza títulos, seções e
    durações dos vídeos).
-6. Rode `node manual/gerar-pdf.mjs` para regerar `MANUAL.pdf` (precisa de
+6. Rode `node extensao-preview-documentos/manual/gerar-pdf.mjs` para regerar `MANUAL.pdf` (precisa de
    `pip install markdown`).
-7. Rode `node manual/verificar-manual.mjs` e só abra o PR com
+7. Rode `node extensao-preview-documentos/manual/verificar-manual.mjs` e só abra o PR com
    "Manual OK".
 
 Correção de erro que não muda nada do que o usuário vê? Ainda assim a
@@ -49,7 +54,7 @@ corrigido …") e atualize a capa.
   Uma forma simples: `pip install imageio-ffmpeg` e
   `FFMPEG=$(python3 -c "import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())")`.
 
-`CHECAR=1 node manual/videos/fonte/gravar.mjs` roda todas as cenas sem
+`CHECAR=1 node extensao-preview-documentos/manual/videos/fonte/gravar.mjs` roda todas as cenas sem
 gravar, só para achar erros.
 
 ## Como os vídeos são feitos
