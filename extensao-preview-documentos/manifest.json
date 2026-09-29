@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Lince – Projudi/SEEU: Pré-visualização, WhatsApp e E-mail",
+  "name": "Olirum – Projudi/SEEU: Pré-visualização, WhatsApp e E-mail",
   "version": "2.9.84",
   "description": "Ao passar o mouse sobre um documento na tela de Movimentações (Projudi ou SEEU), ou sobre uma pendência de análise de juntada/conclusão do Projudi, exibe a íntegra do(s) arquivo(s) em janela(s) sobreposta(s), sem precisar abri-los em outra aba. Também permite selecionar arquivos do processo e enviá-los por WhatsApp Web ou por e-mail via Outlook.",
   "icons": {
@@ -10,7 +10,7 @@
     "128": "icons/icon128.png"
   },
   "action": {
-    "default_title": "Lince – Seu assistente no Projudi e SEEU",
+    "default_title": "Olirum – Seu assistente no Projudi e SEEU",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",

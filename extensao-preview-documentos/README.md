@@ -1,14 +1,13 @@
-# Lince – Projudi/SEEU: Pré-visualização, WhatsApp e E-mail
+# Olirum – Projudi/SEEU: Pré-visualização, WhatsApp e E-mail
 
-<img src="icons/icon128.png" alt="Ícone do Lince" width="64" align="right">
+<img src="icons/icon128.png" alt="Ícone do Olirum" width="64" align="right">
 
-**Lince** é o nome da extensão. O lince é conhecido pela visão aguçada e
-pela rapidez — exatamente o que a extensão oferece: enxergar a íntegra dos
-documentos sem abrir outra aba e agir rápido (enviar por WhatsApp/e-mail,
-atalhos de cartório) no Projudi e no SEEU. O ícone (olho de lince com uma
-faísca, em degradê ciano/índigo/violeta) fica em `icons/`, e o tile
-promocional do catálogo do Chrome (440×280) em
-`store/promo-pequeno-440x280.png`.
+**Olirum** é o nome da extensão: é "Murilo" escrito ao contrário, uma
+assinatura do autor. A marca é escrita em minúsculas com um ponto final
+dourado (`olirum.`). O ícone é uma lupa dourada sobre um documento, em fundo
+preto — a pré-visualização dos autos, que é a função principal da extensão.
+Os ícones ficam em `icons/`, e o tile promocional do catálogo do Chrome
+(440×280) em `store/promo-pequeno-440x280.png`.
 
 Extensão de navegador (Chrome/Edge, Manifest V3) que resolve problemas do
 dia a dia no Projudi (TJPR) e no SEEU — os dois usam o mesmo padrão de
