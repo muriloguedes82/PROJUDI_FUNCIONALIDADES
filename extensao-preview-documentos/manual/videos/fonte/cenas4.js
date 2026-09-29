@@ -34,11 +34,22 @@ function abrirMenu() {
 			html += '<div class="it" data-id="' + id + '"><span class="sw"></span><div><div class="nm">' + n + '</div><div class="ds">' + d + "</div>" + (rq ? '<div class="rq">Requer: ' + rq.map(nome).join(", ") + "</div>" : "") + "</div></div>";
 	}
 	const m = add('<div id="x-menu"><div class="mh"><div><b>Menu da extensão</b><small>Projudi/SEEU · versão ' + VERSAO_EXTENSAO + '</small></div><span class="mx">✕</span></div>' +
+		'<div class="geral" id="mgeral"><span class="sw" id="mgsw"></span><div><div class="nm" id="mgnm">Extensão ativada no PROJUDI</div><div class="ds" id="mgds">Desligue para pausar todas as funcionalidades sem perder suas escolhas.</div></div></div>' +
+		'<div class="abas"><span class="aba sel">PROJUDI <small>(este)</small></span><span class="aba">SEEU</span></div>' +
 		'<div class="mb"><div class="mb-in"><div class="cnt" id="mcnt">Funcionalidades: 25 de 25 ativas</div>' + html + '</div><div class="aviso" id="mav" hidden></div></div>' +
 		'<div class="mf"><h4>Preferências e combos</h4><div class="btns"><span class="bt" id="m-exp">⬇ Exportar</span><span class="bt" id="m-imp">⬆ Importar</span><span class="bt" id="m-pad">↺ Padrão</span></div>' +
 		'<div class="nota">Use "Exportar" e, no outro computador, "Importar" o mesmo arquivo para levar tudo junto. <u>Termos de Uso</u>.</div><div class="bt manual" id="m-manual">📖 Manual do Usuário</div></div></div>');
 	const api = {
 		el: m,
+		async geral(ligar) {
+			await S.click("#mgsw");
+			$("#mgsw").classList.toggle("off", !ligar);
+			$("#mgeral").classList.toggle("off", !ligar);
+			$("#mgnm").textContent = ligar ? "Extensão ativada no PROJUDI" : "Extensão desativada no PROJUDI";
+			$("#mgds").textContent = ligar ? "Desligue para pausar todas as funcionalidades sem perder suas escolhas." : "Nenhuma funcionalidade funciona até você ativar de novo. Suas escolhas ficam guardadas.";
+			$("#x-menu .mb-in").style.opacity = ligar ? 1 : .45;
+			$("#x-menuicon .dot").hidden = ligar;
+		},
 		aviso(t, ok) { const a = $("#mav"); a.hidden = false; a.className = "aviso" + (ok ? " ok" : ""); a.innerHTML = t; },
 		semAviso() { $("#mav").hidden = true; },
 		async mudar(id, ligar) {
@@ -74,6 +85,14 @@ CENAS.V34 = {
 		await S.cap("Clique no ícone para abrir o Menu.");
 		await S.click("#x-menuicon");
 		const menu = abrirMenu();
+		await S.cap("Logo abaixo do título fica a <b>chave geral</b>: <b>Extensão ativada no PROJUDI</b>. Ao lado, as abas <b>PROJUDI</b> e <b>SEEU</b> — cada sistema tem a sua chave.", { ms: 5000 });
+		await S.cap("Para pausar a extensão inteira, desligue a chave geral.");
+		await menu.geral(false);
+		S.hl("#x-menuicon", 5);
+		await S.cap("A faixa fica <b>vermelha</b>, nenhuma função atua a partir do próximo carregamento e o ícone ganha o <b>pontinho vermelho</b>. Suas escolhas ficam guardadas.", { ms: 5600 });
+		S.hlOff();
+		await S.cap("Para voltar a usar, ligue a chave de novo.");
+		await menu.geral(true);
 		await S.cap("Em <b>Funcionalidades</b>, cada função tem uma <b>chave liga/desliga</b>. No topo: quantas estão ativas.");
 		await S.cap("Vamos desligar <b>Destaque de movimentações</b>.");
 		await menu.mudar("destaque", false);
@@ -114,7 +133,7 @@ CENAS.V34 = {
 		await S.click("#lv");
 		add('<div class="vid-fundo"><div class="vid-caixa"><div class="vid-cab"><span>Vídeo V03 — Pré-visualização de documentos</span><span>✕ Fechar</span></div><div class="vid-tela">▶</div></div></div>');
 		await sleep(2500);
-		await S.endCard("Ícone da balança → Funcionalidades (liga/desliga) · Exportar/Importar/Padrão · 📖 Manual do Usuário.");
+		await S.endCard("Ícone da balança → chave geral · Funcionalidades (liga/desliga) · Exportar/Importar/Padrão · 📖 Manual do Usuário.");
 
 		function itens_reativar() { $$("#x-menu .sw").forEach(n => n.classList.remove("off")); $("#mcnt").textContent = "Funcionalidades: 25 de 25 ativas"; $("#x-menuicon .dot").hidden = true; }
 	},
