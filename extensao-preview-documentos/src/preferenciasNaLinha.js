@@ -249,12 +249,17 @@
 		return s;
 	}
 
-	function mostrar(ctx, partes, tipo) {
+	// `botoes` (opcional): [{ texto, titulo, acao }] - ex.: Repetir/Próxima/
+	// Parar de uma etapa de combo que não foi executada.
+	function mostrar(ctx, partes, tipo, botoes) {
 		const s = statusDe(ctx);
 		s.textContent = "";
 		s.className = "pdp-pl-status" + (tipo ? " pdp-pl-" + tipo : "");
 		s.appendChild(el("span", { text: partes.filter(Boolean).join(" · ") }));
-		if (tipo === "ok" || tipo === "erro" || tipo === "aviso") {
+		(botoes || []).forEach(function (b) {
+			s.appendChild(el("button", { type: "button", class: "pdp-tl-btn pdp-pl-acao", title: b.titulo, text: b.texto, onclick: b.acao }));
+		});
+		if (!botoes && (tipo === "ok" || tipo === "erro" || tipo === "aviso")) {
 			s.appendChild(el("button", { type: "button", class: "pdp-pl-x", title: "Fechar aviso", text: "✕", onclick: function () { s.remove(); } }));
 		}
 	}
@@ -270,11 +275,15 @@
 			};
 			const caixa = el("div", { class: "pdp-tl-modal pdp-pl-pergunta", role: "dialog" }, [
 				el("div", { class: "pdp-tl-pop-cab" }, [
-					el("strong", { text: "★ " + item.pref.name + " — " + item.label }),
+					el("strong", { text: item.combo ? "🔗 Combo \"" + item.combo.name + "\" (" + item.combo.steps.length + " etapas)" : "★ " + item.pref.name + " — " + item.label }),
 					el("button", { type: "button", class: "pdp-tl-x", title: "Cancelar", text: "✕", onclick: function () { responder(null); } })
 				]),
 				el("p", { text: tela.pergunta }),
-				el("p", { class: "pdp-tl-vazio", text: "Respondendo Sim ou Não, a preferência é aberta em seguida, já preenchida, para você confirmar." }),
+				el("p", { class: "pdp-tl-vazio", text: item.combo
+					? (item.novaAba
+						? "Respondendo Sim ou Não, o processo é aberto numa nova aba e o combo começa lá (ele tem etapa que só roda na tela do processo)."
+						: "Respondendo Sim ou Não, as etapas do combo abrem em seguida, uma a uma, já preenchidas, para você confirmar cada uma.")
+					: "Respondendo Sim ou Não, a preferência é aberta em seguida, já preenchida, para você confirmar." }),
 				el("div", { class: "pdp-pl-botoes" }, [
 					el("button", { type: "button", class: "pdp-tl-btn pdp-pl-sim", text: "✅ " + tela.sim, onclick: function () { responder("sim"); } }),
 					el("button", { type: "button", class: "pdp-tl-btn", text: "Não, seguir sem isso", onclick: function () { responder("nao"); } })
@@ -315,73 +324,133 @@
 		return d.decursos(url, ancora);
 	}
 
+	// Etapa prévia (Sim): dispensa as juntadas/decursos ou finaliza a
+	// conclusão. Devolve o texto do resultado (ou null, no "Não").
+	async function fazerPrevia(ctx, resposta) {
+		if (resposta !== "sim") return null;
+		// Juntadas/decursos: o link da pendência vem do quadro Pendências da
+		// tela do processo. Conclusão: o link "Analisar" da própria linha
+		// (antes de finalizar, guarda o endereço do processo, que é lido
+		// nessa mesma tela de análise).
+		let proc = null;
+		mostrar(ctx, ["Localizando o processo…"], "andamento");
+		if (tela.tipo === "conclusao") await urlDoProcesso(ctx);
+		else proc = await carregarProcesso(ctx, true);
+		mostrar(ctx, [tela.fazendo], "andamento");
+		const r = await etapaPrevia(ctx, proc);
+		// Sucesso: o card de status da dispensa sai; em caso de falha ele
+		// fica (com "Ver detalhes"), e o fluxo segue mesmo assim.
+		if (r.ok && r.dismiss) r.dismiss();
+		return (r.ok ? "✅ " : "⚠ ") + (r.message || (r.ok ? "Feito." : "Não concluído."));
+	}
+
+	// Abre uma preferência no popup, a partir da tela do processo carregada
+	// de novo em segundo plano (depois da etapa prévia ou da etapa anterior
+	// do combo). Resolve com { ok, texto }.
+	async function abrirPreferencia(ctx, label, pref, prefixo) {
+		const rotulo = "★ " + pref.name;
+		mostrar(ctx, prefixo.concat(["Carregando o processo…"]), "andamento");
+		const proc = await carregarProcesso(ctx, false);
+		mostrar(ctx, prefixo.concat(["Abrindo \"" + label + "\"…"]), "andamento");
+		return new Promise(function (resolve) {
+			let enviado = false;
+			let fim = false;
+			function terminar(ok, texto) {
+				if (fim) return;
+				fim = true;
+				resolve({ ok: ok, texto: texto });
+			}
+			api().applyPreferenceFrom(label, pref, proc, {
+				onSubmit: function () {
+					enviado = true;
+					mostrar(ctx, prefixo.concat([rotulo + ": enviando…"]), "andamento");
+				},
+				onDone: function () { terminar(true, rotulo + ": concluída"); },
+				onClose: function () {
+					if (enviado) terminar(true, rotulo + ": enviada (confira no processo)");
+					else terminar(false, rotulo + ": não executada (popup fechado)");
+				},
+				onFail: function (motivo) { terminar(false, rotulo + ": " + motivo); }
+			});
+		});
+	}
+
 	async function executar(ctx, item) {
 		if (emAndamento) {
-			alert("Já há uma preferência sendo executada. Aguarde terminar.");
+			alert("Já há uma preferência ou combo sendo executado. Aguarde terminar.");
 			return;
 		}
-		const qa = api();
-		if (!qa) {
+		if (!api()) {
 			alert("As ações rápidas não estão disponíveis nesta tela. Recarregue a página.");
 			return;
 		}
 		const resposta = await perguntar(item);
 		if (!resposta) return;
-
 		emAndamento = true;
-		const rotulo = "★ " + item.pref.name;
 		let previa = null;
-		let terminou = false;
-		function finalizar(partes, tipo) {
-			if (terminou) return;
-			terminou = true;
-			emAndamento = false;
-			mostrar(ctx, [previa].concat(partes), tipo);
-		}
 		try {
-			mostrar(ctx, ["Localizando o processo…"], "andamento");
-			let proc = null;
-			if (resposta === "sim") {
-				// Juntadas/decursos: o link da pendência vem do quadro
-				// Pendências da tela do processo. Conclusão: o link "Analisar"
-				// da própria linha (antes de finalizar, guarda o endereço do
-				// processo, que é lido nessa mesma tela de análise).
-				if (tela.tipo === "conclusao") await urlDoProcesso(ctx);
-				else proc = await carregarProcesso(ctx, true);
-				mostrar(ctx, [tela.fazendo], "andamento");
-				const r = await etapaPrevia(ctx, proc);
-				previa = (r.ok ? "✅ " : "⚠ ") + (r.message || (r.ok ? "Feito." : "Não concluído."));
-				// Sucesso: o card de status da dispensa sai; em caso de falha
-				// ele fica (com "Ver detalhes"), e o fluxo segue mesmo assim.
-				if (r.ok && r.dismiss) r.dismiss();
-				mostrar(ctx, [previa, "Carregando o processo…"], "andamento");
+			previa = await fazerPrevia(ctx, resposta);
+			if (item.combo) await executarCombo(ctx, item, previa);
+			else {
+				const r = await abrirPreferencia(ctx, item.label, item.pref, [previa]);
+				mostrar(ctx, [previa, r.texto], r.ok ? "ok" : "aviso");
 			}
-			// Sempre recarregada depois da etapa prévia: a ação parte da tela
-			// do processo já sem a pendência.
-			proc = await carregarProcesso(ctx, false);
-
-			mostrar(ctx, [previa, "Abrindo \"" + item.label + "\"…"], "andamento");
-			let enviado = false;
-			qa.applyPreferenceFrom(item.label, item.pref, proc, {
-				onSubmit: function () {
-					enviado = true;
-					mostrar(ctx, [previa, rotulo + ": enviando…"], "andamento");
-				},
-				onDone: function () {
-					finalizar([rotulo + ": concluída"], "ok");
-				},
-				onClose: function () {
-					if (enviado) finalizar([rotulo + ": enviada (confira no processo)"], "ok");
-					else finalizar([rotulo + ": não executada (popup fechado)"], "aviso");
-				},
-				onFail: function (motivo) {
-					finalizar([rotulo + ": " + motivo], "erro");
-				}
-			});
 		} catch (e) {
 			console.error(TAG, e);
-			finalizar([rotulo + ": " + (e && e.message ? e.message : "falha ao carregar o processo")], "erro");
+			mostrar(ctx, [previa, (e && e.message) || "falha ao carregar o processo"], "erro");
+		} finally {
+			emAndamento = false;
 		}
+	}
+
+	// Pergunta na própria linha como seguir depois de uma etapa de combo não
+	// executada. Resolve com "repetir", "proxima" ou "parar".
+	function escolherNaLinha(ctx, partes) {
+		return new Promise(function (resolve) {
+			mostrar(ctx, partes, "aviso", [
+				{ texto: "↻ Repetir etapa", titulo: "Abrir de novo esta etapa", acao: function () { resolve("repetir"); } },
+				{ texto: "⏭ Próxima etapa", titulo: "Considerar esta etapa concluída (ou pulá-la) e abrir a próxima", acao: function () { resolve("proxima"); } },
+				{ texto: "⏹ Parar combo", titulo: "Encerrar o combo (as etapas já executadas continuam valendo)", acao: function () { resolve("parar"); } }
+			]);
+		});
+	}
+
+	async function executarCombo(ctx, item, previa) {
+		const qa = api();
+		const combo = item.combo;
+		const nome = "🔗 " + combo.name;
+		if (item.novaAba) {
+			// Etapas que só rodam na tela do processo: o combo começa numa
+			// nova aba, na tela do processo (quickActions.js, maybeStartPendingCombo).
+			await chrome.storage.local.set({ [qa.comboPendingKey]: { comboId: combo.id, numero: ctx.cnj, criadoEm: Date.now() } });
+			const r = await chrome.runtime.sendMessage({ source: "projudi-preview", type: "clipboard-process-open", number: ctx.cnj });
+			if (!r || !r.ok) throw new Error("não foi possível abrir o processo numa nova aba" + (r && r.error ? " (" + r.error + ")" : ""));
+			mostrar(ctx, [previa, nome + ": aberto numa nova aba — o combo continua lá"], "ok");
+			return;
+		}
+		const todas = await qa.loadComboPreferences();
+		const feitas = [];
+		let i = 0;
+		while (i < combo.steps.length) {
+			const passo = combo.steps[i];
+			const etapa = nome + " — etapa " + (i + 1) + " de " + combo.steps.length;
+			const pref = qa.findComboPref(todas, passo);
+			let r;
+			if (!pref) r = { ok: false, texto: "a preferência \"" + (passo.prefName || passo.label) + "\" não existe mais" };
+			else r = await abrirPreferencia(ctx, passo.label, pref, [previa, etapa]);
+			if (r.ok) {
+				feitas.push(i + 1);
+				i++;
+				continue;
+			}
+			const escolha = await escolherNaLinha(ctx, [previa, etapa, r.texto]);
+			if (escolha === "parar") {
+				mostrar(ctx, [previa, nome + ": parado na etapa " + (i + 1) + " (" + feitas.length + " executada(s))"], "aviso");
+				return;
+			}
+			if (escolha === "proxima") i++;
+		}
+		mostrar(ctx, [previa, nome + ": concluído (" + combo.steps.length + " etapas)"], "ok");
 	}
 
 	// --- painel de cards ------------------------------------------------------------------
@@ -459,6 +528,46 @@
 				grade.appendChild(card);
 			});
 			posicionar(box, ancora);
+		}).then(function () {
+			return Promise.all([qa.loadCombos ? qa.loadCombos() : [], qa.loadComboPreferences ? qa.loadComboPreferences() : {}]);
+		}).then(function (dados) {
+			const combos = dados[0] || [];
+			if (!painel || painel.el !== box || !combos.length) return;
+			box.appendChild(el("div", { class: "pdp-tl-sec", text: "🔗 Combos" }));
+			const gradeCombos = el("div", { class: "pdp-qa-fav-grid" });
+			box.appendChild(gradeCombos);
+			combos.forEach(function (combo) {
+				const passos = combo.steps || [];
+				const novaAba = passos.some(function (p) { return qa.stepNeedsProcessScreen(p.label); });
+				const descricao = passos.map(function (p, i) {
+					const pref = qa.findComboPref(dados[1], p);
+					return (i + 1) + ". " + p.label + " — ★ " + (pref ? pref.name : p.prefName || "(preferência removida)");
+				}).join("\n");
+				const card = el("div", {
+					class: "pdp-qa-fav-card pdp-pl-combo",
+					tabindex: "0",
+					role: "button",
+					title: (novaAba ? "Tem etapa que só roda na tela do processo: o combo começa numa nova aba.\n" : "Executar as etapas neste processo, uma a uma:\n") + descricao
+				}, [
+					el("span", { class: "pdp-qa-fav-card-action", text: "Combo · " + passos.length + " etapas" + (novaAba ? " · nova aba" : "") }),
+					el("span", { class: "pdp-qa-fav-card-name", text: "▶ " + combo.name })
+				]);
+				const ativar = function () {
+					fecharPainel();
+					executar(dadosLinha(row, cnj), { combo: combo, novaAba: novaAba });
+				};
+				card.addEventListener("click", ativar);
+				card.addEventListener("keydown", function (ev) {
+					if (ev.key === "Enter" || ev.key === " ") {
+						ev.preventDefault();
+						ativar();
+					}
+				});
+				gradeCombos.appendChild(card);
+			});
+			posicionar(box, ancora);
+		}).catch(function (e) {
+			console.error(TAG, "falha ao listar preferências/combos:", e);
 		});
 	}
 

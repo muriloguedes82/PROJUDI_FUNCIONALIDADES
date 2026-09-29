@@ -1425,9 +1425,26 @@ escolher um card (`src/preferenciasNaLinha.js`):
    dispensada(s) · ★ Remessa MP: concluída"). A listagem **não** é
    recarregada ao fim, para não perder a busca/filtro feitos.
 
-Uma preferência por vez. Preferências de "Juntar Documento" e do "Alvará
-Eletrônico" aparecem esmaecidas: continuam disponíveis só na tela do
-processo. Para permitir isso, `quickActions.js` passou a carregar também
+**Combos.** Abaixo das preferências, o painel do ⭐ lista também os
+**🔗 Combos** ("▶ nome"; passe o mouse para ver as etapas). A pergunta de
+dispensa/finalização é feita uma vez, antes da 1ª etapa, e depois:
+
+- **combo só com ações do painel** (Remessa, Concluso, Intimar,
+  Ordenar...): as etapas rodam ali mesmo, uma a uma, cada uma no popup já
+  preenchido e com o seu "✅ Sim, executar" (a tela do processo é lida de
+  novo em segundo plano antes de cada etapa). A linha mostra "etapa i de
+  N"; se o popup de uma etapa for fechado sem executar, a linha oferece
+  **↻ Repetir etapa**, **⏭ Próxima etapa** e **⏹ Parar combo**;
+- **combo com etapa "Juntar Documento" ou "Alvará Eletrônico"** (marcado
+  "nova aba" no card): essas etapas navegam a tela do processo, então o
+  processo é aberto numa **nova aba** (mesma busca do "Processo copiado") e
+  o combo começa sozinho lá, com a barra e o andamento de sempre. A
+  listagem fica intacta. O pedido fica gravado em `pdpComboPendente` por
+  até 3 minutos e só vale para a tela desse mesmo processo.
+
+Uma preferência ou combo por vez. Preferências avulsas de "Juntar
+Documento" e do "Alvará Eletrônico" aparecem esmaecidas: continuam
+disponíveis só na tela do processo (ou dentro de um combo, como acima). Para permitir isso, `quickActions.js` passou a carregar também
 nas telas em que a fileira de botões fica oculta (sem exibir nada), só para
 expor a API usada pela linha (`applyPreferenceFrom`/`loadFavItems`), e
 `juntadaDrag.js`/`finalizarConclusao.js` expõem as dispensas em

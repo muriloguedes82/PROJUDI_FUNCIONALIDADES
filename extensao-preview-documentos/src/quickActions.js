@@ -988,8 +988,12 @@
 	// ação terminou — fecha o popup e o combo segue sozinho. Telas de erro
 	// ou com formulário ficam abertas para o usuário.
 	const COMBO_RESULT_CLOSE_MS = 1500;
+	// Vale também para o popup aberto a partir da linha de uma listagem
+	// (modalHooks), depois do "Sim, executar".
 	function checkComboStepResult(iframe) {
-		if (!comboStep || comboStep.iframe !== iframe || !comboStep.confirmed) return;
+		const comboConfirmed = !!comboStep && comboStep.iframe === iframe && comboStep.confirmed;
+		const rowConfirmed = !!modalHooks && modalHooks.submitted && activeModalIframe === iframe;
+		if (!comboConfirmed && !rowConfirmed) return;
 		let doc;
 		try {
 			doc = iframe.contentDocument;
@@ -1118,7 +1122,7 @@
 		if (modalHooks) {
 			const hooks = modalHooks;
 			modalHooks = null;
-			if (hooks.onClose) hooks.onClose();
+			if (hooks.onClose) hooks.onClose(reason);
 		}
 		stopModalWatch();
 		removeConfirmBar();
@@ -2103,7 +2107,10 @@
 				return;
 			}
 			if (comboStep) comboStep.confirmed = true;
-			if (modalHooks && modalHooks.onSubmit) modalHooks.onSubmit();
+			if (modalHooks) {
+				modalHooks.submitted = true;
+				if (modalHooks.onSubmit) modalHooks.onSubmit();
+			}
 			submit.click();
 		});
 	}
@@ -3276,12 +3283,48 @@
 	// Na primeira vez que a fileira de botões aparece nesta página, continua
 	// um combo em andamento nesta aba (a tela foi recarregada ao fim de uma
 	// etapa) — ver reconcile.
+	// Combo pedido a partir da linha de uma listagem (preferenciasNaLinha.js)
+	// que precisa da tela do processo (etapa "Juntar Documento"/"Alvará
+	// Eletrônico"): a listagem grava { comboId, numero, criadoEm } e abre o
+	// processo numa nova aba; a primeira tela desse processo que mostrar a
+	// fileira de botões inicia o combo.
+	const COMBO_PENDING_KEY = "pdpComboPendente";
+	const COMBO_PENDING_MAX_AGE_MS = 3 * 60 * 1000;
+
+	function maybeStartPendingCombo() {
+		const numero = numeroProcessoAtual();
+		if (!numero) return;
+		chrome.storage.local.get([COMBO_PENDING_KEY]).then(function (data) {
+			const pending = data[COMBO_PENDING_KEY];
+			if (!pending || pending.numero !== numero) return;
+			return chrome.storage.local.remove(COMBO_PENDING_KEY).then(function () {
+				if (Date.now() - (pending.criadoEm || 0) > COMBO_PENDING_MAX_AGE_MS) return;
+				return loadCombos().then(function (combos) {
+					const combo = combos.filter(function (c) {
+						return c.id === pending.comboId;
+					})[0];
+					if (!combo) {
+						alert("O combo pedido para este processo não existe mais.");
+						return;
+					}
+					logChainStep('combo "' + combo.name + '" iniciado a partir da listagem', { numero: numero });
+					startCombo(combo);
+				});
+			});
+		}).catch(function (err) {
+			console.error("[Projudi Ações Rápidas] erro ao iniciar o combo pendente:", err);
+		});
+	}
+
 	function maybeResumeCombo() {
 		if (comboResumeChecked || !row || !row.isConnected) return;
 		comboResumeChecked = true;
 		if (insideHelperFrame()) return;
 		const run = readComboRun();
-		if (!run) return;
+		if (!run) {
+			maybeStartPendingCombo();
+			return;
+		}
 		if (Date.now() - (run.startedAt || 0) > COMBO_RUN_MAX_AGE_MS) {
 			clearComboRun();
 			return;
@@ -4677,6 +4720,17 @@
 		// mesmo preenchimento e mesma barra "Sim, executar" das demais. Os
 		// `hooks` ({ onSubmit, onDone, onClose, onFail }) informam quem
 		// chamou; a tela por trás não é recarregada ao fim.
+		// Combos salvos e as preferências que eles referenciam (por rótulo da
+		// ação, com as do "Juntar Documento" em "Juntar Documento").
+		loadCombos: loadCombos,
+		loadComboPreferences: loadComboPreferences,
+		findComboPref: findPref,
+		comboPendingKey: COMBO_PENDING_KEY,
+		// Etapas que só rodam na tela do processo (navegam a aba ou usam
+		// telas próprias): "Juntar Documento" e ações personalizadas.
+		stepNeedsProcessScreen: function (label) {
+			return label === JUNTAR_LABEL || !!getCustomAction(label) || label === "Alvará Eletrônico";
+		},
 		applyPreferenceFrom: function (label, pref, origem, hooks) {
 			closePanel();
 			removeConfirmBar();
