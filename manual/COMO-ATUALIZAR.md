@@ -32,7 +32,9 @@ reprova o PR se o manual ficar para trás.
 5. **Anexo A**: não edite à mão — rode
    `node manual/verificar-manual.mjs --corrigir` (atualiza títulos, seções e
    durações dos vídeos).
-6. Rode `node manual/verificar-manual.mjs` e só abra o PR com
+6. Rode `node manual/gerar-pdf.mjs` para regerar `MANUAL.pdf` (precisa de
+   `pip install markdown`).
+7. Rode `node manual/verificar-manual.mjs` e só abra o PR com
    "Manual OK".
 
 Correção de erro que não muda nada do que o usuário vê? Ainda assim a
