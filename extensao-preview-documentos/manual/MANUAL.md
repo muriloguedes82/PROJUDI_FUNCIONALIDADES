@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.9.97 |
-| **Versão da extensão** | 2.9.97 |
+| **Versão do manual** | 2.9.98 |
+| **Versão da extensão** | 2.9.98 |
 | **Data desta versão** | 30/09/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1206,6 +1206,12 @@ da tela de análise, sem abri-lo.
 - Preferências avulsas de **Juntar Documento** e **Alvará Eletrônico**
   aparecem esmaecidas (use-as na tela do processo).
 - Combos com essas etapas abrem o processo numa **nova aba** e rodam lá.
+- No **Retorno de Conclusão**, o **Sim** finaliza a conclusão pela linha
+  **"Retorno de Conclusão"** do quadro Pendências do processo (a mesma do
+  botão **Finalizar conclusão** da capa). Se o processo não tiver essa
+  linha, a extensão segue o **Analisar** da tela "Dados da Conclusão". Se
+  mesmo assim não houver o botão **Finalizar Conclusão Pendente**, a linha
+  avisa quais botões a tela tem, e a preferência abre do mesmo jeito.
 - Um card por vez.
 
 <a id="cap-9-4"></a>
@@ -1435,6 +1441,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.9.98 | 30/09/2026 | Correção no ⭐ do Retorno de Conclusão (9.3): o **Sim** passa a finalizar a conclusão pela linha "Retorno de Conclusão" do quadro Pendências do processo (antes procurava o botão na tela "Dados da Conclusão", onde ele não fica) e, quando não conseguir, avisa na linha quais botões encontrou. |
 | 2.9.97 | 30/09/2026 | Botão **Dispensar pendências** por tipo em Cumprimentos para Expedir, com acompanhamento das remoções e interrupção em caso de erro (6.4). Catálogo do Menu atualizado e vídeo V36 incluído. |
 | 2.9.95 | 30/09/2026 | Botões com nomes mais curtos: **📋 Colar processo** (antes "Processo copiado", seção 8.5 renomeada), **⚖️ Advogados**, **👥 Partes**, **🖍️ Destacar mov.**, **Expandir Mov ▼ / Recolher Mov ▲** e **Apenas com arquivo (+) / Mostrar todos** (2.4, 3.3, 3.4, 8.3–8.5). Pré-visualização pelo nome do documento na tela Análise de Juntadas (3.1). A barra de botões se alinha ao quadro "Anotações nos autos" quando não há quadro Pendências e fica oculta em mais telas e nos popups do Alvará Eletrônico, de Partes e da ficha do réu (2.4). Vídeos regravados com os nomes novos. |
 | 2.9.94 | 29/09/2026 | Menu da extensão (seção 2.6): nova **chave geral "Extensão ativada/desativada"** no topo do Menu, uma por sistema (PROJUDI e SEEU), que pausa todas as funções sem apagar as escolhas. O vídeo V34 foi regravado e agora mostra a chave geral e as abas. |
