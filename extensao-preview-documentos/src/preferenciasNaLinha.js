@@ -310,7 +310,13 @@
 		if (tela.tipo === "conclusao") {
 			if (!ctx.analisarUrl) return { ok: false, message: "Link \"Analisar\" da conclusão não encontrado." };
 			if (!d.conclusao) return { ok: false, message: "Finalização de conclusão indisponível." };
-			return d.conclusao(ctx.analisarUrl);
+			// Se o fetch() não trouxer o botão nativo, a tela de análise é
+			// carregada de novo numa navegação de verdade (iframe oculto).
+			return d.conclusao(ctx.analisarUrl, function (url) {
+				return carregar(url, function (doc, decorrido) {
+					return !!doc.querySelector("#movimentarProcessoForm #extraButton") || decorrido > 5000;
+				}).then(function (r) { return r.doc; });
+			});
 		}
 		if (tela.tipo === "juntada") {
 			if (!d.juntadas || !d.juntadaURL) return { ok: false, message: "Dispensa de juntadas indisponível." };
