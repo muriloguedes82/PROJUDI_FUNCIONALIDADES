@@ -187,3 +187,26 @@ CENAS.V35 = {
 		await S.endCard("Marcar a parte → endereço aparece · MANDADO → Regionalizado ou Comum conforme a cidade · a sua escolha manual prevalece.");
 	},
 };
+
+// ------------------------------------------------------------------ V36
+CENAS.V36 = {
+	arquivo: "V36-dispensar-cumprimentos.mp4",
+	titulo: "Dispensar cumprimentos para expedir",
+	secao: "6.4",
+	async run() {
+		telaProcesso({});
+		$("#quadroPendencias table").insertAdjacentHTML("beforeend", '<tr><td class="l">Cumprimentos para Expedir:</td><td><a class="link">Ofício à Copel: 2</a> <button class="x-btn small" id="b-cump">Dispensar pendências</button></td></tr>');
+		await S.titleCard("VÍDEO V36", "Dispensar cumprimentos para expedir", "Remova as pendências de expedição de um mesmo tipo.");
+		await S.cap("Confira o <b>tipo e a quantidade</b>: o botão remove todos os cumprimentos pendentes daquele tipo.");
+		await S.click("#b-cump");
+		$("#b-cump").disabled = true;
+		$("#b-cump").textContent = "Dispensando 1/2…";
+		await S.cap("A extensão remove um cumprimento por vez e confere a confirmação do Projudi.");
+		$("#b-cump").textContent = "Dispensando 2/2…";
+		await sleep(1200);
+		$("#b-cump").textContent = "Cumprimentos dispensados (2)";
+		await S.cap("Ao terminar, recarregue a página para atualizar os contadores do quadro Pendências.");
+		await S.cap("Se houver erro, a sequência para em <b>Conferir dispensa (X/N)</b>. Confira a listagem antes de repetir.");
+		await S.endCard("Pendências → Cumprimentos para Expedir → Dispensar pendências.");
+	},
+};

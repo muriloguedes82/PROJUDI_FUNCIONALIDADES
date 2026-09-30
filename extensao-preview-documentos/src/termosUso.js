@@ -45,6 +45,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/remessaMultipla.js",
 			"src/buttonDrag.js",
 			"src/juntadaDrag.js",
+			"src/dispensarCumprimentos.js",
 			"src/finalizarConclusao.js",
 			"src/mesaAnalistaContadores.js",
 			"src/ordenarCumprimentos.js",
