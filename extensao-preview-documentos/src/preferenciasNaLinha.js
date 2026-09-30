@@ -308,8 +308,13 @@
 		const d = window.__pdpDispensas || {};
 		const ancora = statusDe(ctx);
 		if (tela.tipo === "conclusao") {
-			if (!ctx.analisarUrl) return { ok: false, message: "Link \"Analisar\" da conclusão não encontrado." };
 			if (!d.conclusao) return { ok: false, message: "Finalização de conclusão indisponível." };
+			// Primeiro o link do quadro Pendências da tela do processo (o do
+			// botão "Finalizar conclusão" da capa); sem ele, o "Analisar" da
+			// linha (tela "Dados da Conclusão", que leva à análise).
+			const urlPendencia = proc && d.conclusaoURL ? d.conclusaoURL(proc.doc) : null;
+			if (urlPendencia) ctx.analisarUrl = urlPendencia;
+			if (!ctx.analisarUrl) return { ok: false, message: "Linha \"Retorno de Conclusão\" não encontrada no quadro Pendências do processo." };
 			// Se o fetch() não trouxer o botão nativo, a tela de análise é
 			// carregada de novo numa navegação de verdade (iframe oculto).
 			return d.conclusao(ctx.analisarUrl, function (url) {
@@ -334,14 +339,11 @@
 	// conclusão. Devolve o texto do resultado (ou null, no "Não").
 	async function fazerPrevia(ctx, resposta) {
 		if (resposta !== "sim") return null;
-		// Juntadas/decursos: o link da pendência vem do quadro Pendências da
-		// tela do processo. Conclusão: o link "Analisar" da própria linha
-		// (antes de finalizar, guarda o endereço do processo, que é lido
-		// nessa mesma tela de análise).
-		let proc = null;
+		// O link da pendência (juntadas, decursos ou conclusão) vem do quadro
+		// Pendências da tela do processo; na conclusão, sem ele, usa o
+		// "Analisar" da própria linha (ver etapaPrevia).
 		mostrar(ctx, ["Localizando o processo…"], "andamento");
-		if (tela.tipo === "conclusao") await urlDoProcesso(ctx);
-		else proc = await carregarProcesso(ctx, true);
+		const proc = await carregarProcesso(ctx, true);
 		mostrar(ctx, [tela.fazendo], "andamento");
 		const r = await etapaPrevia(ctx, proc);
 		// Sucesso: o card de status da dispensa sai; em caso de falha ele

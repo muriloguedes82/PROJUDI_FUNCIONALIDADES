@@ -116,6 +116,31 @@
       botoes: controls
     };
   }
+  // Link da linha "Retorno de Conclusão" do quadro Pendências da tela do
+  // processo (ex.: "Analisar Conclusão Retornada em 29/11/2022: DESPACHO",
+  // o mesmo em que este script põe o botão "Finalizar conclusão"). Só essa
+  // linha conta. `doc`: a tela do processo.
+  window.__pdpDispensas.conclusaoURL = function (doc) {
+    for (const link of doc.querySelectorAll('#quadroPendencias a.link[href]')) {
+      const linha = link.closest('tr');
+      const rotulo = linha ? linha.querySelector('td.labelRadio, td label, th') : null;
+      if (!/retorno de conclusao/.test(norm(rotulo ? rotulo.textContent : linha ? linha.textContent : ''))) continue;
+      try {
+        const url = new URL(link.getAttribute('href'), doc.URL);
+        if (url.origin === location.origin && url.pathname === route && url.search && !url.hash) return url.href;
+      } catch (_) { /* segue */ }
+    }
+    return null;
+  };
+  // A tela "Dados da Conclusão" (link "Analisar" da listagem do Retorno de
+  // Conclusão) não tem o botão de finalizar: ele fica na tela aberta pelo
+  // botão "Analisar" dela (#editButton, onclick document.location.href=...).
+  function analisarURL(doc) {
+    const button = doc.querySelector('#editButton');
+    const match = /location\.href\s*=\s*'([^']+)'/.exec(button?.getAttribute('onclick') || '');
+    if (!match) return null;
+    try { return safeURL(new URL(match[1], doc.URL || location.href).href); } catch (_) { return null; }
+  }
   window.__pdpDispensas.conclusao = async function (value, carregarNavegando) {
     let url;
     try { url = safeURL(value); } catch (error) { return {ok:false, message:error.message}; }
@@ -125,7 +150,14 @@
     let submitted = false;
     try {
       let data;
-      const lido = await request(url);
+      let lido = await request(url);
+      const seguinte = analisarURL(lido);
+      if (seguinte && !lido.querySelector('#movimentarProcessoForm #extraButton')) {
+        states.delete(url);
+        url = seguinte;
+        states.set(url, {label:'Finalizando…'});
+        lido = await request(url);
+      }
       try {
         data = prepare(lido);
       } catch (primeiro) {
