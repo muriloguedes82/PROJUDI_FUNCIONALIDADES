@@ -556,7 +556,7 @@ lado a lado, no mesmo canto da tela dos botões de WhatsApp/e-mail
 
 Numa segunda linha, logo abaixo do botão **"▸/▾ Ações"** (que recolhe ou
 mostra os botões dos grupos acima), ficam o botão **"📋 Processo
-copiado"** e o botão **"🖍️ Destacar movimentações"**, que abre um popup
+copiado"** e o botão **"🖍️ Destacar mov."**, que abre um popup
 (sobreposto à própria tela, sem trocar de aba) para escolher quais tipos
 de usuário (Magistrado, Ministério Público, Advogado) destacar na aba
 Movimentações, e com qual cor — veja "Destaque de movimentações por tipo
@@ -756,7 +756,7 @@ do "Alvará Eletrônico" e do **"📎 Juntar Documento"** — para executá-las
 "Juntar Certidão de decurso" → "Enviar Concluso p/ sentença".
 
 Para criar, clique no botão **"🔗 Combos"** (na segunda linha, junto do
-"📋 Processo copiado") e em **"+ Novo combo"**:
+"📋 Colar processo") e em **"+ Novo combo"**:
 
 1. dê um nome ao combo;
 2. na **caixa 1**, escolha a preferência que deve ser executada
@@ -904,8 +904,8 @@ a aba "Partes e Outros" e, na barra de botões ao final dela, clicar no
 botão nativo **"Advogados"** (um único botão por processo, não por parte),
 que leva à tela onde essas ações ficam disponíveis.
 
-Ao lado do botão **"📋 Processo copiado"** (ver "Ações rápidas" acima), a
-extensão adiciona o botão **"⚖️ (Des)Habilitar Advogado"**, que abre essa
+Ao lado do botão **"📋 Colar processo"** (ver "Ações rápidas" acima), a
+extensão adiciona o botão **"⚖️ Advogados"**, que abre essa
 tela num **popup sobreposto à tela atual** — a MESMA janela/mecanismo já
 usado pelo painel "Ações rápidas" para diálogos como "Ordenar
 Cumprimentos" e "Realizar Remessa" (ver acima): a aba visível nunca
@@ -944,8 +944,8 @@ barra de botões ao final dela, clicar no botão nativo **"Partes e Outros"**
 "Desmembrar"), que leva à tela **"Partes do Processo"** (lista de todas as
 partes, com "Adicionar" e "Voltar").
 
-Na mesma linha do **"📋 Processo copiado"**, logo após o "⚖️ (Des)Habilitar
-Advogado", a extensão adiciona o botão **"👥 Editar Partes/Outros"**, que
+Na mesma linha do **"📋 Colar processo"**, logo após o "⚖️ (Des)Habilitar
+Advogado", a extensão adiciona o botão **"👥 Partes"**, que
 abre essa tela no **mesmo popup** das "Ações rápidas" — a aba visível
 nunca navega; fecha com "✕ Fechar".
 
@@ -966,7 +966,7 @@ ao "Inserir Arquivo", com o arquivo "Assinado: Não" → **"Assinar
 Arquivos"** (chama o assinador) → **"Confirmar Inclusão"** → **"Concluir
 Movimento"**.
 
-Na mesma linha do **"📋 Processo copiado"**, logo após o "👥 Editar
+Na mesma linha do **"📋 Colar processo"**, logo após o "👥 Editar
 Partes/Outros", a extensão adiciona o botão **"📎 Juntar Documento"**. Ele
 abre um painel com:
 
@@ -1522,7 +1522,7 @@ dispensa/finalização é feita uma vez, antes da 1ª etapa, e depois:
   **↻ Repetir etapa**, **⏭ Próxima etapa** e **⏹ Parar combo**;
 - **combo com etapa "Juntar Documento" ou "Alvará Eletrônico"** (marcado
   "nova aba" no card): essas etapas navegam a tela do processo, então o
-  processo é aberto numa **nova aba** (mesma busca do "Processo copiado") e
+  processo é aberto numa **nova aba** (mesma busca do "Colar processo") e
   o combo começa sozinho lá, com a barra e o andamento de sempre. A
   listagem fica intacta. O pedido fica gravado em `pdpComboPendente` por
   até 3 minutos e só vale para a tela desse mesmo processo.

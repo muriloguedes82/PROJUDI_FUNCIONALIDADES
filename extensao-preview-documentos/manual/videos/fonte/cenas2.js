@@ -318,16 +318,16 @@ CENAS.V22 = {
 	async run() {
 		telaProcesso({});
 		await S.titleCard("VÍDEO V22", "(Des)Habilitar Advogado", "A tela de Advogados do processo num popup, sem sair da aba atual.");
-		await S.cap("Clique em <b>⚖️ (Des)Habilitar Advogado</b>.");
+		await S.cap("Clique em <b>⚖️ Advogados</b>.");
 		await S.click("#x-adv");
 		await abrindo("Advogados", 1100);
-		popup("Advogados", '<table class="pj-table"><tr><th></th><th>Parte</th><th>Advogado</th><th>OAB</th><th>Situação</th></tr><tr><td><input type="radio"></td><td>' + REUS[0].nome + '</td><td>JOÃO EXEMPLO</td><td>PR 00000</td><td>Habilitado</td></tr><tr class="alt"><td><input type="radio"></td><td>' + REUS[1].nome + '</td><td>—</td><td>—</td><td>—</td></tr></table><div class="pj-btnbar" style="justify-content:flex-start"><span class="pj-btn">Adicionar</span><span class="pj-btn">Habilitar</span><span class="pj-btn">Desabilitar</span><span class="pj-btn">Remover</span><span class="pj-btn">Voltar</span></div>', { hd: "(Des)Habilitar Advogado — popup da extensão" });
+		popup("Advogados", '<table class="pj-table"><tr><th></th><th>Parte</th><th>Advogado</th><th>OAB</th><th>Situação</th></tr><tr><td><input type="radio"></td><td>' + REUS[0].nome + '</td><td>JOÃO EXEMPLO</td><td>PR 00000</td><td>Habilitado</td></tr><tr class="alt"><td><input type="radio"></td><td>' + REUS[1].nome + '</td><td>—</td><td>—</td><td>—</td></tr></table><div class="pj-btnbar" style="justify-content:flex-start"><span class="pj-btn">Adicionar</span><span class="pj-btn">Habilitar</span><span class="pj-btn">Desabilitar</span><span class="pj-btn">Remover</span><span class="pj-btn">Voltar</span></div>', { hd: "Advogados — popup da extensão" });
 		await S.cap("É a mesma tela do botão nativo <b>Advogados</b> (aba Partes e Outros), num popup.");
 		await S.cap("Habilite, desabilite, adicione ou remova o advogado normalmente. A extensão não pratica nada sozinha.");
 		await S.cap("Ao terminar, clique em <b>✕ Fechar</b>.");
 		await S.click("#x-fechar");
 		$(".x-popup").remove();
-		await S.endCard("⚖️ (Des)Habilitar Advogado → tela Advogados em popup → ✕ Fechar.");
+		await S.endCard("⚖️ Advogados → tela Advogados em popup → ✕ Fechar.");
 	},
 };
 
@@ -339,26 +339,26 @@ CENAS.V23 = {
 	async run() {
 		telaProcesso({});
 		await S.titleCard("VÍDEO V23", "Editar Partes/Outros", "A tela “Partes do Processo” num popup, para adicionar ou alterar partes.");
-		await S.cap("Clique em <b>👥 Editar Partes/Outros</b>.");
+		await S.cap("Clique em <b>👥 Partes</b>.");
 		await S.click("#x-partes");
 		await abrindo("Partes do Processo", 1100);
-		popup("Partes do Processo", '<table class="pj-table"><tr><th>Nome</th><th>Tipo</th><th>Polo</th></tr>' + REUS.map((r, i) => '<tr class="' + (i ? "alt" : "") + '"><td><a class="link">' + r.nome + "</a></td><td>Réu</td><td>Passivo</td></tr>").join("") + '<tr><td><a class="link">PEDRO VÍTIMA EXEMPLO</a></td><td>Vítima</td><td>Outros</td></tr></table><div class="pj-btnbar" style="justify-content:flex-start"><span class="pj-btn">Adicionar</span><span class="pj-btn">Voltar</span></div>', { hd: "Editar Partes/Outros — popup da extensão" });
+		popup("Partes do Processo", '<table class="pj-table"><tr><th>Nome</th><th>Tipo</th><th>Polo</th></tr>' + REUS.map((r, i) => '<tr class="' + (i ? "alt" : "") + '"><td><a class="link">' + r.nome + "</a></td><td>Réu</td><td>Passivo</td></tr>").join("") + '<tr><td><a class="link">PEDRO VÍTIMA EXEMPLO</a></td><td>Vítima</td><td>Outros</td></tr></table><div class="pj-btnbar" style="justify-content:flex-start"><span class="pj-btn">Adicionar</span><span class="pj-btn">Voltar</span></div>', { hd: "Partes do Processo — popup da extensão" });
 		await S.cap("É a tela do botão nativo <b>Partes e Outros</b>, com <b>Adicionar</b> e a lista de partes.");
 		await S.cap("Faça as alterações no popup e feche com <b>✕ Fechar</b>. A aba do processo não sai do lugar.");
 		await S.click("#x-fechar");
 		$(".x-popup").remove();
-		await S.endCard("👥 Editar Partes/Outros → Partes do Processo em popup → ✕ Fechar.");
+		await S.endCard("👥 Partes → Partes do Processo em popup → ✕ Fechar.");
 	},
 };
 
 // ------------------------------------------------------------------ V24
 CENAS.V24 = {
 	arquivo: "V24-processo-copiado.mp4",
-	titulo: "Processo copiado",
+	titulo: "Colar processo",
 	secao: "8.5",
 	async run() {
 		telaProcesso({});
-		await S.titleCard("VÍDEO V24", "Processo copiado", "Copiou um número de processo? Um clique e a busca já abre com ele.");
+		await S.titleCard("VÍDEO V24", "Colar processo", "Copiou um número de processo? Um clique e a busca já abre com ele.");
 		const nota = add('<div style="position:fixed;left:250px;top:150px;width:620px;background:#fff;border:1px solid #999;box-shadow:0 8px 30px rgba(0,0,0,.35);z-index:45;font-size:14px"><div style="background:#eee;padding:6px 10px;font-size:12px">E-mail recebido</div><div style="padding:16px;line-height:24px">Prezados, solicito informações sobre os autos <span id="num">0009876-54.2024.8.16.0001</span>, em trâmite nesta vara.</div></div>');
 		await S.cap("Copie (Ctrl+C) um número de processo de qualquer lugar: e-mail, planilha, documento…");
 		await S.move("#num", { dx: -110 });
@@ -367,7 +367,7 @@ CENAS.V24 = {
 		const t = toast("Ctrl + C", { left: 560, top: 260 });
 		await sleep(900); t.remove(); nota.remove();
 		await S.cap("Com ou sem pontos e traços — só não pode haver <b>mais de um</b> número copiado.");
-		await S.cap("No Projudi, clique em <b>📋 Processo copiado</b>.");
+		await S.cap("No Projudi, clique em <b>📋 Colar processo</b>.");
 		await S.click("#x-clip");
 		browser(["Projudi - Processo " + PROC, "*Projudi - Busca de Processos"], "https://projudi.tjpr.jus.br/projudi/processo/buscaProcesso.do?actionType=iniciarSimples");
 		screen(pjHeader() + '<div class="pj-body"><div class="pj-h2">Busca de Processos</div><table class="pj-form"><tr><td class="l">Número do Processo:</td><td><span class="pj-input" id="bn" style="min-width:230px"></span> <label><input type="checkbox" id="nu"> Número Único</label></td></tr></table><div class="pj-btnbar" style="justify-content:flex-start;margin-left:190px"><span class="pj-btn primary">Pesquisar</span></div><div id="res"></div></div>');
@@ -376,7 +376,7 @@ CENAS.V24 = {
 		await S.type("#bn", "0009876-54.2024.8.16.0001", { click: false, speed: 30 });
 		$("#res").innerHTML = '<table class="pj-table" style="margin-top:10px"><tr><th>Processo</th><th>Classe</th><th>Juízo</th></tr><tr><td><a class="link">0009876-54.2024.8.16.0001</a></td><td>Ação Penal - Procedimento Ordinário</td><td>Vara Criminal de Exemplo</td></tr></table>';
 		await S.cap("…e já pesquisa. Clique no resultado para abrir o processo.");
-		await S.endCard("Copiar o número (Ctrl+C) → 📋 Processo copiado → nova aba com a busca feita.");
+		await S.endCard("Copiar o número (Ctrl+C) → 📋 Colar processo → nova aba com a busca feita.");
 	},
 };
 

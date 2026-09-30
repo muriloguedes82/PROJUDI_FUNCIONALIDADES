@@ -204,7 +204,7 @@
     groupHeight = firstHeight + gap + secondHeight;
     const reference = document.getElementById('pdp-expand-movements') ||
       document.getElementById('quadroPendencias') ||
-      document.getElementById('quadroAnaliseAutomatica');
+      document.getElementById('quadroAnaliseAutomatica') || findAnnotationsPanel();
     if (reference?.getClientRects().length) {
       const rect = reference.getBoundingClientRect();
       referenceTop = rect.top + rect.height / 2 - firstHeight - gap - secondHeight / 2;
@@ -236,6 +236,18 @@
     }
     window.dispatchEvent(new Event('pdp-buttons-moved'));
   }
+  function findAnnotationsPanel() {
+    const titles = document.querySelectorAll('legend, h1, h2, h3, h4, caption');
+    for (const title of titles) {
+      const text = (title.textContent || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+      if (/^anotacoes nos autos:?$/i.test(text)) {
+        const panel = title.closest('fieldset, table') || title.parentElement;
+        if (panel && panel.getClientRects().length) return panel;
+      }
+    }
+    return null;
+  }
+
   function schedule() {
     if (scheduled) return;
     scheduled = true;

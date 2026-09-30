@@ -176,7 +176,7 @@
 			button.type = "button";
 			button.id = "pdp-habilitar-advogado-button";
 			button.className = "pdp-qa-group-btn";
-			button.textContent = "⚖️ (Des)Habilitar Advogado";
+			button.textContent = "⚖️ Advogados";
 			button.title = 'Abrir a tela "Advogados" num popup, sem sair desta tela, para habilitar, desabilitar, adicionar ou remover um advogado';
 			button.addEventListener("click", async function () {
 				if (button.disabled) return;

@@ -392,11 +392,29 @@
 	// Mesmo critério (id, não class) já usado e comprovado em
 	// expandMovements.js e no modo loader mais abaixo (EXPAND_ICON_SELECTOR).
 	function movementFileToggle(link) {
-		const row = link && link.closest('tr[id^="mov1Grau,"]');
+		const row = link && (isJuntadaTitle(link) ? link.closest('tr') : link.closest('tr[id^="mov1Grau,"]'));
 		return row && row.querySelector('img[onclick*="showDetail"], a[id^="linkArquivos"] img');
 	}
 
+	// Na listagem o nome é um <b>, não um link. Restringir à coluna
+	// Tipo de Documento e à linha de idJuntadas evita atingir nomes de partes.
+	function isJuntadaTitle(el) {
+		if (!(el instanceof Element) || !el.matches('b')) return false;
+		if (!el.closest('form#analisarJuntadaForm, form[name="analisarJuntadaForm"]')) return false;
+		const cell = el.closest('td');
+		const row = cell && cell.parentElement;
+		const table = row && row.closest('table');
+		if (!row || !row.querySelector('input[name="idJuntadas"]') || !table || !table.tHead) return false;
+		const header = table.tHead.rows[0];
+		const index = header && Array.from(header.cells).findIndex(function (th) {
+			return (th.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase() === 'tipo de documento';
+		});
+		return index >= 0 && cell.cellIndex === index &&
+			!!row.querySelector('img[onclick*="showDetail"]');
+	}
+
 	function isMovementLink(el) {
+		if (isJuntadaTitle(el)) return true;
 		if (!(el instanceof HTMLAnchorElement) || !el.classList.contains("link")) return false;
 		if (!movementFileToggle(el)) return false;
 		try {
@@ -408,6 +426,8 @@
 
 	function findMovementLink(target) {
 		if (!(target instanceof Element)) return null;
+		const title = target.closest('b');
+		if (isJuntadaTitle(title)) return title;
 		const link = target.closest("a.link");
 		return isMovementLink(link) ? link : null;
 	}
@@ -658,7 +678,9 @@
 		attachPendenciaPanelBehavior(panel);
 		panel.onClose = closeAllPendenciaPanels;
 		panel.title.textContent = "Pendências";
-		panel.openTab.href = link.getAttribute("href");
+		const href = link.getAttribute("href");
+		if (href) panel.openTab.href = href;
+		else panel.openTab.hidden = true;
 
 		const body = panel.wrap.querySelector(".pdp-body");
 		panel.frame.remove();
