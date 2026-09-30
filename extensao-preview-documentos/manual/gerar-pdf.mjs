@@ -10,6 +10,7 @@ let playwright;
 try { playwright = require("playwright"); }
 catch { playwright = require(path.join(execFileSync("npm", ["root", "-g"]).toString().trim(), "playwright")); }
 const aqui = path.dirname(fileURLToPath(import.meta.url));
+const versao = JSON.parse(fs.readFileSync(path.join(aqui, "..", "manifest.json"), "utf8")).version;
 // O conversor exige 4 espaços para listas aninhadas; o manual usa 2 ou 3.
 const md = fs.readFileSync(path.join(aqui, "MANUAL.md"), "utf8").replace(/^ {2,3}(?=[-*] )/gm, "    ");
 const corpo = execFileSync("python3", ["-c", "import sys,markdown;print(markdown.markdown(sys.stdin.read(),extensions=['tables','fenced_code']))"], { input: md, maxBuffer: 1 << 28 }).toString();
@@ -31,7 +32,7 @@ const page = await browser.newPage();
 await page.goto(pathToFileURL(tmp).href);
 await page.pdf({ path: path.join(aqui, "MANUAL.pdf"), format: "A4", printBackground: true,
 	displayHeaderFooter: true, headerTemplate: "<span></span>",
-	footerTemplate: '<div style="font-size:8px;width:100%;text-align:center;color:#666">Manual da extensão Projudi/SEEU — versão 2.9.88 — página <span class="pageNumber"></span> de <span class="totalPages"></span></div>' });
+	footerTemplate: `<div style="font-size:8px;width:100%;text-align:center;color:#666">Manual da extensão Projudi/SEEU — versão ${versao} — página <span class="pageNumber"></span> de <span class="totalPages"></span></div>` });
 await browser.close();
 if (!process.env.MANTER_HTML) fs.unlinkSync(tmp);
 console.log("MANUAL.pdf gerado");

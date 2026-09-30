@@ -161,9 +161,9 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 			itens: [
 				{
 					id: "dispensarJuntadas",
-					nome: "Dispensar juntadas e decursos",
+					nome: "Dispensar juntadas, decursos e cumprimentos",
 					descricao: "Botões de dispensa em segundo plano no quadro Pendências.",
-					js: ["src/juntadaDrag.js"],
+					js: ["src/juntadaDrag.js", "src/dispensarCumprimentos.js"],
 					css: ["src/juntadaDrag.css"]
 				},
 				{
