@@ -233,7 +233,7 @@
 
       const label = document.createElement('span');
       label.className = 'pdp-hide-no-file-label';
-      label.textContent = '(Des)ocultar sem arquivo (+)';
+      label.textContent = hideNoFile ? 'Mostrar todos' : 'Apenas com arquivo (+)';
       hideGroup.appendChild(label);
 
       const alwaysWrap = document.createElement('label');
@@ -274,13 +274,17 @@
     if (running) return;
     const items = controls();
     const expand = items.some(img => state(img) === 'closed');
-    const label = expand || !items.length ? 'Expandir movimentações ▼' : 'Recolher movimentações ▲';
+    const label = expand || !items.length ? 'Expandir Mov ▼' : 'Recolher Mov ▲';
     if (button.textContent !== label) button.textContent = label;
     button.disabled = !items.length;
     button.title = items.length ? 'Abrir ou fechar os detalhes com anexos das movimentações desta página' : 'Nenhum controle de anexos reconhecido nesta página';
 
     const rows = applyHideNoFile(footer, filterRow);
     const withoutFile = rows.filter(r => !rowHasFile(r));
+    const hideLabel = hideGroup.querySelector('.pdp-hide-no-file-label');
+    const hideText = hideNoFile ? 'Mostrar todos' : 'Apenas com arquivo (+)';
+    if (hideLabel.textContent !== hideText) hideLabel.textContent = hideText;
+    hideGroup.setAttribute('aria-pressed', String(hideNoFile));
     hideGroup.classList.toggle('pdp-qa-active', hideNoFile);
     const hideDisabled = !withoutFile.length && !hideNoFile;
     hideGroup.setAttribute('aria-disabled', String(hideDisabled));

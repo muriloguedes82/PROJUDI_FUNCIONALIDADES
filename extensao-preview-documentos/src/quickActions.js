@@ -1092,12 +1092,16 @@
 			'</span><button type="button" class="pdp-qa-modal-close">✕ Fechar</button></div>' +
 			'<div class="pdp-qa-modal-body"><iframe class="pdp-qa-modal-iframe"></iframe></div>' +
 			"</div>";
+		const iframe = backdrop.querySelector(".pdp-qa-modal-iframe");
+		if (label === "Alvará Eletrônico" || label === "Partes do Processo" ||
+			String(label).indexOf("Parte do Processo - ") === 0) {
+			iframe.setAttribute("data-pdp-hide-button-group", "");
+		}
 		document.body.appendChild(backdrop);
 		backdrop.querySelector(".pdp-qa-modal-close").addEventListener("click", function () {
 			logChainStep('"✕ Fechar" clicado manualmente pelo usuário', null);
 			removeActionModal("manual");
 		});
-		const iframe = backdrop.querySelector(".pdp-qa-modal-iframe");
 		activeModalIframe = iframe;
 		attachModalIframeCloseShim(iframe);
 		startModalWatch(iframe);
@@ -3773,7 +3777,7 @@
 			clipboardBtn.type = "button";
 			clipboardBtn.id = "pdp-clipboard-button";
 			clipboardBtn.className = "pdp-qa-group-btn";
-			clipboardBtn.textContent = "📋 Processo copiado";
+			clipboardBtn.textContent = "📋 Colar processo";
 			clipboardBtn.title = "Pesquisar em nova aba o número de processo da área de transferência";
 			clipboardBtn.addEventListener("click", function () { window.__pdpClipboardProcess(); });
 			secondLine.appendChild(clipboardBtn);
@@ -3793,7 +3797,7 @@
 		const highlightPrefsBtn = document.createElement("button");
 		highlightPrefsBtn.type = "button";
 		highlightPrefsBtn.className = "pdp-qa-group-btn";
-		highlightPrefsBtn.innerHTML = '<span class="pdp-qa-icon">🖍️</span><span>Destacar movimentações</span>';
+		highlightPrefsBtn.innerHTML = '<span class="pdp-qa-icon">🖍️</span><span>Destacar mov.</span>';
 		highlightPrefsBtn.title = "Escolher a cor de destaque de cada tipo de usuário na aba Movimentações";
 		highlightPrefsBtn.addEventListener("click", function () {
 			if (window.__pdpOpenMovementHighlightConfig) window.__pdpOpenMovementHighlightConfig();

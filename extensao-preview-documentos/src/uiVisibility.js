@@ -23,16 +23,42 @@
     '/projudi/processo/preAnalise'
   ];
   const path = location.pathname.replace(/\/+$/, '');
+  const additionalPaths = new Set([
+    '/projudi/audiencia/agendaAudiencia',
+    '/projudi/processo/criminal/apreensao',
+    '/projudi/processo/criminal/transacaoPenal',
+    '/projudi/processo/penhora/autoPenhora',
+    '/projudi/processo/parteProcesso',
+    '/projudi/processo/criminal/denunciado',
+    '/projudi/processo/criminal/parteSentenciada',
+    '/projudi/processo/criminal/autuacaoAcaoPenalUnica',
+    '/projudi/processo/informacaoFinanceira',
+    '/projudi/processo/criminal/parteProcessoPena',
+    '/projudi/processo/criminal/transitoEmJulgadoCriminal',
+    '/projudi/processo/guiaRecolhimento',
+    '/projudi/processoTransitoEmJulgado',
+    '/projudi/processo/depositoEletronico'
+  ]);
 
   let blockedByHostFrame = false;
   try {
-    blockedByHostFrame = !!(window.frameElement && window.frameElement.hasAttribute('data-pdp-hide-button-group'));
+    // Herda o bloqueio também nos frames internos das janelas marcadas.
+    let currentWindow = window;
+    while (currentWindow !== currentWindow.parent) {
+      const frame = currentWindow.frameElement;
+      if (frame && frame.hasAttribute('data-pdp-hide-button-group')) {
+        blockedByHostFrame = true;
+        break;
+      }
+      currentWindow = currentWindow.parent;
+    }
   } catch (error) {
-    blockedByHostFrame = false;
+    // Um ancestral de outra origem não pode ser inspecionado.
   }
 
   window.__pdpEmbeddedButtonGroupBlocked = blockedByHostFrame;
 
   window.__pdpButtonGroupBlocked = blockedByHostFrame || exactPaths.has(path) ||
+    additionalPaths.has(path.replace(/\.do$/, '')) ||
     pathPrefixes.some(function (prefix) { return path.indexOf(prefix) === 0; });
 })();

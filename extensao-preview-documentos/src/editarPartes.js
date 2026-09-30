@@ -97,7 +97,7 @@
 			button.type = "button";
 			button.id = "pdp-editar-partes-button";
 			button.className = "pdp-qa-group-btn";
-			button.textContent = "👥 Editar Partes/Outros";
+			button.textContent = "👥 Partes";
 			button.title = 'Abrir a tela "Partes do Processo" num popup, sem sair desta tela, para adicionar ou alterar partes';
 			button.addEventListener("click", async function () {
 				if (button.disabled) return;

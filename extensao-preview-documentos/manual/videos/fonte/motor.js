@@ -204,7 +204,7 @@ function telaProcesso(o = {}) {
 				'<tr><td class="l">Análise de Juntadas:</td><td><a class="link" id="pend-juntada">Há 2 pendência(s) de análise de juntada</a><span id="slot-juntada"></span></td></tr>' +
 				'<tr><td class="l">Análise de Conclusão:</td><td><a class="link" id="pend-conclusao">Há 1 pendência(s) de conclusão</a><span id="slot-conclusao"></span></td></tr>' +
 				'<tr><td class="l">Intimações:</td><td><a class="link" id="pend-decurso">Há 2 intimação(ões) aguardando análise de decurso de prazo</a><span id="slot-decurso"></span></td></tr>' +
-				'<tr><td colspan="2" id="slot-expandir">' + (o.ext ? '<button class="x-btn small" id="x-expandir">Expandir movimentações</button> <span class="x-btn small" id="x-ocultar">(Des)ocultar sem arquivo (+) <span style="border-left:1px solid #999;padding-left:6px;margin-left:4px"><input type="checkbox" id="x-sempre" style="margin:0 3px 0 0;vertical-align:middle">sempre</span></span>' : "") + "</td></tr>" +
+				'<tr><td colspan="2" id="slot-expandir">' + (o.ext ? '<button class="x-btn small" id="x-expandir">Expandir Mov ▼</button> <span class="x-btn small" id="x-ocultar"><span id="x-ocultar-rot">Apenas com arquivo (+)</span> <span style="border-left:1px solid #999;padding-left:6px;margin-left:4px"><input type="checkbox" id="x-sempre" style="margin:0 3px 0 0;vertical-align:middle">sempre</span></span>' : "") + "</td></tr>" +
 				"</table></fieldset>" : "") +
 			'<table class="pj-table" id="movs"><tr><th style="width:44px">Seq.</th><th style="width:120px">Data</th><th>Evento</th><th style="width:260px">Movimentado Por</th></tr>' + movRows(o) + "</table>";
 	} else if (o.tab === "gerais") {
@@ -243,7 +243,7 @@ function extGroup(o = {}) {
 	const g = add('<div id="x-group"></div>');
 	g.innerHTML =
 		'<div class="line" id="x-line-grupos"' + (o.acoesAbertas ? "" : ' style="display:none"') + ">" + GRUPOS.map(n => '<span class="x-btn" data-g="' + n + '">' + n + "</span>").join("") + "</div>" +
-		'<div class="line"><span class="x-btn" id="x-toggle">' + (o.acoesAbertas ? "▾" : "▸") + ' Ações</span><span class="x-btn" id="x-fav">⭐ Minhas Preferências</span><span class="x-btn" id="x-clip">📋 Processo copiado</span><span class="x-btn" id="x-adv">⚖️ (Des)Habilitar Advogado</span><span class="x-btn" id="x-partes">👥 Editar Partes/Outros</span><span class="x-btn" id="x-juntar">📎 Juntar Documento</span><span class="x-btn" id="x-destacar">🖍️ Destacar movimentações</span><span class="x-btn" id="x-combos">🔗 Combos</span><span class="x-btn" id="x-oraculo">Oráculo</span></div>' +
+		'<div class="line"><span class="x-btn" id="x-toggle">' + (o.acoesAbertas ? "▾" : "▸") + ' Ações</span><span class="x-btn" id="x-fav">⭐ Minhas Preferências</span><span class="x-btn" id="x-clip">📋 Colar processo</span><span class="x-btn" id="x-adv">⚖️ Advogados</span><span class="x-btn" id="x-partes">👥 Partes</span><span class="x-btn" id="x-juntar">📎 Juntar Documento</span><span class="x-btn" id="x-destacar">🖍️ Destacar mov.</span><span class="x-btn" id="x-combos">🔗 Combos</span><span class="x-btn" id="x-oraculo">Oráculo</span></div>' +
 		'<div class="line"><span class="x-btn" id="x-whats">📱 Enviar por WhatsApp</span><span class="x-btn" id="x-email">✉️ Enviar por e-mail</span><span class="x-btn" id="x-email-menu" style="margin-left:-3px">▼</span><span class="x-btn small" id="x-mover" style="align-self:center">↕ Mover</span><span class="x-btn small" id="x-ocultarbtns" style="align-self:center">Ocultar</span></div>';
 }
 function setAcoesAbertas(v) {

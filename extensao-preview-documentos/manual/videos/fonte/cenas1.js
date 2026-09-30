@@ -156,20 +156,22 @@ CENAS.V05 = {
 		S.hl("#slot-expandir", 2);
 		await S.cap("Na última linha do quadro <b>Pendências</b> ficam dois botões da extensão.");
 		S.hlOff();
-		await S.cap("<b>Expandir movimentações</b> abre de uma vez os anexos (+) de todas as movimentações da página.");
+		await S.cap("<b>Expandir Mov ▼</b> abre de uma vez os anexos (+) de todas as movimentações da página.");
 		await S.click("#x-expandir");
 		telaProcesso({ expanded: true });
-		$("#x-expandir").textContent = "Recolher movimentações";
-		await S.cap("O mesmo botão vira <b>Recolher movimentações</b>.");
-		await S.cap("<b>(Des)ocultar sem arquivo</b> esconde as movimentações que não têm nenhum documento.");
+		$("#x-expandir").textContent = "Recolher Mov ▲";
+		await S.cap("O mesmo botão vira <b>Recolher Mov ▲</b>.");
+		await S.cap("<b>Apenas com arquivo (+)</b> esconde as movimentações que não têm nenhum documento.");
 		await S.click("#x-ocultar", { dx: -40 });
 		$$("#movs tr").forEach(tr => { if (tr.querySelector("td") && !tr.querySelector(".pj-plus")) tr.style.display = "none"; });
+		$("#x-ocultar-rot").textContent = "Mostrar todos";
+		await S.cap("O botão passa a se chamar <b>Mostrar todos</b>: clique nele para ver tudo de novo.");
 		await sleep(1500);
 		await S.cap("Marque a caixinha <b>sempre</b> para que isso já venha ativado em todos os processos.");
 		await S.click("#x-sempre");
 		$("#x-sempre").checked = true;
-		await S.cap("Para desfazer, clique de novo no botão (e desmarque “sempre”, se quiser).");
-		await S.endCard("Expandir/Recolher movimentações · (Des)ocultar sem arquivo · “sempre” grava a preferência.");
+		await S.cap("Para desfazer, clique em <b>Mostrar todos</b> (e desmarque “sempre”, se quiser).");
+		await S.endCard("Expandir Mov / Recolher Mov · Apenas com arquivo (+) / Mostrar todos · “sempre” grava a preferência.");
 	},
 };
 
@@ -181,7 +183,7 @@ CENAS.V06 = {
 	async run() {
 		telaProcesso({});
 		await S.titleCard("VÍDEO V06", "Destacar movimentações por tipo de usuário", "Pinte as movimentações de Magistrado, Ministério Público ou Advogado — em todos os processos.");
-		await S.cap("Clique em <b>🖍️ Destacar movimentações</b>.");
+		await S.cap("Clique em <b>🖍️ Destacar mov.</b>.");
 		await S.click("#x-destacar");
 		const cores = ["#fff3b0", "#cfe8ff", "#d9f2d0", "#ffd6d6", "#e9dcff"];
 		const pal = sel => cores.map((c, i) => '<span class="x-swatch" data-c="' + i + '" style="background:' + c + '">' + (sel === i ? "✓" : "") + "</span>").join("");
@@ -207,7 +209,7 @@ CENAS.V06 = {
 		});
 		await S.cap("As linhas passam a aparecer coloridas — <b>em qualquer processo</b>, sempre que abrir a aba Movimentações.");
 		await S.cap("Para mudar depois, abra o mesmo botão: ele já vem preenchido com o que foi salvo.");
-		await S.endCard("🖍️ Destacar movimentações → marcar tipos → escolher cores → Salvar. Vale para todos os processos.");
+		await S.endCard("🖍️ Destacar mov. → marcar tipos → escolher cores → Salvar. Vale para todos os processos.");
 	},
 };
 

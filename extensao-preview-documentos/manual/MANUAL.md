@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.9.94 |
-| **Versão da extensão** | 2.9.94 |
-| **Data desta versão** | 29/09/2026 |
+| **Versão do manual** | 2.9.95 |
+| **Versão da extensão** | 2.9.95 |
+| **Data desta versão** | 30/09/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -70,7 +70,7 @@
    - 8.2 [Juntar Documento com preferências](#cap-8-2)
    - 8.3 [(Des)Habilitar Advogado](#cap-8-3)
    - 8.4 [Editar Partes/Outros](#cap-8-4)
-   - 8.5 [Processo copiado](#cap-8-5)
+   - 8.5 [Colar processo](#cap-8-5)
    - 8.6 [Oráculo](#cap-8-6)
 9. [Telas de análise, mesas e cumprimentos](#cap-9)
    - 9.1 [Filtro por Sequencial na Análise de Decurso de Prazo](#cap-9-1)
@@ -237,11 +237,11 @@ tela, "flutuando" sobre a página.
 |---|---|---|
 | **▸ Ações** / **▾ Ações** | Mostra ou recolhe os grupos de ações rápidas (**Concluso**, **Remessa**, **Ordenações**, **Partes**, **Suspender**, **Transitar**, **Arquivar**, **🏦 Alvará Eletrônico**, **Outras**) | [7.1](#cap-7-1) |
 | **⭐ Minhas Preferências** | Todas as preferências salvas, em cards | [7.3](#cap-7-3) |
-| **📋 Processo copiado** | Pesquisa o número de processo que você copiou | [8.5](#cap-8-5) |
-| **⚖️ (Des)Habilitar Advogado** | Tela de Advogados em popup | [8.3](#cap-8-3) |
-| **👥 Editar Partes/Outros** | Tela Partes do Processo em popup | [8.4](#cap-8-4) |
+| **📋 Colar processo** | Pesquisa o número de processo que você copiou | [8.5](#cap-8-5) |
+| **⚖️ Advogados** | Tela de Advogados em popup ((Des)Habilitar Advogado) | [8.3](#cap-8-3) |
+| **👥 Partes** | Tela Partes do Processo em popup (Editar Partes/Outros) | [8.4](#cap-8-4) |
 | **📎 Juntar Documento** | Juntada com preferências gravadas | [8.2](#cap-8-2) |
-| **🖍️ Destacar movimentações** | Cores por tipo de usuário | [3.4](#cap-3-4) |
+| **🖍️ Destacar mov.** | Cores por tipo de usuário | [3.4](#cap-3-4) |
 | **🔗 Combos** | Várias preferências em sequência | [7.4](#cap-7-4) |
 | **Oráculo** | Consulta de antecedentes da parte | [8.6](#cap-8-6) |
 | **📱 Enviar por WhatsApp** | Envia documentos marcados | [5.1](#cap-5-1) |
@@ -254,11 +254,19 @@ tela, "flutuando" sobre a página.
 - O **ícone da balança** (canto superior direito, abaixo de **Sair**) não faz
   parte desta barra: ele abre o **Menu da extensão** — veja [2.6](#cap-2-6).
 - Passe o mouse sobre qualquer botão para ver uma dica.
-- A barra acompanha a rolagem da página.
+- A barra acompanha a rolagem da página. Ela se alinha ao quadro
+  **Pendências**; quando a tela não tem esse quadro, alinha-se ao quadro
+  **Anotações nos autos**.
 - No SEEU aparecem só os botões de envio (WhatsApp e e-mail).
 - A barra aparece na tela do processo. Em algumas telas (ex.: **Juntar
   Documento**, **Análise de Juntadas**, **Retorno de Conclusão**, telas de
-  cumprimento) ela fica oculta — a pré-visualização continua funcionando.
+  cumprimento, ficha da parte, **Denunciado(s)**, **Sentenciados**,
+  **Infrações/Penas**, **Apreensão**, **Suspensão/Transação Penal**, **Auto
+  de Penhora**, **Guia de Recolhimento**, **Trânsito em Julgado**,
+  **Informações Financeiras**, **Depósitos/Alvarás Eletrônicos**, **Agenda de
+  Audiências**) ela fica oculta — a pré-visualização continua funcionando.
+  Ela também não aparece dentro dos popups do **🏦 Alvará Eletrônico**, do
+  **👥 Partes** e da ficha de um réu aberta pelo cabeçalho.
 
 <a id="cap-2-5"></a>
 ### 2.5 Página de opções
@@ -341,8 +349,8 @@ Preferências** e **(Des)Habilitar Advogado**.
 | **Pendências, mesa e listas** | Dispensar juntadas e decursos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
-Botões como **📋 Processo copiado**, **🔗 Combos** e **🖍️ Destacar
-movimentações** fazem parte das funções acima (as duas primeiras, das
+Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
+mov.** fazem parte das funções acima (as duas primeiras, das
 **Ações rápidas**; a última, do **Destaque de movimentações**).
 
 **2. Preferências e combos** — cópia de segurança para levar tudo a outro
@@ -402,6 +410,9 @@ até mudar em uma das abas.
 
 - Também funciona parando o mouse sobre o **texto da movimentação** que tem
   o controle **+** — mesmo com os arquivos recolhidos.
+- Na tela **Análise de Juntadas**, funciona parando o mouse sobre o nome do
+  documento na coluna **Tipo de Documento** (ex.: **Petição**), nas linhas
+  que têm o controle **+**.
 - Se a movimentação tiver **mais de um arquivo**, o painel não abre;
   aparece o aviso **"Múltiplos documentos"** com a quantidade. Abra o **+** e
   passe o mouse sobre cada arquivo.
@@ -447,10 +458,11 @@ Juntadas**, na linha do botão **Filtrar**).
 
 **Passo a passo:**
 
-1. **Expandir movimentações** abre todos os controles **+** da página. O
-   botão passa a se chamar **Recolher movimentações**.
-2. **(Des)ocultar sem arquivo (+)** esconde (ou volta a mostrar) as linhas
-   sem nenhum documento.
+1. **Expandir Mov ▼** abre todos os controles **+** da página. O botão
+   passa a se chamar **Recolher Mov ▲**.
+2. **Apenas com arquivo (+)** esconde as linhas sem nenhum documento. O
+   botão passa a se chamar **Mostrar todos**: clique nele para ver tudo de
+   novo.
 3. Marque a caixinha **sempre**, dentro desse botão, para que o ocultamento
    já venha ligado em todos os processos. Desmarque para desligar.
 
@@ -467,12 +479,12 @@ processo aberto.
 **Magistrado(a)**, **Ministério Público** e/ou **Advogado(a)**, em
 **todos os processos**.
 
-**Onde fica:** botão **🖍️ Destacar movimentações** da barra da extensão
+**Onde fica:** botão **🖍️ Destacar mov.** da barra da extensão
 (com a aba **Movimentações** aberta).
 
 **Passo a passo:**
 
-1. Clique em **🖍️ Destacar movimentações**.
+1. Clique em **🖍️ Destacar mov.**.
 2. Marque os tipos que quer destacar.
 3. Clique numa cor da paleta abaixo de cada tipo.
 4. Clique em **Salvar**.
@@ -1030,7 +1042,7 @@ Movimento**.
 Outros) num popup, para habilitar, desabilitar, adicionar ou remover
 advogado.
 
-**Passo a passo:** clique em **⚖️ (Des)Habilitar Advogado**, faça a
+**Passo a passo:** clique em **⚖️ Advogados**, faça a
 alteração no popup e feche com **✕ Fechar**. Funciona mesmo sem advogado
 cadastrado (para incluir o primeiro).
 
@@ -1042,13 +1054,13 @@ cadastrado (para incluir o primeiro).
 **Para que serve:** abrir a tela **Partes do Processo** (botão nativo
 **Partes e Outros**, com **Adicionar** e **Voltar**) num popup.
 
-**Passo a passo:** clique em **👥 Editar Partes/Outros**, faça as
+**Passo a passo:** clique em **👥 Partes**, faça as
 alterações e feche com **✕ Fechar**.
 
 <a id="cap-8-5"></a>
-### 8.5 Processo copiado
+### 8.5 Colar processo
 
-▶ [**Vídeo V24** — Processo copiado](videos/V24-processo-copiado.mp4)
+▶ [**Vídeo V24** — Colar processo](videos/V24-processo-copiado.mp4)
 
 **Para que serve:** abrir a busca de um processo cujo número você copiou de
 outro lugar (e-mail, planilha, documento).
@@ -1057,7 +1069,8 @@ outro lugar (e-mail, planilha, documento).
 
 1. Selecione o número e copie (**Ctrl+C**). Pode ter pontos e traços ou
    não, mas deve ser **um único** número no padrão CNJ (20 dígitos).
-2. No Projudi, clique em **📋 Processo copiado**.
+2. No Projudi, clique em **📋 Colar processo** (antes chamado "Processo
+   copiado").
 3. Uma **nova aba** abre a **Busca de Processos**, marca "Número Único",
    preenche o número e pesquisa.
 
@@ -1336,7 +1349,7 @@ telas abertas a partir daí voltam a funcionar.
 | Dispensa de juntadas/decursos parou com erro | Clique em **Ver detalhes**, resolva no Projudi e tente de novo ([6.1](#cap-6-1), [6.3](#cap-6-3)) |
 | Card de suspensão/monitoração não aparece | Só são sinalizados status **ATIVA** e os motivos listados em [4.1](#cap-4-1)/[4.2](#cap-4-2); aguarde alguns segundos após abrir o processo |
 | Mandado não virou Regionalizado | Só muda se a cidade da parte for de outra comarca **e** constar em Comarca de Destino; veja a nota amarela do diálogo ([9.7](#cap-9-7)) |
-| Processo copiado: "Não encontrei um número de processo" | Copie o número completo (20 dígitos), só um ([8.5](#cap-8-5)) |
+| Colar processo: "Não encontrei um número de processo" | Copie o número completo (20 dígitos), só um ([8.5](#cap-8-5)) |
 
 Se o problema continuar, anote a versão da extensão, a tela e o que
 aconteceu, e informe o responsável pela extensão.
@@ -1357,7 +1370,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V02](videos/V02-barra-de-botoes-da-extensao.mp4) | [A barra de botões da extensão](videos/V02-barra-de-botoes-da-extensao.mp4) | [2.4](#cap-2-4) | 0:44 |
 | [V03](videos/V03-pre-visualizacao-de-documentos.mp4) | [Pré-visualização de documentos](videos/V03-pre-visualizacao-de-documentos.mp4) | [3.1](#cap-3-1) | 0:44 |
 | [V04](videos/V04-pre-visualizacao-das-pendencias.mp4) | [Pré-visualização das pendências](videos/V04-pre-visualizacao-das-pendencias.mp4) | [3.2](#cap-3-2) | 0:30 |
-| [V05](videos/V05-expandir-e-ocultar-movimentacoes.mp4) | [Expandir movimentações e ocultar as sem arquivo](videos/V05-expandir-e-ocultar-movimentacoes.mp4) | [3.3](#cap-3-3) | 0:38 |
+| [V05](videos/V05-expandir-e-ocultar-movimentacoes.mp4) | [Expandir movimentações e ocultar as sem arquivo](videos/V05-expandir-e-ocultar-movimentacoes.mp4) | [3.3](#cap-3-3) | 0:42 |
 | [V06](videos/V06-destacar-movimentacoes.mp4) | [Destacar movimentações por tipo de usuário](videos/V06-destacar-movimentacoes.mp4) | [3.4](#cap-3-4) | 0:36 |
 | [V07](videos/V07-envio-por-whatsapp.mp4) | [Envio por WhatsApp Web](videos/V07-envio-por-whatsapp.mp4) | [5.1](#cap-5-1) | 0:44 |
 | [V08](videos/V08-envio-por-email.mp4) | [Envio por e-mail (Outlook)](videos/V08-envio-por-email.mp4) | [5.2](#cap-5-2) | 0:46 |
@@ -1368,15 +1381,15 @@ pode variar um pouco. Clique no título para assistir.
 | [V13](videos/V13-dispensar-juntadas.mp4) | [Dispensar juntadas](videos/V13-dispensar-juntadas.mp4) | [6.1](#cap-6-1) | 0:31 |
 | [V14](videos/V14-finalizar-conclusao.mp4) | [Finalizar conclusão pendente](videos/V14-finalizar-conclusao.mp4) | [6.2](#cap-6-2) | 0:27 |
 | [V15](videos/V15-dispensar-decursos.mp4) | [Dispensar decursos de prazo](videos/V15-dispensar-decursos.mp4) | [6.3](#cap-6-3) | 0:31 |
-| [V16](videos/V16-acoes-rapidas.mp4) | [Ações rápidas](videos/V16-acoes-rapidas.mp4) | [7.1](#cap-7-1) | 0:45 |
+| [V16](videos/V16-acoes-rapidas.mp4) | [Ações rápidas](videos/V16-acoes-rapidas.mp4) | [7.1](#cap-7-1) | 0:44 |
 | [V17](videos/V17-preferencias.mp4) | [Preferências](videos/V17-preferencias.mp4) | [7.2](#cap-7-2) | 1:01 |
 | [V18](videos/V18-minhas-preferencias.mp4) | [Minhas Preferências](videos/V18-minhas-preferencias.mp4) | [7.3](#cap-7-3) | 0:35 |
 | [V19](videos/V19-combos-de-preferencias.mp4) | [Combos de preferências](videos/V19-combos-de-preferencias.mp4) | [7.4](#cap-7-4) | 0:47 |
 | [V20](videos/V20-alvara-eletronico.mp4) | [Alvará Eletrônico](videos/V20-alvara-eletronico.mp4) | [8.1](#cap-8-1) | 0:45 |
 | [V21](videos/V21-juntar-documento.mp4) | [Juntar Documento com preferências](videos/V21-juntar-documento.mp4) | [8.2](#cap-8-2) | 1:09 |
-| [V22](videos/V22-des-habilitar-advogado.mp4) | [(Des)Habilitar Advogado](videos/V22-des-habilitar-advogado.mp4) | [8.3](#cap-8-3) | 0:26 |
+| [V22](videos/V22-des-habilitar-advogado.mp4) | [(Des)Habilitar Advogado](videos/V22-des-habilitar-advogado.mp4) | [8.3](#cap-8-3) | 0:25 |
 | [V23](videos/V23-editar-partes-outros.mp4) | [Editar Partes/Outros](videos/V23-editar-partes-outros.mp4) | [8.4](#cap-8-4) | 0:22 |
-| [V24](videos/V24-processo-copiado.mp4) | [Processo copiado](videos/V24-processo-copiado.mp4) | [8.5](#cap-8-5) | 0:28 |
+| [V24](videos/V24-processo-copiado.mp4) | [Colar processo](videos/V24-processo-copiado.mp4) | [8.5](#cap-8-5) | 0:28 |
 | [V25](videos/V25-oraculo.mp4) | [Oráculo](videos/V25-oraculo.mp4) | [8.6](#cap-8-6) | 0:25 |
 | [V26](videos/V26-nova-ordenacao.mp4) | [Nova Ordenação](videos/V26-nova-ordenacao.mp4) | [7.5](#cap-7-5) | 0:51 |
 | [V27](videos/V27-nova-remessa.mp4) | [Nova Remessa](videos/V27-nova-remessa.mp4) | [7.6](#cap-7-6) | 0:41 |
@@ -1401,6 +1414,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.9.95 | 30/09/2026 | Botões com nomes mais curtos: **📋 Colar processo** (antes "Processo copiado", seção 8.5 renomeada), **⚖️ Advogados**, **👥 Partes**, **🖍️ Destacar mov.**, **Expandir Mov ▼ / Recolher Mov ▲** e **Apenas com arquivo (+) / Mostrar todos** (2.4, 3.3, 3.4, 8.3–8.5). Pré-visualização pelo nome do documento na tela Análise de Juntadas (3.1). A barra de botões se alinha ao quadro "Anotações nos autos" quando não há quadro Pendências e fica oculta em mais telas e nos popups do Alvará Eletrônico, de Partes e da ficha do réu (2.4). Vídeos regravados com os nomes novos. |
 | 2.9.94 | 29/09/2026 | Menu da extensão (seção 2.6): nova **chave geral "Extensão ativada/desativada"** no topo do Menu, uma por sistema (PROJUDI e SEEU), que pausa todas as funções sem apagar as escolhas. O vídeo V34 foi regravado e agora mostra a chave geral e as abas. |
 | 2.9.93 | 29/09/2026 | Menu da extensão (seção 2.6): duas abas, **PROJUDI** e **SEEU**, para ligar e desligar as funções de cada sistema separadamente (tudo ativo por padrão nos dois), com **Copiar para o outro sistema**; a extensão reconhece o sistema pelo endereço da página. O vídeo V34 ainda mostra o Menu sem as abas e será regravado. |
 | 2.9.92 | 29/09/2026 | O manual passa a ser aberto pelo botão **📖 Manual do Usuário** do Menu, com índice, busca e vídeos na própria página. Novos: seção 2.6 (Menu da extensão: funcionalidades liga/desliga, exportar/importar/padrão) e 9.7 (Endereço da parte e Mandado Regionalizado, versões 2.9.89–2.9.91). Vídeos V34 e V35; todos os demais foram regravados com o ícone do Menu na tela. |
