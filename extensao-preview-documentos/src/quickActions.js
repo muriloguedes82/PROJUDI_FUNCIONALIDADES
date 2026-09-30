@@ -33,7 +33,12 @@
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
 	// A janela do Oráculo mantém apenas os controles nativos.
 	if (location.pathname === "/projudi/processo/criminal/antecedentesCriminais.do") return;
-	if (window.__pdpButtonGroupBlocked) return;
+	// Nas telas em que a fileira de botões não aparece (ver uiVisibility.js)
+	// o script continua carregando, sem interface, só para expor a API
+	// window.__pdpQuickActions - usada, por exemplo, pelas preferências
+	// aplicadas a partir da linha do processo nas telas de Análise de
+	// Juntadas/Retorno de Conclusão/Decurso de Prazo (preferenciasNaLinha.js).
+	const semInterface = !!window.__pdpButtonGroupBlocked;
 
 	if (window.__pdpQuickActionsInjected) return;
 	window.__pdpQuickActionsInjected = true;
@@ -132,6 +137,10 @@
 	// se sobrepor (mesma técnica usada entre WhatsApp e e-mail).
 	const OTHER_BUTTON_SELECTOR = "#pdp-wa-launcher, .pdp-email-visible";
 	const PREFERENCES_KEY = "pdpActionPreferences"; // { [actionLabel]: [{id, name, fields, createdAt}] }
+	const JUNTAR_PREFS_KEY = "pdpJuntarDocumentoPrefs"; // ver juntarDocumento.js
+	const FAV_ORDER_KEY = "pdpPreferencesOrder"; // ["a:<id>" | "j:<id>", ...] — ordem dos cards em "Minhas Preferências"
+	const FAV_PANEL_ID = "__minhas-preferencias";
+	const FAV_VISIBLE_LIMIT = 20;
 	const DIALOG_WAIT_TIMEOUT_MS = 6000;
 	const DIALOG_WAIT_INTERVAL_MS = 150;
 	const SUBMIT_LABEL_CANDIDATES = ["confirmar", "enviar", "salvar", "ok", "concluir", "sim", "gravar", "executar", "confirma"];
@@ -143,6 +152,16 @@
 	let captureToolbar = null;
 	let confirmBar = null;
 	let activeModalIframe = null;
+	// Etapa de combo em andamento neste frame (ver "Combos de preferências").
+	let comboStep = null;
+	// A tela está sendo recarregada por esta extensão (fim de uma ação): a
+	// próxima etapa de um combo fica para a instância da página recarregada.
+	let pageReloading = false;
+	// Ganchos do popup aberto a partir da linha de uma listagem (ver
+	// applyPreferenceFrom): { noReload, onSubmit, onDone, onClose }. Lá a
+	// tela por trás é uma listagem (resultado de um POST), que não deve ser
+	// recarregada ao fim da ação - a linha é que mostra o resultado.
+	let modalHooks = null;
 	const ROW_EXPANDED_KEY = "pdpQuickActionsExpanded";
 	let rowExpanded = false;
 	let rowPreferenceLoaded = false;
@@ -245,7 +264,7 @@
 		if (!activeModalIframe || event.source !== activeModalIframe.contentWindow) return;
 		if (event.data.__pdpCloseSignal) {
 			logChainStep("recebido sinal de fechamento do popup (closeShim, document_start)", event.data);
-			removeActionModal();
+			removeActionModal("auto");
 		} else if (event.data.__pdpOpenerSignal) {
 			logChainStep("closeShim: estado inicial de window.opener no diálogo", event.data);
 		} else if (event.data.__pdpErrorSignal) {
@@ -511,6 +530,7 @@
 	function fetchDoc(url) {
 		return new Promise(function (resolve, reject) {
 			const iframe = document.createElement("iframe");
+			iframe.className = "pdp-qa-fetch-iframe";
 			iframe.style.position = "absolute";
 			iframe.style.top = "-9999px";
 			iframe.style.left = "-9999px";
@@ -581,16 +601,30 @@
 	// Ponto de entrada: devolve uma Promise que resolve com
 	// `{ url }` (a URL do diálogo pronta para um iframe) ou
 	// `{ failed: true, tried, screenTitle }` se não achar.
-	function resolveDialogUrl(label) {
-		logChainStep('resolvendo URL de "' + label + '" em segundo plano', { partindoDe: window.location.href });
+	// `origem` (opcional): { doc, url } de uma tela já carregada em segundo
+	// plano (ex.: a tela do processo, aberta a partir da linha de uma
+	// listagem - ver applyPreferenceFrom; a aba Movimentações lida pelos
+	// combos quando a tela atual é outra aba do processo). Sem ela, parte
+	// da tela atual.
+	function resolveDialogUrl(label, origem) {
+		const rootDoc = (origem && origem.doc) || document;
+		const baseUrl = (origem && origem.url) || window.location.href;
+		logChainStep('resolvendo URL de "' + label + '" em segundo plano', { partindoDe: baseUrl });
 
-		const liveMovBtn = findMovimentarButtonIn(document);
+		// A própria origem já é uma tela de Ações.
+		if (origem && isOnAcoesScreenIn(rootDoc)) {
+			const direct = findActionLinkIn(rootDoc, label);
+			const directUrl = direct ? extractUrlFromOnclick(direct.getAttribute("onclick"), baseUrl) : null;
+			if (directUrl) return Promise.resolve({ url: directUrl, acoesUrl: baseUrl });
+		}
+
+		const liveMovBtn = findMovimentarButtonIn(rootDoc);
 		if (liveMovBtn) {
 			// Já estamos na tela de detalhe de uma movimentação escolhida
 			// manualmente pelo usuário — só um destino possível, sem tentar
 			// outras movimentações.
 			logChainStep("já na tela de detalhe da movimentação", describeElement(liveMovBtn));
-			const movUrl = extractUrlFromOnclick(liveMovBtn.getAttribute("onclick"), window.location.href);
+			const movUrl = extractUrlFromOnclick(liveMovBtn.getAttribute("onclick"), baseUrl);
 			if (!movUrl) return Promise.resolve({ failed: true, screenTitle: null });
 			return fetchDoc(movUrl).then(function (result) {
 				if (isOnAcoesScreenIn(result.doc)) {
@@ -605,7 +639,7 @@
 		}
 
 		const events = Array.prototype.slice
-			.call(document.querySelectorAll('a.link[id^="LNKmov"]'))
+			.call(rootDoc.querySelectorAll('a.link[id^="LNKmov"]'))
 			.filter(function (a) {
 				return (a.id || "").indexOf("INVALIDO") === -1 && !a.closest("strike, s, del");
 			})
@@ -620,7 +654,7 @@
 			const href = events[index].getAttribute("href");
 			let eventUrl;
 			try {
-				eventUrl = new URL(href, window.location.href).href;
+				eventUrl = new URL(href, baseUrl).href;
 			} catch (err) {
 				return tryEvent(index + 1);
 			}
@@ -935,7 +969,7 @@
 			try {
 				const shimClose = function () {
 					logChainStep("shim (load): win.close() do iframe foi chamado — fechando o popup da extensão", null);
-					removeActionModal();
+					removeActionModal("auto");
 				};
 				shimClose.__pdpShim = true;
 				win.close = shimClose;
@@ -945,7 +979,35 @@
 			}
 
 			checkFlagClosePopup(win);
+			checkComboStepResult(iframe);
 		});
+	}
+
+	// Etapa de combo já confirmada ("Sim, executar") cujo popup parou numa
+	// tela de resultado com "sucesso" (sem formulário para preencher): a
+	// ação terminou — fecha o popup e o combo segue sozinho. Telas de erro
+	// ou com formulário ficam abertas para o usuário.
+	const COMBO_RESULT_CLOSE_MS = 1500;
+	// Vale também para o popup aberto a partir da linha de uma listagem
+	// (modalHooks), depois do "Sim, executar".
+	function checkComboStepResult(iframe) {
+		const comboConfirmed = !!comboStep && comboStep.iframe === iframe && comboStep.confirmed;
+		const rowConfirmed = !!modalHooks && modalHooks.submitted && activeModalIframe === iframe;
+		if (!comboConfirmed && !rowConfirmed) return;
+		let doc;
+		try {
+			doc = iframe.contentDocument;
+		} catch (err) {
+			return;
+		}
+		if (!doc || !doc.body) return;
+		const text = doc.body.textContent || "";
+		if (!/sucesso/i.test(text) || /erro|n[aã]o foi poss[ií]vel|inv[aá]lid/i.test(text)) return;
+		if (findLikelyDialogFormIn(doc)) return;
+		logChainStep("combo: tela de sucesso no popup da etapa — fechando e seguindo", null);
+		setTimeout(function () {
+			if (activeModalIframe === iframe) removeActionModal("auto");
+		}, COMBO_RESULT_CLOSE_MS);
 	}
 
 	// O diálogo final de ações como "Ordenar Cumprimentos" NUNCA chama
@@ -974,6 +1036,23 @@
 	// submit nativo (que mira no lugar errado no nosso caso), lemos esse
 	// campo diretamente e agimos por conta própria: recarrega a aba real
 	// por trás (equivalente ao que o backURL faria) e fecha o popup.
+	// Fim de uma ação no popup: recarrega a tela por trás - exceto quando o
+	// popup foi aberto a partir da linha de uma listagem (modalHooks).
+	function finishActionAndReload() {
+		if (modalHooks && modalHooks.noReload) {
+			if (modalHooks.onDone) modalHooks.onDone();
+			return;
+		}
+		try {
+			// Um combo em andamento continua na página recarregada (ver
+			// advanceCombo/maybeResumeCombo).
+			pageReloading = true;
+			window.location.reload();
+		} catch (err) {
+			logChainStep("falhou ao recarregar a tela por trás", String(err));
+		}
+	}
+
 	function checkFlagClosePopup(win) {
 		let doc;
 		try {
@@ -994,12 +1073,8 @@
 			});
 			if (flagField.value === "true") {
 				logChainStep("shim: flagClosePopup=true — a ação terminou; recarregando a tela e fechando o popup", null);
-				try {
-					window.location.reload();
-				} catch (err) {
-					logChainStep("shim: falhou ao recarregar a tela por trás", String(err));
-				}
-				removeActionModal();
+				finishActionAndReload();
+				removeActionModal("auto");
 			}
 			break; // só o 1º form com esse campo importa — mesma suposição do próprio Projudi
 		}
@@ -1020,22 +1095,39 @@
 		document.body.appendChild(backdrop);
 		backdrop.querySelector(".pdp-qa-modal-close").addEventListener("click", function () {
 			logChainStep('"✕ Fechar" clicado manualmente pelo usuário', null);
-			removeActionModal();
+			removeActionModal("manual");
 		});
 		const iframe = backdrop.querySelector(".pdp-qa-modal-iframe");
 		activeModalIframe = iframe;
 		attachModalIframeCloseShim(iframe);
 		startModalWatch(iframe);
+		// O primeiro popup aberto por uma etapa de combo é o dessa etapa
+		// (ver runPendingComboStep); a barra do combo fica por cima dele.
+		if (comboStep && !comboStep.iframe) {
+			comboStep.iframe = iframe;
+			bringComboBarToFront();
+		}
 		return iframe;
 	}
 
-	function removeActionModal() {
+	// `reason`: "auto" quando o próprio Projudi sinalizou o fim da ação
+	// (flagClosePopup, window.close(), volta à tela do processo), "manual"
+	// no "✕ Fechar"/"Cancelar" — os combos usam isso para saber se a etapa
+	// foi executada (ver onComboStepModalClosed).
+	function removeActionModal(reason) {
 		const el = document.getElementById(MODAL_ID);
 		if (el) el.remove();
+		const closedIframe = activeModalIframe;
 		activeModalIframe = null;
+		if (modalHooks) {
+			const hooks = modalHooks;
+			modalHooks = null;
+			if (hooks.onClose) hooks.onClose(reason);
+		}
 		stopModalWatch();
 		removeConfirmBar();
 		removeCaptureToolbar();
+		if (comboStep && closedIframe && comboStep.iframe === closedIframe) onComboStepModalClosed(reason);
 	}
 
 	function alertChainFailure(label, result) {
@@ -1187,42 +1279,641 @@
 		return String(value).replace(/["\\]/g, "\\$&");
 	}
 
+	// -------------------------------------------------------------------
+	// Gravação e preenchimento de preferências
+	//
+	// Cada campo gravado guarda, além de name/type/value (e checked):
+	// - `text`: o texto da opção escolhida numa lista (<select>) — há listas
+	//   que nascem vazias no diálogo novo e só ganham as opções por AJAX
+	//   (ex.: "Finalidade" de "Outras Remessas", que depende do Destino; o
+	//   próprio "Destino" é um select2 alimentado por busca). Com o texto
+	//   dá para achar a opção mesmo com outro value, e, em último caso,
+	//   recriá-la (mesma técnica validada ao vivo em remessaMultipla.js);
+	// - `id` (campos sem name) e `label` (rótulo na tela, para o usuário
+	//   conferir o que foi gravado e ser avisado do que não foi preenchido).
+	//
+	// O preenchimento (fillFormFields) é feito em rodadas, até cada campo
+	// "pegar" ou o tempo acabar:
+	// - bolinhas (radio) e caixas (checkbox) primeiro, com .click() de
+	//   verdade — a tela liga/desliga os campos de cada opção pelo onclick,
+	//   que um `checked = true` não dispara (visto ao vivo em "Outras
+	//   Remessas": o Destino ficava de fora do envio);
+	// - depois os demais, na ordem da tela; campo ainda desabilitado, ou
+	//   lista sem a opção gravada (carregando), fica para a rodada
+	//   seguinte;
+	// - as listas e bolinhas são conferidas de novo a cada rodada (uma
+	//   escolha pode recarregar/zerar outra) e o preenchimento só termina
+	//   com tudo certo em duas rodadas seguidas;
+	// - lista vazia (select2 alimentado por busca) ganha de volta a opção
+	//   gravada, com o value/texto que o usuário escolheu; lista com opções
+	//   sem a gravada é aguardada até FILL_TIMEOUT_MS e, se não aparecer,
+	//   entra no aviso;
+	// - depois, por FILL_GUARD_MS, e de novo no "Sim, executar", campos
+	//   gravados que a tela tenha ESVAZIADO (recarga por AJAX) são repostos
+	//   — uma troca feita pelo usuário nunca é desfeita; ainda vazios, o
+	//   "Sim, executar" avisa e não envia.
+	// Só no fim aparece a barra "Sim, executar", com aviso dos campos que
+	// não foi possível preencher.
+	// -------------------------------------------------------------------
+
+	const FILL_ROUND_MS = 300;
+	const FILL_INJECT_AFTER_MS = 2500;
+	const FILL_TIMEOUT_MS = 8000;
+
+	function cleanLabel(text) {
+		return (text || "").replace(/\(\*\)/g, "").replace(/\s+/g, " ").replace(/[*:]+\s*$/, "").replace(/^\s*\*\s*/, "").trim();
+	}
+
+	function normText(text) {
+		return (text || "").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
+	}
+
+	// Texto do <label for> de um controle (ou null).
+	function labelForText(el) {
+		if (!el.id) return null;
+		try {
+			const forLabel = el.ownerDocument.querySelector('label[for="' + cssEscapeAttr(el.id) + '"]');
+			return forLabel && cleanLabel(forLabel.textContent) ? cleanLabel(forLabel.textContent).slice(0, 60) : null;
+		} catch (err) {
+			return null;
+		}
+	}
+
+	// Caixa "marcar todos" da coluna de uma caixa de linha: a caixa rotulada
+	// na mesma coluna de uma linha acima, na mesma seção (ex.: "Intimação
+	// de Partes" — o cabeçalho de cada seção é uma linha comum da tabela,
+	// com as caixas "checker" "Intimação Pessoal" / "Advogado/Sociedade de
+	// Advogados"; o título da seção, um <h4> numa linha anterior). Também
+	// cobre tabelas com <thead>.
+	function columnHeaderCheckbox(el) {
+		const cell = el.closest("td, th");
+		const row = cell && cell.parentElement;
+		if (!row || !row.closest("table")) return null;
+		const col = cell.cellIndex;
+		for (let prev = row.previousElementSibling; prev; prev = prev.previousElementSibling) {
+			if (prev.querySelector("h1, h2, h3, h4, h5, legend")) break; // outra seção
+			const headerCell = prev.cells && prev.cells[col];
+			const box = headerCell && headerCell.querySelector('input[type="checkbox"]');
+			if (box && box !== el && labelForText(box)) return box;
+		}
+		const table = row.closest("table");
+		if (table.tHead && table.tHead.rows.length && row.parentElement !== table.tHead) {
+			const th = table.tHead.rows[0].cells[col];
+			return th ? th.querySelector('input[type="checkbox"]') : null;
+		}
+		return null;
+	}
+
+	// Caixa de uma linha de tabela: "coluna — parte" (ex.: "Advogado/
+	// Sociedade de Advogados — DEJAIR PORTES DE FRANÇA").
+	function tableColumnLabel(el) {
+		const header = columnHeaderCheckbox(el);
+		const headerText = header ? labelForText(header) || cleanLabel(header.closest("td, th").textContent) : null;
+		if (!headerText) return null;
+		const cell = el.closest("td, th");
+		const other = Array.prototype.filter
+			.call(cell.parentElement.cells, function (c) {
+				return c !== cell && !c.querySelector("input, select, textarea") && cleanLabel(c.textContent);
+			})
+			.map(function (c) {
+				return cleanLabel(c.textContent);
+			})
+			.join(" ");
+		return headerText.slice(0, 60) + (other ? " — " + other.slice(0, 50) : "");
+	}
+
+	// Âncora de uma caixa/bolinha: "seção | rótulo" (ex.: "Partes - Vítima |
+	// Advogado/Sociedade de Advogados"). Identifica o controle de um
+	// processo para outro mesmo quando nome e valor se repetem (as caixas
+	// "marcar todos" de "Intimar Partes" são todas name="checker"
+	// value="checker") e a numeração muda (quais seções o processo tem).
+	function controlAnchor(el) {
+		return (sectionTitle(el) || "") + " | " + (labelForText(el) || tableColumnLabel(el) || "");
+	}
+
+	// A lista está na opção padrão da tela (a marcada no HTML, ou a primeira).
+	function isDefaultOption(select) {
+		const options = Array.prototype.slice.call(select.options);
+		if (!options.length) return true;
+		const def = options.filter(function (o) {
+			return o.defaultSelected;
+		})[0] || options[0];
+		return select.selectedIndex === options.indexOf(def);
+	}
+
+	// O controle aparece na tela (blocos ocultos — ex.: o prazo individual de
+	// cada parte, que só abre no "+" — não foram preenchidos pelo usuário).
+	function isRendered(el) {
+		return el.getClientRects().length > 0;
+	}
+
+	// Texto logo antes do campo, até o campo anterior ("<b>Urgente:</b> ◉").
+	// Numa bolinha, a partir da primeira do grupo (senão "◉ Sim ○ Não"
+	// daria "Sim" como rótulo do "Não").
+	function inlineLabelBefore(el) {
+		let start = el;
+		if (el.type === "radio" && el.name && el.form) {
+			const first = formFieldsNamed(el.form, el.name)[0];
+			if (first) start = first;
+		}
+		let text = "";
+		for (let node = start.previousSibling; node; node = node.previousSibling) {
+			if (node.nodeType === 1 && (node.matches("input, select, textarea, br, hr, table, div") || node.querySelector("input, select, textarea"))) break;
+			text = (node.textContent || "") + text;
+		}
+		return cleanLabel(text).slice(0, 60) || null;
+	}
+
+	// Rótulo do campo na tela: <label for>, <label> em volta, coluna da
+	// tabela, texto logo antes, ou a célula anterior da mesma linha.
+	function fieldLabel(el) {
+		// Numa bolinha, o <label> é o da OPÇÃO ("Sim"/"Não"); o rótulo do
+		// campo é o texto antes da primeira bolinha do grupo ("Urgente").
+		if (el.type !== "radio") {
+			const forText = labelForText(el);
+			if (forText) return forText;
+			const wrap = el.closest("label");
+			if (wrap && cleanLabel(wrap.textContent)) return cleanLabel(wrap.textContent).slice(0, 60);
+		}
+		if (el.type === "checkbox" || el.type === "radio") {
+			const column = tableColumnLabel(el);
+			if (column) return column;
+		}
+		const inline = inlineLabelBefore(el);
+		if (inline) return inline;
+		// Campo sem rótulo próprio logo depois de outro (ex.: os dias do
+		// "Prazo: [Estipular em dias] [10]"): o rótulo do anterior.
+		const prevControl = el.previousElementSibling;
+		if (prevControl && /^(INPUT|SELECT|TEXTAREA)$/.test(prevControl.tagName)) {
+			const prevText = labelForText(prevControl) || inlineLabelBefore(prevControl);
+			if (prevText) return prevText;
+		}
+		const cell = el.closest("td");
+		if (cell) {
+			let prev = cell.previousElementSibling;
+			while (prev && !cleanLabel(prev.textContent)) prev = prev.previousElementSibling;
+			if (prev) return cleanLabel(prev.textContent).slice(0, 60);
+		}
+		return el.name || el.id || "(campo)";
+	}
+
+	// Título da seção do diálogo em que o campo está (último título antes
+	// dele — ex.: "Partes - Vítima"), para distinguir rótulos repetidos.
+	function sectionTitle(el) {
+		const headings = el.ownerDocument.querySelectorAll("h1, h2, h3, h4, legend");
+		let title = null;
+		for (let i = 0; i < headings.length; i++) {
+			if (headings[i].compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING) title = cleanLabel(headings[i].textContent);
+		}
+		return title;
+	}
+
+	// Controles "de verdade" com o mesmo nome (campos ocultos de mesmo nome,
+	// que o Projudi usa como espelho de listas e caixas, ficam de fora), do
+	// mesmo tipo do controle gravado.
+	function controlKind(type) {
+		if (type === "checkbox" || type === "radio") return type;
+		if (type === "select-one" || type === "select-multiple") return "select";
+		return "text";
+	}
+	function sameNameControls(form, name, kind) {
+		return formFieldsNamed(form, name).filter(function (c) {
+			return /^(INPUT|SELECT|TEXTAREA)$/.test(c.tagName) && c.type !== "hidden" && controlKind((c.type || "").toLowerCase()) === kind;
+		});
+	}
+
+	// Texto da opção de uma bolinha: o <label> dela, ou o texto logo depois
+	// dela até o próximo campo ("◉ Sim ○ Não" → "Sim").
+	function radioOptionLabel(el) {
+		const doc = el.ownerDocument;
+		try {
+			if (el.id) {
+				const forLabel = doc.querySelector('label[for="' + cssEscapeAttr(el.id) + '"]');
+				if (forLabel && cleanLabel(forLabel.textContent)) return cleanLabel(forLabel.textContent).slice(0, 60);
+			}
+		} catch (err) {
+			// seletor inválido: segue
+		}
+		const wrap = el.closest("label");
+		if (wrap && cleanLabel(wrap.textContent)) return cleanLabel(wrap.textContent).slice(0, 60);
+		let text = "";
+		for (let node = el.nextSibling; node; node = node.nextSibling) {
+			if (node.nodeType === 1 && (node.matches("input, select, textarea, br") || node.querySelector("input, select, textarea"))) break;
+			text += node.textContent || "";
+		}
+		return cleanLabel(text).slice(0, 60) || el.value;
+	}
+
+	// Texto do valor gravado, para mostrar ao usuário.
+	function describeFieldValue(f) {
+		if (f.type === "checkbox") return f.checked ? "marcado" : "desmarcado";
+		if (f.type === "radio") return f.optionLabel || f.value;
+		if (f.type === "select-multiple") return (f.texts || f.values || []).join(", ") || "(nenhum)";
+		if (f.type === "select-one") return f.text || f.value || "(vazio)";
+		return f.value ? (f.value.length > 60 ? f.value.slice(0, 60) + "…" : f.value) : "(vazio)";
+	}
+
+	function describeFields(fields) {
+		return fields
+			.filter(function (f) {
+				return f.type !== "radio" || f.checked;
+			})
+			.map(function (f) {
+				return "• " + (f.label || f.name || f.id) + ": " + describeFieldValue(f);
+			})
+			.join("\n");
+	}
+
 	function captureFormFields(form) {
 		const fields = [];
 		const elements = formControls(form).filter(function (el) {
 			return /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName);
 		});
 		elements.forEach(function (el) {
-			if (!el.name) return;
+			if (!el.name && !el.id) return;
 			const type = (el.type || el.tagName || "").toLowerCase();
-			if (type === "hidden" || type === "submit" || type === "button" || type === "reset" || type === "file" || type === "password") return;
-			if (type === "checkbox" || type === "radio") {
-				fields.push({ name: el.name, type: type, value: el.value, checked: el.checked });
-			} else {
-				fields.push({ name: el.name, type: type, value: el.value });
+			if (type === "hidden" || type === "submit" || type === "button" || type === "reset" || type === "file" || type === "password" || type === "image") return;
+			// Só o que o usuário de fato preencheu/selecionou: campos
+			// bloqueados (ex.: as seções não escolhidas de "Realizar
+			// Remessa"), vazios, bolinhas não marcadas e caixas desmarcadas
+			// ficam de fora — salvo a caixa que vinha marcada e foi
+			// desmarcada (essa escolha também é do usuário).
+			if (el.disabled) return;
+			if (!isRendered(el) && !(el.tagName === "SELECT" && isSelect2(el))) return; // o select2 esconde a lista original
+			// Bolinha, lista e texto: só se diferem do padrão da tela (o que
+			// já vem assim — ex.: "Urgente: Não", "Prazo: Estipular em dias"
+			// — não foi escolha do usuário).
+			if (type === "radio" && (!el.checked || el.defaultChecked)) return;
+			// (o select2 cria a opção escolhida já como "padrão" — ele fica
+			// de fora dessa regra; vazio, cai na regra abaixo)
+			if (type === "select-one" && !isSelect2(el) && isDefaultOption(el)) return;
+			if ((type === "text" || type === "textarea" || type === "number" || type === "date" || type === "email" || type === "tel") && el.value === el.defaultValue) return;
+			// Caixa: só se o estado difere do padrão da tela. As caixas de
+			// cada parte (valor = código da parte) só existem no processo em
+			// que a preferência foi gravada; noutro processo são ignoradas, e
+			// vale o "marcar todos" da coluna, se ele foi gravado.
+			if (type === "checkbox" && el.checked === el.defaultChecked) return;
+			if (type === "select-multiple" && !Array.prototype.some.call(el.options, function (o) { return o.selected; })) return;
+			if (type !== "radio" && type !== "checkbox" && type !== "select-multiple" && !(el.value || "").trim()) return;
+			const f = { name: el.name || "", type: type, label: fieldLabel(el) };
+			if (!el.name) f.id = el.id;
+			// Posição entre os controles de mesmo nome (e, nas caixas e
+			// bolinhas, entre os de mesmo nome E valor): há diálogos com
+			// várias caixas de mesmo nome/valor (ex.: os "marcar todos" de
+			// cada coluna/seção de "Intimar Partes") — sem a posição, a
+			// aplicação clicava sempre na primeira.
+			if (el.name) {
+				const kind = controlKind(type);
+				const same = sameNameControls(form, el.name, kind);
+				f.idx = same.indexOf(el);
+				f.count = same.length;
+				if (kind === "checkbox" || kind === "radio") {
+					f.vidx = same
+						.filter(function (c) {
+							return c.value === el.value;
+						})
+						.indexOf(el);
+				}
 			}
+			if (type === "checkbox" || type === "radio") f.anchor = controlAnchor(el);
+			f.section = sectionTitle(el);
+			if (type === "checkbox" || type === "radio") {
+				f.value = el.value;
+				f.checked = el.checked;
+				if (type === "checkbox" && !el.checked) f.unchecked = true; // desmarcada pelo usuário
+				if (type === "radio" && el.checked) f.optionLabel = radioOptionLabel(el);
+			} else if (type === "select-multiple") {
+				const selected = Array.prototype.filter.call(el.options, function (o) {
+					return o.selected;
+				});
+				f.values = selected.map(function (o) {
+					return o.value;
+				});
+				f.texts = selected.map(function (o) {
+					return cleanLabel(o.textContent);
+				});
+			} else if (type === "select-one") {
+				f.value = el.value;
+				const option = el.options[el.selectedIndex];
+				f.text = option ? cleanLabel(option.textContent) : "";
+			} else {
+				f.value = el.value;
+			}
+			fields.push(f);
+		});
+		// Rótulos repetidos (ex.: "Urgente" em cada seção de partes) ganham
+		// o título da seção.
+		const counts = {};
+		fields.forEach(function (f) {
+			counts[f.label] = (counts[f.label] || 0) + 1;
+		});
+		fields.forEach(function (f) {
+			if (counts[f.label] > 1 && f.section && f.label.indexOf(f.section) === -1) f.label += " — " + f.section;
 		});
 		return fields;
 	}
 
+	// O controle do campo gravado no formulário: por name (ignorando campos
+	// ocultos de mesmo nome), escolhido pela posição gravada quando há mais
+	// de um; campos sem name, pelo id no documento. Devolve [] ou [el].
+	function controlsFor(form, f) {
+		if (!f.name) {
+			const byId = f.id ? form.ownerDocument.getElementById(f.id) : null;
+			return byId ? [byId] : [];
+		}
+		const kind = controlKind(f.type);
+		const same = sameNameControls(form, f.name, kind);
+		if (!same.length) return [];
+		if (kind === "checkbox" || kind === "radio") {
+			const byValue = same.filter(function (c) {
+				return c.value === f.value;
+			});
+			if (byValue.length === 1) return byValue;
+			if (byValue.length > 1) {
+				// Várias com o mesmo valor: a de mesma âncora (seção + rótulo)
+				// — vale entre processos —; senão, a da posição gravada (entre
+				// as de mesmo valor; preferências antigas, sem posição, ficam
+				// com a primeira, como antes).
+				if (f.anchor) {
+					const byAnchor = byValue.filter(function (c) {
+						return controlAnchor(c) === f.anchor;
+					});
+					if (byAnchor.length === 1) return byAnchor;
+				}
+				if (f.vidx >= 0 && f.vidx < byValue.length) return [byValue[f.vidx]];
+				if (f.idx >= 0 && same[f.idx] && same[f.idx].value === f.value) return [same[f.idx]];
+				return [byValue[0]];
+			}
+			// Nenhuma com o valor gravado (ex.: a caixa de uma parte, cujo
+			// valor é o código dela, noutro processo): não existe aqui —
+			// nunca escolher outra "pela posição", que poderia ser outra
+			// parte.
+			return [];
+		}
+		if (f.idx >= 0 && same[f.idx]) return [same[f.idx]];
+		return [same[0]];
+	}
+
+	function fireFieldEvents(el) {
+		el.dispatchEvent(new Event("input", { bubbles: true }));
+		el.dispatchEvent(new Event("change", { bubbles: true }));
+	}
+
+	function findOption(select, value, text) {
+		const options = Array.prototype.slice.call(select.options);
+		const wanted = normText(text);
+		return (
+			options.filter(function (o) {
+				return o.value === value && (!wanted || normText(o.textContent) === wanted);
+			})[0] ||
+			(wanted
+				? options.filter(function (o) {
+						return normText(o.textContent) === wanted;
+					})[0]
+				: null) ||
+			(value !== ""
+				? options.filter(function (o) {
+						return o.value === value;
+					})[0]
+				: null) ||
+			null
+		);
+	}
+
+	// Aplica um campo; devolve true se ele já está como gravado. `ctx`
+	// (opcional, só durante fillFormFields): ctx.changed() avisa que um
+	// campo foi alterado; ctx.canInject(f, el) diz se a opção gravada pode
+	// ser recriada numa lista vazia.
+	function applyField(form, f, ctx) {
+		function changed(el) {
+			fireFieldEvents(el);
+			if (ctx) ctx.changed();
+		}
+		const els = controlsFor(form, f);
+		if (f.type === "radio") {
+			if (!f.checked) return true; // o grupo desmarca sozinho os outros
+			const el = els[0];
+			if (!el || el.disabled) return false;
+			if (!el.checked) {
+				el.click();
+				if (ctx) ctx.changed();
+			}
+			return el.checked;
+		}
+		if (f.type === "checkbox") {
+			const el = els[0];
+			if (!el || el.disabled) return false;
+			if (el.checked !== f.checked) {
+				el.click();
+				if (ctx) ctx.changed();
+			}
+			return el.checked === f.checked;
+		}
+		const el = els[0];
+		if (!el || el.disabled) return false;
+		if (f.type === "select-multiple") {
+			let changed = false;
+			let ok = true;
+			(f.values || []).forEach(function (value, i) {
+				const option = findOption(el, value, (f.texts || [])[i]);
+				if (!option) {
+					ok = false;
+					return;
+				}
+				if (!option.selected) {
+					option.selected = true;
+					changed = true;
+				}
+			});
+			if (changed) {
+				fireFieldEvents(el);
+				if (ctx) ctx.changed();
+			}
+			return ok;
+		}
+		if (f.type === "select-one") {
+			let option = findOption(el, f.value, f.text);
+			// Lista vazia (só o "selecione", ex.: select2 alimentado por
+			// busca): recria a opção gravada. Lista COM opções sem a
+			// gravada: espera (pode estar carregando) e, se não aparecer,
+			// avisa — recriar ali enviaria um valor que o Projudi não
+			// oferece mais.
+			if (!option && f.value !== "" && el.options.length <= 1 && ctx && ctx.canInject(f, el)) {
+				option = new Option(f.text || f.value, f.value);
+				el.add(option);
+				logChainStep("preferência: opção recriada na lista", { campo: f.label || f.name, opcao: f.text || f.value });
+			}
+			if (!option) return f.value === "" && !f.text;
+			if (el.value !== option.value) {
+				el.value = option.value;
+				changed(el);
+			}
+			return el.value === option.value;
+		}
+		// Texto: aplica uma vez (máscaras podem reformatar o valor); só
+		// reaplica se o campo voltar vazio.
+		if (el.value !== f.value && !(el.__pdpFilled && el.value)) {
+			el.value = f.value;
+			el.__pdpFilled = true;
+			changed(el);
+		}
+		return true;
+	}
+
+	// <select> transformado em select2 (o original fica oculto, com a
+	// classe/atributos que o próprio select2 aplica, e o widget logo depois).
+	function isSelect2(el) {
+		if (el.classList.contains("select2-hidden-accessible") || el.hasAttribute("data-select2-id")) return true;
+		const next = el.nextElementSibling;
+		return !!next && (next.classList.contains("select2") || next.classList.contains("select2-container"));
+	}
+
+	// Campo que o usuário de fato preencheu na preferência. Preferências
+	// gravadas antes da versão 2.9.82 guardavam também os campos vazios, as
+	// bolinhas não marcadas e as caixas desmarcadas — esses são ignorados.
+	function isMeaningfulField(f) {
+		if (f.type === "radio") return !!f.checked;
+		if (f.type === "checkbox") return !!f.checked || !!f.unchecked;
+		if (f.type === "select-multiple") return !!(f.values && f.values.length);
+		return (f.value || "").trim() !== "";
+	}
+
+	// O campo (ou a opção da bolinha/caixa) existe na tela, mas bloqueado.
+	function fieldDisabledNow(form, f) {
+		const el = controlsFor(form, f)[0];
+		return !!el && el.disabled;
+	}
+
+	// Campo que continua bloqueado depois de marcadas as bolinhas e caixas
+	// da preferência pertence a uma parte do diálogo que ela não usa (ex.:
+	// outra seção de "Realizar Remessa", em preferência antiga) — não é
+	// preenchido nem cobrado.
+	const FILL_DISABLED_GRACE_MS = 1500;
+
+	// Preenche `fields` em rodadas (ver acima) e chama done(faltando).
+	function fillFormFields(form, fields, done) {
+		fields = fields.filter(isMeaningfulField);
+		const ordered = fields
+			.filter(function (f) {
+				return f.type === "radio" || f.type === "checkbox";
+			})
+			.concat(
+				fields.filter(function (f) {
+					return f.type !== "radio" && f.type !== "checkbox";
+				})
+			);
+		const start = Date.now();
+		let stableRounds = 0;
+		let lastMissing = ordered;
+		// Uma alteração pode fazer a tela recarregar outras listas (ex.:
+		// Destino → Finalidade): lista comum vazia só ganha a opção
+		// recriada depois de FILL_INJECT_AFTER_MS vazia e sem nenhuma
+		// alteração. Um select2 vazio (ex.: o Destino) é alimentado só pela
+		// busca do usuário — nunca carrega a opção sozinho —, então ganha
+		// a opção gravada na hora.
+		let lastChangeAt = start;
+		const emptySince = new Map();
+		const ctx = {
+			changed: function () {
+				lastChangeAt = Date.now();
+			},
+			canInject: function (f, el) {
+				if (isSelect2(el)) return true;
+				if (!emptySince.has(f)) emptySince.set(f, Date.now());
+				return Date.now() - Math.max(emptySince.get(f), lastChangeAt) >= FILL_INJECT_AFTER_MS;
+			},
+		};
+
+		function round() {
+			// Popup fechado/diálogo trocado no meio: não há o que preencher.
+			if (!form.isConnected) return;
+			const pastGrace = Date.now() - start >= FILL_DISABLED_GRACE_MS;
+			const missing = ordered.filter(function (f) {
+				try {
+					// Depois da carência: campo bloqueado (parte do diálogo que a
+					// preferência não usa) ou inexistente neste processo (ex.: o
+					// prazo de uma parte que só havia no processo em que a
+					// preferência foi gravada) não é preenchido nem cobrado.
+					if (pastGrace && (fieldDisabledNow(form, f) || !controlsFor(form, f).length)) return false;
+					const el = controlsFor(form, f)[0];
+					if (el && el.tagName === "SELECT" && el.options.length > 1) emptySince.delete(f);
+					return !applyField(form, f, ctx);
+				} catch (err) {
+					logChainStep("preferência: erro ao preencher um campo", { campo: f.label || f.name, erro: String(err) });
+					return true;
+				}
+			});
+			lastMissing = missing;
+			stableRounds = missing.length || Date.now() - lastChangeAt < FILL_ROUND_MS ? 0 : stableRounds + 1;
+			if (stableRounds >= 3 || Date.now() - start >= FILL_TIMEOUT_MS) {
+				if (missing.length) logChainStep("preferência: campos não preenchidos", missing.map(function (f) { return (f.label || f.name) + " = " + describeFieldValue(f); }));
+				logChainStep("preferência: preenchimento concluído", { segundos: ((Date.now() - start) / 1000).toFixed(1), campos: ordered.length, faltando: missing.length });
+				guardEmptyFields(form, ordered);
+				done(missing);
+				return;
+			}
+			setTimeout(round, FILL_ROUND_MS);
+		}
+		round();
+		return function () {
+			return lastMissing;
+		};
+	}
+
+	// Campo gravado com valor que está VAZIO agora (lista no "selecione",
+	// texto em branco, grupo de bolinhas sem nenhuma marcada) — o que uma
+	// recarga por AJAX costuma fazer. Só esses são repostos depois do
+	// preenchimento: uma troca feita pelo usuário nunca é desfeita.
+	function fieldIsEmptyNow(form, f) {
+		if (!isMeaningfulField(f) || fieldDisabledNow(form, f)) return false;
+		if (f.type === "radio") {
+			// Grupo inteiro sem nenhuma marcada.
+			return f.checked && !!f.name && !sameNameControls(form, f.name, "radio").some(function (c) {
+				return c.checked;
+			});
+		}
+		if (f.type === "checkbox" || f.type === "select-multiple") return false;
+		const el = controlsFor(form, f)[0];
+		if (!el) return false; // não existe neste processo
+		return f.value !== "" && el.value === "";
+	}
+
+	function restoreEmptyFields(form, fields) {
+		return fields.filter(function (f) {
+			if (!fieldIsEmptyNow(form, f)) return false;
+			try {
+				applyField(form, f);
+			} catch (err) {
+				return true;
+			}
+			return fieldIsEmptyNow(form, f);
+		});
+	}
+
+	// Por alguns segundos depois do preenchimento, repõe campos que uma
+	// recarga tardia (AJAX) tenha esvaziado.
+	const FILL_GUARD_MS = 6000;
+	function guardEmptyFields(form, fields) {
+		const until = Date.now() + FILL_GUARD_MS;
+		const iv = setInterval(function () {
+			if (!form.isConnected || Date.now() > until) {
+				clearInterval(iv);
+				return;
+			}
+			const restored = fields.filter(function (f) {
+				return fieldIsEmptyNow(form, f);
+			});
+			if (restored.length) {
+				logChainStep("preferência: repondo campo(s) esvaziado(s) pela tela", restored.map(function (f) { return f.label || f.name; }));
+				restoreEmptyFields(form, restored);
+			}
+		}, FILL_ROUND_MS);
+	}
+
+	// Compatível com o uso antigo (uma passada, sem esperar).
 	function applyFormFields(form, fields) {
 		fields.forEach(function (f) {
-			if (f.type === "checkbox" || f.type === "radio") {
-				const el = formFieldsNamed(form, f.name).filter(function (c) {
-					return c.value === f.value;
-				})[0];
-				if (el) {
-					el.checked = f.checked;
-					el.dispatchEvent(new Event("change", { bubbles: true }));
-				}
-			} else {
-				const el = formFieldsNamed(form, f.name)[0];
-				if (el) {
-					el.value = f.value;
-					el.dispatchEvent(new Event("input", { bubbles: true }));
-					el.dispatchEvent(new Event("change", { bubbles: true }));
-				}
-			}
+			applyField(form, f);
 		});
 	}
 
@@ -1298,23 +1989,44 @@
 				alert('Não encontrei o formulário do diálogo "' + label + '" para capturar. Ele ainda está aberto na tela?');
 				return;
 			}
-			const name = prompt('Nome para esta preferência de "' + label + '":', editingPref ? editingPref.name : "");
-			if (!name) return;
 			const custom = getCustomAction(label);
 			const fields = captureFormFields(form).filter(function (f) {
 				return !custom || !custom.prefFields || custom.prefFields.indexOf(f.name) !== -1;
 			});
+			if (!fields.length) {
+				alert('Nenhum campo preenchido ou selecionado no diálogo "' + label + '". Preencha o que a preferência deve guardar e salve de novo.');
+				return;
+			}
+			// Mostra o que vai ser gravado: dá para conferir na hora se algum
+			// campo (ex.: uma lista que carrega depois) ficou de fora.
+			const name = prompt(
+				"Campos que serão gravados:\n" + describeFields(fields) + "\n\nSe algum estiver errado, cancele, ajuste o diálogo e salve de novo.\n\nNome para esta preferência de \"" + label + '":',
+				editingPref ? editingPref.name : ""
+			);
+			if (!name || !name.trim()) return;
 			const extra = getExtra ? getExtra() : null;
 			const saving = editingPref
 				? updatePreference(label, editingPref.id, name.trim(), fields, extra)
 				: addPreference(label, name.trim(), fields, extra);
-			saving.then(function () {
-				removeCaptureToolbar();
-				alert(
-					'Preferência "' + name.trim() + '" ' + (editingPref ? "atualizada" : "salva") + ' para "' + label +
-					'". Você ainda pode revisar e enviar este formulário normalmente.'
-				);
-			});
+			saving
+				.then(function () {
+					// Confere a gravação lendo de volta do armazenamento.
+					return loadPreferencesFor(label);
+				})
+				.then(function (prefs) {
+					const saved = prefs.filter(function (p) {
+						return p.name === name.trim() && (p.fields || []).length === fields.length;
+					})[0];
+					if (!saved) throw new Error("a preferência não foi encontrada ao reler o armazenamento");
+					removeCaptureToolbar();
+					alert(
+						'Preferência "' + name.trim() + '" ' + (editingPref ? "atualizada" : "salva") + ' para "' + label +
+						'" (' + fields.length + " campos). Você ainda pode revisar e enviar este formulário normalmente."
+					);
+				})
+				.catch(function (err) {
+					alert("Não foi possível salvar a preferência: " + (err && err.message ? err.message : err) + ". Tente de novo.");
+				});
 		});
 	}
 
@@ -1329,11 +2041,51 @@
 		}
 	}
 
-	function showConfirmBar(label, pref, form) {
+	// Barra provisória enquanto fillFormFields preenche o diálogo.
+	function showFillingBar(label, pref) {
 		removeConfirmBar();
 		confirmBar = document.createElement("div");
-		confirmBar.className = "pdp-qa-confirm-bar";
+		confirmBar.className = "pdp-qa-confirm-bar pdp-qa-filling-bar";
 		confirmBar.innerHTML =
+			(comboStep ? '<span class="pdp-qa-confirm-combo">' + escapeHtml(comboStepCaption()) + "</span>" : "") +
+			'<span>Preenchendo "' + escapeHtml(label) + '" com a preferência "' + escapeHtml(pref.name) + '"…</span>';
+		document.body.appendChild(confirmBar);
+	}
+
+	function missingFieldsText(missing) {
+		return missing
+			.map(function (f) {
+				return (f.label || f.name || f.id) + " (" + describeFieldValue(f) + ")";
+			})
+			.join("; ");
+	}
+
+	// Aviso fora da barra de confirmação (edição, ações sem "Sim, executar").
+	function warnMissingFields(label, pref, missing) {
+		if (!missing || !missing.length) return;
+		alert('Não consegui preencher estes campos da preferência "' + pref.name + '" em "' + label + '":\n' + missingFieldsText(missing) + "\n\nPreencha-os manualmente.");
+	}
+
+	// Preenche o diálogo com a preferência e, no fim, mostra a barra certa.
+	function fillPreference(label, pref, form, doc, editing) {
+		showFillingBar(label, pref);
+		fillFormFields(form, pref.fields, function (missing) {
+			removeConfirmBar();
+			afterPreferenceFilled(label, pref, form, doc, editing, missing);
+		});
+	}
+
+	// `missing`: campos que não foi possível preencher — a barra avisa
+	// (confira e preencha antes de confirmar).
+	function showConfirmBar(label, pref, form, missing) {
+		removeConfirmBar();
+		confirmBar = document.createElement("div");
+		confirmBar.className = "pdp-qa-confirm-bar" + (missing && missing.length ? " pdp-qa-confirm-warn" : "");
+		confirmBar.innerHTML =
+			(comboStep ? '<span class="pdp-qa-confirm-combo">' + escapeHtml(comboStepCaption()) + "</span>" : "") +
+			(missing && missing.length
+				? '<span class="pdp-qa-confirm-missing">⚠ Não consegui preencher: ' + escapeHtml(missingFieldsText(missing)) + ". Preencha antes de confirmar.</span>"
+				: "") +
 			'<span>Confirmar "' + escapeHtml(label) + '" com a preferência "' + escapeHtml(pref.name) + '"?</span>' +
 			'<button type="button" class="pdp-qa-confirm-yes">✅ Sim, executar</button>' +
 			'<button type="button" class="pdp-qa-confirm-cancel">Cancelar</button>';
@@ -1341,11 +2093,23 @@
 
 		confirmBar.querySelector(".pdp-qa-confirm-cancel").addEventListener("click", removeConfirmBar);
 		confirmBar.querySelector(".pdp-qa-confirm-yes").addEventListener("click", function () {
+			// Última conferência antes de enviar: repõe o que a tela tenha
+			// esvaziado e não envia com campo gravado ainda vazio.
+			const stillEmpty = form.isConnected ? restoreEmptyFields(form, pref.fields || []) : [];
+			if (stillEmpty.length) {
+				alert("Antes de confirmar, preencha: " + missingFieldsText(stillEmpty) + ". Depois clique de novo em \"Sim, executar\".");
+				return;
+			}
 			const submit = findSubmitControl(form);
 			removeConfirmBar();
 			if (!submit) {
 				alert('Os campos foram preenchidos, mas não encontrei o botão de confirmar do Projudi automaticamente. Confira e clique nele manualmente.');
 				return;
+			}
+			if (comboStep) comboStep.confirmed = true;
+			if (modalHooks) {
+				modalHooks.submitted = true;
+				if (modalHooks.onSubmit) modalHooks.onSubmit();
 			}
 			submit.click();
 		});
@@ -1354,11 +2118,12 @@
 	// Depois de preencher o diálogo com uma preferência: no uso normal, a
 	// barra "Sim, executar"; na edição (✏️), a barra "Atualizar
 	// preferência" — nada é enviado ao Projudi.
-	function afterPreferenceFilled(label, pref, form, doc, editing) {
+	function afterPreferenceFilled(label, pref, form, doc, editing, missing) {
 		if (editing) {
+			warnMissingFields(label, pref, missing);
 			showCaptureToolbar(label, doc, null, pref);
 		} else {
-			showConfirmBar(label, pref, form);
+			showConfirmBar(label, pref, form, missing);
 		}
 	}
 
@@ -1405,15 +2170,14 @@
 		}
 		const fieldNames = pref.fields.map(function (f) {
 			return f.name;
-		});
+		}).filter(Boolean);
 		link.click();
 		waitForFormWithFieldNames(fieldNames, function (form) {
 			if (!form) {
 				alert('A janela de "' + label + '" não apareceu a tempo (ou os campos mudaram). Preencha manualmente desta vez.');
 				return;
 			}
-			applyFormFields(form, pref.fields);
-			afterPreferenceFilled(label, pref, form, document, editing);
+			fillPreference(label, pref, form, document, editing);
 		});
 	}
 
@@ -1582,12 +2346,8 @@
 				}
 				iframe.removeEventListener("load", onLoad);
 				logChainStep('"' + label + '" concluído — fechando o popup e recarregando a tela', null);
-				removeActionModal();
-				try {
-					window.location.reload();
-				} catch (err) {
-					logChainStep("falhou ao recarregar a tela por trás", String(err));
-				}
+				finishActionAndReload();
+				removeActionModal("auto");
 			}, ACOES_SETTLE_MS);
 		});
 		iframe.src = result.acoesUrl;
@@ -1647,21 +2407,26 @@
 		});
 	}
 
-	function applyPreferenceViaChain(label, pref, editing) {
+	// `origem`/`hooks` (opcionais): ver resolveDialogUrl e modalHooks.
+	function applyPreferenceViaChain(label, pref, editing, origem, hooks) {
 		const cancelToken = { cancelled: false };
 		showLoadingOverlay(label, function () {
 			cancelToken.cancelled = true;
+			if (hooks && hooks.onFail) hooks.onFail("cancelado");
+			onComboStepFailed("Abertura da etapa cancelada.");
 		});
-		resolveDialogUrl(label).then(function (result) {
+		resolveDialogUrl(label, origem).then(function (result) {
 			removeLoadingOverlay();
 			if (cancelToken.cancelled) return;
 			if (result.failed) {
+				if (hooks && hooks.onFail) hooks.onFail(result.screenTitle ? 'o Projudi levou à tela "' + result.screenTitle + '"' : "ação não localizada");
 				alertChainFailure(label, result);
+				onComboStepFailed('Não consegui abrir "' + label + '" a partir desta tela.');
 				return;
 			}
 			const fieldNamesForAcoes = pref.fields.map(function (f) {
 				return f.name;
-			});
+			}).filter(Boolean);
 			if (needsAcoesParent(label, result)) {
 				openInsideAcoesScreen(label, result, function (dialogDoc) {
 					const form = dialogDoc && (findFormContainingFieldNamesIn(dialogDoc, fieldNamesForAcoes) || findLikelyDialogFormIn(dialogDoc));
@@ -1669,12 +2434,13 @@
 						alert('Carreguei "' + label + '", mas não encontrei o formulário para preencher automaticamente. Preencha manualmente.');
 						return;
 					}
-					applyFormFields(form, pref.fields);
-					afterPreferenceFilled(label, pref, form, dialogDoc, editing);
+					fillPreference(label, pref, form, dialogDoc, editing);
 				});
+				modalHooks = hooks || null;
 				return;
 			}
 			const iframe = showActionModal(label);
+			modalHooks = hooks || null;
 			iframe.addEventListener(
 				"load",
 				function () {
@@ -1687,14 +2453,13 @@
 					}
 					const fieldNames = pref.fields.map(function (f) {
 						return f.name;
-					});
+					}).filter(Boolean);
 					const form = findFormContainingFieldNamesIn(doc, fieldNames) || findLikelyDialogFormIn(doc);
 					if (!form) {
 						alert('Carreguei "' + label + '", mas não encontrei o formulário para preencher automaticamente. Preencha manualmente.');
 						return;
 					}
-					applyFormFields(form, pref.fields);
-					afterPreferenceFilled(label, pref, form, doc, editing);
+					fillPreference(label, pref, form, doc, editing);
 				},
 				{ once: true }
 			);
@@ -1756,7 +2521,8 @@
 		const cancelToken = { cancelled: false };
 		function onCancel() {
 			cancelToken.cancelled = true;
-			removeActionModal();
+			removeActionModal("manual");
+			onComboStepFailed("Abertura da etapa cancelada.");
 		}
 		showLoadingOverlay(label, onCancel);
 
@@ -1843,6 +2609,7 @@
 				removeLoadingOverlay();
 				removeActionModal();
 				alert('Não foi possível abrir "' + label + '": ' + (err && err.message ? err.message : err));
+				onComboStepFailed('Não consegui abrir "' + label + '" a partir desta tela.');
 			});
 	}
 
@@ -1872,37 +2639,1085 @@
 		openCustomAction(label, editing ? "edit" : "apply", pref, function (doc, ctx, iframe) {
 			const fieldNames = pref.fields.map(function (f) {
 				return f.name;
-			});
+			}).filter(Boolean);
 			const form = findCustomForm(label, doc) || findFormContainingFieldNamesIn(doc, fieldNames) || findLikelyDialogFormIn(doc);
 			if (!form) {
 				alert('Carreguei "' + label + '", mas não encontrei o formulário para preencher automaticamente. Preencha manualmente.');
 				return;
 			}
-			applyFormFields(form, pref.fields);
-			if (editing) {
-				// Mantém os dados extras da preferência (ex.: a modalidade),
-				// salvo se o usuário escolheu outros nesta abertura.
-				showCaptureToolbar(
-					label,
-					function () {
-						try {
-							return iframe.contentDocument || doc;
-						} catch (err) {
-							return doc;
-						}
-					},
-					function () {
-						const kept = {};
-						Object.keys(pref).forEach(function (key) {
-							if (["id", "name", "fields", "createdAt", "updatedAt"].indexOf(key) === -1) kept[key] = pref[key];
-						});
-						return Object.assign(kept, ctx.extra);
-					},
-					pref
-				);
-			} else if (!custom || custom.confirmAfterApply !== false) {
-				showConfirmBar(label, pref, form);
+			showFillingBar(label, pref);
+			fillFormFields(form, pref.fields, function (missing) {
+				removeConfirmBar();
+				if (editing) {
+					warnMissingFields(label, pref, missing);
+					// Mantém os dados extras da preferência (ex.: a modalidade),
+					// salvo se o usuário escolheu outros nesta abertura.
+					showCaptureToolbar(
+						label,
+						function () {
+							try {
+								return iframe.contentDocument || doc;
+							} catch (err) {
+								return doc;
+							}
+						},
+						function () {
+							const kept = {};
+							Object.keys(pref).forEach(function (key) {
+								if (["id", "name", "fields", "createdAt", "updatedAt"].indexOf(key) === -1) kept[key] = pref[key];
+							});
+							return Object.assign(kept, ctx.extra);
+						},
+						pref
+					);
+				} else if (!custom || custom.confirmAfterApply !== false) {
+					showConfirmBar(label, pref, form, missing);
+				} else {
+					warnMissingFields(label, pref, missing);
+				}
+			});
+		});
+	}
+
+	// -------------------------------------------------------------------
+	// Combos de preferências
+	//
+	// Um combo é uma lista ORDENADA de preferências já salvas (de qualquer
+	// ação do painel, e também do "📎 Juntar Documento" — ver
+	// juntarDocumento.js), executadas uma depois da outra. O editor mostra uma
+	// caixa por etapa: na 1ª o usuário escolhe a preferência que roda
+	// primeiro; "+ Adicionar preferência" cria a caixa seguinte, e assim por
+	// diante. Guardados em chrome.storage.local, em COMBOS_KEY:
+	//   [{ id, name, steps: [{ label, prefId }], createdAt, updatedAt }]
+	// A etapa guarda só a referência (ação + id): editar a preferência
+	// depois vale também para o combo.
+	//
+	// Execução: cada etapa é a mesma "★ preferência" de sempre, sempre no
+	// popup desta extensão (applyPreferenceViaChain/applyPreferenceCustom),
+	// com a mesma confirmação "Sim, executar" — o combo nunca confirma um
+	// ato processual sozinho. Quando o popup da etapa fecha depois de
+	// executada (o usuário clicou em "Sim, executar", ou o próprio Projudi
+	// sinalizou o fim da ação — ver removeActionModal), a próxima etapa
+	// abre sozinha. Se o popup fechar sem execução (✕ Fechar, Cancelar,
+	// erro), a barra do combo pergunta: repetir, ir para a próxima ou parar.
+	//
+	// Ao terminar uma ação, o Projudi/esta extensão recarregam a tela do
+	// processo (checkFlagClosePopup) — por isso o andamento fica no
+	// sessionStorage (só esta aba, compartilhado pelos frames da mesma
+	// origem), em COMBO_RUN_KEY:
+	//   { comboId, name, steps: [{ label, prefId, prefName }], index,
+	//     phase: "pending" | "running" | "waiting", numero, startedAt }
+	// e a instância da página recarregada continua da etapa "pending".
+	//
+	// Etapa "Juntar Documento": não usa o popup — a juntada navega a
+	// própria aba (tela Juntar Documento → Inserir Arquivo → ... →
+	// "Concluir Movimento"), conduzida por juntarDocumento.js, que marca
+	// COMBO_JUNTAR_DONE_KEY no "Concluir Movimento". De volta à tela do
+	// processo, maybeResumeCombo vê a marca e segue para a próxima etapa.
+	// -------------------------------------------------------------------
+
+	const COMBOS_KEY = "pdpPreferenceCombos";
+	const COMBO_RUN_KEY = "pdpComboRun";
+	const COMBO_RUN_MAX_AGE_MS = 2 * 60 * 60 * 1000;
+	const COMBO_NEXT_STEP_DELAY_MS = 900;
+	const COMBO_RESUME_DELAY_MS = 1500;
+	const COMBO_EDITOR_ID = "pdp-qa-combo-editor";
+	const COMBO_BAR_ID = "pdp-qa-combo-bar";
+	const JUNTAR_LABEL = "Juntar Documento"; // preferências em JUNTAR_PREFS_KEY (topo)
+	const COMBO_JUNTAR_DONE_KEY = "pdpComboJuntadaConcluida"; // idem
+	const COMBO_JUNTAR_CONCLUIR_KEY = "pdpComboJuntadaConcluir"; // idem
+	let comboResumeChecked = false;
+
+	function loadCombos() {
+		return chrome.storage.local.get([COMBOS_KEY]).then(function (data) {
+			return data[COMBOS_KEY] || [];
+		});
+	}
+
+	function saveCombos(combos) {
+		return chrome.storage.local.set({ [COMBOS_KEY]: combos });
+	}
+
+	// Inclui (sem `id`) ou substitui (mesmo `id`) um combo.
+	function saveCombo(combo) {
+		return loadCombos().then(function (combos) {
+			if (combo.id) {
+				combos = combos.map(function (c) {
+					return c.id === combo.id ? Object.assign({}, c, combo, { updatedAt: Date.now() }) : c;
+				});
+			} else {
+				combos.push(Object.assign({}, combo, { id: "c" + Date.now() + Math.random().toString(36).slice(2, 7), createdAt: Date.now() }));
 			}
+			return saveCombos(combos);
+		});
+	}
+
+	function removeCombo(id) {
+		return loadCombos().then(function (combos) {
+			return saveCombos(
+				combos.filter(function (c) {
+					return c.id !== id;
+				})
+			);
+		});
+	}
+
+	// Todas as preferências que podem entrar num combo, por rótulo da ação:
+	// as das Ações rápidas e as do "Juntar Documento" (em JUNTAR_LABEL).
+	function loadComboPreferences() {
+		return Promise.all([loadAllPreferences(), chrome.storage.local.get([JUNTAR_PREFS_KEY])]).then(function (data) {
+			const all = Object.assign({}, data[0]);
+			const juntar = data[1][JUNTAR_PREFS_KEY];
+			if (Array.isArray(juntar) && juntar.length) all[JUNTAR_LABEL] = juntar;
+			return all;
+		});
+	}
+
+	// Todas as preferências salvas, na ordem dos grupos do painel, depois o
+	// "Juntar Documento" (ações desconhecidas — de versões antigas — no
+	// fim): [{ label, pref }].
+	function flattenPreferences(all) {
+		const labels = [];
+		ACTION_GROUPS.forEach(function (group) {
+			group.actions.forEach(function (label) {
+				if (labels.indexOf(label) === -1) labels.push(label);
+			});
+		});
+		labels.push(JUNTAR_LABEL);
+		Object.keys(all).forEach(function (label) {
+			if (labels.indexOf(label) === -1) labels.push(label);
+		});
+		const items = [];
+		labels.forEach(function (label) {
+			(all[label] || []).forEach(function (pref) {
+				items.push({ label: label, pref: pref });
+			});
+		});
+		return items;
+	}
+
+	function findPref(all, step) {
+		return (all[step.label] || []).filter(function (p) {
+			return p.id === step.prefId;
+		})[0] || null;
+	}
+
+	function describeComboSteps(steps, all) {
+		return steps
+			.map(function (step, i) {
+				const pref = all ? findPref(all, step) : null;
+				const name = pref ? pref.name : step.prefName || "(preferência removida)";
+				return i + 1 + ". " + step.label + " — ★ " + name;
+			})
+			.join("\n");
+	}
+
+	function numeroProcessoAtual() {
+		const el = document.querySelector("em.attention");
+		const match = /\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/.exec((el ? el.textContent : "") + " " + (document.title || ""));
+		return match ? match[0] : null;
+	}
+
+	// --- Andamento (sessionStorage) ------------------------------------
+
+	function readComboRun() {
+		try {
+			return JSON.parse(sessionStorage.getItem(COMBO_RUN_KEY) || "null");
+		} catch (err) {
+			return null;
+		}
+	}
+
+	function writeComboRun(run) {
+		try {
+			sessionStorage.setItem(COMBO_RUN_KEY, JSON.stringify(run));
+		} catch (err) {
+			console.error("[Projudi Ações Rápidas] não foi possível gravar o andamento do combo:", err);
+		}
+	}
+
+	function clearComboRun() {
+		try {
+			sessionStorage.removeItem(COMBO_RUN_KEY);
+		} catch (err) {
+			// sem sessionStorage: nada a limpar
+		}
+	}
+
+	function comboStepCaption(run) {
+		run = run || readComboRun();
+		if (!run) return "";
+		return 'Combo "' + run.name + '" — etapa ' + Math.min(run.index + 1, run.steps.length) + " de " + run.steps.length;
+	}
+
+	// --- Barra do combo --------------------------------------------------
+
+	function removeComboBar() {
+		const el = document.getElementById(COMBO_BAR_ID);
+		if (el) el.remove();
+		document.documentElement.classList.remove("pdp-qa-combo-active");
+	}
+
+	// Mantém a barra acima do popup da etapa (mesma camada, mais ao fim do
+	// <body>).
+	function bringComboBarToFront() {
+		const el = document.getElementById(COMBO_BAR_ID);
+		if (el) document.body.appendChild(el);
+	}
+
+	// `message` (opcional): aviso sobre a etapa atual. Fora da fase
+	// "pending" (a etapa está abrindo), a barra oferece Repetir/Próxima —
+	// também quando a etapa não chegou a abrir (erro, "Cancelar" no
+	// "Abrindo…").
+	function renderComboBar(message) {
+		const run = readComboRun();
+		removeComboBar();
+		if (!run) return;
+		const step = run.steps[run.index];
+		const bar = document.createElement("div");
+		bar.id = COMBO_BAR_ID;
+		bar.className = "pdp-qa-combo-bar";
+
+		const text = document.createElement("div");
+		text.className = "pdp-qa-combo-bar-text";
+		const title = document.createElement("strong");
+		title.textContent = "🔗 " + comboStepCaption(run) + (step ? ": " + step.label + " — ★ " + step.prefName : "");
+		text.appendChild(title);
+		if (message) {
+			const msg = document.createElement("span");
+			msg.className = "pdp-qa-combo-bar-msg";
+			msg.textContent = message;
+			text.appendChild(msg);
+		}
+		bar.appendChild(text);
+		bar.title = describeComboSteps(run.steps);
+
+		function addButton(caption, tip, onClick) {
+			const btn = document.createElement("button");
+			btn.type = "button";
+			btn.textContent = caption;
+			btn.title = tip;
+			btn.addEventListener("click", onClick);
+			bar.appendChild(btn);
+		}
+		if (run.phase !== "pending") {
+			addButton("↻ Repetir etapa", "Abrir de novo esta etapa", function () {
+				restartComboStep(0);
+			});
+			addButton(
+				"⏭ Próxima etapa",
+				run.phase === "running" ? "Fechar esta etapa sem executá-la e abrir a próxima" : "Considerar esta etapa concluída (ou pulá-la) e abrir a próxima",
+				function () {
+					restartComboStep(1);
+				}
+			);
+		}
+		addButton("⏹ Parar combo", "Encerrar o combo (as etapas já executadas continuam valendo)", stopCombo);
+		document.body.appendChild(bar);
+		// Espaço no fim da página para a barra não cobrir botões nativos
+		// (ex.: "Concluir Movimento" da tela Juntar Documento).
+		document.documentElement.classList.add("pdp-qa-combo-active");
+	}
+
+	// --- Execução --------------------------------------------------------
+
+	function startCombo(combo) {
+		if (readComboRun() && !confirm("Já há um combo em andamento nesta aba. Encerrá-lo e iniciar \"" + combo.name + '"?')) return;
+		loadComboPreferences().then(function (all) {
+			const missing = combo.steps.filter(function (step) {
+				return !findPref(all, step);
+			});
+			if (missing.length) {
+				alert(
+					'O combo "' + combo.name + '" usa preferência(s) que não existem mais:\n' +
+						missing
+							.map(function (step) {
+								return "- " + step.label;
+							})
+							.join("\n") +
+						"\n\nEdite o combo (✏️) e escolha outra preferência para essa(s) etapa(s)."
+				);
+				return;
+			}
+			abandonComboStep();
+			writeComboRun({
+				comboId: combo.id,
+				name: combo.name,
+				steps: combo.steps.map(function (step) {
+					return { label: step.label, prefId: step.prefId, prefName: findPref(all, step).name };
+				}),
+				index: 0,
+				phase: "pending",
+				numero: numeroProcessoAtual(),
+				startedAt: Date.now(),
+			});
+			logChainStep('combo "' + combo.name + '" iniciado', { etapas: combo.steps.length });
+			runPendingComboStep();
+		});
+	}
+
+	// Ponto de partida de uma etapa para resolveDialogUrl: a aba
+	// Movimentações lida em segundo plano, ou a própria tela de Ações (o
+	// combo sempre usa o popup, para saber quando a etapa termina — a
+	// origem "tela de Ações" dá a URL direto do link nativo); sem nenhuma,
+	// a tela atual.
+	function comboOrigem(screen) {
+		if (screen.eventsDoc) return { doc: screen.eventsDoc, url: window.location.href };
+		if (isOnAcoesScreen()) return { doc: document, url: window.location.href };
+		return undefined;
+	}
+
+	function runPendingComboStep() {
+		const run = readComboRun();
+		if (!run || run.phase !== "pending") return;
+		if (run.index >= run.steps.length) {
+			finishCombo(run);
+			return;
+		}
+		const step = run.steps[run.index];
+		// Marca antes de qualquer espera: outro frame/instância não abre a
+		// mesma etapa de novo.
+		run.phase = "running";
+		writeComboRun(run);
+		Promise.all([loadComboPreferences(), prepareComboScreen(step)]).then(function (data) {
+			const pref = findPref(data[0], step);
+			const screen = data[1];
+			if (!pref) {
+				setComboWaiting('A preferência "' + step.prefName + '" não existe mais. Pule esta etapa ou pare o combo.');
+				return;
+			}
+			if (screen.navigate) {
+				navigateForCombo(screen.navigate, screen.message);
+				return;
+			}
+			if (screen.fail) {
+				setComboWaiting(screen.fail);
+				return;
+			}
+			const current = readComboRun();
+			if (current && current.hops) {
+				current.hops = 0;
+				writeComboRun(current);
+			}
+			logChainStep("combo: abrindo etapa " + (run.index + 1), { acao: step.label, preferencia: pref.name, abaLidaEmSegundoPlano: !!screen.eventsDoc });
+			if (step.label === JUNTAR_LABEL) {
+				startJuntarStep(pref);
+				return;
+			}
+			comboStep = { confirmed: false, iframe: null };
+			renderComboBar();
+			if (getCustomAction(step.label)) {
+				applyPreferenceCustom(step.label, pref);
+			} else {
+				applyPreferenceViaChain(step.label, pref, false, comboOrigem(screen));
+			}
+		});
+	}
+
+	// --- Preparo da tela para uma etapa ----------------------------------
+	//
+	// Cada etapa precisa de um ponto de partida: as ações do painel, da
+	// lista de movimentações (ou da tela de Ações); o "Juntar Documento",
+	// do botão nativo da tela do processo; o "Alvará Eletrônico", do
+	// formulário do processo. Uma etapa anterior pode terminar noutra tela
+	// — o "Concluir Movimento" da juntada para numa tela com "Voltar para o
+	// Processo", e esse botão abre o processo na aba "Informações Gerais",
+	// sem a lista de movimentações. Por isso, antes de abrir a etapa:
+	// 1. se a tela já serve, abre direto;
+	// 2. na tela do processo, noutra aba: lê a aba "Movimentações" em
+	//    segundo plano (__pdpLerAbaProcesso, de habilitarAdvogado.js — a
+	//    mesma leitura validada para "Partes e Outros") e usa as
+	//    movimentações dela; se não der, abre a aba Movimentações pelo
+	//    próprio item de aba do Projudi (navega) e continua lá;
+	// 3. fora da tela do processo: clica (navega) no "Voltar para o
+	//    Processo" e continua lá.
+	// Navegações seguidas sem conseguir abrir a etapa são limitadas
+	// (COMBO_MAX_HOPS) para nunca entrar em laço.
+
+	const MOVIMENTACOES_TAB_ID = "tabMovimentacoesProcesso";
+	const COMBO_MAX_HOPS = 3;
+	const COMBO_MAX_AUTO_RETRIES = 2;
+	const COMBO_NAVIGATION_FALLBACK_MS = 6000;
+
+	function hasProcessoForm() {
+		return !!document.getElementById("processoForm");
+	}
+
+	// Item de aba nativo "Movimentações" (onclick com setTab(...)).
+	function findMovimentacoesTab() {
+		return Array.prototype.find.call(document.querySelectorAll("[onclick]"), function (el) {
+			const onclick = el.getAttribute("onclick") || "";
+			return /setTab\(/.test(onclick) && onclick.indexOf(MOVIMENTACOES_TAB_ID) !== -1;
+		}) || null;
+	}
+
+	// "Voltar para o Processo" (document.location.href='/projudi/processo.do?_tj=...').
+	function findBackToProcessUrl() {
+		const candidates = [document.getElementById("backButton")].concat(Array.prototype.slice.call(document.querySelectorAll('input[type="button"], button')));
+		for (let i = 0; i < candidates.length; i++) {
+			const el = candidates[i];
+			if (!el) continue;
+			const text = (el.value || el.textContent || "").replace(/\s+/g, " ").trim();
+			if (el.id !== "backButton" && !/^Voltar para o Processo$/i.test(text)) continue;
+			const url = extractUrlFromOnclick(el.getAttribute("onclick"), window.location.href);
+			if (!url) continue;
+			try {
+				const parsed = new URL(url);
+				if (parsed.origin === window.location.origin && /\/processo\.do$/.test(parsed.pathname)) return url;
+			} catch (err) {
+				// URL inválida: tenta o próximo
+			}
+		}
+		return null;
+	}
+
+	// Resolve com { eventsDoc? } (pode abrir), { navigate, message } (ir
+	// para outra tela antes) ou { fail } (sem saída automática).
+	function prepareComboScreen(step) {
+		const backUrl = hasProcessoForm() ? null : findBackToProcessUrl();
+		function goBackOr(fail) {
+			return backUrl ? { navigate: { url: backUrl }, message: "Voltando para a tela do processo…" } : { fail: fail };
+		}
+
+		if (step.label === JUNTAR_LABEL) {
+			const api = window.__pdpJuntarDocumentoApi;
+			if (api && api.available()) return Promise.resolve({});
+			return Promise.resolve(goBackOr('Abra a tela do processo (com o botão "Juntar Documento") e clique em "Repetir etapa".'));
+		}
+		if (getCustomAction(step.label)) {
+			return Promise.resolve(hasProcessoForm() ? {} : goBackOr("Abra a tela do processo e clique em \"Repetir etapa\"."));
+		}
+		if (isOnAcoesScreen() || findMovimentarButton() || findLatestValidEventLink()) return Promise.resolve({});
+		if (!hasProcessoForm()) return Promise.resolve(goBackOr('Abra a aba "Movimentações" do processo e clique em "Repetir etapa".'));
+
+		function openTabOr(fail) {
+			const tab = findMovimentacoesTab();
+			return tab ? { navigate: { element: tab }, message: 'Abrindo a aba "Movimentações"…' } : { fail: fail };
+		}
+		if (!window.__pdpLerAbaProcesso) return Promise.resolve(openTabOr('Abra a aba "Movimentações" e clique em "Repetir etapa".'));
+		renderComboBar('Lendo a aba "Movimentações" em segundo plano…');
+		return window.__pdpLerAbaProcesso(MOVIMENTACOES_TAB_ID, "Movimentações")
+			.then(function (aba) {
+				if (findLatestValidEventLinkIn(aba.doc)) return { eventsDoc: aba.doc };
+				logChainStep("combo: aba Movimentações lida em segundo plano, mas sem movimentações válidas", null);
+				return openTabOr('Não encontrei movimentações neste processo. Abra a aba "Movimentações" e clique em "Repetir etapa".');
+			})
+			.catch(function (err) {
+				logChainStep("combo: falhou a leitura da aba Movimentações em segundo plano", String(err));
+				return openTabOr('Não consegui ler a aba "Movimentações" (' + (err && err.message ? err.message : err) + '). Abra-a e clique em "Repetir etapa".');
+			});
+	}
+
+	// Navega (Voltar para o Processo / aba Movimentações) com a etapa ainda
+	// pendente: a página nova continua o combo (maybeResumeCombo).
+	function navigateForCombo(target, message) {
+		const run = readComboRun();
+		if (!run) return;
+		run.hops = (run.hops || 0) + 1;
+		if (run.hops > COMBO_MAX_HOPS) {
+			run.hops = 0;
+			writeComboRun(run);
+			setComboWaiting('Não consegui chegar a uma tela de onde abrir esta etapa. Abra a aba "Movimentações" do processo e clique em "Repetir etapa".');
+			return;
+		}
+		run.phase = "pending";
+		writeComboRun(run);
+		renderComboBar(message);
+		logChainStep("combo: " + message, { destino: target.url || "item de aba Movimentações", tentativa: run.hops });
+		pageReloading = true;
+		if (target.element) target.element.click();
+		else window.location.href = target.url;
+		// Se a página não foi trocada (ex.: aba carregada sem recarregar a
+		// tela), continua daqui mesmo.
+		setTimeout(function () {
+			pageReloading = false;
+			runPendingComboStep();
+		}, COMBO_NAVIGATION_FALLBACK_MS);
+	}
+
+	// Uma etapa não chegou a abrir o popup (resolução falhou, "Cancelar"
+	// no "Abrindo…"): a barra pergunta como seguir.
+	function onComboStepFailed(message) {
+		if (!comboStep || comboStep.iframe) return;
+		comboStep = null;
+		setComboWaiting(message);
+	}
+
+	// Etapa "Juntar Documento": a juntada navega esta aba; o combo continua
+	// quando a tela do processo voltar (ver maybeResumeCombo).
+	function startJuntarStep(pref) {
+		const api = window.__pdpJuntarDocumentoApi;
+		if (!api) {
+			setComboWaiting('"Juntar Documento" não está disponível nesta tela (só no Projudi, com o processo aberto).');
+			return;
+		}
+		try {
+			sessionStorage.removeItem(COMBO_JUNTAR_DONE_KEY);
+			sessionStorage.removeItem(COMBO_JUNTAR_CONCLUIR_KEY);
+		} catch (err) {
+			// sem marca antiga a limpar
+		}
+		renderComboBar('Abrindo "Juntar Documento"… A juntada segue sozinha até o "Concluir Movimento" (assine quando o assinador pedir).');
+		if (!api.start(pref)) setComboWaiting('Não consegui abrir "Juntar Documento" nesta tela. Abra a tela do processo e clique em "Repetir etapa".');
+	}
+
+	// A juntada da etapa terminou: confirmada pela tela "Dados registrados
+	// com sucesso" (juntarDocumento.js marca COMBO_JUNTAR_DONE_KEY), ou —
+	// se o Projudi voltar direto à tela do processo depois do "Concluir
+	// Movimento" — pela chegada a esta tela com o clique anotado.
+	function juntarStepDone() {
+		try {
+			if (sessionStorage.getItem(COMBO_JUNTAR_DONE_KEY)) {
+				sessionStorage.removeItem(COMBO_JUNTAR_DONE_KEY);
+				sessionStorage.removeItem(COMBO_JUNTAR_CONCLUIR_KEY);
+				return true;
+			}
+			if (sessionStorage.getItem(COMBO_JUNTAR_CONCLUIR_KEY) && hasProcessoForm()) {
+				sessionStorage.removeItem(COMBO_JUNTAR_CONCLUIR_KEY);
+				return true;
+			}
+			return false;
+		} catch (err) {
+			return false;
+		}
+	}
+
+	function juntarJobActive() {
+		const api = window.__pdpJuntarDocumentoApi;
+		return !!(api && api.hasActiveJob());
+	}
+
+	// O popup da etapa atual fechou (ver removeActionModal).
+	function onComboStepModalClosed(reason) {
+		const step = comboStep;
+		comboStep = null;
+		const executed = step.confirmed || reason === "auto";
+		logChainStep("combo: popup da etapa fechado", { motivo: reason || null, executada: executed });
+		if (executed) {
+			advanceCombo();
+		} else {
+			setComboWaiting('O popup da etapa foi fechado sem o "Sim, executar". Se ela foi concluída, clique em "Próxima etapa"; senão, em "Repetir etapa".');
+		}
+	}
+
+	function setComboWaiting(message) {
+		const run = readComboRun();
+		if (!run) return;
+		run.phase = "waiting";
+		writeComboRun(run);
+		renderComboBar(message);
+	}
+
+	function advanceCombo() {
+		const run = readComboRun();
+		if (!run) return;
+		run.index++;
+		run.retries = 0;
+		// Com a tela recarregando, o aviso de conclusão fica para a página
+		// nova (runPendingComboStep chama finishCombo).
+		if (run.index >= run.steps.length && !pageReloading) {
+			finishCombo(run);
+			return;
+		}
+		run.phase = "pending";
+		writeComboRun(run);
+		renderComboBar("Etapa anterior concluída. Abrindo a próxima…");
+		// Se a tela está sendo recarregada, a página nova continua daqui
+		// (ver maybeResumeCombo).
+		if (!pageReloading) setTimeout(runPendingComboStep, COMBO_NEXT_STEP_DELAY_MS);
+	}
+
+	// Desliga a etapa em andamento deste frame sem tratá-la como fechada.
+	function abandonComboStep() {
+		const step = comboStep;
+		comboStep = null;
+		if (step && step.iframe && activeModalIframe === step.iframe) removeActionModal("manual");
+	}
+
+	// `offset`: 0 repete a etapa atual; 1 vai para a próxima.
+	function restartComboStep(offset) {
+		const run = readComboRun();
+		if (!run) return;
+		abandonComboStep();
+		abandonJuntarStep(run);
+		removeLoadingOverlay();
+		run.index += offset;
+		if (run.index >= run.steps.length) {
+			finishCombo(run);
+			return;
+		}
+		run.phase = "pending";
+		writeComboRun(run);
+		runPendingComboStep();
+	}
+
+	// Encerra o acompanhamento de uma juntada aberta pela etapa atual.
+	function abandonJuntarStep(run) {
+		const step = run && run.steps[run.index];
+		const api = window.__pdpJuntarDocumentoApi;
+		if (step && step.label === JUNTAR_LABEL && api && api.hasActiveJob()) api.cancel();
+	}
+
+	function stopCombo() {
+		abandonComboStep();
+		abandonJuntarStep(readComboRun());
+		clearComboRun();
+		removeComboBar();
+		logChainStep("combo encerrado pelo usuário", null);
+	}
+
+	function finishCombo(run) {
+		clearComboRun();
+		removeComboBar();
+		logChainStep('combo "' + run.name + '" concluído', null);
+		const bar = document.createElement("div");
+		bar.id = COMBO_BAR_ID;
+		bar.className = "pdp-qa-combo-bar pdp-qa-combo-bar-done";
+		bar.textContent = '✅ Combo "' + run.name + '" concluído (' + run.steps.length + " etapas).";
+		document.body.appendChild(bar);
+		setTimeout(function () {
+			if (bar.isConnected) bar.remove();
+		}, 5000);
+	}
+
+	// Na primeira vez que a fileira de botões aparece nesta página, continua
+	// um combo em andamento nesta aba (a tela foi recarregada ao fim de uma
+	// etapa) — ver reconcile.
+	// Combo pedido a partir da linha de uma listagem (preferenciasNaLinha.js)
+	// que precisa da tela do processo (etapa "Juntar Documento"/"Alvará
+	// Eletrônico"): a listagem grava { comboId, numero, criadoEm } e abre o
+	// processo numa nova aba; a primeira tela desse processo que mostrar a
+	// fileira de botões inicia o combo.
+	const COMBO_PENDING_KEY = "pdpComboPendente";
+	const COMBO_PENDING_MAX_AGE_MS = 3 * 60 * 1000;
+
+	function maybeStartPendingCombo() {
+		const numero = numeroProcessoAtual();
+		if (!numero) return;
+		chrome.storage.local.get([COMBO_PENDING_KEY]).then(function (data) {
+			const pending = data[COMBO_PENDING_KEY];
+			if (!pending || pending.numero !== numero) return;
+			return chrome.storage.local.remove(COMBO_PENDING_KEY).then(function () {
+				if (Date.now() - (pending.criadoEm || 0) > COMBO_PENDING_MAX_AGE_MS) return;
+				return loadCombos().then(function (combos) {
+					const combo = combos.filter(function (c) {
+						return c.id === pending.comboId;
+					})[0];
+					if (!combo) {
+						alert("O combo pedido para este processo não existe mais.");
+						return;
+					}
+					logChainStep('combo "' + combo.name + '" iniciado a partir da listagem', { numero: numero });
+					startCombo(combo);
+				});
+			});
+		}).catch(function (err) {
+			console.error("[Projudi Ações Rápidas] erro ao iniciar o combo pendente:", err);
+		});
+	}
+
+	function maybeResumeCombo() {
+		if (comboResumeChecked || !row || !row.isConnected) return;
+		comboResumeChecked = true;
+		if (insideHelperFrame()) return;
+		const run = readComboRun();
+		if (!run) {
+			maybeStartPendingCombo();
+			return;
+		}
+		if (Date.now() - (run.startedAt || 0) > COMBO_RUN_MAX_AGE_MS) {
+			clearComboRun();
+			return;
+		}
+		const numero = numeroProcessoAtual();
+		if (run.numero && numero && run.numero !== numero) {
+			// Outro processo aberto nesta aba: não executa nada aqui.
+			run.phase = "waiting";
+			writeComboRun(run);
+			renderComboBar("Este combo foi iniciado no processo " + run.numero + ". Volte a ele para continuar, ou pare o combo.");
+			return;
+		}
+		const step = run.steps[run.index];
+		if (run.phase === "running" && step && step.label === JUNTAR_LABEL) {
+			if (juntarStepDone()) {
+				// Voltou do "Concluir Movimento": segue como etapa executada.
+				run.index++;
+				run.phase = "pending";
+				writeComboRun(run);
+			} else if (juntarJobActive()) {
+				// Ainda nas telas da juntada.
+				renderComboBar('Juntada em andamento — o combo continua depois do "Concluir Movimento".');
+				return;
+			} else {
+				setComboWaiting('A juntada não chegou ao "Concluir Movimento" pelo combo. Se ela foi concluída, clique em "Próxima etapa"; senão, em "Repetir etapa".');
+				return;
+			}
+		}
+		// Etapa (do popup) interrompida pela troca de tela antes do "Sim,
+		// executar": nada foi executado, então é reaberta sozinha (ela só
+		// abre e preenche) — no máximo COMBO_MAX_AUTO_RETRIES vezes.
+		if (run.phase === "running" && step && step.label !== JUNTAR_LABEL && (run.retries || 0) < COMBO_MAX_AUTO_RETRIES) {
+			run.retries = (run.retries || 0) + 1;
+			run.phase = "pending";
+			writeComboRun(run);
+			logChainStep("combo: etapa interrompida pela troca de tela — reabrindo", { etapa: run.index + 1, tentativa: run.retries });
+		}
+		if (run.phase === "pending") {
+			renderComboBar(run.index < run.steps.length ? "Continuando o combo…" : "");
+			setTimeout(runPendingComboStep, COMBO_RESUME_DELAY_MS);
+		} else {
+			setComboWaiting(run.phase === "running" ? "A tela mudou enquanto esta etapa estava aberta." : "");
+		}
+	}
+
+	// Páginas carregadas nos iframes auxiliares (os ocultos de fetchDoc e
+	// de outros recursos, e os diálogos dentro do popup) também rodam este
+	// script — nelas um combo nunca é retomado.
+	function insideHelperFrame() {
+		let win = window;
+		try {
+			while (win.frameElement) {
+				const frame = win.frameElement;
+				if (frame.classList.contains("pdp-qa-fetch-iframe") || frame.classList.contains("pdp-qa-modal-iframe")) return true;
+				const rect = frame.getBoundingClientRect();
+				if (rect.right <= 0 || rect.bottom <= 0 || rect.width === 0 || rect.height === 0) return true;
+				win = win.parent;
+			}
+		} catch (err) {
+			// frame de outra origem acima: não é um iframe auxiliar desta extensão
+		}
+		return false;
+	}
+
+	// --- Editor (caixas de etapas) ---------------------------------------
+
+	function closeComboEditor() {
+		const el = document.getElementById(COMBO_EDITOR_ID);
+		if (el) el.remove();
+	}
+
+	// `existing`: combo a editar (✏️); sem ele, um combo novo.
+	function openComboEditor(existing) {
+		closePanel();
+		loadComboPreferences().then(function (all) {
+			const items = flattenPreferences(all);
+			if (!items.length) {
+				alert('Ainda não há preferências salvas. Crie-as primeiro com "+ Nova preferência" nas ações do painel e depois monte o combo.');
+				return;
+			}
+			// Índice em `items` escolhido em cada caixa (-1 = nada/removida).
+			let slots = existing
+				? existing.steps.map(function (step) {
+						return items.findIndex(function (item) {
+							return item.label === step.label && item.pref.id === step.prefId;
+						});
+					})
+				: [-1];
+
+			closeComboEditor();
+			const backdrop = document.createElement("div");
+			backdrop.id = COMBO_EDITOR_ID;
+			backdrop.className = "pdp-qa-combo-backdrop";
+			backdrop.innerHTML =
+				'<div class="pdp-qa-combo-box">' +
+				'<div class="pdp-qa-modal-header"><span>' +
+				(existing ? "Editar combo de preferências" : "Novo combo de preferências") +
+				'</span><button type="button" class="pdp-qa-modal-close">✕ Fechar</button></div>' +
+				'<div class="pdp-qa-combo-body">' +
+				'<p class="pdp-qa-combo-help">Escolha na 1ª caixa a preferência que deve ser executada primeiro. Depois use "+ Adicionar preferência" para a próxima, e assim por diante. Ao usar o combo, cada etapa abre já preenchida e pede a confirmação de sempre ("Sim, executar"; no Juntar Documento, a assinatura); executada uma, a seguinte abre sozinha.</p>' +
+				'<label class="pdp-qa-combo-name">Nome do combo <input type="text" maxlength="80"></label>' +
+				'<div class="pdp-qa-combo-steps"></div>' +
+				'<button type="button" class="pdp-qa-combo-add">+ Adicionar preferência</button>' +
+				"</div>" +
+				'<div class="pdp-qa-combo-footer">' +
+				'<button type="button" class="pdp-qa-combo-save">💾 Salvar combo</button>' +
+				'<button type="button" class="pdp-qa-combo-cancel">Cancelar</button>' +
+				"</div>" +
+				"</div>";
+			document.body.appendChild(backdrop);
+
+			const removed = slots.filter(function (v) {
+				return v < 0;
+			}).length;
+			if (existing && removed) {
+				const warn = document.createElement("div");
+				warn.className = "pdp-qa-note";
+				warn.textContent = removed + " etapa(s) deste combo usava(m) uma preferência que foi removida — escolha outra na caixa vazia ou remova a caixa com ✕.";
+				backdrop.querySelector(".pdp-qa-combo-help").after(warn);
+			}
+
+			const nameInput = backdrop.querySelector(".pdp-qa-combo-name input");
+			nameInput.value = existing ? existing.name : "";
+			const stepsWrap = backdrop.querySelector(".pdp-qa-combo-steps");
+			const addBtn = backdrop.querySelector(".pdp-qa-combo-add");
+
+			function buildSelect(slotIndex) {
+				const select = document.createElement("select");
+				select.className = "pdp-qa-combo-select";
+				const placeholder = document.createElement("option");
+				placeholder.value = "-1";
+				placeholder.textContent = "— escolha uma preferência —";
+				select.appendChild(placeholder);
+				let group = null;
+				items.forEach(function (item, i) {
+					if (!group || group.label !== item.label) {
+						group = document.createElement("optgroup");
+						group.label = item.label;
+						select.appendChild(group);
+					}
+					const option = document.createElement("option");
+					option.value = String(i);
+					option.textContent = "★ " + item.pref.name;
+					group.appendChild(option);
+				});
+				select.value = String(slots[slotIndex]);
+				// Ação da preferência escolhida, acima da lista (o nome da
+				// preferência sozinho nem sempre diz de qual ação ela é).
+				const wrap = document.createElement("div");
+				wrap.className = "pdp-qa-combo-select-wrap";
+				const action = document.createElement("span");
+				action.className = "pdp-qa-combo-step-action";
+				function showAction() {
+					const item = items[slots[slotIndex]];
+					action.textContent = item ? item.label : "Preferência";
+				}
+				showAction();
+				select.addEventListener("change", function () {
+					slots[slotIndex] = parseInt(select.value, 10);
+					showAction();
+					updateAddButton();
+				});
+				wrap.appendChild(action);
+				wrap.appendChild(select);
+				return wrap;
+			}
+
+			function moveSlot(from, to) {
+				const moved = slots.splice(from, 1)[0];
+				slots.splice(to, 0, moved);
+				renderSlots();
+			}
+
+			function renderSlots() {
+				stepsWrap.innerHTML = "";
+				slots.forEach(function (value, i) {
+					const box = document.createElement("div");
+					box.className = "pdp-qa-combo-step";
+
+					const num = document.createElement("span");
+					num.className = "pdp-qa-combo-step-num";
+					num.textContent = String(i + 1);
+					num.title = i === 0 ? "Executada primeiro" : "Executada depois da etapa " + i;
+					box.appendChild(num);
+
+					box.appendChild(buildSelect(i));
+
+					const tools = document.createElement("span");
+					tools.className = "pdp-qa-combo-step-tools";
+					[
+						{ text: "↑", tip: "Executar antes", disabled: i === 0, fn: function () { moveSlot(i, i - 1); } },
+						{ text: "↓", tip: "Executar depois", disabled: i === slots.length - 1, fn: function () { moveSlot(i, i + 1); } },
+						{
+							text: "✕",
+							tip: "Remover esta etapa",
+							disabled: slots.length === 1,
+							fn: function () {
+								slots.splice(i, 1);
+								renderSlots();
+							},
+						},
+					].forEach(function (spec) {
+						const btn = document.createElement("button");
+						btn.type = "button";
+						btn.textContent = spec.text;
+						btn.title = spec.tip;
+						btn.disabled = spec.disabled;
+						btn.addEventListener("click", spec.fn);
+						tools.appendChild(btn);
+					});
+					box.appendChild(tools);
+					stepsWrap.appendChild(box);
+				});
+				updateAddButton();
+			}
+
+			// Só cria a próxima caixa depois de escolhida a preferência da
+			// última.
+			function updateAddButton() {
+				const last = slots[slots.length - 1];
+				addBtn.disabled = last === undefined || last < 0;
+				addBtn.title = addBtn.disabled ? "Escolha primeiro a preferência da última caixa" : "Adicionar a etapa " + (slots.length + 1);
+			}
+
+			addBtn.addEventListener("click", function () {
+				slots.push(-1);
+				renderSlots();
+				const selects = stepsWrap.querySelectorAll("select");
+				if (selects.length) selects[selects.length - 1].focus();
+			});
+
+			backdrop.querySelector(".pdp-qa-modal-close").addEventListener("click", closeComboEditor);
+			backdrop.querySelector(".pdp-qa-combo-cancel").addEventListener("click", closeComboEditor);
+			backdrop.addEventListener("click", function (event) {
+				if (event.target === backdrop) closeComboEditor();
+			});
+
+			backdrop.querySelector(".pdp-qa-combo-save").addEventListener("click", function () {
+				const name = nameInput.value.trim();
+				if (!name) {
+					alert("Dê um nome ao combo.");
+					nameInput.focus();
+					return;
+				}
+				if (slots.some(function (v) { return v < 0; })) {
+					alert("Escolha a preferência de todas as caixas (ou remova as que sobraram com ✕).");
+					return;
+				}
+				if (slots.length < 2) {
+					alert("Um combo precisa de pelo menos 2 preferências. Use \"+ Adicionar preferência\".");
+					return;
+				}
+				const combo = {
+					name: name,
+					steps: slots.map(function (v) {
+						return { label: items[v].label, prefId: items[v].pref.id };
+					}),
+				};
+				if (existing) combo.id = existing.id;
+				saveCombo(combo)
+					.then(function () {
+						closeComboEditor();
+						alert('Combo "' + name + '" ' + (existing ? "atualizado" : "salvo") + ". Use-o pelo botão \"🔗 Combos\" ou \"⭐ Minhas Preferências\".");
+					})
+					.catch(function (err) {
+						alert("Não foi possível salvar o combo: " + (err && err.message ? err.message : err));
+					});
+			});
+
+			renderSlots();
+			nameInput.focus();
+		});
+	}
+
+	// --- Painel "🔗 Combos" ----------------------------------------------
+
+	function toggleCombosPanel() {
+		if (activeGroupId === "combos") {
+			closePanel();
+			return;
+		}
+		closePanel();
+		buildCombosPanel();
+	}
+
+	function buildCombosPanel() {
+		activeGroupId = "combos";
+		const activeBtn = panelButton("combos");
+		if (activeBtn) activeBtn.classList.add("pdp-qa-active");
+		activePanel = document.createElement("div");
+		activePanel.className = "pdp-qa-panel";
+
+		// Qualquer aba da tela do processo serve (ver prepareComboScreen).
+		const canRun = isOnAcoesScreen() || !!findMovimentarButton() || !!findLatestValidEventLink() || hasProcessoForm() || !!findBackToProcessUrl();
+		if (!canRun) {
+			const note = document.createElement("div");
+			note.className = "pdp-qa-empty";
+			note.textContent = "Para usar um combo, abra a tela do processo. Aqui dá para criar e editar combos.";
+			activePanel.appendChild(note);
+		}
+
+		const list = document.createElement("div");
+		list.className = "pdp-qa-combo-list";
+		activePanel.appendChild(list);
+
+		const newBtn = document.createElement("button");
+		newBtn.type = "button";
+		newBtn.className = "pdp-qa-pref-new";
+		newBtn.textContent = "+ Novo combo";
+		newBtn.title = "Combinar preferências já salvas, para executá-las em sequência, na ordem escolhida";
+		newBtn.addEventListener("click", function () {
+			openComboEditor(null);
+		});
+		activePanel.appendChild(newBtn);
+
+		document.body.appendChild(activePanel);
+		positionPanel("combos");
+		setTimeout(function () {
+			document.addEventListener("click", onOutsideClick, true);
+			document.addEventListener("keydown", onKeydown, true);
+		}, 0);
+
+		Promise.all([loadCombos(), loadComboPreferences()]).then(function (data) {
+			if (activeGroupId !== "combos") return;
+			renderCombos(list, data[0], data[1], canRun);
+			positionPanel("combos");
+		});
+	}
+
+	function renderCombos(list, combos, all, canRun) {
+		list.innerHTML = "";
+		if (!combos.length) {
+			const empty = document.createElement("div");
+			empty.className = "pdp-qa-empty";
+			empty.textContent = 'Nenhum combo ainda. Use "+ Novo combo" para combinar preferências já salvas.';
+			list.appendChild(empty);
+			return;
+		}
+		combos.forEach(function (combo) {
+			const item = document.createElement("div");
+			item.className = "pdp-qa-combo-item";
+
+			const chip = document.createElement("span");
+			chip.className = "pdp-qa-pref-chip";
+
+			const runBtn = document.createElement("button");
+			runBtn.type = "button";
+			runBtn.className = "pdp-qa-pref-btn";
+			runBtn.textContent = "▶ " + combo.name;
+			runBtn.disabled = !canRun;
+			runBtn.title = (canRun ? "Executar em sequência (cada etapa pede a confirmação de sempre):\n" : 'Abra a tela do processo para executar:\n') + describeComboSteps(combo.steps, all);
+			runBtn.addEventListener("click", function () {
+				closePanel();
+				startCombo(combo);
+			});
+			chip.appendChild(runBtn);
+
+			const editBtn = document.createElement("button");
+			editBtn.type = "button";
+			editBtn.className = "pdp-qa-pref-edit";
+			editBtn.textContent = "✏️";
+			editBtn.title = "Editar este combo (etapas, ordem e nome)";
+			editBtn.addEventListener("click", function () {
+				openComboEditor(combo);
+			});
+			chip.appendChild(editBtn);
+
+			const delBtn = document.createElement("button");
+			delBtn.type = "button";
+			delBtn.className = "pdp-qa-pref-del";
+			delBtn.textContent = "🗑";
+			delBtn.title = "Remover este combo (as preferências continuam salvas)";
+			delBtn.addEventListener("click", function () {
+				if (!confirm('Remover o combo "' + combo.name + '"? As preferências dele continuam salvas.')) return;
+				removeCombo(combo.id)
+					.then(loadCombos)
+					.then(function (updated) {
+						renderCombos(list, updated, all, canRun);
+					});
+			});
+			chip.appendChild(delBtn);
+			item.appendChild(chip);
+
+			const steps = document.createElement("div");
+			steps.className = "pdp-qa-combo-item-steps";
+			steps.textContent = combo.steps.length + " etapas: " + combo.steps
+				.map(function (step) {
+					const pref = findPref(all, step);
+					return pref ? pref.name : "⚠ removida";
+				})
+				.join(" → ");
+			item.appendChild(steps);
+			list.appendChild(item);
 		});
 	}
 
@@ -1964,6 +3779,17 @@
 			secondLine.appendChild(clipboardBtn);
 		}
 
+		// Antes (à esquerda) do "Processo copiado": os botões irmãos
+		// (habilitarAdvogado.js etc.) disputam a posição logo DEPOIS dele.
+		const favBtn = document.createElement("button");
+		favBtn.type = "button";
+		favBtn.id = "pdp-fav-prefs-button";
+		favBtn.className = "pdp-qa-group-btn";
+		favBtn.innerHTML = '<span class="pdp-qa-icon">⭐</span><span>Minhas Preferências</span>';
+		favBtn.title = "Todas as preferências salvas, num só lugar: escolha uma para acioná-la";
+		favBtn.addEventListener("click", toggleFavPanel);
+		secondLine.insertBefore(favBtn, secondLine.firstChild);
+
 		const highlightPrefsBtn = document.createElement("button");
 		highlightPrefsBtn.type = "button";
 		highlightPrefsBtn.className = "pdp-qa-group-btn";
@@ -1973,6 +3799,15 @@
 			if (window.__pdpOpenMovementHighlightConfig) window.__pdpOpenMovementHighlightConfig();
 		});
 		secondLine.appendChild(highlightPrefsBtn);
+
+		const combosBtn = document.createElement("button");
+		combosBtn.type = "button";
+		combosBtn.className = "pdp-qa-group-btn";
+		combosBtn.dataset.panelId = "combos";
+		combosBtn.innerHTML = '<span class="pdp-qa-icon">🔗</span><span>Combos</span>';
+		combosBtn.title = "Combos de preferências: executar várias preferências salvas em sequência, na ordem escolhida";
+		combosBtn.addEventListener("click", toggleCombosPanel);
+		secondLine.appendChild(combosBtn);
 
 		row.appendChild(mainLine);
 		row.appendChild(secondLine);
@@ -1984,13 +3819,22 @@
 		repositionRow();
 	}
 
+	// Botão que abre o painel `id`: um grupo de ações (data-group-id) ou
+	// o "🔗 Combos" (data-panel-id, que não é recolhido com os grupos).
+	function panelButton(id) {
+		return row ? row.querySelector('[data-group-id="' + id + '"], [data-panel-id="' + id + '"]') : null;
+	}
+
 	function closePanel() {
 		if (activePanel) {
 			activePanel.remove();
 			activePanel = null;
 		}
-		if (activeGroupId && row) {
-			const prevBtn = row.querySelector('[data-group-id="' + activeGroupId + '"]');
+		if (activeGroupId === FAV_PANEL_ID && row) {
+			const favBtn = row.querySelector("#pdp-fav-prefs-button");
+			if (favBtn) favBtn.classList.remove("pdp-qa-active");
+		} else if (activeGroupId && row) {
+			const prevBtn = panelButton(activeGroupId);
 			if (prevBtn) prevBtn.classList.remove("pdp-qa-active");
 		}
 		activeGroupId = null;
@@ -2235,12 +4079,414 @@
 	}
 
 	// -------------------------------------------------------------------
+	// "⭐ Minhas Preferências": todas as preferências salvas (das ações
+	// rápidas e do "📎 Juntar Documento") em cards, num painel que abre
+	// para baixo do botão. Só as FAV_VISIBLE_LIMIT primeiras aparecem por
+	// padrão; o modo de edição permite arrastar os cards para reordená-los
+	// (ordem gravada em FAV_ORDER_KEY).
+	// -------------------------------------------------------------------
+
+	function groupForLabel(label) {
+		for (let i = 0; i < ACTION_GROUPS.length; i++) {
+			if (ACTION_GROUPS[i].actions.indexOf(label) !== -1) return ACTION_GROUPS[i];
+		}
+		return null;
+	}
+
+	// Mesma decisão de modo de buildPanel(), por ação; null = indisponível aqui.
+	function modeForLabel(label) {
+		const group = groupForLabel(label);
+		if (!group) return null;
+		if (group.custom) {
+			if (!location.pathname.startsWith("/projudi/")) return null;
+			return getCustomAction(label) ? "custom" : null;
+		}
+		if (isOnAcoesScreen()) return findActionLink(label) ? "ready" : null;
+		if (findMovimentarButton() || findLatestValidEventLink()) return "hop";
+		return null;
+	}
+
+	function loadFavItems() {
+		return loadFavItemsWith(false);
+	}
+
+	// `includeCombos`: também os combos (só o painel do botão; o da linha do
+	// processo, em preferenciasNaLinha.js, não tem como executar um combo).
+	function loadFavItemsWith(includeCombos) {
+		return chrome.storage.local.get([PREFERENCES_KEY, JUNTAR_PREFS_KEY, FAV_ORDER_KEY, COMBOS_KEY]).then(function (data) {
+			const items = [];
+			const actionPrefs = data[PREFERENCES_KEY] || {};
+			Object.keys(actionPrefs).forEach(function (label) {
+				(actionPrefs[label] || []).forEach(function (pref) {
+					items.push({ key: "a:" + pref.id, kind: "action", label: label, pref: pref });
+				});
+			});
+			const juntarPrefs = Array.isArray(data[JUNTAR_PREFS_KEY]) ? data[JUNTAR_PREFS_KEY] : [];
+			juntarPrefs.forEach(function (pref) {
+				items.push({ key: "j:" + pref.id, kind: "juntar", label: "Juntar Documento", pref: pref });
+			});
+			if (includeCombos) {
+				const all = Object.assign({}, actionPrefs);
+				if (juntarPrefs.length) all[JUNTAR_LABEL] = juntarPrefs;
+				const combos = Array.isArray(data[COMBOS_KEY]) ? data[COMBOS_KEY] : [];
+				combos.forEach(function (combo) {
+					items.push({
+						key: "c:" + combo.id,
+						kind: "combo",
+						label: "🔗 Combo · " + combo.steps.length + (combo.steps.length === 1 ? " etapa" : " etapas"),
+						pref: { id: combo.id, name: combo.name, createdAt: combo.createdAt },
+						combo: combo,
+						all: all,
+					});
+				});
+			}
+
+			const order = Array.isArray(data[FAV_ORDER_KEY]) ? data[FAV_ORDER_KEY] : [];
+			const position = new Map(order.map(function (key, i) { return [key, i]; }));
+			items.sort(function (a, b) {
+				const pa = position.has(a.key) ? position.get(a.key) : Infinity;
+				const pb = position.has(b.key) ? position.get(b.key) : Infinity;
+				if (pa !== pb) return pa - pb;
+				return (a.pref.createdAt || 0) - (b.pref.createdAt || 0);
+			});
+			return items;
+		});
+	}
+
+	function removeFavItem(item) {
+		if (item.kind === "combo") return removeCombo(item.combo.id);
+		if (item.kind === "action") return removePreference(item.label, item.pref.id);
+		return chrome.storage.local.get([JUNTAR_PREFS_KEY]).then(function (data) {
+			const prefs = Array.isArray(data[JUNTAR_PREFS_KEY]) ? data[JUNTAR_PREFS_KEY] : [];
+			return chrome.storage.local.set({
+				[JUNTAR_PREFS_KEY]: prefs.filter(function (p) {
+					return p.id !== item.pref.id;
+				}),
+			});
+		});
+	}
+
+	function toggleFavPanel() {
+		if (activeGroupId === FAV_PANEL_ID) {
+			closePanel();
+			return;
+		}
+		closePanel();
+		buildFavPanel();
+	}
+
+	function buildFavPanel() {
+		activeGroupId = FAV_PANEL_ID;
+		const favBtn = row && row.querySelector("#pdp-fav-prefs-button");
+		if (favBtn) favBtn.classList.add("pdp-qa-active");
+
+		const panel = document.createElement("div");
+		panel.className = "pdp-qa-panel pdp-qa-fav-panel";
+		activePanel = panel;
+
+		const state = { showAll: false, editing: false };
+
+		const header = document.createElement("div");
+		header.className = "pdp-qa-fav-header";
+		const title = document.createElement("span");
+		title.className = "pdp-qa-action-label";
+		title.textContent = "⭐ Minhas Preferências";
+		header.appendChild(title);
+		const editBtn = document.createElement("button");
+		editBtn.type = "button";
+		editBtn.className = "pdp-qa-open-btn";
+		editBtn.textContent = "✏️ Editar posição";
+		editBtn.title = "Arrastar os cards para colocá-los na ordem que você quiser";
+		header.appendChild(editBtn);
+		panel.appendChild(header);
+
+		const hint = document.createElement("div");
+		hint.className = "pdp-qa-note";
+		hint.textContent = 'Arraste os cards para reordená-los. A ordem é salva na hora. Clique em "✅ Concluir" ao terminar.';
+		hint.hidden = true;
+		panel.appendChild(hint);
+
+		const grid = document.createElement("div");
+		grid.className = "pdp-qa-fav-grid";
+		panel.appendChild(grid);
+
+		const footer = document.createElement("label");
+		footer.className = "pdp-qa-fav-footer";
+		const showAllBox = document.createElement("input");
+		showAllBox.type = "checkbox";
+		const showAllText = document.createElement("span");
+		footer.appendChild(showAllBox);
+		footer.appendChild(showAllText);
+		footer.hidden = true;
+		panel.appendChild(footer);
+
+		function applyVisibility() {
+			const cards = grid.querySelectorAll(".pdp-qa-fav-card");
+			const showAll = state.showAll || state.editing;
+			cards.forEach(function (card, index) {
+				card.classList.toggle("pdp-qa-fav-hidden", !showAll && index >= FAV_VISIBLE_LIMIT);
+			});
+			const hiddenCount = Math.max(0, cards.length - FAV_VISIBLE_LIMIT);
+			footer.hidden = hiddenCount === 0;
+			showAllBox.checked = showAll;
+			showAllBox.disabled = state.editing;
+			showAllText.textContent = "Mostrar todas (+" + hiddenCount + ")";
+			positionFavPanel();
+		}
+
+		showAllBox.addEventListener("change", function () {
+			state.showAll = showAllBox.checked;
+			applyVisibility();
+		});
+
+		editBtn.addEventListener("click", function () {
+			state.editing = !state.editing;
+			panel.classList.toggle("pdp-qa-fav-editing", state.editing);
+			editBtn.textContent = state.editing ? "✅ Concluir" : "✏️ Editar posição";
+			hint.hidden = !state.editing;
+			grid.querySelectorAll(".pdp-qa-fav-card").forEach(function (card) {
+				card.draggable = state.editing;
+			});
+			applyVisibility();
+		});
+
+		let draggedCard = null;
+		// Mesmo critério do painel "🔗 Combos" (qualquer aba da tela do processo).
+		const comboCanRun = isOnAcoesScreen() || !!findMovimentarButton() || !!findLatestValidEventLink() || hasProcessoForm() || !!findBackToProcessUrl();
+
+		function persistOrder() {
+			const order = Array.prototype.map.call(grid.querySelectorAll(".pdp-qa-fav-card"), function (card) {
+				return card.dataset.key;
+			});
+			chrome.storage.local.set({ [FAV_ORDER_KEY]: order }).catch(function (err) {
+				console.error("[Projudi Ações Rápidas]", "erro ao salvar a ordem das preferências:", err);
+			});
+		}
+
+		function buildCard(item) {
+			const card = document.createElement("div");
+			card.className = "pdp-qa-fav-card";
+			card.dataset.key = item.key;
+			card.tabIndex = 0;
+			card.setAttribute("role", "button");
+
+			const isCombo = item.kind === "combo";
+			if (isCombo) card.classList.add("pdp-qa-fav-combo");
+			const mode = isCombo
+				? (comboCanRun ? "combo" : null)
+				: item.kind === "juntar"
+					? (window.__pdpJuntarDocumento && location.pathname.startsWith("/projudi/") ? "juntar" : null)
+					: modeForLabel(item.label);
+
+			const actionEl = document.createElement("span");
+			actionEl.className = "pdp-qa-fav-card-action";
+			actionEl.textContent = item.label;
+			card.appendChild(actionEl);
+			const nameEl = document.createElement("span");
+			nameEl.className = "pdp-qa-fav-card-name";
+			nameEl.textContent = (isCombo ? "▶ " : "★ ") + item.pref.name;
+			card.appendChild(nameEl);
+
+			const tools = document.createElement("span");
+			tools.className = "pdp-qa-fav-tools";
+			card.appendChild(tools);
+
+			const editPrefBtn = document.createElement("button");
+			editPrefBtn.type = "button";
+			editPrefBtn.className = "pdp-qa-fav-edit";
+			editPrefBtn.textContent = "✏️";
+			editPrefBtn.draggable = false;
+			editPrefBtn.disabled = !mode && !isCombo;
+			editPrefBtn.title = isCombo
+				? "Editar este combo (etapas, ordem e nome)"
+				: mode
+					? "Editar esta preferência: abre o diálogo preenchido com ela para ajustar os campos (e o nome) e salvar de novo"
+					: '"' + item.label + '" não está disponível nesta tela para editar.';
+			editPrefBtn.addEventListener("click", function (e) {
+				e.stopPropagation();
+				if (isCombo) {
+					openComboEditor(item.combo);
+					return;
+				}
+				if (!mode) return;
+				closePanel();
+				removeConfirmBar();
+				removeCaptureToolbar();
+				if (mode === "juntar") window.__pdpJuntarDocumento.edit(item.pref);
+				else if (mode === "custom") applyPreferenceCustom(item.label, item.pref, true);
+				else if (mode === "hop") applyPreferenceViaChain(item.label, item.pref, true);
+				else applyPreference(item.label, item.pref, true);
+			});
+			editPrefBtn.addEventListener("keydown", function (e) {
+				e.stopPropagation();
+			});
+			tools.appendChild(editPrefBtn);
+
+			const delBtn = document.createElement("button");
+			delBtn.type = "button";
+			delBtn.className = "pdp-qa-fav-del";
+			delBtn.textContent = "🗑";
+			delBtn.title = isCombo ? "Remover este combo (as preferências dele continuam salvas)" : "Remover esta preferência";
+			delBtn.draggable = false;
+			delBtn.addEventListener("click", function (e) {
+				e.stopPropagation();
+				const question = isCombo
+					? 'Remover o combo "' + item.pref.name + '"? As preferências dele continuam salvas.'
+					: 'Remover a preferência "' + item.pref.name + '" de "' + item.label + '"?';
+				if (!confirm(question)) return;
+				removeFavItem(item).then(function () {
+					card.remove();
+					if (!grid.querySelector(".pdp-qa-fav-card")) showEmpty();
+					applyVisibility();
+				}).catch(function (err) {
+					console.error("[Projudi Ações Rápidas]", "erro ao remover preferência:", err);
+					alert("Não foi possível remover a preferência. Tente de novo.");
+				});
+			});
+			delBtn.addEventListener("keydown", function (e) {
+				e.stopPropagation();
+			});
+			tools.appendChild(delBtn);
+
+			if (isCombo) {
+				if (!mode) card.classList.add("pdp-qa-fav-unavailable");
+				card.title = (mode ? "Executar em sequência (cada etapa pede a confirmação de sempre):\n" : "Abra a tela do processo para executar:\n") +
+					describeComboSteps(item.combo.steps, item.all);
+			} else if (!mode) {
+				card.classList.add("pdp-qa-fav-unavailable");
+				card.title = '"' + item.label + '" não está disponível nesta tela. Abra a aba "Movimentações" do processo.';
+			} else if (item.kind === "juntar") {
+				card.title = 'Juntar Documento com a preferência "' + item.pref.name + '"';
+			} else {
+				card.title = mode === "custom"
+					? 'Abre "' + item.label + '" já preenchido com esta preferência'
+					: 'Preenche automaticamente e pede 1 confirmação para executar "' + item.label + '"';
+				if (item.pref.descricao) card.title += "\n" + item.pref.descricao;
+			}
+
+			function activate() {
+				if (state.editing || !mode) return;
+				closePanel();
+				if (mode === "combo") {
+					startCombo(item.combo);
+					return;
+				}
+				removeConfirmBar();
+				removeCaptureToolbar();
+				if (mode === "juntar") window.__pdpJuntarDocumento.apply(item.pref);
+				else if (mode === "custom") applyPreferenceCustom(item.label, item.pref);
+				else if (mode === "hop") applyPreferenceViaChain(item.label, item.pref);
+				else applyPreference(item.label, item.pref);
+			}
+			card.addEventListener("click", activate);
+			card.addEventListener("keydown", function (e) {
+				if (e.key === "Enter" || e.key === " ") {
+					e.preventDefault();
+					activate();
+				}
+			});
+
+			card.addEventListener("dragstart", function (e) {
+				if (!state.editing) {
+					e.preventDefault();
+					return;
+				}
+				draggedCard = card;
+				card.classList.add("pdp-qa-fav-dragging");
+				e.dataTransfer.effectAllowed = "move";
+				e.dataTransfer.setData("text/plain", item.key);
+			});
+			card.addEventListener("dragend", function () {
+				card.classList.remove("pdp-qa-fav-dragging");
+				grid.querySelectorAll(".pdp-qa-fav-over").forEach(function (c) {
+					c.classList.remove("pdp-qa-fav-over");
+				});
+				draggedCard = null;
+			});
+			card.addEventListener("dragover", function (e) {
+				if (!draggedCard || draggedCard === card) return;
+				e.preventDefault();
+				e.dataTransfer.dropEffect = "move";
+				card.classList.add("pdp-qa-fav-over");
+			});
+			card.addEventListener("dragleave", function () {
+				card.classList.remove("pdp-qa-fav-over");
+			});
+			card.addEventListener("drop", function (e) {
+				e.preventDefault();
+				card.classList.remove("pdp-qa-fav-over");
+				if (!draggedCard || draggedCard === card) return;
+				const cards = Array.prototype.slice.call(grid.children);
+				const movingForward = cards.indexOf(draggedCard) < cards.indexOf(card);
+				card.insertAdjacentElement(movingForward ? "afterend" : "beforebegin", draggedCard);
+				persistOrder();
+			});
+
+			return card;
+		}
+
+		function showEmpty() {
+			const empty = document.createElement("div");
+			empty.className = "pdp-qa-empty";
+			empty.textContent = 'Nenhuma preferência ou combo salvo ainda. Crie uma preferência com "+ Nova preferência" no painel de qualquer ação.';
+			grid.replaceWith(empty);
+			editBtn.hidden = true;
+			hint.hidden = true;
+		}
+
+		loadFavItemsWith(true).then(function (items) {
+			if (activePanel !== panel) return; // painel já fechado/trocado
+			if (!items.length) {
+				showEmpty();
+			} else {
+				items.forEach(function (item) {
+					grid.appendChild(buildCard(item));
+				});
+			}
+			applyVisibility();
+		});
+
+		document.body.appendChild(panel);
+		positionFavPanel();
+
+		setTimeout(function () {
+			document.addEventListener("click", onOutsideClick, true);
+			document.addEventListener("keydown", onKeydown, true);
+		}, 0);
+	}
+
+	// Abre para baixo do botão; só vai para cima quando não cabe embaixo.
+	function positionFavPanel() {
+		if (!activePanel || !row || activeGroupId !== FAV_PANEL_ID) return;
+		const btn = row.querySelector("#pdp-fav-prefs-button");
+		if (!btn) return;
+		const rect = btn.getBoundingClientRect();
+		const above = rect.top - BUTTON_SCREEN_MARGIN - 6;
+		const below = window.innerHeight - rect.bottom - BUTTON_SCREEN_MARGIN - 6;
+		const openBelow = below >= Math.min(260, activePanel.scrollHeight) || below >= above;
+		activePanel.style.boxSizing = "border-box";
+		activePanel.style.maxHeight = Math.max(0, openBelow ? below : above) + "px";
+		activePanel.style.top = openBelow ? (rect.bottom + 6) + "px" : "auto";
+		activePanel.style.bottom = openBelow ? "auto" : (window.innerHeight - rect.top + 6) + "px";
+
+		const width = activePanel.offsetWidth || 380;
+		let left = rect.right - width;
+		if (left + width > window.innerWidth - BUTTON_SCREEN_MARGIN) left = window.innerWidth - BUTTON_SCREEN_MARGIN - width;
+		activePanel.style.left = Math.max(BUTTON_SCREEN_MARGIN, Math.round(left)) + "px";
+		activePanel.style.right = "auto";
+	}
+
+	// -------------------------------------------------------------------
 	// Posicionamento (mesma técnica dos botões irmãos de WhatsApp/e-mail)
 	// -------------------------------------------------------------------
 
 	function positionPanel(groupId) {
+		if (groupId === FAV_PANEL_ID) {
+			positionFavPanel();
+			return;
+		}
 		if (!activePanel || !row) return;
-		const btn = row.querySelector('[data-group-id="' + groupId + '"]');
+		const btn = panelButton(groupId);
 		if (!btn) return;
 		const rect = btn.getBoundingClientRect();
 
@@ -2334,23 +4580,26 @@
 				activeGroupId = null;
 			}
 			repositionRow();
+			maybeResumeCombo();
 		} catch (err) {
 			console.error("[Projudi Ações Rápidas]", "erro ao reconciliar:", err);
 		}
 	}
 
-	loadRowExpandedPreference();
-	setInterval(reconcile, 700);
-	reconcile();
+	if (!semInterface) {
+		loadRowExpandedPreference();
+		setInterval(reconcile, 700);
+		reconcile();
 
-	const observer = new MutationObserver(function () {
-		try {
-			reconcile();
-		} catch (err) {
-			console.error("[Projudi Ações Rápidas]", "erro no MutationObserver:", err);
-		}
-	});
-	observer.observe(document.documentElement, { childList: true, subtree: true });
+		const observer = new MutationObserver(function () {
+			try {
+				reconcile();
+			} catch (err) {
+				console.error("[Projudi Ações Rápidas]", "erro no MutationObserver:", err);
+			}
+		});
+		observer.observe(document.documentElement, { childList: true, subtree: true });
+	}
 
 	let repositionScheduled = false;
 	function scheduleReposition() {
@@ -2362,6 +4611,9 @@
 		});
 	}
 	window.addEventListener("pdp-buttons-hide", closePanel);
+	window.addEventListener("pagehide", function () {
+		pageReloading = true;
+	});
 	window.addEventListener("pdp-buttons-moved", function () {
 		if (activeGroupId) positionPanel(activeGroupId);
 	});
@@ -2460,6 +4712,31 @@
 
 	window.__pdpQuickActions = {
 		resolveDialogUrl: resolveDialogUrl,
+		// Preferências salvas (mesma lista/ordem de "Minhas Preferências").
+		loadFavItems: loadFavItems,
+		// Aplica uma preferência de ação (não "Juntar Documento" nem ações
+		// personalizadas) partindo de uma tela já carregada em segundo plano
+		// (`origem` = { doc, url }, ex.: a tela do processo) - mesmo popup,
+		// mesmo preenchimento e mesma barra "Sim, executar" das demais. Os
+		// `hooks` ({ onSubmit, onDone, onClose, onFail }) informam quem
+		// chamou; a tela por trás não é recarregada ao fim.
+		// Combos salvos e as preferências que eles referenciam (por rótulo da
+		// ação, com as do "Juntar Documento" em "Juntar Documento").
+		loadCombos: loadCombos,
+		loadComboPreferences: loadComboPreferences,
+		findComboPref: findPref,
+		comboPendingKey: COMBO_PENDING_KEY,
+		// Etapas que só rodam na tela do processo (navegam a aba ou usam
+		// telas próprias): "Juntar Documento" e ações personalizadas.
+		stepNeedsProcessScreen: function (label) {
+			return label === JUNTAR_LABEL || !!getCustomAction(label) || label === "Alvará Eletrônico";
+		},
+		applyPreferenceFrom: function (label, pref, origem, hooks) {
+			closePanel();
+			removeConfirmBar();
+			removeCaptureToolbar();
+			applyPreferenceViaChain(label, pref, false, origem, Object.assign({ noReload: true }, hooks || {}));
+		},
 		openActionModal: function (label, url) {
 			const iframe = showActionModal(label);
 			if (url) iframe.src = url;

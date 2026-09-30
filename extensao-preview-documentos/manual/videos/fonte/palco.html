@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Palco dos vídeos do manual</title>
+<link rel="stylesheet" href="palco.css">
+</head>
+<body>
+<div id="browser"></div>
+<div id="app"></div>
+<div id="overlay"></div>
+<script src="motor.js"></script>
+<script src="cenas1.js"></script>
+<script src="cenas2.js"></script>
+<script src="cenas3.js"></script>
+<script src="cenas4.js"></script>
+<script>
+// gravar.mjs chama window.__rodar(id) depois de instalar o relógio virtual.
+window.__rodar = async function (id) {
+	S.init();
+	try { await CENAS[id].run(); }
+	catch (e) { window.__erro = String(e && e.stack || e); }
+	window.__fim = true;
+};
+</script>
+</body>
+</html>

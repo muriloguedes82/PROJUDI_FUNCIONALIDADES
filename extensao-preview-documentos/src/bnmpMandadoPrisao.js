@@ -410,13 +410,36 @@
 		});
 	}
 
+	// Texto da prescrição sem os atalhos "[L]", "[D]" e "[Detalhes]", ex.:
+	// "13/09/2031 (Ativa)" ou "Interrompida pelo Acórdão".
+	function textoPrescricao(text) {
+		return collapse(String(text || "").replace(/\[\s*(l|d|detalhes)\s*\]/gi, ""));
+	}
+
+	// Prescrição mais próxima entre as ativas ("dd/mm/aaaa (Ativa)").
+	function proximaPrescricao(textos) {
+		let melhor = null;
+		for (const texto of textos) {
+			if (!/\(ativa\)/.test(normalize(texto))) continue;
+			const data = primeiraData(texto);
+			if (!data) continue;
+			const chave = data.split("/").reverse().join("");
+			if (!melhor || chave < melhor.chave) melhor = { chave: chave, data: data };
+		}
+		return melhor ? melhor.data : "";
+	}
+
 	async function lerDenunciado(href) {
 		const { doc } = await readPage(projudiURL(href).href, { method: "GET" });
-		const imputacoes = linhasComDados(tabelaDoCampo(doc, /^imputacoes$/)).map(function (tr) {
+		const tabela = tabelaDoCampo(doc, /^imputacoes$/);
+		const ths = tabela ? Array.prototype.map.call(tabela.querySelectorAll("th"), function (th) { return normalize(textoLimpo(th)); }) : [];
+		const colPrescricao = ths.findIndex(function (t) { return /^data de prescricao/.test(t); });
+		const imputacoes = linhasComDados(tabela).map(function (tr) {
 			return {
 				lei: collapse(textoLimpo(tr.cells[0])),
 				pena: collapse(textoLimpo(tr.cells[1])),
 				tipo: complementos(tr.cells[2]),
+				prescricao: colPrescricao >= 0 && tr.cells[colPrescricao] ? textoPrescricao(textoLimpo(tr.cells[colPrescricao])) : "",
 			};
 		});
 		return {
@@ -558,6 +581,7 @@
 					origemTexto: collapse(textoLimpo(origemTd)),
 					artigo: collapse(textoLimpo(tr.cells[col("pena cominada")])),
 					tipo: complementos(tr.cells[col("complemento")]),
+					prescricao: col("prescricao") >= 0 ? textoPrescricao(textoLimpo(tr.cells[col("prescricao")])) : "",
 				});
 			}
 		}
@@ -597,6 +621,7 @@
 			fracaoLivramento: campo(form, /^fracao para livramento condicional$/),
 			reincidente: reincidente.join(" e "),
 			pena: campo(form, /^pena cominada$/),
+			prescricao: textoPrescricao(campo(form, /^data de prescricao$/)),
 		};
 	}
 
@@ -960,7 +985,7 @@
 			if (inf && inf.linhas.length) {
 				conteudoTip.push(el("p", null, [el("b", null, "Origem: "), inf.origem]));
 				conteudoTip.push(tabelaResultado(
-					["Artigo", "Data do Delito", "Tipo", "Fração para Progressão de Regime", "Fração para Livramento Condicional", "Reincidente", "Anos", "Meses", "dia(s)"],
+					["Artigo", "Data do Delito", "Tipo", "Fração para Progressão de Regime", "Fração para Livramento Condicional", "Reincidente", "Anos", "Meses", "dia(s)", "Data de Prescrição"],
 					inf.linhas.map(function (l) {
 						const d = l.detalhe || {};
 						const pena = penaEmPartes(d.pena || l.artigo);
@@ -974,6 +999,7 @@
 							pena.anos,
 							pena.meses,
 							pena.dias,
+							d.prescricao || l.prescricao,
 						];
 					})
 				));
@@ -984,7 +1010,13 @@
 			} else {
 				conteudoTip.push(aviso(inf ? "Nenhuma infração/pena de Sentença Judicial ou do Ministério Público para esta parte." : SEM_INFO));
 			}
+			// Prescrição dos crimes imputados à parte: os da tipificação (sentença
+			// ou MP); sem eles, as imputações da denúncia.
+			const prescricoesTip = inf ? inf.linhas.map(function (l) { return (l.detalhe && l.detalhe.prescricao) || l.prescricao; }) : [];
+			const prescricoesDen = den ? den.imputacoes.map(function (i) { return i.prescricao; }) : [];
+			const proxima = proximaPrescricao(prescricoesTip) || (prescricoesTip.length ? "" : proximaPrescricao(prescricoesDen));
 			conteudoTip.push(tabelaCampos([
+				["Próxima Prescrição", proxima],
 				["Tempo de Pena", preferir(anotacoes, function (a) { return a.tempoPena; })],
 				["Dias-Multa", preferir(anotacoes, function (a) { return a.diasMulta; })],
 				["Proporção S.M.", preferir(anotacoes, function (a) { return a.proporcaoSM; })],
@@ -996,7 +1028,7 @@
 				["Data de Recebimento", den && den.recebimento],
 			].concat(camposAditamento(den, "")))];
 			if (den && den.imputacoes.length) {
-				conteudoDen.push(tabelaResultado(["Lei", "Pena Cominada", "Complemento"], den.imputacoes.map(function (i) { return [i.lei, i.pena, i.tipo]; })));
+				conteudoDen.push(tabelaResultado(["Lei", "Pena Cominada", "Complemento", "Data de Prescrição"], den.imputacoes.map(function (i) { return [i.lei, i.pena, i.tipo, i.prescricao]; })));
 			}
 			secao(tbody, "Denunciado(s)/Querelado(s)" + sufixo, conteudoDen);
 

@@ -11,7 +11,9 @@ bash extensao-preview-documentos/scripts/empacotar.sh
 ```
 
 O arquivo sai em `extensao-preview-documentos/dist/` (ignorado pelo git) e
-contém só `manifest.json`, `src/` e `icons/`. A cada nova submissão, a
+contém só `manifest.json`, `src/`, `icons/` e, do manual, o `MANUAL.md` e os
+vídeos `.mp4` (o botão "📖 Manual do Usuário" do Menu os abre de dentro da
+extensão). A fonte dos vídeos, o PDF e os scripts do manual ficam de fora. A cada nova submissão, a
 `version` do `manifest.json` precisa ser maior que a publicada.
 
 ## 2. O que já foi ajustado no manifesto
@@ -20,10 +22,14 @@ contém só `manifest.json`, `src/` e `icons/`. A cada nova submissão, a
   transparente de 16 px recomendada).
 - **Descrição** com até 132 caracteres (limite da loja); o texto longo vai
   na ficha (item 3).
-- **Permissões mínimas**: removidas `tabs` (a busca da aba do WhatsApp Web
-  já é coberta pela permissão de host `web.whatsapp.com`) e `windows` (não
-  existe como permissão; `chrome.windows` funciona sem ela e a loja
-  acusaria aviso).
+- **Permissões mínimas**: removidas `tabs` e `windows` (esta não existe
+  como permissão; `chrome.windows` funciona sem ela e a loja acusaria
+  aviso). Sem `tabs`, a extensão continua funcionando porque:
+  - a busca da aba do WhatsApp Web e a detecção de páginas do Projudi/SEEU
+    (Termos de Uso) são cobertas pelas permissões de host;
+  - a página de Termos de Uso já aberta é localizada com
+    `chrome.runtime.getContexts` (que enxerga as páginas da própria extensão
+    sem permissão extra), evitando abrir abas duplicadas.
 - `options_ui` no lugar de `options_page`.
 - `minimum_chrome_version: 116` (usa `chrome.offscreen` e
   `chrome.runtime.getContexts`).
@@ -46,7 +52,12 @@ contém só `manifest.json`, `src/` e `icons/`. A cada nova submissão, a
   >   Documento, Alvará Eletrônico, remessas e ordenações;
   > • destaque de movimentações por tipo de usuário, indicadores de
   >   suspensão e monitoração eletrônica ativas, sequencial do processo
-  >   principal, RG/CPF das partes nos cumprimentos, entre outros.
+  >   principal, RG/CPF das partes nos cumprimentos, endereço da parte e
+  >   Mandado Regionalizado nas ordenações, entre outros;
+  > • listas de tarefas e "Minhas Preferências" na linha do processo;
+  > • Menu da extensão para ligar/desligar cada funcionalidade por sistema
+  >   (PROJUDI e SEEU), fazer backup das preferências e abrir o Manual do
+  >   Usuário com vídeos.
   >
   > A extensão roda só no navegador e não envia dados ao desenvolvedor.
   > Não é um produto oficial do TJPR nem do CNJ.
@@ -77,7 +88,7 @@ contém só `manifest.json`, `src/` e `icons/`. A cada nova submissão, a
 | `identity` | Login OAuth na conta Microsoft do usuário (opcional) para criar o rascunho de e-mail com os documentos anexados via Microsoft Graph. |
 | `storage` | Guardar preferências, contatos/destinatários favoritos e a configuração do envio por e-mail. |
 | `unlimitedStorage` | Guardar temporariamente os documentos (PDFs) selecionados para envio até serem anexados no WhatsApp Web/Outlook; arquivos grandes excedem a cota padrão. |
-| `scripting` | Injetar o script de anexo na aba do WhatsApp Web e acionar funções nativas das páginas do Projudi (ex.: abrir a janela do Oráculo, confirmar juntada) quando o usuário clica no botão correspondente. |
+| `scripting` | Ativar as funcionalidades no Projudi/SEEU só depois do aceite dos Termos de Uso e conforme as funcionalidades ligadas no Menu (registro dinâmico dos scripts); injetar o script de anexo na aba do WhatsApp Web; acionar funções nativas das páginas do Projudi (ex.: abrir a janela do Oráculo, confirmar juntada) quando o usuário clica no botão correspondente. |
 | `downloads` | Baixar os documentos selecionados quando o usuário escolhe anexá-los manualmente no Outlook Web. |
 | `clipboardRead` | Ler o número de processo copiado quando o usuário clica em "📋 Processo copiado". |
 | `offscreen` | Documento auxiliar para essa leitura da área de transferência quando a página do Projudi não permite fazê-la diretamente. |
