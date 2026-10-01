@@ -315,7 +315,10 @@
 		}
 		inc.abriu = true;
 		inc.abriuEm = inc.abriuEm || Date.now();
-		if (!selDoc || selDoc.readyState !== "complete" || selDoc === inc.pesquisaDoc) return "agindo";
+		if (!selDoc || selDoc.readyState !== "complete") return "agindo";
+		// Esperando a tela que a ação anterior pediu (resultado da pesquisa,
+		// ou a recarga que a troca do "Tipo" provoca).
+		if (selDoc === inc.esperaDoc && Date.now() - inc.esperaEm < inc.esperaMs) return "agindo";
 		const form = selDoc.getElementById("advogadoForm") || selDoc.querySelector("form");
 		if (!form) return "agindo";
 
@@ -330,23 +333,39 @@
 			selecionar.click();
 			return "selecionado";
 		}
-		// Pesquisou e o advogado não veio no resultado (a janela fica aberta
-		// para o próximo; é fechada no fim).
-		if (inc.pesquisou) return "falhou";
 		const oab = selDoc.getElementById("oab") || form.querySelector('[name="oab"]');
 		const pesquisar = selDoc.getElementById("searchButton") ||
 			botoesDa(selDoc).filter(function (b) { return /^pesquisar$/i.test(textoBotao(b)); })[0];
 		if (!oab || !pesquisar) return "falhou";
+		// A pesquisa pela OAB gravada já voltou (o Projudi devolve a tela com
+		// a OAB pesquisada) e o advogado não está no resultado (a janela fica
+		// aberta para o próximo; é fechada no fim).
+		if (inc.pesquisas && selDoc !== inc.pesquisaDoc && limpa(oab.value) === adv.oab) return "falhou";
+		if ((inc.pesquisas || 0) >= 3) return "falhou";
+
+		// "Tipo": só mexe se for outro — a troca recarrega a janela (e
+		// cancelaria a pesquisa clicada logo em seguida).
 		const tipo = selDoc.getElementById("tipoAdvogado") || form.querySelector('select[name="tipoAdvogado"]');
 		if (tipo) {
 			const temTipo = Array.prototype.some.call(tipo.options, function (o) { return o.value === adv.tipo; });
-			preencher(tipo, temTipo ? adv.tipo : "-1");
+			const desejado = temTipo ? adv.tipo : "-1";
+			if (tipo.value !== desejado && !inc.trocouTipo) {
+				inc.trocouTipo = true;
+				preencher(tipo, desejado);
+				inc.esperaDoc = selDoc;
+				inc.esperaEm = Date.now();
+				inc.esperaMs = 2500; // se a troca não recarregar, segue
+				return "agindo";
+			}
 		}
 		const nome = selDoc.getElementById("nome");
-		if (nome) preencher(nome, "");
-		preencher(oab, adv.oab);
-		inc.pesquisou = true;
+		if (nome) nome.value = "";
+		oab.value = adv.oab;
+		inc.pesquisas = (inc.pesquisas || 0) + 1;
 		inc.pesquisaDoc = selDoc;
+		inc.esperaDoc = selDoc;
+		inc.esperaEm = Date.now();
+		inc.esperaMs = LIMITE_ETAPA_MS;
 		pesquisar.click();
 		return "agindo";
 	}
