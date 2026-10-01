@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.9.99 |
-| **Versão da extensão** | 2.9.99 |
+| **Versão do manual** | 2.10.0 |
+| **Versão da extensão** | 2.10.0 |
 | **Data desta versão** | 01/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -239,7 +239,7 @@ tela, "flutuando" sobre a página.
 | **▸ Ações** / **▾ Ações** | Mostra ou recolhe os grupos de ações rápidas (**Concluso**, **Remessa**, **Ordenações**, **Partes**, **Suspender**, **Transitar**, **Arquivar**, **🏦 Alvará Eletrônico**, **Outras**) | [7.1](#cap-7-1) |
 | **⭐ Minhas Preferências** | Todas as preferências salvas, em cards | [7.3](#cap-7-3) |
 | **📋 Colar processo** | Pesquisa o número de processo que você copiou | [8.5](#cap-8-5) |
-| **⚖️ Advogados** | Tela de Advogados em popup ((Des)Habilitar Advogado) | [8.3](#cap-8-3) |
+| **⚖️ Advogados** | Tela de Advogados em popup ((Des)Habilitar Advogado), com preferências de advogados | [8.3](#cap-8-3) |
 | **👥 Partes** | Tela Partes do Processo em popup (Editar Partes/Outros) | [8.4](#cap-8-4) |
 | **📎 Juntar Documento** | Juntada com preferências gravadas | [8.2](#cap-8-2) |
 | **🖍️ Destacar mov.** | Cores por tipo de usuário | [3.4](#cap-3-4) |
@@ -1078,11 +1078,60 @@ Movimento**.
 
 **Para que serve:** abrir a tela do botão nativo **Advogados** (aba Partes e
 Outros) num popup, para habilitar, desabilitar, adicionar ou remover
-advogado.
+advogado — e guardar **preferências de advogados**: listas de advogados
+que você costuma cadastrar juntos (ex.: os advogados de um mesmo
+escritório), para não ter de pesquisar um por um pela OAB a cada processo.
 
-**Passo a passo:** clique em **⚖️ Advogados**, faça a
-alteração no popup e feche com **✕ Fechar**. Funciona mesmo sem advogado
-cadastrado (para incluir o primeiro).
+**Onde fica:** botão **⚖️ Advogados** da barra da extensão. Ele abre um
+painel com:
+
+| Opção | O que faz |
+|---|---|
+| **Abrir** | Abre no popup a tela do botão nativo **Advogados** (a lista de advogados do processo), como antes |
+| **+ Nova preferência** | Abre direto a tela **Habilitação de Advogado/Sociedade para Parte**, para você montar a lista e salvá-la |
+| **★ nome** | Abre a tela já com os advogados da preferência na seção **Advogados** |
+| **✏️** | Abre a tela com a preferência, para você ajustar a lista e atualizá-la |
+| **🗑** | Remove a preferência |
+
+**Passo a passo — usar a tela sem preferência:** clique em **⚖️ Advogados**
+→ **Abrir**, faça a alteração no popup e feche com **✕ Fechar**. Funciona
+mesmo sem advogado cadastrado (para incluir o primeiro).
+
+**Passo a passo — criar uma preferência:**
+
+1. Clique em **⚖️ Advogados** → **+ Nova preferência**.
+2. Na seção **Advogados**, clique em **Adicionar**. Na tela **Seleção de
+   Advogado**, digite a **OAB**, clique em **Pesquisar**, marque a bolinha
+   do advogado e clique em **Selecionar**. Ele aparece na lista.
+3. Repita o passo 2 para cada advogado que deve fazer parte da preferência.
+4. Se quiser, escolha a **Atuação** (ex.: Defensor Dativo).
+5. Clique em **💾 Salvar como preferência** (barra abaixo do popup),
+   confira a lista que aparece e dê um **nome** (ex.: "Escritório Silva").
+
+**Passo a passo — usar a preferência:**
+
+1. Clique em **⚖️ Advogados** → **★ nome-da-preferência** (ou use o card
+   em **⭐ Minhas Preferências**, ou ponha a preferência num **🔗 Combo**).
+2. A tela **Habilitação de Advogado/Sociedade para Parte** abre e a extensão inclui sozinha, um de cada vez, cada advogado
+   da preferência na seção **Advogados**, fazendo por você o mesmo caminho
+   de sempre: **Adicionar** → OAB → **Pesquisar** → bolinha →
+   **Selecionar** (um aviso amarelo no alto da tela mostra o andamento). No
+   fim, escolhe a **Atuação** gravada.
+3. Marque as **Partes do Processo** que o advogado vai representar e
+   clique em **Salvar** do próprio Projudi.
+
+**Bom saber:**
+
+- As **Partes do Processo** **não** são gravadas — elas mudam de um
+  processo para outro. Marcá-las e clicar em **Salvar** é sempre com você:
+  nada é salvo no Projudi sem esse clique.
+- Advogado que já está na lista não é incluído de novo.
+- Se algum advogado não puder ser incluído (ex.: inscrição cancelada), o
+  aviso no alto da tela fica vermelho e diz qual: inclua-o pelo
+  **Adicionar**, se for o caso.
+- Para mudar a lista de uma preferência, use **✏️**: ajuste a lista
+  (**Adicionar**/**Remover**) e clique em **💾 Atualizar preferência**.
+- A preferência só funciona na tela do processo (não no ⭐ das listagens).
 
 <a id="cap-8-4"></a>
 ### 8.4 Editar Partes/Outros
@@ -1221,8 +1270,8 @@ da tela de análise, sem abri-lo.
 **Bom saber:**
 
 - A lista **não** é recarregada ao final, para não perder a busca feita.
-- Preferências avulsas de **Juntar Documento** e **Alvará Eletrônico**
-  aparecem esmaecidas (use-as na tela do processo).
+- Preferências avulsas de **Juntar Documento**, **Alvará Eletrônico** e
+  **Advogados** aparecem esmaecidas (use-as na tela do processo).
 - Combos com essas etapas abrem o processo numa **nova aba** e rodam lá.
 - No **Retorno de Conclusão**, o **Sim** finaliza a conclusão pela linha
   **"Retorno de Conclusão"** do quadro Pendências do processo (a mesma do
@@ -1431,7 +1480,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V19](videos/V19-combos-de-preferencias.mp4) | [Combos de preferências](videos/V19-combos-de-preferencias.mp4) | [7.4](#cap-7-4) | 0:58 |
 | [V20](videos/V20-alvara-eletronico.mp4) | [Alvará Eletrônico](videos/V20-alvara-eletronico.mp4) | [8.1](#cap-8-1) | 0:45 |
 | [V21](videos/V21-juntar-documento.mp4) | [Juntar Documento com preferências](videos/V21-juntar-documento.mp4) | [8.2](#cap-8-2) | 1:09 |
-| [V22](videos/V22-des-habilitar-advogado.mp4) | [(Des)Habilitar Advogado](videos/V22-des-habilitar-advogado.mp4) | [8.3](#cap-8-3) | 0:25 |
+| [V22](videos/V22-des-habilitar-advogado.mp4) | [(Des)Habilitar Advogado](videos/V22-des-habilitar-advogado.mp4) | [8.3](#cap-8-3) | 1:18 |
 | [V23](videos/V23-editar-partes-outros.mp4) | [Editar Partes/Outros](videos/V23-editar-partes-outros.mp4) | [8.4](#cap-8-4) | 0:22 |
 | [V24](videos/V24-processo-copiado.mp4) | [Colar processo](videos/V24-processo-copiado.mp4) | [8.5](#cap-8-5) | 0:28 |
 | [V25](videos/V25-oraculo.mp4) | [Oráculo](videos/V25-oraculo.mp4) | [8.6](#cap-8-6) | 0:25 |
@@ -1459,6 +1508,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.10.0 | 01/10/2026 | **Preferências de advogados** no botão **⚖️ Advogados**: o botão passa a abrir um painel com **Abrir**, **+ Nova preferência** e as preferências salvas; a preferência guarda a lista de advogados (e a Atuação) e, ao ser usada, inclui sozinha cada advogado na seção Advogados — você só marca as partes e clica em Salvar (8.3, 9.3, tabela da 2.4). As preferências de advogados também aparecem em ⭐ Minhas Preferências e nos 🔗 Combos. Vídeo V22 regravado. |
 | 2.9.99 | 01/10/2026 | Na tela do processo, ao executar uma preferência ou um combo (chip ★ da ação, ⭐ Minhas Preferências ou 🔗 Combos), a extensão pergunta antes se deve **dispensar as juntadas pendentes** e/ou **finalizar a conclusão pendente** do quadro Pendências — uma pergunta para cada, como no ⭐ das listagens (7.2, 7.3, 7.4). Vídeos V17, V18 e V19 regravados com a pergunta. |
 | 2.9.98 | 30/09/2026 | Correção no ⭐ do Retorno de Conclusão (9.3): o **Sim** passa a finalizar a conclusão pela linha "Retorno de Conclusão" do quadro Pendências do processo (antes procurava o botão na tela "Dados da Conclusão", onde ele não fica) e, quando não conseguir, avisa na linha quais botões encontrou. |
 | 2.9.97 | 30/09/2026 | Botão **Dispensar pendências** por tipo em Cumprimentos para Expedir, com acompanhamento das remoções e interrupção em caso de erro (6.4). Catálogo do Menu atualizado e vídeo V36 incluído. |
