@@ -2923,6 +2923,169 @@
 		document.documentElement.classList.add("pdp-qa-combo-active");
 	}
 
+	// --- Pendências antes de executar (tela do processo) -------------------
+	//
+	// Mesma pergunta das preferências na linha (⭐ nas listagens de Análise
+	// de Juntadas e Retorno de Conclusão - preferenciasNaLinha.js), agora ao
+	// executar uma preferência ou um combo na própria tela do processo: se o
+	// quadro Pendências tiver juntadas a analisar e/ou retorno de conclusão,
+	// pergunta (uma pergunta para cada, juntadas primeiro) se deve antes
+	// dispensá-las/finalizá-la. "Sim" e "Não" seguem o fluxo; "✕"/Esc
+	// cancela. A dispensa/finalização usa os mesmos recursos dos botões do
+	// quadro Pendências (window.__pdpDispensas, de juntadaDrag.js e
+	// finalizarConclusao.js) e uma falha nela é avisada sem interromper o
+	// fluxo. O combo iniciado a partir da listagem numa nova aba
+	// (maybeStartPendingCombo) não passa por aqui: lá a pergunta já foi feita.
+	const PENDENCIAS_PERGUNTA_ID = "pdp-qa-pendencias-pergunta";
+	let pendenciasEmAndamento = false;
+
+	function linkDaPendencia(url) {
+		return Array.prototype.find.call(document.querySelectorAll("#quadroPendencias a.link[href]"), function (a) {
+			try {
+				return new URL(a.getAttribute("href"), document.URL).href === url;
+			} catch (e) {
+				return false;
+			}
+		}) || null;
+	}
+
+	// Resolve com "sim", "nao" ou null (cancelado).
+	function perguntarPendencia(titulo, pergunta, textoSim, explicacao) {
+		return new Promise(function (resolve) {
+			const fundo = document.createElement("div");
+			fundo.id = PENDENCIAS_PERGUNTA_ID;
+			fundo.className = "pdp-qa-pend-fundo";
+			fundo.innerHTML =
+				'<div class="pdp-qa-pend-caixa" role="dialog">' +
+				'<div class="pdp-qa-pend-cab"><strong>' + escapeHtml(titulo) + '</strong>' +
+				'<button type="button" class="pdp-qa-pend-x" title="Cancelar">✕</button></div>' +
+				"<p>" + escapeHtml(pergunta) + "</p>" +
+				'<p class="pdp-qa-pend-obs">' + escapeHtml(explicacao) + "</p>" +
+				'<div class="pdp-qa-pend-botoes">' +
+				'<button type="button" class="pdp-qa-pend-btn pdp-qa-pend-sim">✅ ' + escapeHtml(textoSim) + "</button>" +
+				'<button type="button" class="pdp-qa-pend-btn pdp-qa-pend-nao">Não, seguir sem isso</button>' +
+				"</div></div>";
+			function responder(valor) {
+				document.removeEventListener("keydown", tecla, true);
+				fundo.remove();
+				resolve(valor);
+			}
+			function tecla(ev) {
+				if (ev.key !== "Escape") return;
+				ev.preventDefault();
+				ev.stopPropagation();
+				responder(null);
+			}
+			fundo.querySelector(".pdp-qa-pend-x").addEventListener("click", function () { responder(null); });
+			fundo.querySelector(".pdp-qa-pend-sim").addEventListener("click", function () { responder("sim"); });
+			fundo.querySelector(".pdp-qa-pend-nao").addEventListener("click", function () { responder("nao"); });
+			fundo.addEventListener("mousedown", function (ev) { if (ev.target === fundo) responder(null); });
+			document.addEventListener("keydown", tecla, true);
+			document.body.appendChild(fundo);
+			fundo.querySelector(".pdp-qa-pend-sim").focus();
+		});
+	}
+
+	function mostrarAndamentoPendencia(texto) {
+		showLoadingOverlay("", null);
+		const overlay = document.getElementById(LOADING_OVERLAY_ID);
+		if (!overlay) return;
+		overlay.querySelector(".pdp-qa-loading-text").textContent = texto;
+		// A dispensa/finalização já enviada não tem como ser cancelada.
+		overlay.querySelector(".pdp-qa-loading-cancel").remove();
+	}
+
+	// Tela de análise da conclusão numa navegação de verdade (iframe
+	// oculto), para finalizarConclusao.js quando o fetch() não traz o botão
+	// nativo - como em preferenciasNaLinha.js. O iframe só sai depois que o
+	// documento foi lido.
+	function carregarTelaConclusao(url) {
+		return new Promise(function (resolve, reject) {
+			const iframe = document.createElement("iframe");
+			iframe.setAttribute("data-pdp-loader", "pendencias-processo");
+			iframe.setAttribute("aria-hidden", "true");
+			iframe.style.cssText = "position:fixed;left:-15000px;top:0;width:1200px;height:850px;border:0;";
+			const inicio = Date.now();
+			const timer = setInterval(function () {
+				let doc = null;
+				try {
+					doc = iframe.contentDocument;
+					if (iframe.contentWindow.location.href === "about:blank" || doc.readyState === "loading") doc = null;
+				} catch (e) {
+					clearInterval(timer);
+					iframe.remove();
+					reject(e);
+					return;
+				}
+				const decorrido = Date.now() - inicio;
+				if (decorrido > 25000) {
+					clearInterval(timer);
+					iframe.remove();
+					reject(new Error("a tela de análise da conclusão demorou demais para carregar"));
+					return;
+				}
+				if (!doc || (!doc.querySelector("#movimentarProcessoForm #extraButton") && decorrido < 5000)) return;
+				clearInterval(timer);
+				setTimeout(function () { iframe.remove(); }, 0);
+				resolve(doc);
+			}, 300);
+			document.body.appendChild(iframe);
+			iframe.src = url;
+		});
+	}
+
+	// `titulo`: cabeçalho da pergunta; `combo`: true para combo. Chama
+	// `executar()` depois das perguntas (e das dispensas pedidas), ou não
+	// chama nada se o usuário cancelar.
+	async function executarComPendencias(titulo, combo, executar) {
+		if (pendenciasEmAndamento) return;
+		const d = window.__pdpDispensas || {};
+		const juntadaUrl = d.juntadas && d.juntadaURL ? d.juntadaURL(document) : null;
+		const juntadaLink = juntadaUrl ? linkDaPendencia(juntadaUrl) : null;
+		const temJuntadas = !!juntadaLink && !(d.juntadaDispensada && d.juntadaDispensada(juntadaLink));
+		const conclusaoUrl = d.conclusao && d.conclusaoURL ? d.conclusaoURL(document) : null;
+		const temConclusao = !!conclusaoUrl && !(d.conclusaoFinalizada && d.conclusaoFinalizada(conclusaoUrl));
+		if (!temJuntadas && !temConclusao) {
+			executar();
+			return;
+		}
+		const explicacao = combo
+			? "Respondendo Sim ou Não, as etapas do combo abrem em seguida, uma a uma, já preenchidas, para você confirmar cada uma."
+			: "Respondendo Sim ou Não, a preferência é aberta em seguida, já preenchida, para você confirmar.";
+		pendenciasEmAndamento = true;
+		const avisos = [];
+		try {
+			if (temJuntadas) {
+				const resposta = await perguntarPendencia(titulo, "Dispensar as juntadas pendentes deste processo antes de executar a preferência?", "Sim, dispensar juntadas", explicacao);
+				if (!resposta) return;
+				if (resposta === "sim") {
+					mostrarAndamentoPendencia("Dispensando juntadas…");
+					const r = await d.juntadas(juntadaUrl, juntadaLink);
+					removeLoadingOverlay();
+					if (!r.ok) avisos.push("Juntadas: " + (r.message || "não concluído."));
+				}
+			}
+			if (temConclusao) {
+				const resposta = await perguntarPendencia(titulo, "Finalizar a conclusão pendente deste processo antes de executar a preferência?", "Sim, finalizar conclusão", explicacao);
+				if (!resposta) return;
+				if (resposta === "sim") {
+					mostrarAndamentoPendencia("Finalizando a conclusão…");
+					const r = await d.conclusao(conclusaoUrl, carregarTelaConclusao);
+					removeLoadingOverlay();
+					if (!r.ok) avisos.push("Conclusão: " + (r.message || "não concluído."));
+				}
+			}
+		} catch (err) {
+			removeLoadingOverlay();
+			console.error("[Projudi Ações Rápidas] erro na etapa de pendências:", err);
+			avisos.push((err && err.message) || "falha na dispensa.");
+		} finally {
+			pendenciasEmAndamento = false;
+		}
+		if (avisos.length) alert("⚠ " + avisos.join("\n⚠ ") + "\n\n" + (combo ? "O combo" : "A preferência") + " segue mesmo assim.");
+		executar();
+	}
+
 	// --- Execução --------------------------------------------------------
 
 	function startCombo(combo) {
@@ -3682,7 +3845,9 @@
 			runBtn.title = (canRun ? "Executar em sequência (cada etapa pede a confirmação de sempre):\n" : 'Abra a tela do processo para executar:\n') + describeComboSteps(combo.steps, all);
 			runBtn.addEventListener("click", function () {
 				closePanel();
-				startCombo(combo);
+				executarComPendencias('🔗 Combo "' + combo.name + '" (' + combo.steps.length + " etapas)", true, function () {
+					startCombo(combo);
+				});
 			});
 			chip.appendChild(runBtn);
 
@@ -4031,16 +4196,17 @@
 					: 'Preenche automaticamente e pede 1 confirmação para executar "' + label + '"') +
 				(pref.descricao ? "\n" + pref.descricao : "");
 			applyBtn.addEventListener("click", function () {
-				if (mode === "custom") {
-					closePanel();
-					removeCaptureToolbar();
-					applyPreferenceCustom(label, pref);
-				} else if (mode === "hop") {
-					closePanel();
-					applyPreferenceViaChain(label, pref);
-				} else {
-					applyPreference(label, pref);
-				}
+				if (mode === "custom" || mode === "hop") closePanel();
+				executarComPendencias("★ " + pref.name + " — " + label, false, function () {
+					if (mode === "custom") {
+						removeCaptureToolbar();
+						applyPreferenceCustom(label, pref);
+					} else if (mode === "hop") {
+						applyPreferenceViaChain(label, pref);
+					} else {
+						applyPreference(label, pref);
+					}
+				});
 			});
 			chip.appendChild(applyBtn);
 
@@ -4372,15 +4538,19 @@
 				if (state.editing || !mode) return;
 				closePanel();
 				if (mode === "combo") {
-					startCombo(item.combo);
+					executarComPendencias('🔗 Combo "' + item.combo.name + '" (' + item.combo.steps.length + " etapas)", true, function () {
+						startCombo(item.combo);
+					});
 					return;
 				}
-				removeConfirmBar();
-				removeCaptureToolbar();
-				if (mode === "juntar") window.__pdpJuntarDocumento.apply(item.pref);
-				else if (mode === "custom") applyPreferenceCustom(item.label, item.pref);
-				else if (mode === "hop") applyPreferenceViaChain(item.label, item.pref);
-				else applyPreference(item.label, item.pref);
+				executarComPendencias("★ " + item.pref.name + " — " + item.label, false, function () {
+					removeConfirmBar();
+					removeCaptureToolbar();
+					if (mode === "juntar") window.__pdpJuntarDocumento.apply(item.pref);
+					else if (mode === "custom") applyPreferenceCustom(item.label, item.pref);
+					else if (mode === "hop") applyPreferenceViaChain(item.label, item.pref);
+					else applyPreference(item.label, item.pref);
+				});
 			}
 			card.addEventListener("click", activate);
 			card.addEventListener("keydown", function (e) {

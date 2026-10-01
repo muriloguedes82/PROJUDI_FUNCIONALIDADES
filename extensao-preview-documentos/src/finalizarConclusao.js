@@ -141,6 +141,10 @@
     if (!match) return null;
     try { return safeURL(new URL(match[1], doc.URL || location.href).href); } catch (_) { return null; }
   }
+  // Conclusão já finalizada (ou em finalização) nesta página.
+  window.__pdpDispensas.conclusaoFinalizada = value => {
+    try { return states.has(safeURL(value)); } catch (_) { return false; }
+  };
   window.__pdpDispensas.conclusao = async function (value, carregarNavegando) {
     let url;
     try { url = safeURL(value); } catch (error) { return {ok:false, message:error.message}; }
