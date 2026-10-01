@@ -154,3 +154,8 @@ a.link { color: #0645ad; text-decoration: underline; cursor: pointer; }
 .vid-fundo { position: fixed; inset: 0; z-index: 80; background: rgba(8,20,40,.78); display: flex; align-items: center; justify-content: center; }
 .vid-caixa { width: 760px; background: #0b2545; border-radius: 8px; overflow: hidden; } .vid-cab { display: flex; justify-content: space-between; padding: 10px 16px; color: #fff; font-weight: 600; border-bottom: 3px solid #c9a227; }
 .vid-tela { height: 380px; background: #000; color: #9db6d6; display: flex; align-items: center; justify-content: center; font-size: 42px; }
+.x-pena { display: inline-flex; flex-direction: column; align-items: center; min-width: 84px; padding: 3px 10px; border: 1px solid #b8c4d6; border-radius: 6px; background: #f4f7fb; color: #2f3438; line-height: 1.1; }
+.x-pena small { font-size: 9px; font-weight: normal; letter-spacing: .06em; text-transform: uppercase; color: #7a8591; }
+.x-pena b { font-size: 13px; }
+.x-pena.reg { border-color: #8fd19e; background: #e9f8ec; }
+.x-pena.reg small { color: #3c8a4f; }

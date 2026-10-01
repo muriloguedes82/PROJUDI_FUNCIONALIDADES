@@ -153,6 +153,13 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					nome: "Indicador de monitoração eletrônica",
 					descricao: "Card ao lado do número do processo com monitoração ativa.",
 					js: ["src/monitoracaoAtiva.js"]
+				},
+				{
+					id: "seeuCardsPena",
+					nome: "Cards da pena (só SEEU)",
+					descricao: "Regime, data-base, livramento e término ao lado do número do processo no SEEU.",
+					js: ["src/seeuCardsPena.js"],
+					css: ["src/seeuCardsPena.css"]
 				}
 			]
 		},

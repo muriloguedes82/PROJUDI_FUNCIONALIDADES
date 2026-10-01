@@ -1,4 +1,4 @@
-// Cenas V34–V35: Menu da extensão e endereço/Mandado Regionalizado (versões 2.9.89–2.9.91).
+// Cenas V34–V37: Menu da extensão, endereço/Mandado Regionalizado, dispensa de cumprimentos e cards da pena no SEEU.
 "use strict";
 
 // Catálogo do Menu (espelha src/funcionalidades.js).
@@ -208,5 +208,33 @@ CENAS.V36 = {
 		await S.cap("Ao terminar, recarregue a página para atualizar os contadores do quadro Pendências.");
 		await S.cap("Se houver erro, a sequência para em <b>Conferir dispensa (X/N)</b>. Confira a listagem antes de repetir.");
 		await S.endCard("Pendências → Cumprimentos para Expedir → Dispensar pendências.");
+	},
+};
+
+// ------------------------------------------------------------------ V37
+CENAS.V37 = {
+	arquivo: "V37-cards-da-pena-no-seeu.mp4",
+	titulo: "Cards da pena no SEEU",
+	secao: "4.5",
+	async run() {
+		telaProcesso({ ext: false, pend: false });
+		browser(["*SEEU - Sistema Eletrônico de Execução Unificado"], "https://seeu.pje.jus.br/seeu/visualizacaoProcesso.do?actionType=visualizar");
+		$(".pj-logo").innerHTML = "SEEU<small>Sistema Eletrônico de Execução Unificado</small>";
+		$(".pj-title").innerHTML = 'Execução <em class="attention">' + PROC + '</em><span class="dias">412 dia(s) em tramitação</span><span id="hdr-cards" style="display:inline-flex;gap:6px"></span>';
+		await S.titleCard("VÍDEO V37", "Cards da pena no SEEU", "Regime, data-base, livramento e término ao lado do número do processo.");
+		S.hl(".pj-title", 4);
+		await S.cap("Ao abrir um processo de execução no <b>SEEU</b>, a extensão lê a aba <b>Informações Adicionais</b> em segundo plano.");
+		S.hlOff();
+		const card = (id, rot, val, cls) => '<span class="x-pena' + (cls ? " " + cls : "") + '" id="' + id + '"><small>' + rot + "</small><b>" + val + "</b></span>";
+		$("#hdr-cards").innerHTML = card("p-reg", "Regime", "Semiaberto", "reg") + card("p-db", "Data-base", "12/03/2025") + card("p-lc", "Livramento", "10/05/2027") + card("p-tp", "Término", "16/03/2029");
+		S.hl("#hdr-cards", 4);
+		await S.cap("Ao lado do número aparecem quatro cards: <b>Regime</b> atual, <b>Data-base</b>, <b>Livramento</b> condicional e <b>Término</b> da pena.");
+		S.hlOff();
+		await S.cap("Livramento e Término mostram só a <b>data</b> da linha “Data do Requisito Temporal”.");
+		await S.move("#p-lc");
+		toast("Livramento Condicional — Data do Requisito Temporal: 10/05/2027", { left: 560, top: 192 });
+		await S.cap("Passe o mouse sobre um card para ver o texto completo do SEEU. Sem data informada, o card mostra <b>---</b>.");
+		await S.cap("Os cards continuam no cabeçalho ao trocar de aba. Esta função existe <b>só no SEEU</b>.");
+		await S.endCard("SEEU → processo de execução → cards Regime, Data-base, Livramento e Término.");
 	},
 };

@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.9.99 |
-| **Versão da extensão** | 2.9.99 |
+| **Versão do manual** | 2.10.0 |
+| **Versão da extensão** | 2.10.0 |
 | **Data desta versão** | 01/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -50,6 +50,7 @@
    - 4.2 [Monitoração eletrônica ativa no cabeçalho](#cap-4-2)
    - 4.3 [Réus, indiciados e noticiados no cabeçalho](#cap-4-3)
    - 4.4 [Sequencial do processo principal (apensos)](#cap-4-4)
+   - 4.5 [Cards da pena no SEEU](#cap-4-5)
 5. [Envio de documentos](#cap-5)
    - 5.1 [Envio por WhatsApp Web](#cap-5-1)
    - 5.2 [Envio por e-mail (Outlook)](#cap-5-2)
@@ -133,7 +134,7 @@ Não é preciso saber nada de informática além disso.
 | Sistema | O que funciona |
 |---|---|
 | **Projudi (TJPR)** | Todas as funções deste manual |
-| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)) |
+| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), cards da pena ([4.5](#cap-4-5), só no SEEU), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)) |
 
 A extensão **não funciona** quando o usuário está logado com perfil de
 advogado(a) ou de assessor(a) de advogado — veja [10.3](#cap-10-3).
@@ -346,7 +347,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 |---|---|---|
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · (Des)Habilitar Advogado · Editar Partes/Outros · Alvará Eletrônico · Juntar Documento · Oráculo · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
-| **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica | [4](#cap-4) |
+| **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Cards da pena (só SEEU) | [4](#cap-4) |
 | **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
@@ -504,8 +505,8 @@ processo aberto.
 <a id="cap-4"></a>
 ## 4. Informações extras na tela do processo
 
-Estas funções não têm botão: aparecem sozinhas ao abrir o processo. *Só no
-Projudi.*
+Estas funções não têm botão: aparecem sozinhas ao abrir o processo. As
+seções 4.1 a 4.4 valem *só no Projudi*; a 4.5, *só no SEEU*.
 
 <a id="cap-4-1"></a>
 ### 4.1 Suspensão ativa no cabeçalho
@@ -587,6 +588,41 @@ Principal:**.
 
 **Bom saber:** a linha mostra "carregando…" por um instante. No próprio
 processo principal ela não aparece.
+
+<a id="cap-4-5"></a>
+### 4.5 Cards da pena no SEEU
+
+▶ [**Vídeo V37** — Cards da pena no SEEU](videos/V37-cards-da-pena-no-seeu.mp4)
+
+**Para que serve:** ver, sem abrir a aba **Informações Adicionais**, o
+regime atual e as principais datas da pena do processo de execução. *Só no
+SEEU.*
+
+**Onde fica:** no cabeçalho do processo, logo à direita do número único e
+dos "dias em tramitação".
+
+**Como funciona:** ao abrir o processo, a extensão lê a aba **Informações
+Adicionais** sozinha e mostra quatro cards:
+
+| Card | De onde vem |
+|---|---|
+| **Regime** | Linha **Regime Atual** (ex.: "Aberto - ATIVO" aparece como **Aberto**) |
+| **Data-base** | Linha **Data Base** da parte **Progressão de Regime** |
+| **Livramento** | Só a data da linha **Data do Requisito Temporal** da parte **Livramento Condicional** |
+| **Término** | Só a data da linha **Data do Requisito Temporal** da parte **Término de Pena** |
+
+**Bom saber:**
+
+- Quando o campo está vazio ou não tem uma data (ex.: "(Em regime aberto
+  deferido em …)"), o card mostra **---**.
+- Passe o mouse sobre um card para ler o texto completo, como está no SEEU.
+- Nos primeiros segundos, Livramento e Término podem vir do **Sumário da
+  Pena** do processo (cards um pouco mais claros), até a leitura da aba
+  terminar.
+- Os cards continuam no cabeçalho ao trocar de aba. Processos sem cálculo
+  de pena não mostram cards.
+- Para desligar, use **Cards da pena (só SEEU)** na aba **SEEU** do Menu
+  da extensão ([2.6](#cap-2-6)).
 
 ---
 
@@ -1446,6 +1482,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V34](videos/V34-menu-da-extensao.mp4) | [Menu da extensão (ícone da balança)](videos/V34-menu-da-extensao.mp4) | [2.6](#cap-2-6) | 1:46 |
 | [V35](videos/V35-endereco-e-mandado-regionalizado.mp4) | [Endereço da parte e Mandado Regionalizado](videos/V35-endereco-e-mandado-regionalizado.mp4) | [9.7](#cap-9-7) | 0:58 |
 | [V36](videos/V36-dispensar-cumprimentos.mp4) | [Dispensar cumprimentos para expedir](videos/V36-dispensar-cumprimentos.mp4) | [6.4](#cap-6-4) | 0:29 |
+| [V37](videos/V37-cards-da-pena-no-seeu.mp4) | [Cards da pena no SEEU](videos/V37-cards-da-pena-no-seeu.mp4) | [4.5](#cap-4-5) | 0:35 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -1459,6 +1496,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.10.0 | 01/10/2026 | Nova seção 4.5 **Cards da pena no SEEU**: no cabeçalho do processo de execução, cards **Regime**, **Data-base**, **Livramento** e **Término** (só a data da linha "Data do Requisito Temporal"), lidos da aba Informações Adicionais. Tabelas 1.3 e 2.6 atualizadas e vídeo V37 incluído. |
 | 2.9.99 | 01/10/2026 | Na tela do processo, ao executar uma preferência ou um combo (chip ★ da ação, ⭐ Minhas Preferências ou 🔗 Combos), a extensão pergunta antes se deve **dispensar as juntadas pendentes** e/ou **finalizar a conclusão pendente** do quadro Pendências — uma pergunta para cada, como no ⭐ das listagens (7.2, 7.3, 7.4). Vídeos V17, V18 e V19 regravados com a pergunta. |
 | 2.9.98 | 30/09/2026 | Correção no ⭐ do Retorno de Conclusão (9.3): o **Sim** passa a finalizar a conclusão pela linha "Retorno de Conclusão" do quadro Pendências do processo (antes procurava o botão na tela "Dados da Conclusão", onde ele não fica) e, quando não conseguir, avisa na linha quais botões encontrou. |
 | 2.9.97 | 30/09/2026 | Botão **Dispensar pendências** por tipo em Cumprimentos para Expedir, com acompanhamento das remoções e interrupção em caso de erro (6.4). Catálogo do Menu atualizado e vídeo V36 incluído. |

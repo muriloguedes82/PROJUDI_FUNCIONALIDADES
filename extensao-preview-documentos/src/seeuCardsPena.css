@@ -1,0 +1,67 @@
+/* SEEU - Cards da pena na linha do número único (ver seeuCardsPena.js) */
+
+.pdp-seeu-pena {
+	display: inline-flex;
+	align-items: center;
+	flex: 0 0 auto;
+	align-self: center;
+	gap: 6px;
+	margin-left: 12px;
+	padding-left: 12px;
+	border-left: 1px dashed #c9b3e6;
+	font-family: Arial, sans-serif;
+	line-height: 1.1;
+	vertical-align: middle;
+}
+
+.pdp-seeu-pena-card {
+	display: inline-flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-width: 84px;
+	padding: 3px 10px;
+	border: 1px solid #b8c4d6;
+	border-radius: 6px;
+	background: #f4f7fb;
+	color: #2f3438;
+	cursor: help;
+}
+
+.pdp-seeu-pena-rotulo {
+	font-size: 9px;
+	font-weight: normal;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: #7a8591;
+}
+
+.pdp-seeu-pena-valor {
+	font-size: 13px;
+	font-weight: bold;
+	white-space: nowrap;
+}
+
+.pdp-seeu-pena-card.pdp-seeu-pena-regime {
+	border-color: #8fd19e;
+	background: #e9f8ec;
+}
+
+.pdp-seeu-pena-card.pdp-seeu-pena-regime .pdp-seeu-pena-rotulo {
+	color: #3c8a4f;
+}
+
+.pdp-seeu-pena-card.pdp-seeu-pena-vazio {
+	background: #f7f7f7;
+	border-color: #d8d8d8;
+}
+
+.pdp-seeu-pena-card.pdp-seeu-pena-vazio .pdp-seeu-pena-valor {
+	color: #9aa0a6;
+	font-weight: normal;
+}
+
+/* Enquanto a aba "Informações Adicionais" não foi lida (só o Sumário). */
+.pdp-seeu-pena-provisorio .pdp-seeu-pena-card {
+	opacity: 0.75;
+}
