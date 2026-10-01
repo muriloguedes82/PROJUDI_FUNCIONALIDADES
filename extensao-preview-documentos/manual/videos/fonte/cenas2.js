@@ -111,6 +111,20 @@ CENAS.V17 = {
 		await S.cap("A preferência aparece como <b>★ nome</b>. Em outro processo, basta clicar nela.");
 		await S.click('[data-pref="Intimar MP - ciência 5 dias"]', { dx: -40 });
 		pn.remove();
+		const tP = "★ Intimar MP - ciência 5 dias — Intimar Partes";
+		perguntaPend(tP, ...PERG_JUNTADAS);
+		await S.cap("Se o quadro <b>Pendências</b> tiver juntadas a analisar, a extensão pergunta antes se deve <b>dispensá-las</b>.", { ms: 4600 });
+		await S.click("#pend-sim");
+		closeModal();
+		let tt = toast("⏳ Dispensando juntadas…", { left: 540, top: 300 });
+		await sleep(1400);
+		tt.remove();
+		$("#slot-juntada").innerHTML = '<span class="x-inline"><span class="msg">Juntada(s) já dispensada(s) - Movimentação permitida.</span></span>';
+		perguntaPend(tP, ...PERG_CONCLUSAO);
+		await S.cap("Havendo também <b>Retorno de Conclusão</b>, vem a segunda pergunta: <b>finalizar a conclusão</b>.", { ms: 4400 });
+		await S.cap("<b>Sim</b> dispensa/finaliza e segue; <b>Não, seguir sem isso</b> só segue; <b>✕</b> desiste.", { ms: 4000 });
+		await S.click("#pend-nao");
+		closeModal();
 		await abrindo("Intimar Partes", 900);
 		popup("Intimar Partes", dlgIntimar({ mp: true, fin: "Ciência", prazo: "5" }), { top: 120, h: 520 });
 		bar('Confirmar “Intimar Partes” com a preferência “Intimar MP - ciência 5 dias”? <span class="x-btn small green" id="sim">✅ Sim, executar</span> <span class="x-btn small">Cancelar</span>', { top: 78 });
@@ -122,7 +136,7 @@ CENAS.V17 = {
 		await sleep(1500);
 		$(".x-popup").remove();
 		await S.cap("Use <b>✏️</b> para editar (aparece “💾 Atualizar preferência”) e <b>🗑</b> para remover.");
-		await S.endCard("+ Nova preferência → preencher → 💾 Salvar como preferência → depois: ★ nome → conferir → ✅ Sim, executar.");
+		await S.endCard("+ Nova preferência → preencher → 💾 Salvar como preferência → depois: ★ nome → pendências? → conferir → ✅ Sim, executar.");
 	},
 };
 
@@ -133,6 +147,7 @@ CENAS.V18 = {
 	secao: "7.3",
 	async run() {
 		telaProcesso({});
+		$("#pend-conclusao").closest("tr").remove(); // só juntadas: uma pergunta
 		await S.titleCard("VÍDEO V18", "Minhas Preferências", "Todas as preferências salvas, em cards, num só lugar.");
 		await S.cap("Clique em <b>⭐ Minhas Preferências</b>.");
 		await S.click("#x-fav");
@@ -141,9 +156,25 @@ CENAS.V18 = {
 			'<div id="grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px">' + cards.map((c, i) => '<div class="x-chip" data-card="' + i + '" style="display:block;border-radius:6px;padding:8px;margin:0;font-size:12px"><b>' + (c[0].startsWith("🔗") ? "" : "★ ") + c[0] + '</b><div style="color:#666;font-size:11px">' + c[1] + "</div></div>").join("") +
 			'</div><label style="display:block;margin-top:8px;font-size:11px"><input type="checkbox"> Mostrar todas</label>', "#x-fav", { w: 560 });
 		await S.cap("Cada card é uma preferência (das ações rápidas e do Juntar Documento) ou um combo 🔗.");
-		await S.cap("Clique num card para executá-lo — abre o diálogo preenchido com o <b>✅ Sim, executar</b>, como no vídeo V17.");
-		await S.move('[data-card="1"]');
-		await sleep(700);
+		await S.cap("Clique num card para executá-lo. Exemplo: <b>★ Concluso p/ sentença</b>.");
+		await S.click('[data-card="1"]');
+		pn.style.display = "none";
+		perguntaPend("★ Concluso p/ sentença — Enviar Concluso", ...PERG_JUNTADAS);
+		await S.cap("Com juntadas a analisar no quadro Pendências, vem antes a pergunta: <b>dispensar as juntadas</b>?", { ms: 4800 });
+		await S.click("#pend-sim");
+		closeModal();
+		const tt = toast("⏳ Dispensando juntadas…", { left: 540, top: 300 });
+		await sleep(1400);
+		tt.remove();
+		$("#slot-juntada").innerHTML = '<span class="x-inline"><span class="msg">Juntada(s) já dispensada(s) - Movimentação permitida.</span></span>';
+		await abrindo("Enviar Concluso", 900);
+		popup("Enviar Concluso", dlgConcluso({ tipo: "Para sentença", mag: "JULIANA MAGISTRADA" }), { top: 120, h: 500 });
+		bar('Confirmar “Enviar Concluso” com a preferência “Concluso p/ sentença”? <span class="x-btn small green" id="sim">✅ Sim, executar</span> <span class="x-btn small">Cancelar</span>', { top: 78 });
+		await S.cap("Depois, o diálogo abre preenchido com o <b>✅ Sim, executar</b>, como no vídeo V17.");
+		await S.click("#sim");
+		$(".x-bar").remove(); $(".x-popup").remove();
+		await S.click("#x-fav");
+		pn.style.display = "";
 		await S.cap("Para mudar a ordem, clique em <b>✏️ Editar posição</b> e arraste os cards.");
 		await S.click("#editpos");
 		$("#editpos").textContent = "✅ Concluir";
@@ -157,7 +188,7 @@ CENAS.V18 = {
 		await S.cap("A ordem é salva na hora. Clique em <b>✅ Concluir</b> ao terminar.");
 		await S.click("#editpos");
 		$("#editpos").textContent = "✏️ Editar posição";
-		await S.endCard("⭐ Minhas Preferências → clique no card → conferir → ✅ Sim, executar. ✏️ Editar posição reordena.");
+		await S.endCard("⭐ Minhas Preferências → clique no card → pendências? → conferir → ✅ Sim, executar. ✏️ Editar posição reordena.");
 	},
 };
 
@@ -168,6 +199,7 @@ CENAS.V19 = {
 	secao: "7.4",
 	async run() {
 		telaProcesso({});
+		$("#pend-juntada").closest("tr").remove(); // só a conclusão: uma pergunta
 		await S.titleCard("VÍDEO V19", "Combos de preferências", "Várias preferências em sequência: cada etapa abre sozinha, você confirma cada uma.");
 		await S.cap("Clique em <b>🔗 Combos</b> e depois em <b>+ Novo combo</b>.");
 		await S.click("#x-combos");
@@ -190,6 +222,14 @@ CENAS.V19 = {
 		await S.cap("Para executar, clique em <b>▶ nome</b>.");
 		await S.click("#run", { dx: -30 });
 		pn.remove();
+		perguntaPend("🔗 Combo “Intimar MP e concluso” (2 etapas)", ...PERG_CONCLUSAO, true);
+		await S.cap("Se o quadro Pendências tiver juntadas e/ou <b>Retorno de Conclusão</b>, o combo pergunta antes, como na preferência.", { ms: 4800 });
+		await S.cap("<b>Sim</b> ou <b>Não, seguir sem isso</b> iniciam o combo; <b>✕</b> desiste.");
+		await S.click("#pend-sim");
+		closeModal();
+		const tt = toast("⏳ Finalizando a conclusão…", { left: 540, top: 300 });
+		await sleep(1400);
+		tt.remove();
 		const cb = bar('Combo “Intimar MP e concluso” — etapa 1 de 2 <span class="x-btn small">↻ Repetir etapa</span><span class="x-btn small">⏭ Próxima etapa</span><span class="x-btn small">⏹ Parar combo</span>', { cls: "combo", top: 572 });
 		await abrindo("Intimar Partes", 900);
 		popup("Intimar Partes", dlgIntimar({ mp: true, fin: "Ciência", prazo: "5" }), { top: 120, h: 500 });
@@ -206,7 +246,7 @@ CENAS.V19 = {
 		$$(".x-bar")[1].remove(); $(".x-popup").remove();
 		cb.innerHTML = "✅ Combo “Intimar MP e concluso” concluído (2 etapas).";
 		await S.cap("Se fechar uma etapa sem executar, use <b>↻ Repetir</b>, <b>⏭ Próxima</b> ou <b>⏹ Parar</b> na barra de baixo.", { ms: 4200 });
-		await S.endCard("🔗 Combos → + Novo combo → caixas em ordem → 💾 Salvar → ▶ nome → confirmar cada etapa.");
+		await S.endCard("🔗 Combos → + Novo combo → caixas em ordem → 💾 Salvar → ▶ nome → pendências? → confirmar cada etapa.");
 	},
 };
 
