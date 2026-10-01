@@ -312,6 +312,20 @@ function toast(html, o = {}) {
 	return t;
 }
 
+// Pergunta da extensão sobre as pendências do processo (juntadas a analisar,
+// retorno de conclusão) antes de executar uma preferência ou combo na tela do
+// processo — mesmo texto de executarComPendencias (src/quickActions.js).
+function perguntaPend(titulo, pergunta, sim, combo) {
+	const expl = combo
+		? "Respondendo Sim ou Não, as etapas do combo abrem em seguida, uma a uma, já preenchidas, para você confirmar cada uma."
+		: "Respondendo Sim ou Não, a preferência é aberta em seguida, já preenchida, para você confirmar.";
+	return modal('<div style="display:flex;justify-content:space-between;gap:8px"><b>' + titulo + '</b><span style="color:#888">✕</span></div>' +
+		'<p style="margin:10px 0">' + pergunta + '</p><p style="margin:8px 0;color:#666;font-size:12px">' + expl + "</p>" +
+		'<div style="display:flex;gap:6px;flex-wrap:wrap"><span class="x-btn small green" id="pend-sim">✅ ' + sim + '</span><span class="x-btn small" id="pend-nao">Não, seguir sem isso</span></div>', { w: 460, top: 150 });
+}
+const PERG_JUNTADAS = ["Dispensar as juntadas pendentes deste processo antes de executar a preferência?", "Sim, dispensar juntadas"];
+const PERG_CONCLUSAO = ["Finalizar a conclusão pendente deste processo antes de executar a preferência?", "Sim, finalizar conclusão"];
+
 // Tela de listagem (Análise de Juntadas / Retorno de Conclusão / Decurso de Prazo).
 const LISTA = [
 	{ n: "0001111-11.2025.8.16.0001", seq: "45017", cl: "Ação Penal - Proc. Ordinário", d: "24/09/2026" },
