@@ -351,23 +351,83 @@ CENAS.V21 = {
 };
 
 // ------------------------------------------------------------------ V22
+// Tela "Habilitação de Advogado/Sociedade para Parte" (advogadosParte.do).
+function dlgAdvogados(advs, o = {}) {
+	return (o.aviso ? '<div style="background:' + (o.erro ? "#fdecea;border:1px solid #e0a39a;color:#7a1f12" : "#fff8d6;border:1px solid #e3c96b;color:#4d3d00") + ';margin:0 0 8px;padding:8px 10px;border-radius:4px;font-size:12px">' + o.aviso + "</div>" : "") +
+		'<table class="pj-form"><tr><td class="l">Advogados:</td><td><table class="pj-table" style="width:560px"><tr><th style="width:24px"></th><th style="width:90px">OAB</th><th>Advogado</th></tr>' +
+		(advs.length ? advs.map((a, i) => '<tr class="' + (i % 2 ? "alt" : "") + '"><td><input type="radio"></td><td>' + a[0] + "</td><td>" + a[1] + "</td></tr>").join("") : '<tr><td colspan="3">Nenhum advogado selecionado</td></tr>') +
+		'</table><div class="pj-btnbar" style="justify-content:flex-end;width:560px"><span class="pj-btn" id="adv-add">Adicionar</span><span class="pj-btn">Remover</span></div></td></tr>' +
+		'<tr><td class="l">Atuação:</td><td><span class="pj-select" id="adv-atu"' + (o.atu ? ' style="background:#fffbe6"' : "") + ">" + (o.atu || "Advogado Particular/Sociedade de Advogados") + "</span></td></tr>" +
+		'<tr><td class="l">Partes do Processo:</td><td id="adv-partes">' + REUS.map((r, i) => '<label style="display:block"><input type="checkbox" id="adv-p' + i + '"> (Réu) ' + r.nome + "</label>").join("") + '<label style="display:block"><input type="checkbox"> (Vítima) PEDRO VÍTIMA EXEMPLO</label></td></tr></table>' +
+		'<div class="pj-btnbar" style="justify-content:flex-end"><span class="pj-btn primary" id="adv-salvar">Salvar</span><span class="pj-btn">Voltar</span></div>';
+}
+function dlgSelecaoAdvogado(oab, res) {
+	return '<table class="pj-form"><tr><td class="l">Tipo:</td><td><span class="pj-select">Advogado Particular/Sociedade de Advogados</span></td></tr>' +
+		'<tr><td class="l">OAB:</td><td><span class="pj-input" id="sel-oab" style="min-width:120px">' + (oab || "") + '</span> <span class="pj-btn" id="sel-pesq">Pesquisar</span></td></tr></table>' +
+		'<table class="pj-table" style="width:640px"><tr><th style="width:24px"></th><th>OAB</th><th>Complemento</th><th>UF</th><th>Nome</th></tr>' +
+		(res ? res.map((r, i) => '<tr class="' + (i % 2 ? "alt" : "") + '"><td><input type="radio" id="sel-r' + i + '"></td><td>' + r[0] + "</td><td>N</td><td>" + r[1] + "</td><td>" + r[2] + "</td></tr>").join("") : '<tr><td colspan="5">Nenhum registro encontrado</td></tr>') +
+		'</table><div class="pj-btnbar" style="justify-content:flex-end"><span class="pj-btn" id="sel-ok">Selecionar</span><span class="pj-btn">Novo</span><span class="pj-btn">Cancelar</span></div>';
+}
 CENAS.V22 = {
 	arquivo: "V22-des-habilitar-advogado.mp4",
 	titulo: "(Des)Habilitar Advogado",
 	secao: "8.3",
 	async run() {
+		const A1 = ["11111N-PR", "MARIA ADVOGADA EXEMPLO"], A2 = ["22222N-PR", "JOSÉ ADVOGADO EXEMPLO"];
+		const TELA = "Habilitação de Advogado/Sociedade para Parte";
+		const painel = prefs => panelAt(acaoPanel("⚖️ Advogados", [{ nome: "Advogados", abrir: "Abrir", prefs }]), "#x-adv", { w: 380 });
 		telaProcesso({});
-		await S.titleCard("VÍDEO V22", "(Des)Habilitar Advogado", "A tela de Advogados do processo num popup, sem sair da aba atual.");
-		await S.cap("Clique em <b>⚖️ Advogados</b>.");
+		await S.titleCard("VÍDEO V22", "(Des)Habilitar Advogado", "A tela de Advogados num popup e preferências com listas de advogados.");
+		await S.cap("Clique em <b>⚖️ Advogados</b>. <b>Abrir</b> mostra a tela de Advogados num popup, como o botão nativo.");
 		await S.click("#x-adv");
-		await abrindo("Advogados", 1100);
-		popup("Advogados", '<table class="pj-table"><tr><th></th><th>Parte</th><th>Advogado</th><th>OAB</th><th>Situação</th></tr><tr><td><input type="radio"></td><td>' + REUS[0].nome + '</td><td>JOÃO EXEMPLO</td><td>PR 00000</td><td>Habilitado</td></tr><tr class="alt"><td><input type="radio"></td><td>' + REUS[1].nome + '</td><td>—</td><td>—</td><td>—</td></tr></table><div class="pj-btnbar" style="justify-content:flex-start"><span class="pj-btn">Adicionar</span><span class="pj-btn">Habilitar</span><span class="pj-btn">Desabilitar</span><span class="pj-btn">Remover</span><span class="pj-btn">Voltar</span></div>', { hd: "Advogados — popup da extensão" });
-		await S.cap("É a mesma tela do botão nativo <b>Advogados</b> (aba Partes e Outros), num popup.");
-		await S.cap("Habilite, desabilite, adicione ou remova o advogado normalmente. A extensão não pratica nada sozinha.");
-		await S.cap("Ao terminar, clique em <b>✕ Fechar</b>.");
-		await S.click("#x-fechar");
-		$(".x-popup").remove();
-		await S.endCard("⚖️ Advogados → tela Advogados em popup → ✕ Fechar.");
+		let pn = painel([]);
+		await S.cap("Para não pesquisar os mesmos advogados a cada processo, clique em <b>+ Nova preferência</b>.");
+		await S.click('[data-nova="Advogados"]');
+		pn.remove();
+		await abrindo("Advogados", 900);
+		let pp = popup(TELA, dlgAdvogados([]), { top: 110, h: 500, hd: "Advogados — popup da extensão" });
+		const b = bar('Preencha o diálogo acima normalmente e depois: <span class="x-btn small" id="salvarpref">💾 Salvar como preferência</span>', { top: 70 });
+		await S.cap("Clique em <b>Adicionar</b> e pesquise o advogado pela <b>OAB</b>, como de costume.");
+		await S.click("#adv-add");
+		pp.remove();
+		pp = popup("Seleção de Advogado", dlgSelecaoAdvogado(""), { top: 110, h: 500, hd: "Advogados — popup da extensão" });
+		await S.type("#sel-oab", "11111");
+		await S.click("#sel-pesq");
+		pp.remove();
+		pp = popup("Seleção de Advogado", dlgSelecaoAdvogado("11111", [["11111", "PR", A1[1]], ["11111", "SC", "CARLOS EXEMPLO"]]), { top: 110, h: 500, hd: "Advogados — popup da extensão" });
+		await S.cap("Marque a bolinha do advogado e clique em <b>Selecionar</b>.");
+		await S.click("#sel-r0"); $("#sel-r0").checked = true;
+		await S.click("#sel-ok");
+		pp.remove();
+		pp = popup(TELA, dlgAdvogados([A1]), { top: 110, h: 500, hd: "Advogados — popup da extensão" });
+		await S.cap("Ele entra na seção <b>Advogados</b>. Repita para cada advogado da preferência.");
+		pp.remove();
+		pp = popup(TELA, dlgAdvogados([A1, A2]), { top: 110, h: 500, hd: "Advogados — popup da extensão" });
+		await sleep(900);
+		await S.cap("Com a lista pronta, clique em <b>💾 Salvar como preferência</b>.");
+		await S.click("#salvarpref");
+		modal('<h3>Salvar como preferência</h3><div class="x-note">Campos que serão gravados:</div><div class="x-list"><div>Advogados: ' + A1.join(" ") + "; " + A2.join(" ") + '</div><div>Atuação: Advogado Particular/Sociedade de Advogados</div></div><div style="margin-top:8px">Nome da preferência:</div><div class="x-field" id="nm"></div><div style="text-align:right;margin-top:10px"><span class="pj-btn">Cancelar</span> <span class="pj-btn primary" id="ok">Salvar</span></div>', { top: 170 });
+		await S.cap("A extensão mostra a lista que será gravada. Dê um nome à preferência.");
+		await S.type("#nm", "Escritório Exemplo");
+		await S.click("#ok");
+		closeModal(); b.remove(); pp.remove();
+		await S.cap("Em outro processo: <b>⚖️ Advogados</b> → <b>★ Escritório Exemplo</b>.");
+		await S.click("#x-adv");
+		pn = painel(["Escritório Exemplo"]);
+		await S.click('[data-pref="Escritório Exemplo"]', { dx: -40 });
+		pn.remove();
+		await abrindo("Advogados", 900);
+		pp = popup(TELA, dlgAdvogados([A1], { aviso: 'Preferência "Escritório Exemplo": incluindo ' + A2.join(" ") + " (2 de 2)…" }), { top: 110, h: 500, hd: "Advogados — popup da extensão" });
+		await S.cap("A extensão inclui sozinha, um de cada vez, os advogados da preferência na seção <b>Advogados</b>.");
+		pp.remove();
+		pp = popup(TELA, dlgAdvogados([A1, A2], { aviso: 'Preferência "Escritório Exemplo": advogados incluídos. Marque as Partes do Processo e clique em "Salvar".' }), { top: 110, h: 500, hd: "Advogados — popup da extensão" });
+		await S.cap("As <b>Partes do Processo</b> não são gravadas (mudam a cada processo): marque-as você.");
+		await S.click("#adv-p0"); $("#adv-p0").checked = true;
+		await S.cap("Confira e clique em <b>Salvar</b> do próprio Projudi. Nada é salvo sem esse clique.");
+		await S.move("#adv-salvar");
+		await sleep(700);
+		pp.remove();
+		await S.endCard("⚖️ Advogados → + Nova preferência → Adicionar os advogados → 💾 Salvar como preferência. Depois: ★ preferência → marcar as partes → Salvar (Projudi).");
 	},
 };
 

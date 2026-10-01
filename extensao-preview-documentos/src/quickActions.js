@@ -110,6 +110,20 @@
 			custom: true,
 		},
 		{
+			// Tela "Habilitação de Advogado/Sociedade para Parte"
+			// (advogadosParte.do), ensinada por habilitarAdvogado.js. Não
+			// ganha botão nesta fileira (`semBotao`): o painel abre pelo
+			// botão "⚖️ Advogados" que aquele arquivo já põe ao lado do
+			// "Colar processo" (data-panel-id="advogados", ver
+			// togglePanelById). Só no Projudi.
+			id: "advogados",
+			title: "Advogados",
+			icon: "⚖️",
+			actions: ["Advogados"],
+			custom: true,
+			semBotao: true,
+		},
+		{
 			id: "outras",
 			title: "Outras",
 			icon: "⋯",
@@ -1997,18 +2011,31 @@
 			const fields = captureFormFields(form).filter(function (f) {
 				return !custom || !custom.prefFields || custom.prefFields.indexOf(f.name) !== -1;
 			});
-			if (!fields.length) {
+			// Ação personalizada com `captureExtra(doc)`: o que a preferência
+			// guarda além dos campos é lido da tela na hora de salvar (ex.: a
+			// lista de advogados de "Advogados"); um erro lançado ali é o
+			// aviso ao usuário (nada é salvo).
+			let extra = getExtra ? getExtra() : null;
+			if (custom && typeof custom.captureExtra === "function") {
+				try {
+					extra = Object.assign({}, extra || {}, custom.captureExtra(currentDoc));
+				} catch (err) {
+					alert(err && err.message ? err.message : String(err));
+					return;
+				}
+			}
+			if (!fields.length && !(custom && typeof custom.captureExtra === "function")) {
 				alert('Nenhum campo preenchido ou selecionado no diálogo "' + label + '". Preencha o que a preferência deve guardar e salve de novo.');
 				return;
 			}
 			// Mostra o que vai ser gravado: dá para conferir na hora se algum
 			// campo (ex.: uma lista que carrega depois) ficou de fora.
 			const name = prompt(
-				"Campos que serão gravados:\n" + describeFields(fields) + "\n\nSe algum estiver errado, cancele, ajuste o diálogo e salve de novo.\n\nNome para esta preferência de \"" + label + '":',
+				"Campos que serão gravados:\n" + (fields.length ? describeFields(fields) : "") +
+					(extra && extra.descricao ? (fields.length ? "\n" : "") + extra.descricao : "") + "\n\nSe algum estiver errado, cancele, ajuste o diálogo e salve de novo.\n\nNome para esta preferência de \"" + label + '":',
 				editingPref ? editingPref.name : ""
 			);
 			if (!name || !name.trim()) return;
-			const extra = getExtra ? getExtra() : null;
 			const saving = editingPref
 				? updatePreference(label, editingPref.id, name.trim(), fields, extra)
 				: addPreference(label, name.trim(), fields, extra);
@@ -2025,7 +2052,8 @@
 					removeCaptureToolbar();
 					alert(
 						'Preferência "' + name.trim() + '" ' + (editingPref ? "atualizada" : "salva") + ' para "' + label +
-						'" (' + fields.length + " campos). Você ainda pode revisar e enviar este formulário normalmente."
+						'" (' + (fields.length || !(extra && extra.descricao) ? fields.length + " campos" : extra.descricao) +
+						"). Você ainda pode revisar e enviar este formulário normalmente."
 					);
 				})
 				.catch(function (err) {
@@ -2493,7 +2521,11 @@
 	// - formId: id do <form> da tela final (captura/aplicação);
 	// - prefFields: nomes dos campos que uma preferência pode guardar;
 	// - confirmAfterApply: false para só preencher, sem "Sim, executar".
-	// Hoje: "Alvará Eletrônico" (alvaraEletronico.js).
+	// - captureExtra(doc) (opcional): devolve, na hora de salvar, dados
+	//   extras lidos da tela (vão para a preferência junto de `ctx.extra`);
+	//   com ele, a preferência pode não ter nenhum campo.
+	// Hoje: "Alvará Eletrônico" (alvaraEletronico.js) e "Advogados"
+	// (habilitarAdvogado.js).
 	// -------------------------------------------------------------------
 
 	const CUSTOM_STEP_TIMEOUT_MS = 20000;
@@ -3916,6 +3948,7 @@
 
 		ACTION_GROUPS.forEach(function (group) {
 			if (group.custom && !location.pathname.startsWith("/projudi/")) return;
+			if (group.semBotao) return;
 			const btn = document.createElement("button");
 			btn.type = "button";
 			btn.className = "pdp-qa-group-btn";
@@ -4051,7 +4084,7 @@
 
 	function buildPanel(group) {
 		activeGroupId = group.id;
-		const activeBtn = row && row.querySelector('[data-group-id="' + group.id + '"]');
+		const activeBtn = panelButton(group.id);
 		if (activeBtn) activeBtn.classList.add("pdp-qa-active");
 		activePanel = document.createElement("div");
 		activePanel.className = "pdp-qa-panel";
@@ -4904,6 +4937,15 @@
 		// telas próprias): "Juntar Documento" e ações personalizadas.
 		stepNeedsProcessScreen: function (label) {
 			return label === JUNTAR_LABEL || !!getCustomAction(label) || label === "Alvará Eletrônico";
+		},
+		// Abre/fecha o painel de um grupo cujo botão é de outro arquivo
+		// (ex.: "⚖️ Advogados", de habilitarAdvogado.js, com
+		// data-panel-id="advogados").
+		togglePanelById: function (id) {
+			const group = ACTION_GROUPS.filter(function (g) {
+				return g.id === id;
+			})[0];
+			if (group) togglePanel(group);
 		},
 		applyPreferenceFrom: function (label, pref, origem, hooks) {
 			closePanel();

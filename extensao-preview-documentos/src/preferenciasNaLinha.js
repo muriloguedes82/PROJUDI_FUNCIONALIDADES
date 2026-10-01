@@ -17,7 +17,7 @@
 //      "✅ Sim, executar" - nada é enviado ao Projudi sem esse clique.
 //   3. A linha mostra o andamento e o resultado. A listagem não é
 //      recarregada.
-// Preferências de "Juntar Documento" e do "Alvará Eletrônico" continuam só
+// Preferências de "Juntar Documento", do "Alvará Eletrônico" e de "Advogados" continuam só
 // na tela do processo (dependem de arquivos/telas próprias).
 (function () {
 	"use strict";
@@ -477,6 +477,7 @@
 	function disponivel(item) {
 		if (item.kind !== "action") return "Só na tela do processo (Juntar Documento).";
 		if (item.label === "Alvará Eletrônico") return "Só na tela do processo (Alvará Eletrônico).";
+		if (item.label === "Advogados") return "Só na tela do processo (Advogados).";
 		return null;
 	}
 
