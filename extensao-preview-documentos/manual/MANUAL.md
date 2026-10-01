@@ -1087,8 +1087,8 @@ painel com:
 
 | Opção | O que faz |
 |---|---|
-| **Abrir** | Abre a tela **Habilitação de Advogado/Sociedade para Parte** no popup, como antes |
-| **+ Nova preferência** | Abre a mesma tela para você montar a lista e salvá-la |
+| **Abrir** | Abre no popup a tela do botão nativo **Advogados** (a lista de advogados do processo), como antes |
+| **+ Nova preferência** | Abre direto a tela **Habilitação de Advogado/Sociedade para Parte**, para você montar a lista e salvá-la |
 | **★ nome** | Abre a tela já com os advogados da preferência na seção **Advogados** |
 | **✏️** | Abre a tela com a preferência, para você ajustar a lista e atualizá-la |
 | **🗑** | Remove a preferência |
@@ -1112,7 +1112,7 @@ mesmo sem advogado cadastrado (para incluir o primeiro).
 
 1. Clique em **⚖️ Advogados** → **★ nome-da-preferência** (ou use o card
    em **⭐ Minhas Preferências**, ou ponha a preferência num **🔗 Combo**).
-2. A tela abre e a extensão inclui sozinha, um de cada vez, cada advogado
+2. A tela **Habilitação de Advogado/Sociedade para Parte** abre e a extensão inclui sozinha, um de cada vez, cada advogado
    da preferência na seção **Advogados** (um aviso amarelo no alto da tela
    mostra o andamento) e escolhe a **Atuação** gravada.
 3. Marque as **Partes do Processo** que o advogado vai representar e

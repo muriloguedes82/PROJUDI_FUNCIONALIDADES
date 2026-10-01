@@ -290,18 +290,72 @@
 		aviso.textContent = texto;
 	}
 
+	// O botão nativo "Advogados" abre primeiro a LISTA dos advogados do
+	// processo (OAB / Advogado / Partes) — com o mesmo `advogadosParteForm`
+	// —, e só um botão dela leva à tela "Habilitação de Advogado/Sociedade
+	// para Parte" (com um `_tj` novo, que prepara no Projudi a lista do
+	// cadastro múltiplo; incluir advogados sem passar por ele dá "Erro
+	// geral"). A tela de habilitação é a que tem a "Atuação" e as caixas
+	// das partes.
+	function telaHabilitacao(doc) {
+		const form = doc.getElementById(FORM_ID);
+		if (!form || form.tagName !== "FORM") return null;
+		return form.querySelector('select[name="idTipoAdvogado"]') || form.querySelector('[name="idxParteProcessoSelecionada"]') ? form : null;
+	}
+
+	function textoBotao(el) {
+		return limpa(el.value || el.textContent);
+	}
+
+	function botoesDa(doc) {
+		return Array.prototype.filter.call(doc.querySelectorAll('input[type="button"], input[type="submit"], button'), function (b) {
+			return !b.disabled && textoBotao(b);
+		});
+	}
+
+	// Botão da lista que abre a tela de habilitação (o nome exato não é
+	// conhecido: tenta, nesta ordem, os rótulos usuais do Projudi).
+	const ROTULOS_HABILITAR = [/^adicionar$/i, /^novo$/i, /^incluir$/i, /^habilitar$/i, /^cadastrar$/i, /^(adicionar|novo|incluir|habilitar|cadastrar)\b/i];
+	function botaoHabilitar(doc) {
+		const botoes = botoesDa(doc);
+		for (let i = 0; i < ROTULOS_HABILITAR.length; i++) {
+			const achado = botoes.filter(function (b) { return ROTULOS_HABILITAR[i].test(textoBotao(b)); })[0];
+			if (achado) return achado;
+		}
+		return null;
+	}
+
 	// Chamado pelo popup a cada página carregada e periodicamente (ver
-	// openCustomAction em quickActions.js). `ctx.actedDoc` é a página da qual
-	// este script mandou incluir um advogado: enquanto ela continuar no
-	// popup, a inclusão ainda está em andamento.
+	// openCustomAction em quickActions.js). `ctx.actedDoc` é a página em que
+	// este script já agiu (clicou no botão da lista ou mandou incluir um
+	// advogado): enquanto ela continuar no popup, a navegação ainda está em
+	// andamento.
 	function step(doc, ctx) {
 		if (doc === ctx.actedDoc) return { state: ctx.revelado ? "show" : "wait" };
-		const form = doc.getElementById(FORM_ID);
-		if (!form || form.tagName !== "FORM") {
+		const form = telaHabilitacao(doc);
+		if (!form) {
 			if (ctx.ultimo) {
 				return { state: "fail", message: 'O Projudi não voltou à tela "Advogados" ao incluir ' + descreverAdvogado(ctx.ultimo) + ". Confira a mensagem na tela." };
 			}
-			return { state: "fail", message: 'O Projudi não abriu a tela "Habilitação de Advogado/Sociedade para Parte".' };
+			const lista = doc.getElementById(FORM_ID);
+			if (!lista) return { state: "fail", message: 'O Projudi não abriu a tela "Advogados" deste processo.' };
+			// Lista dos advogados do processo: é a tela do "Abrir".
+			if (ctx.mode === "open") return { state: "ready" };
+			if (ctx.clicouHabilitar) {
+				return { state: "fail", message: 'O Projudi não abriu a tela "Habilitação de Advogado/Sociedade para Parte". Abra-a pelo botão da tela e continue manualmente.' };
+			}
+			const botao = botaoHabilitar(doc);
+			if (!botao) {
+				return {
+					state: "fail",
+					message: 'Não encontrei, na tela "Advogados", o botão que abre a "Habilitação de Advogado/Sociedade para Parte". Botões encontrados: ' +
+						(botoesDa(doc).map(textoBotao).join(", ") || "nenhum") + ". Abra a habilitação manualmente.",
+				};
+			}
+			ctx.clicouHabilitar = true;
+			ctx.actedDoc = doc;
+			botao.click();
+			return { state: "wait" };
 		}
 		if (ctx.mode === "open" || ctx.mode === "capture") return { state: "ready" };
 
@@ -355,8 +409,8 @@
 
 	// Na hora de salvar a preferência: a lista e a Atuação da tela atual.
 	function captureExtra(doc) {
-		const form = doc && doc.getElementById(FORM_ID);
-		if (!form) throw new Error('A tela "Advogados" não está mais aberta no popup.');
+		const form = doc && telaHabilitacao(doc);
+		if (!form) throw new Error('Abra a tela "Habilitação de Advogado/Sociedade para Parte" no popup e inclua os advogados antes de salvar a preferência.');
 		const advogados = lerAdvogados(form);
 		if (!advogados.length) {
 			throw new Error('Inclua pelo menos um advogado na seção "Advogados" (botão "Adicionar") antes de salvar a preferência.');
