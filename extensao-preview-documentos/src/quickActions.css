@@ -826,3 +826,83 @@ html.pdp-qa-combo-active body {
 	font-weight: bold;
 	color: #a04b00;
 }
+
+/* Pergunta sobre as pendências do processo (juntadas a analisar, retorno de
+   conclusão) antes de executar uma preferência ou combo na tela do processo
+   (ver executarComPendencias em quickActions.js). Mesmo visual da pergunta
+   das preferências na linha (.pdp-pl-pergunta em listaTarefas.css). */
+.pdp-qa-pend-fundo {
+	position: fixed;
+	inset: 0;
+	z-index: 2147483001;
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	padding-top: 40px;
+	background: rgba(0, 0, 0, 0.35);
+}
+
+.pdp-qa-pend-caixa {
+	width: 440px;
+	max-width: calc(100vw - 24px);
+	box-sizing: border-box;
+	padding: 10px 14px;
+	background: #fff;
+	border-radius: 8px;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+	font: 12px Arial, Helvetica, sans-serif;
+	color: #333;
+	text-align: left;
+}
+
+.pdp-qa-pend-caixa p {
+	margin: 8px 0;
+}
+
+.pdp-qa-pend-cab {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin-bottom: 4px;
+}
+
+.pdp-qa-pend-x {
+	border: 0;
+	background: none;
+	font-size: 14px;
+	color: #666;
+	cursor: pointer;
+}
+
+.pdp-qa-pend-obs {
+	color: #888;
+	font-style: italic;
+	font-size: 11px;
+}
+
+.pdp-qa-pend-botoes {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+	margin-top: 10px;
+}
+
+.pdp-qa-pend-btn {
+	padding: 3px 9px;
+	border: 1px solid #b9c4ad;
+	border-radius: 4px;
+	background: #f4f6ef;
+	color: #34422a;
+	font: 11.5px Arial, Helvetica, sans-serif;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.pdp-qa-pend-btn:hover {
+	background: #e7ecdd;
+}
+
+.pdp-qa-pend-sim {
+	font-weight: bold;
+}

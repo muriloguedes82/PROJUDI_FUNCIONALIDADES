@@ -204,9 +204,13 @@
         target = new URL(url, location.href);
         if (target.origin !== location.origin || !/^\/projudi\/.*\/analisarJuntada\.do$/.test(target.pathname)) throw new Error();
       } catch (_) { resolve({ ok:false, message:'Endereço de análise de juntadas não reconhecido.' }); return; }
-      if (!review(target.href, null, anchor, resolve)) resolve({ ok:false, message:'Já há uma dispensa de juntadas em andamento.' });
+      // Na tela do processo, `anchor` é o próprio link do quadro Pendências:
+      // o card de status toma o lugar do botão "Dispensar juntadas" dele.
+      if (!review(target.href, buttons.get(anchor) || null, anchor, resolve)) resolve({ ok:false, message:'Já há uma dispensa de juntadas em andamento.' });
     });
   };
+  // Pendência do quadro já dispensada (ou em dispensa) nesta página.
+  window.__pdpDispensas.juntadaDispensada = link => dispensed.has(link) || cards.has(link);
   window.__pdpDispensas.juntadaURL = function (doc) {
     for (const link of doc.querySelectorAll('#quadroPendencias a.link[href]')) {
       try {

@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.9.98 |
-| **Versão da extensão** | 2.9.98 |
-| **Data desta versão** | 30/09/2026 |
+| **Versão do manual** | 2.9.99 |
+| **Versão da extensão** | 2.9.99 |
+| **Data desta versão** | 01/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -849,6 +849,16 @@ MP para ciência, 5 dias") e reaplicá-lo em outros processos.
 **Usar:**
 
 1. No painel da ação, clique no chip **★ nome-da-preferência**.
+   - Se o quadro **Pendências** do processo tiver **juntadas a analisar**,
+     aparece antes a pergunta *Dispensar as juntadas pendentes deste
+     processo antes de executar a preferência?*: **✅ Sim, dispensar
+     juntadas** dispensa e segue; **Não, seguir sem isso** só segue; **✕**
+     desiste.
+   - Se tiver **Retorno de Conclusão**, a pergunta é *Finalizar a conclusão
+     pendente deste processo antes de executar a preferência?* (**✅ Sim,
+     finalizar conclusão** ou **Não, seguir sem isso**). Havendo as duas
+     pendências, são duas perguntas: primeiro as juntadas, depois a
+     conclusão. É a mesma pergunta do ⭐ nas listagens ([9.3](#cap-9-3)).
 2. O diálogo abre **já preenchido** e aparece a barra: *Confirmar "Ação" com
    a preferência "..."?*
 3. ⚠️ Confira os campos e clique em ✅ **Sim, executar** — é esse clique
@@ -868,6 +878,9 @@ Atualizar preferência** (nada é enviado); 🗑 remove.
 - Preferências de **Intimar Partes** gravadas antes da versão 2.9.84 devem
   ser salvas de novo.
 - As preferências são separadas por ação e ficam no seu navegador.
+- Se a dispensa das juntadas ou a finalização da conclusão não der certo,
+  um aviso informa e a preferência abre mesmo assim; confira o quadro
+  Pendências.
 
 <a id="cap-7-3"></a>
 ### 7.3 Minhas Preferências
@@ -881,7 +894,8 @@ e do Juntar Documento) e os combos, em cards, num só lugar.
 
 1. Clique em **⭐ Minhas Preferências**.
 2. Clique no card desejado — o fluxo é o mesmo do item [7.2](#cap-7-2)
-   (diálogo preenchido + ✅ **Sim, executar**).
+   (pergunta sobre juntadas/conclusão pendentes, se houver, diálogo
+   preenchido + ✅ **Sim, executar**).
 3. Para mudar a ordem: **✏️ Editar posição**, arraste os cards e clique em
    **✅ Concluir**. A ordem é salva na hora.
 
@@ -909,6 +923,10 @@ sentença".
 **Executar:**
 
 1. Em **🔗 Combos** (ou em **⭐ Minhas Preferências**), clique em **▶ nome**.
+   Se o quadro Pendências tiver juntadas a analisar e/ou Retorno de
+   Conclusão, o combo pergunta antes se deve dispensar as juntadas e/ou
+   finalizar a conclusão (como em [7.2](#cap-7-2)); **Sim** ou **Não**
+   iniciam o combo, **✕** desiste.
 2. Cada etapa abre sozinha, preenchida, com a barra "Combo ... — etapa i de
    N".
 3. ⚠️ **Cada etapa pede o seu ✅ Sim, executar.** O combo nunca confirma um
@@ -1441,6 +1459,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.9.99 | 01/10/2026 | Na tela do processo, ao executar uma preferência ou um combo (chip ★ da ação, ⭐ Minhas Preferências ou 🔗 Combos), a extensão pergunta antes se deve **dispensar as juntadas pendentes** e/ou **finalizar a conclusão pendente** do quadro Pendências — uma pergunta para cada, como no ⭐ das listagens (7.2, 7.3, 7.4). Vídeos não regravados. |
 | 2.9.98 | 30/09/2026 | Correção no ⭐ do Retorno de Conclusão (9.3): o **Sim** passa a finalizar a conclusão pela linha "Retorno de Conclusão" do quadro Pendências do processo (antes procurava o botão na tela "Dados da Conclusão", onde ele não fica) e, quando não conseguir, avisa na linha quais botões encontrou. |
 | 2.9.97 | 30/09/2026 | Botão **Dispensar pendências** por tipo em Cumprimentos para Expedir, com acompanhamento das remoções e interrupção em caso de erro (6.4). Catálogo do Menu atualizado e vídeo V36 incluído. |
 | 2.9.95 | 30/09/2026 | Botões com nomes mais curtos: **📋 Colar processo** (antes "Processo copiado", seção 8.5 renomeada), **⚖️ Advogados**, **👥 Partes**, **🖍️ Destacar mov.**, **Expandir Mov ▼ / Recolher Mov ▲** e **Apenas com arquivo (+) / Mostrar todos** (2.4, 3.3, 3.4, 8.3–8.5). Pré-visualização pelo nome do documento na tela Análise de Juntadas (3.1). A barra de botões se alinha ao quadro "Anotações nos autos" quando não há quadro Pendências e fica oculta em mais telas e nos popups do Alvará Eletrônico, de Partes e da ficha do réu (2.4). Vídeos regravados com os nomes novos. |
