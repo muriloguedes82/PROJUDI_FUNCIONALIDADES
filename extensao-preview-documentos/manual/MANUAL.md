@@ -1113,8 +1113,10 @@ mesmo sem advogado cadastrado (para incluir o primeiro).
 1. Clique em **⚖️ Advogados** → **★ nome-da-preferência** (ou use o card
    em **⭐ Minhas Preferências**, ou ponha a preferência num **🔗 Combo**).
 2. A tela **Habilitação de Advogado/Sociedade para Parte** abre e a extensão inclui sozinha, um de cada vez, cada advogado
-   da preferência na seção **Advogados** (um aviso amarelo no alto da tela
-   mostra o andamento) e escolhe a **Atuação** gravada.
+   da preferência na seção **Advogados**, fazendo por você o mesmo caminho
+   de sempre: **Adicionar** → OAB → **Pesquisar** → bolinha →
+   **Selecionar** (um aviso amarelo no alto da tela mostra o andamento). No
+   fim, escolhe a **Atuação** gravada.
 3. Marque as **Partes do Processo** que o advogado vai representar e
    clique em **Salvar** do próprio Projudi.
 

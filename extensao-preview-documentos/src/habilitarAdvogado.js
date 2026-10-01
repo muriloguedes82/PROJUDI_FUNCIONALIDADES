@@ -247,16 +247,108 @@
 		);
 	}
 
-	// Endereço que o "Selecionar" da tela "Seleção de Advogado" usa para
-	// incluir o advogado na lista.
-	function urlAdicionar(doc, adv) {
-		const url = new URL(ADVOGADOS_PATH, doc.defaultView.location.href);
-		url.searchParams.set("actionType", "adicionarAdvogadoCadastroMultiplo");
-		url.searchParams.set("oab", adv.oab);
-		url.searchParams.set("complemento", adv.complemento);
-		url.searchParams.set("uf", adv.uf);
-		url.searchParams.set("idTipoAdvogado", adv.tipo);
-		return url.href;
+	// O Projudi só aceita a inclusão vinda da própria tela "Seleção de
+	// Advogado" (o endereço de inclusão aberto direto responde "Erro
+	// geral"): para cada advogado, a extensão faz o caminho do usuário —
+	// "Adicionar" → OAB → "Pesquisar" → bolinha → "Selecionar". A tela de
+	// seleção abre numa janela interna do Projudi (um quadro dentro da tela
+	// de habilitação, às vezes aberto sozinho ao carregar a tela).
+	const SELECAO_PATH = "/projudi/usuario/advogadoSelecao.do";
+	const ESPERA_JANELA_MS = 1500; // a tela pode abrir a seleção sozinha
+	const LIMITE_ETAPA_MS = 20000;
+
+	function janelaSelecao(doc) {
+		const quadros = doc.querySelectorAll("iframe");
+		for (let i = 0; i < quadros.length; i++) {
+			try {
+				const win = quadros[i].contentWindow;
+				if (win && win.location.pathname === SELECAO_PATH) return quadros[i];
+			} catch (err) {
+				// quadro de outra origem
+			}
+		}
+		return null;
+	}
+
+	// Bolinha "parametros" do resultado da pesquisa (valor
+	// "&oab=…&complemento=…&uf=…&idTipoAdvogado=…") do advogado gravado.
+	function resultadoDo(selDoc, adv) {
+		const radios = selDoc.querySelectorAll('input[type="radio"][name="parametros"]');
+		for (let i = 0; i < radios.length; i++) {
+			const p = new URLSearchParams(String(radios[i].value || "").replace(/^&/, ""));
+			const achado = { oab: p.get("oab") || "", complemento: p.get("complemento") || "", uf: p.get("uf") || "", tipo: p.get("idTipoAdvogado") || "" };
+			if (chave(achado) === chave(adv)) return radios[i];
+		}
+		return null;
+	}
+
+	function preencher(el, valor) {
+		el.value = valor;
+		el.dispatchEvent(new Event("input", { bubbles: true }));
+		el.dispatchEvent(new Event("change", { bubbles: true }));
+	}
+
+	// Uma rodada da inclusão de `adv` (estado em `ctx.inclusao`). Devolve
+	// "agindo" (seguir acompanhando), "selecionado" (clicou em "Selecionar":
+	// a tela de habilitação vai recarregar) ou "falhou".
+	function incluirPelaSelecao(doc, ctx, adv) {
+		const inc = ctx.inclusao;
+		if (Date.now() - inc.inicio > LIMITE_ETAPA_MS) return "falhou";
+		const quadro = janelaSelecao(doc);
+		let selDoc = null;
+		try {
+			selDoc = quadro && quadro.contentDocument;
+		} catch (err) {
+			selDoc = null;
+		}
+		if (!quadro) {
+			// A janela ainda está abrindo (se não abrir, clica de novo).
+			if (inc.abriu && Date.now() - inc.abriuEm < 4000) return "agindo";
+			if (Date.now() - ctx.docVistoEm < ESPERA_JANELA_MS) return "agindo";
+			const adicionar = doc.getElementById("addButton") ||
+				botoesDa(doc).filter(function (b) { return /^adicionar$/i.test(textoBotao(b)); })[0];
+			if (!adicionar) return "falhou";
+			inc.abriu = true;
+			inc.abriuEm = Date.now();
+			adicionar.click();
+			return "agindo";
+		}
+		inc.abriu = true;
+		inc.abriuEm = inc.abriuEm || Date.now();
+		if (!selDoc || selDoc.readyState !== "complete" || selDoc === inc.pesquisaDoc) return "agindo";
+		const form = selDoc.getElementById("advogadoForm") || selDoc.querySelector("form");
+		if (!form) return "agindo";
+
+		const radio = resultadoDo(selDoc, adv);
+		if (radio) {
+			const selecionar = selDoc.getElementById("selectButton") ||
+				botoesDa(selDoc).filter(function (b) { return /^selecionar$/i.test(textoBotao(b)); })[0];
+			if (!selecionar) return "falhou";
+			radio.checked = true;
+			radio.dispatchEvent(new Event("click", { bubbles: true }));
+			radio.dispatchEvent(new Event("change", { bubbles: true }));
+			selecionar.click();
+			return "selecionado";
+		}
+		// Pesquisou e o advogado não veio no resultado (a janela fica aberta
+		// para o próximo; é fechada no fim).
+		if (inc.pesquisou) return "falhou";
+		const oab = selDoc.getElementById("oab") || form.querySelector('[name="oab"]');
+		const pesquisar = selDoc.getElementById("searchButton") ||
+			botoesDa(selDoc).filter(function (b) { return /^pesquisar$/i.test(textoBotao(b)); })[0];
+		if (!oab || !pesquisar) return "falhou";
+		const tipo = selDoc.getElementById("tipoAdvogado") || form.querySelector('select[name="tipoAdvogado"]');
+		if (tipo) {
+			const temTipo = Array.prototype.some.call(tipo.options, function (o) { return o.value === adv.tipo; });
+			preencher(tipo, temTipo ? adv.tipo : "-1");
+		}
+		const nome = selDoc.getElementById("nome");
+		if (nome) preencher(nome, "");
+		preencher(oab, adv.oab);
+		inc.pesquisou = true;
+		inc.pesquisaDoc = selDoc;
+		pesquisar.click();
+		return "agindo";
 	}
 
 	function escolherAtuacao(form, salva) {
@@ -378,17 +470,41 @@
 		if (faltam.length) {
 			const proximo = faltam[0];
 			const feitos = salvos.length - faltam.length + 1;
-			ctx.tentados[chave(proximo)] = true;
-			ctx.ultimo = proximo;
-			ctx.actedDoc = doc;
 			// Mostra o popup enquanto inclui (sem o limite de tempo da
 			// abertura, que valeria para todas as inclusões juntas).
 			ctx.revelado = true;
-			avisar(doc, form, 'Preferência "' + ctx.pref.name + '": incluindo ' + descreverAdvogado(proximo) + " (" + feitos + " de " + salvos.length + ")…");
-			doc.defaultView.location.href = urlAdicionar(doc, proximo);
+			if (ctx.docVisto !== doc) {
+				ctx.docVisto = doc;
+				ctx.docVistoEm = Date.now();
+			}
+			if (!ctx.inclusao || ctx.inclusao.chave !== chave(proximo)) {
+				ctx.inclusao = { chave: chave(proximo), inicio: Date.now() };
+				avisar(doc, form, 'Preferência "' + ctx.pref.name + '": incluindo ' + descreverAdvogado(proximo) + " (" + feitos + " de " + salvos.length + ")…");
+			}
+			const resultado = incluirPelaSelecao(doc, ctx, proximo);
+			if (resultado === "selecionado") {
+				ctx.tentados[chave(proximo)] = true;
+				ctx.ultimo = proximo;
+				ctx.actedDoc = doc;
+				ctx.inclusao = null;
+			} else if (resultado === "falhou") {
+				ctx.tentados[chave(proximo)] = true;
+				ctx.falhas.push(proximo);
+				ctx.inclusao = null;
+			}
 			return { state: "show" };
 		}
 
+		// Fecha a janela de seleção que tenha ficado aberta.
+		const sobra = janelaSelecao(doc);
+		if (sobra) {
+			try {
+				const cancelar = sobra.contentDocument.getElementById("cancelButton");
+				if (cancelar) cancelar.click();
+			} catch (err) {
+				// segue: o usuário fecha pelo "Fechar" da janela
+			}
+		}
 		const atuacaoOk = escolherAtuacao(form, ctx.pref && ctx.pref.atuacao);
 		const problemas = [];
 		if (ctx.falhas.length) {
