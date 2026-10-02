@@ -101,27 +101,31 @@
 	// Componente nativo do SEEU (shadow DOM)
 	// ------------------------------------------------------------------
 
-	function header() {
-		return document.querySelector(SEL_HEADER);
+	// Todas as funções abaixo recebem o documento (`doc`, padrão: a própria
+	// página): as preferências na linha das listas de juntadas/conclusões
+	// (preferenciasNaLinha.js) associam os localizadores na tela do processo
+	// carregada num iframe oculto.
+	function header(doc) {
+		return (doc || document).querySelector(SEL_HEADER);
 	}
 
-	function raiz() {
-		const h = header();
+	function raiz(doc) {
+		const h = header(doc);
 		return h && h.shadowRoot;
 	}
 
 	// "+" que abre a lista "Associar localizador ao processo". Sem a
 	// permissão de associar, o SEEU não o mostra.
-	function gatilho() {
-		const r = raiz();
+	function gatilho(doc) {
+		const r = raiz(doc);
 		if (!r) return null;
 		const icone = r.querySelector("seeu-icon.plus-icon, seeu-icon[name='mdi:plus']");
 		if (!icone) return null;
 		return icone.closest("[aria-haspopup]") || icone;
 	}
 
-	function itensMenu() {
-		const r = raiz();
+	function itensMenu(doc) {
+		const r = raiz(doc);
 		if (!r) return [];
 		return Array.from(r.querySelectorAll("seeu-menu-item")).filter(function (item) {
 			return item.getAttribute("aria-disabled") !== "true" && limpar(textoItem(item));
@@ -133,8 +137,8 @@
 		return (span || item).textContent;
 	}
 
-	function menuAberto() {
-		const g = gatilho();
+	function menuAberto(doc) {
+		const g = gatilho(doc);
 		return !!(g && g.getAttribute("aria-expanded") === "true");
 	}
 
@@ -148,21 +152,21 @@
 		return teste();
 	}
 
-	async function abrirMenu() {
-		const g = gatilho();
+	async function abrirMenu(doc) {
+		const g = gatilho(doc);
 		if (!g) throw new Error("O \"+\" de localizadores não está disponível neste processo (sem permissão para associar?).");
-		if (!menuAberto()) g.click();
-		const itens = await aguardar(function () { const l = itensMenu(); return l.length ? l : null; }, 6000);
+		if (!menuAberto(doc)) g.click();
+		const itens = await aguardar(function () { const l = itensMenu(doc); return l.length ? l : null; }, 6000);
 		if (!itens) throw new Error("A lista de localizadores do SEEU não abriu.");
 		return itens;
 	}
 
-	async function fecharMenu() {
-		if (!menuAberto()) return;
-		const g = gatilho();
+	async function fecharMenu(doc) {
+		if (!menuAberto(doc)) return;
+		const g = gatilho(doc);
 		if (g) g.click();
 		await esperar(200);
-		if (menuAberto()) document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, composed: true }));
+		if (menuAberto(doc)) (doc || document).dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, composed: true }));
 	}
 
 	// Textos (normalizados) de cada elemento do cabeçalho fora da lista do
@@ -170,7 +174,7 @@
 	// aparece como um elemento cujo texto é exatamente o nome dele (com
 	// eventual "×" de remover). Comparar elemento a elemento evita confundir
 	// "Aguardando Audiência" com "Aguardando Audiência - Já Cumprida".
-	function textosAssociados() {
+	function textosAssociados(doc) {
 		const textos = new Set();
 		const ignorar = /^(seeu-dropdown|seeu-tooltip|style|script|template)$/i;
 		const profundo = function (n) {
@@ -186,14 +190,14 @@
 			}
 			return t;
 		};
-		const r = raiz();
+		const r = raiz(doc);
 		if (r) profundo(r);
 		return textos;
 	}
 
-	function jaAssociado(nome) {
+	function jaAssociado(nome, doc) {
 		const alvo = normalizar(nome).replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, "");
-		return !!alvo && textosAssociados().has(alvo);
+		return !!alvo && textosAssociados(doc).has(alvo);
 	}
 
 	async function lerLocalizadoresAtivos() {
@@ -211,17 +215,48 @@
 		return nomes;
 	}
 
-	async function associar(nome) {
-		if (jaAssociado(nome)) return "ja";
-		const itens = await abrirMenu();
+	async function associar(nome, doc) {
+		if (jaAssociado(nome, doc)) return "ja";
 		const alvo = normalizar(nome);
-		const item = itens.find(function (i) { return normalizar(textoItem(i)) === alvo; });
-		if (!item) { await fecharMenu(); return "ausente"; }
-		const span = item.querySelector("[data-text-content]") || item;
-		span.click();
-		const ok = await aguardar(function () { return jaAssociado(nome); }, 8000);
-		await fecharMenu();
-		return ok ? "ok" : "incerto";
+		// Uma nova tentativa quando o localizador não aparece no cabeçalho
+		// (ex.: o clique chegou antes de a página estar pronta para ele).
+		for (let tentativa = 1; tentativa <= 2; tentativa++) {
+			if (tentativa > 1 && jaAssociado(nome, doc)) return "ok";
+			const itens = await abrirMenu(doc);
+			const item = itens.find(function (i) { return normalizar(textoItem(i)) === alvo; });
+			if (!item) { await fecharMenu(doc); return tentativa === 1 ? "ausente" : "incerto"; }
+			const span = item.querySelector("[data-text-content]") || item;
+			span.click();
+			const ok = await aguardar(function () { return jaAssociado(nome, doc); }, tentativa === 1 ? 6000 : 8000);
+			await fecharMenu(doc);
+			if (ok) return "ok";
+		}
+		return "incerto";
+	}
+
+	// Associa, um de cada vez, os localizadores no processo de `doc`.
+	// `progresso(i, total, nome)` informa o andamento. Devolve as listas
+	// { ok, ja, ausente, incerto }; um erro (ex.: sem o "+") é lançado.
+	async function associarTodos(localizadores, doc, progresso) {
+		const res = { ok: [], ja: [], ausente: [], incerto: [] };
+		for (let i = 0; i < localizadores.length; i++) {
+			const nome = localizadores[i];
+			if (progresso) progresso(i + 1, localizadores.length, nome);
+			const r = await associar(nome, doc);
+			res[r].push(nome);
+			if (r === "ok" || r === "incerto") await esperar(400);
+		}
+		return res;
+	}
+
+	// Texto do resultado e o tipo do aviso ("ok", "info" ou "erro").
+	function resumir(res) {
+		const partes = [];
+		if (res.ok.length) partes.push("Associado(s): " + res.ok.join(", ") + ".");
+		if (res.ja.length) partes.push("Já estava(m) no processo: " + res.ja.join(", ") + ".");
+		if (res.incerto.length) partes.push("Escolhido(s) na lista, confira no cabeçalho: " + res.incerto.join(", ") + ".");
+		if (res.ausente.length) partes.push("Não está(ão) na lista de localizadores ativos desta unidade: " + res.ausente.join(", ") + ".");
+		return { texto: partes.join(" "), tipo: res.ausente.length ? "erro" : (res.incerto.length ? "info" : "ok") };
 	}
 
 	// ------------------------------------------------------------------
@@ -486,15 +521,11 @@
 	async function aplicar(pref) {
 		if (ocupado) return;
 		ocupado = true;
-		const res = { ok: [], ja: [], ausente: [], incerto: [] };
+		let res;
 		try {
-			for (let i = 0; i < pref.localizadores.length; i++) {
-				const nome = pref.localizadores[i];
-				avisar("Associando " + (i + 1) + " de " + pref.localizadores.length + ": " + nome + "...", "info");
-				const r = await associar(nome);
-				res[r].push(nome);
-				if (r === "ok" || r === "incerto") await esperar(400);
-			}
+			res = await associarTodos(pref.localizadores, document, function (i, total, nome) {
+				avisar("Associando " + i + " de " + total + ": " + nome + "...", "info");
+			});
 		} catch (err) {
 			console.warn(TAG, err);
 			ocupado = false;
@@ -502,12 +533,8 @@
 			return;
 		}
 		ocupado = false;
-		const partes = [];
-		if (res.ok.length) partes.push("Associado(s): " + res.ok.join(", ") + ".");
-		if (res.ja.length) partes.push("Já estava(m) no processo: " + res.ja.join(", ") + ".");
-		if (res.incerto.length) partes.push("Escolhido(s) na lista, confira no cabeçalho: " + res.incerto.join(", ") + ".");
-		if (res.ausente.length) partes.push("Não está(ão) na lista de localizadores ativos desta unidade: " + res.ausente.join(", ") + ".");
-		avisar(partes.join(" "), res.ausente.length ? "erro" : (res.incerto.length ? "info" : "ok"));
+		const r = resumir(res);
+		avisar(r.texto, r.tipo);
 	}
 
 	// ------------------------------------------------------------------
@@ -518,6 +545,16 @@
 	// preferências de localizadores também aparecem como cards.
 	window.__pdpLocalizador = {
 		disponivel: function () { return !!(botao && botao.isConnected && gatilho()); },
+		// Para as preferências na linha (preferenciasNaLinha.js): lista
+		// gravada, cabeçalho/"+" de um documento e associação nele.
+		preferencias: function () { return lerPreferencias().then(function (l) { return l.slice(); }); },
+		temCabecalho: function (doc) { return !!header(doc); },
+		podeAssociar: function (doc) { return !!gatilho(doc); },
+		associarEm: function (doc, localizadores, progresso) {
+			return associarTodos(localizadores, doc, progresso).then(function (res) {
+				return Object.assign({ resultado: res }, resumir(res));
+			});
+		},
 		aplicar: function (pref) {
 			abrirPainel();
 			lerPreferencias().then(function () {

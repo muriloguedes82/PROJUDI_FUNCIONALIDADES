@@ -1585,6 +1585,20 @@ expor a API usada pela linha (`applyPreferenceFrom`/`loadFavItems`), e
 `juntadaDrag.js`/`finalizarConclusao.js` expõem as dispensas em
 `window.__pdpDispensas`.
 
+
+### No SEEU (preferências do 📍 Localizador)
+
+Nas listas **Análise de Juntadas** (`/seeu/processo/analisarJuntada.do`) e
+**Retorno de Conclusão** (`/seeu/processo/conclusao.do`) do SEEU, a ⭐
+(listaTarefas.js) lista as preferências do **"📍 Localizador"** — as
+ações rápidas não funcionam no SEEU. Ao escolher uma, a tela do processo
+(link da linha, `visualizacaoProcesso.do`) é carregada num iframe oculto
+(`carregar` com `manter`) e os localizadores são associados nela por
+`window.__pdpLocalizador.associarEm` (localizadorSeeu.js), com uma nova
+tentativa quando o localizador não aparece no cabeçalho. A linha mostra o
+andamento e o resultado. Ainda sem as perguntas de dispensar juntadas e
+finalizar conclusão (telas do SEEU não mapeadas).
+
 ## Dispensar decursos de prazo
 
 Ainda no quadro **Pendências**, quando o item é uma intimação

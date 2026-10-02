@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.11.2 |
-| **Versão da extensão** | 2.11.2 |
+| **Versão do manual** | 2.12.0 |
+| **Versão da extensão** | 2.12.0 |
 | **Data desta versão** | 02/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -136,7 +136,7 @@ Não é preciso saber nada de informática além disso.
 | Sistema | O que funciona |
 |---|---|
 | **Projudi (TJPR)** | Todas as funções deste manual |
-| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)) e o botão **📍 Localizador** ([8.7](#cap-8-7)), que só existe no SEEU. Vale também para o **SEEU de treino** (ambiente de testes) |
+| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)) e o botão **📍 Localizador** ([8.7](#cap-8-7)), que só existe no SEEU — também pela **⭐** das listas de juntadas e de conclusões ([9.3](#cap-9-3)). Vale também para o **SEEU de treino** (ambiente de testes) |
 
 A extensão **não funciona** quando o usuário está logado com perfil de
 advogado(a) ou de assessor(a) de advogado — veja [10.3](#cap-10-3).
@@ -1348,7 +1348,9 @@ painel com as suas preferências:
 <a id="cap-9"></a>
 ## 9. Telas de análise, mesas e cumprimentos
 
-*Só no Projudi.*
+*Só no Projudi* — exceto as listas de tarefas ([9.2](#cap-9-2)) e a **⭐**
+([9.3](#cap-9-3)), que também aparecem nas listas **Análise de Juntadas** e
+**Retorno de Conclusão** do SEEU.
 
 <a id="cap-9-1"></a>
 ### 9.1 Filtro por Sequencial na Análise de Decurso de Prazo
@@ -1440,6 +1442,26 @@ da tela de análise, sem abri-lo.
   mesmo assim não houver o botão **Finalizar Conclusão Pendente**, a linha
   avisa quais botões a tela tem, e a preferência abre do mesmo jeito.
 - Um card por vez.
+
+**No SEEU** (listas **Análise de Juntadas** e **Retorno de Conclusão**):
+
+▶ [**Vídeo V40** — Localizador pela ⭐ da lista (SEEU)](videos/V40-localizador-na-linha-seeu.mp4)
+
+1. Clique no **⭐** da linha. Aparecem as preferências do
+   **📍 Localizador** ([8.7](#cap-8-7)) — as ações rápidas não funcionam
+   no SEEU.
+2. Clique numa preferência. A extensão abre o processo **em segundo
+   plano** e associa os localizadores dela, um de cada vez, pela lista do
+   **+** do próprio SEEU. Você continua na lista.
+3. A linha mostra o andamento e, no fim, o resultado: **✅** quando todos
+   foram associados; **⚠** dizendo o que não foi possível (ex.:
+   localizador que não está na lista da unidade).
+
+- Localizador que já está no processo não é associado de novo.
+- Por enquanto, no SEEU, a extensão **não** pergunta sobre dispensar as
+  juntadas ou finalizar a conclusão: a preferência é executada direto.
+- Sem preferências de localizador, a ⭐ avisa para criá-las no botão
+  **📍 Localizador**, na tela do processo.
 
 <a id="cap-9-4"></a>
 ### 9.4 Mesa do Analista sem itens zerados
@@ -1660,6 +1682,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V37](videos/V37-escolher-a-movimentacao.mp4) | [Escolher a movimentação das Ações rápidas](videos/V37-escolher-a-movimentacao.mp4) | [7.7](#cap-7-7) | 1:14 |
 | [V38](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [Preferência a partir de um movimento](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [7.7](#cap-7-7) | 0:56 |
 | [V39](videos/V39-localizador-seeu.mp4) | [Localizador (SEEU)](videos/V39-localizador-seeu.mp4) | [8.7](#cap-8-7) | 1:02 |
+| [V40](videos/V40-localizador-na-linha-seeu.mp4) | [Localizador pela ⭐ da lista (SEEU)](videos/V40-localizador-na-linha-seeu.mp4) | [9.3](#cap-9-3) | 0:31 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -1673,6 +1696,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.12.0 | 02/10/2026 | Seção 9.3: **⭐** nas listas **Análise de Juntadas** e **Retorno de Conclusão** do SEEU, com as preferências do **📍 Localizador** executadas em segundo plano e o resultado na linha (ainda sem as perguntas de dispensar juntadas/finalizar conclusão). Ajustes em 1.3 e na abertura do capítulo 9; vídeo V40. |
 | 2.11.2 | 02/10/2026 | O botão **📍 Localizador** passa para a barra de botões, ao lado de **⭐ Minhas Preferências**, e as preferências de localizadores aparecem como cards em **⭐ Minhas Preferências** (2.4, 7.3 e 8.7). Vídeo V39 regravado. |
 | 2.11.1 | 02/10/2026 | A extensão passa a funcionar também no **SEEU de treino** (ambiente de testes), como no SEEU (1.3 e 8.7). |
 | 2.11.0 | 02/10/2026 | Nova seção 8.7: botão **📍 Localizador**, *só no SEEU*, com preferências de localizadores associadas ao processo com um clique (lista nativa do **+**). Convenção *Só no SEEU* (1.2), tabelas 1.3 e 2.6 e vídeo V39. |

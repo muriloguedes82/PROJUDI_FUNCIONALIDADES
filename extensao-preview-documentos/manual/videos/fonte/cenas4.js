@@ -417,3 +417,42 @@ CENAS.V39 = {
 		await S.endCard("📍 Localizador → ➕ Nova preferência → marcar localizadores → Salvar → um clique na preferência (ou no card de ⭐ Minhas Preferências) associa todos.");
 	},
 };
+
+// ------------------------------------------------------------------ V40
+// ⭐ na linha das listas do SEEU (preferenciasNaLinha.js, modo SEEU):
+// preferências do 📍 Localizador associadas em segundo plano.
+CENAS.V40 = {
+	arquivo: "V40-localizador-na-linha-seeu.mp4",
+	titulo: "Localizador pela ⭐ da lista (SEEU)",
+	secao: "9.3",
+	async run() {
+		telaLista("Análise de Juntadas");
+		browser(["*SEEU - Sistema Eletrônico de Execução Unificado"], "https://seeu.pje.jus.br/seeu/processo/analisarJuntada.do");
+		$(".pj-logo").innerHTML = "SEEU<small>Sistema Eletrônico de Execução Unificado</small>";
+		$(".pj-menu").innerHTML = "<span>Início</span><span>Processos</span><span>Intimações</span><span>Decurso de Prazo</span><span>Análise de Juntadas</span><span>Cumprimentos</span><span>Outros</span>";
+		$("#areaatuacao").textContent = "Vara de Execução de Exemplo";
+		$$(".x-rowslot").forEach((s, i) => (s.innerHTML = ' <span class="x-btn small">+</span> <span class="x-btn small" data-star="' + i + '">⭐</span><span class="st" data-st="' + i + '" style="margin-left:6px;font-size:11px"></span>'));
+		await S.titleCard("VÍDEO V40", "Localizador pela ⭐ da lista (SEEU)", "Associe localizadores a um processo sem sair da lista de juntadas ou conclusões.");
+		await S.cap("No SEEU, as listas <b>Análise de Juntadas</b> e <b>Retorno de Conclusão</b> também têm a <b>⭐</b> em cada linha.");
+		await S.click('[data-star="0"]');
+		const pn = panelAt('<h4>⭐ Minhas Preferências — ' + LISTA[0].n + '</h4><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">' +
+			'<div class="x-chip" id="card" style="display:block;border-radius:6px;padding:8px;margin:0"><div style="color:#666">📍 Localizador</div><b>★ Audiência cumprida</b></div>' +
+			'<div class="x-chip" style="display:block;border-radius:6px;padding:8px;margin:0"><div style="color:#666">📍 Localizador</div><b>★ Cálculo de pena</b></div></div>', '[data-star="0"]', { w: 440 });
+		pn.style.left = "520px"; pn.style.top = "200px";
+		await S.cap("No SEEU, a ⭐ mostra as preferências do <b>📍 Localizador</b>. Escolha uma.");
+		await S.click("#card");
+		pn.remove();
+		const st = $('[data-st="0"]');
+		st.textContent = "★ Audiência cumprida · Carregando o processo…";
+		await S.cap("A extensão abre o processo <b>em segundo plano</b> — você continua na lista.", { ms: 3200 });
+		st.textContent = "★ Audiência cumprida · Associando 1 de 2: ABERTO…";
+		await sleep(1300);
+		st.textContent = "★ Audiência cumprida · Associando 2 de 2: AGUARDANDO AUDIÊNCIA - JÁ CUMPRIDA…";
+		await sleep(1300);
+		st.textContent = "✅ ★ Audiência cumprida · Associado(s): ABERTO, AGUARDANDO AUDIÊNCIA - JÁ CUMPRIDA.";
+		S.hl(st, 3);
+		await S.cap("No fim, a linha mostra o resultado: ✅ quando deu certo, ⚠ com o que não foi possível.", { ms: 4200 });
+		S.hlOff();
+		await S.endCard("Lista do SEEU → ⭐ na linha → preferência do 📍 Localizador → associada em segundo plano → resultado na linha.");
+	},
+};

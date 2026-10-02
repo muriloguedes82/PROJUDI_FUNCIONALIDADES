@@ -19,6 +19,16 @@
 //      recarregada.
 // Preferências de "Juntar Documento", do "Alvará Eletrônico" e de "Advogados" continuam só
 // na tela do processo (dependem de arquivos/telas próprias).
+//
+// SEEU (listas Análise de Juntadas e Retorno de Conclusão): as ações
+// rápidas não funcionam no SEEU, então o ⭐ lista as preferências do
+// "📍 Localizador" (localizadorSeeu.js). Ao escolher uma, a tela do
+// processo (link da linha, visualizacaoProcesso.do) é carregada num iframe
+// oculto e os localizadores são associados nela, pela lista do "+" do
+// próprio SEEU (window.__pdpLocalizador.associarEm); a linha mostra o
+// andamento e o resultado, sem sair da listagem. Por enquanto, sem as
+// perguntas de dispensar juntadas/finalizar conclusão (as telas do SEEU
+// para isso ainda não foram mapeadas).
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
@@ -46,7 +56,9 @@
 			pergunta: "Dispensar os decursos de prazo pendentes deste processo antes de executar a preferência?",
 			sim: "Sim, dispensar decursos",
 			fazendo: "Dispensando decursos de prazo…"
-		}
+		},
+		"/seeu/processo/analisarJuntada.do": { tipo: "juntada", seeu: true },
+		"/seeu/processo/conclusao.do": { tipo: "conclusao", seeu: true }
 	};
 	const tela = TELAS[location.pathname];
 	if (!tela) return;
@@ -91,7 +103,7 @@
 	function linkProcesso(root, base) {
 		for (const a of root.querySelectorAll("a[href]")) {
 			const url = mesmaOrigem(a.getAttribute("href"), base);
-			if (url && /^\/projudi\/processo\.do$/.test(url.pathname) && url.search) return url.href;
+			if (url && /^\/(projudi\/processo|seeu\/visualizacaoProcesso)\.do$/.test(url.pathname) && url.search) return url.href;
 		}
 		return null;
 	}
@@ -100,7 +112,9 @@
 	// fetchDoc em quickActions.js). A cada carga e periodicamente chama
 	// `pronto(doc, decorrido)`: true = resolve com {doc, url}; uma string =
 	// navega o iframe para essa URL; false = continua esperando.
-	function carregar(url, pronto) {
+	// `manter`: o iframe não é removido ao resolver (vem em `iframe`, para
+	// quem chamou agir nele e removê-lo depois).
+	function carregar(url, pronto, manter) {
 		return new Promise(function (resolve, reject) {
 			const iframe = document.createElement("iframe");
 			iframe.setAttribute("data-pdp-loader", "preferencias-na-linha");
@@ -140,8 +154,13 @@
 					return;
 				}
 				if (r === true) {
-					encerrar();
-					resolve({ doc: doc, url: href });
+					if (manter) {
+						fim = true;
+						clearInterval(timer);
+					} else {
+						encerrar();
+					}
+					resolve({ doc: doc, url: href, iframe: iframe });
 				} else if (typeof r === "string") {
 					navegando = true;
 					iframe.src = r;
@@ -487,6 +506,10 @@
 			return;
 		}
 		fecharPainel();
+		if (tela.seeu) {
+			abrirSeeu(ancora, row, cnj);
+			return;
+		}
 		const qa = api();
 		const box = el("div", { class: "pdp-tl-popover pdp-pl-painel", id: "pdpPreferenciasLinha" });
 		box.appendChild(el("div", { class: "pdp-tl-pop-cab" }, [
@@ -578,6 +601,107 @@
 		}).catch(function (e) {
 			console.error(TAG, "falha ao listar preferências/combos:", e);
 		});
+	}
+
+	// --- SEEU: preferências do 📍 Localizador --------------------------------------------
+
+	function abrirSeeu(ancora, row, cnj) {
+		const loc = window.__pdpLocalizador;
+		const box = el("div", { class: "pdp-tl-popover pdp-pl-painel", id: "pdpPreferenciasLinha" });
+		box.appendChild(el("div", { class: "pdp-tl-pop-cab" }, [
+			el("strong", { text: "⭐ Minhas Preferências — " + cnj }),
+			el("button", { type: "button", class: "pdp-tl-x", title: "Fechar", text: "✕", onclick: fecharPainel })
+		]));
+		const grade = el("div", { class: "pdp-qa-fav-grid" });
+		box.appendChild(grade);
+		document.body.appendChild(box);
+		painel = { el: box, ancora: ancora };
+		posicionar(box, ancora);
+		setTimeout(function () { document.addEventListener("mousedown", foraDoPainel, true); }, 0);
+
+		if (!loc || !loc.associarEm) {
+			grade.replaceWith(el("div", { class: "pdp-tl-vazio", text: "Ative \"Localizador (SEEU)\" no Menu da extensão (ícone da balança) e recarregue a página." }));
+			posicionar(box, ancora);
+			return;
+		}
+		loc.preferencias().then(function (prefs) {
+			if (!painel || painel.el !== box) return;
+			if (!prefs.length) {
+				grade.replaceWith(el("div", { class: "pdp-tl-vazio", text: "Nenhuma preferência de localizador salva. Crie no botão \"📍 Localizador\", na tela do processo." }));
+				posicionar(box, ancora);
+				return;
+			}
+			const ordem = {};
+			prefs.forEach(function (p, i) { ordem[p.id] = i; });
+			prefs.forEach(function (pref) {
+				const nome = pref.nome || pref.localizadores.join(" • ");
+				const card = el("div", {
+					class: "pdp-qa-fav-card",
+					tabindex: "0",
+					role: "button",
+					title: "Associar a este processo, em segundo plano:\n" + pref.localizadores.join("\n")
+				}, [
+					el("span", { class: "pdp-qa-fav-card-action", text: "📍 Localizador" }),
+					el("span", { class: "pdp-qa-fav-card-name", text: "★ " + nome })
+				]);
+				const ativar = function () {
+					fecharPainel();
+					executarSeeu(dadosLinha(row, cnj), pref, nome);
+				};
+				card.addEventListener("click", ativar);
+				card.addEventListener("keydown", function (ev) {
+					if (ev.key === "Enter" || ev.key === " ") {
+						ev.preventDefault();
+						ativar();
+					}
+				});
+				grade.appendChild(card);
+			});
+			posicionar(box, ancora);
+		}).catch(function (e) {
+			console.error(TAG, "falha ao listar as preferências de localizadores:", e);
+		});
+	}
+
+	// Tela do processo do SEEU pronta: com o cabeçalho de localizadores e o
+	// "+" (sem o "+" depois de alguns segundos, segue para dar o erro de
+	// permissão em associarEm).
+	function prontoSeeu(doc, decorrido) {
+		const loc = window.__pdpLocalizador;
+		let path = "";
+		try { path = new URL(doc.URL).pathname; } catch (e) { /* segue */ }
+		if (path !== "/seeu/visualizacaoProcesso.do") return false;
+		if (loc.podeAssociar(doc)) return true;
+		return loc.temCabecalho(doc) && decorrido > 8000;
+	}
+
+	async function executarSeeu(ctx, pref, nome) {
+		if (emAndamento) {
+			alert("Já há uma preferência sendo executada. Aguarde terminar.");
+			return;
+		}
+		const loc = window.__pdpLocalizador;
+		const rotulo = "★ " + nome;
+		emAndamento = true;
+		let proc = null;
+		try {
+			if (!ctx.processoUrl) throw new Error("link do processo não encontrado na linha");
+			mostrar(ctx, [rotulo, "Carregando o processo…"], "andamento");
+			proc = await carregar(ctx.processoUrl, prontoSeeu, true);
+			// A tela acabou de montar o cabeçalho: um instante para o SEEU
+			// terminar de ligar o "+" antes do primeiro clique.
+			await new Promise(function (r) { setTimeout(r, 1500); });
+			const r = await loc.associarEm(proc.doc, pref.localizadores, function (i, total, local) {
+				mostrar(ctx, [rotulo, "Associando " + i + " de " + total + ": " + local + "…"], "andamento");
+			});
+			mostrar(ctx, [(r.tipo === "ok" ? "✅ " : "⚠ ") + rotulo, r.texto], r.tipo === "ok" ? "ok" : r.tipo === "erro" ? "erro" : "aviso");
+		} catch (e) {
+			console.error(TAG, e);
+			mostrar(ctx, ["⚠ " + rotulo, (e && e.message) || "falha ao carregar o processo"], "erro");
+		} finally {
+			if (proc && proc.iframe) proc.iframe.remove();
+			emAndamento = false;
+		}
 	}
 
 	function posicionar(box, ancora) {
