@@ -1260,7 +1260,7 @@
 			'<div class="pdp-qa-modal-body"><iframe class="pdp-qa-modal-iframe"></iframe></div>' +
 			"</div>";
 		const iframe = backdrop.querySelector(".pdp-qa-modal-iframe");
-		if (label === "Alvará Eletrônico" || label === "Partes do Processo" ||
+		if (label === "Alvará Eletrônico" || label === "Partes do Processo" || label === "Alterar Classe/Assuntos" ||
 			String(label).indexOf("Parte do Processo - ") === 0) {
 			iframe.setAttribute("data-pdp-hide-button-group", "");
 		}
@@ -5245,6 +5245,11 @@
 			const iframe = showActionModal(label);
 			if (url) iframe.src = url;
 			return iframe;
+		},
+		// Fecha o popup aberto por openActionModal quando quem o abriu
+		// detecta o fim da ação (ver alterarClasseAssuntos.js).
+		closeActionModal: function () {
+			removeActionModal("auto");
 		},
 		openActionModalPost: function (label, url, fields) {
 			const iframe = showActionModal(label);

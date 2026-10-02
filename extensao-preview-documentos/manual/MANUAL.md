@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.13.2 |
-| **Versão da extensão** | 2.13.2 |
+| **Versão do manual** | 2.14.1 |
+| **Versão da extensão** | 2.14.1 |
 | **Data desta versão** | 02/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -76,6 +76,7 @@
    - 8.6 [Oráculo](#cap-8-6)
    - 8.7 [Sistemas do CNJ (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud)](#cap-8-7)
    - 8.8 [Localizador (só no SEEU)](#cap-8-8)
+   - 8.9 [Alterar Classe/Assuntos](#cap-8-9)
 9. [Telas de análise, mesas e cumprimentos](#cap-9)
    - 9.1 [Filtro por Sequencial na Análise de Decurso de Prazo](#cap-9-1)
    - 9.2 [Listas de tarefas](#cap-9-2)
@@ -335,7 +336,7 @@ PROJUDI e SEEU**, com a mesma lista: cada sistema guarda as suas próprias
 escolhas. Por padrão, **tudo vem ativo nos dois**. A extensão reconhece em que
 sistema você está pelo endereço da página e abre o Menu na aba dele (marcada
 com "(este)"); você pode clicar na outra aba para configurá-la também. Acima
-da lista aparece "Funcionalidades no PROJUDI: N de 27 ativas" (ou no SEEU).
+da lista aparece "Funcionalidades no PROJUDI: N de 28 ativas" (ou no SEEU).
 
 1. Clique na aba do sistema que quer configurar (PROJUDI ou SEEU).
 2. Clique na chave da função que quer ligar ou desligar.
@@ -358,7 +359,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 | Grupo | Funções que podem ser ligadas/desligadas | Seção |
 |---|---|---|
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
-| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
+| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica | [4](#cap-4) |
 | **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
@@ -1414,6 +1415,46 @@ painel com as suas preferências:
 - As preferências entram no **⬇ Exportar** do Menu da extensão
   ([2.6](#cap-2-6)).
 
+<a id="cap-8-9"></a>
+### 8.9 Alterar Classe/Assuntos
+
+*Só no Projudi.*
+
+▶ [**Vídeo V42** — Alterar Classe/Assuntos](videos/V42-alterar-classe-e-assuntos.mp4)
+
+**Para que serve:** alterar a **classe processual** ou os **assuntos** do
+processo sem sair da tela em que você está. Abre, num popup, a mesma tela
+do botão **Alterar** da aba **Informações Gerais**.
+
+**Onde fica:** no cabeçalho do processo, logo abaixo do número, há um
+pequeno balão cinza **✏️ Alterar** ao lado da **Classe Processual** e ao
+lado do **Assunto Principal**. Ele aparece em qualquer aba do processo.
+
+**Passo a passo:**
+
+1. Clique em **✏️ Alterar** ao lado da classe (para mudar a classe) ou do
+   assunto principal (para mudar os assuntos).
+2. Abre-se o popup com a tela de alteração do processo, já no campo
+   clicado (ele pisca em amarelo por um instante).
+3. Faça a alteração como de costume no Projudi: na classe, escolha também
+   o **Motivo da Alteração** (Retificação ou Evolução); nos assuntos, use a
+   lupa do **Assunto Principal** e **Adicionar**/**Remover** dos
+   **Assuntos Secundários**.
+4. Clique em **Salvar**. O popup fecha sozinho e a tela do processo é
+   recarregada, já com a classe e os assuntos novos.
+
+**Bom saber:**
+
+- Os dois balões abrem a **mesma tela** (ela tem a classe e os assuntos);
+  muda só o campo em que ela abre.
+- Se o Projudi apontar algum erro ao salvar (por exemplo, um campo
+  obrigatório), o popup continua aberto para você corrigir.
+- **Voltar** ou **✕ Fechar** fecham o popup sem alterar nada (se você já
+  tinha salvado, a tela do processo é recarregada).
+- Se aparecer "Não encontrei o botão Alterar…", o seu perfil não tem
+  permissão para alterar este processo — o mesmo que acontece na aba
+  **Informações Gerais**.
+
 ---
 
 <a id="cap-9"></a>
@@ -1687,6 +1728,7 @@ telas abertas a partir daí voltam a funcionar.
 | O painel de ações diz para abrir a aba Movimentações | Abra a aba **Movimentações** do processo e tente de novo ([7.1](#cap-7-1)) |
 | "A movimentação … marcada não leva à ação" | Marque outro evento na aba Movimentações (um despacho/decisão costuma funcionar) ou desmarque a caixinha ([7.7](#cap-7-7)) |
 | "Não localizei o movimento … na aba Movimentações" | O processo não tem movimento com o nome gravado na preferência 📌: **✅ Prosseguir** segue a regra geral, **Cancelar** não executa ([7.7](#cap-7-7)) |
+| "Não encontrei o botão Alterar…" no ✏️ Alterar do cabeçalho | Seu perfil não pode alterar este processo; confira na aba **Informações Gerais** se o botão **Alterar** aparece ([8.9](#cap-8-9)) |
 | Preferência abre com "⚠ Não consegui preencher" | A opção gravada não existe neste processo; preencha o campo à mão, ou edite/recrie a preferência ([7.2](#cap-7-2)) |
 | Preferência de Intimar Partes não marca as caixas certas | Grave-a de novo (preferências anteriores à versão 2.9.84) |
 | Importei o arquivo de backup e nada mudou | Recarregue (F5) as páginas do Projudi/SEEU abertas ([2.6](#cap-2-6)) |
@@ -1758,6 +1800,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V39](videos/V39-sistemas-do-cnj.mp4) | [Sistemas do CNJ](videos/V39-sistemas-do-cnj.mp4) | [8.7](#cap-8-7) | 0:58 |
 | [V40](videos/V40-localizador-seeu.mp4) | [Localizador (SEEU)](videos/V40-localizador-seeu.mp4) | [8.8](#cap-8-8) | 1:02 |
 | [V41](videos/V41-localizador-na-linha-seeu.mp4) | [Localizador pela ⭐ da lista (SEEU)](videos/V41-localizador-na-linha-seeu.mp4) | [9.3](#cap-9-3) | 0:31 |
+| [V42](videos/V42-alterar-classe-e-assuntos.mp4) | [Alterar Classe/Assuntos](videos/V42-alterar-classe-e-assuntos.mp4) | [8.9](#cap-8-9) | 0:44 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -1771,6 +1814,8 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.14.1 | 02/10/2026 | Seção 8.9: o **✏️ Alterar** da classe e do assunto passa a ser um pequeno balão cinza, no mesmo tom dos botões da extensão (antes, um link). Vídeo V42 regravado. |
+| 2.14.0 | 02/10/2026 | Nova seção **8.9 Alterar Classe/Assuntos** (só no Projudi): link **✏️ Alterar** ao lado da **Classe Processual** e do **Assunto Principal**, no cabeçalho do processo, que abre num popup a tela do botão **Alterar** da aba Informações Gerais; ao salvar, o popup fecha e a tela do processo é recarregada. Nova função na tabela da 2.6 (28 funções no Projudi) e vídeo V42. |
 | 2.13.2 | 02/10/2026 | Sem alteração de texto; corrigido: no SEEU a balança do Menu (e, com ela, o ícone do BNMP 3.0) não aparecia, porque o cabeçalho novo do SEEU esconde o nome do usuário e os itens do menu. Ela volta a ficar na faixa azul-clara, abaixo do nome do usuário (2.6). |
 | 2.13.1 | 02/10/2026 | Regra gravada (1.4, item 5; 7.2; 9.3): as perguntas sobre dispensar juntadas/decursos e finalizar a conclusão antes de uma preferência existem **só no Projudi**, que trava as ações com pendências; no **SEEU**, que não trava, a preferência é executada direto, sem pergunta. |
 | 2.13.0 | 02/10/2026 | Seção 9.3: **⭐** nas listas **Análise de Juntadas** e **Retorno de Conclusão** do SEEU, com as preferências do **📍 Localizador** executadas em segundo plano e o resultado na linha (ainda sem as perguntas de dispensar juntadas/finalizar conclusão). Ajustes em 1.3 e na abertura do capítulo 9; vídeo V41. |
