@@ -12,6 +12,9 @@
 // os quadros dele (ver processoAberto). Não mexe na fileira de botões do
 // rodapé (quickActions.js/buttonDrag.js).
 //
+// No SEEU só aparece o ícone do BNMP 3.0 (SISTEMAS_SEEU); a ordem não é
+// gravada ali, para não mexer na ordem escolhida no Projudi.
+//
 // A ordem dos ícones pode ser trocada arrastando um deles para o lado; ela
 // fica em chrome.storage.local ("pdpSistemasCnjOrdem", lista de ids) e, por
 // começar com "pdp", entra no Exportar/Importar do Menu (menuExtensao.js).
@@ -28,16 +31,20 @@
 //
 // Esses sistemas costumam recusar ser exibidos dentro de outra página; a
 // regra em rules/sistemasCnj.json retira essa recusa apenas quando a janela
-// é aberta a partir do Projudi.
+// é aberta a partir do Projudi ou do SEEU.
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
 	// A janela do Oráculo mantém apenas os controles nativos.
 	if (location.pathname === "/projudi/processo/criminal/antecedentesCriminais.do") return;
-	if (window.__pdpSistemasCnj || !location.pathname.startsWith("/projudi/") || !self.PDP_SISTEMAS_CNJ) return;
+	const NO_SEEU = /(^|\.)seeu\.pje\.jus\.br$/i.test(location.hostname);
+	if (window.__pdpSistemasCnj || !location.pathname.startsWith(NO_SEEU ? "/seeu/" : "/projudi/") || !self.PDP_SISTEMAS_CNJ) return;
 	window.__pdpSistemasCnj = true;
 
-	const SISTEMAS = self.PDP_SISTEMAS_CNJ;
+	const SISTEMAS_SEEU = ["bnmp"];
+	const SISTEMAS = NO_SEEU
+		? self.PDP_SISTEMAS_CNJ.filter(function (s) { return SISTEMAS_SEEU.indexOf(s.id) >= 0; })
+		: self.PDP_SISTEMAS_CNJ;
 	const MODAL_ID = "pdp-sistemas-cnj-modal";
 	const MENSAGEM_ABRIR = "pdp-sistemas-cnj-abrir";
 	const TAM = 22; // mesmo tamanho da balança (menuExtensao.js)
@@ -169,12 +176,13 @@
 	// ------------------------------------------------------------------
 
 	// Número único CNJ (0000000-00.0000.0.00.0000) no título da tela do
-	// processo ("Processo <em class="attention">número</em>"), o mesmo
-	// marcador de hasProcessNumberMarker em quickActions.js.
+	// processo: no Projudi "Processo <em class="attention">número</em>"; no
+	// SEEU o cabeçalho div.titulo.processo (os mesmos marcadores de
+	// hasProcessNumberMarker em quickActions.js).
 	const NUMERO_CNJ = /\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/;
 
 	function documentoDeProcesso(doc) {
-		const titulo = doc.querySelector("em.attention");
+		const titulo = doc.querySelector(NO_SEEU ? "div.titulo.processo" : "em.attention");
 		return !!(titulo && NUMERO_CNJ.test(titulo.textContent || ""));
 	}
 
@@ -210,6 +218,7 @@
 	}
 
 	function gravarOrdem() {
+		if (NO_SEEU) return; // no SEEU a lista é reduzida (SISTEMAS_SEEU)
 		chrome.storage.local.set({ [ORDEM_KEY]: ordem }).catch(function (err) {
 			console.error("[Projudi] Erro ao gravar a ordem dos sistemas do CNJ:", err);
 		});

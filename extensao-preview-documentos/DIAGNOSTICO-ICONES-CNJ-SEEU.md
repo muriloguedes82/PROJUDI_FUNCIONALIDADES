@@ -46,3 +46,11 @@ chave aparece no Menu do SEEU. Há quatro travas independentes que impedem os
 - **Manter só no Projudi:** não registrar `sistemasCnj` para o SEEU (ou
   escondê-la na aba SEEU do Menu), para não parecer uma função ativa que
   não faz nada.
+
+## Decisão (versão 2.11.2)
+
+No SEEU passa a aparecer **só o ícone do BNMP 3.0**, com as quatro travas
+ajustadas para ele: `sistemasCnj.js` aceita `/seeu/`, filtra a lista
+(`SISTEMAS_SEEU`), reconhece o processo por `div.titulo.processo` e não
+grava a ordem no SEEU; `background.js` atende o SEEU apenas para o BNMP;
+`rules/sistemasCnj.json` inclui `seeu.pje.jus.br` em `initiatorDomains`.

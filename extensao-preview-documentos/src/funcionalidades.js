@@ -121,7 +121,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "sistemasCnj",
 					nome: "Sistemas do CNJ",
-					descricao: "Ícones ao lado da balança do Menu que abrem SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper e Infojud num popup sobre a tela do processo (a ordem dos ícones pode ser trocada arrastando).",
+					descricao: "Ícones ao lado da balança do Menu que abrem SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper e Infojud num popup sobre a tela do processo (a ordem dos ícones pode ser trocada arrastando). No SEEU, só o BNMP 3.0.",
 					js: ["src/sistemasCnjLista.js", "src/sistemasCnj.js"]
 				},
 				{
