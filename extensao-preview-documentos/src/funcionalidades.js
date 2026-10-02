@@ -121,9 +121,8 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "serpJud",
 					nome: "SerpJud (CNJ)",
-					descricao: "Botão \"🏛️ SerpJud\" que abre o sistema SERP-JUD do CNJ num popup sobre a tela do processo.",
-					js: ["src/serpJud.js"],
-					requer: ["acoesRapidas"]
+					descricao: "Ícone ao lado da balança do Menu que abre o sistema SERP-JUD do CNJ num popup sobre a tela do processo.",
+					js: ["src/serpJud.js"]
 				},
 				{
 					id: "novaRemessa",

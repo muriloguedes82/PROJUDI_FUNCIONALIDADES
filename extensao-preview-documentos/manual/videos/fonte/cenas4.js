@@ -321,16 +321,26 @@ CENAS.V38 = {
 };
 
 // ------------------------------------------------------------------ V39
-// Botão "🏛️ SerpJud" na 3ª linha da fileira (src/serpJud.js).
+// Ícone "SerpJud" ao lado da balança do Menu (src/serpJud.js).
+function iconeSerpJud() {
+	const ic = $("#x-menuicon");
+	const s = add('<div id="x-serpicon" title="SerpJud (CNJ)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path fill="#fff" d="M12 2.5L2.5 7.5h19z"/><path d="M3 9.5h18M5 11v6.5M9.7 11v6.5M14.3 11v6.5M19 11v6.5M3 19.5h18M2 21.5h20"/></svg></div>', ic.parentElement);
+	s.style.cssText = "position:absolute;right:42px;top:50px;z-index:30;width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,#2a6cb3,#13396b 55%,#0b2545);border:1px solid #0b2545;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.3)";
+	return s;
+}
 CENAS.V39 = {
 	arquivo: "V39-serpjud.mp4",
 	titulo: "SerpJud (CNJ)",
 	secao: "8.7",
 	async run() {
-		telaProcesso({ serpjud: true });
+		telaProcesso({});
+		iconeSerpJud();
 		await S.titleCard("VÍDEO V39", "SerpJud (CNJ)", "O sistema SERP-JUD do CNJ num popup, sem sair do processo.");
-		await S.cap("O botão <b>🏛️ SerpJud</b> fica numa linha própria, logo abaixo de <b>⭐ Minhas Preferências</b>, <b>Oráculo</b> etc.");
-		await S.click("#x-serpjud");
+		S.hl("#x-serpicon", 4);
+		await S.cap("No alto da tela, logo à esquerda da balança dourada do Menu, fica o ícone azul do <b>SerpJud</b>.", { ms: 4200 });
+		S.hlOff();
+		await S.cap("Clique nele.");
+		await S.click("#x-serpicon");
 		await abrindo("SerpJud", 1000);
 		popup("SERP-JUD — Sistema Eletrônico dos Registros Públicos", '<div style="padding:30px;text-align:center;font-size:14px;color:#333"><div style="font-size:22px;font-weight:bold;color:#0d3560;margin-bottom:14px">SERP-JUD</div>Entre com o seu acesso do CNJ para consultar os registros públicos.<br><br><span class="pj-btn primary">Entrar</span><br><br><i style="color:#666">(tela do SerpJud — conteúdo ilustrativo)</i></div>', { hd: "SerpJud — CNJ", h: 520 });
 		$("#x-fechar").outerHTML = '<span><span id="x-janela" style="margin-right:16px">↗ Janela separada</span><span id="x-fechar">✕ Fechar</span></span>';
@@ -341,6 +351,6 @@ CENAS.V39 = {
 		await S.cap("Para voltar ao processo, clique em <b>✕ Fechar</b> (ou tecle <b>Esc</b>).");
 		await S.click("#x-fechar");
 		$(".x-popup").remove();
-		await S.endCard("🏛️ SerpJud → popup com o SERP-JUD → ✕ Fechar.");
+		await S.endCard("Ícone azul ao lado da balança → popup com o SERP-JUD → ✕ Fechar.");
 	},
 };

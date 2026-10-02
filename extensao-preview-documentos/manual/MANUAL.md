@@ -247,7 +247,6 @@ tela, "flutuando" sobre a página.
 | **🖍️ Destacar mov.** | Cores por tipo de usuário | [3.4](#cap-3-4) |
 | **🔗 Combos** | Várias preferências em sequência | [7.4](#cap-7-4) |
 | **Oráculo** | Consulta de antecedentes da parte | [8.6](#cap-8-6) |
-| **🏛️ SerpJud** | Abre o SERP-JUD do CNJ num popup (fica sozinho numa linha logo abaixo dos demais botões) | [8.7](#cap-8-7) |
 | **📱 Enviar por WhatsApp** | Envia documentos marcados | [5.1](#cap-5-1) |
 | **✉️ Enviar por e-mail** e **▼** | Envia documentos marcados pelo Outlook; ▼ = Alterar Remetente | [5.2](#cap-5-2) |
 | **↕ Mover** | Arraste para cima/baixo se a barra cobrir algo (vale só para a página atual; também funciona com as setas do teclado) | — |
@@ -257,6 +256,8 @@ tela, "flutuando" sobre a página.
 
 - O **ícone da balança** (canto superior direito, abaixo de **Sair**) não faz
   parte desta barra: ele abre o **Menu da extensão** — veja [2.6](#cap-2-6).
+  O ícone **azul** logo à esquerda dela abre o **SerpJud** — veja
+  [8.7](#cap-8-7).
 - Passe o mouse sobre qualquer botão para ver uma dica.
 - A barra acompanha a rolagem da página. Ela se alinha ao quadro
   **Pendências**; quando a tela não tem esse quadro, alinha-se ao quadro
@@ -1283,13 +1284,14 @@ botão Oráculo dela.
 Públicos, do CNJ) sem sair do processo, para consultas e pedidos aos
 cartórios de registro.
 
-**Onde fica:** na barra de botões da extensão, numa **linha própria**, logo
-abaixo da linha de **⭐ Minhas Preferências**, **📋 Colar processo**,
-**Oráculo** etc. *Só no Projudi.*
+**Onde fica:** no alto da tela, num **ícone azul pequeno com um prédio de
+colunas**, logo **à esquerda da balança dourada** do Menu da extensão (abaixo
+do link **Sair**). Ele acompanha a balança ao rolar a página. *Só no
+Projudi.*
 
 **Passo a passo:**
 
-1. Com o processo aberto, clique em **🏛️ SerpJud**.
+1. Clique no ícone azul do **SerpJud** (passe o mouse para ver a dica).
 2. O SerpJud abre num **popup** sobre a tela do processo (o mesmo tipo de
    janela usado por Remessa, Concluso e as demais ações rápidas). Entre com
    o seu acesso e faça a consulta.
@@ -1620,7 +1622,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V36](videos/V36-dispensar-cumprimentos.mp4) | [Dispensar cumprimentos para expedir](videos/V36-dispensar-cumprimentos.mp4) | [6.4](#cap-6-4) | 0:29 |
 | [V37](videos/V37-escolher-a-movimentacao.mp4) | [Escolher a movimentação das Ações rápidas](videos/V37-escolher-a-movimentacao.mp4) | [7.7](#cap-7-7) | 1:14 |
 | [V38](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [Preferência a partir de um movimento](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [7.7](#cap-7-7) | 0:56 |
-| [V39](videos/V39-serpjud.mp4) | [SerpJud (CNJ)](videos/V39-serpjud.mp4) | [8.7](#cap-8-7) | 0:28 |
+| [V39](videos/V39-serpjud.mp4) | [SerpJud (CNJ)](videos/V39-serpjud.mp4) | [8.7](#cap-8-7) | 0:29 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -1634,7 +1636,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 2.11.0 | 02/10/2026 | Nova seção **8.7 SerpJud (CNJ)**: botão **🏛️ SerpJud** numa terceira linha da barra de botões, que abre o SERP-JUD do CNJ num popup sobre o processo, com **↗ Janela separada** se o login não funcionar no popup. Linha nova na tabela da 2.4, nova função na tabela da 2.6 (27 funções), linha nova em Solução de problemas e vídeo V39. |
+| 2.11.0 | 02/10/2026 | Nova seção **8.7 SerpJud (CNJ)**: ícone azul ao lado da balança do Menu, que abre o SERP-JUD do CNJ num popup sobre o processo, com **↗ Janela separada** se o login não funcionar no popup. A barra de botões não muda. Menção em 2.4, nova função na tabela da 2.6 (27 funções), linha nova em Solução de problemas e vídeo V39. |
 | 2.10.6 | 02/10/2026 | O botão **Outras** das Ações rápidas ganhou **Anotações Criminais** e **Solicitar Antecedentes Criminais** (quadro **Comunicar ao IIPR** da coluna de Ações), com **Abrir**/**Ir e abrir**, **+ Nova preferência**, ⭐ Minhas Preferências e 🔗 Combos, como as demais ações (7.1). |
 | 2.10.5 | 02/10/2026 | A pergunta "Não localizei o movimento…" (7.7) passa a usar a mesma caixa da pergunta sobre juntadas pendentes, com os botões **✅ Prosseguir** e **Cancelar** (antes, OK/Cancel do navegador). Vídeo V38 regravado. |
 | 2.10.4 | 02/10/2026 | Seção 7.7: **preferência que sempre parte de um movimento** — gravada com a caixinha de um movimento marcada, guarda o nome dele (📌) e, ao ser usada, parte do movimento mais recente com esse nome; se não houver, pergunta se segue pela regra geral. Linha nova em Solução de problemas e vídeo V38. |

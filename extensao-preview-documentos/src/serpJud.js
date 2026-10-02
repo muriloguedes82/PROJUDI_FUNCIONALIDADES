@@ -1,35 +1,59 @@
-// Projudi - Botão "SerpJud" (Sistema Eletrônico dos Registros Públicos -
-// SERP-JUD, do CNJ) numa TERCEIRA linha da fileira de botões
-// (#pdp-qa-row, criada por quickActions.js).
+// Projudi - Ícone "SerpJud" (Sistema Eletrônico dos Registros Públicos -
+// SERP-JUD, do CNJ) ao lado do ícone do Menu da extensão (a balança
+// dourada, ver menuExtensao.js).
+//
+// O ícone tem o mesmo tamanho da balança, fica logo à esquerda dela e a
+// acompanha (rolagem, redimensionamento): menuExtensao.js publica a posição
+// da balança no atributo "data-pdp-icone-pos" de #pdp-menu-host. Sem a
+// balança no documento, o ícone não aparece. Não mexe na fileira de botões
+// do rodapé (quickActions.js/buttonDrag.js).
 //
 // O clique abre o SerpJud num popup sobre a própria tela do processo - o
 // mesmo tipo de janela usado pelas ações rápidas (Remessa, Concluso etc.,
-// ver showActionModal em quickActions.js) -, sem nova aba. O botão
-// "↗ Janela separada" do cabeçalho do popup abre o mesmo endereço numa
-// janela à parte, para o caso de o login do SerpJud não funcionar dentro
-// do popup.
+// ver showActionModal em quickActions.js) -, sem nova aba. Se a balança
+// estiver num frame só do cabeçalho, o popup é aberto no documento do topo,
+// para ocupar a tela toda. O botão "↗ Janela separada" do cabeçalho do
+// popup abre o mesmo endereço numa janela à parte, para o caso de o login
+// do SerpJud não funcionar dentro do popup.
 //
-// Não mexe na posição, na ancoragem nem nas telas em que a fileira é
-// ocultada (buttonDrag.js e uiVisibility.js): só acrescenta a linha nova à
-// fileira, quando ela existe. O SerpJud costuma recusar ser exibido dentro
-// de outra página; a regra em rules/serpJud.json retira essa recusa apenas
-// quando a janela é aberta a partir do Projudi.
+// O SerpJud costuma recusar ser exibido dentro de outra página; a regra em
+// rules/serpJud.json retira essa recusa apenas quando a janela é aberta a
+// partir do Projudi.
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
 	// A janela do Oráculo mantém apenas os controles nativos.
 	if (location.pathname === "/projudi/processo/criminal/antecedentesCriminais.do") return;
-	if (window.__pdpButtonGroupBlocked) return;
 	if (window.__pdpSerpJud || !location.pathname.startsWith("/projudi/")) return;
 	window.__pdpSerpJud = true;
 
 	const SERPJUD_URL = "https://serp.registros.org.br/?login-callback=true";
-	const LINE_ID = "pdp-qa-row-line-serpjud";
-	const BUTTON_ID = "pdp-serpjud-button";
 	const MODAL_ID = "pdp-serpjud-modal";
+	const MENSAGEM_ABRIR = "pdp-serpjud-abrir";
+	const TAM = 22; // mesmo tamanho da balança (menuExtensao.js)
+	const ESPACO = 6;
 
-	let line = null;
-	let button = null;
+	// Prédio de colunas (registros públicos), no traço da balança.
+	const ICONE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="cheio" d="M12 2.5L2.5 7.5h19z"/>' +
+		'<path d="M3 9.5h18M5 11v6.5M9.7 11v6.5M14.3 11v6.5M19 11v6.5M3 19.5h18M2 21.5h20"/></svg>';
+
+	const CSS = `
+:host { all: initial; }
+.icone {
+	position: fixed; z-index: 2147483000; width: ${TAM}px; height: ${TAM}px; padding: 0; margin: 0;
+	border-radius: 6px; border: 1.5px solid #0b2545; background: linear-gradient(135deg, #2a6cb3, #13396b 55%, #0b2545);
+	color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
+	box-shadow: 0 1px 4px rgba(11,37,69,.55); transition: transform .15s, box-shadow .15s, filter .15s;
+}
+.icone[hidden] { display: none; }
+.icone:hover, .icone:focus-visible { transform: scale(1.1); filter: brightness(1.12); box-shadow: 0 2px 7px rgba(11,37,69,.45); outline: none; }
+.icone svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.icone svg .cheio { fill: currentColor; }
+`;
+
+	// ------------------------------------------------------------------
+	// Popup
+	// ------------------------------------------------------------------
 
 	function openWindow() {
 		chrome.runtime.sendMessage({ source: "projudi-preview", type: "serpjud-open-window" })
@@ -75,29 +99,85 @@
 		document.addEventListener("keydown", onKeydown, true);
 	}
 
-	function reconcile() {
-		const row = document.getElementById("pdp-qa-row");
-		if (!row) {
-			if (line && line.isConnected) line.remove();
-			return;
+	// Documento do topo que pode receber o popup (não um <frameset>).
+	function topoUtil() {
+		if (window.top === window) return null;
+		try {
+			const body = window.top.document.body;
+			return body && body.tagName !== "FRAMESET" ? window.top : null;
+		} catch (err) {
+			return null;
 		}
-		if (!line) {
-			line = document.createElement("div");
-			line.id = LINE_ID;
-			line.className = "pdp-qa-row-line";
-			button = document.createElement("button");
-			button.id = BUTTON_ID;
-			button.type = "button";
-			button.className = "pdp-qa-group-btn";
-			button.innerHTML = '<span class="pdp-qa-icon">🏛️</span><span>SerpJud</span>';
-			button.title = "Abrir o SerpJud (CNJ) num popup sobre esta tela";
-			button.addEventListener("click", openModal);
-			line.appendChild(button);
-		}
-		// Sempre a última linha da fileira (depois das duas de quickActions.js).
-		if (line.parentElement !== row || row.lastElementChild !== line) row.appendChild(line);
 	}
 
-	new MutationObserver(reconcile).observe(document.documentElement, { childList: true, subtree: true });
-	reconcile();
+	function abrir() {
+		const topo = topoUtil();
+		if (topo) topo.postMessage({ tipo: MENSAGEM_ABRIR }, location.origin);
+		else openModal();
+	}
+
+	if (window.top === window) {
+		window.addEventListener("message", function (event) {
+			if (event.origin !== location.origin || !event.data || event.data.tipo !== MENSAGEM_ABRIR) return;
+			openModal();
+		});
+	}
+
+	// ------------------------------------------------------------------
+	// Ícone ao lado da balança
+	// ------------------------------------------------------------------
+
+	let host = null;
+	let icone = null;
+	let menuHost = null;
+	const observaMenu = new MutationObserver(posicionar);
+
+	function montar() {
+		host = document.createElement("div");
+		host.id = "pdp-serpjud-host";
+		const shadow = host.attachShadow({ mode: "closed" });
+		const style = document.createElement("style");
+		style.textContent = CSS;
+		icone = document.createElement("button");
+		icone.type = "button";
+		icone.className = "icone";
+		icone.title = "SerpJud (CNJ) — abrir num popup sobre esta tela";
+		icone.setAttribute("aria-label", "SerpJud (CNJ)");
+		icone.innerHTML = ICONE_SVG;
+		icone.hidden = true;
+		icone.addEventListener("click", function (ev) {
+			ev.stopPropagation();
+			abrir();
+		});
+		shadow.append(style, icone);
+		document.documentElement.append(host);
+	}
+
+	function posicionar() {
+		const pos = menuHost && menuHost.isConnected ? String(menuHost.getAttribute("data-pdp-icone-pos") || "").split(",") : [];
+		const top = parseFloat(pos[0]);
+		const left = parseFloat(pos[1]);
+		if (!isFinite(top) || !isFinite(left)) {
+			if (icone) icone.hidden = true;
+			return;
+		}
+		if (!host || !host.isConnected) montar();
+		icone.style.top = top + "px";
+		icone.style.left = Math.max(4, left - TAM - ESPACO) + "px";
+		icone.hidden = false;
+	}
+
+	// A balança (#pdp-menu-host) é montada direto em <html>, às vezes alguns
+	// segundos depois do carregamento (ver iniciar em menuExtensao.js).
+	function procurarMenu() {
+		const atual = document.getElementById("pdp-menu-host");
+		if (atual === menuHost) return;
+		observaMenu.disconnect();
+		menuHost = atual;
+		if (menuHost) observaMenu.observe(menuHost, { attributes: true, attributeFilter: ["data-pdp-icone-pos"] });
+		posicionar();
+	}
+
+	new MutationObserver(procurarMenu).observe(document.documentElement, { childList: true });
+	procurarMenu();
 })();
