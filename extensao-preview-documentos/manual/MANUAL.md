@@ -1295,13 +1295,20 @@ Projudi.*
 2. O SerpJud abre num **popup** sobre a tela do processo (o mesmo tipo de
    janela usado por Remessa, Concluso e as demais ações rápidas). Entre com
    o seu acesso e faça a consulta.
-3. Para voltar ao processo, clique em **✕ Fechar** (ou tecle **Esc**).
+3. Se preferir trabalhar com o SerpJud fora do popup, use os botões do topo
+   dele:
+   - **🗂 Nova aba** — abre o SerpJud numa aba nova do navegador, logo ao
+     lado da aba do processo;
+   - **🖥 Segundo monitor** — abre o SerpJud numa janela que ocupa o
+     **outro monitor** inteiro. Se só houver um monitor conectado, a
+     extensão avisa e o popup continua aberto.
+4. Para voltar ao processo, clique em **✕ Fechar** (ou tecle **Esc**).
 
 **Bom saber:**
 
 - O popup fica sobre o processo: a aba do processo não muda de lugar.
-- Se o login do SerpJud não funcionar dentro do popup, clique em **↗ Janela
-  separada**: o SerpJud abre numa janela à parte (não numa aba nova).
+- Se o login do SerpJud não funcionar dentro do popup, use **🗂 Nova aba**
+  ou **🖥 Segundo monitor**.
 - Ao fechar o popup, o que estava aberto no SerpJud não fica guardado; ao
   clicar de novo, ele abre na tela inicial.
 
@@ -1567,7 +1574,7 @@ telas abertas a partir daí voltam a funcionar.
 | Card de suspensão/monitoração não aparece | Só são sinalizados status **ATIVA** e os motivos listados em [4.1](#cap-4-1)/[4.2](#cap-4-2); aguarde alguns segundos após abrir o processo |
 | Mandado não virou Regionalizado | Só muda se a cidade da parte for de outra comarca **e** constar em Comarca de Destino; veja a nota amarela do diálogo ([9.7](#cap-9-7)) |
 | Colar processo: "Não encontrei um número de processo" | Copie o número completo (20 dígitos), só um ([8.5](#cap-8-5)) |
-| O popup do SerpJud fica em branco ou o login não termina | Use **↗ Janela separada** no topo do popup ([8.7](#cap-8-7)) |
+| O popup do SerpJud fica em branco ou o login não termina | Use **🗂 Nova aba** ou **🖥 Segundo monitor** no topo do popup ([8.7](#cap-8-7)) |
 
 Se o problema continuar, anote a versão da extensão, a tela e o que
 aconteceu, e informe o responsável pela extensão.
@@ -1622,7 +1629,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V36](videos/V36-dispensar-cumprimentos.mp4) | [Dispensar cumprimentos para expedir](videos/V36-dispensar-cumprimentos.mp4) | [6.4](#cap-6-4) | 0:29 |
 | [V37](videos/V37-escolher-a-movimentacao.mp4) | [Escolher a movimentação das Ações rápidas](videos/V37-escolher-a-movimentacao.mp4) | [7.7](#cap-7-7) | 1:14 |
 | [V38](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [Preferência a partir de um movimento](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [7.7](#cap-7-7) | 0:56 |
-| [V39](videos/V39-serpjud.mp4) | [SerpJud (CNJ)](videos/V39-serpjud.mp4) | [8.7](#cap-8-7) | 0:29 |
+| [V39](videos/V39-serpjud.mp4) | [SerpJud (CNJ)](videos/V39-serpjud.mp4) | [8.7](#cap-8-7) | 0:36 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -1636,7 +1643,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 2.11.0 | 02/10/2026 | Nova seção **8.7 SerpJud (CNJ)**: ícone verde-água claro (a cor do SerpJud) ao lado da balança do Menu, que abre o SERP-JUD do CNJ num popup sobre o processo, com **↗ Janela separada** se o login não funcionar no popup. A barra de botões não muda. Menção em 2.4, nova função na tabela da 2.6 (27 funções), linha nova em Solução de problemas e vídeo V39. |
+| 2.11.0 | 02/10/2026 | Nova seção **8.7 SerpJud (CNJ)**: ícone verde-água claro (a cor do SerpJud) ao lado da balança do Menu, que abre o SERP-JUD do CNJ num popup sobre o processo, com os botões **🗂 Nova aba** e **🖥 Segundo monitor** para abri-lo fora do popup. A barra de botões não muda. Menção em 2.4, nova função na tabela da 2.6 (27 funções), linha nova em Solução de problemas e vídeo V39. |
 | 2.10.6 | 02/10/2026 | O botão **Outras** das Ações rápidas ganhou **Anotações Criminais** e **Solicitar Antecedentes Criminais** (quadro **Comunicar ao IIPR** da coluna de Ações), com **Abrir**/**Ir e abrir**, **+ Nova preferência**, ⭐ Minhas Preferências e 🔗 Combos, como as demais ações (7.1). |
 | 2.10.5 | 02/10/2026 | A pergunta "Não localizei o movimento…" (7.7) passa a usar a mesma caixa da pergunta sobre juntadas pendentes, com os botões **✅ Prosseguir** e **Cancelar** (antes, OK/Cancel do navegador). Vídeo V38 regravado. |
 | 2.10.4 | 02/10/2026 | Seção 7.7: **preferência que sempre parte de um movimento** — gravada com a caixinha de um movimento marcada, guarda o nome dele (📌) e, ao ser usada, parte do movimento mais recente com esse nome; se não houver, pergunta se segue pela regra geral. Linha nova em Solução de problemas e vídeo V38. |

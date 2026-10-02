@@ -13,7 +13,8 @@
     "downloads",
     "clipboardRead",
     "offscreen",
-    "declarativeNetRequestWithHostAccess"
+    "declarativeNetRequestWithHostAccess",
+    "system.display"
   ],
   "host_permissions": [
     "*://*.tjpr.jus.br/*",

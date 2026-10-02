@@ -821,16 +821,38 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   return true;
 });
 
-// SerpJud (serpJud.js): "↗ Janela separada" no popup do SerpJud. Endereço
-// fixo; só atende páginas do Projudi.
+// SerpJud (serpJud.js): "🗂 Nova aba" e "🖥 Segundo monitor" no popup do
+// SerpJud. Endereço fixo; só atende páginas do Projudi.
+const PDP_SERPJUD_URL = 'https://serp.registros.org.br/?login-callback=true';
+
+// Abre numa janela maximizada no monitor que NÃO tem a janela do processo.
+async function pdpSerpJudSegundoMonitor(windowId) {
+  if (!chrome.system?.display) throw new Error('Este navegador não informa os monitores conectados.');
+  const telas = await chrome.system.display.getInfo();
+  if (telas.length < 2) throw new Error('Não encontrei um segundo monitor conectado. Use "Nova aba" ou o próprio popup.');
+  const atual = await chrome.windows.get(windowId);
+  const cx = (atual.left || 0) + (atual.width || 0) / 2;
+  const cy = (atual.top || 0) + (atual.height || 0) / 2;
+  const contem = t => cx >= t.bounds.left && cx < t.bounds.left + t.bounds.width && cy >= t.bounds.top && cy < t.bounds.top + t.bounds.height;
+  const daJanela = telas.find(contem) || telas.find(t => t.isPrimary) || telas[0];
+  const outra = telas.find(t => t !== daJanela && !t.isPrimary) || telas.find(t => t !== daJanela);
+  const area = outra.workArea || outra.bounds;
+  const nova = await chrome.windows.create({ url: PDP_SERPJUD_URL, type: 'normal', left: area.left, top: area.top, width: area.width, height: area.height, focused: true });
+  await chrome.windows.update(nova.id, { state: 'maximized' }).catch(() => {});
+}
+
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
-  if (message?.source !== 'projudi-preview' || message.type !== 'serpjud-open-window') return false;
+  if (message?.source !== 'projudi-preview' || message.type !== 'serpjud-open') return false;
   try {
     const origin = new URL(sender.url);
     if (!sender.tab || origin.protocol !== 'https:' || !/(^|\.)tjpr\.jus\.br$/.test(origin.hostname) ||
         !origin.pathname.startsWith('/projudi/')) throw new Error('Origem inválida.');
+    if (message.onde !== 'aba' && message.onde !== 'monitor') throw new Error('Opção inválida.');
   } catch (error) { reply({ok:false, error:error.message}); return false; }
-  openComposeWindow('https://serp.registros.org.br/?login-callback=true')
+  const abrir = message.onde === 'aba'
+    ? chrome.tabs.create({ url: PDP_SERPJUD_URL, windowId: sender.tab.windowId, index: sender.tab.index + 1, openerTabId: sender.tab.id })
+    : pdpSerpJudSegundoMonitor(sender.tab.windowId);
+  Promise.resolve(abrir)
     .then(() => reply({ok:true}))
     .catch(error => reply({ok:false, error:error.message}));
   return true;

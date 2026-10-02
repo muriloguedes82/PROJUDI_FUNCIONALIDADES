@@ -12,9 +12,10 @@
 // mesmo tipo de janela usado pelas ações rápidas (Remessa, Concluso etc.,
 // ver showActionModal em quickActions.js) -, sem nova aba. Se a balança
 // estiver num frame só do cabeçalho, o popup é aberto no documento do topo,
-// para ocupar a tela toda. O botão "↗ Janela separada" do cabeçalho do
-// popup abre o mesmo endereço numa janela à parte, para o caso de o login
-// do SerpJud não funcionar dentro do popup.
+// para ocupar a tela toda. No cabeçalho do popup, "🗂 Nova aba" abre o
+// mesmo endereço numa aba nova do navegador (ao lado da do processo) e
+// "🖥 Segundo monitor" numa janela maximizada no outro monitor, se houver
+// (ver serpjud-open em background.js).
 //
 // O SerpJud costuma recusar ser exibido dentro de outra página; a regra em
 // rules/serpJud.json retira essa recusa apenas quando a janela é aberta a
@@ -55,10 +56,13 @@
 	// Popup
 	// ------------------------------------------------------------------
 
-	function openWindow() {
-		chrome.runtime.sendMessage({ source: "projudi-preview", type: "serpjud-open-window" })
+	// `onde`: "aba" ou "monitor". O popup só fecha se abriu de fato (ex.:
+	// sem segundo monitor, avisa e mantém o popup).
+	function openOutside(onde) {
+		chrome.runtime.sendMessage({ source: "projudi-preview", type: "serpjud-open", onde: onde })
 			.then(function (result) {
-				if (!result || !result.ok) alert((result && result.error) || "Não foi possível abrir o SerpJud.");
+				if (result && result.ok) closeModal();
+				else alert((result && result.error) || "Não foi possível abrir o SerpJud.");
 			})
 			.catch(function (error) {
 				alert("Não foi possível abrir o SerpJud: " + error.message);
@@ -84,15 +88,18 @@
 			'<div class="pdp-qa-modal-box" style="width: min(1280px, 96vw); height: 94vh;">' +
 			'<div class="pdp-qa-modal-header"><span>SerpJud — CNJ</span>' +
 			'<span style="display: flex; gap: 6px;">' +
-			'<button type="button" class="pdp-qa-modal-close pdp-serpjud-window" title="Abrir o SerpJud numa janela separada (use se o login não funcionar aqui)">↗ Janela separada</button>' +
+			'<button type="button" class="pdp-qa-modal-close pdp-serpjud-aba" title="Abrir o SerpJud numa nova aba deste navegador">🗂 Nova aba</button>' +
+			'<button type="button" class="pdp-qa-modal-close pdp-serpjud-monitor" title="Abrir o SerpJud numa janela no segundo monitor, se houver">🖥 Segundo monitor</button>' +
 			'<button type="button" class="pdp-qa-modal-close pdp-serpjud-close">✕ Fechar</button>' +
 			"</span></div>" +
 			'<div class="pdp-qa-modal-body"><iframe class="pdp-serpjud-iframe" style="width: 100%; height: 100%; border: none; display: block;" allow="clipboard-read; clipboard-write; fullscreen"></iframe></div>' +
 			"</div>";
 		backdrop.querySelector(".pdp-serpjud-close").addEventListener("click", closeModal);
-		backdrop.querySelector(".pdp-serpjud-window").addEventListener("click", function () {
-			closeModal();
-			openWindow();
+		backdrop.querySelector(".pdp-serpjud-aba").addEventListener("click", function () {
+			openOutside("aba");
+		});
+		backdrop.querySelector(".pdp-serpjud-monitor").addEventListener("click", function () {
+			openOutside("monitor");
 		});
 		backdrop.querySelector(".pdp-serpjud-iframe").src = SERPJUD_URL;
 		document.body.appendChild(backdrop);
