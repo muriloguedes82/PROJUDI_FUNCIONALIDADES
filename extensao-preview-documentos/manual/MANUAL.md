@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.14.0 |
-| **Versão da extensão** | 2.14.0 |
+| **Versão do manual** | 2.14.1 |
+| **Versão da extensão** | 2.14.1 |
 | **Data desta versão** | 02/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1426,9 +1426,9 @@ painel com as suas preferências:
 processo sem sair da tela em que você está. Abre, num popup, a mesma tela
 do botão **Alterar** da aba **Informações Gerais**.
 
-**Onde fica:** no cabeçalho do processo, logo abaixo do número, há o link
-**✏️ Alterar** ao lado da **Classe Processual** e ao lado do **Assunto
-Principal**. Ele aparece em qualquer aba do processo.
+**Onde fica:** no cabeçalho do processo, logo abaixo do número, há um
+pequeno balão cinza **✏️ Alterar** ao lado da **Classe Processual** e ao
+lado do **Assunto Principal**. Ele aparece em qualquer aba do processo.
 
 **Passo a passo:**
 
@@ -1445,7 +1445,7 @@ Principal**. Ele aparece em qualquer aba do processo.
 
 **Bom saber:**
 
-- Os dois links abrem a **mesma tela** (ela tem a classe e os assuntos);
+- Os dois balões abrem a **mesma tela** (ela tem a classe e os assuntos);
   muda só o campo em que ela abre.
 - Se o Projudi apontar algum erro ao salvar (por exemplo, um campo
   obrigatório), o popup continua aberto para você corrigir.
@@ -1814,6 +1814,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.14.1 | 02/10/2026 | Seção 8.9: o **✏️ Alterar** da classe e do assunto passa a ser um pequeno balão cinza, no mesmo tom dos botões da extensão (antes, um link). Vídeo V42 regravado. |
 | 2.14.0 | 02/10/2026 | Nova seção **8.9 Alterar Classe/Assuntos** (só no Projudi): link **✏️ Alterar** ao lado da **Classe Processual** e do **Assunto Principal**, no cabeçalho do processo, que abre num popup a tela do botão **Alterar** da aba Informações Gerais; ao salvar, o popup fecha e a tela do processo é recarregada. Nova função na tabela da 2.6 (28 funções no Projudi) e vídeo V42. |
 | 2.13.1 | 02/10/2026 | Regra gravada (1.4, item 5; 7.2; 9.3): as perguntas sobre dispensar juntadas/decursos e finalizar a conclusão antes de uma preferência existem **só no Projudi**, que trava as ações com pendências; no **SEEU**, que não trava, a preferência é executada direto, sem pergunta. |
 | 2.13.0 | 02/10/2026 | Seção 9.3: **⭐** nas listas **Análise de Juntadas** e **Retorno de Conclusão** do SEEU, com as preferências do **📍 Localizador** executadas em segundo plano e o resultado na linha (ainda sem as perguntas de dispensar juntadas/finalizar conclusão). Ajustes em 1.3 e na abertura do capítulo 9; vídeo V41. |

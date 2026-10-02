@@ -529,12 +529,12 @@ CENAS.V42 = {
 	secao: "8.9",
 	async run() {
 		telaProcesso({});
-		const link = id => ' <a class="link" id="' + id + '" style="margin-left:8px;white-space:nowrap">✏️ Alterar</a>';
+		const link = id => ' <a id="' + id + '" style="display:inline-block;margin-left:8px;padding:1px 7px;font:11px/16px Arial,sans-serif;color:#222;text-decoration:none;white-space:nowrap;background:linear-gradient(to bottom,#fafafa,#e9e9e9);border:1px solid #adadad;border-radius:10px;box-shadow:0 1px 2px rgba(0,0,0,.08)">✏️ Alterar</a>';
 		$("#info tr:first-child td:nth-child(2)").insertAdjacentHTML("beforeend", link("x-alt-classe"));
 		$("#row-assunto td:nth-child(2)").insertAdjacentHTML("beforeend", link("x-alt-assunto"));
 		await S.titleCard("VÍDEO V42", "Alterar Classe/Assuntos", "A tela do botão “Alterar” (Informações Gerais) num popup, direto do cabeçalho do processo.");
 		S.hl("#info", 4);
-		await S.cap("No cabeçalho do processo, ao lado da <b>Classe Processual</b> e do <b>Assunto Principal</b>, há o link <b>✏️ Alterar</b>.");
+		await S.cap("No cabeçalho do processo, ao lado da <b>Classe Processual</b> e do <b>Assunto Principal</b>, há o card <b>✏️ Alterar</b>.");
 		S.hlOff();
 		await S.cap("Funciona em qualquer aba — não é preciso abrir <b>Informações Gerais</b>. Clique no da classe.");
 		await S.click("#x-alt-classe");
@@ -555,7 +555,7 @@ CENAS.V42 = {
 		$("#x-ed-classe .pj-select").textContent = "10943 - Execução da Pena";
 		$("#x-ed-motivo").textContent = "○ Retificação   ● Evolução";
 		await S.cap("Escolha a nova classe e o <b>motivo</b> (Retificação ou Evolução), como de costume no Projudi.");
-		await S.cap("Para os assuntos, use o link do <b>Assunto Principal</b> — é a mesma tela, com os assuntos secundários.", { ms: 2600 });
+		await S.cap("Para os assuntos, use o card do <b>Assunto Principal</b> — é a mesma tela, com os assuntos secundários.", { ms: 2600 });
 		await S.click("#x-ed-salvar");
 		$(".x-popup").remove();
 		$("#info tr:first-child td:nth-child(2)").firstChild.textContent = "Execução da Pena";

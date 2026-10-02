@@ -7,9 +7,9 @@
 // Processual", "Assunto Principal", "Assuntos Secundários", ... e
 // "Salvar"/"Voltar").
 //
-// Este recurso põe um link "✏️ Alterar" ao lado da "Classe Processual" e
-// do "Assunto Principal" no cabeçalho do processo
-// (`table#informacoesProcessuais`, visível em qualquer aba). O link mostra
+// Este recurso põe um card (balão cinza) "✏️ Alterar" ao lado da "Classe
+// Processual" e do "Assunto Principal" no cabeçalho do processo
+// (`table#informacoesProcessuais`, visível em qualquer aba). O card mostra
 // essa tela num POPUP sobreposto à tela atual — o mesmo popup das Ações
 // rápidas, de "👥 Partes" e de "⚖️ Advogados" (ver `openActionModal` em
 // quickActions.js) —, já rolada até o campo clicado.
@@ -193,15 +193,29 @@
 
 	let ocupado = false;
 
+	// Card (balão) pequeno, no mesmo cinza dos botões da barra da extensão
+	// (.pdp-qa-group-btn em quickActions.css), em tamanho menor.
+	function garantirEstilo() {
+		if (document.getElementById(LINK_CLASS + "-estilo")) return;
+		const style = document.createElement("style");
+		style.id = LINK_CLASS + "-estilo";
+		style.textContent =
+			"a." + LINK_CLASS + "{display:inline-block;margin-left:8px;padding:1px 7px;" +
+			"font:normal 11px/16px Arial,Helvetica,sans-serif;color:#222 !important;text-decoration:none !important;" +
+			"white-space:nowrap;vertical-align:middle;cursor:pointer;" +
+			"background:linear-gradient(to bottom,#fafafa,#e9e9e9);border:1px solid #adadad;border-radius:10px;" +
+			"box-shadow:0 1px 2px rgba(0,0,0,0.08);}" +
+			"a." + LINK_CLASS + ":hover{background:linear-gradient(to bottom,#ffffff,#dcdcdc);border-color:#888;}";
+		(document.head || document.documentElement).appendChild(style);
+	}
+
 	function criarLink(campoId, title) {
 		const a = document.createElement("a");
 		a.href = "#";
-		a.className = "link " + LINK_CLASS;
+		a.className = LINK_CLASS;
 		a.setAttribute("data-pdp-campo", campoId);
 		a.textContent = "✏️ Alterar";
 		a.title = title;
-		a.style.marginLeft = "8px";
-		a.style.whiteSpace = "nowrap";
 		a.addEventListener("click", async function (event) {
 			event.preventDefault();
 			event.stopPropagation();
@@ -245,6 +259,7 @@
 			// Célula do valor: a seguinte ao rótulo.
 			const valor = label.nextElementSibling;
 			if (!valor || valor.querySelector("." + LINK_CLASS)) continue;
+			garantirEstilo();
 			valor.appendChild(criarLink(alvo.campo, alvo.title));
 		}
 	}
