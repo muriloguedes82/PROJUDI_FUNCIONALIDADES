@@ -18,8 +18,8 @@
 
 importScripts("termosConfig.js", "funcionalidades.js");
 
-const PDP_TERMOS_MATCHES = ["*://*.tjpr.jus.br/*", "*://seeu.pje.jus.br/*"];
-const PDP_TERMOS_HOST_TRIBUNAL = /^https?:\/\/((projudi|tst)[^./]*\.tjpr\.jus\.br|seeu\.pje\.jus\.br)\//i;
+const PDP_TERMOS_MATCHES = ["*://*.tjpr.jus.br/*", "*://seeu.pje.jus.br/*", "*://seeutreino.pje.jus.br/*"];
+const PDP_TERMOS_HOST_TRIBUNAL = /^https?:\/\/((projudi|tst)[^./]*\.tjpr\.jus\.br|seeu(treino)?\.pje\.jus\.br)\//i;
 
 const PDP_SCRIPTS_TRIBUNAL = [
 	{
@@ -100,7 +100,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 // endereço e a sua lista de funcionalidades desativadas - ver
 // src/funcionalidades.js). Os ids antigos, de antes da separação, são
 // removidos a cada sincronização.
-const PDP_MATCHES_SISTEMA = { projudi: ["*://*.tjpr.jus.br/*"], seeu: ["*://seeu.pje.jus.br/*"] };
+const PDP_MATCHES_SISTEMA = { projudi: ["*://*.tjpr.jus.br/*"], seeu: ["*://seeu.pje.jus.br/*", "*://seeutreino.pje.jus.br/*"] };
 const PDP_ID_PRINCIPAL_ANTIGO = "pdp-tribunal-principal";
 
 async function pdpTermosAceitos() {

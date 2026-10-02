@@ -13,7 +13,7 @@
 //
 // Preferência por sistema: cada funcionalidade pode ficar ativa ou desativada
 // separadamente no Projudi e no SEEU (abas do Menu). O sistema é reconhecido
-// pelo endereço da página (seeu.pje.jus.br = SEEU; demais hosts do Tribunal =
+// pelo endereço da página (seeu.pje.jus.br e o treino seeutreino.pje.jus.br = SEEU; demais hosts do Tribunal =
 // Projudi). Por padrão, tudo vem ativo nos dois.
 //
 // `sistemas` (opcional): funcionalidade exclusiva desses sistemas. Nos
@@ -276,7 +276,7 @@ self.pdpArquivosDesativados = function (desativadas, sistema) {
 self.pdpSistemaDoHost = function (endereco) {
 	let host = String(endereco || "");
 	try { host = new URL(host).hostname; } catch (e) { /* já é um host */ }
-	return /(^|\.)seeu\.pje\.jus\.br$/i.test(host) ? "seeu" : "projudi";
+	return /(^|\.)seeu(treino)?\.pje\.jus\.br$/i.test(host) ? "seeu" : "projudi";
 };
 
 // Lista de ids desativados de um sistema, a partir do que está em

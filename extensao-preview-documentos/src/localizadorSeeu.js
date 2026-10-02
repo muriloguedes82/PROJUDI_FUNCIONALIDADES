@@ -37,7 +37,7 @@
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
-	if (!/(^|\.)seeu\.pje\.jus\.br$/i.test(location.hostname)) return; // só SEEU
+	if (!/(^|\.)seeu(treino)?\.pje\.jus\.br$/i.test(location.hostname)) return; // só SEEU
 	if (window.frameElement && window.frameElement.hasAttribute("data-pdp-loader")) return;
 
 	if (window.__pdpLocalizadorSeeu) return;

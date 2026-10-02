@@ -41,7 +41,7 @@
 	const CHAVE = CAT.chave;
 	const ITENS = CAT.grupos.flatMap(function (g) { return g.itens; });
 	const POR_ID = new Map(ITENS.map(function (item) { return [item.id, item]; }));
-	const IS_SEEU = /(^|\.)seeu\.pje\.jus\.br$/i.test(location.hostname);
+	const IS_SEEU = /(^|\.)seeu(treino)?\.pje\.jus\.br$/i.test(location.hostname);
 	const SISTEMAS = CAT.sistemas;
 	const SISTEMA_ATUAL = self.pdpSistemaDoHost(location.hostname);
 	const outroSistema = function (id) { return SISTEMAS.find(function (s) { return s.id !== id; }); };

@@ -995,7 +995,8 @@ preferência), gravadas em `chrome.storage.local` na chave
 Exclusivo do SEEU: no catálogo (`src/funcionalidades.js`) o item tem
 `sistemas: ["seeu"]`, o que faz o service worker não injetar os arquivos
 no Projudi e o Menu não mostrar a funcionalidade na aba PROJUDI; o script
-ainda confere o endereço (`seeu.pje.jus.br`).
+ainda confere o endereço (`seeu.pje.jus.br` ou o SEEU de treino,
+`seeutreino.pje.jus.br`, que a extensão trata como SEEU).
 
 ## Juntar Documento (com preferências gravadas)
 
