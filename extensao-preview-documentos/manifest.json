@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Projudi/SEEU - Documentos: Pré-visualização, WhatsApp e E-mail",
-  "version": "2.10.6",
+  "version": "2.11.1",
   "description": "Ao passar o mouse sobre um documento na tela de Movimentações (Projudi ou SEEU), ou sobre uma pendência de análise de juntada/conclusão do Projudi, exibe a íntegra do(s) arquivo(s) em janela(s) sobreposta(s), sem precisar abri-los em outra aba. Também permite selecionar arquivos do processo e enviá-los por WhatsApp Web ou por e-mail via Outlook.",
   "permissions": [
     "identity",
@@ -12,7 +12,9 @@
     "windows",
     "downloads",
     "clipboardRead",
-    "offscreen"
+    "offscreen",
+    "declarativeNetRequestWithHostAccess",
+    "system.display"
   ],
   "host_permissions": [
     "*://*.tjpr.jus.br/*",
@@ -22,8 +24,23 @@
     "https://login.microsoftonline.com/*",
     "https://graph.microsoft.com/*",
     "https://outlook.office.com/*",
-    "https://outlook.office365.com/*"
+    "https://outlook.office365.com/*",
+    "https://*.registros.org.br/*",
+    "https://*.cnj.jus.br/*",
+    "https://*.pdpj.jus.br/*",
+    "https://sso.cloud.pje.jus.br/*",
+    "https://*.receita.fazenda.gov.br/*",
+    "https://sso.acesso.gov.br/*"
   ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "sistemasCnj",
+        "enabled": true,
+        "path": "rules/sistemasCnj.json"
+      }
+    ]
+  },
   "background": {
     "service_worker": "src/background.js"
   },

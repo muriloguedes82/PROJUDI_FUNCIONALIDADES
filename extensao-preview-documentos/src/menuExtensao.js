@@ -272,6 +272,7 @@
 			["destinatário(s) de e-mail", tamanho(local.pdpEmailRecipients)],
 			["remetente(s) de e-mail", tamanho(local.pdpFromAccounts)]
 		].filter(function (l) { return l[1] > 0; }).map(function (l) { return l[1] + " " + l[0]; });
+		if (tamanho(local.pdpSistemasCnjOrdem)) linhas.push("ordem dos ícones dos sistemas do CNJ");
 		SISTEMAS.forEach(function (s) {
 			const fora = self.pdpDesativadasDoSistema(local, s.id).length;
 			linhas.push(fora ? fora + " funcionalidade(s) desativada(s) no " + s.nome : "todas as funcionalidades ativas no " + s.nome);
@@ -674,6 +675,10 @@ button.bt.primario:hover { background: #1f5591; }
 		if (!pos) return;
 		icone.style.top = pos.top + "px";
 		icone.style.left = pos.left + "px";
+		// Posição publicada para os ícones dos sistemas do CNJ
+		// (sistemasCnj.js), que ficam ao lado da balança. Só muda o atributo quando a posição muda.
+		const posTexto = pos.top + "," + pos.left;
+		if (host.getAttribute("data-pdp-icone-pos") !== posTexto) host.setAttribute("data-pdp-icone-pos", posTexto);
 		if (painel) {
 			const largura = painel.offsetWidth;
 			const top = pos.top + 28;

@@ -319,3 +319,68 @@ CENAS.V38 = {
 		await S.endCard("Marcar o movimento → + Nova preferência → 💾 Salvar (Movimento de referência) → ★ nome 📌 → parte do movimento com esse nome.");
 	},
 };
+
+// ------------------------------------------------------------------ V39
+// Ícones dos sistemas do CNJ ao lado da balança do Menu (src/sistemasCnj.js,
+// lista e cores em src/sistemasCnjLista.js).
+function iconesSistemasCnj() {
+	const ic = $("#x-menuicon");
+	return self.PDP_SISTEMAS_CNJ.map((s, i) => {
+		const el = add('<div id="x-cnj-' + s.id + '" title="' + s.nome + " (" + (s.orgao || "CNJ") + ')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="' + s.cor.desenho + '" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + s.svg.replace(/class="cheio"/g, 'fill="' + s.cor.desenho + '"') + "</svg></div>", ic.parentElement);
+		el.style.cssText = "position:absolute;right:" + (12 + (i + 1) * 30) + "px;top:50px;z-index:30;width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg," + s.cor.claro + "," + s.cor.escuro + ");border:1px solid " + s.cor.borda + ";display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.25)";
+		return el;
+	});
+}
+CENAS.V39 = {
+	arquivo: "V39-sistemas-do-cnj.mp4",
+	titulo: "Sistemas do CNJ",
+	secao: "8.7",
+	async run() {
+		telaProcesso({});
+		iconesSistemasCnj();
+		await S.titleCard("VÍDEO V39", "Sistemas do CNJ", "SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper e Infojud num popup, sem sair do processo.");
+		S.hl("#x-cnj-infojud", 4);
+		await S.cap("No alto da tela, à esquerda da balança dourada do Menu, ficam os ícones coloridos dos <b>sistemas do CNJ</b>.", { ms: 4200, bottom: true });
+		S.hlOff();
+		for (const s of self.PDP_SISTEMAS_CNJ) {
+			S.hl("#x-cnj-" + s.id, 3);
+			await S.cap("<b>" + s.nome + "</b>", { ms: 1100, bottom: true });
+		}
+		S.hlOff();
+		await S.cap("Para mudar a ordem, clique num ícone e, sem soltar, <b>arraste-o para o lado</b>.", { bottom: true });
+		const lista = self.PDP_SISTEMAS_CNJ.map(x => x.id);
+		const rightDe = i => 12 + (i + 1) * 30;
+		const arrastado = $("#x-cnj-infojud");
+		await S.move("#x-cnj-infojud");
+		arrastado.style.transform = "scale(1.15)";
+		arrastado.style.zIndex = "31";
+		const de = lista.length - 1, para = 1;
+		await Promise.all([
+			S.move("#x-cnj-infojud", { dx: (de - para) * 30, ms: 1400 }),
+			tween(1400, k => {
+				arrastado.style.right = (rightDe(de) - (de - para) * 30 * k) + "px";
+				const atual = Math.round(de - (de - para) * k);
+				lista.filter(id => id !== "infojud").forEach((id, i) => {
+					$("#x-cnj-" + id).style.right = rightDe(i >= atual ? i + 1 : i) + "px";
+				});
+			}),
+		]);
+		arrastado.style.transform = "";
+		await S.cap("Solte no lugar desejado: a nova ordem fica guardada como sua preferência e vai junto no <b>⬇ Exportar</b> do Menu.", { ms: 4200, bottom: true });
+		await S.cap("Um clique sem arrastar abre o sistema. Clique, por exemplo, no do <b>SerpJud</b>.", { bottom: true });
+		await S.click("#x-cnj-serpjud");
+		await abrindo("SerpJud", 1000);
+		popup("SERP-JUD — Sistema Eletrônico dos Registros Públicos", '<div style="padding:30px;text-align:center;font-size:14px;color:#333"><div style="font-size:22px;font-weight:bold;color:#0d3560;margin-bottom:14px">SERP-JUD</div>Entre com o seu acesso do CNJ para consultar os registros públicos.<br><br><span class="pj-btn primary">Entrar</span><br><br><i style="color:#666">(tela do sistema — conteúdo ilustrativo)</i></div>', { hd: "SerpJud — CNJ", h: 520 });
+		$("#x-fechar").outerHTML = '<span><span id="x-aba" style="margin-right:14px">🗂 Nova aba</span><span id="x-monitor" style="margin-right:16px">🖥 Segundo monitor</span><span id="x-fechar">✕ Fechar</span></span>';
+		await S.cap("O sistema abre num <b>popup</b> sobre a tela do processo, como os das ações rápidas. Entre com o seu acesso e trabalhe nele.", { ms: 4200, bottom: true });
+		S.hl("#x-aba");
+		await S.cap("Prefere fora do popup? <b>🗂 Nova aba</b> abre o sistema numa aba nova, ao lado da do processo.", { ms: 4200, bottom: true });
+		S.hl("#x-monitor");
+		await S.cap("<b>🖥 Segundo monitor</b> abre o sistema numa janela que ocupa o outro monitor (se houver um conectado).", { ms: 4200, bottom: true });
+		S.hlOff();
+		await S.cap("Para voltar ao processo, clique em <b>✕ Fechar</b> (ou tecle <b>Esc</b>). Os outros ícones funcionam do mesmo jeito.", { bottom: true });
+		await S.click("#x-fechar");
+		$(".x-popup").remove();
+		await S.endCard("Ícone do sistema ao lado da balança → popup (ou 🗂 Nova aba / 🖥 Segundo monitor) → ✕ Fechar.");
+	},
+};
