@@ -644,6 +644,13 @@ nele e em "Movimentar a Partir Desta Movimentação" à mão, para a remessa/
 intimação/ordenação ficar vinculada a ele. Um combo guarda o evento marcado
 no início e o usa em todas as etapas. Sem nenhuma marcada, nada muda.
 
+**Preferência gravada a partir de um movimento.** Salva com uma caixinha
+marcada, a preferência guarda `movimento: { texto }` (o título do evento).
+Ao usá-la pela cadeia (resolveDialogUrl), sem caixinha marcada na hora, a
+extensão parte da movimentação válida mais recente com esse nome
+(comparação sem acentos/maiúsculas); sem nenhuma, pergunta (`confirm`) se
+segue pela regra geral ou desiste.
+
 **Atenção a um detalhe já corrigido, mas que vale registrar:** o Projudi
 reaproveita o mesmo `id`/`name` (`movimentarButton`) para vários botões de
 "iniciar uma movimentação" em telas diferentes — por exemplo, o botão

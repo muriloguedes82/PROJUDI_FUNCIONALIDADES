@@ -69,13 +69,14 @@
 		return (text || "").replace(/\s+/g, " ").trim();
 	}
 
-	// Nome do evento: o texto do próprio link ou, se ele for só um ícone, o
-	// título em negrito da linha.
-	function textoDoEvento(link, row) {
-		const proprio = limpar(link.textContent);
-		if (proprio) return proprio.slice(0, 120);
-		const titulo = row && row.querySelector("b, strong");
-		return limpar(titulo ? titulo.textContent : "").slice(0, 120);
+	// Nome do evento (ex.: "JULGADA PROCEDENTE A AÇÃO"): o título em negrito
+	// da célula do evento ou, sem ele, o texto do próprio link. Mesma regra de
+	// tituloDoEvento em quickActions.js, que procura este nome em outros
+	// processos (preferências gravadas a partir de um movimento).
+	function textoDoEvento(link) {
+		const celula = link.closest("td");
+		const titulo = celula && celula.querySelector("b, strong");
+		return (limpar(titulo ? titulo.textContent : "") || limpar(link.textContent)).slice(0, 120);
 	}
 
 	function linhaDoLink(link) {
@@ -206,7 +207,7 @@
 			return {
 				id: link.id,
 				seq: seqDaLinha(linhaDoLink(link)),
-				texto: textoDoEvento(link, linhaDoLink(link)),
+				texto: textoDoEvento(link),
 				numero: numeroProcesso(),
 			};
 		},

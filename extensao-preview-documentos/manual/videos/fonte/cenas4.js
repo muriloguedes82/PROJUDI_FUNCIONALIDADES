@@ -269,3 +269,50 @@ CENAS.V37 = {
 		await S.endCard("Aba Movimentações → marcar a caixinha do evento → Ações rápidas/preferência/combo → conferir → ✅ Sim, executar.");
 	},
 };
+
+// ------------------------------------------------------------------ V38
+// Preferência gravada a partir de um movimento (pref.movimento, ver
+// showCaptureToolbar/resolveDialogUrl em src/quickActions.js).
+CENAS.V38 = {
+	arquivo: "V38-preferencia-a-partir-de-um-movimento.mp4",
+	titulo: "Preferência a partir de um movimento",
+	secao: "7.7",
+	async run() {
+		telaProcesso({ acoesAbertas: true });
+		caixinhasMovimentacao();
+		await S.titleCard("VÍDEO V38", "Preferência a partir de um movimento", "A preferência guarda o nome do movimento e sempre parte dele.");
+		await S.cap("Para gravar: marque a caixinha do movimento — por exemplo, <b>RECEBIDA A DENÚNCIA</b>.");
+		await S.click("#mb-32");
+		marcarMovimentacao(32);
+		await S.cap("Depois, crie a preferência como sempre: <b>+ Nova preferência</b>.");
+		await S.click('[data-g="Remessa"]');
+		let pn = panelAt(acaoPanel("Remessa", [{ nome: "Realizar Remessa" }, { nome: "Remessa Eletrônica para o Tribunal de Justiça" }]), '[data-g="Remessa"]', { w: 420 });
+		await S.click('[data-nova="Realizar Remessa"]');
+		pn.remove();
+		await abrindo("Realizar Remessa", 900);
+		popup("Realizar Remessa", dlgRemessa({ op: "op-del", dest: "Delegacia de Exemplo", fin: "Cumprimento", prazo: "30" }), { top: 120, h: 470 });
+		const b = bar('Preencha o diálogo e clique em <span class="x-btn small" id="salvarpref">💾 Salvar como preferência</span>', { top: 78 });
+		await S.click("#salvarpref");
+		modal('<h3>Salvar como preferência</h3><div class="x-note">Campos que serão gravados:</div><div class="x-list"><div>Remessa: Enviar à Delegacia</div><div>Destino: Delegacia de Exemplo</div><div>Prazo (dias): 30</div><div><b>Movimento de referência: RECEBIDA A DENÚNCIA</b></div></div><div style="margin-top:8px">Nome da preferência:</div><div class="x-field" id="nm"></div><div style="text-align:right;margin-top:10px"><span class="pj-btn">Cancelar</span> <span class="pj-btn primary" id="ok">Salvar</span></div>', { top: 170 });
+		await S.cap("A lista do que será gravado mostra o <b>Movimento de referência</b>.");
+		await S.type("#nm", "Delegacia - cumprir denúncia");
+		await S.click("#ok");
+		closeModal(); b.remove(); $(".x-popup").remove();
+		marcarMovimentacao(0);
+		await S.click('[data-g="Remessa"]');
+		pn = panelAt(acaoPanel("Remessa", [{ nome: "Realizar Remessa", prefs: ["Delegacia - cumprir denúncia 📌"] }]), '[data-g="Remessa"]', { w: 420 });
+		await S.cap("A preferência ganha um <b>📌</b>. Em qualquer processo, ela procura o movimento com esse nome (o mais recente)…", { ms: 4600 });
+		await S.click('[data-pref="Delegacia - cumprir denúncia 📌"]', { dx: -40 });
+		pn.remove();
+		const t = toast("Abrindo “Realizar Remessa” a partir da movimentação “RECEBIDA A DENÚNCIA”… <u style=\"margin-left:10px\">Cancelar</u>", { left: 360, top: 330 });
+		await S.cap("…e parte dele, sem você marcar nada.", { ms: 3000 });
+		t.remove();
+		await S.cap("Se o processo <b>não tiver</b> esse movimento, a extensão avisa e pergunta:");
+		modal('<p style="margin:0 0 10px">Não localizei o movimento "RECEBIDA A DENÚNCIA" na aba Movimentações deste processo.</p><p style="margin:0 0 10px">Deseja prosseguir mesmo assim com "Realizar Remessa"?</p><p style="margin:0 0 10px;color:#555">OK = prosseguir pela regra geral (a partir da movimentação mais recente, como se a preferência não tivesse movimento).<br>Cancelar = não executar.</p><div style="text-align:right"><span class="pj-btn primary" id="okm">OK</span> <span class="pj-btn">Cancelar</span></div>', { w: 560, top: 160 });
+		await S.cap("<b>OK</b> segue pela regra geral; <b>Cancelar</b> não executa nada.", { ms: 4000 });
+		await S.click("#okm");
+		closeModal();
+		await S.cap("Preferências gravadas <b>sem</b> caixinha marcada continuam como sempre. E uma caixinha marcada na hora tem prioridade.", { ms: 5200 });
+		await S.endCard("Marcar o movimento → + Nova preferência → 💾 Salvar (Movimento de referência) → ★ nome 📌 → parte do movimento com esse nome.");
+	},
+};
