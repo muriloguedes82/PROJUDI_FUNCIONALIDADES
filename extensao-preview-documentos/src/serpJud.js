@@ -1,6 +1,6 @@
 // Projudi - Ícone "SerpJud" (Sistema Eletrônico dos Registros Públicos -
 // SERP-JUD, do CNJ) ao lado do ícone do Menu da extensão (a balança
-// dourada, ver menuExtensao.js).
+// dourada, ver menuExtensao.js), no verde-água claro usado pelo SerpJud.
 //
 // O ícone tem o mesmo tamanho da balança, fica logo à esquerda dela e a
 // acompanha (rolagem, redimensionamento): menuExtensao.js publica a posição
@@ -41,12 +41,12 @@
 :host { all: initial; }
 .icone {
 	position: fixed; z-index: 2147483000; width: ${TAM}px; height: ${TAM}px; padding: 0; margin: 0;
-	border-radius: 6px; border: 1.5px solid #0b2545; background: linear-gradient(135deg, #2a6cb3, #13396b 55%, #0b2545);
-	color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
-	box-shadow: 0 1px 4px rgba(11,37,69,.55); transition: transform .15s, box-shadow .15s, filter .15s;
+	border-radius: 6px; border: 1.5px solid #2a8c7f; background: linear-gradient(135deg, #d4f7f1, #a8eadf 55%, #7fd6c8);
+	color: #0f5e55; cursor: pointer; display: flex; align-items: center; justify-content: center;
+	box-shadow: 0 1px 4px rgba(15,94,85,.45); transition: transform .15s, box-shadow .15s, filter .15s;
 }
 .icone[hidden] { display: none; }
-.icone:hover, .icone:focus-visible { transform: scale(1.1); filter: brightness(1.12); box-shadow: 0 2px 7px rgba(11,37,69,.45); outline: none; }
+.icone:hover, .icone:focus-visible { transform: scale(1.1); filter: brightness(1.04); box-shadow: 0 2px 7px rgba(15,94,85,.5); outline: none; }
 .icone svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .icone svg .cheio { fill: currentColor; }
 `;

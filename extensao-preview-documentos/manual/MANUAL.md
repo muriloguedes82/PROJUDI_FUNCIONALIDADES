@@ -256,7 +256,7 @@ tela, "flutuando" sobre a página.
 
 - O **ícone da balança** (canto superior direito, abaixo de **Sair**) não faz
   parte desta barra: ele abre o **Menu da extensão** — veja [2.6](#cap-2-6).
-  O ícone **azul** logo à esquerda dela abre o **SerpJud** — veja
+  O ícone **verde-água** logo à esquerda dela abre o **SerpJud** — veja
   [8.7](#cap-8-7).
 - Passe o mouse sobre qualquer botão para ver uma dica.
 - A barra acompanha a rolagem da página. Ela se alinha ao quadro
@@ -1284,14 +1284,14 @@ botão Oráculo dela.
 Públicos, do CNJ) sem sair do processo, para consultas e pedidos aos
 cartórios de registro.
 
-**Onde fica:** no alto da tela, num **ícone azul pequeno com um prédio de
+**Onde fica:** no alto da tela, num **ícone verde-água claro, pequeno, com um prédio de
 colunas**, logo **à esquerda da balança dourada** do Menu da extensão (abaixo
 do link **Sair**). Ele acompanha a balança ao rolar a página. *Só no
 Projudi.*
 
 **Passo a passo:**
 
-1. Clique no ícone azul do **SerpJud** (passe o mouse para ver a dica).
+1. Clique no ícone verde-água do **SerpJud** (passe o mouse para ver a dica).
 2. O SerpJud abre num **popup** sobre a tela do processo (o mesmo tipo de
    janela usado por Remessa, Concluso e as demais ações rápidas). Entre com
    o seu acesso e faça a consulta.
@@ -1636,7 +1636,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 2.11.0 | 02/10/2026 | Nova seção **8.7 SerpJud (CNJ)**: ícone azul ao lado da balança do Menu, que abre o SERP-JUD do CNJ num popup sobre o processo, com **↗ Janela separada** se o login não funcionar no popup. A barra de botões não muda. Menção em 2.4, nova função na tabela da 2.6 (27 funções), linha nova em Solução de problemas e vídeo V39. |
+| 2.11.0 | 02/10/2026 | Nova seção **8.7 SerpJud (CNJ)**: ícone verde-água claro (a cor do SerpJud) ao lado da balança do Menu, que abre o SERP-JUD do CNJ num popup sobre o processo, com **↗ Janela separada** se o login não funcionar no popup. A barra de botões não muda. Menção em 2.4, nova função na tabela da 2.6 (27 funções), linha nova em Solução de problemas e vídeo V39. |
 | 2.10.6 | 02/10/2026 | O botão **Outras** das Ações rápidas ganhou **Anotações Criminais** e **Solicitar Antecedentes Criminais** (quadro **Comunicar ao IIPR** da coluna de Ações), com **Abrir**/**Ir e abrir**, **+ Nova preferência**, ⭐ Minhas Preferências e 🔗 Combos, como as demais ações (7.1). |
 | 2.10.5 | 02/10/2026 | A pergunta "Não localizei o movimento…" (7.7) passa a usar a mesma caixa da pergunta sobre juntadas pendentes, com os botões **✅ Prosseguir** e **Cancelar** (antes, OK/Cancel do navegador). Vídeo V38 regravado. |
 | 2.10.4 | 02/10/2026 | Seção 7.7: **preferência que sempre parte de um movimento** — gravada com a caixinha de um movimento marcada, guarda o nome dele (📌) e, ao ser usada, parte do movimento mais recente com esse nome; se não houver, pergunta se segue pela regra geral. Linha nova em Solução de problemas e vídeo V38. |
