@@ -11,7 +11,8 @@
   function reconcile() {
     const row = document.getElementById('pdp-qa-row');
     const native = document.getElementById('btPesqOraculo');
-    const host = row?.querySelector('.pdp-qa-row-line:last-child') || row || native?.parentElement;
+    // 2ª linha da fileira (a 3ª, do SerpJud, é de serpJud.js).
+    const host = row?.querySelector('.pdp-qa-row-line:nth-child(2)') || row || native?.parentElement;
     if (!host) { if (button?.isConnected) button.remove(); return; }
     if (!button) {
       button = document.createElement('button');

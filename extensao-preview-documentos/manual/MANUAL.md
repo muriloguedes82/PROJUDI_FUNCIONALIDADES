@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.10.6 |
-| **Versão da extensão** | 2.10.6 |
+| **Versão do manual** | 2.11.0 |
+| **Versão da extensão** | 2.11.0 |
 | **Data desta versão** | 02/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -74,6 +74,7 @@
    - 8.4 [Editar Partes/Outros](#cap-8-4)
    - 8.5 [Colar processo](#cap-8-5)
    - 8.6 [Oráculo](#cap-8-6)
+   - 8.7 [SerpJud (CNJ)](#cap-8-7)
 9. [Telas de análise, mesas e cumprimentos](#cap-9)
    - 9.1 [Filtro por Sequencial na Análise de Decurso de Prazo](#cap-9-1)
    - 9.2 [Listas de tarefas](#cap-9-2)
@@ -246,6 +247,7 @@ tela, "flutuando" sobre a página.
 | **🖍️ Destacar mov.** | Cores por tipo de usuário | [3.4](#cap-3-4) |
 | **🔗 Combos** | Várias preferências em sequência | [7.4](#cap-7-4) |
 | **Oráculo** | Consulta de antecedentes da parte | [8.6](#cap-8-6) |
+| **🏛️ SerpJud** | Abre o SERP-JUD do CNJ num popup (fica sozinho numa linha logo abaixo dos demais botões) | [8.7](#cap-8-7) |
 | **📱 Enviar por WhatsApp** | Envia documentos marcados | [5.1](#cap-5-1) |
 | **✉️ Enviar por e-mail** e **▼** | Envia documentos marcados pelo Outlook; ▼ = Alterar Remetente | [5.2](#cap-5-2) |
 | **↕ Mover** | Arraste para cima/baixo se a barra cobrir algo (vale só para a página atual; também funciona com as setas do teclado) | — |
@@ -323,7 +325,7 @@ PROJUDI e SEEU**, com a mesma lista: cada sistema guarda as suas próprias
 escolhas. Por padrão, **tudo vem ativo nos dois**. A extensão reconhece em que
 sistema você está pelo endereço da página e abre o Menu na aba dele (marcada
 com "(este)"); você pode clicar na outra aba para configurá-la também. Acima
-da lista aparece "Funcionalidades no PROJUDI: N de 26 ativas" (ou no SEEU).
+da lista aparece "Funcionalidades no PROJUDI: N de 27 ativas" (ou no SEEU).
 
 1. Clique na aba do sistema que quer configurar (PROJUDI ou SEEU).
 2. Clique na chave da função que quer ligar ou desligar.
@@ -346,7 +348,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 | Grupo | Funções que podem ser ligadas/desligadas | Seção |
 |---|---|---|
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
-| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alvará Eletrônico · Juntar Documento · Oráculo · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
+| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alvará Eletrônico · Juntar Documento · Oráculo · SerpJud (CNJ) · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica | [4](#cap-4) |
 | **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
@@ -1272,6 +1274,35 @@ da parte sem ir até a ficha dela.
 **Bom saber:** se você já estiver na ficha de uma parte, o atalho usa o
 botão Oráculo dela.
 
+<a id="cap-8-7"></a>
+### 8.7 SerpJud (CNJ)
+
+▶ [**Vídeo V39** — SerpJud (CNJ)](videos/V39-serpjud.mp4)
+
+**Para que serve:** abrir o **SERP-JUD** (Sistema Eletrônico dos Registros
+Públicos, do CNJ) sem sair do processo, para consultas e pedidos aos
+cartórios de registro.
+
+**Onde fica:** na barra de botões da extensão, numa **linha própria**, logo
+abaixo da linha de **⭐ Minhas Preferências**, **📋 Colar processo**,
+**Oráculo** etc. *Só no Projudi.*
+
+**Passo a passo:**
+
+1. Com o processo aberto, clique em **🏛️ SerpJud**.
+2. O SerpJud abre num **popup** sobre a tela do processo (o mesmo tipo de
+   janela usado por Remessa, Concluso e as demais ações rápidas). Entre com
+   o seu acesso e faça a consulta.
+3. Para voltar ao processo, clique em **✕ Fechar** (ou tecle **Esc**).
+
+**Bom saber:**
+
+- O popup fica sobre o processo: a aba do processo não muda de lugar.
+- Se o login do SerpJud não funcionar dentro do popup, clique em **↗ Janela
+  separada**: o SerpJud abre numa janela à parte (não numa aba nova).
+- Ao fechar o popup, o que estava aberto no SerpJud não fica guardado; ao
+  clicar de novo, ele abre na tela inicial.
+
 ---
 
 <a id="cap-9"></a>
@@ -1534,6 +1565,7 @@ telas abertas a partir daí voltam a funcionar.
 | Card de suspensão/monitoração não aparece | Só são sinalizados status **ATIVA** e os motivos listados em [4.1](#cap-4-1)/[4.2](#cap-4-2); aguarde alguns segundos após abrir o processo |
 | Mandado não virou Regionalizado | Só muda se a cidade da parte for de outra comarca **e** constar em Comarca de Destino; veja a nota amarela do diálogo ([9.7](#cap-9-7)) |
 | Colar processo: "Não encontrei um número de processo" | Copie o número completo (20 dígitos), só um ([8.5](#cap-8-5)) |
+| O popup do SerpJud fica em branco ou o login não termina | Use **↗ Janela separada** no topo do popup ([8.7](#cap-8-7)) |
 
 Se o problema continuar, anote a versão da extensão, a tela e o que
 aconteceu, e informe o responsável pela extensão.
@@ -1588,6 +1620,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V36](videos/V36-dispensar-cumprimentos.mp4) | [Dispensar cumprimentos para expedir](videos/V36-dispensar-cumprimentos.mp4) | [6.4](#cap-6-4) | 0:29 |
 | [V37](videos/V37-escolher-a-movimentacao.mp4) | [Escolher a movimentação das Ações rápidas](videos/V37-escolher-a-movimentacao.mp4) | [7.7](#cap-7-7) | 1:14 |
 | [V38](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [Preferência a partir de um movimento](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [7.7](#cap-7-7) | 0:56 |
+| [V39](videos/V39-serpjud.mp4) | [SerpJud (CNJ)](videos/V39-serpjud.mp4) | [8.7](#cap-8-7) | 0:28 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -1601,6 +1634,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.11.0 | 02/10/2026 | Nova seção **8.7 SerpJud (CNJ)**: botão **🏛️ SerpJud** numa terceira linha da barra de botões, que abre o SERP-JUD do CNJ num popup sobre o processo, com **↗ Janela separada** se o login não funcionar no popup. Linha nova na tabela da 2.4, nova função na tabela da 2.6 (27 funções), linha nova em Solução de problemas e vídeo V39. |
 | 2.10.6 | 02/10/2026 | O botão **Outras** das Ações rápidas ganhou **Anotações Criminais** e **Solicitar Antecedentes Criminais** (quadro **Comunicar ao IIPR** da coluna de Ações), com **Abrir**/**Ir e abrir**, **+ Nova preferência**, ⭐ Minhas Preferências e 🔗 Combos, como as demais ações (7.1). |
 | 2.10.5 | 02/10/2026 | A pergunta "Não localizei o movimento…" (7.7) passa a usar a mesma caixa da pergunta sobre juntadas pendentes, com os botões **✅ Prosseguir** e **Cancelar** (antes, OK/Cancel do navegador). Vídeo V38 regravado. |
 | 2.10.4 | 02/10/2026 | Seção 7.7: **preferência que sempre parte de um movimento** — gravada com a caixinha de um movimento marcada, guarda o nome dele (📌) e, ao ser usada, parte do movimento mais recente com esse nome; se não houver, pergunta se segue pela regra geral. Linha nova em Solução de problemas e vídeo V38. |

@@ -244,6 +244,7 @@ function extGroup(o = {}) {
 	g.innerHTML =
 		'<div class="line" id="x-line-grupos"' + (o.acoesAbertas ? "" : ' style="display:none"') + ">" + GRUPOS.map(n => '<span class="x-btn" data-g="' + n + '">' + n + "</span>").join("") + "</div>" +
 		'<div class="line"><span class="x-btn" id="x-toggle">' + (o.acoesAbertas ? "▾" : "▸") + ' Ações</span><span class="x-btn" id="x-fav">⭐ Minhas Preferências</span><span class="x-btn" id="x-clip">📋 Colar processo</span><span class="x-btn" id="x-adv">⚖️ Advogados</span><span class="x-btn" id="x-partes">👥 Partes</span><span class="x-btn" id="x-juntar">📎 Juntar Documento</span><span class="x-btn" id="x-destacar">🖍️ Destacar mov.</span><span class="x-btn" id="x-combos">🔗 Combos</span><span class="x-btn" id="x-oraculo">Oráculo</span></div>' +
+		(o.serpjud ? '<div class="line"><span class="x-btn" id="x-serpjud">🏛️ SerpJud</span></div>' : "") +
 		'<div class="line"><span class="x-btn" id="x-whats">📱 Enviar por WhatsApp</span><span class="x-btn" id="x-email">✉️ Enviar por e-mail</span><span class="x-btn" id="x-email-menu" style="margin-left:-3px">▼</span><span class="x-btn small" id="x-mover" style="align-self:center">↕ Mover</span><span class="x-btn small" id="x-ocultarbtns" style="align-self:center">Ocultar</span></div>';
 }
 function setAcoesAbertas(v) {

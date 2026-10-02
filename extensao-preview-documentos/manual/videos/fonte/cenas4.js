@@ -319,3 +319,28 @@ CENAS.V38 = {
 		await S.endCard("Marcar o movimento → + Nova preferência → 💾 Salvar (Movimento de referência) → ★ nome 📌 → parte do movimento com esse nome.");
 	},
 };
+
+// ------------------------------------------------------------------ V39
+// Botão "🏛️ SerpJud" na 3ª linha da fileira (src/serpJud.js).
+CENAS.V39 = {
+	arquivo: "V39-serpjud.mp4",
+	titulo: "SerpJud (CNJ)",
+	secao: "8.7",
+	async run() {
+		telaProcesso({ serpjud: true });
+		await S.titleCard("VÍDEO V39", "SerpJud (CNJ)", "O sistema SERP-JUD do CNJ num popup, sem sair do processo.");
+		await S.cap("O botão <b>🏛️ SerpJud</b> fica numa linha própria, logo abaixo de <b>⭐ Minhas Preferências</b>, <b>Oráculo</b> etc.");
+		await S.click("#x-serpjud");
+		await abrindo("SerpJud", 1000);
+		popup("SERP-JUD — Sistema Eletrônico dos Registros Públicos", '<div style="padding:30px;text-align:center;font-size:14px;color:#333"><div style="font-size:22px;font-weight:bold;color:#0d3560;margin-bottom:14px">SERP-JUD</div>Entre com o seu acesso do CNJ para consultar os registros públicos.<br><br><span class="pj-btn primary">Entrar</span><br><br><i style="color:#666">(tela do SerpJud — conteúdo ilustrativo)</i></div>', { hd: "SerpJud — CNJ", h: 520 });
+		$("#x-fechar").outerHTML = '<span><span id="x-janela" style="margin-right:16px">↗ Janela separada</span><span id="x-fechar">✕ Fechar</span></span>';
+		await S.cap("O SerpJud abre num <b>popup</b> sobre a tela do processo, como os das ações rápidas. Entre com o seu acesso e faça a consulta.", { ms: 4200 });
+		S.hl("#x-janela");
+		await S.cap("Se o login não funcionar dentro do popup, use <b>↗ Janela separada</b>: o SerpJud abre numa janela à parte.", { ms: 4200 });
+		S.hlOff();
+		await S.cap("Para voltar ao processo, clique em <b>✕ Fechar</b> (ou tecle <b>Esc</b>).");
+		await S.click("#x-fechar");
+		$(".x-popup").remove();
+		await S.endCard("🏛️ SerpJud → popup com o SERP-JUD → ✕ Fechar.");
+	},
+};

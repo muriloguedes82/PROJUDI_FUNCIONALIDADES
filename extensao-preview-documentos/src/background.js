@@ -821,6 +821,21 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   return true;
 });
 
+// SerpJud (serpJud.js): "↗ Janela separada" no popup do SerpJud. Endereço
+// fixo; só atende páginas do Projudi.
+chrome.runtime.onMessage.addListener((message, sender, reply) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'serpjud-open-window') return false;
+  try {
+    const origin = new URL(sender.url);
+    if (!sender.tab || origin.protocol !== 'https:' || !/(^|\.)tjpr\.jus\.br$/.test(origin.hostname) ||
+        !origin.pathname.startsWith('/projudi/')) throw new Error('Origem inválida.');
+  } catch (error) { reply({ok:false, error:error.message}); return false; }
+  openComposeWindow('https://serp.registros.org.br/?login-callback=true')
+    .then(() => reply({ok:true}))
+    .catch(error => reply({ok:false, error:error.message}));
+  return true;
+});
+
 // Leitura alternativa fora do documento/iframe do Projudi. Sem guardar o conteúdo.
 let pdpClipboardDocumentCreating;
 async function ensurePdpClipboardDocument() {
