@@ -26,9 +26,13 @@
 // processo (link da linha, visualizacaoProcesso.do) é carregada num iframe
 // oculto e os localizadores são associados nela, pela lista do "+" do
 // próprio SEEU (window.__pdpLocalizador.associarEm); a linha mostra o
-// andamento e o resultado, sem sair da listagem. Por enquanto, sem as
-// perguntas de dispensar juntadas/finalizar conclusão (as telas do SEEU
-// para isso ainda não foram mapeadas).
+// andamento e o resultado, sem sair da listagem.
+//
+// REGRA (Projudi x SEEU): o Projudi trava as ações enquanto houver juntadas
+// ou conclusões pendentes, por isso lá a extensão pergunta antes se deve
+// dispensar as juntadas, finalizar a conclusão ou dispensar os decursos. O
+// SEEU NÃO trava: lá não há pergunta nem dispensa/finalização - a
+// preferência é executada direto. Não acrescentar essas perguntas ao SEEU.
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
@@ -57,6 +61,8 @@
 			sim: "Sim, dispensar decursos",
 			fazendo: "Dispensando decursos de prazo…"
 		},
+		// SEEU: sem `pergunta` de propósito (o SEEU não trava ações com
+		// pendências - ver a REGRA no início do arquivo).
 		"/seeu/processo/analisarJuntada.do": { tipo: "juntada", seeu: true },
 		"/seeu/processo/conclusao.do": { tipo: "conclusao", seeu: true }
 	};

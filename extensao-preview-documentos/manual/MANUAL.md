@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.12.0 |
-| **Versão da extensão** | 2.12.0 |
+| **Versão do manual** | 2.12.1 |
+| **Versão da extensão** | 2.12.1 |
 | **Data desta versão** | 02/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -157,6 +157,12 @@ advogado(a) ou de assessor(a) de advogado — veja [10.3](#cap-10-3).
    enviados quando você clica em enviar no WhatsApp Web ou no Outlook.
 4. Documentos do processo são sensíveis: **confira sempre o destinatário**
    antes de enviar.
+5. **Pendências antes de uma preferência — Projudi × SEEU:** o **Projudi**
+   não deixa praticar ações enquanto houver juntadas ou conclusões
+   pendentes; por isso, lá, a extensão pergunta antes se deve **dispensar
+   as juntadas**, **finalizar a conclusão** ou **dispensar os decursos**.
+   O **SEEU** não tem essa trava: lá a extensão **não pergunta** e **não
+   dispensa nem finaliza nada** — a preferência é executada direto.
 
 ---
 
@@ -868,6 +874,8 @@ MP para ciência, 5 dias") e reaplicá-lo em outros processos.
      finalizar conclusão** ou **Não, seguir sem isso**). Havendo as duas
      pendências, são duas perguntas: primeiro as juntadas, depois a
      conclusão. É a mesma pergunta do ⭐ nas listagens ([9.3](#cap-9-3)).
+   - Essas perguntas são **só do Projudi**: o SEEU não trava ações com
+     pendências, e lá a preferência segue direto ([1.4](#cap-1-4)).
 2. O diálogo abre **já preenchido** e aparece a barra: *Confirmar "Ação" com
    a preferência "..."?*
 3. ⚠️ Confira os campos e clique em ✅ **Sim, executar** — é esse clique
@@ -1458,8 +1466,10 @@ da tela de análise, sem abri-lo.
    localizador que não está na lista da unidade).
 
 - Localizador que já está no processo não é associado de novo.
-- Por enquanto, no SEEU, a extensão **não** pergunta sobre dispensar as
-  juntadas ou finalizar a conclusão: a preferência é executada direto.
+- No SEEU **não há** a pergunta sobre dispensar as juntadas ou finalizar a
+  conclusão, e nada é dispensado nem finalizado: o SEEU, ao contrário do
+  Projudi, não trava as ações quando há juntadas ou conclusões pendentes
+  ([1.4](#cap-1-4)). A preferência é executada direto.
 - Sem preferências de localizador, a ⭐ avisa para criá-las no botão
   **📍 Localizador**, na tela do processo.
 
@@ -1696,6 +1706,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.12.1 | 02/10/2026 | Regra gravada (1.4, item 5; 7.2; 9.3): as perguntas sobre dispensar juntadas/decursos e finalizar a conclusão antes de uma preferência existem **só no Projudi**, que trava as ações com pendências; no **SEEU**, que não trava, a preferência é executada direto, sem pergunta. |
 | 2.12.0 | 02/10/2026 | Seção 9.3: **⭐** nas listas **Análise de Juntadas** e **Retorno de Conclusão** do SEEU, com as preferências do **📍 Localizador** executadas em segundo plano e o resultado na linha (ainda sem as perguntas de dispensar juntadas/finalizar conclusão). Ajustes em 1.3 e na abertura do capítulo 9; vídeo V40. |
 | 2.11.2 | 02/10/2026 | O botão **📍 Localizador** passa para a barra de botões, ao lado de **⭐ Minhas Preferências**, e as preferências de localizadores aparecem como cards em **⭐ Minhas Preferências** (2.4, 7.3 e 8.7). Vídeo V39 regravado. |
 | 2.11.1 | 02/10/2026 | A extensão passa a funcionar também no **SEEU de treino** (ambiente de testes), como no SEEU (1.3 e 8.7). |

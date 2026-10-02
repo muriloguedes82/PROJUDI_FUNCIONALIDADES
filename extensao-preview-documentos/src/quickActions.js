@@ -3298,8 +3298,17 @@
 	// `titulo`: cabeçalho da pergunta; `combo`: true para combo. Chama
 	// `executar()` depois das perguntas (e das dispensas pedidas), ou não
 	// chama nada se o usuário cancelar.
+	//
+	// REGRA: as perguntas (dispensar juntadas / finalizar conclusão) existem
+	// só no Projudi, que trava as ações enquanto houver juntadas ou
+	// conclusões pendentes. O SEEU não trava: lá a preferência é executada
+	// direto, sem pergunta e sem dispensa (ver também preferenciasNaLinha.js).
 	async function executarComPendencias(titulo, combo, executar) {
 		if (pendenciasEmAndamento) return;
+		if (/(^|\.)seeu(treino)?\.pje\.jus\.br$/i.test(location.hostname)) {
+			executar();
+			return;
+		}
 		const d = window.__pdpDispensas || {};
 		const juntadaUrl = d.juntadas && d.juntadaURL ? d.juntadaURL(document) : null;
 		const juntadaLink = juntadaUrl ? linkDaPendencia(juntadaUrl) : null;

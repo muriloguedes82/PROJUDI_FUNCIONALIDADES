@@ -1596,8 +1596,14 @@ ações rápidas não funcionam no SEEU. Ao escolher uma, a tela do processo
 (`carregar` com `manter`) e os localizadores são associados nela por
 `window.__pdpLocalizador.associarEm` (localizadorSeeu.js), com uma nova
 tentativa quando o localizador não aparece no cabeçalho. A linha mostra o
-andamento e o resultado. Ainda sem as perguntas de dispensar juntadas e
-finalizar conclusão (telas do SEEU não mapeadas).
+andamento e o resultado.
+
+**Regra (Projudi × SEEU):** o Projudi trava as ações enquanto houver
+juntadas ou conclusões pendentes, por isso lá a extensão pergunta antes se
+deve dispensar as juntadas/decursos ou finalizar a conclusão (na ⭐ das
+listas e em `executarComPendencias`, quickActions.js). O SEEU **não** trava:
+lá não há essas perguntas nem dispensa/finalização — a preferência é
+executada direto. Não acrescentar essas perguntas ao SEEU.
 
 ## Dispensar decursos de prazo
 
