@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.11.0 |
-| **Versão da extensão** | 2.11.0 |
+| **Versão do manual** | 2.11.1 |
+| **Versão da extensão** | 2.11.1 |
 | **Data desta versão** | 02/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1286,8 +1286,9 @@ processo.
 
 **Onde fica:** no alto da tela, numa fileira de **ícones pequenos e
 coloridos** logo **à esquerda da balança dourada** do Menu da extensão
-(abaixo do link **Sair**). Eles acompanham a balança ao rolar a página.
-*Só no Projudi.* Cada desenho lembra o logotipo do sistema. Na ordem
+(abaixo do link **Sair**). Eles acompanham a balança ao rolar a página e
+**só aparecem com um processo aberto** — na Mesa, nas listas e nas demais
+telas fica só a balança. *Só no Projudi.* Cada desenho lembra o logotipo do sistema. Na ordem
 padrão, da balança para a esquerda:
 
 | Ícone | Sistema | Para quê |
@@ -1664,6 +1665,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.11.1 | 02/10/2026 | Os ícones dos sistemas do CNJ (8.7) passam a aparecer **só com um processo aberto**; antes apareciam também na Mesa e nas demais telas. |
 | 2.11.0 | 02/10/2026 | Nova seção **8.7 Sistemas do CNJ**: ícones pastel ao lado da balança do Menu (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper e Infojud, da Receita Federal), com desenhos inspirados nos logotipos e ordem que o usuário escolhe arrastando (guardada como preferência e incluída no Exportar/Importar), que abrem cada sistema num popup sobre o processo, com os botões **🗂 Nova aba** e **🖥 Segundo monitor** para abri-lo fora do popup. A barra de botões não muda. Menção em 2.4, nova função na tabela da 2.6 (27 funções), linha nova em Solução de problemas e vídeo V39. |
 | 2.10.6 | 02/10/2026 | O botão **Outras** das Ações rápidas ganhou **Anotações Criminais** e **Solicitar Antecedentes Criminais** (quadro **Comunicar ao IIPR** da coluna de Ações), com **Abrir**/**Ir e abrir**, **+ Nova preferência**, ⭐ Minhas Preferências e 🔗 Combos, como as demais ações (7.1). |
 | 2.10.5 | 02/10/2026 | A pergunta "Não localizei o movimento…" (7.7) passa a usar a mesma caixa da pergunta sobre juntadas pendentes, com os botões **✅ Prosseguir** e **Cancelar** (antes, OK/Cancel do navegador). Vídeo V38 regravado. |

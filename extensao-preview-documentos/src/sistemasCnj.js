@@ -6,7 +6,10 @@
 // dela (cada um com a sua cor pastel) e a acompanham (rolagem,
 // redimensionamento): menuExtensao.js publica a posição da balança no
 // atributo "data-pdp-icone-pos" de #pdp-menu-host. Sem a balança no
-// documento, os ícones não aparecem. Não mexe na fileira de botões do
+// documento, os ícones não aparecem. Também só aparecem com um PROCESSO
+// aberto: a balança fica no cabeçalho, mas a tela (Mesa, processo...) é
+// carregada num quadro interno, então os ícones conferem este documento e
+// os quadros dele (ver processoAberto). Não mexe na fileira de botões do
 // rodapé (quickActions.js/buttonDrag.js).
 //
 // A ordem dos ícones pode ser trocada arrastando um deles para o lado; ela
@@ -158,7 +161,43 @@
 	let arrasto = null; // { id, inicioX, leftInicial, ativo, ordemTemp }
 	let ignorarClique = false;
 	let menuHost = null;
+	let comProcesso = false;
 	const observaMenu = new MutationObserver(posicionar);
+
+	// ------------------------------------------------------------------
+	// Há processo aberto? (neste documento ou num quadro interno dele)
+	// ------------------------------------------------------------------
+
+	// Número único CNJ (0000000-00.0000.0.00.0000) no título da tela do
+	// processo ("Processo <em class="attention">número</em>"), o mesmo
+	// marcador de hasProcessNumberMarker em quickActions.js.
+	const NUMERO_CNJ = /\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/;
+
+	function documentoDeProcesso(doc) {
+		const titulo = doc.querySelector("em.attention");
+		return !!(titulo && NUMERO_CNJ.test(titulo.textContent || ""));
+	}
+
+	function processoAberto(win, profundidade) {
+		let doc;
+		try { doc = win.document; } catch (err) { return false; } // quadro de outro endereço
+		if (!doc || !doc.documentElement) return false;
+		if (documentoDeProcesso(doc)) return true;
+		if (profundidade >= 4) return false;
+		for (let i = 0; i < win.frames.length; i++) {
+			if (processoAberto(win.frames[i], profundidade + 1)) return true;
+		}
+		return false;
+	}
+
+	// O quadro interno troca de tela sem mudar nada neste documento: confere
+	// a cada segundo (só leituras; reposiciona apenas quando muda).
+	function conferirProcesso() {
+		const agora = processoAberto(window, 0);
+		if (agora === comProcesso) return;
+		comProcesso = agora;
+		posicionar();
+	}
 
 	// Ordem salva: ids conhecidos na ordem do usuário + os que faltarem
 	// (sistema novo numa versão futura) na ordem padrão.
@@ -219,7 +258,8 @@
 		const pos = menuHost && menuHost.isConnected ? String(menuHost.getAttribute("data-pdp-icone-pos") || "").split(",") : [];
 		const top = parseFloat(pos[0]);
 		const left = parseFloat(pos[1]);
-		if (!isFinite(top) || !isFinite(left)) {
+		if (!comProcesso || !isFinite(top) || !isFinite(left)) {
+			if (arrasto) encerrarArrasto(false);
 			base = null;
 			Object.keys(icones).forEach(function (id) { icones[id].hidden = true; });
 			return;
@@ -308,5 +348,7 @@
 	}
 
 	new MutationObserver(procurarMenu).observe(document.documentElement, { childList: true });
+	comProcesso = processoAberto(window, 0);
 	procurarMenu();
+	setInterval(conferirProcesso, 1000);
 })();
