@@ -823,7 +823,7 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
 
 // Sistemas do CNJ (sistemasCnj.js): "🗂 Nova aba" e "🖥 Segundo monitor" no
 // popup de cada sistema. Só abre endereços da lista (sistemasCnjLista.js) e
-// só atende páginas do Projudi.
+// só atende páginas do Projudi (e do SEEU, apenas o BNMP 3.0).
 
 // Abre numa janela maximizada no monitor que NÃO tem a janela do processo.
 async function pdpSistemaCnjSegundoMonitor(url, windowId) {
@@ -846,10 +846,12 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   let sistema;
   try {
     const origin = new URL(sender.url);
-    if (!sender.tab || origin.protocol !== 'https:' || !/(^|\.)tjpr\.jus\.br$/.test(origin.hostname) ||
-        !origin.pathname.startsWith('/projudi/')) throw new Error('Origem inválida.');
+    const doProjudi = /(^|\.)tjpr\.jus\.br$/.test(origin.hostname) && origin.pathname.startsWith('/projudi/');
+    const doSeeu = origin.hostname === 'seeu.pje.jus.br' && origin.pathname.startsWith('/seeu/');
+    if (!sender.tab || origin.protocol !== 'https:' || !(doProjudi || doSeeu)) throw new Error('Origem inválida.');
     sistema = (self.PDP_SISTEMAS_CNJ || []).find(s => s.id === message.sistema);
-    if (!sistema) throw new Error('Sistema desconhecido.');
+    // No SEEU só o BNMP 3.0 (SISTEMAS_SEEU em sistemasCnj.js).
+    if (!sistema || (doSeeu && sistema.id !== 'bnmp')) throw new Error('Sistema desconhecido.');
     if (message.onde !== 'aba' && message.onde !== 'monitor') throw new Error('Opção inválida.');
   } catch (error) { reply({ok:false, error:error.message}); return false; }
   const abrir = message.onde === 'aba'
