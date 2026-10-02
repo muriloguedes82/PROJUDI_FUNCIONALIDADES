@@ -13,8 +13,11 @@
 //
 // Preferência por sistema: cada funcionalidade pode ficar ativa ou desativada
 // separadamente no Projudi e no SEEU (abas do Menu). O sistema é reconhecido
-// pelo endereço da página (seeu.pje.jus.br = SEEU; demais hosts do Tribunal =
+// pelo endereço da página (seeu.pje.jus.br e o treino seeutreino.pje.jus.br = SEEU; demais hosts do Tribunal =
 // Projudi). Por padrão, tudo vem ativo nos dois.
+//
+// `sistemas` (opcional): funcionalidade exclusiva desses sistemas. Nos
+// demais, os arquivos dela nunca são injetados e ela não aparece no Menu.
 //
 // Os arquivos que não aparecem aqui (hostGuard.js, uiVisibility.js,
 // clipboardProcess.js, documentSelection.js, buttonDrag.js e o próprio Menu)
@@ -113,6 +116,15 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					requer: ["acoesRapidas"]
 				},
 				{
+					id: "localizador",
+					nome: "Localizador (SEEU)",
+					descricao: "Botão \"📍 Localizador\" na linha do \"⭐ Minhas Preferências\", com preferências que associam localizadores com um clique.",
+					js: ["src/localizadorSeeu.js"],
+					css: ["src/localizadorSeeu.css"],
+					requer: ["acoesRapidas"],
+					sistemas: ["seeu"]
+				},
+				{
 					id: "oraculo",
 					nome: "Oráculo",
 					descricao: "Atalho para a consulta de antecedentes da parte.",
@@ -208,7 +220,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "preferenciasNaLinha",
 					nome: "Minhas Preferências na linha (⭐)",
-					descricao: "Aplica preferências e combos direto na linha do processo.",
+					descricao: "Aplica preferências e combos direto na linha do processo (no SEEU, as do \"📍 Localizador\").",
 					js: ["src/preferenciasNaLinha.js"],
 					requer: ["listaTarefas", "acoesRapidas"]
 				}
@@ -244,8 +256,9 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 });
 
 // Arquivos (js e css) que ficam de fora com a lista de ids desativados,
-// já incluídas as funcionalidades que dependem de alguma desativada.
-self.pdpArquivosDesativados = function (desativadas) {
+// já incluídas as funcionalidades que dependem de alguma desativada. Com
+// `sistema`, ficam de fora também as exclusivas de outro sistema.
+self.pdpArquivosDesativados = function (desativadas, sistema) {
 	const itens = self.PDP_FUNCIONALIDADES.grupos.flatMap(function (g) { return g.itens; });
 	const fora = new Set(Array.isArray(desativadas) ? desativadas : []);
 	let mudou = true;
@@ -260,7 +273,7 @@ self.pdpArquivosDesativados = function (desativadas) {
 	}
 	const arquivos = new Set();
 	itens.forEach(function (item) {
-		if (!fora.has(item.id)) return;
+		if (!fora.has(item.id) && !(sistema && item.sistemas && item.sistemas.indexOf(sistema) < 0)) return;
 		(item.js || []).concat(item.css || []).forEach(function (arq) { arquivos.add(arq); });
 	});
 	return arquivos;
@@ -270,7 +283,7 @@ self.pdpArquivosDesativados = function (desativadas) {
 self.pdpSistemaDoHost = function (endereco) {
 	let host = String(endereco || "");
 	try { host = new URL(host).hostname; } catch (e) { /* já é um host */ }
-	return /(^|\.)seeu\.pje\.jus\.br$/i.test(host) ? "seeu" : "projudi";
+	return /(^|\.)seeu(treino)?\.pje\.jus\.br$/i.test(host) ? "seeu" : "projudi";
 };
 
 // Lista de ids desativados de um sistema, a partir do que está em

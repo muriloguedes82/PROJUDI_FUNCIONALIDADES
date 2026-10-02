@@ -10,7 +10,7 @@
 // `window.__pdpHostPermitido` se o frame pertence a um host cujo nome
 // começa com "projudi" (projudi.tjpr.jus.br, projudi2.tjpr.jus.br...) ou
 // "tst" (tst.tjpr.jus.br, ambiente de testes) ou
-// a seeu.pje.jus.br. Cada script da extensão encerra de imediato quando a
+// a seeu.pje.jus.br (ou ao SEEU de treino, seeutreino.pje.jus.br). Cada script da extensão encerra de imediato quando a
 // marca é falsa.
 //
 // Usa `location.origin` (e não `location.hostname`) porque os iframes
@@ -45,7 +45,7 @@
 // bloqueio passa a valer nas próximas telas.
 (function () {
 	"use strict";
-	const HOST_PERMITIDO = /^((projudi|tst)[^.]*\.tjpr\.jus\.br|seeu\.pje\.jus\.br)$/i;
+	const HOST_PERMITIDO = /^((projudi|tst)[^.]*\.tjpr\.jus\.br|seeu(treino)?\.pje\.jus\.br)$/i;
 	const CHAVE_BLOQUEIO = "pdpPerfilAdvocaciaBloqueado";
 	const ATTR_BLOQUEIO = "data-pdp-perfil-bloqueado";
 

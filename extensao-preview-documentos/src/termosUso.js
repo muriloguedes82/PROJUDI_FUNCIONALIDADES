@@ -18,8 +18,8 @@
 
 importScripts("termosConfig.js", "funcionalidades.js");
 
-const PDP_TERMOS_MATCHES = ["*://*.tjpr.jus.br/*", "*://seeu.pje.jus.br/*"];
-const PDP_TERMOS_HOST_TRIBUNAL = /^https?:\/\/((projudi|tst)[^./]*\.tjpr\.jus\.br|seeu\.pje\.jus\.br)\//i;
+const PDP_TERMOS_MATCHES = ["*://*.tjpr.jus.br/*", "*://seeu.pje.jus.br/*", "*://seeutreino.pje.jus.br/*"];
+const PDP_TERMOS_HOST_TRIBUNAL = /^https?:\/\/((projudi|tst)[^./]*\.tjpr\.jus\.br|seeu(treino)?\.pje\.jus\.br)\//i;
 
 const PDP_SCRIPTS_TRIBUNAL = [
 	{
@@ -56,6 +56,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/decursoPrazoSequencial.js",
 			"src/suspensaoAtiva.js",
 			"src/monitoracaoAtiva.js",
+			"src/localizadorSeeu.js",
 			"src/oraculoDirect.js",
 			"src/oraculo.js",
 			"src/sistemasCnjLista.js",
@@ -87,7 +88,8 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/bnmpMandadoPrisao.css",
 			"src/enderecoMandado.css",
 			"src/juntarDocumento.css",
-			"src/listaTarefas.css"
+			"src/listaTarefas.css",
+			"src/localizadorSeeu.css"
 		],
 		runAt: "document_idle",
 		allFrames: true,
@@ -100,7 +102,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 // endereço e a sua lista de funcionalidades desativadas - ver
 // src/funcionalidades.js). Os ids antigos, de antes da separação, são
 // removidos a cada sincronização.
-const PDP_MATCHES_SISTEMA = { projudi: ["*://*.tjpr.jus.br/*"], seeu: ["*://seeu.pje.jus.br/*"] };
+const PDP_MATCHES_SISTEMA = { projudi: ["*://*.tjpr.jus.br/*"], seeu: ["*://seeu.pje.jus.br/*", "*://seeutreino.pje.jus.br/*"] };
 const PDP_ID_PRINCIPAL_ANTIGO = "pdp-tribunal-principal";
 
 async function pdpTermosAceitos() {
@@ -157,7 +159,7 @@ async function pdpScriptsAtivos() {
 		const sistema = PDP_FUNCIONALIDADES.sistemas.find(function (s) { return script.id === PDP_ID_PRINCIPAL_ANTIGO + "-" + s.id; });
 		if (!sistema) return script;
 		// Extensão desligada no sistema: só a infraestrutura e o Menu carregam.
-		const fora = pdpArquivosDesativados(pdpExtensaoDesligada(data, sistema.id) ? todos : pdpDesativadasDoSistema(data, sistema.id));
+		const fora = pdpArquivosDesativados(pdpExtensaoDesligada(data, sistema.id) ? todos : pdpDesativadasDoSistema(data, sistema.id), sistema.id);
 		const manter = function (arquivo) { return !fora.has(arquivo); };
 		const copia = Object.assign({}, script, { js: script.js.filter(manter) });
 		if (script.css) copia.css = script.css.filter(manter);
