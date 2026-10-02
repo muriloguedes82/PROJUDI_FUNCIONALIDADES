@@ -87,6 +87,17 @@
 	// do envio) de um item da fila em segundo plano antes de considerar que
 	// falhou.
 	const BACKGROUND_STEP_TIMEOUT_MS = 20000;
+	// Aplicação dos campos guardados no diálogo novo (ver applyFormFields):
+	// quanto tempo sem mudanças na tela conta como "assentou", o máximo de
+	// espera por cada <select> alterado, o intervalo entre passadas e o
+	// tempo total até desistir dos campos que ainda não pegaram.
+	const FIELD_QUIET_MS = 400;
+	const FIELD_QUIET_MAX_MS = 5000;
+	const FIELD_RETRY_MS = 300;
+	const FIELD_APPLY_TIMEOUT_MS = 15000;
+	// Quantas vezes tenta abrir o diálogo novo de cada item antes de
+	// desistir (a cadeia em segundo plano às vezes falha uma vez à toa).
+	const RESOLVE_ATTEMPTS = 2;
 	// Tempo de exibição da mensagem de sucesso antes de fechar a janela
 	// sozinha - só para dar tempo de ler a confirmação antes do fechamento
 	// automático.
@@ -239,23 +250,95 @@
 		return fields;
 	}
 
-	function applyFormFields(form, fields) {
-		fields.forEach(function (f) {
-			if (f.type === "checkbox" || f.type === "radio") {
-				const el = form.querySelector('[name="' + cssEscapeAttr(f.name) + '"][value="' + cssEscapeAttr(f.value) + '"]');
-				if (el) {
+	// Aplica os campos guardados num diálogo novo. Não basta atribuir tudo
+	// de uma vez: alguns <select> só ganham opções DEPOIS que outro campo
+	// muda e o Projudi busca a lista no servidor - ex.: "Central de
+	// Mandados" (codCentralMandadosRegionalizada) só é preenchida depois
+	// de escolher a "Comarca de Destino" (codComarcaDestinoMandado) de um
+	// Mandado Regionalizado. Atribuir o valor antes da lista chegar não
+	// faz nada (a opção ainda não existe) e o Projudi recusava o envio com
+	// "Necessário informar a Central de Mandados de Destino". Por isso
+	// aplica em passadas: cada passada só mexe (e só dispara "change") no
+	// que ainda não está com o valor guardado - nunca refaz um campo já
+	// certo, o que recarregaria de novo as listas que dependem dele -,
+	// espera a tela parar de mudar depois de cada <select> alterado e
+	// repete até tudo bater ou o tempo acabar. Devolve os campos que não
+	// deu para aplicar (para o log); o envio segue mesmo assim e, se
+	// faltar algo obrigatório, o próprio Projudi avisa qual campo.
+	function findFieldElement(form, f) {
+		if (f.type === "checkbox" || f.type === "radio") {
+			return form.querySelector('[name="' + cssEscapeAttr(f.name) + '"][value="' + cssEscapeAttr(f.value) + '"]');
+		}
+		return form.querySelector('[name="' + cssEscapeAttr(f.name) + '"]');
+	}
+
+	function fieldMatches(el, f) {
+		if (f.type === "checkbox" || f.type === "radio") return el.checked === f.checked;
+		return el.value === f.value;
+	}
+
+	// Resolve quando o formulário passa `quietMs` sem nenhuma mudança na
+	// tela (listas recarregadas, linhas mostradas/escondidas), ou depois de
+	// `maxMs` no máximo.
+	function waitForFormQuiet(form, quietMs, maxMs) {
+		return new Promise(function (resolve) {
+			const win = form.ownerDocument.defaultView || window;
+			let quietTimer = null;
+			let observer = null;
+			function finish() {
+				clearTimeout(quietTimer);
+				clearTimeout(maxTimer);
+				if (observer) observer.disconnect();
+				resolve();
+			}
+			const maxTimer = setTimeout(finish, maxMs);
+			function restartQuiet() {
+				clearTimeout(quietTimer);
+				quietTimer = setTimeout(finish, quietMs);
+			}
+			try {
+				observer = new win.MutationObserver(restartQuiet);
+				observer.observe(form, { childList: true, subtree: true, attributes: true, attributeFilter: ["style", "class", "disabled"] });
+			} catch (err) {
+				observer = null;
+			}
+			restartQuiet();
+		});
+	}
+
+	async function applyFormFields(form, fields) {
+		const deadline = Date.now() + FIELD_APPLY_TIMEOUT_MS;
+		let pending = fields;
+		while (true) {
+			for (const f of fields) {
+				const el = findFieldElement(form, f);
+				if (!el || fieldMatches(el, f)) continue;
+				if (f.type === "checkbox" || f.type === "radio") {
 					el.checked = f.checked;
 					el.dispatchEvent(new Event("change", { bubbles: true }));
+					continue;
 				}
-			} else {
-				const el = form.querySelector('[name="' + cssEscapeAttr(f.name) + '"]');
-				if (el) {
-					el.value = f.value;
-					el.dispatchEvent(new Event("input", { bubbles: true }));
-					el.dispatchEvent(new Event("change", { bubbles: true }));
-				}
+				el.value = f.value;
+				// <select> sem a opção guardada (lista ainda não carregada):
+				// atribuir não pega - tenta de novo na próxima passada.
+				if (el.value !== f.value) continue;
+				el.dispatchEvent(new Event("input", { bubbles: true }));
+				el.dispatchEvent(new Event("change", { bubbles: true }));
+				if (el.tagName === "SELECT") await waitForFormQuiet(form, FIELD_QUIET_MS, FIELD_QUIET_MAX_MS);
 			}
-		});
+			// Confere depois de a tela assentar: uma lista que chegou atrasada
+			// pode ter apagado um valor já aplicado.
+			await waitForFormQuiet(form, FIELD_QUIET_MS, FIELD_QUIET_MAX_MS);
+			pending = fields.filter(function (f) {
+				const el = findFieldElement(form, f);
+				return el && !fieldMatches(el, f);
+			});
+			if (!pending.length || Date.now() >= deadline) break;
+			await new Promise(function (resolve) {
+				setTimeout(resolve, FIELD_RETRY_MS);
+			});
+		}
+		return pending;
 	}
 
 	// -------------------------------------------------------------------
@@ -510,11 +593,21 @@
 	async function submitItemInBackground(item, api) {
 		logEvent("flush-item-start", { label: item.label, dialogTitle: item.dialogTitle, fields: item.fields });
 
-		let resolved;
-		try {
-			resolved = await api.resolveDialogUrl(item.dialogTitle);
-		} catch (err) {
-			const result = { ok: false, reason: "erro ao resolver diálogo novo: " + (err && err.message) };
+		let resolved = null;
+		let resolveError = null;
+		for (let attempt = 1; attempt <= RESOLVE_ATTEMPTS; attempt++) {
+			try {
+				resolved = await api.resolveDialogUrl(item.dialogTitle);
+				resolveError = null;
+			} catch (err) {
+				resolved = null;
+				resolveError = err;
+			}
+			if (resolved && !resolved.failed && resolved.url) break;
+			logEvent("flush-item-resolve-failed", { label: item.label, attempt: attempt, resolved: resolved, error: resolveError ? String(resolveError) : null });
+		}
+		if (resolveError) {
+			const result = { ok: false, reason: "erro ao resolver diálogo novo: " + (resolveError && resolveError.message) };
 			logEvent("flush-item-result", { label: item.label, result: result });
 			return result;
 		}
@@ -560,7 +653,8 @@
 			return result;
 		}
 
-		applyFormFields(freshDialog.form, item.fields);
+		const notApplied = await applyFormFields(freshDialog.form, item.fields);
+		if (notApplied.length) logEvent("flush-item-fields-not-applied", { label: item.label, fields: notApplied });
 
 		try {
 			const submitPromise = waitForIframeEvent(iframe, { timeoutMessage: "tempo esgotado aguardando resposta do Projudi" });
