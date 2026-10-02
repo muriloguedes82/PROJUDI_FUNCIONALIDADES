@@ -977,9 +977,11 @@ Nenhuma ação é praticada sozinha. Só no Projudi.
 
 ## Localizador (só no SEEU)
 
-No cabeçalho do processo do SEEU, ao lado do "+" dos localizadores
-(componente `seeu-localizador-processo-header`, com shadow DOM aberto), a
-extensão põe o botão **"📍 Localizador"** (`src/localizadorSeeu.js`). Ele
+Na fileira de botões da extensão, logo depois do **"⭐ Minhas
+Preferências"**, a extensão põe o botão **"📍 Localizador"**
+(`src/localizadorSeeu.js`), quando a tela tem o cabeçalho de localizadores
+do SEEU (componente `seeu-localizador-processo-header`, com shadow DOM
+aberto, onde fica o "+"). Ele
 abre um painel com preferências de localizadores (um ou mais por
 preferência), gravadas em `chrome.storage.local` na chave
 `pdpLocalizadorPreferencias`:
@@ -991,6 +993,11 @@ preferência), gravadas em `chrome.storage.local` na chave
   item de mesmo nome (sem acento/caixa), esperando o localizador aparecer
   no cabeçalho antes do próximo. Os que já estão no processo são pulados;
   os que não estão na lista da unidade são informados no painel.
+
+As mesmas preferências aparecem como cards **"📍 Localizador"** no
+"⭐ Minhas Preferências" (`quickActions.js`, chave de ordem `l:<id>`), que
+as aplica e edita por `window.__pdpLocalizador`. Por isso a
+funcionalidade requer as Ações rápidas.
 
 Exclusivo do SEEU: no catálogo (`src/funcionalidades.js`) o item tem
 `sistemas: ["seeu"]`, o que faz o service worker não injetar os arquivos

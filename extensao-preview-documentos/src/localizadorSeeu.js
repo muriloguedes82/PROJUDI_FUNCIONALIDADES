@@ -3,10 +3,13 @@
 // No cabeçalho do processo do SEEU (visualizacaoProcesso.do), à direita,
 // ficam os localizadores do processo e o "+" que abre a lista "Associar
 // localizador ao processo" com os localizadores ativos da unidade. Este
-// recurso põe ao lado do "+" um botão "📍 Localizador" que abre um painel
-// com as preferências do usuário: cada preferência tem um ou mais
-// localizadores e, com um clique, a extensão os associa ao processo,
+// recurso põe na fileira de botões da extensão, logo depois do
+// "⭐ Minhas Preferências" (quickActions.js), um botão "📍 Localizador" que
+// abre um painel com as preferências do usuário: cada preferência tem um ou
+// mais localizadores e, com um clique, a extensão os associa ao processo,
 // usando a própria lista do "+" (como se o usuário escolhesse cada item).
+// As mesmas preferências aparecem como cards no "⭐ Minhas Preferências"
+// (que as aplica/edita por window.__pdpLocalizador).
 //
 // Exclusivo do SEEU: o catálogo (src/funcionalidades.js, `sistemas`) não
 // injeta este arquivo no Projudi, e o script ainda confere o endereço.
@@ -232,27 +235,39 @@
 	let status = null; // { texto, tipo }
 	let ocupado = false;
 
-	function inserirBotao() {
-		const h = header();
-		if (!h || !h.isConnected) return;
-		if (botao && botao.isConnected) return;
-		botao = el("button", {
-			type: "button", class: "pdp-loc-botao", [ATTR_BOTAO]: true,
-			title: "Preferências de localizadores: associe ao processo com um clique",
-			onclick: function (ev) { ev.preventDefault(); ev.stopPropagation(); alternarPainel(); }
-		}, [el("span", { text: "📍 Localizador" }), el("span", { class: "pdp-loc-seta", text: "▾" })]);
-		// O <span id="span-localizadore"> ocupa a sobra da linha do <h3> e
-		// alinha o "+" à direita: o botão entra logo depois dele.
-		const caixa = h.closest("#span-localizadore") || h;
-		caixa.after(botao);
+	// O botão fica na fileira de botões da extensão, logo depois do
+	// "⭐ Minhas Preferências" (quickActions.js), e só no frame que também
+	// tem o cabeçalho de localizadores do processo.
+	function reconciliarBotao() {
+		const fav = document.getElementById("pdp-fav-prefs-button");
+		if (!fav || !header()) {
+			if (botao && botao.isConnected) { fecharPainel(); botao.remove(); }
+			return;
+		}
+		if (!botao) {
+			botao = el("button", {
+				type: "button", id: "pdp-localizador-button", class: "pdp-qa-group-btn", [ATTR_BOTAO]: true,
+				title: "Preferências de localizadores: associe ao processo com um clique",
+				onclick: function (ev) { ev.preventDefault(); ev.stopPropagation(); alternarPainel(); }
+			}, [el("span", { class: "pdp-qa-icon", text: "📍" }), el("span", { text: "Localizador" })]);
+		}
+		if (botao.previousElementSibling !== fav || botao.parentElement !== fav.parentElement) fav.after(botao);
 	}
 
 	function alternarPainel() {
 		if (painel) { fecharPainel(); return; }
+		abrirPainel();
+	}
+
+	function abrirPainel() {
+		if (painel) return;
+		const qa = window.__pdpQuickActions;
+		if (qa && typeof qa.closePanel === "function") qa.closePanel();
 		modo = "lista";
 		status = null;
 		painel = el("div", { class: "pdp-loc-painel", role: "dialog", "aria-label": "Preferências de localizadores" });
 		document.body.append(painel);
+		if (botao) botao.classList.add("pdp-qa-active");
 		lerPreferencias().then(render);
 		render();
 		setTimeout(function () {
@@ -267,6 +282,7 @@
 		if (!painel) return;
 		painel.remove();
 		painel = null;
+		if (botao) botao.classList.remove("pdp-qa-active");
 		edicao = null;
 		document.removeEventListener("mousedown", foraDoPainel, true);
 		document.removeEventListener("keydown", teclaPainel, true);
@@ -293,8 +309,19 @@
 		if (esquerda < 8) esquerda = 8;
 		if (esquerda + largura > window.innerWidth - 8) esquerda = Math.max(8, window.innerWidth - 8 - largura);
 		painel.style.left = esquerda + "px";
-		painel.style.top = (r.bottom + 4) + "px";
-		painel.style.maxHeight = Math.max(200, window.innerHeight - r.bottom - 16) + "px";
+		// A fileira costuma ficar no rodapé da tela: abre para cima quando
+		// há mais espaço acima do botão do que abaixo.
+		const abaixo = window.innerHeight - r.bottom - 12;
+		const acima = r.top - 12;
+		if (abaixo >= Math.min(painel.scrollHeight, 360) || abaixo >= acima) {
+			painel.style.top = (r.bottom + 4) + "px";
+			painel.style.bottom = "";
+			painel.style.maxHeight = Math.max(160, abaixo) + "px";
+		} else {
+			painel.style.top = "";
+			painel.style.bottom = (window.innerHeight - r.top + 4) + "px";
+			painel.style.maxHeight = Math.max(160, acima) + "px";
+		}
 	}
 
 	function avisar(texto, tipo) {
@@ -432,6 +459,7 @@
 			localizadores: Array.from(e.selecionados.values())
 		};
 		const i = preferencias.findIndex(function (p) { return p.id === item.id; });
+		item.createdAt = (i >= 0 && preferencias[i].createdAt) || Date.now();
 		if (i >= 0) preferencias[i] = item; else preferencias.push(item);
 		gravarPreferencias().then(function () {
 			modo = "lista";
@@ -486,10 +514,26 @@
 	// Início: o componente é carregado pelo SEEU depois do HTML.
 	// ------------------------------------------------------------------
 
+	// Usado pelo painel "⭐ Minhas Preferências" (quickActions.js), onde as
+	// preferências de localizadores também aparecem como cards.
+	window.__pdpLocalizador = {
+		disponivel: function () { return !!(botao && botao.isConnected && gatilho()); },
+		aplicar: function (pref) {
+			abrirPainel();
+			lerPreferencias().then(function () {
+				const atual = preferencias.find(function (p) { return p.id === pref.id; }) || pref;
+				aplicar(atual);
+			});
+		},
+		editar: function (pref) {
+			abrirPainel();
+			lerPreferencias().then(function () {
+				editar(preferencias.find(function (p) { return p.id === pref.id; }) || pref);
+			});
+		}
+	};
+
 	lerPreferencias().catch(function () {});
-	inserirBotao();
-	const observador = new MutationObserver(function () {
-		if (!botao || !botao.isConnected) inserirBotao();
-	});
-	observador.observe(document.documentElement, { childList: true, subtree: true });
+	reconciliarBotao();
+	new MutationObserver(reconciliarBotao).observe(document.documentElement, { childList: true, subtree: true });
 })();

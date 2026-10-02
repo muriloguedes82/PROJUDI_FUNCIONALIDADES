@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.11.1 |
-| **Versão da extensão** | 2.11.1 |
+| **Versão do manual** | 2.11.2 |
+| **Versão da extensão** | 2.11.2 |
 | **Data desta versão** | 02/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -241,6 +241,7 @@ tela, "flutuando" sobre a página.
 |---|---|---|
 | **▸ Ações** / **▾ Ações** | Mostra ou recolhe os grupos de ações rápidas (**Concluso**, **Remessa**, **Ordenações**, **Partes**, **Suspender**, **Transitar**, **Arquivar**, **🏦 Alvará Eletrônico**, **Outras**) | [7.1](#cap-7-1) |
 | **⭐ Minhas Preferências** | Todas as preferências salvas, em cards | [7.3](#cap-7-3) |
+| **📍 Localizador** | *Só no SEEU:* preferências de localizadores, associadas ao processo com um clique | [8.7](#cap-8-7) |
 | **📋 Colar processo** | Pesquisa o número de processo que você copiou | [8.5](#cap-8-5) |
 | **⚖️ Advogados** | Tela de Advogados em popup ((Des)Habilitar Advogado), com preferências de advogados | [8.3](#cap-8-3) |
 | **👥 Partes** | Tela Partes do Processo em popup (Editar Partes/Outros) | [8.4](#cap-8-4) |
@@ -897,8 +898,9 @@ Atualizar preferência** (nada é enviado); 🗑 remove.
 
 ▶ [**Vídeo V18** — Minhas Preferências](videos/V18-minhas-preferencias.mp4)
 
-**Para que serve:** ver **todas** as preferências salvas (das ações rápidas
-e do Juntar Documento) e os combos, em cards, num só lugar.
+**Para que serve:** ver **todas** as preferências salvas (das ações rápidas,
+do Juntar Documento e, no SEEU, do **📍 Localizador**) e os combos, em
+cards, num só lugar.
 
 **Passo a passo:**
 
@@ -910,7 +912,9 @@ e do Juntar Documento) e os combos, em cards, num só lugar.
    **✅ Concluir**. A ordem é salva na hora.
 
 **Bom saber:** só os primeiros cards aparecem de início; marque **Mostrar
-todas** para ver o restante.
+todas** para ver o restante. Os cards **📍 Localizador** (só no SEEU)
+associam os localizadores na hora, sem diálogo nem ✅ **Sim, executar**
+— veja [8.7](#cap-8-7).
 
 <a id="cap-7-4"></a>
 ### 7.4 Combos de preferências
@@ -1288,9 +1292,9 @@ botão Oráculo dela.
 localizadores que você mais usa — um ou vários de uma vez —, sem procurar
 cada um na lista do **+** do SEEU.
 
-**Onde fica:** no alto da tela do processo, à direita, onde ficam os
-localizadores do processo: ao lado do **+** do SEEU aparece o botão
-**📍 Localizador**. Ele abre um painel com as suas preferências:
+**Onde fica:** na barra de botões da extensão ([2.4](#cap-2-4)), logo
+depois do **⭐ Minhas Preferências**: botão **📍 Localizador**. Ele abre um
+painel com as suas preferências:
 
 | Opção | O que faz |
 |---|---|
@@ -1312,15 +1316,21 @@ localizadores do processo: ao lado do **+** do SEEU aparece o botão
 
 **Passo a passo — usar a preferência:**
 
-1. Com o processo aberto, clique em **📍 Localizador**.
-2. Clique na preferência. A extensão escolhe cada localizador na lista do
+1. Com o processo aberto, clique em **📍 Localizador** — ou em
+   **⭐ Minhas Preferências**, onde a preferência aparece como um card
+   **📍 Localizador** ([7.3](#cap-7-3)).
+2. Clique na preferência (ou no card). A extensão escolhe cada localizador na lista do
    **+**, um de cada vez, como você faria, e mostra o andamento no painel.
 3. No fim, o painel diz quais foram associados.
 
 **Bom saber:**
 
-- O botão só aparece no **SEEU** (também no SEEU de treino) e só quando o **+** dos localizadores está
-  disponível (perfil com permissão para associar localizador).
+- O botão só aparece no **SEEU** (também no SEEU de treino), na tela do
+  processo, e precisa das **Ações rápidas** ligadas no Menu
+  ([2.6](#cap-2-6)). Para associar, o **+** dos localizadores precisa
+  estar disponível (perfil com permissão para associar localizador).
+- No **✏️** e no **🗑** do card em **⭐ Minhas Preferências** você também
+  edita ou remove a preferência.
 - Localizador que **já está** no processo não é associado de novo.
 - Se um localizador da preferência **não estiver** na lista da unidade (foi
   desativado, ou você está em outra unidade), o painel avisa qual — os
@@ -1649,7 +1659,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V36](videos/V36-dispensar-cumprimentos.mp4) | [Dispensar cumprimentos para expedir](videos/V36-dispensar-cumprimentos.mp4) | [6.4](#cap-6-4) | 0:29 |
 | [V37](videos/V37-escolher-a-movimentacao.mp4) | [Escolher a movimentação das Ações rápidas](videos/V37-escolher-a-movimentacao.mp4) | [7.7](#cap-7-7) | 1:14 |
 | [V38](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [Preferência a partir de um movimento](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [7.7](#cap-7-7) | 0:56 |
-| [V39](videos/V39-localizador-seeu.mp4) | [Localizador (SEEU)](videos/V39-localizador-seeu.mp4) | [8.7](#cap-8-7) | 0:51 |
+| [V39](videos/V39-localizador-seeu.mp4) | [Localizador (SEEU)](videos/V39-localizador-seeu.mp4) | [8.7](#cap-8-7) | 1:02 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -1663,6 +1673,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.11.2 | 02/10/2026 | O botão **📍 Localizador** passa para a barra de botões, ao lado de **⭐ Minhas Preferências**, e as preferências de localizadores aparecem como cards em **⭐ Minhas Preferências** (2.4, 7.3 e 8.7). Vídeo V39 regravado. |
 | 2.11.1 | 02/10/2026 | A extensão passa a funcionar também no **SEEU de treino** (ambiente de testes), como no SEEU (1.3 e 8.7). |
 | 2.11.0 | 02/10/2026 | Nova seção 8.7: botão **📍 Localizador**, *só no SEEU*, com preferências de localizadores associadas ao processo com um clique (lista nativa do **+**). Convenção *Só no SEEU* (1.2), tabelas 1.3 e 2.6 e vídeo V39. |
 | 2.10.6 | 02/10/2026 | O botão **Outras** das Ações rápidas ganhou **Anotações Criminais** e **Solicitar Antecedentes Criminais** (quadro **Comunicar ao IIPR** da coluna de Ações), com **Abrir**/**Ir e abrir**, **+ Nova preferência**, ⭐ Minhas Preferências e 🔗 Combos, como as demais ações (7.1). |

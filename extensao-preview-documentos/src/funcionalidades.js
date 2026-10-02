@@ -118,9 +118,10 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "localizador",
 					nome: "Localizador (SEEU)",
-					descricao: "Botão \"📍 Localizador\" no cabeçalho do processo, com preferências que associam localizadores com um clique.",
+					descricao: "Botão \"📍 Localizador\" na linha do \"⭐ Minhas Preferências\", com preferências que associam localizadores com um clique.",
 					js: ["src/localizadorSeeu.js"],
 					css: ["src/localizadorSeeu.css"],
+					requer: ["acoesRapidas"],
 					sistemas: ["seeu"]
 				},
 				{

@@ -321,8 +321,10 @@ CENAS.V38 = {
 };
 
 // ------------------------------------------------------------------ V39
-// Botão 📍 Localizador do SEEU (src/localizadorSeeu.js): preferências de
-// localizadores associadas ao processo pela lista nativa do "+".
+// Botão 📍 Localizador do SEEU (src/localizadorSeeu.js), na linha do
+// ⭐ Minhas Preferências: preferências de localizadores associadas ao
+// processo pela lista nativa do "+"; também como cards em ⭐ Minhas
+// Preferências.
 const LOCS_SEEU = ["ABERTO", "AGUARDANDO AUDIÊNCIA - JÁ CUMPRIDA", "Aguardando Audiência - Pendente de Cumprimento", "AGUARDANDO CUMPRIMENTO DE PENA", "CÁLCULO DE PENA", "REVISAR INCIDENTES- ANÁLISE PRESCRIÇÃO", "SUSPENDER - MANDADO EXPEDIDO"];
 function telaSeeu() {
 	browser(["*SEEU - Sistema Eletrônico de Execução Unificado"], "https://seeu.pje.jus.br/seeu/visualizacaoProcesso.do?…");
@@ -331,16 +333,19 @@ function telaSeeu() {
 		'<div style="display:flex;align-items:center;padding:12px 20px;border-bottom:1px solid #ddd">' +
 		'<div><div style="font-size:18px;font-weight:700">Execução ' + PROC + '</div><div style="font-size:11px;color:#666">2454 dia(s) em tramitação</div></div>' +
 		'<div id="sl-chips" style="flex:1;display:flex;justify-content:flex-end;gap:6px;align-items:center"></div>' +
-		'<span id="sl-plus" style="padding:0 8px;font-size:18px;color:#555">+</span>' +
-		'<span id="sl-bt" style="display:inline-flex;gap:4px;align-items:center;margin-left:6px;padding:3px 8px;font:600 11px Inter,Arial;border:1px solid #cbd5e1;border-radius:6px">📍 Localizador <small style="opacity:.7">▾</small></span></div>' +
+		'<span id="sl-plus" style="padding:0 8px;font-size:18px;color:#555">+</span></div>' +
 		'<div style="padding:14px 20px;line-height:24px">Juízo: Vara de Execução de Exemplo<br>Sentenciado: FULANO DE TAL (fictício)<br>Classe Processual: 386 - Execução da Pena</div></div>');
+	document.querySelectorAll("#x-group").forEach(n => n.remove());
+	add('<div id="x-group"><div class="line"><span class="x-btn">▸ Ações</span><span class="x-btn" id="x-fav">⭐ Minhas Preferências</span><span class="x-btn" id="sl-bt">📍 Localizador</span><span class="x-btn">🖍️ Destacar mov.</span><span class="x-btn">🔗 Combos</span></div>' +
+		'<div class="line"><span class="x-btn">📱 Enviar por WhatsApp</span><span class="x-btn">✉️ Enviar por e-mail</span><span class="x-btn small" style="align-self:center">↕ Mover</span><span class="x-btn small" style="align-self:center">Ocultar</span></div></div>');
 }
+// Painel do 📍 Localizador: abre para cima, porque a fileira fica no rodapé.
 function painelLoc(html) {
 	document.querySelectorAll("#sl-painel").forEach(n => n.remove());
 	const r = $("#sl-bt").getBoundingClientRect();
 	const p = add('<div id="sl-painel" style="position:fixed;width:320px;background:#fff;border:1px solid #cbd5e1;border-radius:8px;box-shadow:0 8px 24px rgba(15,23,42,.18);font:12px/1.4 Inter,Arial;padding:10px;z-index:60">' + html + "</div>");
-	p.style.left = r.right - 320 + "px";
-	p.style.top = r.bottom + 4 + "px";
+	p.style.left = Math.min(1270 - 320, r.right - 320) + "px";
+	p.style.bottom = 720 - r.top + 4 + "px";
 	return p;
 }
 const SL_TIT = t => '<div style="font-weight:700;text-transform:uppercase;color:#475569;margin-bottom:6px">' + t + "</div>";
@@ -365,7 +370,9 @@ CENAS.V39 = {
 		S.hl("#sl-plus", 6);
 		await S.cap("No SEEU, os localizadores do processo ficam no alto, à direita. O <b>+</b> do próprio SEEU associa um de cada vez.");
 		S.hlOff();
-		await S.cap("Ao lado dele, a extensão põe o botão <b>📍 Localizador</b>.");
+		S.hl("#sl-bt", 4);
+		await S.cap("Na fileira de botões da extensão, ao lado de <b>⭐ Minhas Preferências</b>, fica o botão <b>📍 Localizador</b>.");
+		S.hlOff();
 		await S.click("#sl-bt");
 		listaPrefsLoc([]);
 		await S.cap("Para criar uma preferência, clique em <b>➕ Nova preferência</b>.");
@@ -389,8 +396,15 @@ CENAS.V39 = {
 		await S.click("#sl-salvar");
 		const pref = ["Audiência cumprida", [LOCS_SEEU[0], LOCS_SEEU[1]]];
 		listaPrefsLoc([pref], ["Preferência salva.", true]);
-		await S.cap("Agora, em qualquer processo, basta <b>um clique</b> na preferência.");
-		await S.click("#sl-pref0");
+		await S.cap("A preferência também entra em <b>⭐ Minhas Preferências</b>, junto das outras.");
+		$("#sl-painel").remove();
+		await S.click("#x-fav");
+		const cards = [["Audiência cumprida", "📍 Localizador"], ["Intimar MP - ciência 5 dias", "Intimar Partes"], ["🔗 Decurso + concluso", "Combo · 2 etapas"]];
+		const pn = panelAt('<div style="display:flex;justify-content:space-between;align-items:center"><h4 style="margin:0">⭐ Minhas Preferências</h4><span class="x-btn small">✏️ Editar posição</span></div>' +
+			'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px">' + cards.map((c, i) => '<div class="x-chip" data-card="' + i + '" style="display:block;border-radius:6px;padding:8px;margin:0;font-size:12px"><div style="color:#666;font-size:11px">' + c[1] + "</div><b>" + (c[0].startsWith("🔗") ? "" : "★ ") + c[0] + "</b></div>").join("") + "</div>", "#x-fav", { w: 520 });
+		await S.cap("Um clique no card <b>📍 Localizador · ★ Audiência cumprida</b> associa os localizadores.");
+		await S.click('[data-card="0"]');
+		pn.remove();
 		listaPrefsLoc([pref], ["Associando 1 de 2: ABERTO..."]);
 		await sleep(900);
 		$("#sl-chips").innerHTML = '<span style="padding:2px 8px;background:#e2e8f0;border-radius:10px;font-size:11px">ABERTO ×</span>';
@@ -400,6 +414,6 @@ CENAS.V39 = {
 		listaPrefsLoc([pref], ["Associado(s): ABERTO, AGUARDANDO AUDIÊNCIA - JÁ CUMPRIDA.", true]);
 		await S.cap("A extensão escolhe cada localizador na lista do <b>+</b>, como você faria, e mostra o resultado.", { ms: 4200 });
 		await S.cap("Localizador que já está no processo não é associado de novo.");
-		await S.endCard("📍 Localizador → ➕ Nova preferência → marcar localizadores → Salvar → um clique na preferência associa todos.");
+		await S.endCard("📍 Localizador → ➕ Nova preferência → marcar localizadores → Salvar → um clique na preferência (ou no card de ⭐ Minhas Preferências) associa todos.");
 	},
 };
