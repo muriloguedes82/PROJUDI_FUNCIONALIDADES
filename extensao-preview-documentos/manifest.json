@@ -28,7 +28,9 @@
     "https://*.registros.org.br/*",
     "https://*.cnj.jus.br/*",
     "https://*.pdpj.jus.br/*",
-    "https://sso.cloud.pje.jus.br/*"
+    "https://sso.cloud.pje.jus.br/*",
+    "https://*.receita.fazenda.gov.br/*",
+    "https://sso.acesso.gov.br/*"
   ],
   "declarative_net_request": {
     "rule_resources": [

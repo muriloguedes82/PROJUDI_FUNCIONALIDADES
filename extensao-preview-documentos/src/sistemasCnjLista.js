@@ -4,6 +4,7 @@
 // (background.js), que só abre em nova aba/segundo monitor os endereços
 // desta lista. Ordem: do mais próximo da balança para a esquerda.
 //
+// `orgao`: quem mantém o sistema, no título do popup e na dica (padrão: CNJ).
 // `cor`: fundo (dois tons pastel), borda e desenho do ícone - uma cor por
 // sistema; nenhuma repete o dourado da balança.
 // `svg`: desenho 24x24 no traço da balança (class="cheio" = preenchido).
@@ -61,5 +62,15 @@ self.PDP_SISTEMAS_CNJ = Object.freeze([
 		cor: { claro: "#e0eefc", escuro: "#b3d3f3", borda: "#4f8fcf", desenho: "#1f5591" },
 		// Mira (investigação patrimonial).
 		svg: '<circle cx="12" cy="12" r="7.5"/><circle class="cheio" cx="12" cy="12" r="1.8"/><path d="M12 1.8v5M12 17.2v5M1.8 12h5M17.2 12h5"/>'
+	},
+	{
+		id: "infojud",
+		nome: "Infojud",
+		orgao: "Receita Federal",
+		titulo: "Infojud — Informações ao Judiciário (Receita Federal, e-CAC)",
+		url: "https://cav.receita.fazenda.gov.br/ecac/Aplicacao.aspx?id=5032&origem=menu",
+		cor: { claro: "#ffe3e1", escuro: "#f6b3ad", borda: "#d0605a", desenho: "#8f2a24" },
+		// Documento com lupa (declarações à Receita).
+		svg: '<path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21H11M14 3l5 5h-5zM19 8v3M8 9h3M8 12.5h4"/><circle cx="16" cy="16" r="3.2"/><path d="M18.4 18.4L21 21"/>'
 	}
 ]);

@@ -74,7 +74,7 @@
    - 8.4 [Editar Partes/Outros](#cap-8-4)
    - 8.5 [Colar processo](#cap-8-5)
    - 8.6 [Oráculo](#cap-8-6)
-   - 8.7 [Sistemas do CNJ (SerpJud, CNIEP, PrevJud, Sisbajud, SNGB, Sniper)](#cap-8-7)
+   - 8.7 [Sistemas do CNJ (SerpJud, CNIEP, PrevJud, Sisbajud, SNGB, Sniper, Infojud)](#cap-8-7)
 9. [Telas de análise, mesas e cumprimentos](#cap-9)
    - 9.1 [Filtro por Sequencial na Análise de Decurso de Prazo](#cap-9-1)
    - 9.2 [Listas de tarefas](#cap-9-2)
@@ -257,7 +257,7 @@ tela, "flutuando" sobre a página.
 - O **ícone da balança** (canto superior direito, abaixo de **Sair**) não faz
   parte desta barra: ele abre o **Menu da extensão** — veja [2.6](#cap-2-6).
   Os ícones **coloridos** logo à esquerda dela abrem os **sistemas do CNJ**
-  (SerpJud, CNIEP, PrevJud, Sisbajud, SNGB e Sniper) — veja [8.7](#cap-8-7).
+  (SerpJud, CNIEP, PrevJud, Sisbajud, SNGB, Sniper e Infojud) — veja [8.7](#cap-8-7).
 - Passe o mouse sobre qualquer botão para ver uma dica.
 - A barra acompanha a rolagem da página. Ela se alinha ao quadro
   **Pendências**; quando a tela não tem esse quadro, alinha-se ao quadro
@@ -1276,7 +1276,7 @@ da parte sem ir até a ficha dela.
 botão Oráculo dela.
 
 <a id="cap-8-7"></a>
-### 8.7 Sistemas do CNJ (SerpJud, CNIEP, PrevJud, Sisbajud, SNGB, Sniper)
+### 8.7 Sistemas do CNJ (SerpJud, CNIEP, PrevJud, Sisbajud, SNGB, Sniper, Infojud)
 
 ▶ [**Vídeo V39** — Sistemas do CNJ](videos/V39-sistemas-do-cnj.mp4)
 
@@ -1296,6 +1296,7 @@ coloridos** logo **à esquerda da balança dourada** do Menu da extensão
 | Verde-claro, pilha de moedas | **Sisbajud** | Ordens a bancos (bloqueio de valores, informações) |
 | Rosa, caixa | **SNGB** | Gestão de bens apreendidos |
 | Azul-claro, mira | **Sniper** | Investigação patrimonial |
+| Coral, documento com lupa | **Infojud** | Declarações e dados da Receita Federal (pelo e-CAC) |
 
 **Passo a passo:**
 
@@ -1319,6 +1320,9 @@ coloridos** logo **à esquerda da balança dourada** do Menu da extensão
   aba** ou **🖥 Segundo monitor**.
 - Ao fechar o popup, o que estava aberto no sistema não fica guardado; ao
   clicar de novo, ele abre na tela inicial.
+- O **Infojud** é da Receita Federal e abre pelo **e-CAC**: o acesso é com
+  o certificado digital (ou gov.br). Se o e-CAC não abrir no popup, use
+  **🗂 Nova aba** ou **🖥 Segundo monitor**.
 
 ---
 
@@ -1637,7 +1641,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V36](videos/V36-dispensar-cumprimentos.mp4) | [Dispensar cumprimentos para expedir](videos/V36-dispensar-cumprimentos.mp4) | [6.4](#cap-6-4) | 0:29 |
 | [V37](videos/V37-escolher-a-movimentacao.mp4) | [Escolher a movimentação das Ações rápidas](videos/V37-escolher-a-movimentacao.mp4) | [7.7](#cap-7-7) | 1:14 |
 | [V38](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [Preferência a partir de um movimento](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [7.7](#cap-7-7) | 0:56 |
-| [V39](videos/V39-sistemas-do-cnj.mp4) | [Sistemas do CNJ](videos/V39-sistemas-do-cnj.mp4) | [8.7](#cap-8-7) | 0:47 |
+| [V39](videos/V39-sistemas-do-cnj.mp4) | [Sistemas do CNJ](videos/V39-sistemas-do-cnj.mp4) | [8.7](#cap-8-7) | 0:48 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -1651,7 +1655,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 2.11.0 | 02/10/2026 | Nova seção **8.7 Sistemas do CNJ**: ícones pastel ao lado da balança do Menu (SerpJud, CNIEP, PrevJud, Sisbajud, SNGB e Sniper), que abrem cada sistema num popup sobre o processo, com os botões **🗂 Nova aba** e **🖥 Segundo monitor** para abri-lo fora do popup. A barra de botões não muda. Menção em 2.4, nova função na tabela da 2.6 (27 funções), linha nova em Solução de problemas e vídeo V39. |
+| 2.11.0 | 02/10/2026 | Nova seção **8.7 Sistemas do CNJ**: ícones pastel ao lado da balança do Menu (SerpJud, CNIEP, PrevJud, Sisbajud, SNGB, Sniper e Infojud, da Receita Federal), que abrem cada sistema num popup sobre o processo, com os botões **🗂 Nova aba** e **🖥 Segundo monitor** para abri-lo fora do popup. A barra de botões não muda. Menção em 2.4, nova função na tabela da 2.6 (27 funções), linha nova em Solução de problemas e vídeo V39. |
 | 2.10.6 | 02/10/2026 | O botão **Outras** das Ações rápidas ganhou **Anotações Criminais** e **Solicitar Antecedentes Criminais** (quadro **Comunicar ao IIPR** da coluna de Ações), com **Abrir**/**Ir e abrir**, **+ Nova preferência**, ⭐ Minhas Preferências e 🔗 Combos, como as demais ações (7.1). |
 | 2.10.5 | 02/10/2026 | A pergunta "Não localizei o movimento…" (7.7) passa a usar a mesma caixa da pergunta sobre juntadas pendentes, com os botões **✅ Prosseguir** e **Cancelar** (antes, OK/Cancel do navegador). Vídeo V38 regravado. |
 | 2.10.4 | 02/10/2026 | Seção 7.7: **preferência que sempre parte de um movimento** — gravada com a caixinha de um movimento marcada, guarda o nome dele (📌) e, ao ser usada, parte do movimento mais recente com esse nome; se não houver, pergunta se segue pela regra geral. Linha nova em Solução de problemas e vídeo V38. |

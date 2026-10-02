@@ -326,7 +326,7 @@ CENAS.V38 = {
 function iconesSistemasCnj() {
 	const ic = $("#x-menuicon");
 	return self.PDP_SISTEMAS_CNJ.map((s, i) => {
-		const el = add('<div id="x-cnj-' + s.id + '" title="' + s.nome + ' (CNJ)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="' + s.cor.desenho + '" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + s.svg.replace(/class="cheio"/g, 'fill="' + s.cor.desenho + '"') + "</svg></div>", ic.parentElement);
+		const el = add('<div id="x-cnj-' + s.id + '" title="' + s.nome + " (" + (s.orgao || "CNJ") + ')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="' + s.cor.desenho + '" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + s.svg.replace(/class="cheio"/g, 'fill="' + s.cor.desenho + '"') + "</svg></div>", ic.parentElement);
 		el.style.cssText = "position:absolute;right:" + (12 + (i + 1) * 30) + "px;top:50px;z-index:30;width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg," + s.cor.claro + "," + s.cor.escuro + ");border:1px solid " + s.cor.borda + ";display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.25)";
 		return el;
 	});
@@ -338,8 +338,8 @@ CENAS.V39 = {
 	async run() {
 		telaProcesso({});
 		iconesSistemasCnj();
-		await S.titleCard("VÍDEO V39", "Sistemas do CNJ", "SerpJud, CNIEP, PrevJud, Sisbajud, SNGB e Sniper num popup, sem sair do processo.");
-		S.hl("#x-cnj-sniper", 4);
+		await S.titleCard("VÍDEO V39", "Sistemas do CNJ", "SerpJud, CNIEP, PrevJud, Sisbajud, SNGB, Sniper e Infojud num popup, sem sair do processo.");
+		S.hl("#x-cnj-infojud", 4);
 		await S.cap("No alto da tela, à esquerda da balança dourada do Menu, ficam os ícones coloridos dos <b>sistemas do CNJ</b>.", { ms: 4200, bottom: true });
 		S.hlOff();
 		for (const s of self.PDP_SISTEMAS_CNJ) {

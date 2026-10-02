@@ -1,5 +1,5 @@
 // Projudi - Ícones dos sistemas do CNJ (SerpJud, CNIEP, PrevJud, Sisbajud,
-// SNGB e Sniper - lista em sistemasCnjLista.js) ao lado do ícone do Menu da
+// SNGB, Sniper e Infojud, da Receita - lista em sistemasCnjLista.js) ao lado do ícone do Menu da
 // extensão (a balança dourada, ver menuExtensao.js).
 //
 // Os ícones têm o mesmo tamanho da balança, ficam enfileirados à esquerda
@@ -49,6 +49,10 @@
 .icone svg .cheio { fill: currentColor; }
 `;
 
+	function orgao(sistema) {
+		return sistema.orgao || "CNJ";
+	}
+
 	function porId(id) {
 		return SISTEMAS.find(function (s) { return s.id === id; });
 	}
@@ -95,7 +99,7 @@
 			"</span></div>" +
 			'<div class="pdp-qa-modal-body"><iframe class="pdp-sistemas-cnj-iframe" style="width: 100%; height: 100%; border: none; display: block;" allow="clipboard-read; clipboard-write; fullscreen"></iframe></div>' +
 			"</div>";
-		backdrop.querySelector(".pdp-sistemas-cnj-titulo").textContent = sistema.nome + " — CNJ";
+		backdrop.querySelector(".pdp-sistemas-cnj-titulo").textContent = sistema.nome + " — " + orgao(sistema);
 		const aba = backdrop.querySelector(".pdp-sistemas-cnj-aba");
 		aba.title = "Abrir o " + sistema.nome + " numa nova aba deste navegador";
 		aba.addEventListener("click", function () { openOutside(sistema, "aba"); });
@@ -153,8 +157,8 @@
 			const icone = document.createElement("button");
 			icone.type = "button";
 			icone.className = "icone";
-			icone.title = sistema.nome + " (CNJ) — abrir num popup sobre esta tela";
-			icone.setAttribute("aria-label", sistema.nome + " (CNJ)");
+			icone.title = sistema.nome + " (" + orgao(sistema) + ") — abrir num popup sobre esta tela";
+			icone.setAttribute("aria-label", sistema.nome + " (" + orgao(sistema) + ")");
 			icone.style.setProperty("--claro", sistema.cor.claro);
 			icone.style.setProperty("--escuro", sistema.cor.escuro);
 			icone.style.setProperty("--borda", sistema.cor.borda);
