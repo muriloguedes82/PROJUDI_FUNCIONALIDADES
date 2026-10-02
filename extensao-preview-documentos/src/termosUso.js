@@ -63,6 +63,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/sistemasCnj.js",
 			"src/habilitarAdvogado.js",
 			"src/editarPartes.js",
+			"src/alterarClasseAssuntos.js",
 			"src/alvaraEletronico.js",
 			"src/juntarDocumento.js",
 			"src/reusCabecalho.js",
