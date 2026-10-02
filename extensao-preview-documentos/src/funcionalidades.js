@@ -131,6 +131,12 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					js: ["src/oraculoDirect.js", "src/oraculo.js"]
 				},
 				{
+					id: "sistemasCnj",
+					nome: "Sistemas do CNJ",
+					descricao: "Ícones ao lado da balança do Menu que abrem SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper e Infojud num popup sobre a tela do processo (a ordem dos ícones pode ser trocada arrastando).",
+					js: ["src/sistemasCnjLista.js", "src/sistemasCnj.js"]
+				},
+				{
 					id: "novaRemessa",
 					nome: "Nova Remessa",
 					descricao: "Realizar mais de uma remessa em seguida.",

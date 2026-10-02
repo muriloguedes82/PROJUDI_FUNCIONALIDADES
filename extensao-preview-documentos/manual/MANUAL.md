@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.12.1 |
-| **Versão da extensão** | 2.12.1 |
+| **Versão do manual** | 2.13.1 |
+| **Versão da extensão** | 2.13.1 |
 | **Data desta versão** | 02/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -74,7 +74,8 @@
    - 8.4 [Editar Partes/Outros](#cap-8-4)
    - 8.5 [Colar processo](#cap-8-5)
    - 8.6 [Oráculo](#cap-8-6)
-   - 8.7 [Localizador (só no SEEU)](#cap-8-7)
+   - 8.7 [Sistemas do CNJ (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud)](#cap-8-7)
+   - 8.8 [Localizador (só no SEEU)](#cap-8-8)
 9. [Telas de análise, mesas e cumprimentos](#cap-9)
    - 9.1 [Filtro por Sequencial na Análise de Decurso de Prazo](#cap-9-1)
    - 9.2 [Listas de tarefas](#cap-9-2)
@@ -136,7 +137,7 @@ Não é preciso saber nada de informática além disso.
 | Sistema | O que funciona |
 |---|---|
 | **Projudi (TJPR)** | Todas as funções deste manual |
-| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)) e o botão **📍 Localizador** ([8.7](#cap-8-7)), que só existe no SEEU — também pela **⭐** das listas de juntadas e de conclusões ([9.3](#cap-9-3)). Vale também para o **SEEU de treino** (ambiente de testes) |
+| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)), o ícone do BNMP 3.0 ao lado da balança ([8.7](#cap-8-7)) e o botão **📍 Localizador** ([8.8](#cap-8-8)), que só existe no SEEU — também pela **⭐** das listas de juntadas e de conclusões ([9.3](#cap-9-3)). Vale também para o **SEEU de treino** (ambiente de testes) |
 
 A extensão **não funciona** quando o usuário está logado com perfil de
 advogado(a) ou de assessor(a) de advogado — veja [10.3](#cap-10-3).
@@ -247,7 +248,7 @@ tela, "flutuando" sobre a página.
 |---|---|---|
 | **▸ Ações** / **▾ Ações** | Mostra ou recolhe os grupos de ações rápidas (**Concluso**, **Remessa**, **Ordenações**, **Partes**, **Suspender**, **Transitar**, **Arquivar**, **🏦 Alvará Eletrônico**, **Outras**) | [7.1](#cap-7-1) |
 | **⭐ Minhas Preferências** | Todas as preferências salvas, em cards | [7.3](#cap-7-3) |
-| **📍 Localizador** | *Só no SEEU:* preferências de localizadores, associadas ao processo com um clique | [8.7](#cap-8-7) |
+| **📍 Localizador** | *Só no SEEU:* preferências de localizadores, associadas ao processo com um clique | [8.8](#cap-8-8) |
 | **📋 Colar processo** | Pesquisa o número de processo que você copiou | [8.5](#cap-8-5) |
 | **⚖️ Advogados** | Tela de Advogados em popup ((Des)Habilitar Advogado), com preferências de advogados | [8.3](#cap-8-3) |
 | **👥 Partes** | Tela Partes do Processo em popup (Editar Partes/Outros) | [8.4](#cap-8-4) |
@@ -264,6 +265,8 @@ tela, "flutuando" sobre a página.
 
 - O **ícone da balança** (canto superior direito, abaixo de **Sair**) não faz
   parte desta barra: ele abre o **Menu da extensão** — veja [2.6](#cap-2-6).
+  Os ícones **coloridos** logo à esquerda dela abrem os **sistemas do CNJ**
+  (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper e Infojud) — veja [8.7](#cap-8-7).
 - Passe o mouse sobre qualquer botão para ver uma dica.
 - A barra acompanha a rolagem da página. Ela se alinha ao quadro
   **Pendências**; quando a tela não tem esse quadro, alinha-se ao quadro
@@ -332,7 +335,7 @@ PROJUDI e SEEU**, com a mesma lista: cada sistema guarda as suas próprias
 escolhas. Por padrão, **tudo vem ativo nos dois**. A extensão reconhece em que
 sistema você está pelo endereço da página e abre o Menu na aba dele (marcada
 com "(este)"); você pode clicar na outra aba para configurá-la também. Acima
-da lista aparece "Funcionalidades no PROJUDI: N de 26 ativas" (ou no SEEU).
+da lista aparece "Funcionalidades no PROJUDI: N de 27 ativas" (ou no SEEU).
 
 1. Clique na aba do sistema que quer configurar (PROJUDI ou SEEU).
 2. Clique na chave da função que quer ligar ou desligar.
@@ -355,7 +358,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 | Grupo | Funções que podem ser ligadas/desligadas | Seção |
 |---|---|---|
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
-| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
+| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica | [4](#cap-4) |
 | **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
@@ -369,7 +372,8 @@ computador:
 
 - **⬇ Exportar**: baixa um arquivo `.json` com as suas preferências, combos,
   listas de tarefas, contatos do WhatsApp, destinatários e remetentes de
-  e-mail, destaques de movimentações e as funções desligadas em cada sistema.
+  e-mail, destaques de movimentações, a ordem dos ícones dos sistemas do CNJ
+  ([8.7](#cap-8-7)) e as funções desligadas em cada sistema.
 - **⬆ Importar**: no outro computador (com a mesma extensão instalada), escolha
   o arquivo. O Menu mostra um **resumo do que ele contém**; depois de você
   **confirmar**, as preferências daquele computador são **substituídas** pelas
@@ -922,7 +926,7 @@ cards, num só lugar.
 **Bom saber:** só os primeiros cards aparecem de início; marque **Mostrar
 todas** para ver o restante. Os cards **📍 Localizador** (só no SEEU)
 associam os localizadores na hora, sem diálogo nem ✅ **Sim, executar**
-— veja [8.7](#cap-8-7).
+— veja [8.8](#cap-8-8).
 
 <a id="cap-7-4"></a>
 ### 7.4 Combos de preferências
@@ -1099,7 +1103,7 @@ Bom saber sobre essas preferências:
 <a id="cap-8"></a>
 ## 8. Atalhos para telas do processo
 
-*Só no Projudi* (exceto o [8.7](#cap-8-7), *só no SEEU*). Os atalhos de 8.1
+*Só no Projudi* (exceto o [8.8](#cap-8-8), *só no SEEU*, e o ícone do BNMP 3.0 do [8.7](#cap-8-7), que também aparece no SEEU). Os atalhos de 8.1
 a 8.6 abrem num **popup** sobre a tela atual — a aba do processo não sai do
 lugar. Feche com **✕ Fechar**.
 
@@ -1287,14 +1291,73 @@ da parte sem ir até a ficha dela.
 **Bom saber:** se você já estiver na ficha de uma parte, o atalho usa o
 botão Oráculo dela.
 
+<a id="cap-8-7"></a>
+### 8.7 Sistemas do CNJ (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud)
+
+▶ [**Vídeo V39** — Sistemas do CNJ](videos/V39-sistemas-do-cnj.mp4)
+
+**Para que serve:** abrir sistemas do CNJ usados no dia a dia sem sair do
+processo.
+
+**Onde fica:** no alto da tela, numa fileira de **ícones pequenos e
+coloridos** logo **à esquerda da balança dourada** do Menu da extensão
+(abaixo do link **Sair**). Eles acompanham a balança ao rolar a página e
+**só aparecem com um processo aberto** — na Mesa, nas listas e nas demais
+telas fica só a balança. **No SEEU** aparece só o ícone do **BNMP 3.0**
+(também só com um processo aberto). Cada desenho lembra o logotipo do sistema. Na ordem
+padrão, da balança para a esquerda:
+
+| Ícone | Sistema | Para quê |
+|---|---|---|
+| Verde-água, "on" (do logotipo ONSERP) | **SerpJud** | Registros públicos (cartórios de imóveis, títulos, pessoas) |
+| Lilás, losango com um "visto" | **CNIEP** | Inspeções em estabelecimentos penais |
+| Azul-lavanda, pessoa com uma seta | **BNMP 3.0** | Banco Nacional de Medidas Penais e Prisões (mandados) |
+| Pêssego, quadrado com uma pessoa sorrindo | **PrevJud** | Informações previdenciárias |
+| Verde-claro, pilha de moedas | **Sisbajud** | Ordens a bancos (bloqueio de valores, informações) |
+| Rosa, quadradinhos em "X" | **SNGB** | Gestão de bens apreendidos |
+| Azul-claro, cifrão entre arcos | **Sniper** | Investigação patrimonial |
+| Coral, documento com lupa | **Infojud** | Declarações e dados da Receita Federal (pelo e-CAC) |
+
+**Mudar a ordem dos ícones:** clique num ícone e, **sem soltar**, arraste-o
+para a direita ou para a esquerda; os outros abrem espaço. Solte no lugar
+desejado. A nova ordem fica guardada como sua preferência (vale para todas
+as abas do Projudi) e vai junto no **⬇ Exportar** do Menu
+([2.6](#cap-2-6)). Um clique sem arrastar abre o sistema normalmente.
+
+**Passo a passo:**
+
+1. Clique no ícone do sistema (passe o mouse para ver o nome).
+2. O sistema abre num **popup** sobre a tela do processo (o mesmo tipo de
+   janela usado por Remessa, Concluso e as demais ações rápidas). Entre com
+   o seu acesso e trabalhe nele.
+3. Se preferir trabalhar com o sistema fora do popup, use os botões do topo
+   dele:
+   - **🗂 Nova aba** — abre o sistema numa aba nova do navegador, logo ao
+     lado da aba do processo;
+   - **🖥 Segundo monitor** — abre o sistema numa janela que ocupa o
+     **outro monitor** inteiro. Se só houver um monitor conectado, a
+     extensão avisa e o popup continua aberto.
+4. Para voltar ao processo, clique em **✕ Fechar** (ou tecle **Esc**).
+
+**Bom saber:**
+
+- O popup fica sobre o processo: a aba do processo não muda de lugar.
+- Se o login de um sistema não funcionar dentro do popup, use **🗂 Nova
+  aba** ou **🖥 Segundo monitor**.
+- Ao fechar o popup, o que estava aberto no sistema não fica guardado; ao
+  clicar de novo, ele abre na tela inicial.
+- O **Infojud** é da Receita Federal e abre pelo **e-CAC**: o acesso é com
+  o certificado digital (ou gov.br). Se o e-CAC não abrir no popup, use
+  **🗂 Nova aba** ou **🖥 Segundo monitor**.
+
 ---
 
-<a id="cap-8-7"></a>
-### 8.7 Localizador (só no SEEU)
+<a id="cap-8-8"></a>
+### 8.8 Localizador (só no SEEU)
 
 *Só no SEEU.*
 
-▶ [**Vídeo V39** — Localizador (SEEU)](videos/V39-localizador-seeu.mp4)
+▶ [**Vídeo V40** — Localizador (SEEU)](videos/V40-localizador-seeu.mp4)
 
 **Para que serve:** associar ao processo, **com um clique**, os
 localizadores que você mais usa — um ou vários de uma vez —, sem procurar
@@ -1453,10 +1516,10 @@ da tela de análise, sem abri-lo.
 
 **No SEEU** (listas **Análise de Juntadas** e **Retorno de Conclusão**):
 
-▶ [**Vídeo V40** — Localizador pela ⭐ da lista (SEEU)](videos/V40-localizador-na-linha-seeu.mp4)
+▶ [**Vídeo V41** — Localizador pela ⭐ da lista (SEEU)](videos/V41-localizador-na-linha-seeu.mp4)
 
 1. Clique no **⭐** da linha. Aparecem as preferências do
-   **📍 Localizador** ([8.7](#cap-8-7)) — as ações rápidas não funcionam
+   **📍 Localizador** ([8.8](#cap-8-8)) — as ações rápidas não funcionam
    no SEEU.
 2. Clique numa preferência. A extensão abre o processo **em segundo
    plano** e associa os localizadores dela, um de cada vez, pela lista do
@@ -1637,6 +1700,7 @@ telas abertas a partir daí voltam a funcionar.
 | Card de suspensão/monitoração não aparece | Só são sinalizados status **ATIVA** e os motivos listados em [4.1](#cap-4-1)/[4.2](#cap-4-2); aguarde alguns segundos após abrir o processo |
 | Mandado não virou Regionalizado | Só muda se a cidade da parte for de outra comarca **e** constar em Comarca de Destino; veja a nota amarela do diálogo ([9.7](#cap-9-7)) |
 | Colar processo: "Não encontrei um número de processo" | Copie o número completo (20 dígitos), só um ([8.5](#cap-8-5)) |
+| O popup de um sistema do CNJ fica em branco ou o login não termina | Use **🗂 Nova aba** ou **🖥 Segundo monitor** no topo do popup ([8.7](#cap-8-7)) |
 
 Se o problema continuar, anote a versão da extensão, a tela e o que
 aconteceu, e informe o responsável pela extensão.
@@ -1691,8 +1755,9 @@ pode variar um pouco. Clique no título para assistir.
 | [V36](videos/V36-dispensar-cumprimentos.mp4) | [Dispensar cumprimentos para expedir](videos/V36-dispensar-cumprimentos.mp4) | [6.4](#cap-6-4) | 0:29 |
 | [V37](videos/V37-escolher-a-movimentacao.mp4) | [Escolher a movimentação das Ações rápidas](videos/V37-escolher-a-movimentacao.mp4) | [7.7](#cap-7-7) | 1:14 |
 | [V38](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [Preferência a partir de um movimento](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [7.7](#cap-7-7) | 0:56 |
-| [V39](videos/V39-localizador-seeu.mp4) | [Localizador (SEEU)](videos/V39-localizador-seeu.mp4) | [8.7](#cap-8-7) | 1:02 |
-| [V40](videos/V40-localizador-na-linha-seeu.mp4) | [Localizador pela ⭐ da lista (SEEU)](videos/V40-localizador-na-linha-seeu.mp4) | [9.3](#cap-9-3) | 0:31 |
+| [V39](videos/V39-sistemas-do-cnj.mp4) | [Sistemas do CNJ](videos/V39-sistemas-do-cnj.mp4) | [8.7](#cap-8-7) | 0:58 |
+| [V40](videos/V40-localizador-seeu.mp4) | [Localizador (SEEU)](videos/V40-localizador-seeu.mp4) | [8.8](#cap-8-8) | 1:02 |
+| [V41](videos/V41-localizador-na-linha-seeu.mp4) | [Localizador pela ⭐ da lista (SEEU)](videos/V41-localizador-na-linha-seeu.mp4) | [9.3](#cap-9-3) | 0:31 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -1706,11 +1771,14 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 2.12.1 | 02/10/2026 | Regra gravada (1.4, item 5; 7.2; 9.3): as perguntas sobre dispensar juntadas/decursos e finalizar a conclusão antes de uma preferência existem **só no Projudi**, que trava as ações com pendências; no **SEEU**, que não trava, a preferência é executada direto, sem pergunta. |
-| 2.12.0 | 02/10/2026 | Seção 9.3: **⭐** nas listas **Análise de Juntadas** e **Retorno de Conclusão** do SEEU, com as preferências do **📍 Localizador** executadas em segundo plano e o resultado na linha (ainda sem as perguntas de dispensar juntadas/finalizar conclusão). Ajustes em 1.3 e na abertura do capítulo 9; vídeo V40. |
-| 2.11.2 | 02/10/2026 | O botão **📍 Localizador** passa para a barra de botões, ao lado de **⭐ Minhas Preferências**, e as preferências de localizadores aparecem como cards em **⭐ Minhas Preferências** (2.4, 7.3 e 8.7). Vídeo V39 regravado. |
-| 2.11.1 | 02/10/2026 | A extensão passa a funcionar também no **SEEU de treino** (ambiente de testes), como no SEEU (1.3 e 8.7). |
-| 2.11.0 | 02/10/2026 | Nova seção 8.7: botão **📍 Localizador**, *só no SEEU*, com preferências de localizadores associadas ao processo com um clique (lista nativa do **+**). Convenção *Só no SEEU* (1.2), tabelas 1.3 e 2.6 e vídeo V39. |
+| 2.13.1 | 02/10/2026 | Regra gravada (1.4, item 5; 7.2; 9.3): as perguntas sobre dispensar juntadas/decursos e finalizar a conclusão antes de uma preferência existem **só no Projudi**, que trava as ações com pendências; no **SEEU**, que não trava, a preferência é executada direto, sem pergunta. |
+| 2.13.0 | 02/10/2026 | Seção 9.3: **⭐** nas listas **Análise de Juntadas** e **Retorno de Conclusão** do SEEU, com as preferências do **📍 Localizador** executadas em segundo plano e o resultado na linha (ainda sem as perguntas de dispensar juntadas/finalizar conclusão). Ajustes em 1.3 e na abertura do capítulo 9; vídeo V41. |
+| 2.12.2 | 02/10/2026 | O botão **📍 Localizador** passa para a barra de botões, ao lado de **⭐ Minhas Preferências**, e as preferências de localizadores aparecem como cards em **⭐ Minhas Preferências** (2.4, 7.3 e 8.8). Vídeo V40 regravado. |
+| 2.12.1 | 02/10/2026 | A extensão passa a funcionar também no **SEEU de treino** (ambiente de testes), como no SEEU (1.3 e 8.8). |
+| 2.12.0 | 02/10/2026 | Nova seção 8.8: botão **📍 Localizador**, *só no SEEU*, com preferências de localizadores associadas ao processo com um clique (lista nativa do **+**). Convenção *Só no SEEU* (1.2), tabelas 1.3 e 2.6 e vídeo V40. |
+| 2.11.2 | 02/10/2026 | No SEEU, com um processo aberto, aparece o ícone do **BNMP 3.0** ao lado da balança, que abre o BNMP no popup (com **🗂 Nova aba** e **🖥 Segundo monitor**), como no Projudi (8.7 e 1.3). Os demais sistemas do CNJ continuam só no Projudi. O Menu não muda. |
+| 2.11.1 | 02/10/2026 | Os ícones dos sistemas do CNJ (8.7) passam a aparecer **só com um processo aberto**; antes apareciam também na Mesa e nas demais telas. |
+| 2.11.0 | 02/10/2026 | Nova seção **8.7 Sistemas do CNJ**: ícones pastel ao lado da balança do Menu (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper e Infojud, da Receita Federal), com desenhos inspirados nos logotipos e ordem que o usuário escolhe arrastando (guardada como preferência e incluída no Exportar/Importar), que abrem cada sistema num popup sobre o processo, com os botões **🗂 Nova aba** e **🖥 Segundo monitor** para abri-lo fora do popup. A barra de botões não muda. Menção em 2.4, nova função na tabela da 2.6 (27 funções), linha nova em Solução de problemas e vídeo V39. |
 | 2.10.6 | 02/10/2026 | O botão **Outras** das Ações rápidas ganhou **Anotações Criminais** e **Solicitar Antecedentes Criminais** (quadro **Comunicar ao IIPR** da coluna de Ações), com **Abrir**/**Ir e abrir**, **+ Nova preferência**, ⭐ Minhas Preferências e 🔗 Combos, como as demais ações (7.1). |
 | 2.10.5 | 02/10/2026 | A pergunta "Não localizei o movimento…" (7.7) passa a usar a mesma caixa da pergunta sobre juntadas pendentes, com os botões **✅ Prosseguir** e **Cancelar** (antes, OK/Cancel do navegador). Vídeo V38 regravado. |
 | 2.10.4 | 02/10/2026 | Seção 7.7: **preferência que sempre parte de um movimento** — gravada com a caixinha de um movimento marcada, guarda o nome dele (📌) e, ao ser usada, parte do movimento mais recente com esse nome; se não houver, pergunta se segue pela regra geral. Linha nova em Solução de problemas e vídeo V38. |
