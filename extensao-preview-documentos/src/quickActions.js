@@ -441,6 +441,87 @@
 		return findLatestValidEventLinkIn(document, excludeIds);
 	}
 
+	// Movimentação de referência escolhida pelo usuário (caixinha ao lado do
+	// evento, ver movimentoBase.js): a guardada no início do combo em
+	// andamento ou, fora de combo, a marcada agora na tela. null = nenhuma
+	// (a extensão escolhe sozinha, como sempre).
+	function movimentoBaseEscolhido() {
+		const run = readComboRun();
+		if (run && run.movimentoBase) {
+			const atual = numeroProcessoAtual();
+			if (!run.numero || !atual || run.numero === atual) return run.movimentoBase;
+		}
+		const api = window.__pdpMovimentoBase;
+		return api ? api.selecionada() : null;
+	}
+
+	function movimentoBaseLegenda(base) {
+		return "movimentação " + (base.seq ? base.seq + " " : "") + (base.texto ? '"' + base.texto + '"' : "");
+	}
+
+	// Nome do evento de um link LNKmov — mesma regra de textoDoEvento em
+	// movimentoBase.js: o título em negrito da célula ou o texto do link.
+	function tituloDoEvento(link) {
+		const celula = link.closest("td");
+		const titulo = celula && celula.querySelector("b, strong");
+		return ((titulo ? titulo.textContent : "") || "").replace(/\s+/g, " ").trim() || (link.textContent || "").replace(/\s+/g, " ").trim();
+	}
+
+	function normalizarNomeMovimento(text) {
+		return (text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim().toUpperCase();
+	}
+
+	// Preferência gravada a partir de um movimento (pref.movimento.texto, ver
+	// showCaptureToolbar): acha em `root` a movimentação válida mais recente
+	// (maior "Seq.") com esse nome. null = não há.
+	function findMovimentoPorNomeIn(root, nome) {
+		const alvo = normalizarNomeMovimento(nome);
+		if (!alvo) return null;
+		let melhor = null;
+		let melhorSeq = -1;
+		root.querySelectorAll('a[id^="LNKmov"]').forEach(function (link) {
+			if ((link.id || "").indexOf("INVALIDO") !== -1 || link.closest("strike, s, del")) return;
+			if (normalizarNomeMovimento(tituloDoEvento(link)) !== alvo) return;
+			const row = link.closest('tr[id^="mov1Grau"]') || link.closest("tr");
+			let seq = -1;
+			if (row) {
+				Array.prototype.some.call(row.querySelectorAll(":scope > td"), function (td) {
+					const text = (td.textContent || "").replace(/\s+/g, " ").trim();
+					if (/^\d+$/.test(text)) seq = parseInt(text, 10);
+					return seq !== -1;
+				});
+			}
+			if (!melhor || seq > melhorSeq) {
+				melhor = link;
+				melhorSeq = seq;
+			}
+		});
+		return melhor;
+	}
+
+	// Acha a movimentação escolhida em `root` (a tela atual ou uma cópia da
+	// aba Movimentações lida em segundo plano): pelo id do link do evento e,
+	// se não houver, pelo número da movimentação (coluna "Seq.").
+	function findMovimentoBaseIn(root, base) {
+		const links = Array.prototype.slice.call(root.querySelectorAll('a[id^="LNKmov"]')).filter(function (link) {
+			return (link.id || "").indexOf("INVALIDO") === -1 && !link.closest("strike, s, del");
+		});
+		const byId = links.filter(function (link) {
+			return link.id === base.id;
+		})[0];
+		if (byId) return byId;
+		if (!base.seq) return null;
+		return (
+			links.filter(function (link) {
+				const row = link.closest('tr[id^="mov1Grau"]') || link.closest("tr");
+				if (!row) return false;
+				return Array.prototype.some.call(row.querySelectorAll(":scope > td"), function (td) {
+					return (td.textContent || "").replace(/\s+/g, " ").trim() === base.seq;
+				});
+			})[0] || null
+		);
+	}
+
 	// Marcador direto e estável de que uma tela é a do painel "Ações" (o
 	// próprio título "Ações" da seção, ver TELA_DE_A__ES_HTML).
 	function isOnAcoesScreenIn(root) {
@@ -637,7 +718,11 @@
 	// listagem - ver applyPreferenceFrom; a aba Movimentações lida pelos
 	// combos quando a tela atual é outra aba do processo). Sem ela, parte
 	// da tela atual.
-	function resolveDialogUrl(label, origem) {
+	// `movimentoNome` (opcional): nome do movimento gravado na preferência
+	// (ver findMovimentoPorNomeIn); sem ele, nada muda.
+	// `tituloPergunta` (opcional): título da caixa que pergunta se segue sem o
+	// movimento (ex.: "★ Remessa MP — Realizar Remessa").
+	function resolveDialogUrl(label, origem, movimentoNome, tituloPergunta) {
 		const rootDoc = (origem && origem.doc) || document;
 		const baseUrl = (origem && origem.url) || window.location.href;
 		logChainStep('resolvendo URL de "' + label + '" em segundo plano', { partindoDe: baseUrl });
@@ -667,18 +752,63 @@
 			});
 		}
 
-		const events = Array.prototype.slice
+		let events = Array.prototype.slice
 			.call(rootDoc.querySelectorAll('a.link[id^="LNKmov"]'))
 			.filter(function (a) {
 				return (a.id || "").indexOf("INVALIDO") === -1 && !a.closest("strike, s, del");
 			})
 			.slice(0, MAX_MOVEMENT_ATTEMPTS);
 
+		// Movimentação marcada pelo usuário na aba Movimentações (ver
+		// movimentoBase.js): só ela, sem tentar outras — como na
+		// movimentação manual. Sem marcação, segue a escolha automática.
+		const base = movimentoBaseEscolhido();
+		if (base) {
+			const baseLink = findMovimentoBaseIn(rootDoc, base);
+			logChainStep("partindo da movimentação marcada pelo usuário", { seq: base.seq, evento: base.texto, achada: !!baseLink });
+			if (!baseLink) return Promise.resolve({ failed: true, selecionada: base, naoAchada: true });
+			events = [baseLink];
+		}
+
+		// Preferência gravada a partir de um movimento (e nenhuma caixinha
+		// marcada agora): parte da movimentação mais recente com esse nome. Sem
+		// ela no processo, pergunta; "OK" segue a regra geral, como se a
+		// preferência não tivesse movimento.
+		let nomeAchado = null;
+		// Resolve com true para seguir, false se o usuário desistir.
+		let seguir = Promise.resolve(true);
+		if (!base && movimentoNome) {
+			const porNome = findMovimentoPorNomeIn(rootDoc, movimentoNome);
+			logChainStep("preferência gravada a partir do movimento \"" + movimentoNome + "\"", { achado: !!porNome, id: porNome ? porNome.id : null });
+			if (porNome) {
+				events = [porNome];
+				nomeAchado = movimentoNome;
+			} else {
+				// A caixa fica na frente do "Abrindo…", que sai durante a pergunta.
+				removeLoadingOverlay();
+				seguir = perguntarPendencia(
+					tituloPergunta || "📌 " + label,
+					'Não localizei o movimento "' + movimentoNome + '" na aba Movimentações deste processo. Deseja prosseguir mesmo assim com "' + label + '"?',
+					"Prosseguir",
+					"Prosseguir executa pela regra geral (a partir da movimentação mais recente, como se a preferência não tivesse movimento). Cancelar não executa nada.",
+					"Cancelar"
+				).then(function (resposta) {
+					logChainStep(resposta === "sim" ? "movimento não localizado; seguindo pela regra geral" : "movimento não localizado; usuário cancelou", null);
+					return resposta === "sim";
+				});
+			}
+		}
+
 		let lastScreenTitle = null;
 
 		function tryEvent(index) {
 			if (index >= events.length) {
-				return Promise.resolve({ failed: true, tried: events.length, screenTitle: lastScreenTitle });
+				return Promise.resolve({
+					failed: true,
+					tried: events.length,
+					screenTitle: lastScreenTitle,
+					selecionada: base || (nomeAchado ? { texto: nomeAchado } : null),
+				});
 			}
 			const href = events[index].getAttribute("href");
 			let eventUrl;
@@ -742,7 +872,9 @@
 				});
 		}
 
-		return tryEvent(0);
+		return seguir.then(function (ok) {
+			return ok ? tryEvent(0) : { failed: true, desistiu: true, movimentoNome: movimentoNome };
+		});
 	}
 
 	// -------------------------------------------------------------------
@@ -754,7 +886,9 @@
 
 	const LOADING_OVERLAY_ID = "pdp-qa-loading-overlay";
 
-	function showLoadingOverlay(label, onCancel) {
+	// `base` (opcional): movimentação marcada pelo usuário (ver
+	// movimentoBaseEscolhido), mostrada no texto.
+	function showLoadingOverlay(label, onCancel, base) {
 		removeLoadingOverlay();
 		const overlay = document.createElement("div");
 		overlay.id = LOADING_OVERLAY_ID;
@@ -764,7 +898,9 @@
 			'<div class="pdp-qa-loading-spinner"></div>' +
 			'<div class="pdp-qa-loading-text">Abrindo "' +
 			escapeHtml(label) +
-			'"…</div>' +
+			'"' +
+			(base ? " a partir da " + escapeHtml(movimentoBaseLegenda(base)) : "") +
+			"…</div>" +
 			'<button type="button" class="pdp-qa-loading-cancel">Cancelar</button>' +
 			"</div>";
 		document.body.appendChild(overlay);
@@ -1164,6 +1300,21 @@
 	}
 
 	function alertChainFailure(label, result) {
+		if (result && result.desistiu) return; // o usuário já respondeu "Cancelar"
+		if (result && result.selecionada) {
+			alert(
+				result.naoAchada
+					? "Não encontrei a " + movimentoBaseLegenda(result.selecionada) + " marcada na aba Movimentações. Marque-a de novo (ou desmarque-a para a extensão escolher a movimentação sozinha) e repita."
+					: "A " +
+							movimentoBaseLegenda(result.selecionada) +
+							' marcada não leva à ação "' +
+							label +
+							'"' +
+							(result.screenTitle ? ' (cheguei na tela "' + result.screenTitle + '")' : "") +
+							". Marque outra movimentação (um despacho/decisão costuma funcionar) ou desmarque-a para a extensão escolher sozinha."
+			);
+			return;
+		}
 		const tried = (result && result.tried) || 0;
 		alert(
 			tried
@@ -2039,6 +2190,29 @@
 					return;
 				}
 			}
+			// Preferência das ações do painel gravada com uma movimentação
+			// marcada (caixinha da aba Movimentações, ver movimentoBase.js):
+			// guarda o nome do movimento, procurado em cada processo ao usar
+			// (resolveDialogUrl). Ao editar sem caixinha marcada, pergunta se
+			// mantém o movimento que já estava gravado.
+			let movimentoTexto = "";
+			if (!custom) {
+				const base = movimentoBaseEscolhido();
+				if (base && base.texto) {
+					extra = Object.assign({}, extra || {}, { movimento: { texto: base.texto } });
+				} else if (editingPref && editingPref.movimento && editingPref.movimento.texto) {
+					if (
+						confirm(
+							'Esta preferência parte do movimento "' + editingPref.movimento.texto + '".\n\n' +
+								"OK = manter esse movimento.\nCancelar = retirar (a preferência passa a seguir a regra geral, a partir da movimentação mais recente).\n\n" +
+								"Para trocar de movimento: marque a caixinha do movimento desejado na aba Movimentações antes de clicar em \"Atualizar preferência\"."
+						)
+					) {
+						extra = Object.assign({}, extra || {}, { movimento: editingPref.movimento });
+					}
+				}
+				if (extra && extra.movimento) movimentoTexto = extra.movimento.texto;
+			}
 			if (!fields.length && !(custom && typeof custom.captureExtra === "function")) {
 				alert('Nenhum campo preenchido ou selecionado no diálogo "' + label + '". Preencha o que a preferência deve guardar e salve de novo.');
 				return;
@@ -2047,7 +2221,9 @@
 			// campo (ex.: uma lista que carrega depois) ficou de fora.
 			const name = prompt(
 				"Campos que serão gravados:\n" + (fields.length ? describeFields(fields) : "") +
-					(extra && extra.descricao ? (fields.length ? "\n" : "") + extra.descricao : "") + "\n\nSe algum estiver errado, cancele, ajuste o diálogo e salve de novo.\n\nNome para esta preferência de \"" + label + '":',
+					(extra && extra.descricao ? (fields.length ? "\n" : "") + extra.descricao : "") +
+					(movimentoTexto ? "\nMovimento de referência: " + movimentoTexto + " (a preferência parte do movimento mais recente com esse nome; se não houver, pergunta antes de seguir a regra geral)" : "") +
+					"\n\nSe algum estiver errado, cancele, ajuste o diálogo e salve de novo.\n\nNome para esta preferência de \"" + label + '":',
 				editingPref ? editingPref.name : ""
 			);
 			if (!name || !name.trim()) return;
@@ -2430,7 +2606,7 @@
 		const cancelToken = { cancelled: false };
 		showLoadingOverlay(label, function () {
 			cancelToken.cancelled = true;
-		});
+		}, movimentoBaseEscolhido());
 		resolveDialogUrl(label).then(function (result) {
 			removeLoadingOverlay();
 			if (cancelToken.cancelled) return;
@@ -2450,7 +2626,7 @@
 		const cancelToken = { cancelled: false };
 		showLoadingOverlay(label, function () {
 			cancelToken.cancelled = true;
-		});
+		}, movimentoBaseEscolhido());
 		resolveDialogUrl(label).then(function (result) {
 			removeLoadingOverlay();
 			if (cancelToken.cancelled) return;
@@ -2483,14 +2659,22 @@
 	// `origem`/`hooks` (opcionais): ver resolveDialogUrl e modalHooks.
 	function applyPreferenceViaChain(label, pref, editing, origem, hooks) {
 		const cancelToken = { cancelled: false };
+		// Preferência gravada a partir de um movimento: só vale sem caixinha
+		// marcada agora (a caixinha manda) — ver resolveDialogUrl.
+		const movimentoNome = !movimentoBaseEscolhido() && pref.movimento && pref.movimento.texto ? pref.movimento.texto : null;
 		showLoadingOverlay(label, function () {
 			cancelToken.cancelled = true;
 			if (hooks && hooks.onFail) hooks.onFail("cancelado");
 			onComboStepFailed("Abertura da etapa cancelada.");
-		});
-		resolveDialogUrl(label, origem).then(function (result) {
+		}, movimentoBaseEscolhido() || (movimentoNome ? { texto: movimentoNome } : null));
+		resolveDialogUrl(label, origem, movimentoNome, "★ " + pref.name + " — " + label).then(function (result) {
 			removeLoadingOverlay();
 			if (cancelToken.cancelled) return;
+			if (result.failed && result.desistiu) {
+				if (hooks && hooks.onFail) hooks.onFail('movimento "' + result.movimentoNome + '" não localizado');
+				onComboStepFailed('Movimento "' + result.movimentoNome + '" não localizado neste processo — etapa não executada.');
+				return;
+			}
 			if (result.failed) {
 				if (hooks && hooks.onFail) hooks.onFail(result.screenTitle ? 'o Projudi levou à tela "' + result.screenTitle + '"' : "ação não localizada");
 				alertChainFailure(label, result);
@@ -3023,7 +3207,9 @@
 	}
 
 	// Resolve com "sim", "nao" ou null (cancelado).
-	function perguntarPendencia(titulo, pergunta, textoSim, explicacao) {
+	// `textoNao` (opcional): rótulo do segundo botão (padrão "Não, seguir sem
+	// isso"); a resposta dele continua sendo "nao".
+	function perguntarPendencia(titulo, pergunta, textoSim, explicacao, textoNao) {
 		return new Promise(function (resolve) {
 			const fundo = document.createElement("div");
 			fundo.id = PENDENCIAS_PERGUNTA_ID;
@@ -3036,7 +3222,7 @@
 				'<p class="pdp-qa-pend-obs">' + escapeHtml(explicacao) + "</p>" +
 				'<div class="pdp-qa-pend-botoes">' +
 				'<button type="button" class="pdp-qa-pend-btn pdp-qa-pend-sim">✅ ' + escapeHtml(textoSim) + "</button>" +
-				'<button type="button" class="pdp-qa-pend-btn pdp-qa-pend-nao">Não, seguir sem isso</button>' +
+				'<button type="button" class="pdp-qa-pend-btn pdp-qa-pend-nao">' + escapeHtml(textoNao || "Não, seguir sem isso") + "</button>" +
 				"</div></div>";
 			function responder(valor) {
 				document.removeEventListener("keydown", tecla, true);
@@ -3190,6 +3376,7 @@
 				phase: "pending",
 				numero: numeroProcessoAtual(),
 				startedAt: Date.now(),
+				movimentoBase: (window.__pdpMovimentoBase && window.__pdpMovimentoBase.selecionada()) || null,
 			});
 			logChainStep('combo "' + combo.name + '" iniciado', { etapas: combo.steps.length });
 			runPendingComboStep();
@@ -4263,12 +4450,13 @@
 			const applyBtn = document.createElement("button");
 			applyBtn.type = "button";
 			applyBtn.className = "pdp-qa-pref-btn";
-			applyBtn.textContent = "★ " + pref.name;
+			applyBtn.textContent = "★ " + pref.name + (pref.movimento && pref.movimento.texto ? " 📌" : "");
 			applyBtn.title =
 				(mode === "custom"
 					? 'Abre "' + label + '" já preenchido com esta preferência'
 					: 'Preenche automaticamente e pede 1 confirmação para executar "' + label + '"') +
-				(pref.descricao ? "\n" + pref.descricao : "");
+				(pref.descricao ? "\n" + pref.descricao : "") +
+				(pref.movimento && pref.movimento.texto ? '\n📌 Parte do movimento "' + pref.movimento.texto + '" (o mais recente com esse nome)' : "");
 			applyBtn.addEventListener("click", function () {
 				if (mode === "custom" || mode === "hop") closePanel();
 				executarComPendencias("★ " + pref.name + " — " + label, false, function () {
@@ -4529,6 +4717,10 @@
 			const nameEl = document.createElement("span");
 			nameEl.className = "pdp-qa-fav-card-name";
 			nameEl.textContent = (isCombo ? "▶ " : "★ ") + item.pref.name;
+			if (!isCombo && item.pref.movimento && item.pref.movimento.texto) {
+				nameEl.textContent += " 📌";
+				nameEl.title = 'Parte do movimento "' + item.pref.movimento.texto + '" (o mais recente com esse nome)';
+			}
 			card.appendChild(nameEl);
 
 			const tools = document.createElement("span");

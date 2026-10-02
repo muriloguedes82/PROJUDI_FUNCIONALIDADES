@@ -210,3 +210,112 @@ CENAS.V36 = {
 		await S.endCard("Pendências → Cumprimentos para Expedir → Dispensar pendências.");
 	},
 };
+
+// ------------------------------------------------------------------ V37
+// Caixinha ao lado do evento para escolher a movimentação de referência das
+// Ações rápidas (src/movimentoBase.js).
+function caixinhasMovimentacao() {
+	document.querySelectorAll("#movs tr[id]").forEach(tr => {
+		const seq = tr.id.split(",")[1];
+		tr.cells[0].insertAdjacentHTML("afterbegin", '<input type="checkbox" class="x-movbase" id="mb-' + seq + '" style="margin:0 4px 0 0;vertical-align:middle;accent-color:#1f6feb">');
+	});
+}
+function marcarMovimentacao(seq) {
+	document.querySelectorAll("#movs .x-movbase").forEach(c => {
+		c.checked = c.id === "mb-" + seq;
+		c.style.opacity = seq && !c.checked ? "0.35" : "";
+		c.closest("tr").querySelectorAll("td").forEach(td => (td.style.boxShadow = c.checked ? "inset 0 2px 0 #1f6feb, inset 0 -2px 0 #1f6feb" : ""));
+	});
+}
+CENAS.V37 = {
+	arquivo: "V37-escolher-a-movimentacao.mp4",
+	titulo: "Escolher a movimentação das Ações rápidas",
+	secao: "7.7",
+	async run() {
+		telaProcesso({ acoesAbertas: true });
+		caixinhasMovimentacao();
+		await S.titleCard("VÍDEO V37", "Escolher a movimentação das Ações rápidas", "Marque o evento a partir do qual a remessa, a intimação ou a ordenação será feita.");
+		await S.cap("Na aba <b>Movimentações</b>, cada movimentação ganha uma <b>caixinha</b> na primeira coluna, à esquerda do número (Seq.).");
+		await S.cap("Sem nenhuma marcada, tudo continua como antes: a extensão parte da movimentação <b>mais recente</b>.");
+		await S.click("#mb-36");
+		marcarMovimentacao(36);
+		await S.cap("Marque a movimentação de referência — por exemplo, o <b>despacho</b> que manda remeter os autos. É como clicar em “Movimentar a Partir Desta Movimentação”.", { ms: 5200 });
+		await S.cap("As demais caixinhas ficam <b>esmaecidas</b> e não podem ser marcadas: só uma movimentação por vez.", { ms: 4200 });
+		await S.click("#mb-36");
+		marcarMovimentacao(0);
+		await S.cap("Para escolher outra, primeiro <b>desmarque</b> a atual — as caixinhas voltam a ficar livres.", { ms: 4200 });
+		await S.click("#mb-36");
+		marcarMovimentacao(36);
+		await S.cap("As caixinhas dos <b>arquivos</b> (para WhatsApp e e-mail) continuam como antes, independentes desta.", { ms: 4200 });
+		await S.cap("Agora use as Ações rápidas normalmente. Exemplo: grupo <b>Remessa</b> → preferência salva.");
+		await S.click('[data-g="Remessa"]');
+		const pn = panelAt(acaoPanel("Remessa", [{ nome: "Realizar Remessa", prefs: ["Vista ao MP - 5 dias"] }, { nome: "Remessa Eletrônica para o Tribunal de Justiça" }]), '[data-g="Remessa"]', { w: 420 });
+		await S.click('[data-pref="Vista ao MP - 5 dias"]', { dx: -40 });
+		pn.remove();
+		const t = toast("Abrindo “Realizar Remessa” a partir da movimentação 36 “DESPACHO - MERO EXPEDIENTE”… <u style=\"margin-left:10px\">Cancelar</u>", { left: 330, top: 330 });
+		await S.cap("O aviso “Abrindo…” mostra de qual movimentação a ação vai partir.", { ms: 3600 });
+		t.remove();
+		popup("Realizar Remessa", dlgRemessa({ op: "op-mp", dest: "Ministério Público", fin: "Vista", prazo: "5" }), { top: 120, h: 470 });
+		bar('Confirmar “Realizar Remessa” com a preferência “Vista ao MP - 5 dias”? <span class="x-btn small green" id="sim">✅ Sim, executar</span> <span class="x-btn small">Cancelar</span>', { top: 78 });
+		await S.cap("O diálogo abre preenchido, como sempre. Confira e clique em <b>✅ Sim, executar</b>.");
+		await S.click("#sim");
+		$(".x-bar").remove();
+		$(".x-popup .bd").innerHTML = '<div class="x-dlg-title">Realizar Remessa</div><div style="padding:16px"><div class="pj-msg-ok">Remessa realizada com sucesso.</div></div>';
+		await S.cap("A remessa fica vinculada à movimentação marcada — é ela que o destinatário vê como referência.", { ms: 4200 });
+		$(".x-popup").remove();
+		marcarMovimentacao(0);
+		await S.cap("Vale para <b>Ir e abrir</b>, preferências, <b>⭐ Minhas Preferências</b> e <b>🔗 Combos</b> (todas as etapas usam a movimentação marcada no início).", { ms: 5200 });
+		await S.cap("Quando a tela recarrega, a marcação some. Para voltar ao automático, basta desmarcar.");
+		await S.endCard("Aba Movimentações → marcar a caixinha do evento → Ações rápidas/preferência/combo → conferir → ✅ Sim, executar.");
+	},
+};
+
+// ------------------------------------------------------------------ V38
+// Preferência gravada a partir de um movimento (pref.movimento, ver
+// showCaptureToolbar/resolveDialogUrl em src/quickActions.js).
+CENAS.V38 = {
+	arquivo: "V38-preferencia-a-partir-de-um-movimento.mp4",
+	titulo: "Preferência a partir de um movimento",
+	secao: "7.7",
+	async run() {
+		telaProcesso({ acoesAbertas: true });
+		caixinhasMovimentacao();
+		await S.titleCard("VÍDEO V38", "Preferência a partir de um movimento", "A preferência guarda o nome do movimento e sempre parte dele.");
+		await S.cap("Para gravar: marque a caixinha do movimento — por exemplo, <b>RECEBIDA A DENÚNCIA</b>.");
+		await S.click("#mb-32");
+		marcarMovimentacao(32);
+		await S.cap("Depois, crie a preferência como sempre: <b>+ Nova preferência</b>.");
+		await S.click('[data-g="Remessa"]');
+		let pn = panelAt(acaoPanel("Remessa", [{ nome: "Realizar Remessa" }, { nome: "Remessa Eletrônica para o Tribunal de Justiça" }]), '[data-g="Remessa"]', { w: 420 });
+		await S.click('[data-nova="Realizar Remessa"]');
+		pn.remove();
+		await abrindo("Realizar Remessa", 900);
+		popup("Realizar Remessa", dlgRemessa({ op: "op-del", dest: "Delegacia de Exemplo", fin: "Cumprimento", prazo: "30" }), { top: 120, h: 470 });
+		const b = bar('Preencha o diálogo e clique em <span class="x-btn small" id="salvarpref">💾 Salvar como preferência</span>', { top: 78 });
+		await S.click("#salvarpref");
+		modal('<h3>Salvar como preferência</h3><div class="x-note">Campos que serão gravados:</div><div class="x-list"><div>Remessa: Enviar à Delegacia</div><div>Destino: Delegacia de Exemplo</div><div>Prazo (dias): 30</div><div><b>Movimento de referência: RECEBIDA A DENÚNCIA</b></div></div><div style="margin-top:8px">Nome da preferência:</div><div class="x-field" id="nm"></div><div style="text-align:right;margin-top:10px"><span class="pj-btn">Cancelar</span> <span class="pj-btn primary" id="ok">Salvar</span></div>', { top: 170 });
+		await S.cap("A lista do que será gravado mostra o <b>Movimento de referência</b>.");
+		await S.type("#nm", "Delegacia - cumprir denúncia");
+		await S.click("#ok");
+		closeModal(); b.remove(); $(".x-popup").remove();
+		marcarMovimentacao(0);
+		await S.click('[data-g="Remessa"]');
+		pn = panelAt(acaoPanel("Remessa", [{ nome: "Realizar Remessa", prefs: ["Delegacia - cumprir denúncia 📌"] }]), '[data-g="Remessa"]', { w: 420 });
+		await S.cap("A preferência ganha um <b>📌</b>. Em qualquer processo, ela procura o movimento com esse nome (o mais recente)…", { ms: 4600 });
+		await S.click('[data-pref="Delegacia - cumprir denúncia 📌"]', { dx: -40 });
+		pn.remove();
+		const t = toast("Abrindo “Realizar Remessa” a partir da movimentação “RECEBIDA A DENÚNCIA”… <u style=\"margin-left:10px\">Cancelar</u>", { left: 360, top: 330 });
+		await S.cap("…e parte dele, sem você marcar nada.", { ms: 3000 });
+		t.remove();
+		await S.cap("Se o processo <b>não tiver</b> esse movimento, a extensão avisa e pergunta:");
+		modal('<div style="display:flex;justify-content:space-between;gap:8px"><b>★ Delegacia - cumprir denúncia — Realizar Remessa</b><span style="color:#888">✕</span></div>' +
+			'<p style="margin:10px 0">Não localizei o movimento "RECEBIDA A DENÚNCIA" na aba Movimentações deste processo. Deseja prosseguir mesmo assim com "Realizar Remessa"?</p>' +
+			'<p style="margin:8px 0;color:#666;font-size:12px;font-style:italic">Prosseguir executa pela regra geral (a partir da movimentação mais recente, como se a preferência não tivesse movimento). Cancelar não executa nada.</p>' +
+			'<div style="display:flex;gap:6px;justify-content:flex-end"><span class="x-btn small green" id="okm">✅ Prosseguir</span><span class="x-btn small">Cancelar</span></div>', { w: 480, top: 150 });
+		await S.cap("<b>✅ Prosseguir</b> segue pela regra geral; <b>Cancelar</b> não executa nada.", { ms: 4000 });
+		await S.click("#okm");
+		closeModal();
+		await S.cap("Preferências gravadas <b>sem</b> caixinha marcada continuam como sempre. E uma caixinha marcada na hora tem prioridade.", { ms: 5200 });
+		await S.endCard("Marcar o movimento → + Nova preferência → 💾 Salvar (Movimento de referência) → ★ nome 📌 → parte do movimento com esse nome.");
+	},
+};
