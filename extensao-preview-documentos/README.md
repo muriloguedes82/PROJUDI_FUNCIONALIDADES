@@ -635,6 +635,22 @@ painel depende de qual tela do processo você está vendo, já que o painel
   numa aba diferente do processo, como Partes e Outros): o painel avisa
   para abrir a aba "Movimentações" primeiro.
 
+**Movimentação escolhida pelo usuário (`src/movimentoBase.js`).** Na aba
+Movimentações, cada linha ganha uma caixinha na primeira coluna (à esquerda
+do "Seq."); marcada uma, as demais ficam esmaecidas e bloqueadas até ela ser
+desmarcada. As caixinhas dos arquivos (WhatsApp/e-mail) não são tocadas. Com uma marcada, o passo 1 acima usa **só** esse evento (sem tentar
+outros; se ele não levar à ação, a extensão avisa) — o equivalente a clicar
+nele e em "Movimentar a Partir Desta Movimentação" à mão, para a remessa/
+intimação/ordenação ficar vinculada a ele. Um combo guarda o evento marcado
+no início e o usa em todas as etapas. Sem nenhuma marcada, nada muda.
+
+**Preferência gravada a partir de um movimento.** Salva com uma caixinha
+marcada, a preferência guarda `movimento: { texto }` (o título do evento).
+Ao usá-la pela cadeia (resolveDialogUrl), sem caixinha marcada na hora, a
+extensão parte da movimentação válida mais recente com esse nome
+(comparação sem acentos/maiúsculas); sem nenhuma, pergunta (caixa de perguntarPendencia,
+"Prosseguir"/"Cancelar") se segue pela regra geral ou desiste.
+
 **Atenção a um detalhe já corrigido, mas que vale registrar:** o Projudi
 reaproveita o mesmo `id`/`name` (`movimentarButton`) para vários botões de
 "iniciar uma movimentação" em telas diferentes — por exemplo, o botão

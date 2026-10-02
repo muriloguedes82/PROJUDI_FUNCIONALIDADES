@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.10.1 |
-| **Versão da extensão** | 2.10.1 |
+| **Versão do manual** | 2.10.5 |
+| **Versão da extensão** | 2.10.5 |
 | **Data desta versão** | 02/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -66,6 +66,7 @@
    - 7.4 [Combos de preferências](#cap-7-4)
    - 7.5 [Nova Ordenação](#cap-7-5)
    - 7.6 [Nova Remessa](#cap-7-6)
+   - 7.7 [Escolher a movimentação das Ações rápidas](#cap-7-7)
 8. [Atalhos para telas do processo](#cap-8)
    - 8.1 [Alvará Eletrônico](#cap-8-1)
    - 8.2 [Juntar Documento com preferências](#cap-8-2)
@@ -322,7 +323,7 @@ PROJUDI e SEEU**, com a mesma lista: cada sistema guarda as suas próprias
 escolhas. Por padrão, **tudo vem ativo nos dois**. A extensão reconhece em que
 sistema você está pelo endereço da página e abre o Menu na aba dele (marcada
 com "(este)"); você pode clicar na outra aba para configurá-la também. Acima
-da lista aparece "Funcionalidades no PROJUDI: N de 25 ativas" (ou no SEEU).
+da lista aparece "Funcionalidades no PROJUDI: N de 26 ativas" (ou no SEEU).
 
 1. Clique na aba do sistema que quer configurar (PROJUDI ou SEEU).
 2. Clique na chave da função que quer ligar ou desligar.
@@ -345,7 +346,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 | Grupo | Funções que podem ser ligadas/desligadas | Seção |
 |---|---|---|
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
-| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · (Des)Habilitar Advogado · Editar Partes/Outros · Alvará Eletrônico · Juntar Documento · Oráculo · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
+| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alvará Eletrônico · Juntar Documento · Oráculo · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica | [4](#cap-4) |
 | **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
@@ -878,6 +879,8 @@ Atualizar preferência** (nada é enviado); 🗑 remove.
 - Preferências de **Intimar Partes** gravadas antes da versão 2.9.84 devem
   ser salvas de novo.
 - As preferências são separadas por ação e ficam no seu navegador.
+- Gravada com a caixinha de um movimento marcada, a preferência passa a
+  partir sempre do movimento com aquele nome (📌) — veja [7.7](#cap-7-7).
 - Se a dispensa das juntadas ou a finalização da conclusão não der certo,
   um aviso informa e a preferência abre mesmo assim; confira o quadro
   Pendências.
@@ -993,6 +996,84 @@ Ministério Público) na mesma tela de **Realizar Remessa**.
 
 **Bom saber:** mesmas regras da Nova Ordenação (para no primeiro erro;
 confira nos autos).
+
+<a id="cap-7-7"></a>
+### 7.7 Escolher a movimentação das Ações rápidas
+
+▶ [**Vídeo V37** — Escolher a movimentação das Ações rápidas](videos/V37-escolher-a-movimentacao.mp4)
+
+**Para que serve:** escolher **a partir de qual movimentação** as Ações
+rápidas, as preferências e os combos vão agir — o mesmo que você faz à mão
+ao clicar num evento e depois em **Movimentar a Partir Desta Movimentação**.
+Assim, a remessa, a intimação ou a ordenação fica ligada ao evento certo
+(ex.: o despacho que a determinou), e é esse evento que o destinatário vê.
+
+**Onde fica:** na aba **Movimentações** do processo, uma **caixinha** na
+primeira coluna de **todas** as movimentações, à esquerda do número
+(**Seq.**) — haja ou não arquivos (antes de **⊞ Arquivos**, quando houver).
+Nas movimentações tachadas (inválidas) a caixinha aparece bloqueada. As
+caixinhas **dos arquivos**, usadas para enviar por WhatsApp e e-mail, não
+mudam: continuam permitindo marcar vários arquivos ([5.1](#cap-5-1)).
+
+**Passo a passo:**
+
+1. Na aba **Movimentações**, marque a caixinha da movimentação desejada. A linha
+   fica contornada em azul e as demais caixinhas ficam **esmaecidas** e não
+   podem ser marcadas. Para escolher outra, desmarque primeiro a atual.
+2. Use as Ações rápidas como sempre: **Ir e abrir**, uma preferência
+   (**★ nome**), um card de **⭐ Minhas Preferências** ou um **🔗 Combo**.
+3. O aviso passa a dizer *Abrindo "Ação" a partir da movimentação N
+   "EVENTO"…*.
+4. Confira o diálogo e confirme (✅ **Sim, executar**) como de costume.
+
+**Bom saber:**
+
+- **Sem nenhuma caixinha marcada, nada muda:** a extensão continua
+  escolhendo sozinha a movimentação mais recente, como antes.
+- Num **combo**, a movimentação marcada no início vale para **todas as
+  etapas**, mesmo depois de a página recarregar.
+- Quando a tela recarrega (por exemplo, ao terminar uma ação), a marcação
+  some — como na movimentação manual, escolha de novo para a próxima ação.
+- Se o evento marcado não permitir a ação (alguns tipos de movimentação
+  levam a outra tela), a extensão **não** troca por outro: ela avisa, e você
+  marca outro evento (um despacho/decisão costuma funcionar) ou desmarca a
+  caixinha para a escolha automática.
+- **Juntar Documento**, **Alvará Eletrônico** e **Advogados** não usam a
+  movimentação marcada.
+
+**Preferência que sempre parte de um movimento** (ex.: *JULGADA PROCEDENTE
+A AÇÃO*, *CONCEDIDA A MEDIDA PROTETIVA*):
+
+▶ [**Vídeo V38** — Preferência a partir de um movimento](videos/V38-preferencia-a-partir-de-um-movimento.mp4)
+
+1. Na aba **Movimentações**, marque a caixinha do movimento.
+2. Crie a preferência como sempre (**+ Nova preferência**, preencher, **💾
+   Salvar como preferência** — [7.2](#cap-7-2)). A lista do que será gravado
+   mostra **Movimento de referência: NOME DO MOVIMENTO**.
+3. A preferência ganha um **📌** ao lado do nome (passe o mouse para ver o
+   movimento).
+4. Ao usá-la, em qualquer processo, a extensão procura na aba Movimentações
+   o movimento **com esse nome** (o mais recente, se houver vários; maiúsculas
+   e acentos não importam) e parte dele.
+5. Se o processo **não tiver** esse movimento, aparece o aviso *Não localizei
+   o movimento "…" na aba Movimentações deste processo*, numa caixa igual à
+   da pergunta sobre juntadas pendentes: **✅ Prosseguir** segue pela regra
+   geral (como se a preferência não tivesse movimento); **Cancelar** (ou **✕**)
+   não executa nada (num combo, a barra
+   oferece Repetir, Próxima etapa ou Parar).
+
+Bom saber sobre essas preferências:
+
+- Preferências gravadas **sem** caixinha marcada continuam como sempre.
+- Uma caixinha marcada na hora de **usar** tem prioridade sobre o movimento
+  gravado (num combo, a marcada no início do combo).
+- Na própria tela de **Ações** do Projudi (botão **Abrir**), a movimentação
+  já foi escolhida por você e o movimento gravado não é procurado.
+- Ao **editar** (✏️) uma preferência com 📌: com uma caixinha marcada, o
+  movimento é trocado pelo marcado; sem caixinha, a extensão pergunta se
+  mantém o movimento gravado (**OK**) ou se o retira (**Cancelar**).
+- Pode ser desligada no Menu ([2.6](#cap-2-6)): **Escolher a movimentação
+  das Ações rápidas**.
 
 ---
 
@@ -1433,6 +1514,8 @@ telas abertas a partir daí voltam a funcionar.
 | Atualizei a extensão e nada mudou | Clique em ↻ no card da extensão em `chrome://extensions` e depois recarregue as páginas ([2.3](#cap-2-3)) |
 | A barra de botões cobre algo da tela | Arraste **↕ Mover** ou clique em **Ocultar** ([2.4](#cap-2-4)) |
 | O painel de ações diz para abrir a aba Movimentações | Abra a aba **Movimentações** do processo e tente de novo ([7.1](#cap-7-1)) |
+| "A movimentação … marcada não leva à ação" | Marque outro evento na aba Movimentações (um despacho/decisão costuma funcionar) ou desmarque a caixinha ([7.7](#cap-7-7)) |
+| "Não localizei o movimento … na aba Movimentações" | O processo não tem movimento com o nome gravado na preferência 📌: **✅ Prosseguir** segue a regra geral, **Cancelar** não executa ([7.7](#cap-7-7)) |
 | Preferência abre com "⚠ Não consegui preencher" | A opção gravada não existe neste processo; preencha o campo à mão, ou edite/recrie a preferência ([7.2](#cap-7-2)) |
 | Preferência de Intimar Partes não marca as caixas certas | Grave-a de novo (preferências anteriores à versão 2.9.84) |
 | Importei o arquivo de backup e nada mudou | Recarregue (F5) as páginas do Projudi/SEEU abertas ([2.6](#cap-2-6)) |
@@ -1498,6 +1581,8 @@ pode variar um pouco. Clique no título para assistir.
 | [V34](videos/V34-menu-da-extensao.mp4) | [Menu da extensão (ícone da balança)](videos/V34-menu-da-extensao.mp4) | [2.6](#cap-2-6) | 1:46 |
 | [V35](videos/V35-endereco-e-mandado-regionalizado.mp4) | [Endereço da parte e Mandado Regionalizado](videos/V35-endereco-e-mandado-regionalizado.mp4) | [9.7](#cap-9-7) | 0:58 |
 | [V36](videos/V36-dispensar-cumprimentos.mp4) | [Dispensar cumprimentos para expedir](videos/V36-dispensar-cumprimentos.mp4) | [6.4](#cap-6-4) | 0:29 |
+| [V37](videos/V37-escolher-a-movimentacao.mp4) | [Escolher a movimentação das Ações rápidas](videos/V37-escolher-a-movimentacao.mp4) | [7.7](#cap-7-7) | 1:14 |
+| [V38](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [Preferência a partir de um movimento](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [7.7](#cap-7-7) | 0:56 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -1511,6 +1596,10 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.10.5 | 02/10/2026 | A pergunta "Não localizei o movimento…" (7.7) passa a usar a mesma caixa da pergunta sobre juntadas pendentes, com os botões **✅ Prosseguir** e **Cancelar** (antes, OK/Cancel do navegador). Vídeo V38 regravado. |
+| 2.10.4 | 02/10/2026 | Seção 7.7: **preferência que sempre parte de um movimento** — gravada com a caixinha de um movimento marcada, guarda o nome dele (📌) e, ao ser usada, parte do movimento mais recente com esse nome; se não houver, pergunta se segue pela regra geral. Linha nova em Solução de problemas e vídeo V38. |
+| 2.10.3 | 02/10/2026 | A caixinha da seção 7.7 passa para a **primeira coluna** da aba Movimentações, à esquerda do número (Seq.), em **todas** as movimentações (haja ou não arquivos); marcada uma, as demais ficam esmaecidas e bloqueadas até ela ser desmarcada. As caixinhas dos arquivos (WhatsApp e e-mail) não mudam. Vídeo V37 regravado. |
+| 2.10.2 | 02/10/2026 | Nova seção **7.7 Escolher a movimentação das Ações rápidas**: caixinha ao lado de cada evento da aba Movimentações para as ações rápidas, preferências e combos partirem do evento marcado (como em "Movimentar a Partir Desta Movimentação"); sem marcação, tudo continua como antes. Nova função na tabela da 2.6 (26 funções), linha nova em Solução de problemas e vídeo V37. |
 | 2.10.1 | 02/10/2026 | Corrigida a **Nova Ordenação** com **Mandado Regionalizado**: o envio parava com "Necessário informar a Central de Mandados de Destino" porque a central era escolhida antes de o Projudi carregar a lista da Comarca de Destino; agora a extensão espera a lista e tenta de novo abrir o diálogo se a primeira tentativa falhar (7.5). |
 | 2.10.0 | 01/10/2026 | **Preferências de advogados** no botão **⚖️ Advogados**: o botão passa a abrir um painel com **Abrir**, **+ Nova preferência** e as preferências salvas; a preferência guarda a lista de advogados (e a Atuação) e, ao ser usada, inclui sozinha cada advogado na seção Advogados — você só marca as partes e clica em Salvar (8.3, 9.3, tabela da 2.4). As preferências de advogados também aparecem em ⭐ Minhas Preferências e nos 🔗 Combos. Vídeo V22 regravado. |
 | 2.9.99 | 01/10/2026 | Na tela do processo, ao executar uma preferência ou um combo (chip ★ da ação, ⭐ Minhas Preferências ou 🔗 Combos), a extensão pergunta antes se deve **dispensar as juntadas pendentes** e/ou **finalizar a conclusão pendente** do quadro Pendências — uma pergunta para cada, como no ⭐ das listagens (7.2, 7.3, 7.4). Vídeos V17, V18 e V19 regravados com a pergunta. |
