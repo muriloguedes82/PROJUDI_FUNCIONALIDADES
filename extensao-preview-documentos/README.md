@@ -552,7 +552,11 @@ lado a lado, no mesmo canto da tela dos botões de WhatsApp/e-mail
   processo e abre o diálogo "Arquivamento de Processo" pelo link nativo —
   esse diálogo só grava o arquivamento quando roda dentro dela)
 - **Outras**: Interromper Prazo, Declínio de competência para a Segunda
-  Instância, Apensar, Desapensar
+  Instância, Apensar, Desapensar, Anotações Criminais, Solicitar
+  Antecedentes Criminais (estas duas ficam no bloco "Comunicar ao IIPR"
+  da coluna de Ações, só em processos criminais; como "Arquivar
+  Processo", fora da tela de Ações o popup carrega a própria tela de
+  Ações e abre o diálogo pelo link nativo)
 
 Numa segunda linha, logo abaixo do botão **"▸/▾ Ações"** (que recolhe ou
 mostra os botões dos grupos acima), ficam o botão **"📋 Processo

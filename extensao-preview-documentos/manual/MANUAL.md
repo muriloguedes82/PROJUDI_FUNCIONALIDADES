@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.10.1 |
-| **Versão da extensão** | 2.10.1 |
+| **Versão do manual** | 2.10.2 |
+| **Versão da extensão** | 2.10.2 |
 | **Data desta versão** | 02/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -803,7 +803,7 @@ sair da aba em que você está.
 | **Transitar** | Transitar em Julgado |
 | **Arquivar** | Arquivar Processo |
 | **🏦 Alvará Eletrônico** | Cadastrar Alvará Eletrônico ([8.1](#cap-8-1)) |
-| **Outras** | Interromper Prazo; Declínio de competência para a Segunda Instância; Apensar; Desapensar |
+| **Outras** | Interromper Prazo; Declínio de competência para a Segunda Instância; Apensar; Desapensar; Anotações Criminais; Solicitar Antecedentes Criminais |
 
 **Passo a passo:**
 
@@ -821,6 +821,11 @@ sair da aba em que você está.
 
 - Na tela de Ações, só aparecem as ações disponíveis para aquele processo
   (ex.: já apensado → só **Desapensar**).
+- **Anotações Criminais** e **Solicitar Antecedentes Criminais** (no
+  Projudi, ficam no quadro **Comunicar ao IIPR** da coluna de Ações) só
+  aparecem em processos criminais. Pelo botão **Outras**, a extensão abre
+  a tela de Ações do processo no popup e clica ela mesma na opção, para a
+  janela do Projudi aparecer exatamente como apareceria clicando lá.
 - Em outra aba (ex.: **Partes e Outros**), o painel pede para abrir a aba
   **Movimentações** primeiro.
 - Ao terminar ações como **Ordenar Cumprimentos**, o popup se fecha e a
@@ -1511,6 +1516,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.10.2 | 02/10/2026 | O botão **Outras** das Ações rápidas ganhou **Anotações Criminais** e **Solicitar Antecedentes Criminais** (quadro **Comunicar ao IIPR** da coluna de Ações), com **Abrir**/**Ir e abrir**, **+ Nova preferência**, ⭐ Minhas Preferências e 🔗 Combos, como as demais ações (7.1). |
 | 2.10.1 | 02/10/2026 | Corrigida a **Nova Ordenação** com **Mandado Regionalizado**: o envio parava com "Necessário informar a Central de Mandados de Destino" porque a central era escolhida antes de o Projudi carregar a lista da Comarca de Destino; agora a extensão espera a lista e tenta de novo abrir o diálogo se a primeira tentativa falhar (7.5). |
 | 2.10.0 | 01/10/2026 | **Preferências de advogados** no botão **⚖️ Advogados**: o botão passa a abrir um painel com **Abrir**, **+ Nova preferência** e as preferências salvas; a preferência guarda a lista de advogados (e a Atuação) e, ao ser usada, inclui sozinha cada advogado na seção Advogados — você só marca as partes e clica em Salvar (8.3, 9.3, tabela da 2.4). As preferências de advogados também aparecem em ⭐ Minhas Preferências e nos 🔗 Combos. Vídeo V22 regravado. |
 | 2.9.99 | 01/10/2026 | Na tela do processo, ao executar uma preferência ou um combo (chip ★ da ação, ⭐ Minhas Preferências ou 🔗 Combos), a extensão pergunta antes se deve **dispensar as juntadas pendentes** e/ou **finalizar a conclusão pendente** do quadro Pendências — uma pergunta para cada, como no ⭐ das listagens (7.2, 7.3, 7.4). Vídeos V17, V18 e V19 regravados com a pergunta. |
