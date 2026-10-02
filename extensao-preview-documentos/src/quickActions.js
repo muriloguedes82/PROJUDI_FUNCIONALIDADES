@@ -156,7 +156,9 @@
 	const OTHER_BUTTON_SELECTOR = "#pdp-wa-launcher, .pdp-email-visible";
 	const PREFERENCES_KEY = "pdpActionPreferences"; // { [actionLabel]: [{id, name, fields, createdAt}] }
 	const JUNTAR_PREFS_KEY = "pdpJuntarDocumentoPrefs"; // ver juntarDocumento.js
-	const FAV_ORDER_KEY = "pdpPreferencesOrder"; // ["a:<id>" | "j:<id>", ...] — ordem dos cards em "Minhas Preferências"
+	const LOCALIZADOR_PREFS_KEY = "pdpLocalizadorPreferencias"; // ver localizadorSeeu.js (só SEEU)
+	const LOCALIZADOR_LABEL = "📍 Localizador";
+	const FAV_ORDER_KEY = "pdpPreferencesOrder"; // ["a:<id>" | "j:<id>" | "c:<id>" | "l:<id>", ...] — ordem dos cards em "Minhas Preferências"
 	const FAV_PANEL_ID = "__minhas-preferencias";
 	const FAV_VISIBLE_LIMIT = 20;
 	const DIALOG_WAIT_TIMEOUT_MS = 6000;
@@ -3296,8 +3298,17 @@
 	// `titulo`: cabeçalho da pergunta; `combo`: true para combo. Chama
 	// `executar()` depois das perguntas (e das dispensas pedidas), ou não
 	// chama nada se o usuário cancelar.
+	//
+	// REGRA: as perguntas (dispensar juntadas / finalizar conclusão) existem
+	// só no Projudi, que trava as ações enquanto houver juntadas ou
+	// conclusões pendentes. O SEEU não trava: lá a preferência é executada
+	// direto, sem pergunta e sem dispensa (ver também preferenciasNaLinha.js).
 	async function executarComPendencias(titulo, combo, executar) {
 		if (pendenciasEmAndamento) return;
+		if (/(^|\.)seeu(treino)?\.pje\.jus\.br$/i.test(location.hostname)) {
+			executar();
+			return;
+		}
 		const d = window.__pdpDispensas || {};
 		const juntadaUrl = d.juntadas && d.juntadaURL ? d.juntadaURL(document) : null;
 		const juntadaLink = juntadaUrl ? linkDaPendencia(juntadaUrl) : null;
@@ -4512,7 +4523,8 @@
 
 	// -------------------------------------------------------------------
 	// "⭐ Minhas Preferências": todas as preferências salvas (das ações
-	// rápidas e do "📎 Juntar Documento") em cards, num painel que abre
+	// rápidas, do "📎 Juntar Documento" e, no SEEU, do "📍 Localizador")
+	// em cards, num painel que abre
 	// para baixo do botão. Só as FAV_VISIBLE_LIMIT primeiras aparecem por
 	// padrão; o modo de edição permite arrastar os cards para reordená-los
 	// (ordem gravada em FAV_ORDER_KEY).
@@ -4542,10 +4554,11 @@
 		return loadFavItemsWith(false);
 	}
 
-	// `includeCombos`: também os combos (só o painel do botão; o da linha do
-	// processo, em preferenciasNaLinha.js, não tem como executar um combo).
+	// `includeCombos`: também os combos e as preferências de localizadores
+	// (só o painel do botão; o da linha do processo, em
+	// preferenciasNaLinha.js, não tem como executar nenhum dos dois).
 	function loadFavItemsWith(includeCombos) {
-		return chrome.storage.local.get([PREFERENCES_KEY, JUNTAR_PREFS_KEY, FAV_ORDER_KEY, COMBOS_KEY]).then(function (data) {
+		return chrome.storage.local.get([PREFERENCES_KEY, JUNTAR_PREFS_KEY, FAV_ORDER_KEY, COMBOS_KEY, LOCALIZADOR_PREFS_KEY]).then(function (data) {
 			const items = [];
 			const actionPrefs = data[PREFERENCES_KEY] || {};
 			Object.keys(actionPrefs).forEach(function (label) {
@@ -4557,6 +4570,19 @@
 			juntarPrefs.forEach(function (pref) {
 				items.push({ key: "j:" + pref.id, kind: "juntar", label: "Juntar Documento", pref: pref });
 			});
+			// Localizadores: só onde localizadorSeeu.js está carregado (SEEU).
+			if (includeCombos && window.__pdpLocalizador) {
+				const locPrefs = Array.isArray(data[LOCALIZADOR_PREFS_KEY]) ? data[LOCALIZADOR_PREFS_KEY] : [];
+				locPrefs.forEach(function (pref) {
+					if (!pref || !Array.isArray(pref.localizadores) || !pref.localizadores.length) return;
+					items.push({
+						key: "l:" + pref.id,
+						kind: "localizador",
+						label: LOCALIZADOR_LABEL,
+						pref: { id: pref.id, name: pref.nome || pref.localizadores.join(" • "), createdAt: pref.createdAt, localizadores: pref.localizadores },
+					});
+				});
+			}
 			if (includeCombos) {
 				const all = Object.assign({}, actionPrefs);
 				if (juntarPrefs.length) all[JUNTAR_LABEL] = juntarPrefs;
@@ -4588,6 +4614,16 @@
 	function removeFavItem(item) {
 		if (item.kind === "combo") return removeCombo(item.combo.id);
 		if (item.kind === "action") return removePreference(item.label, item.pref.id);
+		if (item.kind === "localizador") {
+			return chrome.storage.local.get([LOCALIZADOR_PREFS_KEY]).then(function (data) {
+				const prefs = Array.isArray(data[LOCALIZADOR_PREFS_KEY]) ? data[LOCALIZADOR_PREFS_KEY] : [];
+				return chrome.storage.local.set({
+					[LOCALIZADOR_PREFS_KEY]: prefs.filter(function (p) {
+						return p.id !== item.pref.id;
+					}),
+				});
+			});
+		}
 		return chrome.storage.local.get([JUNTAR_PREFS_KEY]).then(function (data) {
 			const prefs = Array.isArray(data[JUNTAR_PREFS_KEY]) ? data[JUNTAR_PREFS_KEY] : [];
 			return chrome.storage.local.set({
@@ -4704,11 +4740,14 @@
 
 			const isCombo = item.kind === "combo";
 			if (isCombo) card.classList.add("pdp-qa-fav-combo");
+			const isLocalizador = item.kind === "localizador";
 			const mode = isCombo
 				? (comboCanRun ? "combo" : null)
 				: item.kind === "juntar"
 					? (window.__pdpJuntarDocumento && location.pathname.startsWith("/projudi/") ? "juntar" : null)
-					: modeForLabel(item.label);
+					: isLocalizador
+						? (window.__pdpLocalizador && window.__pdpLocalizador.disponivel() ? "localizador" : null)
+						: modeForLabel(item.label);
 
 			const actionEl = document.createElement("span");
 			actionEl.className = "pdp-qa-fav-card-action";
@@ -4735,7 +4774,9 @@
 			editPrefBtn.disabled = !mode && !isCombo;
 			editPrefBtn.title = isCombo
 				? "Editar este combo (etapas, ordem e nome)"
-				: mode
+				: isLocalizador && mode
+					? "Editar esta preferência (nome e localizadores)"
+					: mode
 					? "Editar esta preferência: abre o diálogo preenchido com ela para ajustar os campos (e o nome) e salvar de novo"
 					: '"' + item.label + '" não está disponível nesta tela para editar.';
 			editPrefBtn.addEventListener("click", function (e) {
@@ -4746,6 +4787,10 @@
 				}
 				if (!mode) return;
 				closePanel();
+				if (mode === "localizador") {
+					window.__pdpLocalizador.editar(item.pref);
+					return;
+				}
 				removeConfirmBar();
 				removeCaptureToolbar();
 				if (mode === "juntar") window.__pdpJuntarDocumento.edit(item.pref);
@@ -4788,9 +4833,14 @@
 				if (!mode) card.classList.add("pdp-qa-fav-unavailable");
 				card.title = (mode ? "Executar em sequência (cada etapa pede a confirmação de sempre):\n" : "Abra a tela do processo para executar:\n") +
 					describeComboSteps(item.combo.steps, item.all);
+			} else if (!mode && isLocalizador) {
+				card.classList.add("pdp-qa-fav-unavailable");
+				card.title = "Localizadores só podem ser associados na tela do processo do SEEU (com o \"+\" dos localizadores disponível):\n" + item.pref.localizadores.join("\n");
 			} else if (!mode) {
 				card.classList.add("pdp-qa-fav-unavailable");
 				card.title = '"' + item.label + '" não está disponível nesta tela. Abra a aba "Movimentações" do processo.';
+			} else if (isLocalizador) {
+				card.title = "Associar ao processo:\n" + item.pref.localizadores.join("\n");
 			} else if (item.kind === "juntar") {
 				card.title = 'Juntar Documento com a preferência "' + item.pref.name + '"';
 			} else {
@@ -4803,6 +4853,10 @@
 			function activate() {
 				if (state.editing || !mode) return;
 				closePanel();
+				if (mode === "localizador") {
+					window.__pdpLocalizador.aplicar(item.pref);
+					return;
+				}
 				if (mode === "combo") {
 					executarComPendencias('🔗 Combo "' + item.combo.name + '" (' + item.combo.steps.length + " etapas)", true, function () {
 						startCombo(item.combo);
@@ -5174,6 +5228,7 @@
 		// Abre/fecha o painel de um grupo cujo botão é de outro arquivo
 		// (ex.: "⚖️ Advogados", de habilitarAdvogado.js, com
 		// data-panel-id="advogados").
+		closePanel: closePanel,
 		togglePanelById: function (id) {
 			const group = ACTION_GROUPS.filter(function (g) {
 				return g.id === id;

@@ -847,7 +847,7 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   try {
     const origin = new URL(sender.url);
     const doProjudi = /(^|\.)tjpr\.jus\.br$/.test(origin.hostname) && origin.pathname.startsWith('/projudi/');
-    const doSeeu = origin.hostname === 'seeu.pje.jus.br' && origin.pathname.startsWith('/seeu/');
+    const doSeeu = /^seeu(treino)?\.pje\.jus\.br$/.test(origin.hostname) && origin.pathname.startsWith('/seeu/');
     if (!sender.tab || origin.protocol !== 'https:' || !(doProjudi || doSeeu)) throw new Error('Origem inválida.');
     sistema = (self.PDP_SISTEMAS_CNJ || []).find(s => s.id === message.sistema);
     // No SEEU só o BNMP 3.0 (SISTEMAS_SEEU em sistemasCnj.js).

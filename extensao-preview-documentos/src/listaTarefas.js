@@ -267,7 +267,9 @@
 			const estrela = el("button", {
 				type: "button",
 				class: "pdp-tl-mais pdp-tl-estrela",
-				title: "Minhas Preferências: executar uma ação rápida neste processo",
+				title: /^\/seeu\//.test(location.pathname)
+					? "Minhas Preferências: associar localizadores a este processo"
+					: "Minhas Preferências: executar uma ação rápida neste processo",
 				text: "⭐",
 				onclick: function (ev) {
 					ev.preventDefault();

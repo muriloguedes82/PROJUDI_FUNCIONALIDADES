@@ -984,6 +984,36 @@ plano) e extrai o endereço (`/projudi/processo/parteProcesso.do?_tj=...`)
 do `onclick` do botão nativo "Partes e Outros" (`id="enableParteButton"`).
 Nenhuma ação é praticada sozinha. Só no Projudi.
 
+## Localizador (só no SEEU)
+
+Na fileira de botões da extensão, logo depois do **"⭐ Minhas
+Preferências"**, a extensão põe o botão **"📍 Localizador"**
+(`src/localizadorSeeu.js`), quando a tela tem o cabeçalho de localizadores
+do SEEU (componente `seeu-localizador-processo-header`, com shadow DOM
+aberto, onde fica o "+"). Ele
+abre um painel com preferências de localizadores (um ou mais por
+preferência), gravadas em `chrome.storage.local` na chave
+`pdpLocalizadorPreferencias`:
+
+- **➕ Nova preferência** abre a lista nativa do "+" ("Associar localizador
+  ao processo"), lê os `seeu-menu-item` (localizadores ativos da unidade),
+  fecha a lista e mostra os nomes com caixinhas e pesquisa;
+- clicar numa preferência abre a lista do "+" e clica, um de cada vez, no
+  item de mesmo nome (sem acento/caixa), esperando o localizador aparecer
+  no cabeçalho antes do próximo. Os que já estão no processo são pulados;
+  os que não estão na lista da unidade são informados no painel.
+
+As mesmas preferências aparecem como cards **"📍 Localizador"** no
+"⭐ Minhas Preferências" (`quickActions.js`, chave de ordem `l:<id>`), que
+as aplica e edita por `window.__pdpLocalizador`. Por isso a
+funcionalidade requer as Ações rápidas.
+
+Exclusivo do SEEU: no catálogo (`src/funcionalidades.js`) o item tem
+`sistemas: ["seeu"]`, o que faz o service worker não injetar os arquivos
+no Projudi e o Menu não mostrar a funcionalidade na aba PROJUDI; o script
+ainda confere o endereço (`seeu.pje.jus.br` ou o SEEU de treino,
+`seeutreino.pje.jus.br`, que a extensão trata como SEEU).
+
 ## Juntar Documento (com preferências gravadas)
 
 Juntar um documento digitado (certidão, informação, termo...) hoje exige:
@@ -1563,6 +1593,26 @@ nas telas em que a fileira de botões fica oculta (sem exibir nada), só para
 expor a API usada pela linha (`applyPreferenceFrom`/`loadFavItems`), e
 `juntadaDrag.js`/`finalizarConclusao.js` expõem as dispensas em
 `window.__pdpDispensas`.
+
+
+### No SEEU (preferências do 📍 Localizador)
+
+Nas listas **Análise de Juntadas** (`/seeu/processo/analisarJuntada.do`) e
+**Retorno de Conclusão** (`/seeu/processo/conclusao.do`) do SEEU, a ⭐
+(listaTarefas.js) lista as preferências do **"📍 Localizador"** — as
+ações rápidas não funcionam no SEEU. Ao escolher uma, a tela do processo
+(link da linha, `visualizacaoProcesso.do`) é carregada num iframe oculto
+(`carregar` com `manter`) e os localizadores são associados nela por
+`window.__pdpLocalizador.associarEm` (localizadorSeeu.js), com uma nova
+tentativa quando o localizador não aparece no cabeçalho. A linha mostra o
+andamento e o resultado.
+
+**Regra (Projudi × SEEU):** o Projudi trava as ações enquanto houver
+juntadas ou conclusões pendentes, por isso lá a extensão pergunta antes se
+deve dispensar as juntadas/decursos ou finalizar a conclusão (na ⭐ das
+listas e em `executarComPendencias`, quickActions.js). O SEEU **não** trava:
+lá não há essas perguntas nem dispensa/finalização — a preferência é
+executada direto. Não acrescentar essas perguntas ao SEEU.
 
 ## Dispensar decursos de prazo
 

@@ -1,0 +1,182 @@
+/* SEEU - painel de preferências do botão "📍 Localizador" (ver localizadorSeeu.js);
+   o botão usa o estilo da fileira das Ações rápidas (quickActions.css). */
+div.pdp-loc-painel {
+	position: fixed;
+	z-index: 2147483000;
+	width: 320px;
+	max-width: calc(100vw - 16px);
+	overflow: auto;
+	box-sizing: border-box;
+	background: #fff;
+	color: #1f2937;
+	border: 1px solid #cbd5e1;
+	border-radius: 8px;
+	box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+	font: 12px/1.4 Inter, Arial, sans-serif;
+	text-align: left;
+}
+
+div.pdp-loc-painel * {
+	box-sizing: border-box;
+}
+
+.pdp-loc-corpo {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 10px;
+}
+
+.pdp-loc-titulo {
+	font-weight: 700;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	color: #475569;
+}
+
+.pdp-loc-vazio {
+	color: #64748b;
+	font-style: italic;
+	padding: 4px 2px;
+}
+
+.pdp-loc-prefs {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.pdp-loc-pref {
+	display: flex;
+	align-items: stretch;
+	gap: 2px;
+}
+
+button.pdp-loc-aplicar {
+	flex: 1 1 auto;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	padding: 6px 8px;
+	font: inherit;
+	text-align: left;
+	color: #1e3a8a;
+	background: #eff6ff;
+	border: 1px solid #bfdbfe;
+	border-radius: 6px;
+	cursor: pointer;
+}
+
+button.pdp-loc-aplicar:hover:not(:disabled) {
+	background: #dbeafe;
+}
+
+.pdp-loc-nome {
+	font-weight: 600;
+}
+
+.pdp-loc-itens {
+	font-size: 11px;
+	color: #475569;
+}
+
+button.pdp-loc-icone {
+	flex: 0 0 auto;
+	width: 26px;
+	padding: 0;
+	font: 12px/1 Arial, sans-serif;
+	background: transparent;
+	border: 1px solid transparent;
+	border-radius: 6px;
+	cursor: pointer;
+}
+
+button.pdp-loc-icone:hover:not(:disabled) {
+	background: #f1f5f9;
+	border-color: #cbd5e1;
+}
+
+div.pdp-loc-painel button:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+
+.pdp-loc-acoes {
+	display: flex;
+	justify-content: flex-end;
+	gap: 6px;
+	margin-top: 4px;
+}
+
+button.pdp-loc-bt {
+	padding: 5px 10px;
+	font: 600 12px/1.3 Inter, Arial, sans-serif;
+	color: #1f2937;
+	background: #fff;
+	border: 1px solid #cbd5e1;
+	border-radius: 6px;
+	cursor: pointer;
+}
+
+button.pdp-loc-bt.primario {
+	color: #fff;
+	background: #2563eb;
+	border-color: #2563eb;
+}
+
+.pdp-loc-rotulo {
+	font-weight: 600;
+	color: #475569;
+	margin-top: 2px;
+}
+
+input.pdp-loc-campo {
+	width: 100%;
+	padding: 5px 7px;
+	font: inherit;
+	border: 1px solid #cbd5e1;
+	border-radius: 6px;
+}
+
+.pdp-loc-opcoes {
+	max-height: 260px;
+	overflow: auto;
+	border: 1px solid #e2e8f0;
+	border-radius: 6px;
+	padding: 2px;
+}
+
+label.pdp-loc-opcao {
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+	padding: 4px 6px;
+	font-size: 11px;
+	cursor: pointer;
+	border-radius: 4px;
+}
+
+label.pdp-loc-opcao:hover {
+	background: #f8fafc;
+}
+
+label.pdp-loc-opcao.fora {
+	color: #b45309;
+}
+
+label.pdp-loc-opcao input {
+	margin: 1px 0 0 0;
+}
+
+.pdp-loc-status {
+	margin: 0 10px 10px;
+	padding: 6px 8px;
+	border-radius: 6px;
+	font-size: 11px;
+}
+
+.pdp-loc-status.info { background: #f1f5f9; color: #334155; }
+.pdp-loc-status.ok { background: #ecfdf5; color: #065f46; }
+.pdp-loc-status.erro { background: #fef2f2; color: #991b1b; }

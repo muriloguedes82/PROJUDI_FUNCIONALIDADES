@@ -37,7 +37,7 @@
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
 	// A janela do Oráculo mantém apenas os controles nativos.
 	if (location.pathname === "/projudi/processo/criminal/antecedentesCriminais.do") return;
-	const NO_SEEU = /(^|\.)seeu\.pje\.jus\.br$/i.test(location.hostname);
+	const NO_SEEU = /(^|\.)seeu(treino)?\.pje\.jus\.br$/i.test(location.hostname);
 	if (window.__pdpSistemasCnj || !location.pathname.startsWith(NO_SEEU ? "/seeu/" : "/projudi/") || !self.PDP_SISTEMAS_CNJ) return;
 	window.__pdpSistemasCnj = true;
 

@@ -318,7 +318,7 @@
 	// o AzFlow cuidar disso sozinho. O restante (seleção de documentos e
 	// envio por WhatsApp) continua funcionando normalmente, já que não é
 	// algo que o AzFlow ofereça.
-	const IS_SEEU = /(^|\.)seeu\.pje\.jus\.br$/i.test(window.location.hostname);
+	const IS_SEEU = /(^|\.)seeu(treino)?\.pje\.jus\.br$/i.test(window.location.hostname);
 
 	// O AzFlow injeta atributos/classes com esse prefixo por toda a página
 	// quando está ativo (confirmado inspecionando o SEEU com ele habilitado:
