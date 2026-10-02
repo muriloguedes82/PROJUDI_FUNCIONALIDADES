@@ -2,7 +2,8 @@
 //
 // Onde fica o ícone:
 //   - Projudi: logo abaixo do link "Sair" (canto superior direito);
-//   - SEEU: na faixa azul do menu, abaixo do nome do usuário.
+//   - SEEU: na faixa azul do menu, abaixo do nome do usuário (no documento
+//     do topo ou no quadro do cabeçalho, se a página for dividida em quadros).
 // O ícone acompanha o elemento de referência (posição fixa recalculada a
 // cada rolagem/redimensionamento) e nunca sai do topo da tela. Se a
 // referência não for encontrada (tela diferente), fica no canto superior
@@ -107,26 +108,79 @@
 		return null;
 	}
 
+	// Texto do próprio elemento, sem o dos filhos (o item do menu do SEEU pode
+	// trazer um ícone ou uma setinha junto do nome).
+	function textoProprio(e) {
+		return [...e.childNodes].filter(function (n) { return n.nodeType === 3; }).map(function (n) { return n.textContent; }).join("");
+	}
+
+	// Distância do topo da aba até este documento (0 no documento do topo;
+	// num quadro, soma a posição dos quadros ancestrais). null se algum
+	// ancestral for de outro endereço.
+	function topoNaAba() {
+		let soma = 0;
+		let w = window;
+		try {
+			while (w !== w.top) {
+				const quadro = w.frameElement;
+				if (!quadro) return null;
+				soma += quadro.getBoundingClientRect().top;
+				w = w.parent;
+			}
+		} catch (_) {
+			return null;
+		}
+		return soma;
+	}
+
 	// SEEU: faixa do menu (Início, Processos, ... Cadastro, Outros) e, acima
-	// dela, o nome do usuário (texto mais à direita do cabeçalho).
-	function referenciaSeeu() {
+	// dela, o nome do usuário (texto mais à direita do cabeçalho). O ícone
+	// fica na faixa, logo abaixo do nome. A faixa pode estar no documento do
+	// topo ou num quadro (no SEEU atual, o quadro "mainFrame" de um
+	// <frameset>); vale a que estiver no alto da aba.
+	//
+	// No SEEU atual o cabeçalho e o menu são componentes próprios
+	// (<seeu-header>, <seeu-menubar> dentro de div#BarraMenu), com o
+	// conteúdo - o nome do usuário, os itens do menu - num Shadow DOM, que
+	// document.querySelectorAll não enxerga; o menu antigo (Processos ...
+	// Cadastro) continua na página, mas escondido. O formato antigo (menu
+	// comum) segue como alternativa.
+	function faixaSeeu() {
+		const atual = document.getElementById("BarraMenu") || document.querySelector("seeu-menubar");
+		if (visivel(atual)) return atual;
 		const links = [...document.querySelectorAll("a, span, li, button")].filter(function (e) {
-			return e.children.length === 0 && /^(processos|cadastro)$/.test(normalizar(e.textContent)) && visivel(e);
+			return /^(processos|cadastro)$/.test(normalizar(textoProprio(e))) && visivel(e);
 		});
-		const processos = links.find(function (e) { return normalizar(e.textContent) === "processos"; });
-		const cadastro = links.find(function (e) { return normalizar(e.textContent) === "cadastro"; });
-		if (!IS_TOPO || !processos || !cadastro) return null;
+		const processos = links.find(function (e) { return normalizar(textoProprio(e)) === "processos"; });
+		const cadastro = links.find(function (e) { return normalizar(textoProprio(e)) === "cadastro"; });
+		if (!processos || !cadastro) return null;
 		let barra = processos.parentElement;
 		while (barra && !barra.contains(cadastro)) barra = barra.parentElement;
+		return barra;
+	}
+
+	// Elementos do documento e dos Shadow DOM abertos do cabeçalho.
+	function elementosDoCabecalho() {
+		const lista = [...document.body.querySelectorAll("*")];
+		document.querySelectorAll("seeu-header").forEach(function (h) {
+			if (h.shadowRoot) lista.push(...h.shadowRoot.querySelectorAll("*"));
+		});
+		return lista;
+	}
+
+	function referenciaSeeu() {
+		const deslocamento = topoNaAba();
+		if (deslocamento === null) return null;
+		let barra = faixaSeeu();
 		// Sobe até a faixa ocupar (quase) toda a largura da tela.
 		while (barra && barra.parentElement && barra.getBoundingClientRect().width < innerWidth * 0.8 &&
 			barra.parentElement !== document.body) barra = barra.parentElement;
 		const rBarra = barra && visivel(barra);
-		if (!rBarra || rBarra.top > 260) return null;
+		if (!rBarra || rBarra.top + deslocamento > 260) return null;
 		let nome = null, rNome = null;
-		for (const e of document.body.querySelectorAll("*")) {
+		for (const e of elementosDoCabecalho()) {
 			if (e.id === "pdp-menu-host") continue;
-			const texto = [...e.childNodes].filter(function (n) { return n.nodeType === 3; }).map(function (n) { return n.textContent; }).join("").trim();
+			const texto = textoProprio(e).trim();
 			if (!/[a-z]{2,}/.test(normalizar(texto)) || /tjpr|vara|seeu|juizo|comarca/.test(normalizar(texto))) continue;
 			const r = visivel(e);
 			if (!r || r.bottom > rBarra.top + 2 || r.left < innerWidth * 0.6) continue;
@@ -717,7 +771,8 @@ button.bt.primario:hover { background: #1f5591; }
 		const podeSemReferencia = IS_TOPO && tentativa >= 6 && !window.opener && document.body &&
 			document.body.tagName !== "FRAMESET" && !document.documentElement.hasAttribute(MARCA_FRAME);
 		if (!temReferencia && !podeSemReferencia) {
-			if (tentativa < 6) setTimeout(function () { iniciar(tentativa + 1); }, 500);
+			// Num quadro, o cabeçalho do SEEU pode demorar mais a ser montado.
+			if (tentativa < (IS_TOPO ? 6 : 20)) setTimeout(function () { iniciar(tentativa + 1); }, 500);
 			return;
 		}
 		if (temReferencia && !IS_TOPO && raizTopo) raizTopo.setAttribute(MARCA_FRAME, "1");
