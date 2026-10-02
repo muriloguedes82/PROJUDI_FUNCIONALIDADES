@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.10.5 |
-| **Versão da extensão** | 2.10.5 |
+| **Versão do manual** | 2.10.6 |
+| **Versão da extensão** | 2.10.6 |
 | **Data desta versão** | 02/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -804,7 +804,7 @@ sair da aba em que você está.
 | **Transitar** | Transitar em Julgado |
 | **Arquivar** | Arquivar Processo |
 | **🏦 Alvará Eletrônico** | Cadastrar Alvará Eletrônico ([8.1](#cap-8-1)) |
-| **Outras** | Interromper Prazo; Declínio de competência para a Segunda Instância; Apensar; Desapensar |
+| **Outras** | Interromper Prazo; Declínio de competência para a Segunda Instância; Apensar; Desapensar; Anotações Criminais; Solicitar Antecedentes Criminais |
 
 **Passo a passo:**
 
@@ -822,6 +822,11 @@ sair da aba em que você está.
 
 - Na tela de Ações, só aparecem as ações disponíveis para aquele processo
   (ex.: já apensado → só **Desapensar**).
+- **Anotações Criminais** e **Solicitar Antecedentes Criminais** (no
+  Projudi, ficam no quadro **Comunicar ao IIPR** da coluna de Ações) só
+  aparecem em processos criminais. Pelo botão **Outras**, a extensão abre
+  a tela de Ações do processo no popup e clica ela mesma na opção, para a
+  janela do Projudi aparecer exatamente como apareceria clicando lá.
 - Em outra aba (ex.: **Partes e Outros**), o painel pede para abrir a aba
   **Movimentações** primeiro.
 - Ao terminar ações como **Ordenar Cumprimentos**, o popup se fecha e a
@@ -1596,6 +1601,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.10.6 | 02/10/2026 | O botão **Outras** das Ações rápidas ganhou **Anotações Criminais** e **Solicitar Antecedentes Criminais** (quadro **Comunicar ao IIPR** da coluna de Ações), com **Abrir**/**Ir e abrir**, **+ Nova preferência**, ⭐ Minhas Preferências e 🔗 Combos, como as demais ações (7.1). |
 | 2.10.5 | 02/10/2026 | A pergunta "Não localizei o movimento…" (7.7) passa a usar a mesma caixa da pergunta sobre juntadas pendentes, com os botões **✅ Prosseguir** e **Cancelar** (antes, OK/Cancel do navegador). Vídeo V38 regravado. |
 | 2.10.4 | 02/10/2026 | Seção 7.7: **preferência que sempre parte de um movimento** — gravada com a caixinha de um movimento marcada, guarda o nome dele (📌) e, ao ser usada, parte do movimento mais recente com esse nome; se não houver, pergunta se segue pela regra geral. Linha nova em Solução de problemas e vídeo V38. |
 | 2.10.3 | 02/10/2026 | A caixinha da seção 7.7 passa para a **primeira coluna** da aba Movimentações, à esquerda do número (Seq.), em **todas** as movimentações (haja ou não arquivos); marcada uma, as demais ficam esmaecidas e bloqueadas até ela ser desmarcada. As caixinhas dos arquivos (WhatsApp e e-mail) não mudam. Vídeo V37 regravado. |

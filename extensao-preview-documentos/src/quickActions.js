@@ -132,6 +132,10 @@
 				"Declínio de competência para a Segunda Instância",
 				"Apensar",
 				"Desapensar",
+				// Bloco "Comunicar ao IIPR" da coluna de Ações (só em
+				// processos criminais). Ver ACTIONS_NEEDING_ACOES_PARENT.
+				"Anotações Criminais",
+				"Solicitar Antecedentes Criminais",
 			],
 		},
 	];
@@ -693,6 +697,19 @@
 		}
 	}
 
+	// Resultado da cadeia para o link de uma ação já achado na tela de
+	// Ações (`acoesUrl`). As ações de ACTIONS_NEEDING_ACOES_PARENT abrem
+	// pelo clique no próprio link dentro da tela de Ações, então não
+	// dependem de a URL do diálogo estar no `onclick` (os links do bloco
+	// "Comunicar ao IIPR" podem não seguir o padrão `openDialog('...')` dos
+	// demais) - nesse caso `url` fica null.
+	function dialogResultForLink(label, link, acoesUrl) {
+		const dialogUrl = extractUrlFromOnclick(link.getAttribute("onclick"), acoesUrl);
+		if (dialogUrl) return { url: dialogUrl, acoesUrl: acoesUrl };
+		if (ACTIONS_NEEDING_ACOES_PARENT.indexOf(label) !== -1) return { url: null, acoesUrl: acoesUrl };
+		return null;
+	}
+
 	// Ponto de entrada: devolve uma Promise que resolve com
 	// `{ url }` (a URL do diálogo pronta para um iframe) ou
 	// `{ failed: true, tried, screenTitle }` se não achar.
@@ -713,8 +730,8 @@
 		// A própria origem já é uma tela de Ações.
 		if (origem && isOnAcoesScreenIn(rootDoc)) {
 			const direct = findActionLinkIn(rootDoc, label);
-			const directUrl = direct ? extractUrlFromOnclick(direct.getAttribute("onclick"), baseUrl) : null;
-			if (directUrl) return Promise.resolve({ url: directUrl, acoesUrl: baseUrl });
+			const directResult = direct ? dialogResultForLink(label, direct, baseUrl) : null;
+			if (directResult) return Promise.resolve(directResult);
 		}
 
 		const liveMovBtn = findMovimentarButtonIn(rootDoc);
@@ -728,10 +745,8 @@
 			return fetchDoc(movUrl).then(function (result) {
 				if (isOnAcoesScreenIn(result.doc)) {
 					const link = findActionLinkIn(result.doc, label);
-					if (link) {
-						const dialogUrl = extractUrlFromOnclick(link.getAttribute("onclick"), result.url);
-						if (dialogUrl) return { url: dialogUrl, acoesUrl: result.url };
-					}
+					const linkResult = link ? dialogResultForLink(label, link, result.url) : null;
+					if (linkResult) return linkResult;
 				}
 				return { failed: true, screenTitle: getScreenTitleIn(result.doc) };
 			});
@@ -842,13 +857,13 @@
 							logChainStep('tela de Ações achada, mas sem o rótulo "' + label + '"', { url: acoes.url, linksEncontrados: found });
 							return tryEvent(index + 1);
 						}
-						const dialogUrl = extractUrlFromOnclick(link.getAttribute("onclick"), acoes.url);
-						if (!dialogUrl) {
+						const linkResult = dialogResultForLink(label, link, acoes.url);
+						if (!linkResult) {
 							logChainStep("achei o link da ação mas não consegui extrair a URL do onclick", describeElement(link));
 							return tryEvent(index + 1);
 						}
-						logChainStep("URL do diálogo resolvida", dialogUrl);
-						return { url: dialogUrl, acoesUrl: acoes.url };
+						logChainStep("URL do diálogo resolvida", linkResult.url || "(abrirá pelo link nativo na tela de Ações)");
+						return linkResult;
 					});
 				})
 				.catch(function (err) {
@@ -2406,7 +2421,15 @@
 	// movimentação era gerada. Para essas ações o popup carrega a própria
 	// tela de Ações e clica no link nativo dentro dela, reproduzindo
 	// exatamente o ambiente em que o Projudi abre o diálogo.
-	const ACTIONS_NEEDING_ACOES_PARENT = ["Arquivar Processo"];
+	// "Anotações Criminais" e "Solicitar Antecedentes Criminais" (bloco
+	// "Comunicar ao IIPR") também vão por aqui: o clique nativo na tela de
+	// Ações abre o diálogo exatamente como o Projudi abriria, qualquer que
+	// seja a forma como a página liga o link ao diálogo.
+	const ACTIONS_NEEDING_ACOES_PARENT = [
+		"Arquivar Processo",
+		"Anotações Criminais",
+		"Solicitar Antecedentes Criminais",
+	];
 
 	function needsAcoesParent(label, result) {
 		return ACTIONS_NEEDING_ACOES_PARENT.indexOf(label) !== -1 && !!(result && result.acoesUrl);
@@ -2509,6 +2532,15 @@
 		const iframe = showActionModal(label);
 		let acoesLoaded = false;
 		let settleTimer = null;
+		// O documento do diálogo é entregue uma única vez: ou pela janela
+		// interna da tela de Ações (waitForNestedDialogDoc) ou, se o link
+		// nativo trocar a própria tela do popup por um formulário, por ela.
+		let dialogDelivered = false;
+		function deliverDialogDoc(doc) {
+			if (dialogDelivered || !onDialogDoc) return;
+			dialogDelivered = true;
+			onDialogDoc(doc);
+		}
 		iframe.addEventListener("load", function onLoad() {
 			let doc;
 			try {
@@ -2529,10 +2561,19 @@
 				logChainStep('tela de Ações carregada no popup — abrindo "' + label + '" pelo link nativo', describeElement(link));
 				link.click();
 				watchNestedDialogFrames(doc, label);
-				if (onDialogDoc) waitForNestedDialogDoc(doc, result.url, onDialogDoc);
+				if (onDialogDoc) {
+					waitForNestedDialogDoc(doc, result.url, function (dialogDoc) {
+						// Sem janela interna: vale a tela que o popup abriu.
+						if (!dialogDoc && dialogDelivered) return;
+						deliverDialogDoc(dialogDoc);
+					});
+				}
 				return;
 			}
 			logChainStep('popup de "' + label + '" navegou', describeLoadedPage(iframe.contentWindow, doc));
+			if (!dialogDelivered && onDialogDoc && doc && !isOnAcoesScreenIn(doc) && doc.querySelector("form")) {
+				deliverDialogDoc(doc);
+			}
 			clearTimeout(settleTimer);
 			settleTimer = setTimeout(function () {
 				if (activeModalIframe !== iframe) return; // popup já fechado
