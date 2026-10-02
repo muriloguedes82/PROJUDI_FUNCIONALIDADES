@@ -459,7 +459,7 @@
 	// aba Movimentações lida em segundo plano): pelo id do link do evento e,
 	// se não houver, pelo número da movimentação (coluna "Seq.").
 	function findMovimentoBaseIn(root, base) {
-		const links = Array.prototype.slice.call(root.querySelectorAll('a.link[id^="LNKmov"]')).filter(function (link) {
+		const links = Array.prototype.slice.call(root.querySelectorAll('a[id^="LNKmov"]')).filter(function (link) {
 			return (link.id || "").indexOf("INVALIDO") === -1 && !link.closest("strike, s, del");
 		});
 		const byId = links.filter(function (link) {
@@ -469,7 +469,7 @@
 		if (!base.seq) return null;
 		return (
 			links.filter(function (link) {
-				const row = link.closest("tr");
+				const row = link.closest('tr[id^="mov1Grau"]') || link.closest("tr");
 				if (!row) return false;
 				return Array.prototype.some.call(row.querySelectorAll(":scope > td"), function (td) {
 					return (td.textContent || "").replace(/\s+/g, " ").trim() === base.seq;

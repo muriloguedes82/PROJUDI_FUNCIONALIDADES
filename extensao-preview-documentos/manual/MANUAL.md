@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.10.1 |
-| **Versão da extensão** | 2.10.1 |
+| **Versão do manual** | 2.10.2 |
+| **Versão da extensão** | 2.10.2 |
 | **Data desta versão** | 02/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1003,15 +1003,18 @@ ao clicar num evento e depois em **Movimentar a Partir Desta Movimentação**.
 Assim, a remessa, a intimação ou a ordenação fica ligada ao evento certo
 (ex.: o despacho que a determinou), e é esse evento que o destinatário vê.
 
-**Onde fica:** na aba **Movimentações** do processo, uma **caixinha** à
-esquerda do nome de cada evento (coluna **Evento**). Eventos tachados
-(inválidos) não têm caixinha.
+**Onde fica:** na aba **Movimentações** do processo, uma **caixinha** na
+primeira coluna de **todas** as movimentações, à esquerda do número
+(**Seq.**) — haja ou não arquivos (antes de **⊞ Arquivos**, quando houver).
+Nas movimentações tachadas (inválidas) a caixinha aparece bloqueada. As
+caixinhas **dos arquivos**, usadas para enviar por WhatsApp e e-mail, não
+mudam: continuam permitindo marcar vários arquivos ([5.1](#cap-5-1)).
 
 **Passo a passo:**
 
-1. Na aba **Movimentações**, marque a caixinha do evento desejado. A linha
-   fica contornada em azul. Só uma fica marcada por vez: marcar outra
-   desmarca a anterior.
+1. Na aba **Movimentações**, marque a caixinha da movimentação desejada. A linha
+   fica contornada em azul e as demais caixinhas ficam **esmaecidas** e não
+   podem ser marcadas. Para escolher outra, desmarque primeiro a atual.
 2. Use as Ações rápidas como sempre: **Ir e abrir**, uma preferência
    (**★ nome**), um card de **⭐ Minhas Preferências** ou um **🔗 Combo**.
 3. O aviso passa a dizer *Abrindo "Ação" a partir da movimentação N
@@ -1540,7 +1543,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V34](videos/V34-menu-da-extensao.mp4) | [Menu da extensão (ícone da balança)](videos/V34-menu-da-extensao.mp4) | [2.6](#cap-2-6) | 1:46 |
 | [V35](videos/V35-endereco-e-mandado-regionalizado.mp4) | [Endereço da parte e Mandado Regionalizado](videos/V35-endereco-e-mandado-regionalizado.mp4) | [9.7](#cap-9-7) | 0:58 |
 | [V36](videos/V36-dispensar-cumprimentos.mp4) | [Dispensar cumprimentos para expedir](videos/V36-dispensar-cumprimentos.mp4) | [6.4](#cap-6-4) | 0:29 |
-| [V37](videos/V37-escolher-a-movimentacao.mp4) | [Escolher a movimentação das Ações rápidas](videos/V37-escolher-a-movimentacao.mp4) | [7.7](#cap-7-7) | 1:02 |
+| [V37](videos/V37-escolher-a-movimentacao.mp4) | [Escolher a movimentação das Ações rápidas](videos/V37-escolher-a-movimentacao.mp4) | [7.7](#cap-7-7) | 1:14 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -1554,6 +1557,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.10.2 | 02/10/2026 | A caixinha da seção 7.7 passa para a **primeira coluna** da aba Movimentações, à esquerda do número (Seq.), em **todas** as movimentações (haja ou não arquivos); marcada uma, as demais ficam esmaecidas e bloqueadas até ela ser desmarcada. As caixinhas dos arquivos (WhatsApp e e-mail) não mudam. Vídeo V37 regravado. |
 | 2.10.1 | 02/10/2026 | Nova seção **7.7 Escolher a movimentação das Ações rápidas**: caixinha ao lado de cada evento da aba Movimentações para as ações rápidas, preferências e combos partirem do evento marcado (como em "Movimentar a Partir Desta Movimentação"); sem marcação, tudo continua como antes. Nova função na tabela da 2.6 (26 funções), linha nova em Solução de problemas e vídeo V37. |
 | 2.10.0 | 01/10/2026 | **Preferências de advogados** no botão **⚖️ Advogados**: o botão passa a abrir um painel com **Abrir**, **+ Nova preferência** e as preferências salvas; a preferência guarda a lista de advogados (e a Atuação) e, ao ser usada, inclui sozinha cada advogado na seção Advogados — você só marca as partes e clica em Salvar (8.3, 9.3, tabela da 2.4). As preferências de advogados também aparecem em ⭐ Minhas Preferências e nos 🔗 Combos. Vídeo V22 regravado. |
 | 2.9.99 | 01/10/2026 | Na tela do processo, ao executar uma preferência ou um combo (chip ★ da ação, ⭐ Minhas Preferências ou 🔗 Combos), a extensão pergunta antes se deve **dispensar as juntadas pendentes** e/ou **finalizar a conclusão pendente** do quadro Pendências — uma pergunta para cada, como no ⭐ das listagens (7.2, 7.3, 7.4). Vídeos V17, V18 e V19 regravados com a pergunta. |

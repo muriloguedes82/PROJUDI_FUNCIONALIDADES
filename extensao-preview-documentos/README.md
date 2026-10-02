@@ -636,8 +636,9 @@ painel depende de qual tela do processo você está vendo, já que o painel
   para abrir a aba "Movimentações" primeiro.
 
 **Movimentação escolhida pelo usuário (`src/movimentoBase.js`).** Na aba
-Movimentações, cada evento válido ganha uma caixinha (só uma marcada por
-vez). Com uma marcada, o passo 1 acima usa **só** esse evento (sem tentar
+Movimentações, cada linha ganha uma caixinha na primeira coluna (à esquerda
+do "Seq."); marcada uma, as demais ficam esmaecidas e bloqueadas até ela ser
+desmarcada. As caixinhas dos arquivos (WhatsApp/e-mail) não são tocadas. Com uma marcada, o passo 1 acima usa **só** esse evento (sem tentar
 outros; se ele não levar à ação, a extensão avisa) — o equivalente a clicar
 nele e em "Movimentar a Partir Desta Movimentação" à mão, para a remessa/
 intimação/ordenação ficar vinculada a ele. Um combo guarda o evento marcado

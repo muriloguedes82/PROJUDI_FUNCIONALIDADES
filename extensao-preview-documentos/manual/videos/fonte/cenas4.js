@@ -215,14 +215,15 @@ CENAS.V36 = {
 // Caixinha ao lado do evento para escolher a movimentação de referência das
 // Ações rápidas (src/movimentoBase.js).
 function caixinhasMovimentacao() {
-	document.querySelectorAll("#movs .ev").forEach(ev => {
-		const seq = ev.closest("tr").id.split(",")[1];
-		ev.insertAdjacentHTML("beforebegin", '<input type="checkbox" class="x-movbase" id="mb-' + seq + '" style="margin:0 4px 0 0;vertical-align:middle;accent-color:#1f6feb">');
+	document.querySelectorAll("#movs tr[id]").forEach(tr => {
+		const seq = tr.id.split(",")[1];
+		tr.cells[0].insertAdjacentHTML("afterbegin", '<input type="checkbox" class="x-movbase" id="mb-' + seq + '" style="margin:0 4px 0 0;vertical-align:middle;accent-color:#1f6feb">');
 	});
 }
 function marcarMovimentacao(seq) {
 	document.querySelectorAll("#movs .x-movbase").forEach(c => {
 		c.checked = c.id === "mb-" + seq;
+		c.style.opacity = seq && !c.checked ? "0.35" : "";
 		c.closest("tr").querySelectorAll("td").forEach(td => (td.style.boxShadow = c.checked ? "inset 0 2px 0 #1f6feb, inset 0 -2px 0 #1f6feb" : ""));
 	});
 }
@@ -234,16 +235,18 @@ CENAS.V37 = {
 		telaProcesso({ acoesAbertas: true });
 		caixinhasMovimentacao();
 		await S.titleCard("VÍDEO V37", "Escolher a movimentação das Ações rápidas", "Marque o evento a partir do qual a remessa, a intimação ou a ordenação será feita.");
-		await S.cap("Na aba <b>Movimentações</b>, cada evento ganha uma <b>caixinha</b> à esquerda do nome.");
+		await S.cap("Na aba <b>Movimentações</b>, cada movimentação ganha uma <b>caixinha</b> na primeira coluna, à esquerda do número (Seq.).");
 		await S.cap("Sem nenhuma marcada, tudo continua como antes: a extensão parte da movimentação <b>mais recente</b>.");
 		await S.click("#mb-36");
 		marcarMovimentacao(36);
 		await S.cap("Marque a movimentação de referência — por exemplo, o <b>despacho</b> que manda remeter os autos. É como clicar em “Movimentar a Partir Desta Movimentação”.", { ms: 5200 });
-		await S.click("#mb-35");
-		marcarMovimentacao(35);
-		await S.cap("Só uma fica marcada por vez: marcar outra desmarca a anterior.");
+		await S.cap("As demais caixinhas ficam <b>esmaecidas</b> e não podem ser marcadas: só uma movimentação por vez.", { ms: 4200 });
+		await S.click("#mb-36");
+		marcarMovimentacao(0);
+		await S.cap("Para escolher outra, primeiro <b>desmarque</b> a atual — as caixinhas voltam a ficar livres.", { ms: 4200 });
 		await S.click("#mb-36");
 		marcarMovimentacao(36);
+		await S.cap("As caixinhas dos <b>arquivos</b> (para WhatsApp e e-mail) continuam como antes, independentes desta.", { ms: 4200 });
 		await S.cap("Agora use as Ações rápidas normalmente. Exemplo: grupo <b>Remessa</b> → preferência salva.");
 		await S.click('[data-g="Remessa"]');
 		const pn = panelAt(acaoPanel("Remessa", [{ nome: "Realizar Remessa", prefs: ["Vista ao MP - 5 dias"] }, { nome: "Remessa Eletrônica para o Tribunal de Justiça" }]), '[data-g="Remessa"]', { w: 420 });
