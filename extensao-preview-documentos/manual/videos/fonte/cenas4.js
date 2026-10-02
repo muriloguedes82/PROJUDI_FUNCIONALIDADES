@@ -521,3 +521,47 @@ CENAS.V41 = {
 		await S.endCard("Lista do SEEU → ⭐ na linha → preferência do 📍 Localizador → associada em segundo plano → resultado na linha.");
 	},
 };
+
+// ------------------------------------------------------------------ V42
+CENAS.V42 = {
+	arquivo: "V42-alterar-classe-e-assuntos.mp4",
+	titulo: "Alterar Classe/Assuntos",
+	secao: "8.9",
+	async run() {
+		telaProcesso({});
+		const link = id => ' <a class="link" id="' + id + '" style="margin-left:8px;white-space:nowrap">✏️ Alterar</a>';
+		$("#info tr:first-child td:nth-child(2)").insertAdjacentHTML("beforeend", link("x-alt-classe"));
+		$("#row-assunto td:nth-child(2)").insertAdjacentHTML("beforeend", link("x-alt-assunto"));
+		await S.titleCard("VÍDEO V42", "Alterar Classe/Assuntos", "A tela do botão “Alterar” (Informações Gerais) num popup, direto do cabeçalho do processo.");
+		S.hl("#info", 4);
+		await S.cap("No cabeçalho do processo, ao lado da <b>Classe Processual</b> e do <b>Assunto Principal</b>, há o link <b>✏️ Alterar</b>.");
+		S.hlOff();
+		await S.cap("Funciona em qualquer aba — não é preciso abrir <b>Informações Gerais</b>. Clique no da classe.");
+		await S.click("#x-alt-classe");
+		await abrindo("Alterar Classe/Assuntos", 1100);
+		const campo = (rot, val, id) => '<tr' + (id ? ' id="' + id + '"' : "") + '><td class="l" style="width:230px"><b style="color:#c00">*</b> ' + rot + '</td><td><span class="pj-select" style="min-width:420px;display:inline-block">' + val + '</span> <span class="pj-btn">🔍</span></td></tr>';
+		popup("Alteração de Processo",
+			'<h4 style="margin:0 0 6px;color:#0d3560">Informações Processuais</h4><table class="pj-info" style="width:100%">' +
+			campo("Classe Processual:", "283 - Ação Penal - Procedimento Ordinário", "x-ed-classe") +
+			'<tr><td class="l">Motivo da Alteração da Classe Processual:</td><td><span id="x-ed-motivo">○ Retificação &nbsp; ○ Evolução</span></td></tr>' +
+			campo("Assunto Principal:", "3418 - Furto Qualificado", "x-ed-assunto") +
+			'<tr><td class="l">Assuntos Secundários:</td><td><span class="pj-btn">Adicionar</span> <span class="pj-btn">Remover</span></td></tr></table>' +
+			'<div class="pj-btnbar" style="justify-content:flex-start"><span class="pj-btn" id="x-ed-salvar">Salvar</span><span class="pj-btn">Voltar</span></div>',
+			{ hd: "Alterar Classe/Assuntos — popup da extensão" });
+		S.hl("#x-ed-classe", 3);
+		await S.cap("Abre a tela de alteração do processo (a mesma do botão nativo <b>Alterar</b>), já no campo clicado.");
+		S.hlOff();
+		await S.click("#x-ed-classe .pj-btn");
+		$("#x-ed-classe .pj-select").textContent = "10943 - Execução da Pena";
+		$("#x-ed-motivo").textContent = "○ Retificação   ● Evolução";
+		await S.cap("Escolha a nova classe e o <b>motivo</b> (Retificação ou Evolução), como de costume no Projudi.");
+		await S.cap("Para os assuntos, use o link do <b>Assunto Principal</b> — é a mesma tela, com os assuntos secundários.", { ms: 2600 });
+		await S.click("#x-ed-salvar");
+		$(".x-popup").remove();
+		$("#info tr:first-child td:nth-child(2)").firstChild.textContent = "Execução da Pena";
+		S.hl("#info", 4);
+		await S.cap("Ao <b>Salvar</b>, o popup fecha sozinho e a tela do processo é recarregada com a classe nova.");
+		S.hlOff();
+		await S.endCard("✏️ Alterar (classe ou assunto, no cabeçalho) → tela de alteração em popup → Salvar → a tela do processo é atualizada.");
+	},
+};

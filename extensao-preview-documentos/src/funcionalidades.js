@@ -101,6 +101,14 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					requer: ["acoesRapidas", "habilitarAdvogado"]
 				},
 				{
+					id: "alterarClasseAssuntos",
+					nome: "Alterar Classe/Assuntos",
+					descricao: "Link \"✏️ Alterar\" ao lado da classe processual e do assunto principal, no cabeçalho do processo, que abre a tela de alteração num popup.",
+					js: ["src/alterarClasseAssuntos.js"],
+					requer: ["acoesRapidas", "habilitarAdvogado"],
+					sistemas: ["projudi"]
+				},
+				{
 					id: "alvara",
 					nome: "Alvará Eletrônico",
 					descricao: "Cadastro de alvará eletrônico pelo painel de Ações rápidas.",
