@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.13.2 |
-| **Versão da extensão** | 2.13.2 |
+| **Versão do manual** | 2.13.3 |
+| **Versão da extensão** | 2.13.3 |
 | **Data desta versão** | 02/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -997,7 +997,9 @@ Cumprimentos**, **Ordenar RPV** e **Ordenar Expedição BNMP**.
   na fila.
 - Mandado Regionalizado também vai na fila: a extensão espera o Projudi
   carregar a lista de **Central de Mandados** da Comarca de Destino antes
-  de escolher a central guardada.
+  de escolher a central guardada. Opções que liberam outros campos (ex.:
+  **Urgente: Sim**, que libera o **Tipo de Urgência**) também são
+  refeitas como um clique seu.
 - **Cancelar** descarta a fila.
 - ⚠️ Confira nos autos se todos os cumprimentos foram registrados,
   especialmente em ordenações com prazo.
@@ -1771,6 +1773,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.13.3 | 02/10/2026 | Corrigida a **Nova Ordenação** com **mandado urgente**: o envio parava com "Selecione o tipo de urgência do Mandado" porque o **Tipo de Urgência** guardado ficava desligado no envio; agora as opções Sim/Não da fila são marcadas como um clique de verdade, que libera os campos ligados a elas (7.5). |
 | 2.13.2 | 02/10/2026 | Sem alteração de texto; corrigido: no SEEU a balança do Menu (e, com ela, o ícone do BNMP 3.0) não aparecia, porque o cabeçalho novo do SEEU esconde o nome do usuário e os itens do menu. Ela volta a ficar na faixa azul-clara, abaixo do nome do usuário (2.6). |
 | 2.13.1 | 02/10/2026 | Regra gravada (1.4, item 5; 7.2; 9.3): as perguntas sobre dispensar juntadas/decursos e finalizar a conclusão antes de uma preferência existem **só no Projudi**, que trava as ações com pendências; no **SEEU**, que não trava, a preferência é executada direto, sem pergunta. |
 | 2.13.0 | 02/10/2026 | Seção 9.3: **⭐** nas listas **Análise de Juntadas** e **Retorno de Conclusão** do SEEU, com as preferências do **📍 Localizador** executadas em segundo plano e o resultado na linha (ainda sem as perguntas de dispensar juntadas/finalizar conclusão). Ajustes em 1.3 e na abertura do capítulo 9; vídeo V41. |
