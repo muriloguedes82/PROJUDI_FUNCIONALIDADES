@@ -8,8 +8,8 @@
 // atributo "data-pdp-icone-pos" de #pdp-menu-host. Sem a balança no
 // documento, os ícones não aparecem. Também só aparecem com um PROCESSO
 // aberto: a balança fica no cabeçalho, mas a tela (Mesa, processo...) é
-// carregada num quadro interno, então os ícones conferem este documento e
-// os quadros dele (ver processoAberto). Não mexe na fileira de botões do
+// carregada num quadro interno, então os ícones conferem todos os quadros
+// da aba, a partir do topo (ver processoAberto). Não mexe na fileira de botões do
 // rodapé (quickActions.js/buttonDrag.js).
 //
 // No SEEU só aparece o ícone do BNMP 3.0 (SISTEMAS_SEEU); a ordem não é
@@ -132,12 +132,20 @@
 		document.addEventListener("keydown", onKeydown, true);
 	}
 
-	// Documento do topo que pode receber o popup (não um <frameset>).
+	// Janela que recebe o popup: o documento do topo ou, se ele for um
+	// <frameset> (página dividida em quadros), o maior quadro dele.
 	function topoUtil() {
 		if (window.top === window) return null;
 		try {
 			const body = window.top.document.body;
-			return body && body.tagName !== "FRAMESET" ? window.top : null;
+			if (body && body.tagName !== "FRAMESET") return window.top;
+			let maior = null, area = 0;
+			for (let i = 0; i < window.top.frames.length; i++) {
+				const w = window.top.frames[i];
+				const a = w.innerWidth * w.innerHeight;
+				if (w.location.origin === location.origin && a > area) { maior = w; area = a; }
+			}
+			return maior && maior !== window ? maior : null;
 		} catch (err) {
 			return null;
 		}
@@ -149,13 +157,12 @@
 		else openModal(sistema);
 	}
 
-	if (window.top === window) {
-		window.addEventListener("message", function (event) {
-			if (event.origin !== location.origin || !event.data || event.data.tipo !== MENSAGEM_ABRIR) return;
-			const sistema = porId(event.data.sistema);
-			if (sistema) openModal(sistema);
-		});
-	}
+	// Ouve em todas as janelas: o pedido só chega à escolhida por topoUtil.
+	window.addEventListener("message", function (event) {
+		if (event.origin !== location.origin || !event.data || event.data.tipo !== MENSAGEM_ABRIR) return;
+		const sistema = porId(event.data.sistema);
+		if (sistema) openModal(sistema);
+	});
 
 	// ------------------------------------------------------------------
 	// Ícones ao lado da balança
@@ -201,7 +208,7 @@
 	// O quadro interno troca de tela sem mudar nada neste documento: confere
 	// a cada segundo (só leituras; reposiciona apenas quando muda).
 	function conferirProcesso() {
-		const agora = processoAberto(window, 0);
+		const agora = processoAberto(window.top, 0);
 		if (agora === comProcesso) return;
 		comProcesso = agora;
 		posicionar();
@@ -357,7 +364,7 @@
 	}
 
 	new MutationObserver(procurarMenu).observe(document.documentElement, { childList: true });
-	comProcesso = processoAberto(window, 0);
+	comProcesso = processoAberto(window.top, 0);
 	procurarMenu();
 	setInterval(conferirProcesso, 1000);
 })();

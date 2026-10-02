@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.11.2 |
-| **Versão da extensão** | 2.11.2 |
+| **Versão do manual** | 2.11.4 |
+| **Versão da extensão** | 2.11.4 |
 | **Data desta versão** | 02/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1666,6 +1666,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.11.4 | 02/10/2026 | Sem alteração de texto; corrigido: no SEEU a balança do Menu (e, com ela, o ícone do BNMP 3.0) não aparecia em algumas telas, conforme a forma como o SEEU monta o cabeçalho. |
 | 2.11.2 | 02/10/2026 | No SEEU, com um processo aberto, aparece o ícone do **BNMP 3.0** ao lado da balança, que abre o BNMP no popup (com **🗂 Nova aba** e **🖥 Segundo monitor**), como no Projudi (8.7 e 1.3). Os demais sistemas do CNJ continuam só no Projudi. O Menu não muda. |
 | 2.11.1 | 02/10/2026 | Os ícones dos sistemas do CNJ (8.7) passam a aparecer **só com um processo aberto**; antes apareciam também na Mesa e nas demais telas. |
 | 2.11.0 | 02/10/2026 | Nova seção **8.7 Sistemas do CNJ**: ícones pastel ao lado da balança do Menu (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper e Infojud, da Receita Federal), com desenhos inspirados nos logotipos e ordem que o usuário escolhe arrastando (guardada como preferência e incluída no Exportar/Importar), que abrem cada sistema num popup sobre o processo, com os botões **🗂 Nova aba** e **🖥 Segundo monitor** para abri-lo fora do popup. A barra de botões não muda. Menção em 2.4, nova função na tabela da 2.6 (27 funções), linha nova em Solução de problemas e vídeo V39. |
