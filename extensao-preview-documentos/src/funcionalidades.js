@@ -16,6 +16,9 @@
 // pelo endereço da página (seeu.pje.jus.br = SEEU; demais hosts do Tribunal =
 // Projudi). Por padrão, tudo vem ativo nos dois.
 //
+// `sistemas` (opcional): funcionalidade exclusiva desses sistemas. Nos
+// demais, os arquivos dela nunca são injetados e ela não aparece no Menu.
+//
 // Os arquivos que não aparecem aqui (hostGuard.js, uiVisibility.js,
 // clipboardProcess.js, documentSelection.js, buttonDrag.js e o próprio Menu)
 // são infraestrutura e são sempre carregados.
@@ -111,6 +114,14 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					js: ["src/juntarDocumento.js"],
 					css: ["src/juntarDocumento.css"],
 					requer: ["acoesRapidas"]
+				},
+				{
+					id: "localizador",
+					nome: "Localizador (SEEU)",
+					descricao: "Botão \"📍 Localizador\" no cabeçalho do processo, com preferências que associam localizadores com um clique.",
+					js: ["src/localizadorSeeu.js"],
+					css: ["src/localizadorSeeu.css"],
+					sistemas: ["seeu"]
 				},
 				{
 					id: "oraculo",
@@ -238,8 +249,9 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 });
 
 // Arquivos (js e css) que ficam de fora com a lista de ids desativados,
-// já incluídas as funcionalidades que dependem de alguma desativada.
-self.pdpArquivosDesativados = function (desativadas) {
+// já incluídas as funcionalidades que dependem de alguma desativada. Com
+// `sistema`, ficam de fora também as exclusivas de outro sistema.
+self.pdpArquivosDesativados = function (desativadas, sistema) {
 	const itens = self.PDP_FUNCIONALIDADES.grupos.flatMap(function (g) { return g.itens; });
 	const fora = new Set(Array.isArray(desativadas) ? desativadas : []);
 	let mudou = true;
@@ -254,7 +266,7 @@ self.pdpArquivosDesativados = function (desativadas) {
 	}
 	const arquivos = new Set();
 	itens.forEach(function (item) {
-		if (!fora.has(item.id)) return;
+		if (!fora.has(item.id) && !(sistema && item.sistemas && item.sistemas.indexOf(sistema) < 0)) return;
 		(item.js || []).concat(item.css || []).forEach(function (arq) { arquivos.add(arq); });
 	});
 	return arquivos;

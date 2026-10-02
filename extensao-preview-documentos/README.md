@@ -975,6 +975,28 @@ plano) e extrai o endereço (`/projudi/processo/parteProcesso.do?_tj=...`)
 do `onclick` do botão nativo "Partes e Outros" (`id="enableParteButton"`).
 Nenhuma ação é praticada sozinha. Só no Projudi.
 
+## Localizador (só no SEEU)
+
+No cabeçalho do processo do SEEU, ao lado do "+" dos localizadores
+(componente `seeu-localizador-processo-header`, com shadow DOM aberto), a
+extensão põe o botão **"📍 Localizador"** (`src/localizadorSeeu.js`). Ele
+abre um painel com preferências de localizadores (um ou mais por
+preferência), gravadas em `chrome.storage.local` na chave
+`pdpLocalizadorPreferencias`:
+
+- **➕ Nova preferência** abre a lista nativa do "+" ("Associar localizador
+  ao processo"), lê os `seeu-menu-item` (localizadores ativos da unidade),
+  fecha a lista e mostra os nomes com caixinhas e pesquisa;
+- clicar numa preferência abre a lista do "+" e clica, um de cada vez, no
+  item de mesmo nome (sem acento/caixa), esperando o localizador aparecer
+  no cabeçalho antes do próximo. Os que já estão no processo são pulados;
+  os que não estão na lista da unidade são informados no painel.
+
+Exclusivo do SEEU: no catálogo (`src/funcionalidades.js`) o item tem
+`sistemas: ["seeu"]`, o que faz o service worker não injetar os arquivos
+no Projudi e o Menu não mostrar a funcionalidade na aba PROJUDI; o script
+ainda confere o endereço (`seeu.pje.jus.br`).
+
 ## Juntar Documento (com preferências gravadas)
 
 Juntar um documento digitado (certidão, informação, termo...) hoje exige:

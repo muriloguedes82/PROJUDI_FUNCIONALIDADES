@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.10.6 |
-| **Versão da extensão** | 2.10.6 |
+| **Versão do manual** | 2.11.0 |
+| **Versão da extensão** | 2.11.0 |
 | **Data desta versão** | 02/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -74,6 +74,7 @@
    - 8.4 [Editar Partes/Outros](#cap-8-4)
    - 8.5 [Colar processo](#cap-8-5)
    - 8.6 [Oráculo](#cap-8-6)
+   - 8.7 [Localizador (só no SEEU)](#cap-8-7)
 9. [Telas de análise, mesas e cumprimentos](#cap-9)
    - 9.1 [Filtro por Sequencial na Análise de Decurso de Prazo](#cap-9-1)
    - 9.2 [Listas de tarefas](#cap-9-2)
@@ -122,6 +123,7 @@ Não é preciso saber nada de informática além disso.
 | ▶ **Vídeo Vnn** | Link para o vídeo daquela função (ver [Anexo A](#anexo-a)) |
 | ⚠️ | Atenção: cuidado para não praticar um ato sem conferir |
 | *Só no Projudi* | A função não existe no SEEU |
+| *Só no SEEU* | A função não existe no Projudi |
 | ✅ **Sim, executar** | O único botão da extensão que confirma um ato processual — sempre depois de você conferir |
 
 > Os vídeos usam **telas simuladas** do Projudi, com dados fictícios, só
@@ -134,7 +136,7 @@ Não é preciso saber nada de informática além disso.
 | Sistema | O que funciona |
 |---|---|
 | **Projudi (TJPR)** | Todas as funções deste manual |
-| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)) |
+| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)) e o botão **📍 Localizador** ([8.7](#cap-8-7)), que só existe no SEEU |
 
 A extensão **não funciona** quando o usuário está logado com perfil de
 advogado(a) ou de assessor(a) de advogado — veja [10.3](#cap-10-3).
@@ -346,7 +348,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 | Grupo | Funções que podem ser ligadas/desligadas | Seção |
 |---|---|---|
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
-| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alvará Eletrônico · Juntar Documento · Oráculo · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
+| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica | [4](#cap-4) |
 | **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
@@ -1085,8 +1087,9 @@ Bom saber sobre essas preferências:
 <a id="cap-8"></a>
 ## 8. Atalhos para telas do processo
 
-*Só no Projudi.* Todos abrem num **popup** sobre a tela atual — a aba do
-processo não sai do lugar. Feche com **✕ Fechar**.
+*Só no Projudi* (exceto o [8.7](#cap-8-7), *só no SEEU*). Os atalhos de 8.1
+a 8.6 abrem num **popup** sobre a tela atual — a aba do processo não sai do
+lugar. Feche com **✕ Fechar**.
 
 <a id="cap-8-1"></a>
 ### 8.1 Alvará Eletrônico
@@ -1271,6 +1274,64 @@ da parte sem ir até a ficha dela.
 
 **Bom saber:** se você já estiver na ficha de uma parte, o atalho usa o
 botão Oráculo dela.
+
+---
+
+<a id="cap-8-7"></a>
+### 8.7 Localizador (só no SEEU)
+
+*Só no SEEU.*
+
+▶ [**Vídeo V39** — Localizador (SEEU)](videos/V39-localizador-seeu.mp4)
+
+**Para que serve:** associar ao processo, **com um clique**, os
+localizadores que você mais usa — um ou vários de uma vez —, sem procurar
+cada um na lista do **+** do SEEU.
+
+**Onde fica:** no alto da tela do processo, à direita, onde ficam os
+localizadores do processo: ao lado do **+** do SEEU aparece o botão
+**📍 Localizador**. Ele abre um painel com as suas preferências:
+
+| Opção | O que faz |
+|---|---|
+| **nome da preferência** | Associa ao processo todos os localizadores da preferência |
+| **➕ Nova preferência** | Abre a lista de localizadores ativos da unidade para você montar uma preferência |
+| **✏️** | Muda o nome ou os localizadores da preferência |
+| **↑** | Sobe a preferência na lista |
+| **🗑** | Remove a preferência |
+
+**Passo a passo — criar uma preferência:**
+
+1. Clique em **📍 Localizador** → **➕ Nova preferência**.
+2. A extensão lê a lista **Associar localizador ao processo** (a mesma do
+   **+**) e mostra os localizadores ativos da unidade. Use **Pesquisar
+   localizador...** para achar mais rápido.
+3. Marque **um ou mais** localizadores e, se quiser, dê um **nome** (ex.:
+   "Audiência cumprida"). Sem nome, a preferência mostra os localizadores.
+4. Clique em **Salvar**.
+
+**Passo a passo — usar a preferência:**
+
+1. Com o processo aberto, clique em **📍 Localizador**.
+2. Clique na preferência. A extensão escolhe cada localizador na lista do
+   **+**, um de cada vez, como você faria, e mostra o andamento no painel.
+3. No fim, o painel diz quais foram associados.
+
+**Bom saber:**
+
+- O botão só aparece no **SEEU** e só quando o **+** dos localizadores está
+  disponível (perfil com permissão para associar localizador).
+- Localizador que **já está** no processo não é associado de novo.
+- Se um localizador da preferência **não estiver** na lista da unidade (foi
+  desativado, ou você está em outra unidade), o painel avisa qual — os
+  demais são associados normalmente. No **✏️**, ele aparece com o aviso
+  "(não está na lista desta unidade)", para você desmarcá-lo.
+- Se o painel pedir para **conferir no cabeçalho**, a extensão escolheu o
+  localizador na lista, mas não conseguiu confirmar que ele apareceu: olhe
+  os localizadores no alto da tela.
+- Para tirar um localizador do processo, use o próprio SEEU.
+- As preferências entram no **⬇ Exportar** do Menu da extensão
+  ([2.6](#cap-2-6)).
 
 ---
 
@@ -1477,7 +1538,7 @@ ela está instalada (não vai para outro computador):
 | O que | Onde |
 |---|---|
 | Aceite dos Termos de Uso | Armazenamento da extensão |
-| Preferências, combos, ordem dos cards | Armazenamento da extensão |
+| Preferências (inclusive de advogados e de localizadores), combos, ordem dos cards | Armazenamento da extensão |
 | Cores de destaque e "sempre ocultar sem arquivo" | Armazenamento da extensão |
 | Listas de tarefas e tarefas | Armazenamento da extensão |
 | Destinatários (WhatsApp e e-mail) e remetentes | Armazenamento da extensão |
@@ -1588,6 +1649,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V36](videos/V36-dispensar-cumprimentos.mp4) | [Dispensar cumprimentos para expedir](videos/V36-dispensar-cumprimentos.mp4) | [6.4](#cap-6-4) | 0:29 |
 | [V37](videos/V37-escolher-a-movimentacao.mp4) | [Escolher a movimentação das Ações rápidas](videos/V37-escolher-a-movimentacao.mp4) | [7.7](#cap-7-7) | 1:14 |
 | [V38](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [Preferência a partir de um movimento](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [7.7](#cap-7-7) | 0:56 |
+| [V39](videos/V39-localizador-seeu.mp4) | [Localizador (SEEU)](videos/V39-localizador-seeu.mp4) | [8.7](#cap-8-7) | 0:51 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -1601,6 +1663,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.11.0 | 02/10/2026 | Nova seção 8.7: botão **📍 Localizador**, *só no SEEU*, com preferências de localizadores associadas ao processo com um clique (lista nativa do **+**). Convenção *Só no SEEU* (1.2), tabelas 1.3 e 2.6 e vídeo V39. |
 | 2.10.6 | 02/10/2026 | O botão **Outras** das Ações rápidas ganhou **Anotações Criminais** e **Solicitar Antecedentes Criminais** (quadro **Comunicar ao IIPR** da coluna de Ações), com **Abrir**/**Ir e abrir**, **+ Nova preferência**, ⭐ Minhas Preferências e 🔗 Combos, como as demais ações (7.1). |
 | 2.10.5 | 02/10/2026 | A pergunta "Não localizei o movimento…" (7.7) passa a usar a mesma caixa da pergunta sobre juntadas pendentes, com os botões **✅ Prosseguir** e **Cancelar** (antes, OK/Cancel do navegador). Vídeo V38 regravado. |
 | 2.10.4 | 02/10/2026 | Seção 7.7: **preferência que sempre parte de um movimento** — gravada com a caixinha de um movimento marcada, guarda o nome dele (📌) e, ao ser usada, parte do movimento mais recente com esse nome; se não houver, pergunta se segue pela regra geral. Linha nova em Solução de problemas e vídeo V38. |

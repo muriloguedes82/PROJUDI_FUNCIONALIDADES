@@ -560,7 +560,11 @@ button.bt.primario:hover { background: #1f5591; }
 
 	function construirPainel() {
 		const fora = efetivamenteDesativadas(desativadas);
-		const ativas = ITENS.length - fora.size;
+		// Funcionalidades exclusivas de um sistema (`sistemas` no catálogo)
+		// só aparecem na aba desse sistema.
+		const doSistema = function (item) { return !item.sistemas || item.sistemas.indexOf(abaAtiva) >= 0; };
+		const itensAba = ITENS.filter(doSistema);
+		const ativas = itensAba.filter(function (item) { return !fora.has(item.id); }).length;
 
 		const cabIcone = el("span");
 		cabIcone.innerHTML = ICONE_SVG;
@@ -596,7 +600,7 @@ button.bt.primario:hover { background: #1f5591; }
 		]);
 		const corpo = el("div", { class: "corpo" + (ligada ? "" : " pausado"), role: "tabpanel" }, [
 			el("div", { class: "resumo" }, [
-				el("span", { text: "Funcionalidades no " + nomeSistema(abaAtiva) + ": " + ativas + " de " + ITENS.length + " ativas" }),
+				el("span", { text: "Funcionalidades no " + nomeSistema(abaAtiva) + ": " + ativas + " de " + itensAba.length + " ativas" }),
 				el("button", {
 					type: "button", class: "copiar", text: "Copiar para o " + outro.nome,
 					title: "Deixa o " + outro.nome + " com as mesmas funcionalidades ativas do " + nomeSistema(abaAtiva),
@@ -605,8 +609,10 @@ button.bt.primario:hover { background: #1f5591; }
 			])
 		]);
 		CAT.grupos.forEach(function (grupo) {
+			const itensGrupo = grupo.itens.filter(doSistema);
+			if (!itensGrupo.length) return;
 			const bloco = el("div", { class: "grupo" }, [el("h3", { text: grupo.nome })]);
-			grupo.itens.forEach(function (item) {
+			itensGrupo.forEach(function (item) {
 				const ligado = !fora.has(item.id);
 				const idCampo = "pdp-menu-" + item.id;
 				const input = el("input", {
