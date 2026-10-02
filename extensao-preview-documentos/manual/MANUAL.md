@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.14.1 |
-| **Versão da extensão** | 2.14.1 |
+| **Versão do manual** | 2.14.2 |
+| **Versão da extensão** | 2.14.2 |
 | **Data desta versão** | 02/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -998,7 +998,9 @@ Cumprimentos**, **Ordenar RPV** e **Ordenar Expedição BNMP**.
   na fila.
 - Mandado Regionalizado também vai na fila: a extensão espera o Projudi
   carregar a lista de **Central de Mandados** da Comarca de Destino antes
-  de escolher a central guardada.
+  de escolher a central guardada. Opções que liberam outros campos (ex.:
+  **Urgente: Sim**, que libera o **Tipo de Urgência**) também são
+  refeitas como um clique seu.
 - **Cancelar** descarta a fila.
 - ⚠️ Confira nos autos se todos os cumprimentos foram registrados,
   especialmente em ordenações com prazo.
@@ -1814,6 +1816,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.14.2 | 02/10/2026 | Corrigida a **Nova Ordenação** com **mandado urgente**: o envio parava com "Selecione o tipo de urgência do Mandado" porque o **Tipo de Urgência** guardado ficava desligado no envio; agora as opções Sim/Não da fila são marcadas como um clique de verdade, que libera os campos ligados a elas (7.5). |
 | 2.14.1 | 02/10/2026 | Seção 8.9: o **✏️ Alterar** da classe e do assunto passa a ser um pequeno balão cinza, no mesmo tom dos botões da extensão (antes, um link). Vídeo V42 regravado. |
 | 2.14.0 | 02/10/2026 | Nova seção **8.9 Alterar Classe/Assuntos** (só no Projudi): link **✏️ Alterar** ao lado da **Classe Processual** e do **Assunto Principal**, no cabeçalho do processo, que abre num popup a tela do botão **Alterar** da aba Informações Gerais; ao salvar, o popup fecha e a tela do processo é recarregada. Nova função na tabela da 2.6 (28 funções no Projudi) e vídeo V42. |
 | 2.13.2 | 02/10/2026 | Sem alteração de texto; corrigido: no SEEU a balança do Menu (e, com ela, o ícone do BNMP 3.0) não aparecia, porque o cabeçalho novo do SEEU esconde o nome do usuário e os itens do menu. Ela volta a ficar na faixa azul-clara, abaixo do nome do usuário (2.6). |

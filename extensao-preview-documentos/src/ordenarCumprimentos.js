@@ -241,10 +241,14 @@
 			if (!el.name) return;
 			const type = (el.type || el.tagName || "").toLowerCase();
 			if (type === "hidden" || type === "submit" || type === "button" || type === "reset" || type === "file" || type === "password") return;
+			// `disabled` vai junto: um campo desabilitado não é enviado pelo
+			// navegador, então se ele estava habilitado aqui e continua
+			// desabilitado no diálogo novo, ainda falta algo (ver
+			// fieldMatches).
 			if (type === "checkbox" || type === "radio") {
-				fields.push({ name: el.name, type: type, value: el.value, checked: el.checked });
+				fields.push({ name: el.name, type: type, value: el.value, checked: el.checked, disabled: el.disabled });
 			} else {
-				fields.push({ name: el.name, type: type, value: el.value });
+				fields.push({ name: el.name, type: type, value: el.value, disabled: el.disabled });
 			}
 		});
 		return fields;
@@ -273,6 +277,10 @@
 	}
 
 	function fieldMatches(el, f) {
+		if (f.disabled === false && el.disabled) return false;
+		// Radio desmarcado: o grupo (mesmo `name`) desmarca sozinho quando o
+		// marcado é clicado - não há o que conferir nele.
+		if (f.type === "radio" && !f.checked) return true;
 		if (f.type === "checkbox" || f.type === "radio") return el.checked === f.checked;
 		return el.value === f.value;
 	}
@@ -314,8 +322,16 @@
 				const el = findFieldElement(form, f);
 				if (!el || fieldMatches(el, f)) continue;
 				if (f.type === "checkbox" || f.type === "radio") {
-					el.checked = f.checked;
-					el.dispatchEvent(new Event("change", { bubbles: true }));
+					// .click() (e não `.checked` + um "change" sintético): o
+					// Projudi liga/desliga os campos de cada opção pelo
+					// `onclick` do radio - ex.: "Urgente: Sim" habilita o
+					// "Tipo de Urgência". Sem o clique de verdade o campo
+					// continuava desabilitado, ficava fora do envio e o
+					// Projudi respondia "Selecione o tipo de urgência do
+					// Mandado" (mesmo problema já visto na Nova Remessa,
+					// remessaMultipla.js).
+					if (el.checked !== f.checked) el.click();
+					await waitForFormQuiet(form, FIELD_QUIET_MS, FIELD_QUIET_MAX_MS);
 					continue;
 				}
 				el.value = f.value;
