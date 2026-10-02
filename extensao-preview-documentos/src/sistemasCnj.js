@@ -1,0 +1,203 @@
+// Projudi - Ícones dos sistemas do CNJ (SerpJud, CNIEP, PrevJud, Sisbajud,
+// SNGB e Sniper - lista em sistemasCnjLista.js) ao lado do ícone do Menu da
+// extensão (a balança dourada, ver menuExtensao.js).
+//
+// Os ícones têm o mesmo tamanho da balança, ficam enfileirados à esquerda
+// dela (cada um com a sua cor pastel) e a acompanham (rolagem,
+// redimensionamento): menuExtensao.js publica a posição da balança no
+// atributo "data-pdp-icone-pos" de #pdp-menu-host. Sem a balança no
+// documento, os ícones não aparecem. Não mexe na fileira de botões do
+// rodapé (quickActions.js/buttonDrag.js).
+//
+// O clique abre o sistema num popup sobre a própria tela do processo - o
+// mesmo tipo de janela usado pelas ações rápidas (Remessa, Concluso etc.,
+// ver showActionModal em quickActions.js) -, sem nova aba. Se a balança
+// estiver num frame só do cabeçalho, o popup é aberto no documento do topo,
+// para ocupar a tela toda. No cabeçalho do popup, "🗂 Nova aba" abre o
+// mesmo endereço numa aba nova do navegador (ao lado da do processo) e
+// "🖥 Segundo monitor" numa janela maximizada no outro monitor, se houver
+// (ver sistemas-cnj-open em background.js).
+//
+// Esses sistemas costumam recusar ser exibidos dentro de outra página; a
+// regra em rules/sistemasCnj.json retira essa recusa apenas quando a janela
+// é aberta a partir do Projudi.
+(function () {
+	"use strict";
+	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	// A janela do Oráculo mantém apenas os controles nativos.
+	if (location.pathname === "/projudi/processo/criminal/antecedentesCriminais.do") return;
+	if (window.__pdpSistemasCnj || !location.pathname.startsWith("/projudi/") || !self.PDP_SISTEMAS_CNJ) return;
+	window.__pdpSistemasCnj = true;
+
+	const SISTEMAS = self.PDP_SISTEMAS_CNJ;
+	const MODAL_ID = "pdp-sistemas-cnj-modal";
+	const MENSAGEM_ABRIR = "pdp-sistemas-cnj-abrir";
+	const TAM = 22; // mesmo tamanho da balança (menuExtensao.js)
+	const ESPACO = 6;
+
+	const CSS = `
+:host { all: initial; }
+.icone {
+	position: fixed; z-index: 2147483000; width: ${TAM}px; height: ${TAM}px; padding: 0; margin: 0;
+	border-radius: 6px; border: 1.5px solid var(--borda); background: linear-gradient(135deg, var(--claro), var(--escuro));
+	color: var(--desenho); cursor: pointer; display: flex; align-items: center; justify-content: center;
+	box-shadow: 0 1px 4px rgba(0,0,0,.25); transition: transform .15s, box-shadow .15s, filter .15s;
+}
+.icone[hidden] { display: none; }
+.icone:hover, .icone:focus-visible { transform: scale(1.1); filter: brightness(1.04); box-shadow: 0 2px 7px rgba(0,0,0,.3); outline: none; }
+.icone svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.icone svg .cheio { fill: currentColor; }
+`;
+
+	function porId(id) {
+		return SISTEMAS.find(function (s) { return s.id === id; });
+	}
+
+	// ------------------------------------------------------------------
+	// Popup
+	// ------------------------------------------------------------------
+
+	// `onde`: "aba" ou "monitor". O popup só fecha se abriu de fato (ex.:
+	// sem segundo monitor, avisa e mantém o popup).
+	function openOutside(sistema, onde) {
+		chrome.runtime.sendMessage({ source: "projudi-preview", type: "sistemas-cnj-open", sistema: sistema.id, onde: onde })
+			.then(function (result) {
+				if (result && result.ok) closeModal();
+				else alert((result && result.error) || "Não foi possível abrir o " + sistema.nome + ".");
+			})
+			.catch(function (error) {
+				alert("Não foi possível abrir o " + sistema.nome + ": " + error.message);
+			});
+	}
+
+	function closeModal() {
+		const el = document.getElementById(MODAL_ID);
+		if (el) el.remove();
+		document.removeEventListener("keydown", onKeydown, true);
+	}
+
+	function onKeydown(event) {
+		if (event.key === "Escape") closeModal();
+	}
+
+	function openModal(sistema) {
+		closeModal();
+		const backdrop = document.createElement("div");
+		backdrop.id = MODAL_ID;
+		backdrop.className = "pdp-qa-modal-backdrop";
+		backdrop.innerHTML =
+			'<div class="pdp-qa-modal-box" style="width: min(1280px, 96vw); height: 94vh;">' +
+			'<div class="pdp-qa-modal-header"><span class="pdp-sistemas-cnj-titulo"></span>' +
+			'<span style="display: flex; gap: 6px;">' +
+			'<button type="button" class="pdp-qa-modal-close pdp-sistemas-cnj-aba">🗂 Nova aba</button>' +
+			'<button type="button" class="pdp-qa-modal-close pdp-sistemas-cnj-monitor">🖥 Segundo monitor</button>' +
+			'<button type="button" class="pdp-qa-modal-close pdp-sistemas-cnj-close">✕ Fechar</button>' +
+			"</span></div>" +
+			'<div class="pdp-qa-modal-body"><iframe class="pdp-sistemas-cnj-iframe" style="width: 100%; height: 100%; border: none; display: block;" allow="clipboard-read; clipboard-write; fullscreen"></iframe></div>' +
+			"</div>";
+		backdrop.querySelector(".pdp-sistemas-cnj-titulo").textContent = sistema.nome + " — CNJ";
+		const aba = backdrop.querySelector(".pdp-sistemas-cnj-aba");
+		aba.title = "Abrir o " + sistema.nome + " numa nova aba deste navegador";
+		aba.addEventListener("click", function () { openOutside(sistema, "aba"); });
+		const monitor = backdrop.querySelector(".pdp-sistemas-cnj-monitor");
+		monitor.title = "Abrir o " + sistema.nome + " numa janela no segundo monitor, se houver";
+		monitor.addEventListener("click", function () { openOutside(sistema, "monitor"); });
+		backdrop.querySelector(".pdp-sistemas-cnj-close").addEventListener("click", closeModal);
+		backdrop.querySelector(".pdp-sistemas-cnj-iframe").src = sistema.url;
+		document.body.appendChild(backdrop);
+		document.addEventListener("keydown", onKeydown, true);
+	}
+
+	// Documento do topo que pode receber o popup (não um <frameset>).
+	function topoUtil() {
+		if (window.top === window) return null;
+		try {
+			const body = window.top.document.body;
+			return body && body.tagName !== "FRAMESET" ? window.top : null;
+		} catch (err) {
+			return null;
+		}
+	}
+
+	function abrir(sistema) {
+		const topo = topoUtil();
+		if (topo) topo.postMessage({ tipo: MENSAGEM_ABRIR, sistema: sistema.id }, location.origin);
+		else openModal(sistema);
+	}
+
+	if (window.top === window) {
+		window.addEventListener("message", function (event) {
+			if (event.origin !== location.origin || !event.data || event.data.tipo !== MENSAGEM_ABRIR) return;
+			const sistema = porId(event.data.sistema);
+			if (sistema) openModal(sistema);
+		});
+	}
+
+	// ------------------------------------------------------------------
+	// Ícones ao lado da balança
+	// ------------------------------------------------------------------
+
+	let host = null;
+	let icones = [];
+	let menuHost = null;
+	const observaMenu = new MutationObserver(posicionar);
+
+	function montar() {
+		host = document.createElement("div");
+		host.id = "pdp-sistemas-cnj-host";
+		const shadow = host.attachShadow({ mode: "closed" });
+		const style = document.createElement("style");
+		style.textContent = CSS;
+		shadow.append(style);
+		icones = SISTEMAS.map(function (sistema) {
+			const icone = document.createElement("button");
+			icone.type = "button";
+			icone.className = "icone";
+			icone.title = sistema.nome + " (CNJ) — abrir num popup sobre esta tela";
+			icone.setAttribute("aria-label", sistema.nome + " (CNJ)");
+			icone.style.setProperty("--claro", sistema.cor.claro);
+			icone.style.setProperty("--escuro", sistema.cor.escuro);
+			icone.style.setProperty("--borda", sistema.cor.borda);
+			icone.style.setProperty("--desenho", sistema.cor.desenho);
+			icone.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + sistema.svg + "</svg>";
+			icone.hidden = true;
+			icone.addEventListener("click", function (ev) {
+				ev.stopPropagation();
+				abrir(sistema);
+			});
+			shadow.append(icone);
+			return icone;
+		});
+		document.documentElement.append(host);
+	}
+
+	function posicionar() {
+		const pos = menuHost && menuHost.isConnected ? String(menuHost.getAttribute("data-pdp-icone-pos") || "").split(",") : [];
+		const top = parseFloat(pos[0]);
+		const left = parseFloat(pos[1]);
+		if (!isFinite(top) || !isFinite(left)) {
+			icones.forEach(function (icone) { icone.hidden = true; });
+			return;
+		}
+		if (!host || !host.isConnected) montar();
+		icones.forEach(function (icone, i) {
+			icone.style.top = top + "px";
+			icone.style.left = Math.max(4, left - (i + 1) * (TAM + ESPACO)) + "px";
+			icone.hidden = false;
+		});
+	}
+
+	// A balança (#pdp-menu-host) é montada direto em <html>, às vezes alguns
+	// segundos depois do carregamento (ver iniciar em menuExtensao.js).
+	function procurarMenu() {
+		const atual = document.getElementById("pdp-menu-host");
+		if (atual === menuHost) return;
+		observaMenu.disconnect();
+		menuHost = atual;
+		if (menuHost) observaMenu.observe(menuHost, { attributes: true, attributeFilter: ["data-pdp-icone-pos"] });
+		posicionar();
+	}
+
+	new MutationObserver(procurarMenu).observe(document.documentElement, { childList: true });
+	procurarMenu();
+})();

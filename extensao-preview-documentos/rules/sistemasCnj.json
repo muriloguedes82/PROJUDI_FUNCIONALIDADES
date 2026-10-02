@@ -10,8 +10,8 @@
       ]
     },
     "condition": {
-      "requestDomains": ["registros.org.br"],
-      "initiatorDomains": ["tjpr.jus.br", "registros.org.br"],
+      "requestDomains": ["registros.org.br", "cnj.jus.br", "pdpj.jus.br", "sso.cloud.pje.jus.br"],
+      "initiatorDomains": ["tjpr.jus.br", "registros.org.br", "cnj.jus.br", "pdpj.jus.br", "sso.cloud.pje.jus.br"],
       "resourceTypes": ["sub_frame"]
     }
   }

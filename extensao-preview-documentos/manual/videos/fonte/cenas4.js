@@ -321,38 +321,46 @@ CENAS.V38 = {
 };
 
 // ------------------------------------------------------------------ V39
-// Ícone "SerpJud" ao lado da balança do Menu (src/serpJud.js).
-function iconeSerpJud() {
+// Ícones dos sistemas do CNJ ao lado da balança do Menu (src/sistemasCnj.js,
+// lista e cores em src/sistemasCnjLista.js).
+function iconesSistemasCnj() {
 	const ic = $("#x-menuicon");
-	const s = add('<div id="x-serpicon" title="SerpJud (CNJ)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#0f5e55" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path fill="#0f5e55" d="M12 2.5L2.5 7.5h19z"/><path d="M3 9.5h18M5 11v6.5M9.7 11v6.5M14.3 11v6.5M19 11v6.5M3 19.5h18M2 21.5h20"/></svg></div>', ic.parentElement);
-	s.style.cssText = "position:absolute;right:42px;top:50px;z-index:30;width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,#d4f7f1,#a8eadf 55%,#7fd6c8);border:1px solid #2a8c7f;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.3)";
-	return s;
+	return self.PDP_SISTEMAS_CNJ.map((s, i) => {
+		const el = add('<div id="x-cnj-' + s.id + '" title="' + s.nome + ' (CNJ)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="' + s.cor.desenho + '" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + s.svg.replace(/class="cheio"/g, 'fill="' + s.cor.desenho + '"') + "</svg></div>", ic.parentElement);
+		el.style.cssText = "position:absolute;right:" + (12 + (i + 1) * 30) + "px;top:50px;z-index:30;width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg," + s.cor.claro + "," + s.cor.escuro + ");border:1px solid " + s.cor.borda + ";display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.25)";
+		return el;
+	});
 }
 CENAS.V39 = {
-	arquivo: "V39-serpjud.mp4",
-	titulo: "SerpJud (CNJ)",
+	arquivo: "V39-sistemas-do-cnj.mp4",
+	titulo: "Sistemas do CNJ",
 	secao: "8.7",
 	async run() {
 		telaProcesso({});
-		iconeSerpJud();
-		await S.titleCard("VÍDEO V39", "SerpJud (CNJ)", "O sistema SERP-JUD do CNJ num popup, sem sair do processo.");
-		S.hl("#x-serpicon", 4);
-		await S.cap("No alto da tela, logo à esquerda da balança dourada do Menu, fica o ícone verde-água do <b>SerpJud</b>.", { ms: 4200, bottom: true });
+		iconesSistemasCnj();
+		await S.titleCard("VÍDEO V39", "Sistemas do CNJ", "SerpJud, CNIEP, PrevJud, Sisbajud, SNGB e Sniper num popup, sem sair do processo.");
+		S.hl("#x-cnj-sniper", 4);
+		await S.cap("No alto da tela, à esquerda da balança dourada do Menu, ficam os ícones coloridos dos <b>sistemas do CNJ</b>.", { ms: 4200, bottom: true });
 		S.hlOff();
-		await S.cap("Clique nele.");
-		await S.click("#x-serpicon");
+		for (const s of self.PDP_SISTEMAS_CNJ) {
+			S.hl("#x-cnj-" + s.id, 3);
+			await S.cap("<b>" + s.nome + "</b>", { ms: 1100, bottom: true });
+		}
+		S.hlOff();
+		await S.cap("Passe o mouse sobre um ícone para ver o nome do sistema. Clique, por exemplo, no do <b>SerpJud</b>.", { bottom: true });
+		await S.click("#x-cnj-serpjud");
 		await abrindo("SerpJud", 1000);
-		popup("SERP-JUD — Sistema Eletrônico dos Registros Públicos", '<div style="padding:30px;text-align:center;font-size:14px;color:#333"><div style="font-size:22px;font-weight:bold;color:#0d3560;margin-bottom:14px">SERP-JUD</div>Entre com o seu acesso do CNJ para consultar os registros públicos.<br><br><span class="pj-btn primary">Entrar</span><br><br><i style="color:#666">(tela do SerpJud — conteúdo ilustrativo)</i></div>', { hd: "SerpJud — CNJ", h: 520 });
+		popup("SERP-JUD — Sistema Eletrônico dos Registros Públicos", '<div style="padding:30px;text-align:center;font-size:14px;color:#333"><div style="font-size:22px;font-weight:bold;color:#0d3560;margin-bottom:14px">SERP-JUD</div>Entre com o seu acesso do CNJ para consultar os registros públicos.<br><br><span class="pj-btn primary">Entrar</span><br><br><i style="color:#666">(tela do sistema — conteúdo ilustrativo)</i></div>', { hd: "SerpJud — CNJ", h: 520 });
 		$("#x-fechar").outerHTML = '<span><span id="x-aba" style="margin-right:14px">🗂 Nova aba</span><span id="x-monitor" style="margin-right:16px">🖥 Segundo monitor</span><span id="x-fechar">✕ Fechar</span></span>';
-		await S.cap("O SerpJud abre num <b>popup</b> sobre a tela do processo, como os das ações rápidas. Entre com o seu acesso e faça a consulta.", { ms: 4200, bottom: true });
+		await S.cap("O sistema abre num <b>popup</b> sobre a tela do processo, como os das ações rápidas. Entre com o seu acesso e trabalhe nele.", { ms: 4200, bottom: true });
 		S.hl("#x-aba");
-		await S.cap("Prefere fora do popup? <b>🗂 Nova aba</b> abre o SerpJud numa aba nova, ao lado da do processo.", { ms: 4200, bottom: true });
+		await S.cap("Prefere fora do popup? <b>🗂 Nova aba</b> abre o sistema numa aba nova, ao lado da do processo.", { ms: 4200, bottom: true });
 		S.hl("#x-monitor");
-		await S.cap("<b>🖥 Segundo monitor</b> abre o SerpJud numa janela que ocupa o outro monitor (se houver um conectado).", { ms: 4200, bottom: true });
+		await S.cap("<b>🖥 Segundo monitor</b> abre o sistema numa janela que ocupa o outro monitor (se houver um conectado).", { ms: 4200, bottom: true });
 		S.hlOff();
-		await S.cap("Para voltar ao processo, clique em <b>✕ Fechar</b> (ou tecle <b>Esc</b>).", { bottom: true });
+		await S.cap("Para voltar ao processo, clique em <b>✕ Fechar</b> (ou tecle <b>Esc</b>). Os outros ícones funcionam do mesmo jeito.", { bottom: true });
 		await S.click("#x-fechar");
 		$(".x-popup").remove();
-		await S.endCard("Ícone verde-água ao lado da balança → popup com o SERP-JUD (ou 🗂 Nova aba / 🖥 Segundo monitor) → ✕ Fechar.");
+		await S.endCard("Ícone do sistema ao lado da balança → popup (ou 🗂 Nova aba / 🖥 Segundo monitor) → ✕ Fechar.");
 	},
 };

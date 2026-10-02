@@ -22,7 +22,7 @@
 "use strict";
 
 // Aceite dos Termos de Uso e registro dos scripts do Projudi/SEEU.
-importScripts("termosUso.js");
+importScripts("termosUso.js", "sistemasCnjLista.js");
 
 const MESSAGE_SOURCE = "projudi-preview";
 const PENDING_KEY = "pdpWhatsappPending";
@@ -821,12 +821,12 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   return true;
 });
 
-// SerpJud (serpJud.js): "🗂 Nova aba" e "🖥 Segundo monitor" no popup do
-// SerpJud. Endereço fixo; só atende páginas do Projudi.
-const PDP_SERPJUD_URL = 'https://serp.registros.org.br/?login-callback=true';
+// Sistemas do CNJ (sistemasCnj.js): "🗂 Nova aba" e "🖥 Segundo monitor" no
+// popup de cada sistema. Só abre endereços da lista (sistemasCnjLista.js) e
+// só atende páginas do Projudi.
 
 // Abre numa janela maximizada no monitor que NÃO tem a janela do processo.
-async function pdpSerpJudSegundoMonitor(windowId) {
+async function pdpSistemaCnjSegundoMonitor(url, windowId) {
   if (!chrome.system?.display) throw new Error('Este navegador não informa os monitores conectados.');
   const telas = await chrome.system.display.getInfo();
   if (telas.length < 2) throw new Error('Não encontrei um segundo monitor conectado. Use "Nova aba" ou o próprio popup.');
@@ -837,21 +837,24 @@ async function pdpSerpJudSegundoMonitor(windowId) {
   const daJanela = telas.find(contem) || telas.find(t => t.isPrimary) || telas[0];
   const outra = telas.find(t => t !== daJanela && !t.isPrimary) || telas.find(t => t !== daJanela);
   const area = outra.workArea || outra.bounds;
-  const nova = await chrome.windows.create({ url: PDP_SERPJUD_URL, type: 'normal', left: area.left, top: area.top, width: area.width, height: area.height, focused: true });
+  const nova = await chrome.windows.create({ url, type: 'normal', left: area.left, top: area.top, width: area.width, height: area.height, focused: true });
   await chrome.windows.update(nova.id, { state: 'maximized' }).catch(() => {});
 }
 
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
-  if (message?.source !== 'projudi-preview' || message.type !== 'serpjud-open') return false;
+  if (message?.source !== 'projudi-preview' || message.type !== 'sistemas-cnj-open') return false;
+  let sistema;
   try {
     const origin = new URL(sender.url);
     if (!sender.tab || origin.protocol !== 'https:' || !/(^|\.)tjpr\.jus\.br$/.test(origin.hostname) ||
         !origin.pathname.startsWith('/projudi/')) throw new Error('Origem inválida.');
+    sistema = (self.PDP_SISTEMAS_CNJ || []).find(s => s.id === message.sistema);
+    if (!sistema) throw new Error('Sistema desconhecido.');
     if (message.onde !== 'aba' && message.onde !== 'monitor') throw new Error('Opção inválida.');
   } catch (error) { reply({ok:false, error:error.message}); return false; }
   const abrir = message.onde === 'aba'
-    ? chrome.tabs.create({ url: PDP_SERPJUD_URL, windowId: sender.tab.windowId, index: sender.tab.index + 1, openerTabId: sender.tab.id })
-    : pdpSerpJudSegundoMonitor(sender.tab.windowId);
+    ? chrome.tabs.create({ url: sistema.url, windowId: sender.tab.windowId, index: sender.tab.index + 1, openerTabId: sender.tab.id })
+    : pdpSistemaCnjSegundoMonitor(sistema.url, sender.tab.windowId);
   Promise.resolve(abrir)
     .then(() => reply({ok:true}))
     .catch(error => reply({ok:false, error:error.message}));

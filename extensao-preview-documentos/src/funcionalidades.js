@@ -119,10 +119,10 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					js: ["src/oraculoDirect.js", "src/oraculo.js"]
 				},
 				{
-					id: "serpJud",
-					nome: "SerpJud (CNJ)",
-					descricao: "Ícone ao lado da balança do Menu que abre o sistema SERP-JUD do CNJ num popup sobre a tela do processo.",
-					js: ["src/serpJud.js"]
+					id: "sistemasCnj",
+					nome: "Sistemas do CNJ",
+					descricao: "Ícones ao lado da balança do Menu que abrem SerpJud, CNIEP, PrevJud, Sisbajud, SNGB e Sniper num popup sobre a tela do processo.",
+					js: ["src/sistemasCnjLista.js", "src/sistemasCnj.js"]
 				},
 				{
 					id: "novaRemessa",

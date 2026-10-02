@@ -674,8 +674,8 @@ button.bt.primario:hover { background: #1f5591; }
 		if (!pos) return;
 		icone.style.top = pos.top + "px";
 		icone.style.left = pos.left + "px";
-		// Posição publicada para o ícone do SerpJud (serpJud.js), que fica
-		// ao lado da balança. Só muda o atributo quando a posição muda.
+		// Posição publicada para os ícones dos sistemas do CNJ
+		// (sistemasCnj.js), que ficam ao lado da balança. Só muda o atributo quando a posição muda.
 		const posTexto = pos.top + "," + pos.left;
 		if (host.getAttribute("data-pdp-icone-pos") !== posTexto) host.setAttribute("data-pdp-icone-pos", posTexto);
 		if (painel) {

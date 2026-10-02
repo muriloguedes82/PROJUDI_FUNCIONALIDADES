@@ -25,14 +25,17 @@
     "https://graph.microsoft.com/*",
     "https://outlook.office.com/*",
     "https://outlook.office365.com/*",
-    "https://*.registros.org.br/*"
+    "https://*.registros.org.br/*",
+    "https://*.cnj.jus.br/*",
+    "https://*.pdpj.jus.br/*",
+    "https://sso.cloud.pje.jus.br/*"
   ],
   "declarative_net_request": {
     "rule_resources": [
       {
-        "id": "serpJud",
+        "id": "sistemasCnj",
         "enabled": true,
-        "path": "rules/serpJud.json"
+        "path": "rules/sistemasCnj.json"
       }
     ]
   },
