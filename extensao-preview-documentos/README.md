@@ -648,8 +648,8 @@ no início e o usa em todas as etapas. Sem nenhuma marcada, nada muda.
 marcada, a preferência guarda `movimento: { texto }` (o título do evento).
 Ao usá-la pela cadeia (resolveDialogUrl), sem caixinha marcada na hora, a
 extensão parte da movimentação válida mais recente com esse nome
-(comparação sem acentos/maiúsculas); sem nenhuma, pergunta (`confirm`) se
-segue pela regra geral ou desiste.
+(comparação sem acentos/maiúsculas); sem nenhuma, pergunta (caixa de perguntarPendencia,
+"Prosseguir"/"Cancelar") se segue pela regra geral ou desiste.
 
 **Atenção a um detalhe já corrigido, mas que vale registrar:** o Projudi
 reaproveita o mesmo `id`/`name` (`movimentarButton`) para vários botões de

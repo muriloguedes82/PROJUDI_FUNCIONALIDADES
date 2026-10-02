@@ -308,8 +308,11 @@ CENAS.V38 = {
 		await S.cap("…e parte dele, sem você marcar nada.", { ms: 3000 });
 		t.remove();
 		await S.cap("Se o processo <b>não tiver</b> esse movimento, a extensão avisa e pergunta:");
-		modal('<p style="margin:0 0 10px">Não localizei o movimento "RECEBIDA A DENÚNCIA" na aba Movimentações deste processo.</p><p style="margin:0 0 10px">Deseja prosseguir mesmo assim com "Realizar Remessa"?</p><p style="margin:0 0 10px;color:#555">OK = prosseguir pela regra geral (a partir da movimentação mais recente, como se a preferência não tivesse movimento).<br>Cancelar = não executar.</p><div style="text-align:right"><span class="pj-btn primary" id="okm">OK</span> <span class="pj-btn">Cancelar</span></div>', { w: 560, top: 160 });
-		await S.cap("<b>OK</b> segue pela regra geral; <b>Cancelar</b> não executa nada.", { ms: 4000 });
+		modal('<div style="display:flex;justify-content:space-between;gap:8px"><b>★ Delegacia - cumprir denúncia — Realizar Remessa</b><span style="color:#888">✕</span></div>' +
+			'<p style="margin:10px 0">Não localizei o movimento "RECEBIDA A DENÚNCIA" na aba Movimentações deste processo. Deseja prosseguir mesmo assim com "Realizar Remessa"?</p>' +
+			'<p style="margin:8px 0;color:#666;font-size:12px;font-style:italic">Prosseguir executa pela regra geral (a partir da movimentação mais recente, como se a preferência não tivesse movimento). Cancelar não executa nada.</p>' +
+			'<div style="display:flex;gap:6px;justify-content:flex-end"><span class="x-btn small green" id="okm">✅ Prosseguir</span><span class="x-btn small">Cancelar</span></div>', { w: 480, top: 150 });
+		await S.cap("<b>✅ Prosseguir</b> segue pela regra geral; <b>Cancelar</b> não executa nada.", { ms: 4000 });
 		await S.click("#okm");
 		closeModal();
 		await S.cap("Preferências gravadas <b>sem</b> caixinha marcada continuam como sempre. E uma caixinha marcada na hora tem prioridade.", { ms: 5200 });

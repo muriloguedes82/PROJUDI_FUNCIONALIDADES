@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.10.3 |
-| **Versão da extensão** | 2.10.3 |
+| **Versão do manual** | 2.10.4 |
+| **Versão da extensão** | 2.10.4 |
 | **Data desta versão** | 02/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1053,9 +1053,10 @@ A AÇÃO*, *CONCEDIDA A MEDIDA PROTETIVA*):
    o movimento **com esse nome** (o mais recente, se houver vários; maiúsculas
    e acentos não importam) e parte dele.
 5. Se o processo **não tiver** esse movimento, aparece o aviso *Não localizei
-   o movimento "…" na aba Movimentações deste processo* com a pergunta se
-   deseja prosseguir: **OK** segue pela regra geral (como se a preferência não
-   tivesse movimento); **Cancelar** não executa nada (num combo, a barra
+   o movimento "…" na aba Movimentações deste processo*, numa caixa igual à
+   da pergunta sobre juntadas pendentes: **✅ Prosseguir** segue pela regra
+   geral (como se a preferência não tivesse movimento); **Cancelar** (ou **✕**)
+   não executa nada (num combo, a barra
    oferece Repetir, Próxima etapa ou Parar).
 
 Bom saber sobre essas preferências:
@@ -1511,7 +1512,7 @@ telas abertas a partir daí voltam a funcionar.
 | A barra de botões cobre algo da tela | Arraste **↕ Mover** ou clique em **Ocultar** ([2.4](#cap-2-4)) |
 | O painel de ações diz para abrir a aba Movimentações | Abra a aba **Movimentações** do processo e tente de novo ([7.1](#cap-7-1)) |
 | "A movimentação … marcada não leva à ação" | Marque outro evento na aba Movimentações (um despacho/decisão costuma funcionar) ou desmarque a caixinha ([7.7](#cap-7-7)) |
-| "Não localizei o movimento … na aba Movimentações" | O processo não tem movimento com o nome gravado na preferência 📌: **OK** segue a regra geral, **Cancelar** não executa ([7.7](#cap-7-7)) |
+| "Não localizei o movimento … na aba Movimentações" | O processo não tem movimento com o nome gravado na preferência 📌: **✅ Prosseguir** segue a regra geral, **Cancelar** não executa ([7.7](#cap-7-7)) |
 | Preferência abre com "⚠ Não consegui preencher" | A opção gravada não existe neste processo; preencha o campo à mão, ou edite/recrie a preferência ([7.2](#cap-7-2)) |
 | Preferência de Intimar Partes não marca as caixas certas | Grave-a de novo (preferências anteriores à versão 2.9.84) |
 | Importei o arquivo de backup e nada mudou | Recarregue (F5) as páginas do Projudi/SEEU abertas ([2.6](#cap-2-6)) |
@@ -1592,6 +1593,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.10.4 | 02/10/2026 | A pergunta "Não localizei o movimento…" (7.7) passa a usar a mesma caixa da pergunta sobre juntadas pendentes, com os botões **✅ Prosseguir** e **Cancelar** (antes, OK/Cancel do navegador). Vídeo V38 regravado. |
 | 2.10.3 | 02/10/2026 | Seção 7.7: **preferência que sempre parte de um movimento** — gravada com a caixinha de um movimento marcada, guarda o nome dele (📌) e, ao ser usada, parte do movimento mais recente com esse nome; se não houver, pergunta se segue pela regra geral. Linha nova em Solução de problemas e vídeo V38. |
 | 2.10.2 | 02/10/2026 | A caixinha da seção 7.7 passa para a **primeira coluna** da aba Movimentações, à esquerda do número (Seq.), em **todas** as movimentações (haja ou não arquivos); marcada uma, as demais ficam esmaecidas e bloqueadas até ela ser desmarcada. As caixinhas dos arquivos (WhatsApp e e-mail) não mudam. Vídeo V37 regravado. |
 | 2.10.1 | 02/10/2026 | Nova seção **7.7 Escolher a movimentação das Ações rápidas**: caixinha ao lado de cada evento da aba Movimentações para as ações rápidas, preferências e combos partirem do evento marcado (como em "Movimentar a Partir Desta Movimentação"); sem marcação, tudo continua como antes. Nova função na tabela da 2.6 (26 funções), linha nova em Solução de problemas e vídeo V37. |

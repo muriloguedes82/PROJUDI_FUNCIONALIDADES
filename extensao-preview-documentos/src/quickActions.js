@@ -703,7 +703,9 @@
 	// da tela atual.
 	// `movimentoNome` (opcional): nome do movimento gravado na preferência
 	// (ver findMovimentoPorNomeIn); sem ele, nada muda.
-	function resolveDialogUrl(label, origem, movimentoNome) {
+	// `tituloPergunta` (opcional): título da caixa que pergunta se segue sem o
+	// movimento (ex.: "★ Remessa MP — Realizar Remessa").
+	function resolveDialogUrl(label, origem, movimentoNome, tituloPergunta) {
 		const rootDoc = (origem && origem.doc) || document;
 		const baseUrl = (origem && origem.url) || window.location.href;
 		logChainStep('resolvendo URL de "' + label + '" em segundo plano', { partindoDe: baseUrl });
@@ -758,23 +760,27 @@
 		// ela no processo, pergunta; "OK" segue a regra geral, como se a
 		// preferência não tivesse movimento.
 		let nomeAchado = null;
+		// Resolve com true para seguir, false se o usuário desistir.
+		let seguir = Promise.resolve(true);
 		if (!base && movimentoNome) {
 			const porNome = findMovimentoPorNomeIn(rootDoc, movimentoNome);
 			logChainStep("preferência gravada a partir do movimento \"" + movimentoNome + "\"", { achado: !!porNome, id: porNome ? porNome.id : null });
 			if (porNome) {
 				events = [porNome];
 				nomeAchado = movimentoNome;
-			} else if (
-				!confirm(
-					'Não localizei o movimento "' + movimentoNome + '" na aba Movimentações deste processo.\n\n' +
-						'Deseja prosseguir mesmo assim com "' + label + '"?\n\n' +
-						"OK = prosseguir pela regra geral (a partir da movimentação mais recente, como se a preferência não tivesse movimento).\n" +
-						"Cancelar = não executar."
-				)
-			) {
-				return Promise.resolve({ failed: true, desistiu: true, movimentoNome: movimentoNome });
 			} else {
-				logChainStep("movimento não localizado; seguindo pela regra geral", null);
+				// A caixa fica na frente do "Abrindo…", que sai durante a pergunta.
+				removeLoadingOverlay();
+				seguir = perguntarPendencia(
+					tituloPergunta || "📌 " + label,
+					'Não localizei o movimento "' + movimentoNome + '" na aba Movimentações deste processo. Deseja prosseguir mesmo assim com "' + label + '"?',
+					"Prosseguir",
+					"Prosseguir executa pela regra geral (a partir da movimentação mais recente, como se a preferência não tivesse movimento). Cancelar não executa nada.",
+					"Cancelar"
+				).then(function (resposta) {
+					logChainStep(resposta === "sim" ? "movimento não localizado; seguindo pela regra geral" : "movimento não localizado; usuário cancelou", null);
+					return resposta === "sim";
+				});
 			}
 		}
 
@@ -851,7 +857,9 @@
 				});
 		}
 
-		return tryEvent(0);
+		return seguir.then(function (ok) {
+			return ok ? tryEvent(0) : { failed: true, desistiu: true, movimentoNome: movimentoNome };
+		});
 	}
 
 	// -------------------------------------------------------------------
@@ -2618,7 +2626,7 @@
 			if (hooks && hooks.onFail) hooks.onFail("cancelado");
 			onComboStepFailed("Abertura da etapa cancelada.");
 		}, movimentoBaseEscolhido() || (movimentoNome ? { texto: movimentoNome } : null));
-		resolveDialogUrl(label, origem, movimentoNome).then(function (result) {
+		resolveDialogUrl(label, origem, movimentoNome, "★ " + pref.name + " — " + label).then(function (result) {
 			removeLoadingOverlay();
 			if (cancelToken.cancelled) return;
 			if (result.failed && result.desistiu) {
@@ -3158,7 +3166,9 @@
 	}
 
 	// Resolve com "sim", "nao" ou null (cancelado).
-	function perguntarPendencia(titulo, pergunta, textoSim, explicacao) {
+	// `textoNao` (opcional): rótulo do segundo botão (padrão "Não, seguir sem
+	// isso"); a resposta dele continua sendo "nao".
+	function perguntarPendencia(titulo, pergunta, textoSim, explicacao, textoNao) {
 		return new Promise(function (resolve) {
 			const fundo = document.createElement("div");
 			fundo.id = PENDENCIAS_PERGUNTA_ID;
@@ -3171,7 +3181,7 @@
 				'<p class="pdp-qa-pend-obs">' + escapeHtml(explicacao) + "</p>" +
 				'<div class="pdp-qa-pend-botoes">' +
 				'<button type="button" class="pdp-qa-pend-btn pdp-qa-pend-sim">✅ ' + escapeHtml(textoSim) + "</button>" +
-				'<button type="button" class="pdp-qa-pend-btn pdp-qa-pend-nao">Não, seguir sem isso</button>' +
+				'<button type="button" class="pdp-qa-pend-btn pdp-qa-pend-nao">' + escapeHtml(textoNao || "Não, seguir sem isso") + "</button>" +
 				"</div></div>";
 			function responder(valor) {
 				document.removeEventListener("keydown", tecla, true);
