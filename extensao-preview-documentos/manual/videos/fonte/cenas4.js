@@ -210,3 +210,59 @@ CENAS.V36 = {
 		await S.endCard("Pendências → Cumprimentos para Expedir → Dispensar pendências.");
 	},
 };
+
+// ------------------------------------------------------------------ V37
+// Caixinha ao lado do evento para escolher a movimentação de referência das
+// Ações rápidas (src/movimentoBase.js).
+function caixinhasMovimentacao() {
+	document.querySelectorAll("#movs .ev").forEach(ev => {
+		const seq = ev.closest("tr").id.split(",")[1];
+		ev.insertAdjacentHTML("beforebegin", '<input type="checkbox" class="x-movbase" id="mb-' + seq + '" style="margin:0 4px 0 0;vertical-align:middle;accent-color:#1f6feb">');
+	});
+}
+function marcarMovimentacao(seq) {
+	document.querySelectorAll("#movs .x-movbase").forEach(c => {
+		c.checked = c.id === "mb-" + seq;
+		c.closest("tr").querySelectorAll("td").forEach(td => (td.style.boxShadow = c.checked ? "inset 0 2px 0 #1f6feb, inset 0 -2px 0 #1f6feb" : ""));
+	});
+}
+CENAS.V37 = {
+	arquivo: "V37-escolher-a-movimentacao.mp4",
+	titulo: "Escolher a movimentação das Ações rápidas",
+	secao: "7.7",
+	async run() {
+		telaProcesso({ acoesAbertas: true });
+		caixinhasMovimentacao();
+		await S.titleCard("VÍDEO V37", "Escolher a movimentação das Ações rápidas", "Marque o evento a partir do qual a remessa, a intimação ou a ordenação será feita.");
+		await S.cap("Na aba <b>Movimentações</b>, cada evento ganha uma <b>caixinha</b> à esquerda do nome.");
+		await S.cap("Sem nenhuma marcada, tudo continua como antes: a extensão parte da movimentação <b>mais recente</b>.");
+		await S.click("#mb-36");
+		marcarMovimentacao(36);
+		await S.cap("Marque a movimentação de referência — por exemplo, o <b>despacho</b> que manda remeter os autos. É como clicar em “Movimentar a Partir Desta Movimentação”.", { ms: 5200 });
+		await S.click("#mb-35");
+		marcarMovimentacao(35);
+		await S.cap("Só uma fica marcada por vez: marcar outra desmarca a anterior.");
+		await S.click("#mb-36");
+		marcarMovimentacao(36);
+		await S.cap("Agora use as Ações rápidas normalmente. Exemplo: grupo <b>Remessa</b> → preferência salva.");
+		await S.click('[data-g="Remessa"]');
+		const pn = panelAt(acaoPanel("Remessa", [{ nome: "Realizar Remessa", prefs: ["Vista ao MP - 5 dias"] }, { nome: "Remessa Eletrônica para o Tribunal de Justiça" }]), '[data-g="Remessa"]', { w: 420 });
+		await S.click('[data-pref="Vista ao MP - 5 dias"]', { dx: -40 });
+		pn.remove();
+		const t = toast("Abrindo “Realizar Remessa” a partir da movimentação 36 “DESPACHO - MERO EXPEDIENTE”… <u style=\"margin-left:10px\">Cancelar</u>", { left: 330, top: 330 });
+		await S.cap("O aviso “Abrindo…” mostra de qual movimentação a ação vai partir.", { ms: 3600 });
+		t.remove();
+		popup("Realizar Remessa", dlgRemessa({ op: "op-mp", dest: "Ministério Público", fin: "Vista", prazo: "5" }), { top: 120, h: 470 });
+		bar('Confirmar “Realizar Remessa” com a preferência “Vista ao MP - 5 dias”? <span class="x-btn small green" id="sim">✅ Sim, executar</span> <span class="x-btn small">Cancelar</span>', { top: 78 });
+		await S.cap("O diálogo abre preenchido, como sempre. Confira e clique em <b>✅ Sim, executar</b>.");
+		await S.click("#sim");
+		$(".x-bar").remove();
+		$(".x-popup .bd").innerHTML = '<div class="x-dlg-title">Realizar Remessa</div><div style="padding:16px"><div class="pj-msg-ok">Remessa realizada com sucesso.</div></div>';
+		await S.cap("A remessa fica vinculada à movimentação marcada — é ela que o destinatário vê como referência.", { ms: 4200 });
+		$(".x-popup").remove();
+		marcarMovimentacao(0);
+		await S.cap("Vale para <b>Ir e abrir</b>, preferências, <b>⭐ Minhas Preferências</b> e <b>🔗 Combos</b> (todas as etapas usam a movimentação marcada no início).", { ms: 5200 });
+		await S.cap("Quando a tela recarrega, a marcação some. Para voltar ao automático, basta desmarcar.");
+		await S.endCard("Aba Movimentações → marcar a caixinha do evento → Ações rápidas/preferência/combo → conferir → ✅ Sim, executar.");
+	},
+};

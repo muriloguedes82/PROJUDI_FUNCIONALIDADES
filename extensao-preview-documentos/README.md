@@ -635,6 +635,14 @@ painel depende de qual tela do processo você está vendo, já que o painel
   numa aba diferente do processo, como Partes e Outros): o painel avisa
   para abrir a aba "Movimentações" primeiro.
 
+**Movimentação escolhida pelo usuário (`src/movimentoBase.js`).** Na aba
+Movimentações, cada evento válido ganha uma caixinha (só uma marcada por
+vez). Com uma marcada, o passo 1 acima usa **só** esse evento (sem tentar
+outros; se ele não levar à ação, a extensão avisa) — o equivalente a clicar
+nele e em "Movimentar a Partir Desta Movimentação" à mão, para a remessa/
+intimação/ordenação ficar vinculada a ele. Um combo guarda o evento marcado
+no início e o usa em todas as etapas. Sem nenhuma marcada, nada muda.
+
 **Atenção a um detalhe já corrigido, mas que vale registrar:** o Projudi
 reaproveita o mesmo `id`/`name` (`movimentarButton`) para vários botões de
 "iniciar uma movimentação" em telas diferentes — por exemplo, o botão
