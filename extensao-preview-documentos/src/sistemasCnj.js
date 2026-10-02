@@ -1,5 +1,5 @@
-// Projudi - Ícones dos sistemas do CNJ (SerpJud, CNIEP, PrevJud, Sisbajud,
-// SNGB, Sniper e Infojud, da Receita - lista em sistemasCnjLista.js) ao lado do ícone do Menu da
+// Projudi - Ícones dos sistemas do CNJ (SerpJud, CNIEP, BNMP 3.0, PrevJud,
+// Sisbajud, SNGB, Sniper e Infojud, da Receita - lista em sistemasCnjLista.js) ao lado do ícone do Menu da
 // extensão (a balança dourada, ver menuExtensao.js).
 //
 // Os ícones têm o mesmo tamanho da balança, ficam enfileirados à esquerda
@@ -8,6 +8,11 @@
 // atributo "data-pdp-icone-pos" de #pdp-menu-host. Sem a balança no
 // documento, os ícones não aparecem. Não mexe na fileira de botões do
 // rodapé (quickActions.js/buttonDrag.js).
+//
+// A ordem dos ícones pode ser trocada arrastando um deles para o lado; ela
+// fica em chrome.storage.local ("pdpSistemasCnjOrdem", lista de ids) e, por
+// começar com "pdp", entra no Exportar/Importar do Menu (menuExtensao.js).
+// Um clique sem arrastar abre o sistema.
 //
 // O clique abre o sistema num popup sobre a própria tela do processo - o
 // mesmo tipo de janela usado pelas ações rápidas (Remessa, Concluso etc.,
@@ -34,6 +39,9 @@
 	const MENSAGEM_ABRIR = "pdp-sistemas-cnj-abrir";
 	const TAM = 22; // mesmo tamanho da balança (menuExtensao.js)
 	const ESPACO = 6;
+	const PASSO = TAM + ESPACO;
+	const ORDEM_KEY = "pdpSistemasCnjOrdem";
+	const LIMIAR_ARRASTO = 4; // px de movimento antes de virar arrasto
 
 	const CSS = `
 :host { all: initial; }
@@ -44,6 +52,8 @@
 	box-shadow: 0 1px 4px rgba(0,0,0,.25); transition: transform .15s, box-shadow .15s, filter .15s;
 }
 .icone[hidden] { display: none; }
+.icone.arrastando { z-index: 2147483001; cursor: grabbing; transform: scale(1.15); box-shadow: 0 4px 10px rgba(0,0,0,.35); transition: none; }
+.icone.deslizando { transition: left .15s, transform .15s, box-shadow .15s, filter .15s; }
 .icone:hover, .icone:focus-visible { transform: scale(1.1); filter: brightness(1.04); box-shadow: 0 2px 7px rgba(0,0,0,.3); outline: none; }
 .icone svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .icone svg .cheio { fill: currentColor; }
@@ -142,9 +152,33 @@
 	// ------------------------------------------------------------------
 
 	let host = null;
-	let icones = [];
+	let icones = {}; // id -> botão
+	let ordem = SISTEMAS.map(function (s) { return s.id; });
+	let base = null; // { top, left } da balança
+	let arrasto = null; // { id, inicioX, leftInicial, ativo, ordemTemp }
+	let ignorarClique = false;
 	let menuHost = null;
 	const observaMenu = new MutationObserver(posicionar);
+
+	// Ordem salva: ids conhecidos na ordem do usuário + os que faltarem
+	// (sistema novo numa versão futura) na ordem padrão.
+	function normalizarOrdem(salva) {
+		const padrao = SISTEMAS.map(function (s) { return s.id; });
+		const lista = (Array.isArray(salva) ? salva : []).filter(function (id, i, a) {
+			return padrao.indexOf(id) >= 0 && a.indexOf(id) === i;
+		});
+		return lista.concat(padrao.filter(function (id) { return lista.indexOf(id) < 0; }));
+	}
+
+	function gravarOrdem() {
+		chrome.storage.local.set({ [ORDEM_KEY]: ordem }).catch(function (err) {
+			console.error("[Projudi] Erro ao gravar a ordem dos sistemas do CNJ:", err);
+		});
+	}
+
+	function leftDoSlot(i) {
+		return Math.max(4, base.left - (i + 1) * PASSO);
+	}
 
 	function montar() {
 		host = document.createElement("div");
@@ -153,11 +187,12 @@
 		const style = document.createElement("style");
 		style.textContent = CSS;
 		shadow.append(style);
-		icones = SISTEMAS.map(function (sistema) {
+		icones = {};
+		SISTEMAS.forEach(function (sistema) {
 			const icone = document.createElement("button");
 			icone.type = "button";
 			icone.className = "icone";
-			icone.title = sistema.nome + " (" + orgao(sistema) + ") — abrir num popup sobre esta tela";
+			icone.title = sistema.nome + " (" + orgao(sistema) + ") — abrir num popup sobre esta tela. Arraste para o lado para mudar a posição.";
 			icone.setAttribute("aria-label", sistema.nome + " (" + orgao(sistema) + ")");
 			icone.style.setProperty("--claro", sistema.cor.claro);
 			icone.style.setProperty("--escuro", sistema.cor.escuro);
@@ -167,10 +202,15 @@
 			icone.hidden = true;
 			icone.addEventListener("click", function (ev) {
 				ev.stopPropagation();
+				if (ignorarClique) { ignorarClique = false; return; }
 				abrir(sistema);
 			});
+			icone.addEventListener("pointerdown", function (ev) { iniciarArrasto(ev, sistema.id); });
+			icone.addEventListener("pointermove", moverArrasto);
+			icone.addEventListener("pointerup", soltarArrasto);
+			icone.addEventListener("pointercancel", cancelarArrasto);
 			shadow.append(icone);
-			return icone;
+			icones[sistema.id] = icone;
 		});
 		document.documentElement.append(host);
 	}
@@ -180,16 +220,81 @@
 		const top = parseFloat(pos[0]);
 		const left = parseFloat(pos[1]);
 		if (!isFinite(top) || !isFinite(left)) {
-			icones.forEach(function (icone) { icone.hidden = true; });
+			base = null;
+			Object.keys(icones).forEach(function (id) { icones[id].hidden = true; });
 			return;
 		}
+		base = { top: top, left: left };
 		if (!host || !host.isConnected) montar();
-		icones.forEach(function (icone, i) {
+		const lista = arrasto && arrasto.ativo ? arrasto.ordemTemp : ordem;
+		lista.forEach(function (id, i) {
+			const icone = icones[id];
 			icone.style.top = top + "px";
-			icone.style.left = Math.max(4, left - (i + 1) * (TAM + ESPACO)) + "px";
+			if (!(arrasto && arrasto.ativo && arrasto.id === id)) icone.style.left = leftDoSlot(i) + "px";
 			icone.hidden = false;
 		});
 	}
+
+	// ------------------------------------------------------------------
+	// Arrastar para trocar a posição
+	// ------------------------------------------------------------------
+
+	function iniciarArrasto(ev, id) {
+		if (ev.button !== 0 || !base) return;
+		arrasto = { id: id, inicioX: ev.clientX, leftInicial: parseFloat(icones[id].style.left) || 0, ativo: false, ordemTemp: ordem.slice() };
+		try { icones[id].setPointerCapture(ev.pointerId); } catch (err) { /* segue sem captura */ }
+	}
+
+	function moverArrasto(ev) {
+		if (!arrasto || !base) return;
+		const dx = ev.clientX - arrasto.inicioX;
+		if (!arrasto.ativo) {
+			if (Math.abs(dx) < LIMIAR_ARRASTO) return;
+			arrasto.ativo = true;
+			icones[arrasto.id].classList.add("arrastando");
+			Object.keys(icones).forEach(function (id) { if (id !== arrasto.id) icones[id].classList.add("deslizando"); });
+		}
+		const left = arrasto.leftInicial + dx;
+		icones[arrasto.id].style.left = left + "px";
+		const destino = Math.max(0, Math.min(ordem.length - 1, Math.round((base.left - left) / PASSO) - 1));
+		const temp = ordem.filter(function (id) { return id !== arrasto.id; });
+		temp.splice(destino, 0, arrasto.id);
+		arrasto.ordemTemp = temp;
+		posicionar();
+	}
+
+	function encerrarArrasto(salvar) {
+		if (!arrasto) return;
+		const foi = arrasto;
+		arrasto = null;
+		Object.keys(icones).forEach(function (id) { icones[id].classList.remove("arrastando", "deslizando"); });
+		if (foi.ativo) {
+			// O "click" que o navegador dispara ao soltar não abre o sistema.
+			ignorarClique = true;
+			setTimeout(function () { ignorarClique = false; }, 0);
+			if (salvar && foi.ordemTemp.join() !== ordem.join()) {
+				ordem = foi.ordemTemp;
+				gravarOrdem();
+			}
+		}
+		posicionar();
+	}
+
+	function soltarArrasto() { encerrarArrasto(true); }
+	function cancelarArrasto() { encerrarArrasto(false); }
+
+	chrome.storage.local.get(ORDEM_KEY).then(function (dados) {
+		ordem = normalizarOrdem(dados[ORDEM_KEY]);
+		posicionar();
+	}).catch(function (err) {
+		console.error("[Projudi] Erro ao ler a ordem dos sistemas do CNJ:", err);
+	});
+	// Outra aba (ou a importação de preferências) mudou a ordem.
+	chrome.storage.onChanged.addListener(function (mudancas, area) {
+		if (area !== "local" || !mudancas[ORDEM_KEY]) return;
+		ordem = normalizarOrdem(mudancas[ORDEM_KEY].newValue);
+		if (!arrasto) posicionar();
+	});
 
 	// A balança (#pdp-menu-host) é montada direto em <html>, às vezes alguns
 	// segundos depois do carregamento (ver iniciar em menuExtensao.js).
