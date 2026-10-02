@@ -59,9 +59,18 @@
   // Aviso (progresso, sucesso ou falha) atualmente exibido no lugar do
   // botão de cada pendência.
   const cards = new Map();
-  function review(url, button, link) {
-    if (busy) return;
+  // `button` pode ser null e `onEnd({ok, message})` é opcional: usados pela
+  // API window.__pdpDispensas (preferências na linha do processo), em que o
+  // card de status fica junto de um elemento qualquer (`link`) da linha.
+  function review(url, button, link, onEnd) {
+    if (busy) return false;
     busy = true;
+    let ended = false;
+    function end(ok, message) {
+      if (ended || !onEnd) return;
+      ended = true;
+      onEnd({ ok, message, dismiss: cleanup });
+    }
     const token = crypto.randomUUID();
     const frame = document.createElement('iframe');
     frame.setAttribute('data-pdp-dispensa', token);
@@ -80,8 +89,7 @@
     const close = document.createElement('button');
     close.type = 'button'; close.textContent = 'Fechar aviso'; close.hidden = true;
     status.append(note,details,close);
-    button.remove();
-    buttons.delete(link);
+    if (button) { button.remove(); buttons.delete(link); }
     link.insertAdjacentElement('afterend',status);
     cards.set(link,status);
     let closed = false, attempted = false, submitted = false, succeeded = false, timer;
@@ -94,12 +102,14 @@
       if (closed) return;
       closed = true; clearTimeout(timer); frame.remove(); status.remove(); cards.delete(link);
       if (!succeeded) scanButtons(); // dispensa não confirmada: permite tentar de novo
+      end(false, 'Aviso fechado antes da confirmação da dispensa.');
     }
     function fail(message) {
       if (closed) return;
       busy = false; clearTimeout(timer);
       note.textContent = message;
       details.hidden = false; close.hidden = false;
+      end(false, message);
     }
     close.addEventListener('click', cleanup);
     details.addEventListener('click', () => {
@@ -116,7 +126,9 @@
             frame.remove(); busy = false; succeeded = true; dispensed.add(link);
             note.textContent = 'Juntada(s) já dispensada(s) - Movimentação permitida.';
             note.classList.add('pdp-dispensar-card-ok');
-            close.hidden = false; return;
+            close.hidden = false;
+            end(true, note.textContent);
+            return;
           }
         } else stable = null;
       } catch (_) { /* Não presume resultado quando a página não está acessível. */ }
@@ -147,6 +159,7 @@
     });
     timer = setTimeout(poll,250);
     frame.src = url;
+    return true;
   }
   const buttons = new Map();
   function scanButtons() {
@@ -180,6 +193,33 @@
   }
   scanButtons();
   new MutationObserver(scanButtons).observe(document.documentElement, { childList:true, subtree:true, attributes:true, attributeFilter:['href'] });
+
+  // Mesma dispensa, a partir da URL de análise de juntadas do processo
+  // (link do quadro Pendências), com o card de status após `anchor`.
+  window.__pdpDispensas = window.__pdpDispensas || {};
+  window.__pdpDispensas.juntadas = function (url, anchor) {
+    return new Promise(resolve => {
+      let target;
+      try {
+        target = new URL(url, location.href);
+        if (target.origin !== location.origin || !/^\/projudi\/.*\/analisarJuntada\.do$/.test(target.pathname)) throw new Error();
+      } catch (_) { resolve({ ok:false, message:'Endereço de análise de juntadas não reconhecido.' }); return; }
+      // Na tela do processo, `anchor` é o próprio link do quadro Pendências:
+      // o card de status toma o lugar do botão "Dispensar juntadas" dele.
+      if (!review(target.href, buttons.get(anchor) || null, anchor, resolve)) resolve({ ok:false, message:'Já há uma dispensa de juntadas em andamento.' });
+    });
+  };
+  // Pendência do quadro já dispensada (ou em dispensa) nesta página.
+  window.__pdpDispensas.juntadaDispensada = link => dispensed.has(link) || cards.has(link);
+  window.__pdpDispensas.juntadaURL = function (doc) {
+    for (const link of doc.querySelectorAll('#quadroPendencias a.link[href]')) {
+      try {
+        const url = new URL(link.getAttribute('href'), doc.URL);
+        if (url.origin === location.origin && /^\/projudi\/.*\/analisarJuntada\.do$/.test(url.pathname)) return url.href;
+      } catch (_) { /* segue */ }
+    }
+    return null;
+  };
 })();
 
 // Dispensa, em segundo plano, todas as intimações que aguardam análise de
@@ -239,9 +279,17 @@
     return button;
   }
 
-  function run(link, listUrl, button) {
-    if (busy) return;
+  // `button` pode ser null e `onEnd({ok, message})` é opcional (ver
+  // window.__pdpDispensas.decursos, abaixo).
+  function run(link, listUrl, button, onEnd) {
+    if (busy) return false;
     busy = true;
+    let ended = false;
+    function end(ok, message) {
+      if (ended || !onEnd) return;
+      ended = true;
+      onEnd({ ok, message, dismiss: cleanup });
+    }
     const token = crypto.randomUUID();
     const frame = document.createElement('iframe');
     frame.title = 'Dispensa de decursos de prazo em segundo plano';
@@ -260,7 +308,7 @@
     const close = document.createElement('button');
     close.type = 'button'; close.textContent = 'Fechar aviso'; close.hidden = true;
     status.append(note, details, close);
-    button.remove(); controls.delete(link);
+    if (button) { button.remove(); controls.delete(link); }
     link.insertAdjacentElement('afterend', status); cards.set(link, status);
 
     let state = 'list';
@@ -281,6 +329,7 @@
       if (closed) return;
       closed = true; clearTimeout(timer); frame.remove(); status.remove(); cards.delete(link);
       if (!succeeded) refresh();
+      end(false, 'Aviso fechado antes da confirmação da dispensa.');
     }
     function fail(message) {
       if (closed || state === 'failed') return;
@@ -289,6 +338,7 @@
       state = 'failed';
       busy = false; clearTimeout(timer); refresh();
       note.textContent = message; details.hidden = false; close.hidden = false;
+      end(false, message);
     }
     function finish() {
       if (closed || state === 'failed') return;
@@ -296,6 +346,7 @@
       note.textContent = 'Decurso(s) já dispensado(s) - Movimentação permitida.';
       note.classList.add('pdp-dispensar-card-ok'); close.hidden = false;
       refresh();
+      end(true, note.textContent);
     }
     function openNext(entries) {
       if (!entries.length) { finish(); return; }
@@ -344,6 +395,7 @@
     });
     arm();
     frame.src = listUrl;
+    return true;
   }
 
   function refresh() {
@@ -379,4 +431,24 @@
 
   new MutationObserver(refresh).observe(document.documentElement, {childList:true, subtree:true, attributes:true, attributeFilter:['href']});
   refresh();
+
+  // Mesma dispensa, a partir do documento da tela do processo (quadro
+  // Pendências), com o card de status após `anchor`.
+  window.__pdpDispensas = window.__pdpDispensas || {};
+  window.__pdpDispensas.decursoURL = function (doc) {
+    for (const link of doc.querySelectorAll('#quadroPendencias a.link[href]')) {
+      const text = normalize(link.textContent);
+      if (!/intimac/.test(text) || !/aguardando analise d[eo] decurso de prazo/.test(text)) continue;
+      try {
+        const url = new URL(link.getAttribute('href'), doc.URL);
+        if (url.origin === location.origin && url.pathname === listRoute && url.search) return url.href;
+      } catch (_) { /* segue */ }
+    }
+    return null;
+  };
+  window.__pdpDispensas.decursos = function (listUrl, anchor) {
+    return new Promise(resolve => {
+      if (!run(anchor, listUrl, null, resolve)) resolve({ ok:false, message:'Já há uma dispensa de decursos em andamento.' });
+    });
+  };
 })();

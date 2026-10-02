@@ -22,7 +22,7 @@
 "use strict";
 
 // Aceite dos Termos de Uso e registro dos scripts do Projudi/SEEU.
-importScripts("termosUso.js");
+importScripts("termosUso.js", "sistemasCnjLista.js");
 
 const MESSAGE_SOURCE = "projudi-preview";
 const PENDING_KEY = "pdpWhatsappPending";
@@ -821,6 +821,48 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   return true;
 });
 
+// Sistemas do CNJ (sistemasCnj.js): "🗂 Nova aba" e "🖥 Segundo monitor" no
+// popup de cada sistema. Só abre endereços da lista (sistemasCnjLista.js) e
+// só atende páginas do Projudi (e do SEEU, apenas o BNMP 3.0).
+
+// Abre numa janela maximizada no monitor que NÃO tem a janela do processo.
+async function pdpSistemaCnjSegundoMonitor(url, windowId) {
+  if (!chrome.system?.display) throw new Error('Este navegador não informa os monitores conectados.');
+  const telas = await chrome.system.display.getInfo();
+  if (telas.length < 2) throw new Error('Não encontrei um segundo monitor conectado. Use "Nova aba" ou o próprio popup.');
+  const atual = await chrome.windows.get(windowId);
+  const cx = (atual.left || 0) + (atual.width || 0) / 2;
+  const cy = (atual.top || 0) + (atual.height || 0) / 2;
+  const contem = t => cx >= t.bounds.left && cx < t.bounds.left + t.bounds.width && cy >= t.bounds.top && cy < t.bounds.top + t.bounds.height;
+  const daJanela = telas.find(contem) || telas.find(t => t.isPrimary) || telas[0];
+  const outra = telas.find(t => t !== daJanela && !t.isPrimary) || telas.find(t => t !== daJanela);
+  const area = outra.workArea || outra.bounds;
+  const nova = await chrome.windows.create({ url, type: 'normal', left: area.left, top: area.top, width: area.width, height: area.height, focused: true });
+  await chrome.windows.update(nova.id, { state: 'maximized' }).catch(() => {});
+}
+
+chrome.runtime.onMessage.addListener((message, sender, reply) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'sistemas-cnj-open') return false;
+  let sistema;
+  try {
+    const origin = new URL(sender.url);
+    const doProjudi = /(^|\.)tjpr\.jus\.br$/.test(origin.hostname) && origin.pathname.startsWith('/projudi/');
+    const doSeeu = origin.hostname === 'seeu.pje.jus.br' && origin.pathname.startsWith('/seeu/');
+    if (!sender.tab || origin.protocol !== 'https:' || !(doProjudi || doSeeu)) throw new Error('Origem inválida.');
+    sistema = (self.PDP_SISTEMAS_CNJ || []).find(s => s.id === message.sistema);
+    // No SEEU só o BNMP 3.0 (SISTEMAS_SEEU em sistemasCnj.js).
+    if (!sistema || (doSeeu && sistema.id !== 'bnmp')) throw new Error('Sistema desconhecido.');
+    if (message.onde !== 'aba' && message.onde !== 'monitor') throw new Error('Opção inválida.');
+  } catch (error) { reply({ok:false, error:error.message}); return false; }
+  const abrir = message.onde === 'aba'
+    ? chrome.tabs.create({ url: sistema.url, windowId: sender.tab.windowId, index: sender.tab.index + 1, openerTabId: sender.tab.id })
+    : pdpSistemaCnjSegundoMonitor(sistema.url, sender.tab.windowId);
+  Promise.resolve(abrir)
+    .then(() => reply({ok:true}))
+    .catch(error => reply({ok:false, error:error.message}));
+  return true;
+});
+
 // Leitura alternativa fora do documento/iframe do Projudi. Sem guardar o conteúdo.
 let pdpClipboardDocumentCreating;
 async function ensurePdpClipboardDocument() {
@@ -849,5 +891,18 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
     .then(() => chrome.runtime.sendMessage({ target: 'pdp-clipboard-offscreen', type: 'read-text' }))
     .then(result => reply(result || { ok: false, error: 'O leitor auxiliar não respondeu.' }))
     .catch(error => reply({ ok: false, error: error.message }));
+  return true;
+});
+
+// Menu da extensão (src/menuExtensao.js): páginas da própria extensão não
+// podem ser abertas direto pelo content script, então ele pede aqui.
+chrome.runtime.onMessage.addListener((message, _sender, reply) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'abrir-pagina-extensao') return false;
+  const paginas = { manual: 'src/manual.html', termos: 'src/termos.html' };
+  const pagina = paginas[message.pagina];
+  if (!pagina) { reply({ ok: false, error: 'Página desconhecida.' }); return false; }
+  chrome.tabs.create({ url: chrome.runtime.getURL(pagina), active: true })
+    .then(() => reply({ ok: true }))
+    .catch(error => reply({ ok: false, error: String(error.message || error) }));
   return true;
 });

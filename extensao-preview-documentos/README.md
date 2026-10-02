@@ -3,8 +3,8 @@
 <img src="icons/icon128.png" alt="Ícone do Olirum" width="64" align="right">
 
 **Olirum** é o nome da extensão: é "Murilo" escrito ao contrário, uma
-assinatura do autor. A marca é escrita em minúsculas com um ponto final
-dourado (`olirum.`). O ícone é uma lupa dourada sobre um documento, em fundo
+assinatura do autor. A marca é escrita com um ponto final
+dourado (`Olirum.`). O ícone é uma lupa dourada sobre um documento, em fundo
 preto — a pré-visualização dos autos, que é a função principal da extensão.
 Os ícones ficam em `icons/`, e o tile promocional do catálogo do Chrome
 (440×280) em `store/promo-pequeno-440x280.png`.
@@ -51,6 +51,53 @@ extensão funciona da mesma forma nos dois sistemas:
    "Finalizar Conclusão Pendente" e aguardar o recarregamento da página
    — é preciso repetir isso pendência por pendência (veja "Finalizar
    conclusão pendente" abaixo).
+
+## Menu da extensão (ícone fixo)
+
+Com a extensão ativa, um ícone pequeno (a balança da Justiça em azul-marinho,
+num quadrado arredondado dourado) fica sempre visível no cabeçalho:
+
+- **Projudi:** no canto superior direito, logo abaixo do link **Sair**;
+- **SEEU:** na faixa azul do menu, abaixo do nome do usuário.
+
+Ao rolar a página, o ícone acompanha o cabeçalho e, quando ele sai da
+tela, fica preso no topo. Um pontinho vermelho no ícone indica que há
+funcionalidades desativadas. Clique no ícone para abrir o **Menu**
+(fecha com o ✕, a tecla Esc ou um clique fora dele):
+
+1. **Funcionalidades** - todas as funcionalidades da extensão, agrupadas
+   por assunto, cada uma com uma chave liga/desliga. A escolha vale para
+   todas as páginas do Projudi e do SEEU a partir do próximo carregamento
+   da página (o Menu mostra o botão **Recarregar agora**). Algumas
+   dependem de outras (ex.: "Editar Partes/Outros" usa o popup das "Ações
+   rápidas"): ao desativar uma, as que dependem dela também são
+   desativadas; ao ativar uma, as que ela exige são ativadas junto - o
+   Menu avisa quais.
+2. **Preferências e combos** - backup para levar tudo a outro computador:
+   - **⬇ Exportar** baixa um arquivo `.json` com todas as preferências -
+     inclusive quais funcionalidades estão desativadas -, as preferências
+     e os combos das Ações rápidas e do Juntar Documento, as listas de
+     tarefas, os contatos do WhatsApp, os destinatários e remetentes de
+     e-mail, os destaques de movimentações etc.;
+   - **⬆ Importar** lê esse arquivo (no outro computador, com a mesma
+     extensão instalada), mostra um resumo do que ele contém e, após a
+     confirmação, substitui as preferências daquele computador pelas do
+     arquivo;
+   - **↺ Padrão** reativa todas as funcionalidades, sem apagar nenhuma
+     preferência salva.
+
+   O arquivo não leva o aceite dos Termos de Uso (cada instalação aceita
+   os seus), nem login/token do Microsoft Graph, nem trabalhos em
+   andamento (envios, combos e juntadas pendentes).
+3. **📖 Manual do Usuário** - abre o manual (`manual/MANUAL.md`) numa nova
+   aba, com índice, busca e os vídeos instrutivos (`manual/videos/`) tocando
+   na própria página. Há também o link para consultar os **Termos de Uso**.
+   O manual é atualizado a cada versão da extensão - veja
+   [`manual/COMO-ATUALIZAR.md`](manual/COMO-ATUALIZAR.md).
+
+Tecnicamente, desativar uma funcionalidade faz com que os arquivos dela
+simplesmente deixem de ser injetados nas páginas (o catálogo fica em
+`src/funcionalidades.js`; o registro, em `src/termosUso.js`).
 
 ## Pré-visualização de Documentos
 
@@ -514,15 +561,21 @@ lado a lado, no mesmo canto da tela dos botões de WhatsApp/e-mail
   processo e abre o diálogo "Arquivamento de Processo" pelo link nativo —
   esse diálogo só grava o arquivamento quando roda dentro dela)
 - **Outras**: Interromper Prazo, Declínio de competência para a Segunda
-  Instância, Apensar, Desapensar
+  Instância, Apensar, Desapensar, Anotações Criminais, Solicitar
+  Antecedentes Criminais (estas duas ficam no bloco "Comunicar ao IIPR"
+  da coluna de Ações, só em processos criminais; como "Arquivar
+  Processo", fora da tela de Ações o popup carrega a própria tela de
+  Ações e abre o diálogo pelo link nativo)
 
 Numa segunda linha, logo abaixo do botão **"▸/▾ Ações"** (que recolhe ou
 mostra os botões dos grupos acima), ficam o botão **"📋 Processo
-copiado"** e o botão **"🖍️ Destacar movimentações"**, que abre um popup
+copiado"** e o botão **"🖍️ Destacar mov."**, que abre um popup
 (sobreposto à própria tela, sem trocar de aba) para escolher quais tipos
 de usuário (Magistrado, Ministério Público, Advogado) destacar na aba
 Movimentações, e com qual cor — veja "Destaque de movimentações por tipo
-de usuário" mais acima.
+de usuário" mais acima. Na mesma linha fica o **"🔗 Combos"**, que executa
+várias preferências salvas em sequência (ver "Combos de preferências"
+abaixo).
 
 Cada botão abre um painel com as ações daquele grupo — o conteúdo do
 painel depende de qual tela do processo você está vendo, já que o painel
@@ -595,6 +648,22 @@ painel depende de qual tela do processo você está vendo, já que o painel
   numa aba diferente do processo, como Partes e Outros): o painel avisa
   para abrir a aba "Movimentações" primeiro.
 
+**Movimentação escolhida pelo usuário (`src/movimentoBase.js`).** Na aba
+Movimentações, cada linha ganha uma caixinha na primeira coluna (à esquerda
+do "Seq."); marcada uma, as demais ficam esmaecidas e bloqueadas até ela ser
+desmarcada. As caixinhas dos arquivos (WhatsApp/e-mail) não são tocadas. Com uma marcada, o passo 1 acima usa **só** esse evento (sem tentar
+outros; se ele não levar à ação, a extensão avisa) — o equivalente a clicar
+nele e em "Movimentar a Partir Desta Movimentação" à mão, para a remessa/
+intimação/ordenação ficar vinculada a ele. Um combo guarda o evento marcado
+no início e o usa em todas as etapas. Sem nenhuma marcada, nada muda.
+
+**Preferência gravada a partir de um movimento.** Salva com uma caixinha
+marcada, a preferência guarda `movimento: { texto }` (o título do evento).
+Ao usá-la pela cadeia (resolveDialogUrl), sem caixinha marcada na hora, a
+extensão parte da movimentação válida mais recente com esse nome
+(comparação sem acentos/maiúsculas); sem nenhuma, pergunta (caixa de perguntarPendencia,
+"Prosseguir"/"Cancelar") se segue pela regra geral ou desiste.
+
 **Atenção a um detalhe já corrigido, mas que vale registrar:** o Projudi
 reaproveita o mesmo `id`/`name` (`movimentarButton`) para vários botões de
 "iniciar uma movimentação" em telas diferentes — por exemplo, o botão
@@ -614,8 +683,12 @@ diálogo como **preferência** e reaplicá-lo depois com poucos cliques:
    ordem, texto, etc.).
 3. Com o diálogo ainda aberto, clique em **"💾 Salvar como preferência"**
    (uma barra aparece no topo da tela) e dê um nome a ela — ex.: "Intimar
-   assistente social padrão". Nada é enviado ao Projudi nesse passo: você
-   ainda decide se confirma o formulário manualmente, como sempre.
+   assistente social padrão". Antes do nome, a extensão **mostra a lista
+   dos campos que serão gravados** (rótulo e valor, ex.: "Finalidade:
+   Elaboração de Relatório") — se faltar algum, cancele, ajuste o diálogo
+   e salve de novo. Depois de salvar, a gravação é conferida relendo o
+   armazenamento. Nada é enviado ao Projudi nesse passo: você ainda decide
+   se confirma o formulário manualmente, como sempre.
 4. Da próxima vez, clique na preferência salva (aparece como um chip
    **"★ nome-da-preferência"** abaixo da ação, com um 🗑 para remover) — a
    extensão abre o mesmo diálogo, repreenche os mesmos campos
@@ -625,6 +698,50 @@ diálogo como **preferência** e reaplicá-lo depois com poucos cliques:
    botão de confirmar/enviar do próprio Projudi — **esse é o passo que
    efetivamente realiza a ação processual**, então confira os campos
    preenchidos antes de confirmar.
+
+**Como a preferência é gravada e preenchida.** A preferência guarda **só
+o que você preencheu ou selecionou** no diálogo — o que difere do padrão
+da tela: campos bloqueados (ex.: as seções não escolhidas de "Realizar
+Remessa"), blocos ocultos (ex.: o prazo individual de cada parte em
+"Intimar Partes", que só abre no "+"), textos e listas vazios ou no valor
+padrão, e bolinhas e caixas no estado padrão ficam de fora. Cada campo
+guarda o valor e, nas listas, também o **texto da opção** escolhida, além
+do rótulo do campo na tela e da seção do diálogo (ex.: "Urgente — Partes -
+Vítima").
+
+Quando vários campos têm o mesmo nome e valor — as caixas "marcar todos"
+de "Intimar Partes" são todas `checker` —, cada um é identificado pela
+**seção e pelo rótulo** (ex.: "Partes - Vítima | Advogado/Sociedade de
+Advogados"), o que vale também em outro processo, com outras seções;
+campos ocultos de mesmo nome (espelhos que o Projudi mantém) são
+ignorados. A caixa de uma parte específica (o valor dela é o código da
+parte) só é marcada no processo em que existe; noutro processo ela é
+ignorada — nunca é trocada por outra parte "na mesma posição" — e vale o
+"marcar todos" da coluna, se ele foi gravado. Ao aplicar, a extensão preenche em rodadas, até cada campo
+"pegar":
+
+- bolinhas e caixas primeiro, com um clique de verdade — há telas que só
+  liberam os campos de uma opção pelo clique (ex.: "Outras Remessas");
+- listas que carregam depois de outro campo (ex.: a **Finalidade**, que
+  depende do **Destino**) são aguardadas; a opção é achada pelo valor ou
+  pelo texto. Um **select2** vazio (ex.: o Destino, alimentado só pela
+  busca) ganha a opção gravada na hora; uma lista comum que continua vazia
+  por 2,5s, sem outra alteração no diálogo, também;
+- por alguns segundos depois do preenchimento, e de novo no clique em
+  "Sim, executar", campos que a própria tela tenha esvaziado (recarga
+  tardia) são repostos — uma alteração feita por você nunca é desfeita.
+
+A barra "Sim, executar" só aparece no fim do preenchimento. Se algum
+campo não puder ser preenchido (ex.: a opção gravada não existe mais), a
+barra avisa "⚠ Não consegui preencher: …" e o "Sim, executar" **não
+envia** enquanto esse campo estiver vazio. O aviso e a conferência valem
+só para os campos que a preferência preencheu. Preferências gravadas antes
+da versão 2.9.82 (que guardavam também campos vazios e de seções não
+escolhidas) continuam funcionando: esses campos são ignorados ao aplicar,
+assim como os campos que não existem no processo atual. Preferências de
+diálogos com caixas repetidas (ex.: "Intimar Partes") gravadas antes da
+versão 2.9.84 devem ser **salvas de novo**, para guardarem a seção e o
+rótulo de cada caixa.
 
 Para **editar** uma preferência, clique no **✏️** ao lado dela (o 🗑
 continua removendo): a extensão abre o mesmo diálogo já preenchido com a
@@ -659,6 +776,98 @@ As preferências ficam em `chrome.storage.local` (armazenamento local da
 própria extensão, não enviado a nenhum servidor), organizadas por ação —
 ex.: as preferências de "Ordenar Cumprimentos" não aparecem em "Ordenar
 RPV".
+
+### Combos de preferências (várias preferências em sequência)
+
+Um **combo** junta preferências já salvas — de qualquer ação do painel,
+do "Alvará Eletrônico" e do **"📎 Juntar Documento"** — para executá-las
+**uma depois da outra, na ordem escolhida** — ex.: "Intimar MP" →
+"Juntar Certidão de decurso" → "Enviar Concluso p/ sentença".
+
+Para criar, clique no botão **"🔗 Combos"** (na segunda linha, junto do
+"📋 Colar processo") e em **"+ Novo combo"**:
+
+1. dê um nome ao combo;
+2. na **caixa 1**, escolha a preferência que deve ser executada
+   **primeiro** (a lista mostra todas as preferências salvas, agrupadas
+   por ação; a ação da preferência escolhida aparece acima da caixa);
+3. clique em **"+ Adicionar preferência"** para abrir a **caixa 2** e
+   escolha a próxima — e assim por diante (o botão só fica ativo depois de
+   escolhida a preferência da última caixa). As setas ↑/↓ mudam a ordem e
+   o ✕ remove uma caixa;
+4. clique em **"💾 Salvar combo"** (são necessárias pelo menos 2
+   preferências).
+
+No painel "🔗 Combos", cada combo aparece como **"▶ nome"** (executar),
+com ✏️ (editar etapas, ordem e nome) e 🗑 (remover o combo — as
+preferências continuam salvas). Passar o mouse sobre "▶" mostra as etapas.
+O combo guarda só a referência a cada preferência: editar a preferência
+depois vale também para o combo; se ela for removida, o combo avisa e pede
+para escolher outra.
+
+Ao clicar em **"▶ nome"** (em qualquer aba da tela do processo, ou na
+tela de Ações), a 1ª etapa abre no popup das "Ações rápidas", já preenchida, com
+a barra de confirmação de sempre — agora com "Combo ... — etapa 1 de N".
+**Cada etapa continua pedindo o "✅ Sim, executar"**: o combo nunca
+confirma um ato processual sozinho, só poupa o trabalho de abrir e
+preencher cada ação. Executada uma etapa (o "Sim, executar" foi clicado,
+ou o próprio Projudi sinalizou o fim da ação), a seguinte abre sozinha —
+inclusive depois do recarregamento da tela que o Projudi faz ao terminar
+uma ação: o andamento fica no `sessionStorage` (só nesta aba) e a tela
+recarregada continua da etapa seguinte.
+
+Enquanto o combo roda, uma barra embaixo da tela mostra a etapa atual, com
+**"↻ Repetir etapa"**, **"⏭ Próxima etapa"** e **"⏹ Parar combo"**. Se o
+popup de uma etapa for fechado sem o "Sim, executar" (✕ Fechar,
+Cancelar, erro ao abrir), o combo espera: repita a etapa, siga para a
+próxima (se ela foi concluída à mão — é o caso do "Alvará Eletrônico",
+que só preenche e deixa o "Salvar" para o usuário) ou pare. Se outro
+processo for aberto na mesma aba, o combo não continua nele.
+
+**Início automático.** Cada etapa começa sozinha; o combo só para quando
+precisa de você — o "Sim, executar", a assinatura da juntada, um erro do
+Projudi ou um campo que não foi possível preencher. Uma etapa interrompida
+pela troca de tela antes do "Sim, executar" é reaberta sozinha (até 2
+vezes); um popup que, depois do "Sim, executar", fica numa tela de
+"sucesso" é fechado sozinho.
+
+**Etapa "Juntar Documento"**: não usa o popup — a extensão abre a tela
+"Juntar Documento" na própria aba e faz a juntada com a preferência, como
+o "★" do painel "📎 Juntar Documento" (ver abaixo): preenche cada tela,
+chama o assinador (o usuário assina) e clica em "Confirmar Inclusão" e em
+"Concluir Movimento". A confirmação dessa etapa é a própria assinatura.
+Depois do "Concluir Movimento", o Projudi mostra a tela "Dados registrados
+com sucesso! Movimentar Processo" (onde os botões da extensão não
+aparecem): com essa confirmação, a extensão clica sozinha em **"Voltar
+para o Processo"**, e o combo segue para a etapa seguinte. Se a juntada for
+interrompida ("Parar" na faixa do Juntar Documento, ou outra tela aberta),
+a barra do combo pergunta como seguir.
+
+**De onde cada etapa parte.** As ações do painel chegam à tela de Ações
+a partir da lista de movimentações; o "Juntar Documento", do botão nativo
+da tela do processo. Como uma etapa pode terminar em outra tela (o
+"Concluir Movimento" da juntada para numa tela com "Voltar para o
+Processo", e esse botão abre o processo na aba "Informações Gerais", sem a
+lista de movimentações), antes de abrir cada etapa o combo prepara o
+ponto de partida sozinho:
+
+1. se a tela atual já serve, abre a etapa direto;
+2. na tela do processo, em outra aba: lê a aba **"Movimentações" em
+   segundo plano** (a mesma leitura de aba usada pelo "(Des)Habilitar
+   Advogado") e usa as movimentações dela — a tela visível não muda; se
+   essa leitura falhar, abre a aba Movimentações pelo próprio item de aba
+   do Projudi e continua lá;
+3. fora da tela do processo: clica em **"Voltar para o Processo"** e
+   continua lá.
+
+São no máximo 3 navegações seguidas por etapa; se ainda assim não der, a
+barra pede para abrir a aba Movimentações e clicar em "Repetir etapa". Se
+uma etapa não conseguir abrir (ação não encontrada, "Cancelar" no
+"Abrindo…"), a barra também passa a oferecer Repetir/Próxima/Parar.
+
+Os combos ficam em `chrome.storage.local` (chave `pdpPreferenceCombos`);
+cada etapa guarda a ação e o id da preferência (as do "Juntar Documento"
+vêm de `pdpJuntarDocumentoPrefs`).
 
 ## Alvará Eletrônico (popup para "Cadastrar Alvará Eletrônico")
 
@@ -724,8 +933,8 @@ a aba "Partes e Outros" e, na barra de botões ao final dela, clicar no
 botão nativo **"Advogados"** (um único botão por processo, não por parte),
 que leva à tela onde essas ações ficam disponíveis.
 
-Ao lado do botão **"📋 Processo copiado"** (ver "Ações rápidas" acima), a
-extensão adiciona o botão **"⚖️ (Des)Habilitar Advogado"**, que abre essa
+Ao lado do botão **"📋 Colar processo"** (ver "Ações rápidas" acima), a
+extensão adiciona o botão **"⚖️ Advogados"**, que abre essa
 tela num **popup sobreposto à tela atual** — a MESMA janela/mecanismo já
 usado pelo painel "Ações rápidas" para diálogos como "Ordenar
 Cumprimentos" e "Realizar Remessa" (ver acima): a aba visível nunca
@@ -764,8 +973,8 @@ barra de botões ao final dela, clicar no botão nativo **"Partes e Outros"**
 "Desmembrar"), que leva à tela **"Partes do Processo"** (lista de todas as
 partes, com "Adicionar" e "Voltar").
 
-Na mesma linha do **"📋 Processo copiado"**, logo após o "⚖️ (Des)Habilitar
-Advogado", a extensão adiciona o botão **"👥 Editar Partes/Outros"**, que
+Na mesma linha do **"📋 Colar processo"**, logo após o "⚖️ (Des)Habilitar
+Advogado", a extensão adiciona o botão **"👥 Partes"**, que
 abre essa tela no **mesmo popup** das "Ações rápidas" — a aba visível
 nunca navega; fecha com "✕ Fechar".
 
@@ -786,7 +995,7 @@ ao "Inserir Arquivo", com o arquivo "Assinado: Não" → **"Assinar
 Arquivos"** (chama o assinador) → **"Confirmar Inclusão"** → **"Concluir
 Movimento"**.
 
-Na mesma linha do **"📋 Processo copiado"**, logo após o "👥 Editar
+Na mesma linha do **"📋 Colar processo"**, logo após o "👥 Editar
 Partes/Outros", a extensão adiciona o botão **"📎 Juntar Documento"**. Ele
 abre um painel com:
 
@@ -909,6 +1118,44 @@ ausente na aba aparece como "não cadastrado". As buscas são feitas duas de
 cada vez, uma única vez por processo, e o resultado fica em
 `sessionStorage` (por número do processo), para aparecer na hora ao
 filtrar de novo, trocar de página ou abrir o cumprimento. Só no Projudi.
+
+## Endereço da parte e Mandado Regionalizado na ordenação
+
+No diálogo **Ordenar Cumprimentos**, a linha "Referente a(s) parte(s):"
+mostra só o tipo e o nome da parte — para saber o endereço (e se o mandado
+vai para outra comarca) era preciso abrir a aba "Partes e Outros".
+
+- Ao **marcar uma parte**, aparece logo abaixo dela o(s) endereço(s)
+  cadastrado(s) na aba **"Partes e Outros"** do processo
+  (`📍 (1) R ..., 23 Bairro: ... Cidade: CURITIBA/PR CEP: ...`).
+- Com o Tipo de Cumprimento **MANDADO**, a extensão confere a cidade do
+  (primeiro) endereço das partes marcadas e compara com a **comarca do
+  juízo**, lida do link **"Atuação"** do cabeçalho (ex.: "Vara Criminal de
+  Pinhais" → comarca de Pinhais):
+  - cidade de **outra comarca** que consta da lista **"Comarca de
+    Destino"** → "Tipo do Mandado" passa para **Mandado Regionalizado** e
+    a comarca é marcada (a linha "Comarca de Destino" aparece e a Central
+    de Mandados é carregada pelo próprio Projudi; havendo uma só central,
+    ela já fica marcada);
+  - cidade da **própria comarca** → fica **Mandado Comum** (se tinha sido
+    a extensão que escolheu "Regionalizado", volta para "Comum");
+  - endereço **sem cidade** identificável, partes em **comarcas
+    diferentes** ou cidade **fora da lista** de Comarcas de Destino (ex.:
+    outro estado) → **nada é alterado**.
+
+  Uma nota amarela abaixo de "Tipo do Mandado" explica o que foi feito (ou
+  por que nada foi alterado). A escolha manual do usuário sempre prevalece:
+  a extensão só age quando o usuário marca/desmarca partes ou escolhe o
+  Tipo de Cumprimento — nunca durante o reenvio em segundo plano do
+  "🔁 Nova Ordenação".
+
+Os endereços vêm da mesma aba "Partes e Outros" (linhas ocultas de
+endereço de cada parte), lida da tela do processo por trás do diálogo ou,
+se ela estiver em outra aba, buscada em segundo plano (POST com
+`selectedIcon=tabPartes`, mesma técnica do "Réus/Indiciados/Noticiados no
+cabeçalho"). A cidade é lida do trecho "CIDADE/UF" do endereço (ex.: "... -
+Jardim Carvalho - PONTA GROSSA/PR - CEP: ...") ou de "Cidade: NOME/UF"; na falta, pelo nome de
+uma comarca conhecida no texto do endereço. Só no Projudi.
 
 ## Informações processuais nas ordenações BNMP (exceto guias)
 
@@ -1228,6 +1475,94 @@ O botão fica desabilitado durante a operação e mostra o resultado
 diretamente nele; a lista de pendências não é recarregada
 automaticamente, já que o Projudi não faz isso sozinho. Apenas uma
 finalização é processada por vez.
+
+## Listas de tarefas (cores/bolinhas e tarefas escritas)
+
+Nas telas **Análise de Juntadas** (`processo/analisarJuntada.do`),
+**Retorno de Conclusão** (`processo/conclusao.do`) e **Análise de Decurso
+de Prazo** (`processo/intimacaoBusca.do`), a extensão permite organizar os
+processos em listas de tarefas próprias do usuário (`src/listaTarefas.js`):
+
+- **Legenda**: acima da tabela de resultados aparece a barra "Listas de
+  tarefas", com uma bolinha colorida e o nome de cada lista criada, além
+  da quantidade de processos da página em cada uma. Clicar numa lista
+  filtra a tabela, mostrando só os processos dela (clicar de novo, ou em
+  "✕ limpar filtro", volta a mostrar todos).
+- **Na linha do processo**, ao lado do número: as bolinhas das listas em
+  que o processo está, um contador "✎ N" com as tarefas escritas ainda
+  pendentes (passe o mouse para ler o texto; "✎ ✓" quando todas foram
+  concluídas) e o botão **+**, que abre o painel do processo. Nele é
+  possível marcar/desmarcar as listas (cores), escrever tarefas, marcá-las
+  como concluídas, editá-las (✏️) e removê-las (🗑), e aplicar as
+  preferências com um clique.
+- **⚙ Gerenciar listas e preferências**: cria, edita (nome e cor —
+  paleta ou cor livre), reordena (▲/▼) e remove as **listas**; e cria,
+  edita, reordena e remove as **preferências** — tarefas prontas (texto
+  e, opcionalmente, uma lista) que, aplicadas a um processo, incluem a
+  tarefa escrita e já o colocam na lista associada. Remover uma lista a
+  retira de todos os processos (as tarefas escritas continuam). Há ainda
+  a opção de apagar, de uma vez, as tarefas concluídas de todos os
+  processos.
+
+As listas e tarefas são vinculadas ao **número do processo**, então o
+mesmo processo mostra as mesmas marcações nas três telas. Os dados ficam
+em `chrome.storage.local` (`pdpTarefasListas`, `pdpTarefasPreferencias` e
+`pdpTarefasProcessos`), valem para todos os hosts do Projudi, sobrevivem
+ao fechamento do navegador e são atualizados em todas as abas abertas.
+Ficam só neste navegador: não são compartilhados com outros servidores.
+
+## Minhas Preferências na linha do processo (⭐)
+
+Nas mesmas três telas (Análise de Juntadas, Retorno de Conclusão e Análise
+de Decurso de Prazo), cada linha de processo ganha, ao lado do **+** das
+listas de tarefas, o botão **⭐**, que abre os cards de "Minhas
+Preferências" (as mesmas preferências das ações rápidas: Realizar
+Remessa, Enviar Concluso, Intimar Partes, Ordenar Cumprimentos...). Ao
+escolher um card (`src/preferenciasNaLinha.js`):
+
+1. A extensão pergunta, conforme a tela, se deve antes **dispensar as
+   juntadas**, **finalizar a conclusão** ou **dispensar os decursos de
+   prazo** pendentes do processo. Tanto **Sim** quanto **Não** seguem o
+   fluxo: o "Sim" só acrescenta essa etapa, feita pelos mesmos recursos dos
+   botões do quadro Pendências ("Dispensar juntadas", "Finalizar conclusão"
+   e "Dispensar decursos" - que dispensam **todas** as juntadas/decursos
+   pendentes daquele processo). Se essa etapa falhar, o motivo aparece na
+   linha e o fluxo continua. O ✕ (ou Esc) cancela tudo.
+2. A tela do processo é carregada em segundo plano (iframe oculto) - no
+   Retorno de Conclusão, cuja linha não tem link para o processo, o
+   endereço é lido na tela de análise da conclusão ou, se não estiver lá,
+   obtido pela busca por número. A partir dela, o diálogo da ação abre já
+   preenchido com a preferência, no mesmo popup das ações rápidas, com a
+   mesma barra **"✅ Sim, executar"**: nada é enviado ao Projudi sem esse
+   clique.
+3. A linha mostra o andamento e o resultado (ex.: "✅ Juntada(s) já
+   dispensada(s) · ★ Remessa MP: concluída"). A listagem **não** é
+   recarregada ao fim, para não perder a busca/filtro feitos.
+
+**Combos.** Abaixo das preferências, o painel do ⭐ lista também os
+**🔗 Combos** ("▶ nome"; passe o mouse para ver as etapas). A pergunta de
+dispensa/finalização é feita uma vez, antes da 1ª etapa, e depois:
+
+- **combo só com ações do painel** (Remessa, Concluso, Intimar,
+  Ordenar...): as etapas rodam ali mesmo, uma a uma, cada uma no popup já
+  preenchido e com o seu "✅ Sim, executar" (a tela do processo é lida de
+  novo em segundo plano antes de cada etapa). A linha mostra "etapa i de
+  N"; se o popup de uma etapa for fechado sem executar, a linha oferece
+  **↻ Repetir etapa**, **⏭ Próxima etapa** e **⏹ Parar combo**;
+- **combo com etapa "Juntar Documento" ou "Alvará Eletrônico"** (marcado
+  "nova aba" no card): essas etapas navegam a tela do processo, então o
+  processo é aberto numa **nova aba** (mesma busca do "Colar processo") e
+  o combo começa sozinho lá, com a barra e o andamento de sempre. A
+  listagem fica intacta. O pedido fica gravado em `pdpComboPendente` por
+  até 3 minutos e só vale para a tela desse mesmo processo.
+
+Uma preferência ou combo por vez. Preferências avulsas de "Juntar
+Documento" e do "Alvará Eletrônico" aparecem esmaecidas: continuam
+disponíveis só na tela do processo (ou dentro de um combo, como acima). Para permitir isso, `quickActions.js` passou a carregar também
+nas telas em que a fileira de botões fica oculta (sem exibir nada), só para
+expor a API usada pela linha (`applyPreferenceFrom`/`loadFavItems`), e
+`juntadaDrag.js`/`finalizarConclusao.js` expõem as dispensas em
+`window.__pdpDispensas`.
 
 ## Dispensar decursos de prazo
 

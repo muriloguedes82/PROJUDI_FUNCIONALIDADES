@@ -93,4 +93,101 @@
   }
   new MutationObserver(refresh).observe(document.documentElement, {childList:true, subtree:true});
   refresh();
+
+  // Mesma finalização, a partir da URL de análise da conclusão (link
+  // "Analisar" do Retorno de Conclusão ou do quadro Pendências) - usada
+  // pelas preferências na linha do processo (preferenciasNaLinha.js).
+  // Resolve com {ok, message, uncertain}; `uncertain` indica que o envio foi
+  // feito, mas a resposta não confirmou o resultado.
+  window.__pdpDispensas = window.__pdpDispensas || {};
+  //
+  // `carregarNavegando` (opcional): função que carrega a mesma URL numa
+  // navegação de verdade (iframe oculto) e resolve com o documento. Usada
+  // quando a leitura por fetch() não traz o botão nativo - o Projudi pode
+  // devolver telas sem os botões de ação a requisições que não são
+  // navegação (ver fetchDoc em quickActions.js).
+  function describe(doc) {
+    const controls = [...doc.querySelectorAll('input[type="button"],input[type="submit"],button')]
+      .map(el => (el.id ? '#' + el.id + ' ' : '') + '"' + String(el.value || el.textContent || '').replace(/\s+/g, ' ').trim() + '"' + (el.disabled ? ' (desabilitado)' : ''))
+      .filter(text => text.length < 120);
+    return {
+      titulo: [...doc.querySelectorAll('h3')].map(h => h.textContent.replace(/\s+/g, ' ').trim()).join(' | '),
+      formularios: [...doc.forms].map(f => f.id || f.name || '(sem id)'),
+      botoes: controls
+    };
+  }
+  // Link da linha "Retorno de Conclusão" do quadro Pendências da tela do
+  // processo (ex.: "Analisar Conclusão Retornada em 29/11/2022: DESPACHO",
+  // o mesmo em que este script põe o botão "Finalizar conclusão"). Só essa
+  // linha conta. `doc`: a tela do processo.
+  window.__pdpDispensas.conclusaoURL = function (doc) {
+    for (const link of doc.querySelectorAll('#quadroPendencias a.link[href]')) {
+      const linha = link.closest('tr');
+      const rotulo = linha ? linha.querySelector('td.labelRadio, td label, th') : null;
+      if (!/retorno de conclusao/.test(norm(rotulo ? rotulo.textContent : linha ? linha.textContent : ''))) continue;
+      try {
+        const url = new URL(link.getAttribute('href'), doc.URL);
+        if (url.origin === location.origin && url.pathname === route && url.search && !url.hash) return url.href;
+      } catch (_) { /* segue */ }
+    }
+    return null;
+  };
+  // A tela "Dados da Conclusão" (link "Analisar" da listagem do Retorno de
+  // Conclusão) não tem o botão de finalizar: ele fica na tela aberta pelo
+  // botão "Analisar" dela (#editButton, onclick document.location.href=...).
+  function analisarURL(doc) {
+    const button = doc.querySelector('#editButton');
+    const match = /location\.href\s*=\s*'([^']+)'/.exec(button?.getAttribute('onclick') || '');
+    if (!match) return null;
+    try { return safeURL(new URL(match[1], doc.URL || location.href).href); } catch (_) { return null; }
+  }
+  // Conclusão já finalizada (ou em finalização) nesta página.
+  window.__pdpDispensas.conclusaoFinalizada = value => {
+    try { return states.has(safeURL(value)); } catch (_) { return false; }
+  };
+  window.__pdpDispensas.conclusao = async function (value, carregarNavegando) {
+    let url;
+    try { url = safeURL(value); } catch (error) { return {ok:false, message:error.message}; }
+    if (busy || states.has(url)) return {ok:false, message:'Esta conclusão já está sendo finalizada.'};
+    busy = true;
+    states.set(url, {label:'Finalizando…'}); refresh();
+    let submitted = false;
+    try {
+      let data;
+      let lido = await request(url);
+      const seguinte = analisarURL(lido);
+      if (seguinte && !lido.querySelector('#movimentarProcessoForm #extraButton')) {
+        states.delete(url);
+        url = seguinte;
+        states.set(url, {label:'Finalizando…'});
+        lido = await request(url);
+      }
+      try {
+        data = prepare(lido);
+      } catch (primeiro) {
+        if (!carregarNavegando) throw primeiro;
+        const navegado = await carregarNavegando(url);
+        try {
+          data = prepare(navegado);
+        } catch (segundo) {
+          const info = describe(navegado);
+          console.warn('[Projudi Finalizar Conclusão] tela de análise sem o botão "Finalizar Conclusão Pendente" habilitado:', JSON.stringify({url, fetch:describe(lido), navegacao:info}));
+          throw new Error('não há o botão "Finalizar Conclusão Pendente" habilitado na tela de análise' +
+            (info.botoes.length ? ' (botões na tela: ' + info.botoes.slice(0, 6).join(', ') + ')' : ''));
+        }
+      }
+      submitted = true;
+      const result = await request(data.url, {method:'POST', body:data.body});
+      if (!succeeded(result)) throw new Error('A resposta não confirmou a finalização.');
+      states.set(url, {label:'Conclusão finalizada', success:true});
+      return {ok:true, message:'Conclusão pendente finalizada.'};
+    } catch (error) {
+      if (submitted) {
+        states.set(url, {label:'Verifique a conclusão', uncertain:true});
+        return {ok:false, uncertain:true, message:'Não foi possível confirmar a finalização da conclusão - verifique no Projudi.'};
+      }
+      states.delete(url);
+      return {ok:false, message:'Conclusão não finalizada: ' + error.message};
+    } finally { busy = false; refresh(); }
+  };
 })();
