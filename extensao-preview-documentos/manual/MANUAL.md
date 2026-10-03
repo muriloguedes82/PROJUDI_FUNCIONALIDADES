@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.18.0 |
-| **Versão da extensão** | 2.18.0 |
+| **Versão do manual** | 2.19.0 |
+| **Versão da extensão** | 2.19.0 |
 | **Data desta versão** | 03/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1539,7 +1539,10 @@ normal.
 ▶ [**Vídeo V29** — Listas de tarefas](videos/V29-listas-de-tarefas.mp4)
 
 **Onde fica:** telas **Análise de Juntadas**, **Retorno de Conclusão** e
-**Análise de Decurso de Prazo**.
+**Análise de Decurso de Prazo**, e nas telas de cumprimentos **Expedir
+Intimações**, **Expedir Citação**, **Expedir Notificação**, **Expedir
+Intimações de Auxiliares da Justiça** e **Demais Cumprimentos** (nesta,
+qualquer que seja o **Tipo de Cumprimento** escolhido na busca).
 
 **Criar listas e preferências:** clique em **⚙ Gerenciar listas e
 preferências**:
@@ -1564,8 +1567,9 @@ preferências**:
 **Filtrar:** clique numa lista da legenda **Listas de tarefas** para ver só
 os processos dela; **✕ limpar filtro** volta a mostrar todos.
 
-**Bom saber:** as marcações seguem o **número do processo** (valem nas três
-telas), ficam só no seu navegador e aparecem em todas as abas abertas.
+**Bom saber:** as marcações seguem o **número do processo** (valem em
+todas essas telas), ficam só no seu navegador e aparecem em todas as abas
+abertas.
 
 <a id="cap-9-3"></a>
 ### 9.3 Minhas Preferências na linha do processo (⭐)
@@ -1573,16 +1577,19 @@ telas), ficam só no seu navegador e aparecem em todas as abas abertas.
 ▶ [**Vídeo V30** — ⭐ na linha do processo](videos/V30-minhas-preferencias-na-linha.mp4)
 
 **Para que serve:** executar uma preferência ou combo num processo direto
-da tela de análise, sem abri-lo.
+da tela de análise ou de cumprimentos, sem abri-lo.
+
+**Onde fica:** nas mesmas telas das listas de tarefas ([9.2](#cap-9-2)).
 
 **Passo a passo:**
 
 1. Clique no **⭐** da linha (ao lado do **+**).
 2. Escolha um card.
-3. A extensão pergunta, conforme a tela, se deve antes **dispensar as
-   juntadas**, **finalizar a conclusão** ou **dispensar os decursos**
-   pendentes do processo. **Sim** acrescenta essa etapa; **Não** segue sem
-   ela; **✕** (ou Esc) cancela tudo.
+3. Nas telas de análise, a extensão pergunta, conforme a tela, se deve
+   antes **dispensar as juntadas**, **finalizar a conclusão** ou
+   **dispensar os decursos** pendentes do processo. **Sim** acrescenta
+   essa etapa; **Não** segue sem ela; **✕** (ou Esc) cancela tudo. Nas
+   telas de cumprimentos não há pergunta: a preferência abre direto.
 4. O diálogo abre preenchido no popup; confira e clique em ✅ **Sim,
    executar**.
 5. A linha mostra o andamento e o resultado, ex.: "✅ Juntada(s) já
@@ -1863,6 +1870,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.19.0 | 03/10/2026 | Listas de tarefas (9.2) e **⭐** na linha do processo (9.3) também nas telas de cumprimentos: **Expedir Intimações**, **Expedir Citação**, **Expedir Notificação**, **Expedir Intimações de Auxiliares da Justiça** e **Demais Cumprimentos** (para qualquer Tipo de Cumprimento). Nessas telas o ⭐ abre a preferência direto, sem pergunta. Catálogo do Menu atualizado (2.6). |
 | 2.18.0 | 03/10/2026 | Novo card **Renajud** (orquídea), só no Projudi (8.7). Corrigido: os cards dos sistemas **não apareciam** no Projudi, porque a tela do processo fica num endereço (projudi2) diferente da página principal e a extensão parava de procurar o processo ao encontrar a página principal; agora ela confere todos os quadros. Vídeo V39 regravado. |
 | 2.17.0 | 03/10/2026 | Seção 8.9: **⭐ Preferências de alteração** ao lado de cada **✏️ Alterar** — grava a classe e o motivo (ou o assunto principal) clicando em Salvar sem alterar o processo, e depois faz a alteração e salva com um clique, sem confirmação. Vídeo V43. |
 | 2.16.0 | 03/10/2026 | Os ícones com desenho dos sistemas (8.7) viram **cards com o nome oficial escrito** (SerpJud, CNIEP, BNMP, PrevJud, Sisbajud, SNGB, Sniper, Infojud e S.U.), na mesma altura da balança e nas mesmas cores; a ordem escolhida continua valendo. Textos de 1.3, 2.4 e 8 ajustados e vídeo V39 regravado. |

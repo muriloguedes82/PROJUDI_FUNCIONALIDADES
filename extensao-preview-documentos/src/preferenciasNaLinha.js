@@ -1,5 +1,7 @@
 // "Minhas Preferências" na linha do processo - telas de Análise de
-// Juntadas, Retorno de Conclusão e Análise de Decurso de Prazo.
+// Juntadas, Retorno de Conclusão e Análise de Decurso de Prazo, e telas de
+// cumprimentos (Expedir Intimações, Expedir Citação/Notificação, Expedir
+// Intimações de Auxiliares da Justiça e Demais Cumprimentos).
 //
 // O botão ⭐ (inserido por listaTarefas.js ao lado das bolinhas de cada
 // linha) abre os cards das preferências salvas nas ações rápidas (Realizar
@@ -61,6 +63,13 @@
 			sim: "Sim, dispensar decursos",
 			fazendo: "Dispensando decursos de prazo…"
 		},
+		// Telas de cumprimentos: não há pendência a dispensar antes - sem
+		// `pergunta`, a preferência é aberta direto. Demais Cumprimentos vale
+		// para qualquer "Tipo de Cumprimento" (filtro da mesma tela).
+		"/projudi/processo/expedirIntimacao.do": { tipo: "cumprimento" },
+		"/projudi/processo/expedirCitacao.do": { tipo: "cumprimento" },
+		"/projudi/processo/intimacaoNomeados.do": { tipo: "cumprimento" },
+		"/projudi/processo/cumprimentoCartorio.do": { tipo: "cumprimento" },
 		// SEEU: sem `pergunta` de propósito (o SEEU não trava ações com
 		// pendências - ver a REGRA no início do arquivo).
 		"/seeu/processo/analisarJuntada.do": { tipo: "juntada", seeu: true },
@@ -417,7 +426,8 @@
 			alert("As ações rápidas não estão disponíveis nesta tela. Recarregue a página.");
 			return;
 		}
-		const resposta = await perguntar(item);
+		// Sem `pergunta` (telas de cumprimentos): segue direto, sem etapa prévia.
+		const resposta = tela.pergunta ? await perguntar(item) : "nao";
 		if (!resposta) return;
 		emAndamento = true;
 		let previa = null;

@@ -221,7 +221,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "listaTarefas",
 					nome: "Listas de tarefas",
-					descricao: "Bolinhas coloridas e tarefas escritas nas telas de análise.",
+					descricao: "Bolinhas coloridas e tarefas escritas nas telas de análise e de cumprimentos.",
 					js: ["src/listaTarefas.js"],
 					css: ["src/listaTarefas.css"]
 				},
