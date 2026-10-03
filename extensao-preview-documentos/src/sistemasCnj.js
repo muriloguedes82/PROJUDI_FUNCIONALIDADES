@@ -1,5 +1,5 @@
 // Projudi - Cards dos sistemas do CNJ (SerpJud, CNIEP, BNMP 3.0, PrevJud,
-// Sisbajud, SNGB, Sniper, Infojud, da Receita, e Sistema Uniformizado, do
+// Sisbajud, SNGB, Sniper, Infojud, da Receita, Renajud e Sistema Uniformizado, do
 // TJPR - lista em sistemasCnjLista.js) ao lado do ícone do Menu da extensão
 // (a balança dourada, ver menuExtensao.js).
 //
@@ -193,22 +193,33 @@
 		return !!(titulo && NUMERO_CNJ.test(titulo.textContent || ""));
 	}
 
+	// Um quadro de outro endereço não pode ser lido, mas os quadros DENTRO
+	// dele continuam sendo percorridos: no Projudi a página principal fica em
+	// projudi.tjpr.jus.br e o processo (com a balança) em projudi2.tjpr.jus.br,
+	// e parar no primeiro quadro ilegível escondia os cards em todo processo.
 	function processoAberto(win, profundidade) {
-		let doc;
-		try { doc = win.document; } catch (err) { return false; } // quadro de outro endereço
-		if (!doc || !doc.documentElement) return false;
-		if (documentoDeProcesso(doc)) return true;
+		let doc = null;
+		try { doc = win.document; } catch (err) { /* quadro de outro endereço */ }
+		if (doc && doc.documentElement && documentoDeProcesso(doc)) return true;
 		if (profundidade >= 4) return false;
-		for (let i = 0; i < win.frames.length; i++) {
+		let quantos = 0;
+		try { quantos = win.frames.length; } catch (err) { return false; }
+		for (let i = 0; i < quantos; i++) {
 			if (processoAberto(win.frames[i], profundidade + 1)) return true;
 		}
 		return false;
 	}
 
+	// Este documento primeiro (caso comum: balança e processo no mesmo
+	// quadro); depois todos os quadros da aba, a partir do topo.
+	function processoNaAba() {
+		return documentoDeProcesso(document) || processoAberto(window.top, 0);
+	}
+
 	// O quadro interno troca de tela sem mudar nada neste documento: confere
 	// a cada segundo (só leituras; reposiciona apenas quando muda).
 	function conferirProcesso() {
-		const agora = processoAberto(window.top, 0);
+		const agora = processoNaAba();
 		if (agora === comProcesso) return;
 		comProcesso = agora;
 		posicionar();
@@ -386,7 +397,7 @@
 	}
 
 	new MutationObserver(procurarMenu).observe(document.documentElement, { childList: true });
-	comProcesso = processoAberto(window.top, 0);
+	comProcesso = processoNaAba();
 	procurarMenu();
 	setInterval(conferirProcesso, 1000);
 })();

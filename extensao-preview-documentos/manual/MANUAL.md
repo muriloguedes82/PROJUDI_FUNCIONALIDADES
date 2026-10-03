@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.17.0 |
-| **Versão da extensão** | 2.17.0 |
+| **Versão do manual** | 2.18.0 |
+| **Versão da extensão** | 2.18.0 |
 | **Data desta versão** | 03/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -74,7 +74,7 @@
    - 8.4 [Editar Partes/Outros](#cap-8-4)
    - 8.5 [Colar processo](#cap-8-5)
    - 8.6 [Oráculo](#cap-8-6)
-   - 8.7 [Sistemas do CNJ (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Sistema Uniformizado)](#cap-8-7)
+   - 8.7 [Sistemas do CNJ (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Renajud, Sistema Uniformizado)](#cap-8-7)
    - 8.8 [Localizador (só no SEEU)](#cap-8-8)
    - 8.9 [Alterar Classe/Assuntos](#cap-8-9)
 9. [Telas de análise, mesas e cumprimentos](#cap-9)
@@ -267,7 +267,7 @@ tela, "flutuando" sobre a página.
 - O **ícone da balança** (canto superior direito, abaixo de **Sair**) não faz
   parte desta barra: ele abre o **Menu da extensão** — veja [2.6](#cap-2-6).
   Os **cards coloridos com o nome** de cada sistema, logo à esquerda dela, abrem os **sistemas do CNJ**
-  (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper e Infojud, e o Sistema Uniformizado do TJPR) — veja [8.7](#cap-8-7).
+  (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud e Renajud, e o Sistema Uniformizado do TJPR) — veja [8.7](#cap-8-7).
 - Passe o mouse sobre qualquer botão para ver uma dica.
 - A barra acompanha a rolagem da página. Ela se alinha ao quadro
   **Pendências**; quando a tela não tem esse quadro, alinha-se ao quadro
@@ -1295,7 +1295,7 @@ da parte sem ir até a ficha dela.
 botão Oráculo dela.
 
 <a id="cap-8-7"></a>
-### 8.7 Sistemas do CNJ (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Sistema Uniformizado)
+### 8.7 Sistemas do CNJ (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Renajud, Sistema Uniformizado)
 
 ▶ [**Vídeo V39** — Sistemas do CNJ](videos/V39-sistemas-do-cnj.mp4)
 
@@ -1320,6 +1320,7 @@ aberto). Na ordem padrão, da balança para a esquerda:
 | **SNGB** (rosa) | SNGB | Gestão de bens apreendidos |
 | **Sniper** (azul-claro) | Sniper | Investigação patrimonial |
 | **Infojud** (coral) | Infojud | Declarações e dados da Receita Federal (pelo e-CAC) |
+| **Renajud** (orquídea) | Renajud | Restrições judiciais sobre veículos (bloqueio de transferência, licenciamento e circulação) |
 | **S.U.** (cinza-azulado) | Sistema Uniformizado | Sistema do TJPR de fundos, custas e guias — Projudi **e SEEU** |
 
 **Mudar a ordem dos cards:** clique num card e, **sem soltar**, arraste-o
@@ -1768,6 +1769,7 @@ telas abertas a partir daí voltam a funcionar.
 | Problema | O que fazer |
 |---|---|
 | Um botão da extensão sumiu | Abra o Menu (ícone da balança) e confira se a função não foi desligada — ou se alguma função de que ela depende foi ([2.6](#cap-2-6)). **↺ Padrão** religa todas |
+| Os cards dos sistemas (SerpJud, BNMP…) não aparecem ao lado da balança | Eles só aparecem com um **processo aberto**; na Mesa e nas listas fica só a balança. Com o processo aberto, aguarde 1 segundo; se continuar sem eles, confira no Menu se **Sistemas do CNJ** está ligada ([8.7](#cap-8-7)) |
 | Nenhum botão da extensão aparece | Confira se aceitou os Termos de Uso ([2.2](#cap-2-2)); recarregue a página (F5); confira se a extensão está ativada em `chrome://extensions`; confira se o perfil não é de advocacia ([10.3](#cap-10-3)) |
 | Atualizei a extensão e nada mudou | Clique em ↻ no card da extensão em `chrome://extensions` e depois recarregue as páginas ([2.3](#cap-2-3)) |
 | A barra de botões cobre algo da tela | Arraste **↕ Mover** ou clique em **Ocultar** ([2.4](#cap-2-4)) |
@@ -1861,6 +1863,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.18.0 | 03/10/2026 | Novo card **Renajud** (orquídea), só no Projudi (8.7). Corrigido: os cards dos sistemas **não apareciam** no Projudi, porque a tela do processo fica num endereço (projudi2) diferente da página principal e a extensão parava de procurar o processo ao encontrar a página principal; agora ela confere todos os quadros. Vídeo V39 regravado. |
 | 2.17.0 | 03/10/2026 | Seção 8.9: **⭐ Preferências de alteração** ao lado de cada **✏️ Alterar** — grava a classe e o motivo (ou o assunto principal) clicando em Salvar sem alterar o processo, e depois faz a alteração e salva com um clique, sem confirmação. Vídeo V43. |
 | 2.16.0 | 03/10/2026 | Os ícones com desenho dos sistemas (8.7) viram **cards com o nome oficial escrito** (SerpJud, CNIEP, BNMP, PrevJud, Sisbajud, SNGB, Sniper, Infojud e S.U.), na mesma altura da balança e nas mesmas cores; a ordem escolhida continua valendo. Textos de 1.3, 2.4 e 8 ajustados e vídeo V39 regravado. |
 | 2.15.0 | 03/10/2026 | Novo ícone **Sistema Uniformizado** (TJPR — fundos, custas e guias; cinza-azulado, guia com código de barras) ao lado da balança, **no Projudi e no SEEU**, com o mesmo popup, **🗂 Nova aba** e **🖥 Segundo monitor** dos sistemas do CNJ (8.7, 8 e 1.3). Vídeo V39 regravado. |

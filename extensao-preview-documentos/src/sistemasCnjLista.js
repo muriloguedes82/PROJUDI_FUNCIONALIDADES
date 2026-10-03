@@ -79,6 +79,14 @@ self.PDP_SISTEMAS_CNJ = Object.freeze([
 		cor: { claro: "#ffe3e1", escuro: "#f6b3ad", borda: "#d0605a", texto: "#8f2a24" }
 	},
 	{
+		id: "renajud",
+		rotulo: "Renajud",
+		nome: "Renajud",
+		titulo: "Renajud — Restrições Judiciais sobre Veículos Automotores",
+		url: "https://renajud.pdpj.jus.br/",
+		cor: { claro: "#f7e4f8", escuro: "#e3b9e7", borda: "#a556ad", texto: "#6b2373" }
+	},
+	{
 		// Sistema Uniformizado do TJPR (fundos, custas e guias). Endereço sem os
 		// parâmetros de rastreamento (_gl, _ga) que vêm ao copiar do navegador.
 		id: "uniformizado",
