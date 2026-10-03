@@ -1546,7 +1546,8 @@ normal.
 ▶ [**Vídeo V29** — Listas de tarefas](videos/V29-listas-de-tarefas.mp4)
 
 **Onde fica:** telas **Análise de Juntadas**, **Retorno de Conclusão** e
-**Análise de Decurso de Prazo**, e nas telas de cumprimentos **Expedir
+**Análise de Decurso de Prazo** (listas de Intimação, Auxiliares da Justiça
+e Citações/Notificações), e nas telas de cumprimentos **Expedir
 Intimações**, **Expedir Citação**, **Expedir Notificação**, **Expedir
 Intimações de Auxiliares da Justiça** e **Demais Cumprimentos** (nesta,
 qualquer que seja o **Tipo de Cumprimento** escolhido na busca).
@@ -1838,18 +1839,39 @@ coluna **Processo / Seq.**, logo abaixo do sequencial, em cada linha
 
 **Analisar Decurso:**
 
-1. Clique em **Analisar Decurso** na linha.
-2. Se você tiver preferências do **📎 Juntar Documento** ([8.2](#cap-8-2)),
-   aparece um menu:
+1. Clique em **Analisar Decurso** na linha. Aparece um menu:
    - **Abrir a análise** — a tela "Analisar Decurso de Prazo" abre num
      popup, para você fazer tudo como de costume;
-   - **★ nome da preferência** — a extensão abre a análise no popup, clica
-     em **Adicionar** e inclui o arquivo com a preferência (Tipo do Arquivo,
-     Modelo e texto). Você só **assina** no assinador; depois ela clica em
-     **Confirmar Inclusão** e em **Concluir**.
+   - **+ Nova preferência** — a análise abre no popup e a extensão grava o
+     que você fizer na inclusão do arquivo: clique em **Adicionar**,
+     escolha o Tipo do Arquivo e o Modelo, clique em **Digitar Texto**,
+     escreva e continue. No **Assinar Arquivos**, ela pede um **nome** e
+     salva a preferência (o assinador segue normalmente);
+   - **Preferências de Analisar Decurso** — as que você criou aqui, com
+     **✏️** (editar: abre a análise já preenchida, sem avançar sozinha, e
+     atualiza a preferência no "Assinar Arquivos") e **🗑** (remover);
+   - **Do 📎 Juntar Documento** — as preferências do Juntar Documento
+     ([8.2](#cap-8-2)) também servem aqui (Tipo do Arquivo, Modelo e
+     texto).
+2. Escolhendo uma preferência, a extensão abre a análise no popup, clica em
+   **Adicionar** e inclui o arquivo com ela. Você só **assina** no
+   assinador; depois ela clica em **Confirmar Inclusão** e em **Concluir**.
+3. Ao terminar, o popup fecha sozinho, os botões saem da linha e ela
+   mostra **"Análise do decurso concluída com ★ nome"**.
 
-   Sem preferências salvas, a análise abre direto no popup.
-3. Ao terminar, o popup fecha e a linha mostra o resultado.
+**Em lote** (vários processos de uma vez):
+
+1. Marque os processos na caixinha de cada linha (ou **marcar todos**), na
+   barra **⭐ Em lote** acima da tabela ([9.3](#cap-9-3)).
+2. Na mesma barra, clique em:
+   - **Dispensar nos marcados** — confirme uma vez; a extensão dispensa um
+     processo de cada vez, sozinha;
+   - **Analisar decurso nos marcados** — escolha a preferência; a análise
+     abre no popup para cada processo, um de cada vez, e você **assina
+     cada documento**.
+3. Cada linha mostra o seu resultado e o processo feito é desmarcado.
+   **⏹ Parar** não começa os próximos (o atual termina). Processos que não
+   aguardam análise do decurso são pulados.
 
 **Bom saber:**
 
@@ -1860,8 +1882,10 @@ coluna **Processo / Seq.**, logo abaixo do sequencial, em cada linha
 - Se algo não der certo, a linha avisa o motivo (ex.: o botão **Dispensar**
   não estava disponível) e nada é feito às cegas.
 - Na análise com preferência, se o botão final aparecer com outro nome que
-  não **Concluir**, a extensão para e pede que você clique nele.
-- Um decurso por vez.
+  não **Concluir**, a extensão para e pede que você clique nele e feche o
+  popup — no lote, o próximo processo só começa depois disso.
+- O PIN da assinatura **nunca** é guardado.
+- Um decurso (ou um lote) por vez.
 
 ---
 
@@ -1998,7 +2022,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V43](videos/V43-preferencia-de-alteracao-de-classe.mp4) | [Preferência de alteração de classe](videos/V43-preferencia-de-alteracao-de-classe.mp4) | [8.9](#cap-8-9) | 0:43 |
 | [V44](videos/V44-processo-ao-passar-o-mouse.mp4) | [Processo ao passar o mouse no Decurso de Prazo](videos/V44-processo-ao-passar-o-mouse.mp4) | [9.8](#cap-9-8) | 0:48 |
 | [V45](videos/V45-preferencias-em-lote.mp4) | [Preferências em lote (⭐ Em lote)](videos/V45-preferencias-em-lote.mp4) | [9.3](#cap-9-3) | 0:52 |
-| [V46](videos/V46-analisar-e-dispensar-decurso-na-lista.mp4) | [Analisar e Dispensar decurso na lista](videos/V46-analisar-e-dispensar-decurso-na-lista.mp4) | [9.9](#cap-9-9) | 1:04 |
+| [V46](videos/V46-analisar-e-dispensar-decurso-na-lista.mp4) | [Analisar e Dispensar decurso na lista](videos/V46-analisar-e-dispensar-decurso-na-lista.mp4) | [9.9](#cap-9-9) | 1:18 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -2012,7 +2036,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 2.22.0 | 03/10/2026 | Nova seção **9.9** (só no Projudi): botões **Analisar Decurso** e **Dispensar** em cada linha das listas de **Decurso de Prazo**, abaixo do sequencial. O Dispensar responde OK à confirmação do Projudi sozinho e mostra "Decurso de prazo dispensado com sucesso"; o Analisar Decurso abre a análise num popup e pode incluir o arquivo com uma preferência do Juntar Documento (8.2). Nova função na tabela da 2.6 e vídeo V46. |
+| 2.22.0 | 03/10/2026 | Nova seção **9.9** (só no Projudi): botões **Analisar Decurso** e **Dispensar** em cada linha das listas de **Decurso de Prazo**, abaixo do sequencial. O Dispensar responde OK à confirmação do Projudi sozinho e mostra "Decurso de prazo dispensado com sucesso". O Analisar Decurso abre a análise num popup, com menu para criar (**+ Nova preferência**), editar e remover preferências próprias do Analisar Decurso, ou usar as do Juntar Documento (8.2): a extensão inclui o arquivo, você assina e ela conclui e fecha o popup. Na barra **⭐ Em lote**: **Dispensar nos marcados** e **Analisar decurso nos marcados**. A lista de Citações/Notificações do Decurso de Prazo passa a ter também as listas de tarefas e a ⭐ (9.2, 9.3). Nova função na tabela da 2.6 e vídeo V46. |
 | 2.21.0 | 03/10/2026 | **⭐ Em lote** (9.3): caixinha de marcar abaixo do **+** de cada linha e barra **⭐ Em lote** acima da tabela, em todas as telas com a ⭐ (Juntadas, Retorno de Conclusão, Decurso de Prazo, cumprimentos e, no SEEU, Juntadas e Conclusão). No Projudi, a pergunta sobre dispensar/finalizar é feita uma vez para todos e cada processo continua pedindo o seu ✅ Sim, executar; no SEEU, os localizadores são associados em todos os marcados. Descrição da função no Menu atualizada e vídeo V45. |
 | 2.20.0 | 03/10/2026 | Listas de tarefas (9.2) e **⭐** na linha do processo (9.3) também nas telas de cumprimentos: **Expedir Intimações**, **Expedir Citação**, **Expedir Notificação**, **Expedir Intimações de Auxiliares da Justiça** e **Demais Cumprimentos** (para qualquer Tipo de Cumprimento). Nessas telas o ⭐ verifica o quadro Pendências do processo e só pergunta se deve dispensar as juntadas e/ou finalizar a conclusão quando elas existirem; sem pendências, abre a preferência direto. Catálogo do Menu atualizado (2.6). |
 | 2.19.0 | 03/10/2026 | Nova seção **9.8** (só no Projudi): nas listas de **Decurso de Prazo** (Intimação, Auxiliares da Justiça e Citações/Notificações), pousar o mouse sobre o **número do processo** abre a tela dele num painel, já na aba **Movimentações**, com **📌 Fixar**, **Abrir em nova aba** e **✕**. Nova função na tabela da 2.6 (29 funções no Projudi) e vídeo V44. |

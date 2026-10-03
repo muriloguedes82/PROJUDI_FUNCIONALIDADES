@@ -20,11 +20,17 @@
 //   prazo dispensado com sucesso". Tudo oculto; a lista não navega.
 // - Analisar Decurso: lê, na tela da intimação (iframe oculto), o endereço do
 //   botão nativo e abre a tela de análise (certificar.do) no popup das ações
-//   rápidas, sem sair da lista. Se houver preferências do "📎 Juntar
-//   Documento", um menu deixa escolher uma: a extensão clica em "Adicionar" e
-//   faz a inclusão do arquivo com ela (Tipo do Arquivo, Modelo e texto) até
-//   a assinatura e o "Confirmar Inclusão" - o mesmo fluxo do Juntar
-//   Documento (juntarDocumento.js, prepararDecurso).
+//   rápidas, sem sair da lista. Um menu oferece: "Abrir a análise", "+ Nova
+//   preferência" (grava a inclusão do arquivo - Tipo do Arquivo, Modelo e
+//   texto - num grupo próprio, pdpDecursoPrefs, com ✏️ e 🗑) e as
+//   preferências (as do Analisar Decurso e as do "📎 Juntar Documento").
+//   Com uma preferência, a extensão clica em "Adicionar" e faz a inclusão
+//   até a assinatura e o "Confirmar Inclusão" - o mesmo fluxo do Juntar
+//   Documento (juntarDocumento.js, prepararDecurso/gravarDecurso) -, clica
+//   no botão final se ele disser "Concluir" e fecha o popup sozinha.
+// - Em lote: na barra "⭐ Em lote" (preferenciasNaLinha.js), "Dispensar nos
+//   marcados" e "Analisar decurso nos marcados" (com uma preferência), um
+//   processo de cada vez.
 // Os botões usam delegação de clique no documento: continuam funcionando nas
 // linhas copiadas pelo filtro por Sequencial (decursoPrazoSequencial.js).
 (function () {
@@ -232,35 +238,49 @@
 		});
 	}
 
-	// Menu do "Analisar Decurso": abrir a análise ou usar uma preferência do
-	// "📎 Juntar Documento". Resolve com { pref } (null = sem preferência)
-	// ou null (fechado).
+	// Menu do "Analisar Decurso". Resolve com { acao, pref } ou null
+	// (fechado). `acao`: "abrir" (sem preferência), "nova" (gravar uma
+	// preferência), "editar" (✏️) ou "pref" (executar `pref`). Em lote
+	// (`emLote`), só as preferências (as do "Analisar Decurso" e as do
+	// "📎 Juntar Documento").
 	let menu = null;
 	function fecharMenu() {
 		if (menu) {
 			menu.el.remove();
-			menu.resolve(null);
+			const resolve = menu.resolve;
 			menu = null;
+			resolve(null);
 		}
 	}
-	async function escolherPreferencia(botao) {
+	async function listarPreferencias() {
 		const api = window.__pdpJuntarDocumentoApi;
-		let prefs = [];
+		const resultado = { decurso: [], juntar: [] };
+		if (!api) return resultado;
 		try {
-			prefs = api && api.listar ? await api.listar() : [];
+			resultado.decurso = api.listarDecurso ? await api.listarDecurso() : [];
+			resultado.juntar = api.listar ? await api.listar() : [];
 		} catch (e) {
-			prefs = [];
+			console.warn(TAG, "não foi possível ler as preferências:", e);
 		}
-		if (!prefs.length) return { pref: null };
+		return resultado;
+	}
+	async function escolherPreferencia(botao, emLote) {
 		fecharMenu();
+		const prefs = await listarPreferencias();
+		const api = window.__pdpJuntarDocumentoApi;
 		return new Promise(function (resolve) {
 			const el = document.createElement("div");
 			el.className = "pdp-dec-menu";
-			const titulo = document.createElement("div");
-			titulo.className = "pdp-dec-menu-titulo";
-			titulo.textContent = "Analisar Decurso";
-			el.appendChild(titulo);
-			function opcao(texto, dica, pref) {
+			menu = { el: el, resolve: resolve };
+			function escolher(valor) {
+				const atual = menu;
+				menu = null;
+				el.remove();
+				if (atual) atual.resolve(valor);
+			}
+			function linha(texto, dica, valor, extras) {
+				const wrap = document.createElement("div");
+				wrap.className = "pdp-dec-menu-linha";
 				const b = document.createElement("button");
 				b.type = "button";
 				b.className = "pdp-dec-menu-item";
@@ -268,26 +288,67 @@
 				b.title = dica;
 				b.addEventListener("click", function (ev) {
 					ev.stopPropagation();
-					const atual = menu;
-					menu = null;
-					el.remove();
-					if (atual) atual.resolve({ pref: pref });
+					escolher(valor);
 				});
-				el.appendChild(b);
+				wrap.appendChild(b);
+				(extras || []).forEach(function (x) { wrap.appendChild(x); });
+				el.appendChild(wrap);
 			}
-			opcao("Abrir a análise", "Abre a tela de análise no popup, sem preencher nada", null);
-			const sub = document.createElement("div");
-			sub.className = "pdp-dec-menu-sub";
-			sub.textContent = "Incluir arquivo com a preferência (📎 Juntar Documento):";
-			el.appendChild(sub);
-			prefs.forEach(function (pref) {
-				opcao("★ " + pref.name, "Clica em \"Adicionar\" e inclui o arquivo com esta preferência (Tipo do Arquivo, Modelo e texto) até a assinatura", pref);
-			});
+			function icone(texto, dica, onclick) {
+				const b = document.createElement("button");
+				b.type = "button";
+				b.className = "pdp-dec-menu-icone";
+				b.textContent = texto;
+				b.title = dica;
+				b.addEventListener("click", function (ev) {
+					ev.stopPropagation();
+					onclick();
+				});
+				return b;
+			}
+			function secao(texto) {
+				const d = document.createElement("div");
+				d.className = "pdp-dec-menu-sub";
+				d.textContent = texto;
+				el.appendChild(d);
+			}
+			const titulo = document.createElement("div");
+			titulo.className = "pdp-dec-menu-titulo";
+			titulo.textContent = emLote ? "Analisar decurso nos marcados" : "Analisar Decurso";
+			el.appendChild(titulo);
+			if (!emLote) {
+				linha("Abrir a análise", "Abre a tela de análise no popup, sem preencher nada", { acao: "abrir" });
+				linha("+ Nova preferência", "Abre a análise no popup e grava o que você fizer na inclusão do arquivo (Tipo do Arquivo, Modelo e texto); no \"Assinar Arquivos\", pede o nome e salva", { acao: "nova" });
+			}
+			if (prefs.decurso.length) {
+				secao("Preferências de Analisar Decurso:");
+				prefs.decurso.forEach(function (pref) {
+					const extras = emLote ? [] : [
+						icone("✏️", "Editar: abre a análise com a preferência preenchida, sem avançar sozinho; no \"Assinar Arquivos\" ela é atualizada", function () { escolher({ acao: "editar", pref: pref }); }),
+						icone("🗑", "Remover esta preferência", function () {
+							if (!confirm("Remover a preferência \"" + pref.name + "\" do Analisar Decurso?")) return;
+							api.removerDecurso(pref.id).then(function () {
+								escolher(null);
+								botao.click();
+							});
+						})
+					];
+					linha("★ " + pref.name, "Clica em \"Adicionar\" e inclui o arquivo com esta preferência até a assinatura" + (emLote ? ", em cada processo marcado" : ""), { acao: "pref", pref: pref }, extras);
+				});
+			}
+			if (prefs.juntar.length) {
+				secao("Do 📎 Juntar Documento:");
+				prefs.juntar.forEach(function (pref) {
+					linha("★ " + pref.name, "Usa o Tipo do Arquivo, o Modelo e o texto desta preferência do Juntar Documento", { acao: "pref", pref: pref });
+				});
+			}
+			if (emLote && !prefs.decurso.length && !prefs.juntar.length) {
+				secao("Nenhuma preferência salva. Crie uma pelo \"+ Nova preferência\" do Analisar Decurso de uma linha.");
+			}
 			document.body.appendChild(el);
 			const r = botao.getBoundingClientRect();
 			el.style.left = Math.max(8, Math.min(r.left, window.innerWidth - el.offsetWidth - 8)) + "px";
 			el.style.top = (r.bottom + 4 + el.offsetHeight > window.innerHeight ? Math.max(8, r.top - el.offsetHeight - 4) : r.bottom + 4) + "px";
-			menu = { el: el, resolve: resolve };
 		});
 	}
 	document.addEventListener("mousedown", function (ev) {
@@ -297,33 +358,57 @@
 		if (ev.key === "Escape") fecharMenu();
 	});
 
-	async function analisar(caixa, url, pref) {
+	// Abre a análise no popup conforme `escolha` e resolve quando ela
+	// termina: { ok, texto, aviso }. Com preferência, o fim vem da marca do
+	// juntarDocumento.js (fimDecurso): "concluida" fecha o popup sozinho;
+	// "aguardando" espera o usuário clicar no botão final e fechar o popup.
+	async function analisar(caixa, url, escolha) {
 		const jd = window.__pdpJuntarDocumentoApi;
+		const cnj = caixa.getAttribute("data-pdp-dec-cnj") || null;
 		const destino = await urlAnalisar(url);
-		// Com preferência: o fluxo do Juntar Documento conduz a tela de
-		// análise aberta a seguir (mesma aba, mesmo sessionStorage).
-		if (pref && jd && jd.prepararDecurso) jd.prepararDecurso(pref, caixa.getAttribute("data-pdp-dec-cnj") || null);
 		const qa = window.__pdpQuickActions;
 		if (!qa || !qa.openActionModal) {
-			// Sem o popup das ações rápidas (desligadas no Menu): abre a
-			// análise nesta aba, como o botão nativo faria.
+			if (escolha.acao !== "abrir") throw new Error("o popup das ações rápidas não está disponível nesta tela (ligue as Ações rápidas no Menu).");
 			window.location.href = destino;
-			return { ok: true, texto: "Abrindo a análise do decurso…", final: true };
+			return { ok: true, texto: "Abrindo a análise do decurso…" };
 		}
+		const comPref = escolha.acao === "pref";
+		const gravando = escolha.acao === "nova" || escolha.acao === "editar";
+		if (comPref && jd) jd.prepararDecurso(escolha.pref, cnj);
+		if (gravando && jd) jd.gravarDecurso(cnj, escolha.acao === "editar" ? escolha.pref : null);
+		const rotulo = comPref || escolha.acao === "editar" ? " — ★ " + escolha.pref.name : gravando ? " — gravando nova preferência" : "";
 		return new Promise(function (resolve) {
-			qa.openActionModal("Analisar Decurso" + (pref ? " — ★ " + pref.name : ""), destino, {
+			let concluida = false;
+			let timer = null;
+			let fechar = null;
+			if (comPref && jd && jd.fimDecurso) {
+				timer = setInterval(function () {
+					const fim = jd.fimDecurso();
+					if (fim === "concluida" && !concluida) {
+						concluida = true;
+						status(caixa, "Concluindo a análise…", "andamento");
+						fechar = setTimeout(function () { if (qa.closeActionModal) qa.closeActionModal(); }, 2500);
+					} else if (fim === "aguardando") {
+						status(caixa, "Arquivo incluído: clique no botão final da análise, no popup.", "aviso");
+					}
+				}, 500);
+			}
+			qa.openActionModal("Analisar Decurso" + rotulo, destino, {
 				onClose: function (motivo) {
-					// Popup fechado: encerra uma inclusão que tenha ficado pela metade.
-					if (pref && jd && jd.hasActiveJob && jd.hasActiveJob()) jd.cancel();
-					resolve(motivo === "auto"
-						? { ok: true, texto: "Análise do decurso concluída" }
-						: { ok: true, texto: "Análise do decurso aberta — popup fechado (confira na lista ao atualizar)", aviso: true });
+					clearInterval(timer);
+					clearTimeout(fechar);
+					// Popup fechado: encerra uma inclusão/gravação que tenha
+					// ficado pela metade.
+					if ((comPref || gravando) && jd && jd.hasActiveJob && jd.hasActiveJob()) jd.cancel();
+					if (gravando) resolve({ ok: true, texto: "Popup fechado. A preferência é salva no \"Assinar Arquivos\".", aviso: true, executado: false });
+					else if (concluida || motivo === "auto") resolve({ ok: true, texto: "Análise do decurso concluída" + (comPref ? " com ★ " + escolha.pref.name : ""), executado: true });
+					else resolve({ ok: true, texto: "Popup da análise fechado (confira na lista ao atualizar)", aviso: true, executado: false });
 				}
 			});
 		});
 	}
 
-	// --- cliques (delegação) -----------------------------------------------------------
+	// --- cliques na linha (delegação) ------------------------------------------------
 
 	document.addEventListener("click", async function (ev) {
 		const botao = ev.target && ev.target.closest ? ev.target.closest(".pdp-dec-btn") : null;
@@ -334,24 +419,19 @@
 		const url = caixa && caixa.getAttribute("data-pdp-dec-url");
 		if (!url) return;
 		if (emAndamento) {
-			status(caixa, "Aguarde: já há um decurso sendo tratado em outra linha.", "aviso");
+			status(caixa, "Aguarde: já há um decurso sendo tratado.", "aviso");
 			return;
 		}
 		emAndamento = true;
 		travar(caixa, true);
+		atualizarLote();
 		try {
 			if (botao.getAttribute("data-pdp-dec") === "dispensar") {
-				status(caixa, "Dispensando…", "andamento");
-				const r = await dispensar(caixa, url);
-				status(caixa, r.ok ? "✅ " + r.texto : "⚠ Não dispensado: " + r.texto, r.ok ? "ok" : "erro");
-				// Dispensado: os botões saem; a linha fica com a mensagem.
-				if (r.ok) caixa.querySelectorAll(".pdp-dec-btn").forEach(function (b) { b.remove(); });
+				await dispensarNaLinha(caixa, url);
 			} else {
-				const escolha = await escolherPreferencia(botao);
+				const escolha = await escolherPreferencia(botao, false);
 				if (!escolha) return;
-				status(caixa, escolha.pref ? "Abrindo a análise com ★ " + escolha.pref.name + "…" : "Abrindo a análise do decurso…", "andamento");
-				const r = await analisar(caixa, url, escolha.pref);
-				status(caixa, (r.aviso ? "" : "✅ ") + r.texto, r.aviso ? "aviso" : "ok");
+				await analisarNaLinha(caixa, url, escolha);
 			}
 		} catch (e) {
 			console.error(TAG, e);
@@ -359,6 +439,151 @@
 		} finally {
 			emAndamento = false;
 			if (caixa.isConnected) travar(caixa, false);
+			atualizarLote();
+		}
+	}, true);
+
+	async function dispensarNaLinha(caixa, url) {
+		status(caixa, "Dispensando…", "andamento");
+		const r = await dispensar(caixa, url);
+		status(caixa, r.ok ? "✅ " + r.texto : "⚠ Não dispensado: " + r.texto, r.ok ? "ok" : "erro");
+		// Dispensado: os botões saem; a linha fica com a mensagem.
+		if (r.ok) caixa.querySelectorAll(".pdp-dec-btn").forEach(function (b) { b.remove(); });
+		return r.ok;
+	}
+
+	async function analisarNaLinha(caixa, url, escolha) {
+		status(caixa, escolha.pref ? "Abrindo a análise com ★ " + escolha.pref.name + "…" : "Abrindo a análise do decurso…", "andamento");
+		const r = await analisar(caixa, url, escolha);
+		status(caixa, (r.aviso ? "" : "✅ ") + r.texto, r.aviso ? "aviso" : "ok");
+		if (r.executado) caixa.querySelectorAll(".pdp-dec-btn").forEach(function (b) { b.remove(); });
+		return !!r.executado;
+	}
+
+	// --- em lote ---------------------------------------------------------------------
+	// Na barra "⭐ Em lote" (preferenciasNaLinha.js, com as caixinhas de
+	// marcar de cada linha), dois botões a mais: "Dispensar nos marcados" e
+	// "Analisar decurso nos marcados". Os processos marcados são tratados um
+	// de cada vez, cada um com o resultado na sua linha; o executado é
+	// desmarcado. Linhas que não aguardam análise do decurso são puladas.
+
+	let loteEl = null;
+	let parar = false;
+
+	function alvosMarcados() {
+		const alvos = [];
+		let pulados = 0;
+		document.querySelectorAll("input.pdp-pl-lote-check").forEach(function (c) {
+			const row = c.closest("tr");
+			if (!c.checked || !row || row.classList.contains("pdp-tl-oculta")) return;
+			const caixa = row.querySelector(".pdp-dec-acoes");
+			if (caixa && caixa.querySelector(".pdp-dec-btn") && caixa.getAttribute("data-pdp-dec-url")) alvos.push({ check: c, row: row, caixa: caixa });
+			else pulados++;
+		});
+		return { alvos: alvos, pulados: pulados };
+	}
+
+	function garantirLote() {
+		const barra = document.getElementById("pdpPreferenciasLote");
+		if (!barra || (loteEl && loteEl.isConnected && barra.contains(loteEl))) return;
+		loteEl = document.createElement("span");
+		loteEl.className = "pdp-dec-lote";
+		loteEl.innerHTML =
+			'<button type="button" class="pdp-tl-btn" data-pdp-dec-lote="dispensar" title="Dispensar a análise do decurso nos processos marcados, um de cada vez (a confirmação do Projudi é aceita sozinha)">Dispensar nos marcados</button>' +
+			'<button type="button" class="pdp-tl-btn" data-pdp-dec-lote="analisar" title="Analisar o decurso nos processos marcados com uma preferência, um de cada vez (você assina cada documento)">Analisar decurso nos marcados</button>' +
+			'<button type="button" class="pdp-tl-btn" data-pdp-dec-lote="parar" hidden title="Não começar os próximos processos (o atual continua)">⏹ Parar</button>' +
+			'<span class="pdp-dec-lote-status" role="status"></span>';
+		barra.appendChild(loteEl);
+		atualizarLote();
+	}
+
+	function atualizarLote() {
+		if (!loteEl) return;
+		const n = alvosMarcados().alvos.length;
+		loteEl.querySelectorAll('[data-pdp-dec-lote="dispensar"], [data-pdp-dec-lote="analisar"]').forEach(function (b) { b.disabled = !n || emAndamento; });
+	}
+
+	function statusLote(texto) {
+		const s = loteEl && loteEl.querySelector(".pdp-dec-lote-status");
+		if (s) s.textContent = texto || "";
+	}
+
+	document.addEventListener("change", function (ev) {
+		if (ev.target && ev.target.classList && ev.target.classList.contains("pdp-pl-lote-check")) atualizarLote();
+	}, true);
+	document.addEventListener("click", function (ev) {
+		// "marcar todos"/"Desmarcar todos" da barra mudam as caixinhas sem
+		// evento "change" nelas.
+		if (ev.target && ev.target.closest && ev.target.closest("#pdpPreferenciasLote") && !ev.target.closest(".pdp-dec-lote")) setTimeout(atualizarLote, 0);
+	}, true);
+
+	document.addEventListener("click", async function (ev) {
+		const botao = ev.target && ev.target.closest ? ev.target.closest("[data-pdp-dec-lote]") : null;
+		if (!botao) return;
+		ev.preventDefault();
+		ev.stopPropagation();
+		const acao = botao.getAttribute("data-pdp-dec-lote");
+		if (acao === "parar") {
+			parar = true;
+			botao.disabled = true;
+			statusLote("Parando: o lote para depois do processo atual…");
+			return;
+		}
+		if (emAndamento) return;
+		const sel = alvosMarcados();
+		if (!sel.alvos.length) return;
+		let escolha = null;
+		if (acao === "dispensar") {
+			if (!confirm("Dispensar a análise do decurso de prazo de " + sel.alvos.length + " processo(s) marcado(s)?\n\nA confirmação do Projudi é aceita sozinha em cada um." + (sel.pulados ? "\n\n" + sel.pulados + " marcado(s) não aguardam análise do decurso e serão pulados." : ""))) return;
+		} else {
+			escolha = await escolherPreferencia(botao, true);
+			if (!escolha || !escolha.pref) return;
+		}
+		emAndamento = true;
+		parar = false;
+		const pararBtn = loteEl.querySelector('[data-pdp-dec-lote="parar"]');
+		pararBtn.hidden = false;
+		pararBtn.disabled = false;
+		atualizarLote();
+		let feitos = 0;
+		let falhas = 0;
+		const total = sel.alvos.length;
+		try {
+			for (let i = 0; i < total; i++) {
+				if (parar) break;
+				const a = sel.alvos[i];
+				if (!a.caixa.isConnected) { falhas++; continue; }
+				statusLote("Processo " + (i + 1) + " de " + total + "…");
+				a.row.classList.add("pdp-pl-lote-atual");
+				try { a.row.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e) { /* segue */ }
+				travar(a.caixa, true);
+				let ok = false;
+				try {
+					const url = a.caixa.getAttribute("data-pdp-dec-url");
+					ok = acao === "dispensar" ? await dispensarNaLinha(a.caixa, url) : await analisarNaLinha(a.caixa, url, escolha);
+				} catch (e) {
+					console.error(TAG, e);
+					status(a.caixa, "⚠ " + ((e && e.message) || "falha."), "erro");
+				}
+				if (a.caixa.isConnected) travar(a.caixa, false);
+				a.row.classList.remove("pdp-pl-lote-atual");
+				if (ok) {
+					feitos++;
+					a.check.checked = false;
+					a.check.dispatchEvent(new Event("change", { bubbles: true }));
+				} else {
+					falhas++;
+				}
+			}
+		} finally {
+			const parado = parar;
+			emAndamento = false;
+			pararBtn.hidden = true;
+			atualizarLote();
+			const naoIniciados = total - feitos - falhas;
+			statusLote((parado ? "⏹ Parado: " : (acao === "dispensar" ? "Dispensa" : "Análise") + " em lote concluída: ") + feitos + " feito(s)" +
+				(falhas ? " · " + falhas + " não feito(s)" : "") + (naoIniciados ? " · " + naoIniciados + " não iniciado(s)" : "") +
+				(sel.pulados ? " · " + sel.pulados + " pulado(s) (não aguardam análise)" : ""));
 		}
 	}, true);
 
@@ -369,7 +594,9 @@
 		setTimeout(function () {
 			agendado = false;
 			inserirBotoes();
+			garantirLote();
 		}, 200);
 	}).observe(document.documentElement, { childList: true, subtree: true });
 	inserirBotoes();
+	garantirLote();
 })();

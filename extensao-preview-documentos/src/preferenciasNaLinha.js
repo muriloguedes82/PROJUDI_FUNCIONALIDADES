@@ -83,6 +83,9 @@
 		"/projudi/processo/expedirCitacao.do": { tipo: "cumprimento", verificaPendencias: true },
 		"/projudi/processo/intimacaoNomeados.do": { tipo: "cumprimento", verificaPendencias: true },
 		"/projudi/processo/cumprimentoCartorio.do": { tipo: "cumprimento", verificaPendencias: true },
+		// Decurso de Prazo - Citações/Notificações: como as de cumprimentos
+		// (pergunta só pelas pendências que o processo tiver).
+		"/projudi/processo/citacao.do": { tipo: "cumprimento", verificaPendencias: true },
 		// SEEU: sem `pergunta` de propósito (o SEEU não trava ações com
 		// pendências - ver a REGRA no início do arquivo).
 		"/seeu/processo/analisarJuntada.do": { tipo: "juntada", seeu: true },

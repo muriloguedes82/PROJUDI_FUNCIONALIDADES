@@ -775,12 +775,18 @@ CENAS.V46 = {
 		S.hl(st, 3);
 		await S.cap("No fim, a linha mostra <b>“Decurso de prazo dispensado com sucesso”</b>. Você continua na lista.");
 		S.hlOff();
-		await S.cap("<b>Analisar Decurso</b> abre um menu: a análise sozinha ou com uma preferência do <b>📎 Juntar Documento</b>.");
+		await S.cap("<b>Analisar Decurso</b> abre um menu: abrir a análise, criar uma preferência ou usar uma já salva.");
 		await S.click('[data-an="2"]');
 		const pn = panelAt('<h4>Analisar Decurso</h4><div class="x-chip" style="display:block;border-radius:6px;padding:6px 8px;margin:0 0 4px">Abrir a análise</div>' +
-			'<div style="font-size:11px;color:#5a6b4a;margin:6px 0 4px">Incluir arquivo com a preferência (📎 Juntar Documento):</div>' +
-			'<div class="x-chip" id="pref-cert" style="display:block;border-radius:6px;padding:6px 8px;margin:0">★ Certidão de decurso</div>', '[data-an="2"]', { w: 300 });
-		await S.cap("Escolha a preferência: a extensão clica em <b>Adicionar</b> e preenche o Tipo do Arquivo, o Modelo e o texto, como no Juntar Documento.");
+			'<div class="x-chip" id="nova-pref" style="display:block;border-radius:6px;padding:6px 8px;margin:0 0 4px">+ Nova preferência</div>' +
+			'<div style="font-size:11px;color:#5a6b4a;margin:6px 0 4px">Preferências de Analisar Decurso:</div>' +
+			'<div class="x-chip" id="pref-cert" style="display:block;border-radius:6px;padding:6px 8px;margin:0">★ Certidão de decurso <span style="float:right">✏️ 🗑</span></div>' +
+			'<div style="font-size:11px;color:#5a6b4a;margin:6px 0 4px">Do 📎 Juntar Documento:</div>' +
+			'<div class="x-chip" style="display:block;border-radius:6px;padding:6px 8px;margin:0">★ Certidão padrão</div>', '[data-an="2"]', { w: 320 });
+		S.hl("#nova-pref", 3);
+		await S.cap("<b>+ Nova preferência</b>: faça a inclusão do arquivo uma vez; no <b>Assinar Arquivos</b> a extensão pede um nome e salva. ✏️ edita e 🗑 remove.", { ms: 5200 });
+		S.hlOff();
+		await S.cap("Escolha uma preferência: a extensão clica em <b>Adicionar</b> e preenche o Tipo do Arquivo, o Modelo e o texto.");
 		await S.click("#pref-cert");
 		pn.remove();
 		const st2 = $('[data-st="2"]');
@@ -790,10 +796,18 @@ CENAS.V46 = {
 		await S.cap("Você só <b>assina</b> no assinador. Depois a extensão clica em <b>Confirmar Inclusão</b> e em <b>Concluir</b>.");
 		await S.click("#assinar");
 		$(".x-popup").remove();
-		st2.innerHTML = '<span style="color:#216b32">✅ Análise do decurso concluída</span>';
+		$$('[data-dec="2"] .x-btn').forEach(b => b.remove());
+		st2.innerHTML = '<span style="color:#216b32">✅ Análise do decurso concluída com ★ Certidão de decurso</span>';
 		S.hl(st2, 3);
-		await S.cap("A linha mostra o resultado. A lista não é recarregada. Sem preferência, use <b>Abrir a análise</b> e faça tudo no popup.");
+		await S.cap("Ao terminar, o popup fecha sozinho e a linha mostra o resultado. A lista não é recarregada.");
 		S.hlOff();
-		await S.endCard("Dispensar = confirmação aceita sozinha e “Decurso de prazo dispensado com sucesso”. Analisar Decurso = análise no popup, com ou sem preferência do Juntar Documento.");
+		const lote = add('<div class="x-bar" style="position:fixed;left:16px;right:16px;top:206px;z-index:50;background:#f7f9f3;border:1px solid #d5dcc8;border-radius:6px;padding:6px 10px;font-size:12px;color:#333">' +
+			'<b>⭐ Em lote:</b> ☑ marcar todos · 3 processo(s) marcado(s) · <span class="x-btn small">⭐ Executar preferência nos marcados</span> │ <span class="x-btn small" id="lote-disp">Dispensar nos marcados</span> <span class="x-btn small" id="lote-anal">Analisar decurso nos marcados</span></div>');
+		S.hl("#lote-disp", 3);
+		await S.cap("Em lote: marque os processos e use <b>Dispensar nos marcados</b> ou <b>Analisar decurso nos marcados</b> (com uma preferência), na barra <b>⭐ Em lote</b>.", { ms: 5600 });
+		S.hlOff();
+		await S.cap("Os processos são tratados um de cada vez. Na análise, você assina cada documento; o feito é desmarcado.");
+		lote.remove();
+		await S.endCard("Dispensar = confirmação aceita sozinha. Analisar Decurso = análise no popup, com preferência (+ Nova, ✏️, 🗑). Em lote: Dispensar / Analisar nos marcados.");
 	},
 };

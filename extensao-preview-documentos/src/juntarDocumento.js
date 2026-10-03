@@ -64,6 +64,13 @@
 
 	const PREFS_KEY = "pdpJuntarDocumentoPrefs"; // [{id, name, tipoDocumento, tipoArquivo, descricao, modelo, conteudo, createdAt, updatedAt}]
 	const JOB_KEY = "pdpJuntarDocumentoJob";
+	// Preferências próprias do "Analisar Decurso" (lista de decurso de prazo,
+	// decursoNaLinha.js): mesmo formato, sem o Tipo de Documento.
+	const DECURSO_PREFS_KEY = "pdpDecursoPrefs";
+	// Marcas (sessionStorage) para quem abriu a análise do decurso saber o
+	// fim: o botão final foi clicado, ou ficou para o usuário clicar.
+	const DECURSO_CONCLUIDA_KEY = "pdpDecursoAnaliseConcluida";
+	const DECURSO_AGUARDANDO_KEY = "pdpDecursoAnaliseAguardando";
 	// Preferência gravada no clique em "Concluir Movimento", até o
 	// chrome.storage confirmar a gravação (a página pode navegar antes).
 	const PENDING_SAVE_KEY = "pdpJuntarDocumentoPendingSave";
@@ -295,14 +302,16 @@
 	// Preferências
 	// -------------------------------------------------------------------
 
-	function loadPrefs() {
-		return storageGet(PREFS_KEY, []).then(function (prefs) {
+	// `chave` (opcional): PREFS_KEY (Juntar Documento, padrão) ou
+	// DECURSO_PREFS_KEY (Analisar Decurso).
+	function loadPrefs(chave) {
+		return storageGet(chave || PREFS_KEY, []).then(function (prefs) {
 			return Array.isArray(prefs) ? prefs : [];
 		});
 	}
 
-	function savePref(pref) {
-		return loadPrefs().then(function (prefs) {
+	function savePref(pref, chave) {
+		return loadPrefs(chave).then(function (prefs) {
 			const idx = prefs.findIndex(function (p) {
 				return p.id === pref.id;
 			});
@@ -314,14 +323,14 @@
 				pref.createdAt = prefs[idx].createdAt;
 				prefs[idx] = pref;
 			}
-			return storageSet(PREFS_KEY, prefs);
+			return storageSet(chave || PREFS_KEY, prefs);
 		});
 	}
 
-	function removePref(id) {
-		return loadPrefs().then(function (prefs) {
+	function removePref(id, chave) {
+		return loadPrefs(chave).then(function (prefs) {
 			return storageSet(
-				PREFS_KEY,
+				chave || PREFS_KEY,
 				prefs.filter(function (p) {
 					return p.id !== id;
 				})
@@ -331,13 +340,13 @@
 
 	// Grava primeiro no sessionStorage (sobrevive a uma navegação imediata
 	// provocada pelo "Concluir Movimento") e depois no chrome.storage.
-	function persistPref(pref) {
+	function persistPref(pref, chave) {
 		try {
-			sessionStorage.setItem(PENDING_SAVE_KEY, JSON.stringify(pref));
+			sessionStorage.setItem(PENDING_SAVE_KEY, JSON.stringify(chave ? Object.assign({}, pref, { __chave: chave }) : pref));
 		} catch (err) {
 			// segue direto para o chrome.storage
 		}
-		return savePref(pref).then(function () {
+		return savePref(pref, chave).then(function () {
 			try {
 				sessionStorage.removeItem(PENDING_SAVE_KEY);
 			} catch (err) {
@@ -354,7 +363,9 @@
 			pending = null;
 		}
 		if (pending) {
-			persistPref(pending).catch(function (err) {
+			const chave = pending.__chave || null;
+			delete pending.__chave;
+			persistPref(pending, chave).catch(function (err) {
 				console.warn(LOG, "não foi possível salvar a preferência pendente:", err);
 			});
 		}
@@ -445,7 +456,33 @@
 		// Inclusão". O estado fica no sessionStorage da aba (compartilhado
 		// com o popup, que é da mesma origem).
 		prepararDecurso: function (pref, numero) {
+			limparMarcasDecurso();
 			writeJob({ mode: "apply", stage: "juntar", pref: pref, rec: {}, numero: numero || null, decurso: true, createdAt: Date.now() });
+		},
+		// Preferências próprias do "Analisar Decurso".
+		listarDecurso: function () {
+			return loadPrefs(DECURSO_PREFS_KEY);
+		},
+		removerDecurso: function (id) {
+			return removePref(id, DECURSO_PREFS_KEY);
+		},
+		// Grava (mode "capture") ou edita (mode "edit", com `pref`) uma
+		// preferência do "Analisar Decurso" na tela de análise aberta a seguir.
+		gravarDecurso: function (numero, pref) {
+			limparMarcasDecurso();
+			writeJob({ mode: pref ? "edit" : "capture", stage: "juntar", pref: pref || null, rec: {}, numero: numero || null, decurso: true, createdAt: Date.now() });
+		},
+		// Fim da análise iniciada com prepararDecurso: "concluida" (a
+		// extensão clicou no botão final), "aguardando" (o botão final ficou
+		// para o usuário) ou null.
+		fimDecurso: function () {
+			try {
+				if (sessionStorage.getItem(DECURSO_CONCLUIDA_KEY)) return "concluida";
+				if (sessionStorage.getItem(DECURSO_AGUARDANDO_KEY)) return "aguardando";
+			} catch (err) {
+				// sem sessionStorage
+			}
+			return null;
 		},
 		start: function (pref) {
 			return iniciarJuntada("apply", pref, true);
@@ -563,6 +600,7 @@
 	// "Salvar sem concluir" da faixa.
 	function salvarGravacao(job) {
 		const rec = job.rec || {};
+		if (job.decurso) return salvarGravacaoDecurso(job, rec);
 		if (!rec.tipoDocumento || !rec.tipoArquivo) {
 			alert(
 				"A preferência não foi salva: não consegui gravar o " +
@@ -587,6 +625,33 @@
 			ancora: rec.ancora || null,
 		};
 		persistPref(pref).catch(function (err) {
+			alert("Não foi possível salvar a preferência: " + err.message);
+		});
+		return pref;
+	}
+
+	// Preferência do "Analisar Decurso": só a janela "Inserir Arquivo" e o
+	// texto (não há Tipo de Documento nessa tela).
+	function salvarGravacaoDecurso(job, rec) {
+		if (!rec.tipoArquivo) {
+			alert('A preferência não foi salva: não consegui gravar o Tipo do Arquivo (grava ao clicar em "Digitar Texto").');
+			return false;
+		}
+		const name = prompt(
+			job.mode === "edit" ? 'Atualizar a preferência de "Analisar Decurso". Nome:' : 'Nome para esta preferência de "Analisar Decurso":',
+			job.mode === "edit" ? job.pref.name : ""
+		);
+		if (!name || !name.trim()) return false;
+		const pref = {
+			id: job.mode === "edit" ? job.pref.id : "dec-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8),
+			name: name.trim(),
+			tipoArquivo: rec.tipoArquivo,
+			descricao: rec.descricao || "",
+			modelo: rec.modelo || null,
+			conteudo: rec.conteudo || "",
+			ancora: rec.ancora || null,
+		};
+		persistPref(pref, DECURSO_PREFS_KEY).catch(function (err) {
 			alert("Não foi possível salvar a preferência: " + err.message);
 		});
 		return pref;
@@ -734,6 +799,23 @@
 		}
 	}
 
+	function limparMarcasDecurso() {
+		try {
+			sessionStorage.removeItem(DECURSO_CONCLUIDA_KEY);
+			sessionStorage.removeItem(DECURSO_AGUARDANDO_KEY);
+		} catch (err) {
+			// sem sessionStorage
+		}
+	}
+
+	function marcarDecurso(chave) {
+		try {
+			sessionStorage.setItem(chave, String(Date.now()));
+		} catch (err) {
+			// sem sessionStorage
+		}
+	}
+
 	// Tela "Analisar Decurso de Prazo": só fluxos iniciados pelo "Analisar
 	// Decurso" da lista (job.decurso). Clica em "Adicionar"; com o arquivo
 	// incluído, conclui pelo botão final - só se ele disser "Concluir" (sem
@@ -741,7 +823,7 @@
 	// clique ao usuário.
 	let decursoActed = false;
 	function tickDecurso(job) {
-		if (!job.decurso || job.mode !== "apply" || juntarBusy) return;
+		if (!job.decurso || juntarBusy) return;
 		const form = document.getElementById("certificarForm");
 		const adicionar = form.querySelector("#addButton");
 		if (adicionar && !adicionar.__pdpJdWatch) {
@@ -769,10 +851,15 @@
 		});
 		if (job.stage === "juntar" && !decursoActed) {
 			decursoActed = true;
-			showStatus(modeLabel(job) + ': abrindo "Inserir Arquivo"…');
+			if (job.mode === "capture") {
+				showStatusOnce("capture-decurso", modeLabel(job) + ' (Analisar Decurso): clique em "Adicionar" e faça a inclusão como de costume — no "Assinar Arquivos" a extensão pede o nome e salva.', "rec");
+				return;
+			}
+			showStatus(modeLabel(job) + ': abrindo "Inserir Arquivo"…', job.mode === "edit" ? "rec" : null);
 			adicionar.click();
 			return;
 		}
+		if (job.mode !== "apply") return;
 		// Só conclui depois do "Confirmar Inclusão" (etapa "concluir").
 		if (job.stage !== "concluir" || !hasFiles) {
 			if (job.stage !== "juntar") showStatusOnce("decurso-wait", modeLabel(job) + ": continue na janela do Projudi (Inserir Arquivo / Digitar Documento / assinatura).", null);
@@ -785,10 +872,12 @@
 			if (concluir && norm(rotulo) === "CONCLUIR") {
 				juntarBusy = true;
 				showStatus('Documento incluído. Clicando em "Concluir"…', "ok");
+				marcarDecurso(DECURSO_CONCLUIDA_KEY);
 				concluir.click();
 				juntarBusy = false;
 				return;
 			}
+			marcarDecurso(DECURSO_AGUARDANDO_KEY);
 			if (concluir) concluir.classList.add("pdp-jd-highlight");
 			showStatus('Documento incluído e assinado. Confira e clique em "' + (rotulo || "Concluir") + '" para terminar a análise do decurso.', "warn");
 		}
@@ -906,7 +995,7 @@
 						if (saved) {
 							clearJob(true);
 							showStatus(
-								'Preferência "' + saved.name + '" ' + (job.mode === "edit" ? "atualizada" : "salva") + '. Assine no assinador e depois clique em "Confirmar Inclusão" e em "Concluir Movimento".',
+								'Preferência "' + saved.name + '" ' + (job.mode === "edit" ? "atualizada" : "salva") + '. Assine no assinador e depois clique em "Confirmar Inclusão" e ' + (job.decurso ? "no botão final da análise." : 'em "Concluir Movimento".'),
 								"ok"
 							);
 						}
