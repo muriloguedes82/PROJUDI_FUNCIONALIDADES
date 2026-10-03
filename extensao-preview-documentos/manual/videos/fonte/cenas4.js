@@ -620,3 +620,61 @@ CENAS.V43 = {
 		await S.endCard("⭐ → + Nova preferência → classe + motivo → Salvar (só grava). Depois: ⭐ → ★ preferência → alterado e salvo, sem confirmação.");
 	},
 };
+
+// ------------------------------------------------------------------ V44
+// Tela inicial do processo (aba Movimentações) num painel, ao pousar o mouse
+// sobre o número do processo nas listas de decurso de prazo.
+function painelProcesso(n, x, y) {
+	const abas = ABAS.map(([k, nm]) => '<span class="pj-tab' + (k === "mov" ? " on" : "") + '">' + nm + "</span>").join("");
+	const linhas = MOVS.slice(0, 6).map((m, i) => '<tr class="' + (i % 2 ? "alt" : "") + '"><td>' + m.seq + "</td><td>" + m.data + "</td><td>" + (m.files.length ? '<span class="pj-plus">+</span>' : "") + m.ev + "</td><td>" + m.por + '<span class="papel">' + m.papel + "</span></td></tr>").join("");
+	const p = add('<div class="x-preview" id="x-proc" style="width:760px;height:500px;background:#fff">' +
+		'<div class="hd"><span class="t">Processo ' + n + ' — Movimentações</span><span class="x-btn small" id="x-fixar" style="background:#f5f7ef;color:#35412b">📌 Fixar</span><span>Abrir em nova aba ↗</span><span>✕</span></div>' +
+		'<div id="x-proc-bd" style="position:relative;height:464px;overflow:hidden">' +
+		'<div style="padding:8px 12px;font-size:12px"><div class="pj-title">Processo <em class="attention">' + n + '</em><span class="dias">(212 dia(s) em tramitação)</span></div>' +
+		'<table class="pj-info"><tr><td class="l">Classe Processual:</td><td>Ação Penal - Procedimento Ordinário</td><td class="l">Juízo:</td><td>Vara Criminal de Exemplo</td></tr></table>' +
+		'<div class="pj-tabs">' + abas + '</div><table class="pj-table" id="x-proc-movs"><tr><th style="width:40px">Seq.</th><th style="width:110px">Data</th><th>Evento</th><th style="width:200px">Movimentado Por</th></tr>' + linhas + "</table></div>" +
+		'<div id="x-proc-load" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#f5f7ef;color:#35412b;font-size:13px">Carregando o processo…</div>' +
+		"</div></div>");
+	Object.assign(p.style, { left: x + "px", top: y + "px" });
+	return p;
+}
+
+CENAS.V44 = {
+	arquivo: "V44-processo-ao-passar-o-mouse.mp4",
+	titulo: "Processo ao passar o mouse no Decurso de Prazo",
+	secao: "9.8",
+	async run() {
+		telaLista("Decurso de Prazo - Intimação", { path: "intimacaoBusca.do", col: "Data Decurso" });
+		await S.titleCard("VÍDEO V44", "Processo ao passar o mouse", "Veja a tela do processo, já na aba Movimentações, sem sair da lista de decurso de prazo.");
+		await S.cap("Nas listas de <b>Decurso de Prazo</b> (Intimação, Auxiliares da Justiça e Citações/Notificações), pare o mouse sobre o <b>número do processo</b>.");
+		const link = $('#lista tr[data-i="1"] a.link');
+		await S.move(link);
+		await sleep(500);
+		let p = painelProcesso(LISTA[1].n, 470, 180);
+		await sleep(900);
+		$("#x-proc-load").textContent = "Abrindo a aba Movimentações…";
+		await sleep(800);
+		$("#x-proc-load").remove();
+		await S.cap("A tela do processo abre num painel sobre a lista, já na aba <b>Movimentações</b>. Role dentro dele normalmente.");
+		S.hl("#x-proc-movs", 4);
+		await S.cap("Dentro do painel a tela funciona como sempre: passe o mouse sobre um arquivo para lê-lo.");
+		S.hlOff();
+		await S.cap("Para fechar: tire o mouse do número e do painel, clique em <b>✕</b> ou tecle <b>Esc</b>.");
+		await S.move({ x: 300, y: 560 });
+		p.remove();
+		await sleep(500);
+		await S.cap("Quer o painel aberto mesmo tirando o mouse? Clique em <b>📌 Fixar</b>.");
+		await S.move($('#lista tr[data-i="3"] a.link'));
+		await sleep(500);
+		p = painelProcesso(LISTA[3].n, 470, 180);
+		await sleep(900);
+		$("#x-proc-load").remove();
+		await S.click("#x-fixar");
+		$("#x-fixar").textContent = "📌 Fixado";
+		p.style.outline = "2px solid #b59a1f";
+		await S.move({ x: 300, y: 560 });
+		await S.cap("Fixado, ele só fecha no <b>✕</b>. “Abrir em nova aba” abre o processo do jeito tradicional.", { ms: 3200 });
+		p.remove();
+		await S.endCard("Mouse parado sobre o número do processo = tela do processo na aba Movimentações. 📌 Fixar mantém aberto; Esc ou ✕ fecha.");
+	},
+};

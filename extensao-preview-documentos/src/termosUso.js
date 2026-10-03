@@ -72,6 +72,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/enderecoMandado.js",
 			"src/preferenciasNaLinha.js",
 			"src/listaTarefas.js",
+			"src/previewProcesso.js",
 			"src/funcionalidades.js",
 			"src/menuExtensao.js"
 		],
@@ -90,6 +91,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/enderecoMandado.css",
 			"src/juntarDocumento.css",
 			"src/listaTarefas.css",
+			"src/previewProcesso.css",
 			"src/localizadorSeeu.css"
 		],
 		runAt: "document_idle",

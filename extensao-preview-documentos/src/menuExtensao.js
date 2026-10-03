@@ -770,7 +770,7 @@ button.bt.primario:hover { background: #1f5591; }
 	// Partes etc. e os diálogos do próprio Projudi carregam telas com o mesmo
 	// cabeçalho): a balança fica só na tela principal. É popup o quadro dentro
 	// de um popup da extensão ou abaixo de um quadro que já mostra a balança.
-	const CLASSES_POPUP = ["pdp-qa-modal-iframe", "pdp-sistemas-cnj-iframe"];
+	const CLASSES_POPUP = ["pdp-qa-modal-iframe", "pdp-sistemas-cnj-iframe", "pdp-proc-preview-iframe"];
 	function dentroDePopup() {
 		let win = window;
 		for (let nivel = 0; nivel < 8 && win !== win.top; nivel++) {
