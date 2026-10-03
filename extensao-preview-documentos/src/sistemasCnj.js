@@ -9,7 +9,8 @@
 // redimensionamento): menuExtensao.js publica a posição da balança no
 // atributo "data-pdp-icone-pos" de #pdp-menu-host. Sem a balança no
 // documento, os ícones não aparecem. Também só aparecem com um PROCESSO
-// aberto: a balança fica no cabeçalho, mas a tela (Mesa, processo...) é
+// aberto, e só na tela principal dele - nunca dentro de um popup (ver
+// dentroDePopup): a balança fica no cabeçalho, mas a tela (Mesa, processo...) é
 // carregada num quadro interno, então os ícones conferem todos os quadros
 // da aba, a partir do topo (ver processoAberto). Não mexe na fileira de botões do
 // rodapé (quickActions.js/buttonDrag.js).
@@ -213,7 +214,28 @@
 	// Este documento primeiro (caso comum: balança e processo no mesmo
 	// quadro); depois todos os quadros da aba, a partir do topo.
 	function processoNaAba() {
-		return documentoDeProcesso(document) || processoAberto(window.top, 0);
+		return !dentroDePopup() && (documentoDeProcesso(document) || processoAberto(window.top, 0));
+	}
+
+	// Tela aberta num popup sobre o processo (os popups das ações rápidas, de
+	// Advogados, Partes etc. e os diálogos do próprio Projudi carregam telas
+	// com o mesmo cabeçalho e a mesma balança): os cards ficam só na tela
+	// principal. É popup quando o quadro está dentro de um popup da extensão
+	// ou quando algum quadro acima dele já é a tela de um processo.
+	const CLASSES_POPUP = ["pdp-qa-modal-iframe", "pdp-sistemas-cnj-iframe"];
+	function dentroDePopup() {
+		let win = window;
+		for (let nivel = 0; nivel < 8 && win !== win.top; nivel++) {
+			try {
+				const quadro = win.frameElement;
+				if (quadro && CLASSES_POPUP.some(function (c) { return quadro.classList.contains(c); })) return true;
+			} catch (err) { /* quadro de outro endereço */ }
+			win = win.parent;
+			try {
+				if (win.document && documentoDeProcesso(win.document)) return true;
+			} catch (err) { /* quadro de outro endereço */ }
+		}
+		return false;
 	}
 
 	// O quadro interno troca de tela sem mudar nada neste documento: confere
