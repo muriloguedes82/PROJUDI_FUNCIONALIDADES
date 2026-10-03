@@ -7,7 +7,8 @@
 // O ícone acompanha o elemento de referência (posição fixa recalculada a
 // cada rolagem/redimensionamento) e nunca sai do topo da tela. Se a
 // referência não for encontrada (tela diferente), fica no canto superior
-// direito.
+// direito. Dentro de um popup (ver dentroDePopup) o ícone não aparece: fica
+// só na tela principal.
 //
 // Ao clicar, abre o Menu com:
 //   1. todas as funcionalidades (src/funcionalidades.js), cada uma com uma
@@ -765,7 +766,28 @@ button.bt.primario:hover { background: #1f5591; }
 	// direito - e só se for uma página comum (não um <frameset>), que não
 	// tenha sido aberta como janela auxiliar do sistema (ex.: Oráculo).
 	const MARCA_FRAME = "data-pdp-menu-no-frame";
+	// Tela aberta num popup (os popups das ações rápidas, de Advogados,
+	// Partes etc. e os diálogos do próprio Projudi carregam telas com o mesmo
+	// cabeçalho): a balança fica só na tela principal. É popup o quadro dentro
+	// de um popup da extensão ou abaixo de um quadro que já mostra a balança.
+	const CLASSES_POPUP = ["pdp-qa-modal-iframe", "pdp-sistemas-cnj-iframe"];
+	function dentroDePopup() {
+		let win = window;
+		for (let nivel = 0; nivel < 8 && win !== win.top; nivel++) {
+			try {
+				const quadro = win.frameElement;
+				if (quadro && CLASSES_POPUP.some(function (c) { return quadro.classList.contains(c); })) return true;
+			} catch (_) { /* quadro de outro endereço */ }
+			win = win.parent;
+			try {
+				if (win.document && win.document.getElementById("pdp-menu-host")) return true;
+			} catch (_) { /* quadro de outro endereço */ }
+		}
+		return false;
+	}
+
 	function iniciar(tentativa) {
+		if (dentroDePopup()) return;
 		const temReferencia = !!calcularPosicao(true);
 		const raizTopo = (function () { try { return window.top.document.documentElement; } catch (_) { return null; } })();
 		const podeSemReferencia = IS_TOPO && tentativa >= 6 && !window.opener && document.body &&

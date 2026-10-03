@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.18.1 |
-| **Versão da extensão** | 2.18.1 |
+| **Versão do manual** | 2.18.2 |
+| **Versão da extensão** | 2.18.2 |
 | **Data desta versão** | 03/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -313,7 +313,8 @@ num quadrado dourado — sempre visível no cabeçalho:
 
 Ao rolar a página ele acompanha o cabeçalho e, quando este sai da tela, fica
 preso no topo. Um **pontinho vermelho** no ícone avisa que há funções
-desativadas.
+desativadas. O ícone fica só na tela principal: **não aparece dentro dos
+popups** (Advogados, Partes, ações rápidas, janelas do Projudi).
 
 **Como abrir e fechar:** clique no ícone. Para fechar, use o **✕**, a tecla
 **Esc** ou clique fora do Menu.
@@ -1865,6 +1866,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.18.2 | 03/10/2026 | A **balança** do Menu (2.6) também deixa de aparecer **dentro dos popups** (Advogados, Partes, ações rápidas, janelas do Projudi): fica só na tela principal. |
 | 2.18.1 | 03/10/2026 | Corrigido: os cards dos sistemas (8.7) apareciam também **dentro dos popups** (ex.: Advogados), que carregam uma tela com o mesmo cabeçalho; agora aparecem só na tela principal do processo. |
 | 2.18.0 | 03/10/2026 | Novo card **Renajud** (orquídea), só no Projudi (8.7). Corrigido: os cards dos sistemas **não apareciam** no Projudi, porque a tela do processo fica num endereço (projudi2) diferente da página principal e a extensão parava de procurar o processo ao encontrar a página principal; agora ela confere todos os quadros. Vídeo V39 regravado. |
 | 2.17.0 | 03/10/2026 | Seção 8.9: **⭐ Preferências de alteração** ao lado de cada **✏️ Alterar** — grava a classe e o motivo (ou o assunto principal) clicando em Salvar sem alterar o processo, e depois faz a alteração e salva com um clique, sem confirmação. Vídeo V43. |
