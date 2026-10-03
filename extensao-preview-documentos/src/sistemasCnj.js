@@ -1,9 +1,11 @@
-// Projudi - Ícones dos sistemas do CNJ (SerpJud, CNIEP, BNMP 3.0, PrevJud,
-// Sisbajud, SNGB, Sniper e Infojud, da Receita - lista em sistemasCnjLista.js) ao lado do ícone do Menu da
-// extensão (a balança dourada, ver menuExtensao.js).
+// Projudi - Cards dos sistemas do CNJ (SerpJud, CNIEP, BNMP 3.0, PrevJud,
+// Sisbajud, SNGB, Sniper, Infojud, da Receita, e Sistema Uniformizado, do
+// TJPR - lista em sistemasCnjLista.js) ao lado do ícone do Menu da extensão
+// (a balança dourada, ver menuExtensao.js).
 //
-// Os ícones têm o mesmo tamanho da balança, ficam enfileirados à esquerda
-// dela (cada um com a sua cor pastel) e a acompanham (rolagem,
+// Cada card tem a altura da balança e o nome oficial do sistema escrito
+// (`rotulo`), na cor pastel dele; a largura acompanha o nome. Ficam
+// enfileirados à esquerda da balança e a acompanham (rolagem,
 // redimensionamento): menuExtensao.js publica a posição da balança no
 // atributo "data-pdp-icone-pos" de #pdp-menu-host. Sem a balança no
 // documento, os ícones não aparecem. Também só aparecem com um PROCESSO
@@ -49,24 +51,22 @@
 	const MENSAGEM_ABRIR = "pdp-sistemas-cnj-abrir";
 	const TAM = 22; // mesmo tamanho da balança (menuExtensao.js)
 	const ESPACO = 6;
-	const PASSO = TAM + ESPACO;
 	const ORDEM_KEY = "pdpSistemasCnjOrdem";
 	const LIMIAR_ARRASTO = 4; // px de movimento antes de virar arrasto
 
 	const CSS = `
 :host { all: initial; }
 .icone {
-	position: fixed; z-index: 2147483000; width: ${TAM}px; height: ${TAM}px; padding: 0; margin: 0;
+	position: fixed; z-index: 2147483000; min-width: ${TAM}px; height: ${TAM}px; padding: 0 6px; margin: 0;
+	box-sizing: border-box; white-space: nowrap; font: 700 11px/1 Arial, Helvetica, sans-serif; letter-spacing: -.1px;
 	border-radius: 6px; border: 1.5px solid var(--borda); background: linear-gradient(135deg, var(--claro), var(--escuro));
-	color: var(--desenho); cursor: pointer; display: flex; align-items: center; justify-content: center;
+	color: var(--texto); cursor: pointer; display: flex; align-items: center; justify-content: center;
 	box-shadow: 0 1px 4px rgba(0,0,0,.25); transition: transform .15s, box-shadow .15s, filter .15s;
 }
 .icone[hidden] { display: none; }
-.icone.arrastando { z-index: 2147483001; cursor: grabbing; transform: scale(1.15); box-shadow: 0 4px 10px rgba(0,0,0,.35); transition: none; }
+.icone.arrastando { z-index: 2147483001; cursor: grabbing; transform: scale(1.08); box-shadow: 0 4px 10px rgba(0,0,0,.35); transition: none; }
 .icone.deslizando { transition: left .15s, transform .15s, box-shadow .15s, filter .15s; }
-.icone:hover, .icone:focus-visible { transform: scale(1.1); filter: brightness(1.04); box-shadow: 0 2px 7px rgba(0,0,0,.3); outline: none; }
-.icone svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.icone svg .cheio { fill: currentColor; }
+.icone:hover, .icone:focus-visible { transform: scale(1.06); filter: brightness(1.04); box-shadow: 0 2px 7px rgba(0,0,0,.3); outline: none; }
 `;
 
 	function orgao(sistema) {
@@ -231,8 +231,25 @@
 		});
 	}
 
-	function leftDoSlot(i) {
-		return Math.max(4, base.left - (i + 1) * PASSO);
+	// Largura de cada card (depende do nome), medida uma vez já visível.
+	const larguras = {};
+	function largura(id) {
+		if (!larguras[id]) {
+			const w = icones[id].offsetWidth;
+			if (w) larguras[id] = w;
+		}
+		return larguras[id] || TAM;
+	}
+
+	// Posição (left) de cada card de `lista`, da balança para a esquerda.
+	function posicoes(lista) {
+		const lefts = {};
+		let x = base.left;
+		lista.forEach(function (id) {
+			x -= ESPACO + largura(id);
+			lefts[id] = Math.max(4, x);
+		});
+		return lefts;
 	}
 
 	function montar() {
@@ -252,8 +269,8 @@
 			icone.style.setProperty("--claro", sistema.cor.claro);
 			icone.style.setProperty("--escuro", sistema.cor.escuro);
 			icone.style.setProperty("--borda", sistema.cor.borda);
-			icone.style.setProperty("--desenho", sistema.cor.desenho);
-			icone.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + sistema.svg + "</svg>";
+			icone.style.setProperty("--texto", sistema.cor.texto);
+			icone.textContent = sistema.rotulo;
 			icone.hidden = true;
 			icone.addEventListener("click", function (ev) {
 				ev.stopPropagation();
@@ -283,11 +300,12 @@
 		base = { top: top, left: left };
 		if (!host || !host.isConnected) montar();
 		const lista = arrasto && arrasto.ativo ? arrasto.ordemTemp : ordem;
-		lista.forEach(function (id, i) {
+		lista.forEach(function (id) { icones[id].hidden = false; }); // visível antes de medir
+		const lefts = posicoes(lista);
+		lista.forEach(function (id) {
 			const icone = icones[id];
 			icone.style.top = top + "px";
-			if (!(arrasto && arrasto.ativo && arrasto.id === id)) icone.style.left = leftDoSlot(i) + "px";
-			icone.hidden = false;
+			if (!(arrasto && arrasto.ativo && arrasto.id === id)) icone.style.left = lefts[id] + "px";
 		});
 	}
 
@@ -312,8 +330,12 @@
 		}
 		const left = arrasto.leftInicial + dx;
 		icones[arrasto.id].style.left = left + "px";
-		const destino = Math.max(0, Math.min(ordem.length - 1, Math.round((base.left - left) / PASSO) - 1));
+		// Destino: quantos dos outros cards ficam à direita do centro do card
+		// arrastado (a lista vai da balança para a esquerda).
+		const centro = left + largura(arrasto.id) / 2;
 		const temp = ordem.filter(function (id) { return id !== arrasto.id; });
+		const lefts = posicoes(ordem);
+		const destino = temp.filter(function (id) { return lefts[id] + largura(id) / 2 > centro; }).length;
 		temp.splice(destino, 0, arrasto.id);
 		arrasto.ordemTemp = temp;
 		posicionar();
