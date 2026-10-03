@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.17.0 |
-| **Versão da extensão** | 2.17.0 |
+| **Versão do manual** | 2.18.0 |
+| **Versão da extensão** | 2.18.0 |
 | **Data desta versão** | 03/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1459,6 +1459,49 @@ lado do **Assunto Principal**. Ele aparece em qualquer aba do processo.
   permissão para alterar este processo — o mesmo que acontece na aba
   **Informações Gerais**.
 
+**Preferências de alteração (⭐)**
+
+▶ [**Vídeo V43** — Preferência de alteração de classe](videos/V43-preferencia-de-alteracao-de-classe.mp4)
+
+Ao lado de cada **✏️ Alterar** há um balão **⭐**. Com ele você grava uma
+alteração que se repete muito (por exemplo, classe **279 - Inquérito
+Policial**, motivo **Evolução**) e depois a faz **com um clique**: a
+extensão escolhe a classe, marca o motivo e clica em **Salvar** sozinha,
+sem pedir confirmação.
+
+*Gravar uma preferência:*
+
+1. Clique na **⭐** ao lado da classe (ou do assunto principal) e em
+   **+ Nova preferência**.
+2. Abre-se a tela de alteração no popup, com um aviso amarelo
+   "Gravando preferência".
+3. Escolha a nova classe pela lupa e marque o **Motivo da Alteração da
+   Classe Processual** (**Retificação** ou **Evolução**). Na ⭐ do assunto,
+   escolha o novo assunto principal.
+4. Clique em **Salvar**. Nesse momento **o processo não é alterado**: a
+   extensão só guarda o que você escolheu, pede um nome para a preferência
+   e fecha o popup.
+
+*Usar a preferência:* clique na **⭐** e no nome da preferência
+(**★ …**). Um aviso no alto da tela mostra o andamento ("preenchendo…",
+"salvando…"); no fim, a tela do processo é recarregada já com a classe
+nova.
+
+*Bom saber:*
+
+- A preferência é executada **direto, sem confirmação** — confira o nome
+  antes de clicar.
+- Se o processo **já estiver** com a classe (ou o assunto) da
+  preferência, nada é feito e a extensão avisa.
+- Se o Projudi recusar a alteração, a extensão mostra a mensagem dele e
+  nada mais é feito; use **✏️ Alterar** para fazer à mão.
+- Na ⭐ da classe, a extensão só grava a preferência se a classe foi
+  trocada **e** o motivo foi marcado.
+- Para apagar uma preferência, use **🗑** ao lado dela. As preferências
+  entram no **⬇ Exportar** do Menu da extensão ([2.6](#cap-2-6)).
+- Os **Assuntos Secundários** (Adicionar/Remover) não entram na
+  preferência.
+
 ---
 
 <a id="cap-9"></a>
@@ -1806,6 +1849,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V40](videos/V40-localizador-seeu.mp4) | [Localizador (SEEU)](videos/V40-localizador-seeu.mp4) | [8.8](#cap-8-8) | 1:02 |
 | [V41](videos/V41-localizador-na-linha-seeu.mp4) | [Localizador pela ⭐ da lista (SEEU)](videos/V41-localizador-na-linha-seeu.mp4) | [9.3](#cap-9-3) | 0:31 |
 | [V42](videos/V42-alterar-classe-e-assuntos.mp4) | [Alterar Classe/Assuntos](videos/V42-alterar-classe-e-assuntos.mp4) | [8.9](#cap-8-9) | 0:44 |
+| [V43](videos/V43-preferencia-de-alteracao-de-classe.mp4) | [Preferência de alteração de classe](videos/V43-preferencia-de-alteracao-de-classe.mp4) | [8.9](#cap-8-9) | 0:43 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -1819,7 +1863,8 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 2.17.0 | 03/10/2026 | Novo card **Renajud** (orquídea), só no Projudi (8.7). Corrigido: os cards dos sistemas **não apareciam** no Projudi, porque a tela do processo fica num endereço (projudi2) diferente da página principal e a extensão parava de procurar o processo ao encontrar a página principal; agora ela confere todos os quadros. Vídeo V39 regravado. |
+| 2.18.0 | 03/10/2026 | Novo card **Renajud** (orquídea), só no Projudi (8.7). Corrigido: os cards dos sistemas **não apareciam** no Projudi, porque a tela do processo fica num endereço (projudi2) diferente da página principal e a extensão parava de procurar o processo ao encontrar a página principal; agora ela confere todos os quadros. Vídeo V39 regravado. |
+| 2.17.0 | 03/10/2026 | Seção 8.9: **⭐ Preferências de alteração** ao lado de cada **✏️ Alterar** — grava a classe e o motivo (ou o assunto principal) clicando em Salvar sem alterar o processo, e depois faz a alteração e salva com um clique, sem confirmação. Vídeo V43. |
 | 2.16.0 | 03/10/2026 | Os ícones com desenho dos sistemas (8.7) viram **cards com o nome oficial escrito** (SerpJud, CNIEP, BNMP, PrevJud, Sisbajud, SNGB, Sniper, Infojud e S.U.), na mesma altura da balança e nas mesmas cores; a ordem escolhida continua valendo. Textos de 1.3, 2.4 e 8 ajustados e vídeo V39 regravado. |
 | 2.15.0 | 03/10/2026 | Novo ícone **Sistema Uniformizado** (TJPR — fundos, custas e guias; cinza-azulado, guia com código de barras) ao lado da balança, **no Projudi e no SEEU**, com o mesmo popup, **🗂 Nova aba** e **🖥 Segundo monitor** dos sistemas do CNJ (8.7, 8 e 1.3). Vídeo V39 regravado. |
 | 2.14.2 | 02/10/2026 | Corrigida a **Nova Ordenação** com **mandado urgente**: o envio parava com "Selecione o tipo de urgência do Mandado" porque o **Tipo de Urgência** guardado ficava desligado no envio; agora as opções Sim/Não da fila são marcadas como um clique de verdade, que libera os campos ligados a elas (7.5). |
