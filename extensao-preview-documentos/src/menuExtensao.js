@@ -326,7 +326,7 @@
 			["destinatário(s) de e-mail", tamanho(local.pdpEmailRecipients)],
 			["remetente(s) de e-mail", tamanho(local.pdpFromAccounts)]
 		].filter(function (l) { return l[1] > 0; }).map(function (l) { return l[1] + " " + l[0]; });
-		if (tamanho(local.pdpSistemasCnjOrdem)) linhas.push("ordem dos ícones dos sistemas do CNJ");
+		if (tamanho(local.pdpSistemasCnjOrdem)) linhas.push("ordem dos cards dos sistemas do CNJ");
 		SISTEMAS.forEach(function (s) {
 			const fora = self.pdpDesativadasDoSistema(local, s.id).length;
 			linhas.push(fora ? fora + " funcionalidade(s) desativada(s) no " + s.nome : "todas as funcionalidades ativas no " + s.nome);
