@@ -850,8 +850,8 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
     const doSeeu = /^seeu(treino)?\.pje\.jus\.br$/.test(origin.hostname) && origin.pathname.startsWith('/seeu/');
     if (!sender.tab || origin.protocol !== 'https:' || !(doProjudi || doSeeu)) throw new Error('Origem inválida.');
     sistema = (self.PDP_SISTEMAS_CNJ || []).find(s => s.id === message.sistema);
-    // No SEEU só o BNMP 3.0 (SISTEMAS_SEEU em sistemasCnj.js).
-    if (!sistema || (doSeeu && sistema.id !== 'bnmp')) throw new Error('Sistema desconhecido.');
+    // No SEEU só os marcados com `seeu: true` (sistemasCnjLista.js).
+    if (!sistema || (doSeeu && sistema.seeu !== true)) throw new Error('Sistema desconhecido.');
     if (message.onde !== 'aba' && message.onde !== 'monitor') throw new Error('Opção inválida.');
   } catch (error) { reply({ok:false, error:error.message}); return false; }
   const abrir = message.onde === 'aba'

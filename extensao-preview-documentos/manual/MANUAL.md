@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.14.2 |
-| **Versão da extensão** | 2.14.2 |
-| **Data desta versão** | 02/10/2026 |
+| **Versão do manual** | 2.15.0 |
+| **Versão da extensão** | 2.15.0 |
+| **Data desta versão** | 03/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -74,7 +74,7 @@
    - 8.4 [Editar Partes/Outros](#cap-8-4)
    - 8.5 [Colar processo](#cap-8-5)
    - 8.6 [Oráculo](#cap-8-6)
-   - 8.7 [Sistemas do CNJ (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud)](#cap-8-7)
+   - 8.7 [Sistemas do CNJ (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Sistema Uniformizado)](#cap-8-7)
    - 8.8 [Localizador (só no SEEU)](#cap-8-8)
    - 8.9 [Alterar Classe/Assuntos](#cap-8-9)
 9. [Telas de análise, mesas e cumprimentos](#cap-9)
@@ -138,7 +138,7 @@ Não é preciso saber nada de informática além disso.
 | Sistema | O que funciona |
 |---|---|
 | **Projudi (TJPR)** | Todas as funções deste manual |
-| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)), o ícone do BNMP 3.0 ao lado da balança ([8.7](#cap-8-7)) e o botão **📍 Localizador** ([8.8](#cap-8-8)), que só existe no SEEU — também pela **⭐** das listas de juntadas e de conclusões ([9.3](#cap-9-3)). Vale também para o **SEEU de treino** (ambiente de testes) |
+| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)), os ícones do BNMP 3.0 e do Sistema Uniformizado ao lado da balança ([8.7](#cap-8-7)) e o botão **📍 Localizador** ([8.8](#cap-8-8)), que só existe no SEEU — também pela **⭐** das listas de juntadas e de conclusões ([9.3](#cap-9-3)). Vale também para o **SEEU de treino** (ambiente de testes) |
 
 A extensão **não funciona** quando o usuário está logado com perfil de
 advogado(a) ou de assessor(a) de advogado — veja [10.3](#cap-10-3).
@@ -267,7 +267,7 @@ tela, "flutuando" sobre a página.
 - O **ícone da balança** (canto superior direito, abaixo de **Sair**) não faz
   parte desta barra: ele abre o **Menu da extensão** — veja [2.6](#cap-2-6).
   Os ícones **coloridos** logo à esquerda dela abrem os **sistemas do CNJ**
-  (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper e Infojud) — veja [8.7](#cap-8-7).
+  (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper e Infojud, e o Sistema Uniformizado do TJPR) — veja [8.7](#cap-8-7).
 - Passe o mouse sobre qualquer botão para ver uma dica.
 - A barra acompanha a rolagem da página. Ela se alinha ao quadro
   **Pendências**; quando a tela não tem esse quadro, alinha-se ao quadro
@@ -1106,7 +1106,7 @@ Bom saber sobre essas preferências:
 <a id="cap-8"></a>
 ## 8. Atalhos para telas do processo
 
-*Só no Projudi* (exceto o [8.8](#cap-8-8), *só no SEEU*, e o ícone do BNMP 3.0 do [8.7](#cap-8-7), que também aparece no SEEU). Os atalhos de 8.1
+*Só no Projudi* (exceto o [8.8](#cap-8-8), *só no SEEU*, e os ícones do BNMP 3.0 e do Sistema Uniformizado do [8.7](#cap-8-7), que também aparecem no SEEU). Os atalhos de 8.1
 a 8.6 abrem num **popup** sobre a tela atual — a aba do processo não sai do
 lugar. Feche com **✕ Fechar**.
 
@@ -1295,7 +1295,7 @@ da parte sem ir até a ficha dela.
 botão Oráculo dela.
 
 <a id="cap-8-7"></a>
-### 8.7 Sistemas do CNJ (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud)
+### 8.7 Sistemas do CNJ (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Sistema Uniformizado)
 
 ▶ [**Vídeo V39** — Sistemas do CNJ](videos/V39-sistemas-do-cnj.mp4)
 
@@ -1306,8 +1306,8 @@ processo.
 coloridos** logo **à esquerda da balança dourada** do Menu da extensão
 (abaixo do link **Sair**). Eles acompanham a balança ao rolar a página e
 **só aparecem com um processo aberto** — na Mesa, nas listas e nas demais
-telas fica só a balança. **No SEEU** aparece só o ícone do **BNMP 3.0**
-(também só com um processo aberto). Cada desenho lembra o logotipo do sistema. Na ordem
+telas fica só a balança. **No SEEU** aparecem só os ícones do **BNMP 3.0** e do **Sistema
+Uniformizado** (também só com um processo aberto). Cada desenho lembra o logotipo do sistema. Na ordem
 padrão, da balança para a esquerda:
 
 | Ícone | Sistema | Para quê |
@@ -1320,6 +1320,7 @@ padrão, da balança para a esquerda:
 | Rosa, quadradinhos em "X" | **SNGB** | Gestão de bens apreendidos |
 | Azul-claro, cifrão entre arcos | **Sniper** | Investigação patrimonial |
 | Coral, documento com lupa | **Infojud** | Declarações e dados da Receita Federal (pelo e-CAC) |
+| Cinza-azulado, guia com código de barras | **Sistema Uniformizado** | Sistema do TJPR de fundos, custas e guias (Projudi **e SEEU**) |
 
 **Mudar a ordem dos ícones:** clique num ícone e, **sem soltar**, arraste-o
 para a direita ou para a esquerda; os outros abrem espaço. Solte no lugar
@@ -1799,7 +1800,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V36](videos/V36-dispensar-cumprimentos.mp4) | [Dispensar cumprimentos para expedir](videos/V36-dispensar-cumprimentos.mp4) | [6.4](#cap-6-4) | 0:29 |
 | [V37](videos/V37-escolher-a-movimentacao.mp4) | [Escolher a movimentação das Ações rápidas](videos/V37-escolher-a-movimentacao.mp4) | [7.7](#cap-7-7) | 1:14 |
 | [V38](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [Preferência a partir de um movimento](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [7.7](#cap-7-7) | 0:56 |
-| [V39](videos/V39-sistemas-do-cnj.mp4) | [Sistemas do CNJ](videos/V39-sistemas-do-cnj.mp4) | [8.7](#cap-8-7) | 0:58 |
+| [V39](videos/V39-sistemas-do-cnj.mp4) | [Sistemas do CNJ](videos/V39-sistemas-do-cnj.mp4) | [8.7](#cap-8-7) | 0:59 |
 | [V40](videos/V40-localizador-seeu.mp4) | [Localizador (SEEU)](videos/V40-localizador-seeu.mp4) | [8.8](#cap-8-8) | 1:02 |
 | [V41](videos/V41-localizador-na-linha-seeu.mp4) | [Localizador pela ⭐ da lista (SEEU)](videos/V41-localizador-na-linha-seeu.mp4) | [9.3](#cap-9-3) | 0:31 |
 | [V42](videos/V42-alterar-classe-e-assuntos.mp4) | [Alterar Classe/Assuntos](videos/V42-alterar-classe-e-assuntos.mp4) | [8.9](#cap-8-9) | 0:44 |
@@ -1816,6 +1817,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.15.0 | 03/10/2026 | Novo ícone **Sistema Uniformizado** (TJPR — fundos, custas e guias; cinza-azulado, guia com código de barras) ao lado da balança, **no Projudi e no SEEU**, com o mesmo popup, **🗂 Nova aba** e **🖥 Segundo monitor** dos sistemas do CNJ (8.7, 8 e 1.3). Vídeo V39 regravado. |
 | 2.14.2 | 02/10/2026 | Corrigida a **Nova Ordenação** com **mandado urgente**: o envio parava com "Selecione o tipo de urgência do Mandado" porque o **Tipo de Urgência** guardado ficava desligado no envio; agora as opções Sim/Não da fila são marcadas como um clique de verdade, que libera os campos ligados a elas (7.5). |
 | 2.14.1 | 02/10/2026 | Seção 8.9: o **✏️ Alterar** da classe e do assunto passa a ser um pequeno balão cinza, no mesmo tom dos botões da extensão (antes, um link). Vídeo V42 regravado. |
 | 2.14.0 | 02/10/2026 | Nova seção **8.9 Alterar Classe/Assuntos** (só no Projudi): link **✏️ Alterar** ao lado da **Classe Processual** e do **Assunto Principal**, no cabeçalho do processo, que abre num popup a tela do botão **Alterar** da aba Informações Gerais; ao salvar, o popup fecha e a tela do processo é recarregada. Nova função na tabela da 2.6 (28 funções no Projudi) e vídeo V42. |

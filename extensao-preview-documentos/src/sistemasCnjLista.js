@@ -7,6 +7,7 @@
 // "pdpSistemasCnjOrdem", no chrome.storage.local).
 //
 // `orgao`: quem mantém o sistema, no título do popup e na dica (padrão: CNJ).
+// `seeu`: true = o ícone também aparece no SEEU (os demais, só no Projudi).
 // `cor`: fundo (dois tons pastel), borda e desenho do ícone - uma cor por
 // sistema; nenhuma repete o dourado da balança.
 // `svg`: desenho 24x24 no traço da balança (class="cheio" = preenchido),
@@ -35,6 +36,7 @@ self.PDP_SISTEMAS_CNJ = Object.freeze([
 		nome: "BNMP 3.0",
 		titulo: "BNMP 3.0 — Banco Nacional de Medidas Penais e Prisões",
 		url: "https://bnmp.pdpj.jus.br/pagina-inicial",
+		seeu: true,
 		cor: { claro: "#e3e6fb", escuro: "#bcc3f2", borda: "#5b67c7", desenho: "#2e3a8f" },
 		// Pessoa com a seta do logotipo.
 		svg: '<circle class="cheio" cx="9.5" cy="8.5" r="3.2"/><path d="M3 20.5a6.5 6 0 0 1 13 0M15.5 3.5h5v5M20.5 3.5L15.5 8.5"/>'
@@ -84,5 +86,18 @@ self.PDP_SISTEMAS_CNJ = Object.freeze([
 		cor: { claro: "#ffe3e1", escuro: "#f6b3ad", borda: "#d0605a", desenho: "#8f2a24" },
 		// Documento com lupa (declarações à Receita).
 		svg: '<path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21H11M14 3l5 5h-5zM19 8v3M8 9h3M8 12.5h4"/><circle cx="16" cy="16" r="3.2"/><path d="M18.4 18.4L21 21"/>'
+	},
+	{
+		// Sistema Uniformizado do TJPR (fundos, custas e guias). Endereço sem os
+		// parâmetros de rastreamento (_gl, _ga) que vêm ao copiar do navegador.
+		id: "uniformizado",
+		nome: "Sistema Uniformizado",
+		orgao: "TJPR",
+		titulo: "Sistema Uniformizado — TJPR (fundos, custas e guias)",
+		url: "https://portal.tjpr.jus.br/fundos/index.do?perform=listar",
+		seeu: true,
+		cor: { claro: "#e8edf2", escuro: "#c4d0dc", borda: "#6b7f93", desenho: "#34495e" },
+		// Guia com código de barras.
+		svg: '<rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M6 9v6M8.5 9v6M10.5 9v6M13.5 9v6M15.5 9v6M18 9v6"/>'
 	}
 ]);
