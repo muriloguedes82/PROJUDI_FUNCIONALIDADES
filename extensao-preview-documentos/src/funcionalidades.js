@@ -124,6 +124,15 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					requer: ["acoesRapidas"]
 				},
 				{
+					id: "certidaoEnvio",
+					nome: "Certidão de envio (e-mail e WhatsApp)",
+					descricao: "Depois de enviar documentos por e-mail ou WhatsApp, quadro \"📎 Certificar envio\" que junta a certidão com uma preferência do Juntar Documento, já com destinatário, arquivos e comprovante do envio.",
+					js: ["src/certidaoEnvio.js"],
+					css: ["src/certidaoEnvio.css"],
+					requer: ["acoesRapidas", "juntarDocumento"],
+					sistemas: ["projudi"]
+				},
+				{
 					id: "localizador",
 					nome: "Localizador (SEEU)",
 					descricao: "Botão \"📍 Localizador\" na linha do \"⭐ Minhas Preferências\", com preferências que associam localizadores com um clique.",

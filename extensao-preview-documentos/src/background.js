@@ -33,8 +33,8 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 
 	if (message.type === "whatsapp-share") {
 		handleShare(message)
-			.then(function () {
-				sendResponse({ ok: true });
+			.then(function (id) {
+				sendResponse({ ok: true, id: id });
 			})
 			.catch(function (err) {
 				sendResponse({ ok: false, error: String((err && err.message) || err) });
@@ -65,6 +65,7 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 				const latest = (await chrome.storage.local.get(PENDING_KEY))[PENDING_KEY];
 				if (!latest || latest.id !== pending.id) return { ok: false, error: "O envio pendente mudou." };
 				await chrome.storage.local.set({ [PENDING_KEY]: { ...latest, openedChatId: result.chatId } });
+				await lembrarConversaDoEnvio(pending.id, result.chatId, pending.phone);
 			}
 			return result;
 		})().then(sendResponse).catch(err => sendResponse({ ok: false, error: err.message }));
@@ -102,7 +103,74 @@ async function handleShare(message) {
 	payload.tabId = tab.id;
 	await chrome.storage.local.set({ [PENDING_KEY]: payload });
 	await notifyOrInjectContentScript(tab.id);
+	return payload.id;
 }
+
+// ---------------------------------------------------------------------------
+// Certidão de envio (src/certidaoEnvio.js): conferir se os arquivos de um
+// envio por WhatsApp saíram de fato. O envio pendente (PENDING_KEY) é apagado
+// logo depois de anexar os arquivos, então a conversa aberta para cada envio
+// fica guardada à parte (WA_CHATS_KEY, os 20 mais recentes).
+// ---------------------------------------------------------------------------
+
+const WA_CHATS_KEY = "pdpWhatsappConversasDosEnvios";
+
+async function lembrarConversaDoEnvio(envioId, chatId, phone) {
+	const data = await chrome.storage.local.get(WA_CHATS_KEY);
+	const lista = (Array.isArray(data[WA_CHATS_KEY]) ? data[WA_CHATS_KEY] : []).filter(item => item.envioId !== envioId);
+	lista.unshift({ envioId, chatId, phone, at: Date.now() });
+	await chrome.storage.local.set({ [WA_CHATS_KEY]: lista.slice(0, 20) });
+}
+
+// Executada no contexto da página do WhatsApp Web. Só LÊ as mensagens
+// enviadas por este aparelho na conversa, a partir de `desdeMs`: nome do
+// arquivo, horário e situação (relógio, ✓, ✓✓, lida). Não envia nada.
+function lerEnviosWhatsapp(chatId, desdeMs) {
+	try {
+		if (typeof window.require !== "function") return { ok: false, error: "WhatsApp ainda não está pronto." };
+		const chats = (function () { try { return window.require("WAWebCollections").Chat; } catch (_) { return null; } })();
+		const chat = chats && typeof chats.get === "function" ? chats.get(chatId) : null;
+		if (!chat) return { ok: false, error: "Conversa não encontrada no WhatsApp Web." };
+		const msgs = chat.msgs && typeof chat.msgs.getModelsArray === "function" ? chat.msgs.getModelsArray() : [];
+		const desde = Math.floor(desdeMs / 1000) - 60;
+		const mensagens = msgs
+			.filter(m => m && m.id && m.id.fromMe && Number(m.t) >= desde)
+			.map(m => ({
+				tipo: String(m.type || ""),
+				nome: String(m.filename || (m.mediaData && m.mediaData.filename) || ""),
+				legenda: String(m.caption || ""),
+				t: Number(m.t) * 1000,
+				ack: typeof m.ack === "number" ? m.ack : null,
+			}));
+		const titulo = String(chat.formattedTitle || chat.name || (chat.contact && (chat.contact.name || chat.contact.pushname)) || "");
+		return { ok: true, titulo, mensagens };
+	} catch (error) {
+		return { ok: false, error: String((error && error.message) || error) };
+	}
+}
+
+async function verificarEnvioWhatsapp(envioId, desde) {
+	const data = await chrome.storage.local.get(WA_CHATS_KEY);
+	const conversa = (data[WA_CHATS_KEY] || []).find(item => item.envioId === envioId);
+	if (!conversa) return { ok: false, error: "A conversa deste envio não foi aberta pela extensão." };
+	const tabs = await chrome.tabs.query({ url: "https://web.whatsapp.com/*" });
+	if (!tabs.length) return { ok: false, error: "O WhatsApp Web não está aberto." };
+	const results = await chrome.scripting.executeScript({
+		target: { tabId: tabs[0].id }, world: "MAIN",
+		func: lerEnviosWhatsapp,
+		args: [conversa.chatId, desde],
+	});
+	const result = (results[0] && results[0].result) || { ok: false, error: "WhatsApp não respondeu." };
+	return Object.assign({ phone: conversa.phone }, result);
+}
+
+chrome.runtime.onMessage.addListener(function (message, _sender, sendResponse) {
+	if (!message || message.source !== MESSAGE_SOURCE || message.type !== "whatsapp-verificar-envio") return false;
+	verificarEnvioWhatsapp(String(message.id || ""), Number(message.desde) || Date.now())
+		.then(sendResponse)
+		.catch(err => sendResponse({ ok: false, error: err.message }));
+	return true;
+});
 
 function ensureFileName(name, mime) {
 	if (/\.[a-z0-9]{2,5}$/i.test(name)) return name;
@@ -517,6 +585,15 @@ async function handleSendEmailGraph(message) {
 	}
 
 	await openComposeWindow(draft.webLink);
+	// Para a certidão de envio (certidaoEnvio.js) achar este e-mail depois,
+	// já enviado, na pasta Itens Enviados.
+	return {
+		modo: "graph",
+		internetMessageId: draft.internetMessageId || null,
+		conversationId: draft.conversationId || null,
+		assunto: draft.subject || message.subject || "",
+		criadoEm: Date.now(),
+	};
 }
 
 // Baixa cada anexo para a pasta padrão de Downloads do usuário e devolve os
@@ -579,6 +656,7 @@ async function handleSendEmailFallback(message) {
 	const composeUrl = "https://outlook.office.com/mail/deeplink/compose?" + queryString;
 
 	await openComposeWindow(composeUrl);
+	return { modo: "owa", criadoEm: Date.now() };
 }
 
 async function peekDownloadInfo() {
@@ -636,6 +714,60 @@ async function resolveAttachments(attachments) {
 	return resolved;
 }
 
+// Certidão de envio (src/certidaoEnvio.js): procura, na pasta Itens
+// Enviados, o e-mail que a extensão deixou como rascunho (mesmo
+// internetMessageId ou, na falta dele, mesma conversa e assunto), enviado
+// depois de `desde`. Nunca abre a tela de login (a conferência é repetida
+// em segundo plano): sem sessão válida, só avisa.
+async function tokenSemLogin() {
+	const { msalToken } = await chrome.storage.local.get(["msalToken"]);
+	if (msalToken && msalToken.expiresAt - 60000 > Date.now()) return msalToken.accessToken;
+	if (msalToken && msalToken.refreshToken) return refreshAccessToken(msalToken.refreshToken);
+	return null;
+}
+
+function enderecoGraph(r) {
+	const e = (r && r.emailAddress) || {};
+	return { nome: e.name || "", email: e.address || "" };
+}
+
+async function verificarEmailEnviado(message) {
+	const token = await tokenSemLogin();
+	if (!token) return { ok: false, error: "Sessão do Outlook expirada; não foi possível conferir os Itens Enviados." };
+	const desde = new Date((Number(message.desde) || Date.now()) - 60000).toISOString();
+	const query = new URLSearchParams({
+		$filter: "sentDateTime ge " + desde,
+		$orderby: "sentDateTime desc",
+		$top: "25",
+		$select: "subject,sentDateTime,toRecipients,ccRecipients,from,internetMessageId,conversationId,hasAttachments",
+	});
+	const resp = await graphFetch(token, "/me/mailFolders/sentitems/messages?" + query.toString(), {});
+	const data = await resp.json().catch(() => ({}));
+	if (!resp.ok) throw new Error((data.error && data.error.message) || "Falha ao ler os Itens Enviados.");
+	const itens = Array.isArray(data.value) ? data.value : [];
+	const achado =
+		(message.internetMessageId && itens.find((m) => m.internetMessageId === message.internetMessageId)) ||
+		(message.conversationId && itens.find((m) => m.conversationId === message.conversationId && (m.subject || "") === (message.assunto || ""))) ||
+		null;
+	if (!achado) return { ok: true, enviado: false };
+	let anexos = [];
+	if (achado.hasAttachments) {
+		const respAnexos = await graphFetch(token, "/me/messages/" + encodeURIComponent(achado.id) + "/attachments?$select=name", {});
+		const dadosAnexos = await respAnexos.json().catch(() => ({}));
+		if (respAnexos.ok && Array.isArray(dadosAnexos.value)) anexos = dadosAnexos.value.map((a) => a.name).filter(Boolean);
+	}
+	return {
+		ok: true,
+		enviado: true,
+		enviadoEm: Date.parse(achado.sentDateTime) || null,
+		de: enderecoGraph(achado.from),
+		para: (achado.toRecipients || []).map(enderecoGraph),
+		cc: (achado.ccRecipients || []).map(enderecoGraph),
+		assunto: achado.subject || "",
+		anexos: anexos,
+	};
+}
+
 async function handleSendEmail(message) {
 	const attachments = await resolveAttachments(message.attachments || []);
 	const resolvedMessage = { ...message, attachments: attachments };
@@ -652,9 +784,16 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
 	if (message.type === "SEND_EMAIL") {
 		handleSendEmail(message)
-			.then(() => sendResponse({ ok: true }))
+			.then((envio) => sendResponse({ ok: true, envio: envio || null }))
 			.catch((err) => sendResponse({ ok: false, error: err.message }));
 		return true; // resposta assíncrona
+	}
+
+	if (message.type === "CERTIDAO_EMAIL_VERIFICAR") {
+		verificarEmailEnviado(message)
+			.then(sendResponse)
+			.catch((err) => sendResponse({ ok: false, error: err.message }));
+		return true;
 	}
 
 	if (message.type === "PEEK_DOWNLOAD_INFO") {

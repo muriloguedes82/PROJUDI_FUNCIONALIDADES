@@ -799,6 +799,21 @@
 				throw new Error((response && response.error) || "Falha desconhecida ao preparar o e-mail.");
 			}
 
+			// Certidão de envio (certidaoEnvio.js, só no Projudi): o quadro
+			// "📎 Certificar envio" aparece nesta tela.
+			if (window.__pdpCertidaoEnvio) {
+				const salvos = await loadRecipients();
+				window.__pdpCertidaoEnvio.registrar({
+					meio: "email",
+					destinatarios: recipientEmails.map(function (email) {
+						const salvo = salvos.find(function (r) { return (r.email || "").toLowerCase() === email.toLowerCase(); });
+						return { nome: salvo ? salvo.name : "", contato: email };
+					}),
+					arquivos: entries.map(function (entry) { return { nome: entry.name, seq: entry.seq || null }; }),
+					verificacao: response.envio ? Object.assign({ tipo: response.envio.modo }, response.envio) : null,
+				});
+			}
+
 			selected.clear();
 			document.querySelectorAll(".pdp-email-checkbox").forEach(function (cb) {
 				cb.checked = false;

@@ -1711,11 +1711,21 @@
 					if (!response || !response.ok) {
 						return reject(new Error((response && response.error) || "Falha ao abrir o WhatsApp Web."));
 					}
-					resolve();
+					resolve(response);
 				}
 			);
 		})
-			.then(function () {
+			.then(function (response) {
+				// Certidão de envio (certidaoEnvio.js, só no Projudi).
+				if (window.__pdpCertidaoEnvio) {
+					const salvo = contactsCache.find(function (c) { return normalizePhone(c.phone) === phone; });
+					window.__pdpCertidaoEnvio.registrar({
+						meio: "whatsapp",
+						destinatarios: [{ nome: salvo ? salvo.name : "", contato: window.__pdpCertidaoEnvio.telefone(phone) }],
+						arquivos: docs.map(function (d) { return { nome: d.name, seq: d.seq || null }; }),
+						verificacao: response.id ? { tipo: "whatsapp", envioId: response.id } : null,
+					});
+				}
 				selectedDocs.clear();
 				Array.prototype.forEach.call(document.querySelectorAll(".pdp-wa-checkbox:checked"), function (cb) {
 					cb.checked = false;

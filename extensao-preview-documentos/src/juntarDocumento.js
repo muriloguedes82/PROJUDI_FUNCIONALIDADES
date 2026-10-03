@@ -38,6 +38,16 @@
 // aplicar, esse conteúdo substitui o marcador "XXXXXXXXXX INSIRA O TEXTO
 // AQUI XXXXXXXXXX".
 //
+// Variáveis no texto: o texto gravado pode ter palavras entre chaves, como
+// {numero_processo}, {hoje} ou {reus}, trocadas pelo valor de cada processo
+// ao aplicar a preferência (ver VARIAVEIS e aplicarVariaveis). Os valores
+// são lidos na tela do processo, no início do fluxo, e vão no estado do
+// fluxo (job.vars). {perguntar:Rótulo} pede o valor na hora. A certidão de
+// envio (certidaoEnvio.js) acrescenta as variáveis do envio por e-mail ou
+// WhatsApp ({destinatario}, {arquivos}, {comprovante}...). Se sobrar alguma
+// variável sem valor — ou se o fluxo foi aberto com `revisar` —, o texto é
+// inserido mas o "Continuar" não é clicado: o usuário confere e segue.
+//
 // O fluxo atravessa várias páginas (a tela do processo, a "Juntar
 // Documento" e as telas da janela interna do Projudi, que é um iframe da
 // mesma origem). O estado fica no `sessionStorage` (compartilhado pelos
@@ -171,6 +181,103 @@
 				reject(err);
 			}
 		});
+	}
+
+	// -------------------------------------------------------------------
+	// Variáveis no texto das preferências
+	// -------------------------------------------------------------------
+
+	// Nome → descrição (a descrição aparece na ajuda do painel). As do envio
+	// só têm valor na certidão de envio (certidaoEnvio.js).
+	const VARIAVEIS = {
+		numero_processo: "número do processo",
+		hoje: "data de hoje (03/10/2026)",
+		hoje_extenso: "data de hoje por extenso (3 de outubro de 2026)",
+		agora: "hora atual (14:32)",
+		juizo: "juízo/vara do cabeçalho",
+		reus: "réus do cabeçalho (com RG e CPF, se a função \"Réus no cabeçalho\" estiver ativa)",
+		evento: "movimentação marcada na caixinha da aba Movimentações",
+		meio: "envio: e-mail ou WhatsApp",
+		destinatario: "envio: nome e contato de quem recebeu",
+		arquivos: "envio: documentos enviados, com o número da movimentação",
+		data_envio: "envio: data do envio",
+		hora_envio: "envio: hora do envio",
+		remetente: "envio: conta que enviou o e-mail",
+		assunto: "envio: assunto do e-mail",
+		comprovante: "envio: quadro com os dados conferidos do envio",
+		perguntar: "{perguntar:Texto} pede o valor na hora",
+	};
+	const VARIAVEL_RE = /\{\s*([a-z_]+)\s*(?::\s*([^{}<>]{1,80}?))?\s*\}/gi;
+	const MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+
+	function doisDigitos(n) {
+		return (n < 10 ? "0" : "") + n;
+	}
+
+	function dataBr(d) {
+		return doisDigitos(d.getDate()) + "/" + doisDigitos(d.getMonth() + 1) + "/" + d.getFullYear();
+	}
+
+	function horaBr(d) {
+		return doisDigitos(d.getHours()) + ":" + doisDigitos(d.getMinutes());
+	}
+
+	// Lidas na tela do processo, no início do fluxo.
+	function variaveisDoProcesso(doc) {
+		const agora = new Date();
+		const vars = {
+			numero_processo: numeroProcesso(doc) || "",
+			hoje: dataBr(agora),
+			hoje_extenso: agora.getDate() + " de " + MESES[agora.getMonth()] + " de " + agora.getFullYear(),
+			agora: horaBr(agora),
+		};
+		const juizo = doc.querySelector("#areaatuacao");
+		if (juizo && cleanText(juizo.textContent)) vars.juizo = cleanText(juizo.textContent);
+		const reus = Array.prototype.slice.call(doc.querySelectorAll(".pdp-reus-lista > li"))
+			.map(function (el) { return cleanText(el.textContent); })
+			.filter(Boolean);
+		if (reus.length) vars.reus = reus.join("; ");
+		try {
+			const mov = window.__pdpMovimentoBase && window.__pdpMovimentoBase.selecionada();
+			if (mov) vars.evento = (mov.seq ? "mov. " + mov.seq + " – " : "") + (mov.texto || "");
+		} catch (err) {
+			// sem movimentação marcada
+		}
+		return vars;
+	}
+
+	function escapeHtml(text) {
+		return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+	}
+
+	// Rótulos dos {perguntar:...} do texto, sem repetição.
+	function perguntasDoTexto(html) {
+		const rotulos = [];
+		String(html || "").replace(VARIAVEL_RE, function (m, nome, rotulo) {
+			if (nome.toLowerCase() === "perguntar") {
+				const r = cleanText(rotulo || "Valor");
+				if (rotulos.indexOf(r) === -1) rotulos.push(r);
+			}
+			return m;
+		});
+		return rotulos;
+	}
+
+	// Troca as variáveis pelo valor (texto com quebras de linha vira <br>).
+	// Devolve { html, faltando: [nomes sem valor] }; as sem valor ficam como
+	// estão, para o usuário ver e completar.
+	function aplicarVariaveis(html, vars) {
+		const faltando = [];
+		const out = String(html || "").replace(VARIAVEL_RE, function (m, nome, rotulo) {
+			const chave = nome.toLowerCase() === "perguntar" ? "perguntar:" + cleanText(rotulo || "Valor") : nome.toLowerCase();
+			const valor = vars ? vars[chave] : undefined;
+			if (valor === undefined || valor === null || valor === "") {
+				if (faltando.indexOf(m) === -1) faltando.push(m);
+				return m;
+			}
+			return escapeHtml(valor).replace(/\r?\n/g, "<br>");
+		});
+		return { html: out, faltando: faltando };
 	}
 
 	// -------------------------------------------------------------------
@@ -407,12 +514,24 @@
 
 	// mode: null (só abrir) | "apply" | "capture" | "edit"
 	// `combo`: juntada iniciada por um combo de preferências (ver
-	// COMBO_DONE_KEY). Devolve false se não achou o botão nativo.
-	function iniciarJuntada(mode, pref, combo) {
+	// COMBO_DONE_KEY). `extra`: { vars, revisar } — variáveis a mais (as da
+	// certidão de envio) e se o texto deve parar para conferência. Devolve
+	// false se não achou o botão nativo (ou o usuário cancelou uma pergunta).
+	function iniciarJuntada(mode, pref, combo, extra) {
 		const url = findJuntarUrl(document);
 		if (!url) {
 			alert('Não encontrei o botão nativo "Juntar Documento" nesta tela. Abra o processo (a barra com "Peticionar", "Juntar Documento", "Navegar"...) e tente de novo.');
 			return false;
+		}
+		let vars = null;
+		if (mode === "apply" && pref) {
+			vars = Object.assign(variaveisDoProcesso(document), (extra && extra.vars) || {});
+			const perguntas = perguntasDoTexto(pref.conteudo);
+			for (let i = 0; i < perguntas.length; i++) {
+				const resposta = prompt('Preferência "' + pref.name + '" — ' + perguntas[i] + ":", "");
+				if (resposta === null) return false;
+				vars["perguntar:" + perguntas[i]] = resposta.trim();
+			}
 		}
 		if (mode) {
 			writeJob({
@@ -422,6 +541,8 @@
 				rec: {},
 				numero: numeroProcesso(document),
 				combo: !!combo,
+				vars: vars,
+				revisar: !!(extra && extra.revisar),
 				createdAt: Date.now(),
 			});
 		} else {
@@ -436,6 +557,21 @@
 		start: function (pref) {
 			return iniciarJuntada("apply", pref, true);
 		},
+		// Certidão de envio (certidaoEnvio.js): aplica a preferência com as
+		// variáveis do envio.
+		startComVariaveis: function (pref, vars, revisar) {
+			return iniciarJuntada("apply", pref, false, { vars: vars, revisar: revisar });
+		},
+		prefs: loadPrefs,
+		// Texto que a preferência vai gerar (sem cabeçalho e assinatura,
+		// que são do Projudi) e as variáveis que ficariam sem valor.
+		previa: function (pref, vars) {
+			const r = aplicarVariaveis(pref.conteudo, Object.assign(variaveisDoProcesso(document), vars || {}));
+			const div = document.createElement("div");
+			div.innerHTML = r.html.replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "</p>\n");
+			return { texto: (div.textContent || "").replace(/\u00a0/g, " ").replace(/\n{3,}/g, "\n\n").trim(), faltando: r.faltando };
+		},
+		variaveis: VARIAVEIS,
 		// Esta tela tem o botão nativo "Juntar Documento" (tela do processo).
 		available: function () {
 			return !!findJuntarUrl(document);
@@ -1202,16 +1338,36 @@
 			return;
 		}
 
+		let conteudoFinal = conteudo;
+		let faltando = [];
+		if (job.mode === "apply") {
+			const r = aplicarVariaveis(conteudo, job.vars || {});
+			conteudoFinal = r.html;
+			faltando = r.faltando;
+		}
+
 		let last = null;
 		if (placeholder) {
-			last = insertConteudo(placeholder, conteudo);
+			last = insertConteudo(placeholder, conteudoFinal);
 		} else {
 			const ref = findAncora(body, job.pref.ancora);
 			if (!ref) {
 				showStatus('Não encontrei onde inserir o texto da preferência neste documento. Digite/cole o texto e clique em "Continuar" — a extensão continua daí.', "warn");
 				return;
 			}
-			last = insertAfter(ref, conteudo, false);
+			last = insertAfter(ref, conteudoFinal, false);
+		}
+
+		if (job.mode === "apply" && (faltando.length || job.revisar)) {
+			if (last && last.nodeType === 1) placeCaret(body, last, false);
+			showStatus(
+				modeLabel(job) +
+					(faltando.length
+						? ": sem valor para " + faltando.join(", ") + ". Complete o texto e clique em \"Continuar\" — a extensão continua daí."
+						: ': confira o texto e clique em "Continuar" — a extensão continua daí.'),
+				faltando.length ? "warn" : null
+			);
+			return;
 		}
 
 		if (job.mode === "edit") {
@@ -1423,6 +1579,27 @@
 			iniciarJuntada("capture", null);
 		});
 		actionRow.appendChild(newBtn);
+
+		// Ajuda: variáveis que podem ser escritas no texto da preferência.
+		const ajuda = document.createElement("details");
+		ajuda.className = "pdp-jd-variaveis";
+		const resumo = document.createElement("summary");
+		resumo.textContent = "{ } Variáveis no texto";
+		ajuda.appendChild(resumo);
+		const explica = document.createElement("div");
+		explica.textContent = "Escreva no texto da preferência, com as chaves; ao juntar, a extensão troca pelo valor deste processo:";
+		ajuda.appendChild(explica);
+		const listaVars = document.createElement("ul");
+		Object.keys(VARIAVEIS).forEach(function (nome) {
+			const li = document.createElement("li");
+			const code = document.createElement("code");
+			code.textContent = nome === "perguntar" ? "{perguntar:Texto}" : "{" + nome + "}";
+			li.appendChild(code);
+			li.appendChild(document.createTextNode(" — " + VARIAVEIS[nome]));
+			listaVars.appendChild(li);
+		});
+		ajuda.appendChild(listaVars);
+		actionRow.appendChild(ajuda);
 
 		panel.appendChild(actionRow);
 		document.body.appendChild(panel);

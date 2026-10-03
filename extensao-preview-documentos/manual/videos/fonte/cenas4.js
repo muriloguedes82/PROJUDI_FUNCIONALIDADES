@@ -565,3 +565,74 @@ CENAS.V42 = {
 		await S.endCard("✏️ Alterar (classe ou assunto, no cabeçalho) → tela de alteração em popup → Salvar → a tela do processo é atualizada.");
 	},
 };
+
+// ------------------------------------------------------------------ V43
+// Quadro "📎 Certificar envio" (src/certidaoEnvio.js), no canto inferior
+// esquerdo da tela do processo — mesmo visual de certidaoEnvio.css.
+function quadroCertidao(situacao, ok, previa) {
+	document.querySelectorAll("#x-ce").forEach(n => n.remove());
+	return add('<div id="x-ce" style="position:fixed;left:12px;bottom:12px;z-index:60;width:470px;box-sizing:border-box;padding:10px 12px;background:#fff;border:1px solid #1f4e79;border-left:5px solid #1f4e79;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.25);font:12px Arial,sans-serif;color:#333">' +
+		'<div style="font-weight:bold;color:#1f4e79;margin-bottom:4px">✉️ E-mail para Delegacia de Exemplo (delegacia@exemplo.gov.br)</div>' +
+		'<div style="margin-bottom:6px">2 documento(s): Despacho.pdf (mov. 36); Decisao Recebimento.pdf (mov. 32)</div>' +
+		'<div id="x-ce-sit" style="margin-bottom:6px;padding:4px 6px;border-radius:4px;background:' + (ok ? "#eef7e8;color:#2e5e1f" : "#f4f6f8") + '">' + situacao + "</div>" +
+		'<div style="margin-bottom:8px">Certidão: <span class="pj-select" style="min-width:200px;display:inline-block">Certidão de envio</span> &nbsp; <label><input type="checkbox"> conferir o texto antes de assinar</label></div>' +
+		'<div style="display:flex;gap:6px"><span class="x-btn small" id="x-ce-cert" style="background:#1f4e79;color:#fff;font-weight:bold">📎 Certificar envio</span><span class="x-btn small" id="x-ce-ver">👁 Ver texto</span><span class="x-btn small">📋 Copiar modelo</span><span class="x-btn small">✕</span></div>' +
+		(previa ? '<div style="margin-top:8px;padding:6px 8px;background:#fafafa;border:1px solid #ddd;white-space:pre-wrap;font:12px \'Times New Roman\',serif;line-height:16px">' + previa + "</div>" : "") +
+		"</div>");
+}
+CENAS.V43 = {
+	arquivo: "V43-certidao-de-envio.mp4",
+	titulo: "Certidão de envio (e-mail e WhatsApp)",
+	secao: "5.4",
+	async run() {
+		telaProcesso({ expanded: true, checks: true });
+		await S.titleCard("VÍDEO V43", "Certidão de envio (e-mail e WhatsApp)", "Depois de enviar documentos por e-mail ou WhatsApp, a certidão sai com um clique e o PIN.");
+		await S.cap("Antes, uma vez só: grave no <b>📎 Juntar Documento</b> uma preferência com o texto da certidão, usando as <b>variáveis entre chaves</b>.", { ms: 4600 });
+		browser(["*Projudi - Digitar Documento"], "https://projudi.tjpr.jus.br/projudi/digitarTexto.do");
+		screen(pjHeader() + '<div class="pj-body" style="padding-top:60px"><div class="pj-h2">Digitar Documento</div><div style="border:1px solid #999;height:250px;padding:14px;font-family:serif;font-size:13px;line-height:21px">CERTIDÃO<br><br>Autos nº ' + PROC + '<br><br><span id="txt"></span></div></div>');
+		bar('● Gravando — escreva o texto e clique em “Continuar”. <span class="x-btn small" style="margin-left:auto">Parar</span>', { cls: "rec", top: 52 });
+		await S.type("#txt", "CERTIFICO que encaminhei por {meio} a {destinatario} os documentos: {arquivos}. {comprovante}", { speed: 32 });
+		await S.cap("Na hora de juntar, cada <b>{variável}</b> é trocada pelos dados do envio. A lista completa fica em <b>{ } Variáveis no texto</b>, no painel do Juntar Documento.", { ms: 4800 });
+		telaProcesso({ expanded: true, checks: true });
+		await S.cap("Agora, num processo: marque os documentos e envie por e-mail, como sempre.");
+		const c1 = byText(".pj-files div", "Despacho").querySelector("input");
+		await S.click(c1); c1.checked = true;
+		const c2 = byText(".pj-files div", "Decisao").querySelector("input");
+		await S.click(c2); c2.checked = true;
+		await S.click("#x-email");
+		const w = add('<div style="position:fixed;left:240px;top:80px;width:800px;height:420px;background:#fff;border:1px solid #888;box-shadow:0 10px 40px rgba(0,0,0,.45);z-index:80;font-size:13px">' +
+			'<div style="background:#0f6cbd;color:#fff;padding:8px 12px">Outlook — Nova mensagem (janela pop-up)</div><div style="padding:12px 18px">' +
+			'<div style="border-bottom:1px solid #ddd;padding:6px 0">Para: <span style="background:#e8f0fe;padding:2px 8px;border-radius:10px">delegacia@exemplo.gov.br</span></div>' +
+			'<div style="padding:8px 0"><span style="border:1px solid #ccc;padding:6px 10px;border-radius:4px">📄 Despacho.pdf</span> <span style="border:1px solid #ccc;padding:6px 10px;border-radius:4px">📄 Decisao Recebimento.pdf</span></div>' +
+			'<div style="padding:10px 0;line-height:20px">REF. AUTOS Nº (' + PROC + ')<br>JUÍZO: (Vara Criminal de Exemplo)</div>' +
+			'<span style="background:#0f6cbd;color:#fff;padding:6px 16px;border-radius:4px" id="send">Enviar</span></div></div>');
+		quadroCertidao("⏳ Aguardando o envio no Outlook… (a extensão confere sozinha)");
+		await S.cap("Na tela do processo aparece o quadro <b>📎 Certificar envio</b>. Clique em <b>Enviar</b> no Outlook.");
+		await S.click("#send");
+		w.remove();
+		await sleep(900);
+		quadroCertidao("✅ E-mail enviado em 03/10/2026 às 14:32 (conferido nos Itens Enviados do Outlook).", true);
+		S.hl("#x-ce-sit", 3);
+		await S.cap("A extensão <b>confere</b> o e-mail na pasta <b>Itens Enviados</b> e mostra a data e a hora do envio.", { ms: 4200 });
+		S.hlOff();
+		await S.click("#x-ce-ver");
+		quadroCertidao("✅ E-mail enviado em 03/10/2026 às 14:32 (conferido nos Itens Enviados do Outlook).", true,
+			"CERTIFICO que encaminhei por e-mail a Delegacia de Exemplo &lt;delegacia@exemplo.gov.br&gt; os documentos: Despacho.pdf (mov. 36); Decisao Recebimento.pdf (mov. 32).\nCOMPROVANTE DE ENVIO (dados da pasta Itens Enviados do Outlook)\nDe: Vara Criminal de Exemplo &lt;vara@exemplo.jus.br&gt;\nPara: Delegacia de Exemplo &lt;delegacia@exemplo.gov.br&gt;\nData/hora do envio: 03/10/2026 às 14:32\nAnexos: Despacho.pdf; Decisao Recebimento.pdf");
+		await S.cap("<b>👁 Ver texto</b> mostra a certidão já preenchida, com o <b>comprovante</b> do envio.", { ms: 4200 });
+		await S.click("#x-ce-cert");
+		$("#x-ce").remove();
+		browser(["*Projudi - Inserir Arquivo"], "https://projudi.tjpr.jus.br/projudi/processo/juntarDocumento.do");
+		screen(pjHeader() + '<div class="pj-body" style="padding-top:60px"><div class="pj-h2">Inserir Arquivo</div><table class="pj-table"><tr><th>Arquivo</th><th>Assinado</th></tr><tr><td>Certidão.pdf</td><td>Não</td></tr></table></div>');
+		bar("📎 Preferência “Certidão de envio” — tipo, texto e conclusão feitos automaticamente. Aguardando assinatura…", { top: 52 });
+		modal('<h3>Assinador</h3><div>Digite o PIN do certificado:</div><div class="x-field" id="pin"></div><div style="text-align:right;margin-top:10px"><span class="pj-btn primary" id="okpin">OK</span></div>', { top: 220, w: 380 });
+		await S.cap("<b>📎 Certificar envio</b> faz a juntada sozinha. <b>Você só digita o PIN.</b>");
+		await S.type("#pin", "••••••", { speed: 120 });
+		await S.click("#okpin");
+		closeModal();
+		browser(["*Projudi - Juntar Documento"], "https://projudi.tjpr.jus.br/projudi/processo/juntarDocumento.do");
+		screen(pjHeader() + '<div class="pj-body" style="padding-top:60px"><div class="pj-msg-ok">Dados registrados com sucesso!</div></div>');
+		await S.cap("No <b>WhatsApp</b> é igual: a extensão confere na conversa se cada arquivo foi <b>enviado, entregue ou lido</b>.", { ms: 4400 });
+		await S.cap("No modo <b>Outlook Web</b> (sem cadastro do TI) não há conferência: a hora e o comprovante ficam para você completar no texto.", { ms: 4600 });
+		await S.endCard("Gravar uma vez a preferência da certidão com {variáveis} → enviar por e-mail/WhatsApp → 📎 Certificar envio → PIN.");
+	},
+};

@@ -1,6 +1,8 @@
 # Sugestões de melhorias e novas funcionalidades (Olirum 2.14.2)
 
-Documento de proposta: **nada aqui está implementado ainda**. Ele parte do
+Documento de proposta. **Já implementados (2.15.0):** item 4 (variáveis
+no texto do Juntar Documento) e item 7 (certidão de envio) — ver
+`manual/MANUAL.md`, seções 5.4 e 8.2. Ele parte do
 que a extensão já faz (catálogo em `src/funcionalidades.js`, manual em
 `manual/MANUAL.md`) e procura os pontos em que o servidor ainda clica,
 rola, espera ou troca de tela à toa. Cada item diz **o problema**, **a ideia**,
@@ -117,7 +119,7 @@ CNJ (`sistemasCnjLista.js`).
 
 ---
 
-## 4. Variáveis no texto das preferências do Juntar Documento
+## 4. Variáveis no texto das preferências do Juntar Documento ✅ (2.15.0)
 
 **Problema.** A preferência do Juntar Documento grava o texto fixo (manual
 8.2). Certidões que mencionam nome do réu, data, número do evento, prazo ou
@@ -169,7 +171,7 @@ rápidas e na ⭐ das listas. Nada executa sozinho: é só um atalho na frente.
 
 ---
 
-## 7. Certidão de envio automática após e-mail/WhatsApp (Projudi)
+## 7. Certidão de envio automática após e-mail/WhatsApp (Projudi) ✅ (2.15.0)
 
 **Problema.** Depois de enviar documentos por e-mail ou WhatsApp
 (capítulo 5), quase sempre é preciso certificar o envio nos autos — outra

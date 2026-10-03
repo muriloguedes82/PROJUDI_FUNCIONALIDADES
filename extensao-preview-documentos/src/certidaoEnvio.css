@@ -1,0 +1,96 @@
+/* Projudi - Certidão de envio por e-mail/WhatsApp (ver certidaoEnvio.js) */
+
+.pdp-ce-quadro {
+	position: fixed;
+	left: 12px;
+	bottom: 12px;
+	z-index: 2147483000;
+	width: min(460px, calc(100vw - 24px));
+	box-sizing: border-box;
+	padding: 10px 12px;
+	background: #fff;
+	border: 1px solid #1f4e79;
+	border-left: 5px solid #1f4e79;
+	border-radius: 6px;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+	font: 12px Arial, Helvetica, sans-serif;
+	color: #333;
+}
+
+.pdp-ce-titulo {
+	font-weight: bold;
+	color: #1f4e79;
+	margin-bottom: 4px;
+}
+
+.pdp-ce-arquivos,
+.pdp-ce-situacao,
+.pdp-ce-mais {
+	margin-bottom: 6px;
+}
+
+.pdp-ce-situacao {
+	padding: 4px 6px;
+	border-radius: 4px;
+	background: #f4f6f8;
+}
+
+.pdp-ce-situacao.pdp-ce-ok {
+	background: #eef7e8;
+	color: #2e5e1f;
+}
+
+.pdp-ce-situacao.pdp-ce-aviso {
+	background: #fff8dc;
+	color: #6b5400;
+}
+
+.pdp-ce-linha {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 12px;
+	margin-bottom: 8px;
+}
+
+.pdp-ce-linha select {
+	max-width: 260px;
+	font: 12px Arial, Helvetica, sans-serif;
+}
+
+.pdp-ce-botoes {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.pdp-ce-botoes button {
+	padding: 3px 8px;
+	font: 12px Arial, Helvetica, sans-serif;
+	cursor: pointer;
+}
+
+.pdp-ce-botoes .pdp-ce-primario {
+	background: #1f4e79;
+	border: 1px solid #1f4e79;
+	border-radius: 3px;
+	color: #fff;
+	font-weight: bold;
+}
+
+.pdp-ce-mais {
+	margin-top: 6px;
+	color: #666;
+	font-style: italic;
+}
+
+.pdp-ce-previa {
+	max-height: 220px;
+	overflow: auto;
+	margin: 8px 0 0;
+	padding: 6px 8px;
+	background: #fafafa;
+	border: 1px solid #ddd;
+	white-space: pre-wrap;
+	font: 12px "Times New Roman", serif;
+}

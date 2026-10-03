@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.14.2 |
-| **Versão da extensão** | 2.14.2 |
-| **Data desta versão** | 02/10/2026 |
+| **Versão do manual** | 2.15.0 |
+| **Versão da extensão** | 2.15.0 |
+| **Data desta versão** | 03/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -54,6 +54,7 @@
    - 5.1 [Envio por WhatsApp Web](#cap-5-1)
    - 5.2 [Envio por e-mail (Outlook)](#cap-5-2)
    - 5.3 [Destinatários favoritos e remetentes do e-mail](#cap-5-3)
+   - 5.4 [Certidão de envio (e-mail e WhatsApp)](#cap-5-4)
 6. [Quadro Pendências](#cap-6)
    - 6.1 [Dispensar juntadas](#cap-6-1)
    - 6.2 [Finalizar conclusão pendente](#cap-6-2)
@@ -336,7 +337,7 @@ PROJUDI e SEEU**, com a mesma lista: cada sistema guarda as suas próprias
 escolhas. Por padrão, **tudo vem ativo nos dois**. A extensão reconhece em que
 sistema você está pelo endereço da página e abre o Menu na aba dele (marcada
 com "(este)"); você pode clicar na outra aba para configurá-la também. Acima
-da lista aparece "Funcionalidades no PROJUDI: N de 28 ativas" (ou no SEEU).
+da lista aparece "Funcionalidades no PROJUDI: N de 29 ativas" (no SEEU, "N de 28").
 
 1. Clique na aba do sistema que quer configurar (PROJUDI ou SEEU).
 2. Clique na chave da função que quer ligar ou desligar.
@@ -359,7 +360,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 | Grupo | Funções que podem ser ligadas/desligadas | Seção |
 |---|---|---|
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
-| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
+| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Alvará Eletrônico · Juntar Documento · Certidão de envio (Projudi) · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica | [4](#cap-4) |
 | **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
@@ -608,7 +609,8 @@ processo principal ela não aparece.
 <a id="cap-5"></a>
 ## 5. Envio de documentos
 
-Funciona no **Projudi** e no **SEEU**. Nas duas formas de envio, você marca
+Funciona no **Projudi** e no **SEEU** (a certidão de envio do item
+[5.4](#cap-5-4) é *só do Projudi*). Nas duas formas de envio, você marca
 os documentos pelas caixinhas que a extensão coloca ao lado de cada arquivo
 da aba **Movimentações** (abra o **+** da movimentação para vê-las). A
 seleção é a mesma para WhatsApp e e-mail.
@@ -708,6 +710,73 @@ depois que houver pelo menos um salvo):
 ⚠️ A sua conta precisa ter a permissão **"Enviar como"** na caixa escolhida
 (configurada pelo TI). Sem ela, o Outlook não oferece a conta e o remetente
 não muda.
+
+<a id="cap-5-4"></a>
+### 5.4 Certidão de envio (e-mail e WhatsApp)
+
+▶ [**Vídeo V43** — Certidão de envio (e-mail e WhatsApp)](videos/V43-certidao-de-envio.mp4)
+
+*Só no Projudi.*
+
+**Para que serve:** depois de mandar documentos do processo por e-mail
+([5.2](#cap-5-2)) ou por WhatsApp ([5.1](#cap-5-1)), juntar nos autos a
+**certidão do envio** com um clique e o PIN — com o destinatário, os
+documentos enviados e o **comprovante** do envio já escritos no texto.
+
+**Antes de começar (uma vez só):** grave no **📎 Juntar Documento** uma
+preferência com o texto da certidão ([8.2](#cap-8-2)), usando as
+**variáveis entre chaves**. Um modelo pronto é copiado pelo botão
+**📋 Copiar modelo** do quadro:
+
+> CERTIFICO que, nesta data, encaminhei por {meio} a {destinatario} o(s)
+> seguinte(s) documento(s): {arquivos}.
+>
+> {comprovante}
+
+Ponha a palavra **"certidão"** ou **"envio"** no nome da preferência: o
+quadro já vem com ela escolhida.
+
+**Onde fica:** depois de um envio, na tela do processo aparece, no canto
+inferior esquerdo, o quadro **📎 Certificar envio**.
+
+**Passo a passo:**
+
+1. Envie os documentos por e-mail ou WhatsApp, como sempre.
+2. O quadro mostra para quem foi, quais documentos (com o número da
+   movimentação) e a situação do envio:
+   - **⏳ Aguardando o envio…** — enquanto você não clicou em **Enviar**
+     no Outlook ou no WhatsApp;
+   - **✅ E-mail enviado em … (conferido nos Itens Enviados do Outlook)**;
+   - **✅ 2 de 2 arquivo(s) enviado(s) no WhatsApp (entregue, lido)**.
+3. Confira a preferência em **Certidão:**. Se quiser ler o texto antes,
+   clique em **👁 Ver texto**.
+4. Clique em **📎 Certificar envio**. A extensão faz a juntada sozinha e
+   chama o assinador: **você só digita o PIN**.
+
+**O que entra no comprovante:**
+
+| Envio | Comprovante |
+|---|---|
+| **E-mail (Microsoft Graph)** | Dados da pasta **Itens Enviados** do Outlook: De, Para, Cc, data e hora do envio, assunto e anexos |
+| **WhatsApp** | Dados da própria conversa no WhatsApp Web: nome e número do contato e, para cada arquivo, a hora do envio e a situação (enviado, entregue ou lido) |
+| **E-mail (Outlook Web, sem cadastro do TI)** | Não há como conferir o envio neste modo: o quadro avisa, e a hora e o comprovante ficam para você completar no texto |
+
+**Bom saber:**
+
+- A extensão **confere sozinha**, a cada poucos segundos, se o e-mail ou os
+  arquivos saíram. Se você certificar antes da conferência, ela pergunta se
+  quer seguir assim mesmo.
+- Se faltar algum dado (por exemplo, a hora no modo Outlook Web), a juntada
+  **para no texto**, com o aviso *sem valor para {…}*: complete e clique em
+  **Continuar** — a extensão segue daí. Marque **conferir o texto antes de
+  assinar** para parar sempre nesse ponto.
+- O quadro continua na tela do processo (mesmo recarregando) até você
+  certificar ou clicar em **✕**. Vários envios do mesmo processo aparecem um
+  depois do outro.
+- A certidão **não** leva imagem (print) do e-mail ou da conversa: o
+  comprovante é escrito no próprio texto da certidão, com os dados conferidos.
+- Pode ser desligada no Menu ([2.6](#cap-2-6)): **Certidão de envio (e-mail e
+  WhatsApp)**.
 
 ---
 
@@ -1172,6 +1241,24 @@ fazer em cada tela.
 Arquivo/Modelo → texto → Continuar → Concluir → **Assinar Arquivos**. Você
 digita o PIN; depois ela clica em **Confirmar Inclusão** e **Concluir
 Movimento**.
+
+**Variáveis no texto:** escreva no texto da preferência palavras entre
+chaves; ao juntar, a extensão as troca pelo valor do processo. A lista fica
+em **{ } Variáveis no texto**, no próprio painel do 📎 Juntar Documento.
+
+| Variável | Vira |
+|---|---|
+| `{numero_processo}` | o número do processo |
+| `{hoje}` / `{hoje_extenso}` | a data de hoje (03/10/2026 / 3 de outubro de 2026) |
+| `{agora}` | a hora atual |
+| `{juizo}` | o juízo/vara do cabeçalho |
+| `{reus}` | os réus do cabeçalho, com RG e CPF ([4.3](#cap-4-3)) |
+| `{evento}` | a movimentação marcada na caixinha da aba Movimentações ([7.7](#cap-7-7)) |
+| `{perguntar:Texto}` | a extensão pergunta o valor na hora (ex.: `{perguntar:Número do ofício}`) |
+| `{meio}`, `{destinatario}`, `{arquivos}`, `{data_envio}`, `{hora_envio}`, `{remetente}`, `{assunto}`, `{comprovante}` | dados do envio — só na certidão de envio ([5.4](#cap-5-4)) |
+
+Se uma variável ficar sem valor, a juntada **para no texto** (*sem valor
+para {…}*): complete e clique em **Continuar** — a extensão segue daí.
 
 **Bom saber:**
 
@@ -1692,6 +1779,7 @@ ela está instalada (não vai para outro computador):
 | Destinatários (WhatsApp e e-mail) e remetentes | Armazenamento da extensão |
 | Documentos a anexar | Só até serem anexados (alguns minutos) |
 | Cards do cabeçalho, réus, RG/CPF | Só na aba atual, enquanto ela estiver aberta |
+| Envios a certificar (certidão de envio) | Só na aba do processo, até certificar ou descartar (no máximo 4 horas) |
 
 Para levar esses dados a outro computador, use **⬇ Exportar** / **⬆ Importar**
 no Menu ([2.6](#cap-2-6)).
@@ -1734,6 +1822,8 @@ telas abertas a partir daí voltam a funcionar.
 | Preferência abre com "⚠ Não consegui preencher" | A opção gravada não existe neste processo; preencha o campo à mão, ou edite/recrie a preferência ([7.2](#cap-7-2)) |
 | Preferência de Intimar Partes não marca as caixas certas | Grave-a de novo (preferências anteriores à versão 2.9.84) |
 | Importei o arquivo de backup e nada mudou | Recarregue (F5) as páginas do Projudi/SEEU abertas ([2.6](#cap-2-6)) |
+| A juntada parou no texto com "sem valor para {…}" | A variável não tem valor neste processo ou envio: complete o texto e clique em **Continuar** ([8.2](#cap-8-2), [5.4](#cap-5-4)) |
+| O quadro da certidão de envio fica em "⏳ Aguardando o envio…" | Confira se clicou em **Enviar** no Outlook/WhatsApp. No WhatsApp, deixe a aba do WhatsApp Web aberta; no e-mail, a conferência só existe no modo Microsoft Graph. Se o envio foi feito, **📎 Certificar envio** pergunta e segue assim mesmo ([5.4](#cap-5-4)) |
 | Combo parou numa etapa | Use **↻ Repetir etapa**, **⏭ Próxima etapa** ou **⏹ Parar combo** ([7.4](#cap-7-4)) |
 | WhatsApp abre a conversa, mas sem anexos | Confira se o WhatsApp Web está conectado; recarregue a extensão; anexe manualmente se precisar |
 | E-mail pede Client ID / dá erro de configuração | Mude o **Modo de envio** para **Automático** ou **Outlook Web** nas opções ([2.5](#cap-2-5)), ou peça o Client ID ao TI |
@@ -1803,6 +1893,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V40](videos/V40-localizador-seeu.mp4) | [Localizador (SEEU)](videos/V40-localizador-seeu.mp4) | [8.8](#cap-8-8) | 1:02 |
 | [V41](videos/V41-localizador-na-linha-seeu.mp4) | [Localizador pela ⭐ da lista (SEEU)](videos/V41-localizador-na-linha-seeu.mp4) | [9.3](#cap-9-3) | 0:31 |
 | [V42](videos/V42-alterar-classe-e-assuntos.mp4) | [Alterar Classe/Assuntos](videos/V42-alterar-classe-e-assuntos.mp4) | [8.9](#cap-8-9) | 0:44 |
+| [V43](videos/V43-certidao-de-envio.mp4) | [Certidão de envio (e-mail e WhatsApp)](videos/V43-certidao-de-envio.mp4) | [5.4](#cap-5-4) | 1:06 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -1816,6 +1907,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.15.0 | 03/10/2026 | Nova seção **5.4 Certidão de envio (e-mail e WhatsApp)** (só no Projudi): depois de um envio, o quadro **📎 Certificar envio** junta a certidão com uma preferência do Juntar Documento, já com destinatário, documentos e o comprovante conferido nos **Itens Enviados** do Outlook (modo Microsoft Graph) ou na conversa do WhatsApp. Seção 8.2: **variáveis no texto** das preferências do Juntar Documento (`{numero_processo}`, `{hoje}`, `{reus}`, `{perguntar:…}` etc.). Nova função na tabela da 2.6 (29 no Projudi), novas linhas na Solução de problemas e vídeo V43. |
 | 2.14.2 | 02/10/2026 | Corrigida a **Nova Ordenação** com **mandado urgente**: o envio parava com "Selecione o tipo de urgência do Mandado" porque o **Tipo de Urgência** guardado ficava desligado no envio; agora as opções Sim/Não da fila são marcadas como um clique de verdade, que libera os campos ligados a elas (7.5). |
 | 2.14.1 | 02/10/2026 | Seção 8.9: o **✏️ Alterar** da classe e do assunto passa a ser um pequeno balão cinza, no mesmo tom dos botões da extensão (antes, um link). Vídeo V42 regravado. |
 | 2.14.0 | 02/10/2026 | Nova seção **8.9 Alterar Classe/Assuntos** (só no Projudi): link **✏️ Alterar** ao lado da **Classe Processual** e do **Assunto Principal**, no cabeçalho do processo, que abre num popup a tela do botão **Alterar** da aba Informações Gerais; ao salvar, o popup fecha e a tela do processo é recarregada. Nova função na tabela da 2.6 (28 funções no Projudi) e vídeo V42. |

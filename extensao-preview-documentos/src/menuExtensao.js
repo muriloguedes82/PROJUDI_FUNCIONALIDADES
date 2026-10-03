@@ -57,6 +57,7 @@
 		"pdpTermosUso",
 		"pdpPerfilAdvocaciaBloqueado",
 		"pdpWhatsappPending",
+		"pdpWhatsappConversasDosEnvios",
 		"pdpJuntarDocumentoJob",
 		"pdpJuntarDocumentoPendingSave",
 		"pdpComboRun",
