@@ -30,6 +30,15 @@
 // próprio SEEU (window.__pdpLocalizador.associarEm); a linha mostra o
 // andamento e o resultado, sem sair da listagem.
 //
+// EM LOTE: cada linha ganha uma caixinha de marcar, abaixo do "+" da
+// primeira coluna, e uma barra "⭐ Em lote" acima da tabela executa a mesma
+// preferência ou combo em todos os processos marcados, um de cada vez.
+// Projudi: a pergunta da etapa prévia (dispensar/finalizar) é feita uma só
+// vez e vale para todos; depois o popup de cada processo abre já preenchido
+// e cada um continua exigindo o seu "✅ Sim, executar" (fechar o popup pula
+// o processo). SEEU: os localizadores são associados direto em todos.
+// Combos que precisam da tela do processo (nova aba) não rodam em lote.
+//
 // REGRA (Projudi x SEEU): o Projudi trava as ações enquanto houver juntadas
 // ou conclusões pendentes, por isso lá a extensão pergunta antes se deve
 // dispensar as juntadas, finalizar a conclusão ou dispensar os decursos. O
@@ -304,7 +313,8 @@
 
 	// --- fluxo ------------------------------------------------------------------------
 
-	function perguntar(item, textoPergunta, textoSim) {
+	// `explicacao` (opcional) substitui o texto que explica o que vem depois.
+	function perguntar(item, textoPergunta, textoSim, explicacao) {
 		return new Promise(function (resolve) {
 			fecharDialogo();
 			const responder = function (valor) {
@@ -313,11 +323,11 @@
 			};
 			const caixa = el("div", { class: "pdp-tl-modal pdp-pl-pergunta", role: "dialog" }, [
 				el("div", { class: "pdp-tl-pop-cab" }, [
-					el("strong", { text: item.combo ? "🔗 Combo \"" + item.combo.name + "\" (" + item.combo.steps.length + " etapas)" : "★ " + item.pref.name + " — " + item.label }),
+					el("strong", { text: (item.lote ? "Em lote (" + item.lote + " processos) · " : "") + (item.combo ? "🔗 Combo \"" + item.combo.name + "\" (" + item.combo.steps.length + " etapas)" : "★ " + item.pref.name + " — " + item.label) }),
 					el("button", { type: "button", class: "pdp-tl-x", title: "Cancelar", text: "✕", onclick: function () { responder(null); } })
 				]),
 				el("p", { text: textoPergunta }),
-				el("p", { class: "pdp-tl-vazio", text: item.combo
+				el("p", { class: "pdp-tl-vazio", text: explicacao ? explicacao : item.combo
 					? (item.novaAba
 						? "Respondendo Sim ou Não, o processo é aberto numa nova aba e o combo começa lá (ele tem etapa que só roda na tela do processo)."
 						: "Respondendo Sim ou Não, as etapas do combo abrem em seguida, uma a uma, já preenchidas, para você confirmar cada uma.")
@@ -354,7 +364,10 @@
 	// pelas pendências que ela tiver - juntadas e "Retorno de Conclusão" (as
 	// mesmas de executarComPendencias, na tela do processo). Resolve com
 	// { cancelado } ou { previa } (texto do que foi feito, ou null).
-	async function pendenciasDoProcesso(ctx, item) {
+	// `respostaLote` ("sim"/"nao"): em lote, a resposta dada uma vez para
+	// todos os processos - nada é perguntado aqui.
+	async function pendenciasDoProcesso(ctx, item, respostaLote) {
+		if (respostaLote === "nao") return { previa: null };
 		const d = window.__pdpDispensas || {};
 		mostrar(ctx, ["Verificando pendências do processo…"], "andamento");
 		const proc = await carregarProcesso(ctx, true);
@@ -380,7 +393,7 @@
 		const feitas = [];
 		for (const etapa of etapas) {
 			mostrar(ctx, feitas.concat(["Aguardando sua resposta…"]), "andamento");
-			const resposta = await perguntar(item, etapa.pergunta, etapa.sim);
+			const resposta = respostaLote || await perguntar(item, etapa.pergunta, etapa.sim);
 			if (!resposta) return { cancelado: true };
 			if (resposta !== "sim") continue;
 			mostrar(ctx, feitas.concat([etapa.fazendo]), "andamento");
@@ -479,29 +492,39 @@
 		const resposta = tela.pergunta ? await perguntar(item, tela.pergunta, tela.sim) : "nao";
 		if (!resposta) return;
 		emAndamento = true;
+		try {
+			await rodar(ctx, item, resposta, false);
+		} finally {
+			emAndamento = false;
+		}
+	}
+
+	// Executa a preferência/combo num processo, já com a resposta da
+	// etapa prévia. `emLote`: nas telas de cumprimentos, `resposta` vale
+	// para as pendências encontradas (sem perguntar de novo). Resolve com
+	// true quando a preferência (ou o combo inteiro) foi executada.
+	async function rodar(ctx, item, resposta, emLote) {
 		let previa = null;
 		try {
 			if (tela.verificaPendencias) {
-				const p = await pendenciasDoProcesso(ctx, item);
+				const p = await pendenciasDoProcesso(ctx, item, emLote ? resposta : null);
 				if (p.cancelado) {
 					const s = ctx.row.querySelector(".pdp-pl-status");
 					if (s) s.remove();
-					return;
+					return false;
 				}
 				previa = p.previa;
 			} else {
 				previa = await fazerPrevia(ctx, resposta);
 			}
-			if (item.combo) await executarCombo(ctx, item, previa);
-			else {
-				const r = await abrirPreferencia(ctx, item.label, item.pref, [previa]);
-				mostrar(ctx, [previa, r.texto], r.ok ? "ok" : "aviso");
-			}
+			if (item.combo) return await executarCombo(ctx, item, previa);
+			const r = await abrirPreferencia(ctx, item.label, item.pref, [previa]);
+			mostrar(ctx, [previa, r.texto], r.ok ? "ok" : "aviso");
+			return r.ok;
 		} catch (e) {
 			console.error(TAG, e);
 			mostrar(ctx, [previa, (e && e.message) || "falha ao carregar o processo"], "erro");
-		} finally {
-			emAndamento = false;
+			return false;
 		}
 	}
 
@@ -528,7 +551,7 @@
 			const r = await chrome.runtime.sendMessage({ source: "projudi-preview", type: "clipboard-process-open", number: ctx.cnj });
 			if (!r || !r.ok) throw new Error("não foi possível abrir o processo numa nova aba" + (r && r.error ? " (" + r.error + ")" : ""));
 			mostrar(ctx, [previa, nome + ": aberto numa nova aba — o combo continua lá"], "ok");
-			return;
+			return true;
 		}
 		const todas = await qa.loadComboPreferences();
 		const feitas = [];
@@ -548,11 +571,12 @@
 			const escolha = await escolherNaLinha(ctx, [previa, etapa, r.texto]);
 			if (escolha === "parar") {
 				mostrar(ctx, [previa, nome + ": parado na etapa " + (i + 1) + " (" + feitas.length + " executada(s))"], "aviso");
-				return;
+				return false;
 			}
 			if (escolha === "proxima") i++;
 		}
 		mostrar(ctx, [previa, nome + ": concluído (" + combo.steps.length + " etapas)"], "ok");
+		return true;
 	}
 
 	// --- painel de cards ------------------------------------------------------------------
@@ -575,20 +599,21 @@
 		return null;
 	}
 
-	function abrir(ancora, row, cnj) {
-		if (painel && painel.ancora === ancora) {
-			fecharPainel();
-			return;
-		}
-		fecharPainel();
-		if (tela.seeu) {
-			abrirSeeu(ancora, row, cnj);
-			return;
-		}
-		const qa = api();
+	function cardClicavel(card, ativar) {
+		card.addEventListener("click", ativar);
+		card.addEventListener("keydown", function (ev) {
+			if (ev.key === "Enter" || ev.key === " ") {
+				ev.preventDefault();
+				ativar();
+			}
+		});
+		return card;
+	}
+
+	function novoPainel(ancora, titulo) {
 		const box = el("div", { class: "pdp-tl-popover pdp-pl-painel", id: "pdpPreferenciasLinha" });
 		box.appendChild(el("div", { class: "pdp-tl-pop-cab" }, [
-			el("strong", { text: "⭐ Minhas Preferências — " + cnj }),
+			el("strong", { text: titulo }),
 			el("button", { type: "button", class: "pdp-tl-x", title: "Fechar", text: "✕", onclick: fecharPainel })
 		]));
 		const grade = el("div", { class: "pdp-qa-fav-grid" });
@@ -597,6 +622,36 @@
 		painel = { el: box, ancora: ancora };
 		posicionar(box, ancora);
 		setTimeout(function () { document.addEventListener("mousedown", foraDoPainel, true); }, 0);
+		return { box: box, grade: grade };
+	}
+
+	// ⭐ de uma linha.
+	function abrir(ancora, row, cnj) {
+		if (painel && painel.ancora === ancora) {
+			fecharPainel();
+			return;
+		}
+		fecharPainel();
+		const titulo = "⭐ Minhas Preferências — " + cnj;
+		if (tela.seeu) {
+			montarPainelSeeu(ancora, titulo, false, function (pref, nome) {
+				executarSeeu(dadosLinha(row, cnj), pref, nome);
+			});
+			return;
+		}
+		montarPainel(ancora, titulo, false, function (item) {
+			executar(dadosLinha(row, cnj), item);
+		});
+	}
+
+	// Cards das preferências e combos das ações rápidas. `escolher(item)`:
+	// item = { kind, label, pref } ou { combo, novaAba }.
+	function montarPainel(ancora, titulo, emLote, escolher) {
+		const qa = api();
+		const p = novoPainel(ancora, titulo);
+		const box = p.box;
+		const grade = p.grade;
+		const onde = emLote ? "nos processos marcados, um de cada vez" : "neste processo";
 
 		if (!qa || !qa.loadFavItems) {
 			grade.replaceWith(el("div", { class: "pdp-tl-vazio", text: "As ações rápidas não estão disponíveis nesta tela. Recarregue a página." }));
@@ -615,24 +670,16 @@
 					class: "pdp-qa-fav-card" + (motivo ? " pdp-qa-fav-unavailable" : ""),
 					tabindex: "0",
 					role: "button",
-					title: motivo || ("Executar \"" + item.label + "\" com esta preferência neste processo" + (item.pref.descricao ? "\n" + item.pref.descricao : ""))
+					title: motivo || ("Executar \"" + item.label + "\" com esta preferência " + onde + (item.pref.descricao ? "\n" + item.pref.descricao : ""))
 				}, [
 					el("span", { class: "pdp-qa-fav-card-action", text: item.label }),
 					el("span", { class: "pdp-qa-fav-card-name", text: "★ " + item.pref.name })
 				]);
-				const ativar = function () {
+				grade.appendChild(cardClicavel(card, function () {
 					if (motivo) return;
 					fecharPainel();
-					executar(dadosLinha(row, cnj), item);
-				};
-				card.addEventListener("click", ativar);
-				card.addEventListener("keydown", function (ev) {
-					if (ev.key === "Enter" || ev.key === " ") {
-						ev.preventDefault();
-						ativar();
-					}
-				});
-				grade.appendChild(card);
+					escolher(item);
+				}));
 			});
 			posicionar(box, ancora);
 		}).then(function () {
@@ -646,31 +693,26 @@
 			combos.forEach(function (combo) {
 				const passos = combo.steps || [];
 				const novaAba = passos.some(function (p) { return qa.stepNeedsProcessScreen(p.label); });
+				// Em lote, um combo que abre uma nova aba por processo não roda.
+				const motivo = emLote && novaAba ? "Em lote, não: este combo tem etapa que só roda na tela do processo (abriria uma aba por processo)." : null;
 				const descricao = passos.map(function (p, i) {
 					const pref = qa.findComboPref(dados[1], p);
 					return (i + 1) + ". " + p.label + " — ★ " + (pref ? pref.name : p.prefName || "(preferência removida)");
 				}).join("\n");
 				const card = el("div", {
-					class: "pdp-qa-fav-card pdp-pl-combo",
+					class: "pdp-qa-fav-card pdp-pl-combo" + (motivo ? " pdp-qa-fav-unavailable" : ""),
 					tabindex: "0",
 					role: "button",
-					title: (novaAba ? "Tem etapa que só roda na tela do processo: o combo começa numa nova aba.\n" : "Executar as etapas neste processo, uma a uma:\n") + descricao
+					title: motivo || ((novaAba ? "Tem etapa que só roda na tela do processo: o combo começa numa nova aba.\n" : "Executar as etapas " + onde + ", uma a uma:\n") + descricao)
 				}, [
 					el("span", { class: "pdp-qa-fav-card-action", text: "Combo · " + passos.length + " etapas" + (novaAba ? " · nova aba" : "") }),
 					el("span", { class: "pdp-qa-fav-card-name", text: "▶ " + combo.name })
 				]);
-				const ativar = function () {
+				gradeCombos.appendChild(cardClicavel(card, function () {
+					if (motivo) return;
 					fecharPainel();
-					executar(dadosLinha(row, cnj), { combo: combo, novaAba: novaAba });
-				};
-				card.addEventListener("click", ativar);
-				card.addEventListener("keydown", function (ev) {
-					if (ev.key === "Enter" || ev.key === " ") {
-						ev.preventDefault();
-						ativar();
-					}
-				});
-				gradeCombos.appendChild(card);
+					escolher({ combo: combo, novaAba: novaAba });
+				}));
 			});
 			posicionar(box, ancora);
 		}).catch(function (e) {
@@ -680,19 +722,11 @@
 
 	// --- SEEU: preferências do 📍 Localizador --------------------------------------------
 
-	function abrirSeeu(ancora, row, cnj) {
+	function montarPainelSeeu(ancora, titulo, emLote, escolher) {
 		const loc = window.__pdpLocalizador;
-		const box = el("div", { class: "pdp-tl-popover pdp-pl-painel", id: "pdpPreferenciasLinha" });
-		box.appendChild(el("div", { class: "pdp-tl-pop-cab" }, [
-			el("strong", { text: "⭐ Minhas Preferências — " + cnj }),
-			el("button", { type: "button", class: "pdp-tl-x", title: "Fechar", text: "✕", onclick: fecharPainel })
-		]));
-		const grade = el("div", { class: "pdp-qa-fav-grid" });
-		box.appendChild(grade);
-		document.body.appendChild(box);
-		painel = { el: box, ancora: ancora };
-		posicionar(box, ancora);
-		setTimeout(function () { document.addEventListener("mousedown", foraDoPainel, true); }, 0);
+		const p = novoPainel(ancora, titulo);
+		const box = p.box;
+		const grade = p.grade;
 
 		if (!loc || !loc.associarEm) {
 			grade.replaceWith(el("div", { class: "pdp-tl-vazio", text: "Ative \"Localizador (SEEU)\" no Menu da extensão (ícone da balança) e recarregue a página." }));
@@ -706,31 +740,21 @@
 				posicionar(box, ancora);
 				return;
 			}
-			const ordem = {};
-			prefs.forEach(function (p, i) { ordem[p.id] = i; });
 			prefs.forEach(function (pref) {
 				const nome = pref.nome || pref.localizadores.join(" • ");
 				const card = el("div", {
 					class: "pdp-qa-fav-card",
 					tabindex: "0",
 					role: "button",
-					title: "Associar a este processo, em segundo plano:\n" + pref.localizadores.join("\n")
+					title: (emLote ? "Associar aos processos marcados, em segundo plano:\n" : "Associar a este processo, em segundo plano:\n") + pref.localizadores.join("\n")
 				}, [
 					el("span", { class: "pdp-qa-fav-card-action", text: "📍 Localizador" }),
 					el("span", { class: "pdp-qa-fav-card-name", text: "★ " + nome })
 				]);
-				const ativar = function () {
+				grade.appendChild(cardClicavel(card, function () {
 					fecharPainel();
-					executarSeeu(dadosLinha(row, cnj), pref, nome);
-				};
-				card.addEventListener("click", ativar);
-				card.addEventListener("keydown", function (ev) {
-					if (ev.key === "Enter" || ev.key === " ") {
-						ev.preventDefault();
-						ativar();
-					}
-				});
-				grade.appendChild(card);
+					escolher(pref, nome);
+				}));
 			});
 			posicionar(box, ancora);
 		}).catch(function (e) {
@@ -755,9 +779,19 @@
 			alert("Já há uma preferência sendo executada. Aguarde terminar.");
 			return;
 		}
+		emAndamento = true;
+		try {
+			await rodarSeeu(ctx, pref, nome);
+		} finally {
+			emAndamento = false;
+		}
+	}
+
+	// Associa os localizadores num processo. Resolve com true se todos
+	// foram associados.
+	async function rodarSeeu(ctx, pref, nome) {
 		const loc = window.__pdpLocalizador;
 		const rotulo = "★ " + nome;
-		emAndamento = true;
 		let proc = null;
 		try {
 			if (!ctx.processoUrl) throw new Error("link do processo não encontrado na linha");
@@ -770,13 +804,244 @@
 				mostrar(ctx, [rotulo, "Associando " + i + " de " + total + ": " + local + "…"], "andamento");
 			});
 			mostrar(ctx, [(r.tipo === "ok" ? "✅ " : "⚠ ") + rotulo, r.texto], r.tipo === "ok" ? "ok" : r.tipo === "erro" ? "erro" : "aviso");
+			return r.tipo === "ok";
 		} catch (e) {
 			console.error(TAG, e);
 			mostrar(ctx, ["⚠ " + rotulo, (e && e.message) || "falha ao carregar o processo"], "erro");
+			return false;
 		} finally {
 			if (proc && proc.iframe) proc.iframe.remove();
-			emAndamento = false;
 		}
+	}
+
+	// --- em lote ----------------------------------------------------------------------------
+	// Caixinha de marcar em cada linha (abaixo do "+" da primeira coluna) e
+	// a barra "⭐ Em lote" acima da tabela. Os processos marcados recebem a
+	// mesma preferência/combo, um de cada vez, cada um na sua linha.
+
+	let barra = null; // { el, todos, contagem, executar, parar, status }
+	let lote = null; // { parar } enquanto um lote roda
+
+	// Chamado por listaTarefas.js a cada linha de processo renderizada.
+	function marcador(row, cnj) {
+		const celula = row.cells && row.cells[0];
+		if (!celula) return;
+		let caixa = celula.querySelector(":scope > .pdp-pl-lote-celula > .pdp-pl-lote-check");
+		if (caixa && caixa.getAttribute("data-cnj") === cnj) {
+			garantirBarra(row);
+			return;
+		}
+		if (caixa) caixa.parentNode.remove();
+		caixa = el("input", {
+			type: "checkbox",
+			class: "pdp-pl-lote-check",
+			"data-cnj": cnj,
+			title: "Marcar este processo para executar uma preferência em lote (barra \"⭐ Em lote\", acima da tabela)",
+			"aria-label": "Marcar " + cnj + " para executar em lote"
+		});
+		// O clique não chega à linha (que pode ter ação própria no Projudi).
+		caixa.addEventListener("click", function (ev) { ev.stopPropagation(); });
+		caixa.addEventListener("change", atualizarBarra);
+		celula.appendChild(el("div", { class: "pdp-pl-lote-celula" }, [caixa]));
+		garantirBarra(row);
+	}
+
+	function caixasVisiveis() {
+		return Array.from(document.querySelectorAll("input.pdp-pl-lote-check")).filter(function (c) {
+			const row = c.closest("tr");
+			return row && !row.classList.contains("pdp-tl-oculta");
+		});
+	}
+
+	function marcadas() {
+		return caixasVisiveis().filter(function (c) { return c.checked; }).map(function (c) {
+			return { caixa: c, row: c.closest("tr"), cnj: c.getAttribute("data-cnj") };
+		});
+	}
+
+	function garantirBarra(row) {
+		if (barra && barra.el.isConnected) return;
+		const legenda = document.getElementById("pdpTarefasLegenda");
+		const tabela = row.closest("table");
+		if (!legenda && !tabela) return;
+		const todos = el("input", { type: "checkbox", title: "Marcar/desmarcar todos os processos visíveis na tabela" });
+		todos.addEventListener("change", function () {
+			caixasVisiveis().forEach(function (c) { c.checked = todos.checked; });
+			atualizarBarra();
+		});
+		const contagem = el("span", { class: "pdp-pl-lote-contagem" });
+		const executar = el("button", {
+			type: "button",
+			class: "pdp-tl-btn pdp-pl-sim",
+			text: tela.seeu ? "⭐ Associar localizadores nos marcados" : "⭐ Executar preferência nos marcados",
+			onclick: function (ev) {
+				ev.preventDefault();
+				abrirLote(executar);
+			}
+		});
+		const desmarcar = el("button", {
+			type: "button",
+			class: "pdp-tl-link",
+			text: "Desmarcar todos",
+			onclick: function () {
+				document.querySelectorAll("input.pdp-pl-lote-check").forEach(function (c) { c.checked = false; });
+				atualizarBarra();
+			}
+		});
+		const parar = el("button", {
+			type: "button",
+			class: "pdp-tl-btn pdp-pl-lote-parar",
+			text: "⏹ Parar lote",
+			title: "Não abrir os próximos processos (o que estiver aberto agora continua)",
+			onclick: function () {
+				if (!lote) return;
+				lote.parar = true;
+				parar.disabled = true;
+				statusLote("Parando: o lote para depois do processo atual…");
+			}
+		});
+		const status = el("span", { class: "pdp-pl-lote-status", role: "status" });
+		const caixa = el("div", { id: "pdpPreferenciasLote", class: "pdp-pl-lote" }, [
+			el("strong", { text: "⭐ Em lote:" }),
+			el("label", { class: "pdp-pl-lote-todos" }, [todos, "marcar todos"]),
+			contagem,
+			executar,
+			desmarcar,
+			parar,
+			status
+		]);
+		if (legenda) legenda.insertAdjacentElement("afterend", caixa);
+		else tabela.insertAdjacentElement("beforebegin", caixa);
+		barra = { el: caixa, todos: todos, contagem: contagem, executar: executar, desmarcar: desmarcar, parar: parar, status: status };
+		atualizarBarra();
+	}
+
+	function atualizarBarra() {
+		if (!barra) return;
+		const visiveis = caixasVisiveis();
+		const n = visiveis.filter(function (c) { return c.checked; }).length;
+		barra.contagem.textContent = n + " processo(s) marcado(s)";
+		barra.todos.checked = n > 0 && n === visiveis.length;
+		barra.todos.indeterminate = n > 0 && n < visiveis.length;
+		barra.executar.disabled = !n || !!lote;
+		barra.desmarcar.disabled = !n || !!lote;
+		barra.todos.disabled = !!lote;
+		barra.parar.hidden = !lote;
+		if (!lote) barra.parar.disabled = false;
+	}
+
+	function statusLote(texto) {
+		if (barra) barra.status.textContent = texto || "";
+	}
+
+	function abrirLote(ancora) {
+		if (painel && painel.ancora === ancora) {
+			fecharPainel();
+			return;
+		}
+		fecharPainel();
+		const n = marcadas().length;
+		if (!n) return;
+		const titulo = "⭐ Em lote — " + n + " processo(s) marcado(s)";
+		if (tela.seeu) montarPainelSeeu(ancora, titulo, true, executarLoteSeeu);
+		else montarPainel(ancora, titulo, true, executarLote);
+	}
+
+	// Pergunta da etapa prévia, uma vez para o lote todo (só Projudi - ver a
+	// REGRA no início do arquivo). Resolve com "sim", "nao" ou null.
+	function perguntaLote(item, n) {
+		const explicacao = "A resposta vale para os " + n + " processos marcados. Depois, " + (item.combo
+			? "as etapas do combo abrem processo por processo, já preenchidas,"
+			: "a preferência abre em cada processo, um de cada vez, já preenchida,") +
+			" e cada uma só é executada quando você clicar em ✅ Sim, executar. Fechar o popup pula o processo.";
+		const itemLote = Object.assign({}, item, { lote: n });
+		if (tela.pergunta) {
+			return perguntar(itemLote, tela.pergunta.replace("deste processo", "de cada processo marcado"), tela.sim, explicacao);
+		}
+		if (tela.verificaPendencias) {
+			return perguntar(itemLote,
+				"Nos processos marcados que tiverem juntadas pendentes ou conclusão pendente (linha \"Retorno de Conclusão\" do quadro Pendências), dispensar as juntadas e finalizar a conclusão antes de executar a preferência?",
+				"Sim, dispensar/finalizar", explicacao);
+		}
+		return Promise.resolve("nao");
+	}
+
+	// Percorre os processos marcados, um de cada vez. `rodarUm(ctx)` resolve
+	// com true quando o processo foi executado (a caixinha é desmarcada).
+	async function percorrerLote(alvos, rodarUm) {
+		emAndamento = true;
+		lote = { parar: false };
+		atualizarBarra();
+		const total = alvos.length;
+		let feitos = 0;
+		let falhas = 0;
+		try {
+			for (let i = 0; i < total; i++) {
+				if (lote.parar) break;
+				const a = alvos[i];
+				if (!a.row.isConnected) {
+					falhas++;
+					continue;
+				}
+				statusLote("Processo " + (i + 1) + " de " + total + ": " + a.cnj + "…");
+				a.row.classList.add("pdp-pl-lote-atual");
+				try { a.row.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e) { /* segue */ }
+				let ok = false;
+				try {
+					ok = await rodarUm(dadosLinha(a.row, a.cnj));
+				} catch (e) {
+					console.error(TAG, e);
+				}
+				a.row.classList.remove("pdp-pl-lote-atual");
+				if (ok) {
+					feitos++;
+					a.caixa.checked = false;
+				} else {
+					falhas++;
+				}
+				atualizarBarra();
+			}
+		} finally {
+			const parado = lote.parar;
+			lote = null;
+			emAndamento = false;
+			atualizarBarra();
+			const pulados = total - feitos - falhas;
+			statusLote((parado ? "⏹ Lote parado: " : "Lote concluído: ") + feitos + " executado(s)" +
+				(falhas ? " · " + falhas + " não executado(s)" : "") +
+				(pulados ? " · " + pulados + " não iniciado(s)" : "") +
+				(falhas || pulados ? " (continuam marcados)" : ""));
+		}
+	}
+
+	async function executarLote(item) {
+		if (emAndamento) {
+			alert("Já há uma preferência ou combo sendo executado. Aguarde terminar.");
+			return;
+		}
+		if (!api()) {
+			alert("As ações rápidas não estão disponíveis nesta tela. Recarregue a página.");
+			return;
+		}
+		const alvos = marcadas();
+		if (!alvos.length) return;
+		const resposta = await perguntaLote(item, alvos.length);
+		if (!resposta) return;
+		await percorrerLote(alvos, function (ctx) { return rodar(ctx, item, resposta, true); });
+	}
+
+	// SEEU: sem pergunta sobre pendências (ver a REGRA no início do
+	// arquivo) - só a confirmação de quantos processos recebem os
+	// localizadores, já que ali nada é confirmado processo a processo.
+	async function executarLoteSeeu(pref, nome) {
+		if (emAndamento) {
+			alert("Já há uma preferência sendo executada. Aguarde terminar.");
+			return;
+		}
+		const alvos = marcadas();
+		if (!alvos.length) return;
+		if (!confirm("Associar \"★ " + nome + "\" aos " + alvos.length + " processo(s) marcado(s)?\n\n" + pref.localizadores.join("\n"))) return;
+		await percorrerLote(alvos, function (ctx) { return rodarSeeu(ctx, pref, nome); });
 	}
 
 	function posicionar(box, ancora) {
@@ -800,5 +1065,5 @@
 		}
 	});
 
-	window.__pdpPreferenciasNaLinha = { abrir: abrir };
+	window.__pdpPreferenciasNaLinha = { abrir: abrir, marcador: marcador, atualizarLote: atualizarBarra };
 })();

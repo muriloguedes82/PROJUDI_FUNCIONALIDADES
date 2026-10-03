@@ -230,6 +230,11 @@
 	// --- widget na linha ---------------------------------------------------------
 
 	function renderizarLinha(item) {
+		// Caixinha de marcar para executar preferências em lote, abaixo do
+		// "+" da primeira coluna (preferenciasNaLinha.js).
+		if (window.__pdpPreferenciasNaLinha && window.__pdpPreferenciasNaLinha.marcador) {
+			window.__pdpPreferenciasNaLinha.marcador(item.row, item.cnj);
+		}
 		let w = item.row.querySelector(".pdp-tl-linha");
 		if (!w || w.dataset.cnj !== item.cnj) {
 			if (w) w.remove();
@@ -301,6 +306,7 @@
 			renderizarLegenda(tabela, itens);
 			itens.forEach(renderizarLinha);
 			aplicarFiltro(itens);
+			if (window.__pdpPreferenciasNaLinha && window.__pdpPreferenciasNaLinha.atualizarLote) window.__pdpPreferenciasNaLinha.atualizarLote();
 			if (popover && !soTabela) preencherPopover();
 			if (modal && !soTabela) preencherGerenciador();
 		} finally {

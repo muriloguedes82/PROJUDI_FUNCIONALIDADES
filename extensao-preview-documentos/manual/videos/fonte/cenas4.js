@@ -680,10 +680,75 @@ CENAS.V44 = {
 };
 
 // ------------------------------------------------------------------ V45
+// ⭐ em lote (preferenciasNaLinha.js): caixinha abaixo do "+" da primeira
+// coluna e a barra "⭐ Em lote" acima da tabela.
+CENAS.V45 = {
+	arquivo: "V45-preferencias-em-lote.mp4",
+	titulo: "Preferências em lote (⭐ Em lote)",
+	secao: "9.3",
+	async run() {
+		telaLista("Análise de Juntadas");
+		$$("#lista tr[data-i]").forEach((tr, i) => {
+			tr.cells[0].innerHTML = '<div style="text-align:center"><span style="display:inline-block;width:11px;height:11px;border:1px solid #777;font:bold 10px/10px Arial;text-align:center">+</span><div style="margin-top:4px"><input type="checkbox" data-lote="' + i + '"></div></div>';
+		});
+		$$(".x-rowslot").forEach((s, i) => (s.innerHTML = ' <span class="x-btn small">+</span> <span class="x-btn small">⭐</span><span class="st" data-st="' + i + '" style="margin-left:6px;font-size:11px"></span>'));
+		$("#slot-legenda").innerHTML = '<div id="x-lote" style="display:flex;gap:8px;align-items:center;margin:6px 0;padding:5px 8px;background:#fffaf0;border:1px solid #e8cf8a;border-radius:6px;font-size:12px">' +
+			'<b>⭐ Em lote:</b> <label><input type="checkbox"> marcar todos</label> <span id="x-cont" style="color:#5a6b4a">0 processo(s) marcado(s)</span>' +
+			' <span class="x-btn small" id="x-exec" style="opacity:.5">⭐ Executar preferência nos marcados</span> <span id="x-lote-st" style="color:#1f4a7a;font-weight:bold"></span></div>';
+		const marcar = async i => { await S.click('[data-lote="' + i + '"]'); $('[data-lote="' + i + '"]').checked = true; };
+		const cont = n => { $("#x-cont").textContent = n + " processo(s) marcado(s)"; $("#x-exec").style.opacity = n ? "1" : ".5"; };
+		await S.titleCard("VÍDEO V45", "Preferências em lote (⭐ Em lote)", "A mesma preferência ou combo em vários processos da lista, um de cada vez.");
+		await S.cap("Cada linha ganhou uma <b>caixinha de marcar</b>, logo abaixo do <b>+</b> da primeira coluna.");
+		await marcar(0); cont(1);
+		await marcar(2); cont(2);
+		await marcar(3); cont(3);
+		S.hl("#x-lote", 2);
+		await S.cap("A barra <b>⭐ Em lote</b>, acima da tabela, conta os processos marcados (há também “marcar todos”).");
+		S.hlOff();
+		await S.click("#x-exec");
+		const pn = panelAt('<h4>⭐ Em lote — 3 processo(s) marcado(s)</h4><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">' +
+			'<div class="x-chip" id="card" style="display:block;border-radius:6px;padding:8px;margin:0"><b>★ Remessa MP</b><div style="color:#666">Realizar Remessa</div></div>' +
+			'<div class="x-chip" style="display:block;border-radius:6px;padding:8px;margin:0"><b>★ Concluso p/ sentença</b><div style="color:#666">Enviar Concluso</div></div></div>', "#x-exec", { w: 440 });
+		pn.style.left = "420px"; pn.style.top = "250px";
+		await S.cap("Escolha a preferência ou o combo — os mesmos cards da ⭐ da linha.");
+		await S.click("#card");
+		pn.remove();
+		modal('<h3>Em lote (3 processos) · ★ Remessa MP</h3><div>Dispensar as juntadas pendentes de cada processo marcado antes de executar a preferência?</div><div style="color:#888;font-style:italic;margin-top:6px">A resposta vale para os 3 processos marcados.</div><div style="text-align:right;margin-top:12px"><span class="pj-btn primary" id="sim">✅ Sim, dispensar juntadas</span> <span class="pj-btn">Não, seguir sem isso</span></div>', { w: 540, top: 200 });
+		await S.cap("A pergunta sobre as pendências é feita <b>uma vez só</b>, para todos os marcados.", { ms: 3800 });
+		await S.click("#sim");
+		closeModal();
+		for (const [k, i] of [[1, 0], [2, 2], [3, 3]]) {
+			$("#x-lote-st").textContent = "Processo " + k + " de 3: " + LISTA[i].n + "…";
+			const tr = $('#lista tr[data-i="' + i + '"]');
+			tr.style.outline = "2px solid #f0b400";
+			const st = $('[data-st="' + i + '"]');
+			st.textContent = "Dispensando juntadas…";
+			await sleep(700);
+			st.textContent = "✅ Juntada(s) dispensada(s) · ★ Remessa MP: abrindo…";
+			popup("Realizar Remessa — " + LISTA[i].n, dlgRemessa({ op: "op-mp", dest: "Ministério Público", fin: "Manifestação", prazo: "5" }), { top: 120, h: 480 });
+			bar('Confirmar “Realizar Remessa” com a preferência “Remessa MP”? <span class="x-btn small green" id="exec">✅ Sim, executar</span> <span class="x-btn small">Cancelar</span>', { top: 78 });
+			if (k === 1) await S.cap("O popup de cada processo abre preenchido: basta <b>✅ Sim, executar</b>.");
+			await S.click("#exec");
+			$(".x-bar").remove(); $(".x-popup").remove();
+			st.textContent = "✅ Juntada(s) dispensada(s) · ★ Remessa MP: concluída";
+			$('[data-lote="' + i + '"]').checked = false;
+			tr.style.outline = "";
+			cont(3 - k);
+		}
+		$("#x-lote-st").textContent = "Lote concluído: 3 executado(s)";
+		S.hl("#x-lote", 3);
+		await S.cap("Cada processo executado é desmarcado; os que não forem executados <b>continuam marcados</b>.");
+		S.hlOff();
+		await S.cap("No SEEU, a barra associa os localizadores do <b>📍 Localizador</b> em todos os marcados, sem confirmar um a um.", { ms: 4200 });
+		await S.endCard("Marque os processos → ⭐ Executar preferência nos marcados → card → uma resposta → ✅ Sim, executar em cada um.");
+	},
+};
+
+// ------------------------------------------------------------------ V46
 // "Analisar Decurso" e "Dispensar" na própria lista de decurso de prazo,
 // abaixo do sequencial.
-CENAS.V45 = {
-	arquivo: "V45-analisar-e-dispensar-decurso-na-lista.mp4",
+CENAS.V46 = {
+	arquivo: "V46-analisar-e-dispensar-decurso-na-lista.mp4",
 	titulo: "Analisar e Dispensar decurso na lista",
 	secao: "9.9",
 	async run() {
@@ -695,7 +760,7 @@ CENAS.V45 = {
 				'<span class="x-btn small" data-di="' + i + '">Dispensar</span>' +
 				'<span class="st" data-st="' + i + '" style="flex-basis:100%;font-size:11px"></span></div>');
 		});
-		await S.titleCard("VÍDEO V45", "Analisar e Dispensar decurso na lista", "Os botões da tela da intimação, direto na linha do processo.");
+		await S.titleCard("VÍDEO V46", "Analisar e Dispensar decurso na lista", "Os botões da tela da intimação, direto na linha do processo.");
 		await S.cap("Nas listas de <b>Decurso de Prazo</b>, cada linha aguardando análise ganha, abaixo do <b>Seq.</b>, os botões <b>Analisar Decurso</b> e <b>Dispensar</b>.");
 		S.hl('[data-dec="0"]', 3);
 		await sleep(1200);
