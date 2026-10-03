@@ -906,3 +906,81 @@ chrome.runtime.onMessage.addListener((message, _sender, reply) => {
     .catch(error => reply({ ok: false, error: String(error.message || error) }));
   return true;
 });
+
+// Assinador TJPR (src/assinadorAutomatico.js e src/assinadorAbrir.js): quando
+// o .jnlp do assinador baixado do Projudi termina e o iframe sobre o
+// "Assinar" não conseguiu abri-lo sozinho (sem o clique do usuário nele, ou
+// sem a autorização "downloads.open"), mostra na aba do Projudi o cartão
+// "Abrir o assinador". O Chrome não deixa o service worker abrir o arquivo:
+// chrome.downloads.open exige um clique numa página da extensão.
+const PDP_ASSINADOR_ABERTOS = 'pdpAssinadorAbertos';
+const PDP_ASSINADOR_ESPERA_MS = 1500;
+
+function pdpEhHostProjudi(url) {
+  try { return /(^|\.)tjpr\.jus\.br$/i.test(new URL(url).hostname); } catch (e) { return false; }
+}
+
+async function pdpAssinadorFoiAberto(id) {
+  const lista = (await chrome.storage.session.get(PDP_ASSINADOR_ABERTOS))[PDP_ASSINADOR_ABERTOS];
+  return Array.isArray(lista) && lista.includes(id);
+}
+
+async function pdpAssinadorMarcarAberto(id) {
+  const lista = (await chrome.storage.session.get(PDP_ASSINADOR_ABERTOS))[PDP_ASSINADOR_ABERTOS];
+  const nova = (Array.isArray(lista) ? lista : []).concat(id).slice(-20);
+  await chrome.storage.session.set({ [PDP_ASSINADOR_ABERTOS]: nova });
+}
+
+// Endereço (sem os parâmetros) de onde o Projudi baixa o .jnlp: com ele, a
+// página desvia esse download para um iframe oculto, para o Chrome não
+// descartar o clique (ver src/assinadorAutomatico.js).
+const PDP_ASSINADOR_ENDERECOS = 'pdpAssinadorEnderecos';
+async function pdpAssinadorAprenderEndereco(url) {
+  let endereco;
+  try {
+    const u = new URL(url);
+    if (!/^https?:$/.test(u.protocol) || !pdpEhHostProjudi(u.href)) return;
+    endereco = u.origin + u.pathname;
+  } catch (e) { return; }
+  const lista = (await chrome.storage.local.get(PDP_ASSINADOR_ENDERECOS))[PDP_ASSINADOR_ENDERECOS];
+  const atual = Array.isArray(lista) ? lista : [];
+  if (atual.includes(endereco)) return;
+  await chrome.storage.local.set({ [PDP_ASSINADOR_ENDERECOS]: atual.concat(endereco).slice(-10) });
+}
+
+// Aba do Projudi em primeiro plano (a do clique em "Assinar").
+async function pdpAbaProjudiAtiva() {
+  const abas = await chrome.tabs.query({ active: true, url: '*://*.tjpr.jus.br/*' });
+  if (!abas.length) return null;
+  const janela = await chrome.windows.getLastFocused().catch(() => null);
+  return abas.find(aba => janela && aba.windowId === janela.id) || abas[0];
+}
+
+chrome.downloads.onChanged.addListener((delta) => {
+  if (!delta.state || delta.state.current !== 'complete') return;
+  (async () => {
+    const [item] = await chrome.downloads.search({ id: delta.id });
+    if (!item || !(/\.jnlp$/i.test(item.filename || '') || /jnlp/i.test(item.mime || ''))) return;
+    if (!pdpEhHostProjudi(item.finalUrl || item.url) && !pdpEhHostProjudi(item.url) && !pdpEhHostProjudi(item.referrer)) return;
+    await pdpAssinadorAprenderEndereco(item.url);
+    await new Promise(resolve => setTimeout(resolve, PDP_ASSINADOR_ESPERA_MS));
+    if (await pdpAssinadorFoiAberto(item.id)) return;
+    const aba = await pdpAbaProjudiAtiva();
+    if (!aba) return;
+    await chrome.tabs.sendMessage(aba.id, { source: 'projudi-preview', type: 'assinador-jnlp-pendente', id: item.id }, { frameId: 0 });
+  })().catch(() => { /* aba sem a funcionalidade ou fechada */ });
+});
+
+chrome.runtime.onMessage.addListener((message, sender, reply) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'assinador-aberto') return false;
+  if (sender.id !== chrome.runtime.id || !String(sender.url || '').startsWith(chrome.runtime.getURL('src/assinadorAbrir.html')) || !Number.isInteger(message.id)) {
+    reply({ ok: false }); return false;
+  }
+  pdpAssinadorMarcarAberto(message.id)
+    .then(() => {
+      if (sender.tab) chrome.tabs.sendMessage(sender.tab.id, { source: 'projudi-preview', type: 'assinador-jnlp-aberto', id: message.id }, { frameId: 0 }).catch(() => {});
+      reply({ ok: true });
+    })
+    .catch(() => reply({ ok: false }));
+  return true;
+});

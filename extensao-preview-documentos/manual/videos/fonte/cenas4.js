@@ -743,3 +743,66 @@ CENAS.V45 = {
 		await S.endCard("Marque os processos → ⭐ Executar preferência nos marcados → card → uma resposta → ✅ Sim, executar em cada um.");
 	},
 };
+
+// ------------------------------------------------------------------ V46
+// Assinador abre sozinho (assinadorAutomatico.js): ao clicar em "Assinar",
+// o AssinadorTJPR.jnlp baixado é aberto pela extensão, sem a lista de
+// downloads; na primeira vez, o cartão pede a autorização do Chrome.
+function telaInserirArquivo() {
+	browser(["*Projudi - Inserir Arquivo"], "https://projudi.tjpr.jus.br/projudi/processo/juntarDocumento.do");
+	screen(pjHeader() + '<div class="pj-body"><div class="pj-h2">Inserir Arquivo</div>' +
+		'<table class="pj-table" style="max-width:760px"><tr><th>Arquivo</th><th style="width:120px">Assinado</th></tr><tr><td>Certidão de Decurso de Prazo.pdf</td><td id="ass">Não</td></tr></table>' +
+		'<div class="pj-btnbar" style="justify-content:flex-start"><span class="pj-btn" id="assinar">Assinar Arquivos</span><span class="pj-btn">Voltar</span></div></div>');
+}
+function listaDownloads() {
+	return add('<div id="x-dl" style="position:absolute;right:14px;top:44px;width:330px;background:#fff;border:1px solid #ccc;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.25);font:13px Arial;padding:10px 12px;z-index:50">' +
+		'<b>Downloads recentes</b><div id="x-dl-item" style="margin-top:8px;padding:6px;border-radius:6px">📄 AssinadorTJPR.jnlp<br><span style="color:#777;font-size:11px">2,0 KB • Concluído</span></div></div>');
+}
+function pedirPin() {
+	return modal('<h3>Assinador TJPR</h3><div>Digite o PIN do certificado:</div><div class="x-field" id="pin"></div><div style="text-align:right;margin-top:10px"><span class="pj-btn primary" id="okpin">OK</span></div>', { top: 220, w: 380 });
+}
+CENAS.V46 = {
+	arquivo: "V46-assinador-abre-sozinho.mp4",
+	titulo: "Assinador abre sozinho",
+	secao: "8.10",
+	async run() {
+		telaInserirArquivo();
+		await S.titleCard("VÍDEO V46", "Assinador abre sozinho", "Clicou em Assinar, o assinador já pede o PIN — sem ir à lista de downloads.");
+		await S.cap("Antes: ao clicar em <b>Assinar</b>, o Projudi só baixava o arquivo do assinador…");
+		await S.click("#assinar");
+		const dl = listaDownloads();
+		await S.cap("…e era preciso abrir a lista de <b>downloads</b> do navegador e clicar no <b>AssinadorTJPR</b>.", { ms: 3600 });
+		dl.remove();
+		await S.cap("Agora a extensão abre o assinador para você. <b>Na primeira vez</b>, ao clicar em <b>Assinar</b>…");
+		await S.click("#assinar");
+		await sleep(500);
+		const card = add('<div id="x-card" style="position:absolute;right:16px;bottom:16px;width:340px;background:#fff;border-left:5px solid #2d7a46;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.28);padding:12px 14px;font:13px/1.4 Arial;z-index:50">' +
+			'<b>🔏 O Assinador TJPR foi baixado</b><div style="margin:8px 0"><span class="pj-btn primary" id="x-autorizar" style="background:#2d7a46;color:#fff;border-color:#2d7a46">Autorizar e abrir o assinador</span></div>' +
+			'<div style="color:#555;font-size:12px">Só na primeira vez: o Chrome pede autorização para a extensão abrir arquivos baixados.</div></div>');
+		await S.cap("…aparece este aviso no canto da tela. Clique em <b>Autorizar e abrir o assinador</b>.");
+		await S.click("#x-autorizar");
+		modal('<h3>“Olirum” pede outra permissão</h3><div>Abrir arquivos baixados</div><div style="text-align:right;margin-top:12px"><span class="pj-btn">Negar</span> <span class="pj-btn primary" id="x-permitir">Permitir</span></div>', { top: 160, w: 420 });
+		await S.cap("Clique em <b>Permitir</b>. Isso só é pedido uma vez.");
+		await S.click("#x-permitir");
+		closeModal();
+		card.remove();
+		pedirPin();
+		await S.cap("O assinador abre e pede o PIN.");
+		await S.type("#pin", "••••••", { speed: 120 });
+		await S.click("#okpin");
+		closeModal();
+		$("#ass").textContent = "Sim";
+		await sleep(600);
+		telaInserirArquivo();
+		await S.cap("Daí em diante é direto: clique em <b>Assinar</b>…");
+		await S.click("#assinar");
+		await sleep(700);
+		pedirPin();
+		await S.cap("…e o assinador já aparece pedindo o PIN. Nada de lista de downloads.", { ms: 3600 });
+		await S.type("#pin", "••••••", { speed: 120 });
+		await S.click("#okpin");
+		closeModal();
+		$("#ass").textContent = "Sim";
+		await S.endCard("Clique em Assinar → digite o PIN. Na primeira vez, autorize no aviso “🔏 O Assinador TJPR foi baixado”.");
+	},
+};

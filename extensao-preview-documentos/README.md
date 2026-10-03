@@ -1087,6 +1087,51 @@ encerra o acompanhamento sem gravar nada. O estado fica no
 `sessionStorage` (só nesta aba) e expira em 1 hora; o fluxo também para se
 a tela Juntar Documento for de outro processo. Só no Projudi.
 
+## Assinador abre sozinho (só no Projudi)
+
+Ao clicar em **Assinar** / **Assinar Arquivos**, o Projudi baixa o
+`AssinadorTJPR.jnlp` e o Chrome só o deixa na lista de downloads. Esta
+função (`src/assinadorAutomatico.js`, `src/assinadorAbrir.html/.js` e um
+trecho de `src/background.js`) abre o arquivo sozinha.
+
+Restrições do Chrome que definem o desenho:
+
+- `chrome.downloads.open` exige a permissão `downloads.open` (pedida como
+  **opcional**, para não desativar a extensão na atualização) e um **gesto
+  do usuário numa página da extensão** com ativação ainda válida (5 s) — o
+  service worker e o clique na página do Projudi não servem;
+- o `.jnlp` é tipo "perigoso" (`ALLOW_ON_USER_GESTURE` /
+  `DISALLOW_AUTO_OPEN`), então o usuário não tem a opção "Sempre abrir
+  arquivos deste tipo"; só a política `AutoOpenFileTypes` do TI faria isso;
+- uma navegação da **página principal** (mesmo a que vira download) zera a
+  ativação do clique; num iframe, não.
+
+Como funciona:
+
+1. sobre cada botão "Assinar…" visível fica um iframe transparente da
+   extensão (`assinadorAbrir.html?modo=botao`, em `web_accessible_resources`).
+   O clique cai nele, que avisa a página (`postMessage`), e o script clica
+   no botão do Projudi;
+2. quando o download `.jnlp` do `tjpr.jus.br` termina em até 5 s, o próprio
+   iframe chama `chrome.downloads.open` e avisa o service worker;
+3. o service worker guarda o endereço (sem parâmetros) de cada `.jnlp`
+   baixado (`pdpAssinadorEnderecos`, em `chrome.storage.local`); logo após o
+   clique repassado, uma navegação da página principal para esse endereço é
+   cancelada (evento `navigate`) e refeita (GET ou POST, com os mesmos
+   campos) num iframe oculto, para o clique continuar valendo. Se o iframe
+   carregar uma página em vez do download, a navegação é refeita na
+   página principal;
+4. se o `.jnlp` não foi aberto em 1,5 s (extensão clicou sozinha, teclado,
+   sem autorização, download lento), o service worker manda a aba mostrar o
+   cartão `assinadorAbrir.html?modo=cartao` com **Abrir o assinador** (e,
+   sem autorização, **Autorizar e abrir o assinador**, que chama
+   `chrome.permissions.request`).
+
+No Firefox, `downloads.open` também só funciona dentro do tratamento do
+clique (sem os 5 s do Chrome): lá vale o cartão (um clique), ou a
+configuração do próprio Firefox para abrir arquivos JNLP com o Java Web
+Start/OpenWebStart.
+
 ## Réus/Indiciados/Noticiados no cabeçalho do processo
 
 No SEEU, o cabeçalho do processo já mostra o nome do sentenciado (com RJI,

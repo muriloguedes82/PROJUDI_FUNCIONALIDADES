@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.21.0 |
-| **Versão da extensão** | 2.21.0 |
+| **Versão do manual** | 2.22.0 |
+| **Versão da extensão** | 2.22.0 |
 | **Data desta versão** | 03/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -77,6 +77,7 @@
    - 8.7 [Sistemas do CNJ (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Renajud, Sistema Uniformizado)](#cap-8-7)
    - 8.8 [Localizador (só no SEEU)](#cap-8-8)
    - 8.9 [Alterar Classe/Assuntos](#cap-8-9)
+   - 8.10 [Assinador abre sozinho](#cap-8-10)
 9. [Telas de análise, mesas e cumprimentos](#cap-9)
    - 9.1 [Filtro por Sequencial na Análise de Decurso de Prazo](#cap-9-1)
    - 9.2 [Listas de tarefas](#cap-9-2)
@@ -338,7 +339,7 @@ PROJUDI e SEEU**, com a mesma lista: cada sistema guarda as suas próprias
 escolhas. Por padrão, **tudo vem ativo nos dois**. A extensão reconhece em que
 sistema você está pelo endereço da página e abre o Menu na aba dele (marcada
 com "(este)"); você pode clicar na outra aba para configurá-la também. Acima
-da lista aparece "Funcionalidades no PROJUDI: N de 29 ativas" (ou no SEEU).
+da lista aparece "Funcionalidades no PROJUDI: N de 30 ativas" (ou no SEEU).
 
 1. Clique na aba do sistema que quer configurar (PROJUDI ou SEEU).
 2. Clique na chave da função que quer ligar ou desligar.
@@ -361,7 +362,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 | Grupo | Funções que podem ser ligadas/desligadas | Seção |
 |---|---|---|
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
-| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
+| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação · Assinador abre sozinho (Projudi) | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica | [4](#cap-4) |
 | **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo (Projudi) · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
@@ -1506,6 +1507,53 @@ nova.
 - Os **Assuntos Secundários** (Adicionar/Remover) não entram na
   preferência.
 
+<a id="cap-8-10"></a>
+### 8.10 Assinador abre sozinho
+
+*Só no Projudi.*
+
+▶ [**Vídeo V46** — Assinador abre sozinho](videos/V46-assinador-abre-sozinho.mp4)
+
+**Para que serve:** quando você clica em **Assinar** (ou **Assinar
+Arquivos**), o Projudi baixa o arquivo **AssinadorTJPR** e o navegador só o
+deixa na lista de downloads: era preciso clicar na **seta de downloads**
+(⬇, no alto da tela) e depois no arquivo para o assinador abrir. Com esta
+função, a extensão abre o assinador para você: clicou em **Assinar**, o
+assinador já aparece pedindo o **PIN**.
+
+**Onde fica:** em todos os botões **Assinar** do Projudi. Não há botão
+novo: ao passar o mouse sobre o **Assinar**, ele ganha uma borda verde, sinal
+de que a extensão vai abrir o assinador.
+
+**Passo a passo:**
+
+1. **Só na primeira vez:** clique em **Assinar**. No canto inferior
+   direito aparece o aviso **🔏 O Assinador TJPR foi baixado**. Clique em
+   **Autorizar e abrir o assinador** e, na janela do Chrome, em
+   **Permitir** (autoriza a extensão a abrir arquivos baixados). Se o
+   assinador não abrir logo em seguida, clique em **Abrir o assinador
+   agora** no mesmo aviso.
+2. Daí em diante: clique em **Assinar** e digite o **PIN** no assinador.
+
+**Bom saber:**
+
+- O aviso **🔏 O Assinador TJPR foi baixado**, com o botão **Abrir o
+  assinador**, aparece sempre que a extensão não conseguir abrir sozinha —
+  por exemplo, quando é a própria extensão que clica em **Assinar** (nas
+  preferências do **Juntar Documento**, [8.2](#cap-8-2)), quando você usa o
+  teclado em vez do mouse, ou quando o download demora. Um clique nele
+  abre o assinador; o **×** fecha o aviso.
+- Na primeira assinatura de cada computador o aviso também pode aparecer
+  uma vez mesmo depois da autorização: a extensão ainda está aprendendo de
+  onde o Projudi baixa o assinador. Nas seguintes, abre direto.
+- A assinatura continua sendo sua: a extensão só **abre** o assinador; o
+  **PIN** é sempre digitado por você.
+- Não quer a função? Desligue **Assinador abre sozinho** no Menu da
+  extensão ([2.6](#cap-2-6)). O Projudi volta a funcionar como antes (seta
+  de downloads).
+- Se você negou a autorização por engano, basta clicar de novo em
+  **Autorizar e abrir o assinador** no próximo aviso.
+
 ---
 
 <a id="cap-9"></a>
@@ -1882,6 +1930,7 @@ telas abertas a partir daí voltam a funcionar.
 | Card de suspensão/monitoração não aparece | Só são sinalizados status **ATIVA** e os motivos listados em [4.1](#cap-4-1)/[4.2](#cap-4-2); aguarde alguns segundos após abrir o processo |
 | Mandado não virou Regionalizado | Só muda se a cidade da parte for de outra comarca **e** constar em Comarca de Destino; veja a nota amarela do diálogo ([9.7](#cap-9-7)) |
 | Colar processo: "Não encontrei um número de processo" | Copie o número completo (20 dígitos), só um ([8.5](#cap-8-5)) |
+| Ao clicar em **Assinar**, o assinador não abre sozinho | Use o botão **Abrir o assinador** do aviso **🔏 O Assinador TJPR foi baixado**, no canto inferior direito; se for a primeira vez, clique em **Autorizar e abrir o assinador** e em **Permitir** ([8.10](#cap-8-10)). Confira no Menu se **Assinador abre sozinho** está ligada |
 | O popup de um sistema do CNJ fica em branco ou o login não termina | Use **🗂 Nova aba** ou **🖥 Segundo monitor** no topo do popup ([8.7](#cap-8-7)) |
 
 Se o problema continuar, anote a versão da extensão, a tela e o que
@@ -1944,6 +1993,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V43](videos/V43-preferencia-de-alteracao-de-classe.mp4) | [Preferência de alteração de classe](videos/V43-preferencia-de-alteracao-de-classe.mp4) | [8.9](#cap-8-9) | 0:43 |
 | [V44](videos/V44-processo-ao-passar-o-mouse.mp4) | [Processo ao passar o mouse no Decurso de Prazo](videos/V44-processo-ao-passar-o-mouse.mp4) | [9.8](#cap-9-8) | 0:48 |
 | [V45](videos/V45-preferencias-em-lote.mp4) | [Preferências em lote (⭐ Em lote)](videos/V45-preferencias-em-lote.mp4) | [9.3](#cap-9-3) | 0:52 |
+| [V46](videos/V46-assinador-abre-sozinho.mp4) | [Assinador abre sozinho](videos/V46-assinador-abre-sozinho.mp4) | [8.10](#cap-8-10) | 0:52 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -1957,6 +2007,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.22.0 | 03/10/2026 | Nova seção **8.10 Assinador abre sozinho** (só no Projudi): ao clicar em **Assinar**, a extensão abre o Assinador TJPR baixado, sem passar pela lista de downloads do navegador; na primeira vez, o aviso **🔏 O Assinador TJPR foi baixado** pede a autorização do Chrome (**Autorizar e abrir o assinador** → **Permitir**) e, quando a extensão não consegue abrir sozinha, oferece o botão **Abrir o assinador**. Nova função na tabela da 2.6 (30 funções no Projudi), linha nova em Solução de problemas e vídeo V46. |
 | 2.21.0 | 03/10/2026 | **⭐ Em lote** (9.3): caixinha de marcar abaixo do **+** de cada linha e barra **⭐ Em lote** acima da tabela, em todas as telas com a ⭐ (Juntadas, Retorno de Conclusão, Decurso de Prazo, cumprimentos e, no SEEU, Juntadas e Conclusão). No Projudi, a pergunta sobre dispensar/finalizar é feita uma vez para todos e cada processo continua pedindo o seu ✅ Sim, executar; no SEEU, os localizadores são associados em todos os marcados. Descrição da função no Menu atualizada e vídeo V45. |
 | 2.20.0 | 03/10/2026 | Listas de tarefas (9.2) e **⭐** na linha do processo (9.3) também nas telas de cumprimentos: **Expedir Intimações**, **Expedir Citação**, **Expedir Notificação**, **Expedir Intimações de Auxiliares da Justiça** e **Demais Cumprimentos** (para qualquer Tipo de Cumprimento). Nessas telas o ⭐ verifica o quadro Pendências do processo e só pergunta se deve dispensar as juntadas e/ou finalizar a conclusão quando elas existirem; sem pendências, abre a preferência direto. Catálogo do Menu atualizado (2.6). |
 | 2.19.0 | 03/10/2026 | Nova seção **9.8** (só no Projudi): nas listas de **Decurso de Prazo** (Intimação, Auxiliares da Justiça e Citações/Notificações), pousar o mouse sobre o **número do processo** abre a tela dele num painel, já na aba **Movimentações**, com **📌 Fixar**, **Abrir em nova aba** e **✕**. Nova função na tabela da 2.6 (29 funções no Projudi) e vídeo V44. |

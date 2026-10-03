@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="normal">
+<title>Assinador TJPR</title>
+<style>
+	html, body { margin: 0; padding: 0; height: 100%; background: transparent; overflow: hidden; }
+	/* Modo "botao": área transparente sobre o "Assinar" do Projudi. */
+	#area { display: none; position: fixed; inset: 0; width: 100%; height: 100%; border: 0; padding: 0; margin: 0; background: transparent; cursor: pointer; }
+	body.botao #area { display: block; }
+	/* Modo "cartao": aviso com o botão "Abrir o assinador". */
+	#cartao { display: none; box-sizing: border-box; height: 100%; padding: 12px 14px; font: 13px/1.4 Arial, Helvetica, sans-serif; color: #222; background: #fff; border-left: 5px solid #2d7a46; }
+	body.cartao #cartao { display: flex; flex-direction: column; gap: 8px; }
+	#cartao .topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+	#cartao strong { font-size: 14px; }
+	#fechar { border: 0; background: transparent; font-size: 18px; line-height: 1; cursor: pointer; color: #666; padding: 0 2px; }
+	#abrir { align-self: flex-start; border: 0; border-radius: 6px; padding: 8px 14px; font: bold 14px Arial, Helvetica, sans-serif; color: #fff; background: #2d7a46; cursor: pointer; }
+	#abrir:hover { background: #24653a; }
+	#abrir:disabled { opacity: .6; cursor: default; }
+	#info { color: #555; font-size: 12px; }
+</style>
+</head>
+<body>
+	<button id="area" type="button" title="Assinar — a extensão abre o Assinador TJPR sozinha"></button>
+	<div id="cartao">
+		<div class="topo">
+			<strong>🔏 O Assinador TJPR foi baixado</strong>
+			<button id="fechar" type="button" title="Fechar">×</button>
+		</div>
+		<button id="abrir" type="button">Abrir o assinador</button>
+		<div id="info"></div>
+	</div>
+	<script src="assinadorAbrir.js"></script>
+</body>
+</html>

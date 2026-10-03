@@ -157,6 +157,13 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					descricao: "Ordenar vários cumprimentos em seguida.",
 					js: ["src/ordenarCumprimentos.js"],
 					css: ["src/ordenarCumprimentos.css"]
+				},
+				{
+					id: "assinadorAutomatico",
+					nome: "Assinador abre sozinho",
+					descricao: "Ao clicar em \"Assinar\", o Assinador TJPR abre direto para digitar o PIN, sem precisar ir à lista de downloads do navegador.",
+					js: ["src/assinadorAutomatico.js"],
+					sistemas: ["projudi"]
 				}
 			]
 		},
