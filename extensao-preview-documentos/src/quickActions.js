@@ -5241,8 +5241,12 @@
 			removeCaptureToolbar();
 			applyPreferenceViaChain(label, pref, false, origem, Object.assign({ noReload: true }, hooks || {}));
 		},
-		openActionModal: function (label, url) {
+		// `hooks` (opcional, ver modalHooks): quem abre a partir de uma
+		// listagem (ex.: decursoNaLinha.js) fica sabendo do fechamento, e a
+		// tela por trás não é recarregada ao fim.
+		openActionModal: function (label, url, hooks) {
 			const iframe = showActionModal(label);
+			if (hooks) modalHooks = Object.assign({ noReload: true }, hooks);
 			if (url) iframe.src = url;
 			return iframe;
 		},

@@ -678,3 +678,57 @@ CENAS.V44 = {
 		await S.endCard("Mouse parado sobre o número do processo = tela do processo na aba Movimentações. 📌 Fixar mantém aberto; Esc ou ✕ fecha.");
 	},
 };
+
+// ------------------------------------------------------------------ V45
+// "Analisar Decurso" e "Dispensar" na própria lista de decurso de prazo,
+// abaixo do sequencial.
+CENAS.V45 = {
+	arquivo: "V45-analisar-e-dispensar-decurso-na-lista.mp4",
+	titulo: "Analisar e Dispensar decurso na lista",
+	secao: "9.9",
+	async run() {
+		telaLista("Decurso de Prazo - Intimação", { path: "intimacaoBusca.do", col: "Data Decurso" });
+		$$("#lista tr[data-i]").forEach((tr, i) => {
+			tr.children[1].insertAdjacentHTML("beforeend",
+				'<div class="x-dec" data-dec="' + i + '" style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px">' +
+				'<span class="x-btn small" data-an="' + i + '">Analisar Decurso</span>' +
+				'<span class="x-btn small" data-di="' + i + '">Dispensar</span>' +
+				'<span class="st" data-st="' + i + '" style="flex-basis:100%;font-size:11px"></span></div>');
+		});
+		await S.titleCard("VÍDEO V45", "Analisar e Dispensar decurso na lista", "Os botões da tela da intimação, direto na linha do processo.");
+		await S.cap("Nas listas de <b>Decurso de Prazo</b>, cada linha aguardando análise ganha, abaixo do <b>Seq.</b>, os botões <b>Analisar Decurso</b> e <b>Dispensar</b>.");
+		S.hl('[data-dec="0"]', 3);
+		await sleep(1200);
+		S.hlOff();
+		await S.cap("<b>Dispensar</b>: a extensão abre a intimação escondida, clica em Dispensar e responde <b>OK</b> à confirmação do Projudi, sozinha.");
+		await S.click('[data-di="0"]');
+		const st = $('[data-st="0"]');
+		st.textContent = "Dispensando…";
+		await sleep(1500);
+		$$('[data-dec="0"] .x-btn').forEach(b => b.remove());
+		st.innerHTML = '<span style="color:#216b32">✅ Decurso de prazo dispensado com sucesso</span>';
+		S.hl(st, 3);
+		await S.cap("No fim, a linha mostra <b>“Decurso de prazo dispensado com sucesso”</b>. Você continua na lista.");
+		S.hlOff();
+		await S.cap("<b>Analisar Decurso</b> abre um menu: a análise sozinha ou com uma preferência do <b>📎 Juntar Documento</b>.");
+		await S.click('[data-an="2"]');
+		const pn = panelAt('<h4>Analisar Decurso</h4><div class="x-chip" style="display:block;border-radius:6px;padding:6px 8px;margin:0 0 4px">Abrir a análise</div>' +
+			'<div style="font-size:11px;color:#5a6b4a;margin:6px 0 4px">Incluir arquivo com a preferência (📎 Juntar Documento):</div>' +
+			'<div class="x-chip" id="pref-cert" style="display:block;border-radius:6px;padding:6px 8px;margin:0">★ Certidão de decurso</div>', '[data-an="2"]', { w: 300 });
+		await S.cap("Escolha a preferência: a extensão clica em <b>Adicionar</b> e preenche o Tipo do Arquivo, o Modelo e o texto, como no Juntar Documento.");
+		await S.click("#pref-cert");
+		pn.remove();
+		const st2 = $('[data-st="2"]');
+		st2.textContent = "Abrindo a análise com ★ Certidão de decurso…";
+		await sleep(900);
+		popup("Analisar Decurso — ★ Certidão de decurso", '<div style="font-size:12px"><b>Inserir Arquivo</b> — Tipo do Arquivo: <span class="pj-select">Certidão</span> · Modelo: <span class="pj-select">Documento em branco</span></div><div style="margin-top:10px"><span class="pj-input" style="min-width:420px;min-height:60px;display:inline-block">Certifico que decorreu o prazo…</span></div><div style="margin-top:12px"><span class="pj-btn primary" id="assinar">Assinar Arquivos</span></div>', { hd: "Analisar Decurso — ★ Certidão de decurso", top: 120, h: 360 });
+		await S.cap("Você só <b>assina</b> no assinador. Depois a extensão clica em <b>Confirmar Inclusão</b> e em <b>Concluir</b>.");
+		await S.click("#assinar");
+		$(".x-popup").remove();
+		st2.innerHTML = '<span style="color:#216b32">✅ Análise do decurso concluída</span>';
+		S.hl(st2, 3);
+		await S.cap("A linha mostra o resultado. A lista não é recarregada. Sem preferência, use <b>Abrir a análise</b> e faça tudo no popup.");
+		S.hlOff();
+		await S.endCard("Dispensar = confirmação aceita sozinha e “Decurso de prazo dispensado com sucesso”. Analisar Decurso = análise no popup, com ou sem preferência do Juntar Documento.");
+	},
+};

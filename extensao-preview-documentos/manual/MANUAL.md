@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.20.0 |
-| **Versão da extensão** | 2.20.0 |
+| **Versão do manual** | 2.21.0 |
+| **Versão da extensão** | 2.21.0 |
 | **Data desta versão** | 03/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -86,6 +86,7 @@
    - 9.6 [Dados processuais nas ordenações BNMP](#cap-9-6)
    - 9.7 [Endereço da parte e Mandado Regionalizado](#cap-9-7)
    - 9.8 [Processo ao passar o mouse nas listas de Decurso de Prazo](#cap-9-8)
+   - 9.9 [Analisar e Dispensar decurso na lista](#cap-9-9)
 10. [Privacidade e convivência com outras extensões](#cap-10)
     - 10.1 [O que fica guardado no seu navegador](#cap-10-1)
     - 10.2 [Convivência com o AzFlow](#cap-10-2)
@@ -363,7 +364,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica | [4](#cap-4) |
-| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo (Projudi) · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
+| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo (Projudi) · Analisar e Dispensar decurso na lista (Projudi) · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
 Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
@@ -1183,6 +1184,8 @@ Movimento**.
 - Se um passo automático falhar, faça-o à mão: a extensão continua do
   seguinte. **Parar**, na faixa, encerra sem gravar.
 - O acompanhamento expira em 1 hora e para se você abrir outro processo.
+- As mesmas preferências servem para incluir o arquivo na **análise do
+  decurso de prazo**, direto da lista de decursos ([9.9](#cap-9-9)).
 
 <a id="cap-8-3"></a>
 ### 8.3 (Des)Habilitar Advogado
@@ -1768,6 +1771,57 @@ sem sair da lista de decursos e sem abrir outra aba.
 - Dentro do painel não aparecem a balança do Menu, os cards dos sistemas do
   CNJ nem a barra de botões da extensão — eles ficam só na tela principal.
 
+<a id="cap-9-9"></a>
+### 9.9 Analisar e Dispensar decurso na lista
+
+▶ [**Vídeo V45** — Analisar e Dispensar decurso na lista](videos/V45-analisar-e-dispensar-decurso-na-lista.mp4)
+
+*Só no Projudi.*
+
+**Para que serve:** usar os botões **Analisar Decurso** e **Dispensar** da
+tela da intimação sem precisar abri-la — direto na lista de decursos.
+
+**Onde fica:** menu **Decurso de Prazo** (listas **Intimação**,
+**Intimação — Auxiliares da Justiça** e **Citações/Notificações**), na
+coluna **Processo / Seq.**, logo abaixo do sequencial, em cada linha
+**aguardando análise do decurso de prazo**.
+
+**Dispensar:**
+
+1. Clique em **Dispensar** na linha.
+2. A extensão abre a intimação escondida, clica no **Dispensar** do Projudi
+   e responde **OK** à pergunta "Confirma a dispensa de análise de Decurso
+   de Prazo?" — sozinha.
+3. A linha mostra **"Decurso de prazo dispensado com sucesso"** e os botões
+   saem dela. Você continua na lista.
+
+**Analisar Decurso:**
+
+1. Clique em **Analisar Decurso** na linha.
+2. Se você tiver preferências do **📎 Juntar Documento** ([8.2](#cap-8-2)),
+   aparece um menu:
+   - **Abrir a análise** — a tela "Analisar Decurso de Prazo" abre num
+     popup, para você fazer tudo como de costume;
+   - **★ nome da preferência** — a extensão abre a análise no popup, clica
+     em **Adicionar** e inclui o arquivo com a preferência (Tipo do Arquivo,
+     Modelo e texto). Você só **assina** no assinador; depois ela clica em
+     **Confirmar Inclusão** e em **Concluir**.
+
+   Sem preferências salvas, a análise abre direto no popup.
+3. Ao terminar, o popup fecha e a linha mostra o resultado.
+
+**Bom saber:**
+
+- A lista **não** é recarregada: atualize-a (Filtrar) quando quiser ver a
+  situação nova.
+- A confirmação aceita sozinha é **só** a da dispensa do decurso; qualquer
+  outra pergunta faz a extensão parar, sem dispensar.
+- Se algo não der certo, a linha avisa o motivo (ex.: o botão **Dispensar**
+  não estava disponível) e nada é feito às cegas.
+- Na análise com preferência, se o botão final aparecer com outro nome que
+  não **Concluir**, a extensão para e pede que você clique nele.
+- Um decurso por vez.
+
 ---
 
 <a id="cap-10"></a>
@@ -1902,6 +1956,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V42](videos/V42-alterar-classe-e-assuntos.mp4) | [Alterar Classe/Assuntos](videos/V42-alterar-classe-e-assuntos.mp4) | [8.9](#cap-8-9) | 0:44 |
 | [V43](videos/V43-preferencia-de-alteracao-de-classe.mp4) | [Preferência de alteração de classe](videos/V43-preferencia-de-alteracao-de-classe.mp4) | [8.9](#cap-8-9) | 0:43 |
 | [V44](videos/V44-processo-ao-passar-o-mouse.mp4) | [Processo ao passar o mouse no Decurso de Prazo](videos/V44-processo-ao-passar-o-mouse.mp4) | [9.8](#cap-9-8) | 0:48 |
+| [V45](videos/V45-analisar-e-dispensar-decurso-na-lista.mp4) | [Analisar e Dispensar decurso na lista](videos/V45-analisar-e-dispensar-decurso-na-lista.mp4) | [9.9](#cap-9-9) | 1:04 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -1915,6 +1970,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.21.0 | 03/10/2026 | Nova seção **9.9** (só no Projudi): botões **Analisar Decurso** e **Dispensar** em cada linha das listas de **Decurso de Prazo**, abaixo do sequencial. O Dispensar responde OK à confirmação do Projudi sozinho e mostra "Decurso de prazo dispensado com sucesso"; o Analisar Decurso abre a análise num popup e pode incluir o arquivo com uma preferência do Juntar Documento (8.2). Nova função na tabela da 2.6 e vídeo V45. |
 | 2.20.0 | 03/10/2026 | Listas de tarefas (9.2) e **⭐** na linha do processo (9.3) também nas telas de cumprimentos: **Expedir Intimações**, **Expedir Citação**, **Expedir Notificação**, **Expedir Intimações de Auxiliares da Justiça** e **Demais Cumprimentos** (para qualquer Tipo de Cumprimento). Nessas telas o ⭐ verifica o quadro Pendências do processo e só pergunta se deve dispensar as juntadas e/ou finalizar a conclusão quando elas existirem; sem pendências, abre a preferência direto. Catálogo do Menu atualizado (2.6). |
 | 2.19.0 | 03/10/2026 | Nova seção **9.8** (só no Projudi): nas listas de **Decurso de Prazo** (Intimação, Auxiliares da Justiça e Citações/Notificações), pousar o mouse sobre o **número do processo** abre a tela dele num painel, já na aba **Movimentações**, com **📌 Fixar**, **Abrir em nova aba** e **✕**. Nova função na tabela da 2.6 (29 funções no Projudi) e vídeo V44. |
 | 2.18.2 | 03/10/2026 | A **balança** do Menu (2.6) também deixa de aparecer **dentro dos popups** (Advogados, Partes, ações rápidas, janelas do Projudi): fica só na tela principal. |

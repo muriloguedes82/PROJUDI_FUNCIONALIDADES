@@ -1,0 +1,110 @@
+/* "Analisar Decurso" e "Dispensar" na lista de decurso de prazo (decursoNaLinha.js) */
+.pdp-dec-acoes {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 4px;
+	margin-top: 4px;
+	white-space: normal;
+}
+
+.pdp-dec-btn {
+	padding: 2px 7px;
+	border: 1px solid #b9c4ad;
+	border-radius: 4px;
+	background: #f4f6ef;
+	color: #34422a;
+	font: 11px Arial, Helvetica, sans-serif;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.pdp-dec-btn:hover:not(:disabled) {
+	background: #e7ecdd;
+}
+
+.pdp-dec-btn:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+
+.pdp-dec-status:empty {
+	display: none;
+}
+
+.pdp-dec-status {
+	flex-basis: 100%;
+	padding: 1px 6px;
+	border-radius: 4px;
+	border: 1px solid #cfd6c2;
+	background: #f7f9f3;
+	font: 11px Arial, Helvetica, sans-serif;
+	color: #34422a;
+	text-align: center;
+}
+
+.pdp-dec-andamento {
+	background: #eef4fb;
+	border-color: #b8cde6;
+	color: #1f4a7a;
+}
+
+.pdp-dec-ok {
+	background: #e5f5e8;
+	border-color: #a9d6b2;
+	color: #216b32;
+}
+
+.pdp-dec-aviso {
+	background: #fff1cc;
+	border-color: #e8cf8a;
+	color: #7a5a00;
+}
+
+.pdp-dec-erro {
+	background: #fde8e8;
+	border-color: #e6b0b0;
+	color: #8a1f1f;
+}
+
+.pdp-dec-menu {
+	position: fixed;
+	z-index: 2147483000;
+	min-width: 240px;
+	max-width: 360px;
+	padding: 6px;
+	background: #fff;
+	border: 1px solid #b9c4ad;
+	border-radius: 8px;
+	box-shadow: 0 6px 22px rgba(0, 0, 0, 0.22);
+	font: 12px Arial, Helvetica, sans-serif;
+	color: #333;
+}
+
+.pdp-dec-menu-titulo {
+	font-weight: bold;
+	margin: 2px 4px 6px;
+}
+
+.pdp-dec-menu-sub {
+	margin: 8px 4px 4px;
+	font-size: 11px;
+	color: #5a6b4a;
+}
+
+.pdp-dec-menu-item {
+	display: block;
+	width: 100%;
+	margin: 2px 0;
+	padding: 5px 8px;
+	border: 1px solid #e8cf8a;
+	border-radius: 6px;
+	background: #fff8e6;
+	text-align: left;
+	font: 12px Arial, Helvetica, sans-serif;
+	cursor: pointer;
+}
+
+.pdp-dec-menu-item:hover {
+	background: #fff0c7;
+}

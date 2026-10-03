@@ -431,8 +431,22 @@
 		return true;
 	}
 
-	// Usado pelos combos de preferências (quickActions.js).
+	// Usado pelos combos de preferências (quickActions.js) e pelo "Analisar
+	// Decurso" das listas de decurso de prazo (decursoNaLinha.js).
 	window.__pdpJuntarDocumentoApi = {
+		// Preferências salvas (Tipo do Arquivo, Modelo e texto).
+		listar: function () {
+			return loadPrefs();
+		},
+		// Prepara a juntada com `pref` na tela "Analisar Decurso de Prazo"
+		// (certificar.do) que quem chama vai abrir (ex.: no popup das ações
+		// rápidas): lá a extensão clica em "Adicionar" e segue o mesmo fluxo
+		// da janela "Inserir Arquivo" até a assinatura e o "Confirmar
+		// Inclusão". O estado fica no sessionStorage da aba (compartilhado
+		// com o popup, que é da mesma origem).
+		prepararDecurso: function (pref, numero) {
+			writeJob({ mode: "apply", stage: "juntar", pref: pref, rec: {}, numero: numero || null, decurso: true, createdAt: Date.now() });
+		},
 		start: function (pref) {
 			return iniciarJuntada("apply", pref, true);
 		},
@@ -453,7 +467,16 @@
 	// -------------------------------------------------------------------
 
 	function isJuntarScreen() {
-		return !!document.getElementById("juntarDocumentoForm") && !!document.getElementById("descricaoTipoDocumento");
+		return (!!document.getElementById("juntarDocumentoForm") && !!document.getElementById("descricaoTipoDocumento")) || isDecursoScreen();
+	}
+
+	// Tela "Analisar Decurso de Prazo" (certificar.do, form#certificarForm):
+	// faz o papel da "Juntar Documento" - o "Adicionar" abre a mesma janela
+	// "Inserir Arquivo" -, mas sem "Tipo de Documento" e sem "Concluir
+	// Movimento" (o botão final é o #concluirButton).
+	function isDecursoScreen() {
+		const form = document.getElementById("certificarForm");
+		return !!form && !!form.querySelector("#addButton");
 	}
 
 	function idTipoDocumentoField() {
@@ -617,6 +640,10 @@
 	}
 
 	async function tickJuntar(job) {
+		if (isDecursoScreen()) {
+			tickDecurso(job);
+			return;
+		}
 		const form = document.getElementById("juntarDocumentoForm");
 		if (!form || juntarBusy) return;
 		const buttons = watchJuntarScreen(form);
@@ -704,6 +731,66 @@
 					},
 				]
 			);
+		}
+	}
+
+	// Tela "Analisar Decurso de Prazo": só fluxos iniciados pelo "Analisar
+	// Decurso" da lista (job.decurso). Clica em "Adicionar"; com o arquivo
+	// incluído, conclui pelo botão final - só se ele disser "Concluir" (sem
+	// arquivo o Projudi o mostra como "Dispensar Arquivo"); senão, pede o
+	// clique ao usuário.
+	let decursoActed = false;
+	function tickDecurso(job) {
+		if (!job.decurso || job.mode !== "apply" || juntarBusy) return;
+		const form = document.getElementById("certificarForm");
+		const adicionar = form.querySelector("#addButton");
+		if (adicionar && !adicionar.__pdpJdWatch) {
+			adicionar.__pdpJdWatch = true;
+			adicionar.addEventListener("click", function () {
+				advance(["juntar"], "upload");
+			}, true);
+		}
+		if (job.numero) {
+			const numero = numeroProcesso(document);
+			if (numero && numero !== job.numero) {
+				console.info(LOG, "análise de decurso de outro processo; fluxo encerrado.");
+				clearJob();
+				return;
+			}
+		}
+		// A tela tem duas tabelas: a do documento relativo (Descrição /
+		// Assinado Por / Arquivo...) e a dos arquivos incluídos na análise
+		// (Nome / Descrição / Tamanho) - só esta conta.
+		const tabela = Array.prototype.find.call(form.querySelectorAll("table.resultTable"), function (t) {
+			return /tamanho/i.test((t.tHead || t).textContent || "");
+		});
+		const hasFiles = !!tabela && Array.prototype.some.call(tabela.querySelectorAll("tbody tr"), function (tr) {
+			return tr.querySelectorAll("td").length >= 3 && !/nenhum registro encontrado/i.test(tr.textContent || "");
+		});
+		if (job.stage === "juntar" && !decursoActed) {
+			decursoActed = true;
+			showStatus(modeLabel(job) + ': abrindo "Inserir Arquivo"…');
+			adicionar.click();
+			return;
+		}
+		// Só conclui depois do "Confirmar Inclusão" (etapa "concluir").
+		if (job.stage !== "concluir" || !hasFiles) {
+			if (job.stage !== "juntar") showStatusOnce("decurso-wait", modeLabel(job) + ": continue na janela do Projudi (Inserir Arquivo / Digitar Documento / assinatura).", null);
+			return;
+		}
+		{
+			const concluir = form.querySelector("#concluirButton");
+			const rotulo = concluir ? buttonText(concluir) : "";
+			clearJob(true);
+			if (concluir && norm(rotulo) === "CONCLUIR") {
+				juntarBusy = true;
+				showStatus('Documento incluído. Clicando em "Concluir"…', "ok");
+				concluir.click();
+				juntarBusy = false;
+				return;
+			}
+			if (concluir) concluir.classList.add("pdp-jd-highlight");
+			showStatus('Documento incluído e assinado. Confira e clique em "' + (rotulo || "Concluir") + '" para terminar a análise do decurso.', "warn");
 		}
 	}
 
@@ -895,7 +982,9 @@
 				return;
 			}
 			if (assinarClicked || job.stage === "assinar") {
-				showStatusOnce("apply-assinando", 'Assine no assinador. Depois da assinatura a extensão clica em "Confirmar Inclusão" e em "Concluir Movimento".', "ok");
+				showStatusOnce("apply-assinando", job.decurso
+					? 'Assine no assinador. Depois da assinatura a extensão clica em "Confirmar Inclusão" e volta à análise do decurso.'
+					: 'Assine no assinador. Depois da assinatura a extensão clica em "Confirmar Inclusão" e em "Concluir Movimento".', "ok");
 				return;
 			}
 			assinarClicked = true;
