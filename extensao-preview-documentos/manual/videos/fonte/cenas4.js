@@ -620,3 +620,53 @@ CENAS.V43 = {
 		await S.endCard("⭐ → + Nova preferência → classe + motivo → Salvar (só grava). Depois: ⭐ → ★ preferência → alterado e salvo, sem confirmação.");
 	},
 };
+
+// ------------------------------------------------------------------ V44
+// "Remessa Eletrônica para a Turma Recursal" no grupo Remessa das ações
+// rápidas (ACTION_GROUPS em src/quickActions.js), com preferência.
+CENAS.V44 = {
+	arquivo: "V44-remessa-turma-recursal.mp4",
+	titulo: "Remessa para a Turma Recursal",
+	secao: "7.1",
+	async run() {
+		telaProcesso({ acoesAbertas: true });
+		const acoes = prefs => [{ nome: "Realizar Remessa" }, { nome: "Remessa Eletrônica para o Tribunal de Justiça" }, { nome: "Remessa Eletrônica para a Turma Recursal", prefs }];
+		await S.titleCard("VÍDEO V44", "Remessa para a Turma Recursal", "Nos Juizados Especiais, pelo botão Remessa — e com preferência.");
+		await S.cap("Clique no grupo <b>Remessa</b>.");
+		await S.click('[data-g="Remessa"]');
+		let pn = panelAt(acaoPanel("Remessa", acoes()), '[data-g="Remessa"]', { w: 440 });
+		await S.cap("Além das remessas de sempre, aparece <b>Remessa Eletrônica para a Turma Recursal</b>.", { ms: 3600 });
+		await S.cap("Para gravar uma preferência, clique em <b>+ Nova preferência</b> nela.");
+		await S.click('[data-nova="Remessa Eletrônica para a Turma Recursal"]');
+		pn.remove();
+		await abrindo("Remessa Eletrônica para a Turma Recursal", 900);
+		popup("Remessa Eletrônica para a Turma Recursal",
+			'<table class="pj-form"><tr><td class="l">Observação:</td><td><span class="pj-input" style="width:420px;height:50px" id="f-obs"></span></td></tr></table>' +
+			'<div class="pj-btnbar" style="justify-content:flex-start;margin-left:190px"><span class="pj-btn primary">Confirmar</span><span class="pj-btn">Cancelar</span></div>',
+			{ top: 120, h: 300 });
+		const b = bar('Preencha o diálogo e clique em <span class="x-btn small" id="salvarpref">💾 Salvar como preferência</span>', { top: 78 });
+		await S.cap("Preencha a tela do Projudi como sempre…");
+		await S.type("#f-obs", "Recurso inominado - remessa à Turma Recursal");
+		await S.cap("…e clique em <b>💾 Salvar como preferência</b>.");
+		await S.click("#salvarpref");
+		modal('<h3>Salvar como preferência</h3><div class="x-note">Campos que serão gravados:</div><div class="x-list"><div>Observação: Recurso inominado - remessa à Turma Recursal</div></div><div style="margin-top:8px">Nome da preferência:</div><div class="x-field" id="nm"></div><div style="text-align:right;margin-top:10px"><span class="pj-btn">Cancelar</span> <span class="pj-btn primary" id="ok">Salvar</span></div>', { top: 170 });
+		await S.type("#nm", "Turma Recursal");
+		await S.click("#ok");
+		closeModal(); b.remove(); $(".x-popup").remove();
+		await S.click('[data-g="Remessa"]');
+		pn = panelAt(acaoPanel("Remessa", acoes(["Turma Recursal"])), '[data-g="Remessa"]', { w: 440 });
+		await S.cap("Pronto: a preferência <b>★ Turma Recursal</b> fica no painel. Um clique preenche a tela e pede a confirmação.", { ms: 4200 });
+		await S.click('[data-pref="Turma Recursal"]', { dx: -30 });
+		pn.remove();
+		await abrindo("Remessa Eletrônica para a Turma Recursal", 900);
+		popup("Remessa Eletrônica para a Turma Recursal",
+			'<table class="pj-form"><tr><td class="l">Observação:</td><td><span class="pj-input" style="width:420px;height:50px">Recurso inominado - remessa à Turma Recursal</span></td></tr></table>' +
+			'<div class="pj-btnbar" style="justify-content:flex-start;margin-left:190px"><span class="pj-btn primary">Confirmar</span><span class="pj-btn">Cancelar</span></div>',
+			{ top: 120, h: 300 });
+		const c = bar('Confirmar "Remessa Eletrônica para a Turma Recursal" com a preferência "Turma Recursal"? <span class="x-btn small green" id="sim">✅ Sim, executar</span> <span class="x-btn small">Cancelar</span>', { top: 78 });
+		await S.cap("Confira e clique em <b>✅ Sim, executar</b>.");
+		await S.click("#sim");
+		c.remove(); $(".x-popup").remove();
+		await S.endCard("Remessa → Remessa Eletrônica para a Turma Recursal → + Nova preferência → 💾 Salvar → ★ preferência → ✅ Sim, executar.");
+	},
+};

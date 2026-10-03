@@ -66,7 +66,9 @@
 			id: "remessa",
 			title: "Remessa",
 			icon: "📦",
-			actions: ["Realizar Remessa", "Remessa Eletrônica para o Tribunal de Justiça"],
+			// "Remessa Eletrônica para a Turma Recursal" só aparece nos
+			// Juizados Especiais (logo abaixo da do Tribunal de Justiça).
+			actions: ["Realizar Remessa", "Remessa Eletrônica para o Tribunal de Justiça", "Remessa Eletrônica para a Turma Recursal"],
 		},
 		{
 			id: "ordenacoes",
@@ -684,12 +686,13 @@
 	// "Movimentar a Partir Desta Movimentação"), `openDialog('...', ...)` /
 	// `openDialogMaximized('...', ...)` (maioria dos itens do painel
 	// Ações) e `confirmaRemessaTribunalJustica('...')` (Remessa Eletrônica
-	// para o Tribunal de Justiça). Resolve relativa a `baseUrl` (a URL da
-	// própria página onde o onclick foi encontrado).
+	// para o Tribunal de Justiça; aceita qualquer `confirmaRemessa...(`,
+	// como a da Turma Recursal nos Juizados). Resolve relativa a `baseUrl`
+	// (a URL da própria página onde o onclick foi encontrado).
 	function extractUrlFromOnclick(onclick, baseUrl) {
 		if (!onclick) return null;
 		const match = onclick.match(
-			/(?:document\.location\.href\s*=\s*|open(?:DialogMaximized|Dialog)\(|confirmaRemessaTribunalJustica\()\s*'([^']+)'/
+			/(?:document\.location\.href\s*=\s*|open(?:DialogMaximized|Dialog)\(|confirmaRemessa\w*\()\s*'([^']+)'/
 		);
 		if (!match) return null;
 		try {
@@ -708,7 +711,9 @@
 	function dialogResultForLink(label, link, acoesUrl) {
 		const dialogUrl = extractUrlFromOnclick(link.getAttribute("onclick"), acoesUrl);
 		if (dialogUrl) return { url: dialogUrl, acoesUrl: acoesUrl };
-		if (ACTIONS_NEEDING_ACOES_PARENT.indexOf(label) !== -1) return { url: null, acoesUrl: acoesUrl };
+		if (ACTIONS_NEEDING_ACOES_PARENT.indexOf(label) !== -1 || ACTIONS_ACOES_PARENT_SEM_URL.indexOf(label) !== -1) {
+			return { url: null, acoesUrl: acoesUrl };
+		}
 		return null;
 	}
 
@@ -2433,8 +2438,16 @@
 		"Solicitar Antecedentes Criminais",
 	];
 
+	// Ações que normalmente abrem como as demais (URL do diálogo tirada do
+	// `onclick`), mas que, se o link vier num formato que a extensão não
+	// reconhece, abrem pelo clique no próprio link dentro da tela de Ações
+	// (como as de ACTIONS_NEEDING_ACOES_PARENT) em vez de falhar.
+	const ACTIONS_ACOES_PARENT_SEM_URL = ["Remessa Eletrônica para a Turma Recursal"];
+
 	function needsAcoesParent(label, result) {
-		return ACTIONS_NEEDING_ACOES_PARENT.indexOf(label) !== -1 && !!(result && result.acoesUrl);
+		if (!(result && result.acoesUrl)) return false;
+		if (ACTIONS_NEEDING_ACOES_PARENT.indexOf(label) !== -1) return true;
+		return !result.url && ACTIONS_ACOES_PARENT_SEM_URL.indexOf(label) !== -1;
 	}
 
 	// Espera o diálogo nativo (iframe interno da tela de Ações) terminar de

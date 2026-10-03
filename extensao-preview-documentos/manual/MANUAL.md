@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.18.2 |
-| **Versão da extensão** | 2.18.2 |
+| **Versão do manual** | 2.19.0 |
+| **Versão da extensão** | 2.19.0 |
 | **Data desta versão** | 03/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -802,6 +802,7 @@ onde parou. Uma operação por vez.
 ### 7.1 Ações rápidas
 
 ▶ [**Vídeo V16** — Ações rápidas](videos/V16-acoes-rapidas.mp4)
+▶ [**Vídeo V44** — Remessa para a Turma Recursal](videos/V44-remessa-turma-recursal.mp4)
 
 **Para que serve:** abrir as ações do painel lateral **Ações** do Projudi
 (Enviar Concluso, Realizar Remessa, Intimar Partes…) sem rolar a tela e sem
@@ -812,7 +813,7 @@ sair da aba em que você está.
 | Grupo | Ações |
 |---|---|
 | **Concluso** | Enviar Concluso |
-| **Remessa** | Realizar Remessa; Remessa Eletrônica para o Tribunal de Justiça |
+| **Remessa** | Realizar Remessa; Remessa Eletrônica para o Tribunal de Justiça; Remessa Eletrônica para a Turma Recursal (Juizados Especiais) |
 | **Ordenações** | Ordenar Cumprimentos; Ordenar RPV; Ordenar Expedição BNMP |
 | **Partes** | Intimar Partes; Notificar Partes; Citar Partes; Intimar Peritos e Auxiliares da Justiça |
 | **Suspender** | Suspender ou Sobrestar Processo |
@@ -837,6 +838,11 @@ sair da aba em que você está.
 
 - Na tela de Ações, só aparecem as ações disponíveis para aquele processo
   (ex.: já apensado → só **Desapensar**).
+- **Remessa Eletrônica para a Turma Recursal** só existe nos **Juizados
+  Especiais** (no Projudi, fica logo abaixo da remessa ao Tribunal de
+  Justiça). Ela abre e aceita **+ Nova preferência** como as demais (veja
+  [7.2](#cap-7-2)); em processo de outra vara, a extensão avisa que não
+  achou a ação.
 - **Anotações Criminais** e **Solicitar Antecedentes Criminais** (no
   Projudi, ficam no quadro **Comunicar ao IIPR** da coluna de Ações) só
   aparecem em processos criminais. Pelo botão **Outras**, a extensão abre
@@ -1853,6 +1859,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V41](videos/V41-localizador-na-linha-seeu.mp4) | [Localizador pela ⭐ da lista (SEEU)](videos/V41-localizador-na-linha-seeu.mp4) | [9.3](#cap-9-3) | 0:31 |
 | [V42](videos/V42-alterar-classe-e-assuntos.mp4) | [Alterar Classe/Assuntos](videos/V42-alterar-classe-e-assuntos.mp4) | [8.9](#cap-8-9) | 0:44 |
 | [V43](videos/V43-preferencia-de-alteracao-de-classe.mp4) | [Preferência de alteração de classe](videos/V43-preferencia-de-alteracao-de-classe.mp4) | [8.9](#cap-8-9) | 0:43 |
+| [V44](videos/V44-remessa-turma-recursal.mp4) | [Remessa para a Turma Recursal](videos/V44-remessa-turma-recursal.mp4) | [7.1](#cap-7-1) | 0:46 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -1866,6 +1873,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.19.0 | 03/10/2026 | O grupo **Remessa** das ações rápidas (7.1) ganha a **Remessa Eletrônica para a Turma Recursal** (Juizados Especiais), com **+ Nova preferência** como as demais. Vídeo V44. |
 | 2.18.2 | 03/10/2026 | A **balança** do Menu (2.6) também deixa de aparecer **dentro dos popups** (Advogados, Partes, ações rápidas, janelas do Projudi): fica só na tela principal. |
 | 2.18.1 | 03/10/2026 | Corrigido: os cards dos sistemas (8.7) apareciam também **dentro dos popups** (ex.: Advogados), que carregam uma tela com o mesmo cabeçalho; agora aparecem só na tela principal do processo. |
 | 2.18.0 | 03/10/2026 | Novo card **Renajud** (orquídea), só no Projudi (8.7). Corrigido: os cards dos sistemas **não apareciam** no Projudi, porque a tela do processo fica num endereço (projudi2) diferente da página principal e a extensão parava de procurar o processo ao encontrar a página principal; agora ela confere todos os quadros. Vídeo V39 regravado. |

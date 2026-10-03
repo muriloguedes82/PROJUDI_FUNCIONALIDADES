@@ -547,7 +547,10 @@ lado a lado, no mesmo canto da tela dos botões de WhatsApp/e-mail
 
 - **Concluso**: Enviar Concluso
 - **Remessa**: Realizar Remessa, Remessa Eletrônica para o Tribunal de
-  Justiça
+  Justiça, Remessa Eletrônica para a Turma Recursal (só nos Juizados
+  Especiais; se o `onclick` do link não trouxer a URL do diálogo num
+  formato conhecido, a extensão abre a tela de Ações no popup e clica no
+  próprio link)
 - **Ordenações**: Ordenar Cumprimentos, Ordenar RPV, Ordenar Expedição
   BNMP
 - **Partes**: Intimar Partes, Notificar Partes, Citar Partes, Intimar
