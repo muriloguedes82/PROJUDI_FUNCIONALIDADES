@@ -338,7 +338,7 @@ CENAS.V39 = {
 	async run() {
 		telaProcesso({});
 		iconesSistemasCnj();
-		await S.titleCard("VÍDEO V39", "Sistemas do CNJ", "SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper e Infojud num popup, sem sair do processo.");
+		await S.titleCard("VÍDEO V39", "Sistemas do CNJ", "SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud e o Sistema Uniformizado num popup, sem sair do processo.");
 		S.hl("#x-cnj-infojud", 4);
 		await S.cap("No alto da tela, à esquerda da balança dourada do Menu, ficam os ícones coloridos dos <b>sistemas do CNJ</b>.", { ms: 4200, bottom: true });
 		S.hlOff();
@@ -354,7 +354,7 @@ CENAS.V39 = {
 		await S.move("#x-cnj-infojud");
 		arrastado.style.transform = "scale(1.15)";
 		arrastado.style.zIndex = "31";
-		const de = lista.length - 1, para = 1;
+		const de = lista.indexOf("infojud"), para = 1;
 		await Promise.all([
 			S.move("#x-cnj-infojud", { dx: (de - para) * 30, ms: 1400 }),
 			tween(1400, k => {

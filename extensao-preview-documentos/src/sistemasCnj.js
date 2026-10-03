@@ -12,8 +12,9 @@
 // da aba, a partir do topo (ver processoAberto). Não mexe na fileira de botões do
 // rodapé (quickActions.js/buttonDrag.js).
 //
-// No SEEU só aparece o ícone do BNMP 3.0 (SISTEMAS_SEEU); a ordem não é
-// gravada ali, para não mexer na ordem escolhida no Projudi.
+// No SEEU só aparecem os ícones marcados com `seeu: true` na lista (BNMP 3.0
+// e Sistema Uniformizado); a ordem não é gravada ali, para não mexer na
+// ordem escolhida no Projudi.
 //
 // A ordem dos ícones pode ser trocada arrastando um deles para o lado; ela
 // fica em chrome.storage.local ("pdpSistemasCnjOrdem", lista de ids) e, por
@@ -41,9 +42,8 @@
 	if (window.__pdpSistemasCnj || !location.pathname.startsWith(NO_SEEU ? "/seeu/" : "/projudi/") || !self.PDP_SISTEMAS_CNJ) return;
 	window.__pdpSistemasCnj = true;
 
-	const SISTEMAS_SEEU = ["bnmp"];
 	const SISTEMAS = NO_SEEU
-		? self.PDP_SISTEMAS_CNJ.filter(function (s) { return SISTEMAS_SEEU.indexOf(s.id) >= 0; })
+		? self.PDP_SISTEMAS_CNJ.filter(function (s) { return s.seeu === true; })
 		: self.PDP_SISTEMAS_CNJ;
 	const MODAL_ID = "pdp-sistemas-cnj-modal";
 	const MENSAGEM_ABRIR = "pdp-sistemas-cnj-abrir";
@@ -225,7 +225,7 @@
 	}
 
 	function gravarOrdem() {
-		if (NO_SEEU) return; // no SEEU a lista é reduzida (SISTEMAS_SEEU)
+		if (NO_SEEU) return; // no SEEU a lista é reduzida (só `seeu: true`)
 		chrome.storage.local.set({ [ORDEM_KEY]: ordem }).catch(function (err) {
 			console.error("[Projudi] Erro ao gravar a ordem dos sistemas do CNJ:", err);
 		});
