@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.15.0 |
-| **Versão da extensão** | 2.15.0 |
+| **Versão do manual** | 2.16.0 |
+| **Versão da extensão** | 2.16.0 |
 | **Data desta versão** | 03/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -139,7 +139,7 @@ Não é preciso saber nada de informática além disso.
 | Sistema | O que funciona |
 |---|---|
 | **Projudi (TJPR)** | Todas as funções deste manual |
-| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)), o ícone do BNMP 3.0 ao lado da balança ([8.7](#cap-8-7)) e o botão **📍 Localizador** ([8.8](#cap-8-8)), que só existe no SEEU — também pela **⭐** das listas de juntadas e de conclusões ([9.3](#cap-9-3)). Vale também para o **SEEU de treino** (ambiente de testes) |
+| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)), a certidão de envio ([5.4](#cap-5-4)), o **📎 Juntar Documento** com preferências e variáveis ([8.2](#cap-8-2)), o ícone do BNMP 3.0 ao lado da balança ([8.7](#cap-8-7)) e o botão **📍 Localizador** ([8.8](#cap-8-8)), que só existe no SEEU — também pela **⭐** das listas de juntadas e de conclusões ([9.3](#cap-9-3)). Vale também para o **SEEU de treino** (ambiente de testes) |
 
 A extensão **não funciona** quando o usuário está logado com perfil de
 advogado(a) ou de assessor(a) de advogado — veja [10.3](#cap-10-3).
@@ -337,7 +337,7 @@ PROJUDI e SEEU**, com a mesma lista: cada sistema guarda as suas próprias
 escolhas. Por padrão, **tudo vem ativo nos dois**. A extensão reconhece em que
 sistema você está pelo endereço da página e abre o Menu na aba dele (marcada
 com "(este)"); você pode clicar na outra aba para configurá-la também. Acima
-da lista aparece "Funcionalidades no PROJUDI: N de 29 ativas" (no SEEU, "N de 28").
+da lista aparece "Funcionalidades no PROJUDI: N de 29 ativas" (ou no SEEU).
 
 1. Clique na aba do sistema que quer configurar (PROJUDI ou SEEU).
 2. Clique na chave da função que quer ligar ou desligar.
@@ -360,7 +360,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 | Grupo | Funções que podem ser ligadas/desligadas | Seção |
 |---|---|---|
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
-| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Alvará Eletrônico · Juntar Documento · Certidão de envio (Projudi) · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
+| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Alvará Eletrônico · Juntar Documento · Certidão de envio · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica | [4](#cap-4) |
 | **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
@@ -609,8 +609,8 @@ processo principal ela não aparece.
 <a id="cap-5"></a>
 ## 5. Envio de documentos
 
-Funciona no **Projudi** e no **SEEU** (a certidão de envio do item
-[5.4](#cap-5-4) é *só do Projudi*). Nas duas formas de envio, você marca
+Funciona no **Projudi** e no **SEEU**, inclusive a certidão de envio do item
+[5.4](#cap-5-4). Nas duas formas de envio, você marca
 os documentos pelas caixinhas que a extensão coloca ao lado de cada arquivo
 da aba **Movimentações** (abra o **+** da movimentação para vê-las). A
 seleção é a mesma para WhatsApp e e-mail.
@@ -716,7 +716,7 @@ não muda.
 
 ▶ [**Vídeo V43** — Certidão de envio (e-mail e WhatsApp)](videos/V43-certidao-de-envio.mp4)
 
-*Só no Projudi.*
+*No Projudi e no SEEU.*
 
 **Para que serve:** depois de mandar documentos do processo por e-mail
 ([5.2](#cap-5-2)) ou por WhatsApp ([5.1](#cap-5-1)), juntar nos autos a
@@ -1175,7 +1175,7 @@ Bom saber sobre essas preferências:
 <a id="cap-8"></a>
 ## 8. Atalhos para telas do processo
 
-*Só no Projudi* (exceto o [8.8](#cap-8-8), *só no SEEU*, e o ícone do BNMP 3.0 do [8.7](#cap-8-7), que também aparece no SEEU). Os atalhos de 8.1
+*Só no Projudi* (exceto o [8.8](#cap-8-8), *só no SEEU*, o ícone do BNMP 3.0 do [8.7](#cap-8-7) e o **📎 Juntar Documento** do [8.2](#cap-8-2), que também aparecem no SEEU). Os atalhos de 8.1
 a 8.6 abrem num **popup** sobre a tela atual — a aba do processo não sai do
 lugar. Feche com **✕ Fechar**.
 
@@ -1210,6 +1210,11 @@ confira e clique em **Salvar** do próprio Projudi.
 ### 8.2 Juntar Documento com preferências
 
 ▶ [**Vídeo V21** — Juntar Documento](videos/V21-juntar-documento.mp4)
+
+*No Projudi e no SEEU* — o SEEU usa as mesmas telas de juntada do Projudi.
+No SEEU, o botão fica na barra da extensão logo depois de **⭐ Minhas
+Preferências** e do **📍 Localizador**, nas telas do processo que têm o botão
+**Juntar Documento** do próprio SEEU.
 
 **Para que serve:** juntar documentos digitados de rotina (certidões,
 informações, termos) refazendo sozinha todas as telas — você só digita o
@@ -1252,7 +1257,7 @@ em **{ } Variáveis no texto**, no próprio painel do 📎 Juntar Documento.
 | `{hoje}` / `{hoje_extenso}` | a data de hoje (03/10/2026 / 3 de outubro de 2026) |
 | `{agora}` | a hora atual |
 | `{juizo}` | o juízo/vara do cabeçalho |
-| `{reus}` | os réus do cabeçalho, com RG e CPF ([4.3](#cap-4-3)) |
+| `{reus}` | os réus do cabeçalho, com RG e CPF ([4.3](#cap-4-3)) — só no Projudi |
 | `{evento}` | a movimentação marcada na caixinha da aba Movimentações ([7.7](#cap-7-7)) |
 | `{perguntar:Texto}` | a extensão pergunta o valor na hora (ex.: `{perguntar:Número do ofício}`) |
 | `{meio}`, `{destinatario}`, `{arquivos}`, `{data_envio}`, `{hora_envio}`, `{remetente}`, `{assunto}`, `{comprovante}` | dados do envio — só na certidão de envio ([5.4](#cap-5-4)) |
@@ -1907,6 +1912,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.16.0 | 03/10/2026 | **📎 Juntar Documento** (8.2), com preferências e variáveis, e a **Certidão de envio** (5.4) passam a funcionar também no **SEEU**, que usa as mesmas telas de juntada do Projudi; no SEEU, o botão fica depois de **⭐ Minhas Preferências** e do **📍 Localizador**. Ajustes em 1.3, na abertura dos capítulos 5 e 8 e na tabela da 2.6. Sem vídeo novo: a função aparece igual nos dois sistemas. |
 | 2.15.0 | 03/10/2026 | Nova seção **5.4 Certidão de envio (e-mail e WhatsApp)** (só no Projudi): depois de um envio, o quadro **📎 Certificar envio** junta a certidão com uma preferência do Juntar Documento, já com destinatário, documentos e o comprovante conferido nos **Itens Enviados** do Outlook (modo Microsoft Graph) ou na conversa do WhatsApp. Seção 8.2: **variáveis no texto** das preferências do Juntar Documento (`{numero_processo}`, `{hoje}`, `{reus}`, `{perguntar:…}` etc.). Nova função na tabela da 2.6 (29 no Projudi), novas linhas na Solução de problemas e vídeo V43. |
 | 2.14.2 | 02/10/2026 | Corrigida a **Nova Ordenação** com **mandado urgente**: o envio parava com "Selecione o tipo de urgência do Mandado" porque o **Tipo de Urgência** guardado ficava desligado no envio; agora as opções Sim/Não da fila são marcadas como um clique de verdade, que libera os campos ligados a elas (7.5). |
 | 2.14.1 | 02/10/2026 | Seção 8.9: o **✏️ Alterar** da classe e do assunto passa a ser um pequeno balão cinza, no mesmo tom dos botões da extensão (antes, um link). Vídeo V42 regravado. |

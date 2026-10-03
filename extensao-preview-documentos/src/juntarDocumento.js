@@ -69,7 +69,10 @@
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
 
-	if (window.__pdpJuntarDocumento || !location.pathname.startsWith("/projudi/")) return;
+	// Projudi e SEEU: o SEEU usa o mesmo fluxo de juntada do Projudi (mesmo
+	// botão "Juntar Documento", mesmas telas), só sob /seeu/.
+	if (window.__pdpJuntarDocumento || !/^\/(projudi|seeu)\//.test(location.pathname)) return;
+	const IS_SEEU = location.pathname.startsWith("/seeu/");
 	window.__pdpJuntarDocumento = true;
 
 	const PREFS_KEY = "pdpJuntarDocumentoPrefs"; // [{id, name, tipoDocumento, tipoArquivo, descricao, modelo, conteudo, createdAt, updatedAt}]
@@ -152,8 +155,9 @@
 		el.dispatchEvent(new Event(type, { bubbles: true }));
 	}
 
+	// Projudi: <h3><em class="attention">; SEEU: div.titulo.processo.
 	function numeroProcesso(doc) {
-		const heading = doc.querySelector("h3 em.attention");
+		const heading = doc.querySelector("h3 em.attention, div.titulo.processo");
 		const match = /\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/.exec((doc.title || "") + " " + (heading ? heading.textContent : ""));
 		return match ? match[0] : null;
 	}
@@ -231,7 +235,9 @@
 			hoje_extenso: agora.getDate() + " de " + MESES[agora.getMonth()] + " de " + agora.getFullYear(),
 			agora: horaBr(agora),
 		};
-		const juizo = doc.querySelector("#areaatuacao");
+		// SEEU: campo "Juízo:" da tabela do processo; Projudi: link "Atuação".
+		const juizoSeeu = doc.querySelector('td[data-label="juízo"]');
+		const juizo = juizoSeeu && juizoSeeu.nextElementSibling ? juizoSeeu.nextElementSibling : doc.querySelector("#areaatuacao");
 		if (juizo && cleanText(juizo.textContent)) vars.juizo = cleanText(juizo.textContent);
 		const reus = Array.prototype.slice.call(doc.querySelectorAll(".pdp-reus-lista > li"))
 			.map(function (el) { return cleanText(el.textContent); })
@@ -1458,7 +1464,12 @@
 	let panel = null;
 
 	function reconcileButton() {
-		const clipboardBtn = document.getElementById("pdp-clipboard-button");
+		// No SEEU não há o "📋 Colar processo": o botão vai depois do
+		// "⭐ Minhas Preferências" (e do "📍 Localizador"), só nas telas com o
+		// botão nativo "Juntar Documento".
+		const clipboardBtn = IS_SEEU
+			? findNativeJuntarButton(document) && document.getElementById("pdp-fav-prefs-button")
+			: document.getElementById("pdp-clipboard-button");
 		if (!clipboardBtn) {
 			if (button && button.isConnected) button.remove();
 			return;
@@ -1481,7 +1492,7 @@
 		// ancorado no anterior, para os MutationObservers não disputarem a
 		// mesma posição).
 		let anchor = clipboardBtn;
-		["pdp-habilitar-advogado-button", "pdp-editar-partes-button"].forEach(function (id) {
+		["pdp-localizador-button", "pdp-habilitar-advogado-button", "pdp-editar-partes-button"].forEach(function (id) {
 			const el = document.getElementById(id);
 			if (el && el.parentElement === clipboardBtn.parentElement) anchor = el;
 		});

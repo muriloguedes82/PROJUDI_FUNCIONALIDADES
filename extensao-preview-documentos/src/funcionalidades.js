@@ -129,8 +129,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					descricao: "Depois de enviar documentos por e-mail ou WhatsApp, quadro \"📎 Certificar envio\" que junta a certidão com uma preferência do Juntar Documento, já com destinatário, arquivos e comprovante do envio.",
 					js: ["src/certidaoEnvio.js"],
 					css: ["src/certidaoEnvio.css"],
-					requer: ["acoesRapidas", "juntarDocumento"],
-					sistemas: ["projudi"]
+					requer: ["acoesRapidas", "juntarDocumento"]
 				},
 				{
 					id: "localizador",

@@ -21,11 +21,11 @@
 //
 // Os envios pendentes ficam no sessionStorage (só esta aba), por número do
 // processo, até serem certificados ou descartados (✕), ou por MAX_IDADE_MS.
-// Só no Projudi: o Juntar Documento com preferências não existe no SEEU.
+// Projudi e SEEU (o SEEU usa o mesmo fluxo de juntada do Projudi).
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
-	if (!location.pathname.startsWith("/projudi/")) return;
+	if (!/^\/(projudi|seeu)\//.test(location.pathname)) return;
 	try {
 		const frame = window.frameElement;
 		if (frame && (frame.hasAttribute("data-pdp-loader") || frame.classList.contains("pdp-qa-fetch-iframe") || frame.classList.contains("pdp-qa-modal-iframe"))) return;
@@ -71,7 +71,7 @@
 	}
 
 	function numeroProcesso(doc) {
-		const heading = doc.querySelector("h3 em.attention, em.attention");
+		const heading = doc.querySelector("h3 em.attention, em.attention, div.titulo.processo");
 		const match = /\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/.exec((doc.title || "") + " " + (heading ? heading.textContent : ""));
 		return match ? match[0] : null;
 	}

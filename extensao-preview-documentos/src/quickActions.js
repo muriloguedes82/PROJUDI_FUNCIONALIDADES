@@ -4744,7 +4744,7 @@
 			const mode = isCombo
 				? (comboCanRun ? "combo" : null)
 				: item.kind === "juntar"
-					? (window.__pdpJuntarDocumento && location.pathname.startsWith("/projudi/") ? "juntar" : null)
+					? (window.__pdpJuntarDocumento && /^\/(projudi|seeu)\//.test(location.pathname) ? "juntar" : null)
 					: isLocalizador
 						? (window.__pdpLocalizador && window.__pdpLocalizador.disponivel() ? "localizador" : null)
 						: modeForLabel(item.label);
