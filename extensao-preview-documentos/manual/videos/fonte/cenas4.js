@@ -522,6 +522,14 @@ CENAS.V41 = {
 	},
 };
 
+// Balões "✏️ Alterar" e "⭐" ao lado da classe e do assunto (alterarClasseAssuntos.js).
+const ESTILO_BALAO = "display:inline-block;margin-left:8px;padding:1px 7px;font:11px/16px Arial,sans-serif;color:#222;text-decoration:none;white-space:nowrap;background:linear-gradient(to bottom,#fafafa,#e9e9e9);border:1px solid #adadad;border-radius:10px;box-shadow:0 1px 2px rgba(0,0,0,.08)";
+function cardsAlterar() {
+	const par = id => ' <a id="' + id + '" style="' + ESTILO_BALAO + '">✏️ Alterar</a><a id="' + id + '-pref" style="' + ESTILO_BALAO + ';margin-left:4px;padding:1px 6px">⭐</a>';
+	$("#info tr:first-child td:nth-child(2)").insertAdjacentHTML("beforeend", par("x-alt-classe"));
+	$("#row-assunto td:nth-child(2)").insertAdjacentHTML("beforeend", par("x-alt-assunto"));
+}
+
 // ------------------------------------------------------------------ V42
 CENAS.V42 = {
 	arquivo: "V42-alterar-classe-e-assuntos.mp4",
@@ -529,9 +537,7 @@ CENAS.V42 = {
 	secao: "8.9",
 	async run() {
 		telaProcesso({});
-		const link = id => ' <a id="' + id + '" style="display:inline-block;margin-left:8px;padding:1px 7px;font:11px/16px Arial,sans-serif;color:#222;text-decoration:none;white-space:nowrap;background:linear-gradient(to bottom,#fafafa,#e9e9e9);border:1px solid #adadad;border-radius:10px;box-shadow:0 1px 2px rgba(0,0,0,.08)">✏️ Alterar</a>';
-		$("#info tr:first-child td:nth-child(2)").insertAdjacentHTML("beforeend", link("x-alt-classe"));
-		$("#row-assunto td:nth-child(2)").insertAdjacentHTML("beforeend", link("x-alt-assunto"));
+		cardsAlterar();
 		await S.titleCard("VÍDEO V42", "Alterar Classe/Assuntos", "A tela do botão “Alterar” (Informações Gerais) num popup, direto do cabeçalho do processo.");
 		S.hl("#info", 4);
 		await S.cap("No cabeçalho do processo, ao lado da <b>Classe Processual</b> e do <b>Assunto Principal</b>, há o card <b>✏️ Alterar</b>.");
@@ -563,5 +569,61 @@ CENAS.V42 = {
 		await S.cap("Ao <b>Salvar</b>, o popup fecha sozinho e a tela do processo é recarregada com a classe nova.");
 		S.hlOff();
 		await S.endCard("✏️ Alterar (classe ou assunto, no cabeçalho) → tela de alteração em popup → Salvar → a tela do processo é atualizada.");
+	},
+};
+
+// ------------------------------------------------------------------ V43
+CENAS.V43 = {
+	arquivo: "V43-preferencia-de-alteracao-de-classe.mp4",
+	titulo: "Preferência de alteração de classe",
+	secao: "8.9",
+	async run() {
+		telaProcesso({});
+		cardsAlterar();
+		await S.titleCard("VÍDEO V43", "Preferência de alteração de classe", "Grave uma vez a classe e o motivo; depois, um clique altera e salva.");
+		await S.cap("Ao lado de <b>✏️ Alterar</b> há a <b>⭐</b>. Clique na da classe.");
+		await S.click("#x-alt-classe-pref");
+		let pn = panelAt('<h4>⭐ Preferências — Alterar classe</h4><p style="color:#666;margin:0 0 8px">Nenhuma preferência gravada.</p><span class="x-btn small" id="x-nova">+ Nova preferência</span>', "#x-alt-classe-pref", { w: 300 });
+		pn.style.left = "330px"; pn.style.top = "180px";
+		await S.click("#x-nova");
+		pn.remove();
+		await abrindo("Alterar Classe/Assuntos", 900);
+		const campo = (rot, val, id) => '<tr' + (id ? ' id="' + id + '"' : "") + '><td class="l" style="width:230px"><b style="color:#c00">*</b> ' + rot + '</td><td><span class="pj-select" style="min-width:420px;display:inline-block">' + val + '</span> <span class="pj-btn">🔍</span></td></tr>';
+		popup("Alteração de Processo",
+			'<div style="margin:0 0 10px;padding:8px 10px;border:1px solid #d4b106;background:#fffbe6;color:#5c4400;border-radius:4px"><b>⭐ Gravando preferência.</b> Escolha a nova classe e o <b>Motivo da Alteração</b> e clique em <b>Salvar</b>. Esse clique só grava a preferência: <b>o processo não é alterado agora</b>.</div>' +
+			'<table class="pj-info" style="width:100%">' +
+			campo("Classe Processual:", "283 - Ação Penal - Procedimento Ordinário", "x-ed-classe") +
+			'<tr><td class="l">Motivo da Alteração da Classe Processual:</td><td><span id="x-ed-motivo">○ Retificação &nbsp; ○ Evolução</span></td></tr>' +
+			campo("Assunto Principal:", "3418 - Furto Qualificado") + "</table>" +
+			'<div class="pj-btnbar" style="justify-content:flex-start"><span class="pj-btn" id="x-ed-salvar">Salvar</span><span class="pj-btn">Voltar</span></div>',
+			{ hd: "Alterar Classe/Assuntos — popup da extensão" });
+		await S.cap("O aviso amarelo indica que você está <b>gravando</b> uma preferência.");
+		await S.click("#x-ed-classe .pj-btn");
+		$("#x-ed-classe .pj-select").textContent = "279 - Inquérito Policial";
+		await S.click("#x-ed-motivo");
+		$("#x-ed-motivo").textContent = "○ Retificação   ● Evolução";
+		await S.cap("Escolha a classe e o motivo e clique em <b>Salvar</b>.");
+		await S.click("#x-ed-salvar");
+		const m = modal('<b>Nome da preferência:</b><div class="pj-select" style="display:block;margin:8px 0">Inquérito Policial (Evolução)</div><span class="x-btn small green" id="x-ok">OK</span>', { w: 380, top: 200 });
+		await S.cap("A extensão só guarda o que você escolheu — <b>o processo não é alterado</b> — e pede um nome.");
+		await S.click("#x-ok");
+		closeModal();
+		$(".x-popup").remove();
+		await S.cap("Pronto. Para usar, clique na <b>⭐</b> e no nome da preferência.");
+		await S.click("#x-alt-classe-pref");
+		pn = panelAt('<h4>⭐ Preferências — Alterar classe</h4><div style="display:flex;gap:4px;margin-bottom:6px"><span class="x-btn small" id="x-pref" style="flex:1">★ Inquérito Policial (Evolução)</span><span class="x-btn small">🗑</span></div><span class="x-btn small">+ Nova preferência</span>', "#x-alt-classe-pref", { w: 320 });
+		pn.style.left = "330px"; pn.style.top = "180px";
+		await S.click("#x-pref");
+		pn.remove();
+		const t = toast("★ Inquérito Policial (Evolução) — preenchendo…", { left: 470, top: 90 });
+		await sleep(1200);
+		t.innerHTML = "★ Inquérito Policial (Evolução) — salvando…";
+		await sleep(1200);
+		t.remove();
+		$("#info tr:first-child td:nth-child(2)").firstChild.textContent = "Inquérito Policial";
+		S.hl("#info", 4);
+		await S.cap("A extensão escolhe a classe, marca o motivo e clica em <b>Salvar</b> sozinha. A tela é recarregada já com a classe nova.", { ms: 3600 });
+		S.hlOff();
+		await S.endCard("⭐ → + Nova preferência → classe + motivo → Salvar (só grava). Depois: ⭐ → ★ preferência → alterado e salvo, sem confirmação.");
 	},
 };
