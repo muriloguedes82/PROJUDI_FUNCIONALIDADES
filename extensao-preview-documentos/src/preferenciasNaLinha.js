@@ -63,13 +63,17 @@
 			sim: "Sim, dispensar decursos",
 			fazendo: "Dispensando decursos de prazo…"
 		},
-		// Telas de cumprimentos: não há pendência a dispensar antes - sem
-		// `pergunta`, a preferência é aberta direto. Demais Cumprimentos vale
-		// para qualquer "Tipo de Cumprimento" (filtro da mesma tela).
-		"/projudi/processo/expedirIntimacao.do": { tipo: "cumprimento" },
-		"/projudi/processo/expedirCitacao.do": { tipo: "cumprimento" },
-		"/projudi/processo/intimacaoNomeados.do": { tipo: "cumprimento" },
-		"/projudi/processo/cumprimentoCartorio.do": { tipo: "cumprimento" },
+		// Telas de cumprimentos: a lista não é de uma pendência específica,
+		// então a extensão abre a tela do processo e pergunta só pelo que
+		// estiver pendente nela (juntadas e/ou "Retorno de Conclusão" no
+		// quadro Pendências), como executarComPendencias faz na tela do
+		// processo (quickActions.js). Sem pendências, abre direto. Demais
+		// Cumprimentos vale para qualquer "Tipo de Cumprimento" (filtro da
+		// mesma tela).
+		"/projudi/processo/expedirIntimacao.do": { tipo: "cumprimento", verificaPendencias: true },
+		"/projudi/processo/expedirCitacao.do": { tipo: "cumprimento", verificaPendencias: true },
+		"/projudi/processo/intimacaoNomeados.do": { tipo: "cumprimento", verificaPendencias: true },
+		"/projudi/processo/cumprimentoCartorio.do": { tipo: "cumprimento", verificaPendencias: true },
 		// SEEU: sem `pergunta` de propósito (o SEEU não trava ações com
 		// pendências - ver a REGRA no início do arquivo).
 		"/seeu/processo/analisarJuntada.do": { tipo: "juntada", seeu: true },
@@ -300,7 +304,7 @@
 
 	// --- fluxo ------------------------------------------------------------------------
 
-	function perguntar(item) {
+	function perguntar(item, textoPergunta, textoSim) {
 		return new Promise(function (resolve) {
 			fecharDialogo();
 			const responder = function (valor) {
@@ -312,14 +316,14 @@
 					el("strong", { text: item.combo ? "🔗 Combo \"" + item.combo.name + "\" (" + item.combo.steps.length + " etapas)" : "★ " + item.pref.name + " — " + item.label }),
 					el("button", { type: "button", class: "pdp-tl-x", title: "Cancelar", text: "✕", onclick: function () { responder(null); } })
 				]),
-				el("p", { text: tela.pergunta }),
+				el("p", { text: textoPergunta }),
 				el("p", { class: "pdp-tl-vazio", text: item.combo
 					? (item.novaAba
 						? "Respondendo Sim ou Não, o processo é aberto numa nova aba e o combo começa lá (ele tem etapa que só roda na tela do processo)."
 						: "Respondendo Sim ou Não, as etapas do combo abrem em seguida, uma a uma, já preenchidas, para você confirmar cada uma.")
 					: "Respondendo Sim ou Não, a preferência é aberta em seguida, já preenchida, para você confirmar." }),
 				el("div", { class: "pdp-pl-botoes" }, [
-					el("button", { type: "button", class: "pdp-tl-btn pdp-pl-sim", text: "✅ " + tela.sim, onclick: function () { responder("sim"); } }),
+					el("button", { type: "button", class: "pdp-tl-btn pdp-pl-sim", text: "✅ " + textoSim, onclick: function () { responder("sim"); } }),
 					el("button", { type: "button", class: "pdp-tl-btn", text: "Não, seguir sem isso", onclick: function () { responder("nao"); } })
 				])
 			]);
@@ -338,6 +342,55 @@
 		dialogo = null;
 	}
 
+	// Se o fetch() não trouxer o botão nativo, a tela de análise da
+	// conclusão é carregada de novo numa navegação de verdade (iframe oculto).
+	function carregarTelaConclusao(url) {
+		return carregar(url, function (doc, decorrido) {
+			return !!doc.querySelector("#movimentarProcessoForm #extraButton") || decorrido > 5000;
+		}).then(function (r) { return r.doc; });
+	}
+
+	// Telas de cumprimentos: abre a tela do processo e pergunta, uma a uma,
+	// pelas pendências que ela tiver - juntadas e "Retorno de Conclusão" (as
+	// mesmas de executarComPendencias, na tela do processo). Resolve com
+	// { cancelado } ou { previa } (texto do que foi feito, ou null).
+	async function pendenciasDoProcesso(ctx, item) {
+		const d = window.__pdpDispensas || {};
+		mostrar(ctx, ["Verificando pendências do processo…"], "andamento");
+		const proc = await carregarProcesso(ctx, true);
+		const etapas = [];
+		const juntadaUrl = d.juntadas && d.juntadaURL ? d.juntadaURL(proc.doc) : null;
+		if (juntadaUrl) {
+			etapas.push({
+				pergunta: "Dispensar as juntadas pendentes deste processo antes de executar a preferência?",
+				sim: "Sim, dispensar juntadas",
+				fazendo: "Dispensando juntadas…",
+				fazer: function () { return d.juntadas(juntadaUrl, statusDe(ctx)); }
+			});
+		}
+		const conclusaoUrl = d.conclusao && d.conclusaoURL ? d.conclusaoURL(proc.doc) : null;
+		if (conclusaoUrl) {
+			etapas.push({
+				pergunta: "Finalizar a conclusão pendente deste processo antes de executar a preferência?",
+				sim: "Sim, finalizar conclusão",
+				fazendo: "Finalizando a conclusão…",
+				fazer: function () { return d.conclusao(conclusaoUrl, carregarTelaConclusao); }
+			});
+		}
+		const feitas = [];
+		for (const etapa of etapas) {
+			mostrar(ctx, feitas.concat(["Aguardando sua resposta…"]), "andamento");
+			const resposta = await perguntar(item, etapa.pergunta, etapa.sim);
+			if (!resposta) return { cancelado: true };
+			if (resposta !== "sim") continue;
+			mostrar(ctx, feitas.concat([etapa.fazendo]), "andamento");
+			const r = await etapa.fazer();
+			if (r.ok && r.dismiss) r.dismiss();
+			feitas.push((r.ok ? "✅ " : "⚠ ") + (r.message || (r.ok ? "Feito." : "Não concluído.")));
+		}
+		return { previa: feitas.length ? feitas.join(" · ") : null };
+	}
+
 	async function etapaPrevia(ctx, proc) {
 		const d = window.__pdpDispensas || {};
 		const ancora = statusDe(ctx);
@@ -349,13 +402,7 @@
 			const urlPendencia = proc && d.conclusaoURL ? d.conclusaoURL(proc.doc) : null;
 			if (urlPendencia) ctx.analisarUrl = urlPendencia;
 			if (!ctx.analisarUrl) return { ok: false, message: "Linha \"Retorno de Conclusão\" não encontrada no quadro Pendências do processo." };
-			// Se o fetch() não trouxer o botão nativo, a tela de análise é
-			// carregada de novo numa navegação de verdade (iframe oculto).
-			return d.conclusao(ctx.analisarUrl, function (url) {
-				return carregar(url, function (doc, decorrido) {
-					return !!doc.querySelector("#movimentarProcessoForm #extraButton") || decorrido > 5000;
-				}).then(function (r) { return r.doc; });
-			});
+			return d.conclusao(ctx.analisarUrl, carregarTelaConclusao);
 		}
 		if (tela.tipo === "juntada") {
 			if (!d.juntadas || !d.juntadaURL) return { ok: false, message: "Dispensa de juntadas indisponível." };
@@ -426,13 +473,25 @@
 			alert("As ações rápidas não estão disponíveis nesta tela. Recarregue a página.");
 			return;
 		}
-		// Sem `pergunta` (telas de cumprimentos): segue direto, sem etapa prévia.
-		const resposta = tela.pergunta ? await perguntar(item) : "nao";
+		// Telas de análise: pergunta fixa, conforme a tela. Telas de
+		// cumprimentos (verificaPendencias): perguntas só pelo que estiver
+		// pendente no processo (pendenciasDoProcesso). SEEU: nenhuma.
+		const resposta = tela.pergunta ? await perguntar(item, tela.pergunta, tela.sim) : "nao";
 		if (!resposta) return;
 		emAndamento = true;
 		let previa = null;
 		try {
-			previa = await fazerPrevia(ctx, resposta);
+			if (tela.verificaPendencias) {
+				const p = await pendenciasDoProcesso(ctx, item);
+				if (p.cancelado) {
+					const s = ctx.row.querySelector(".pdp-pl-status");
+					if (s) s.remove();
+					return;
+				}
+				previa = p.previa;
+			} else {
+				previa = await fazerPrevia(ctx, resposta);
+			}
 			if (item.combo) await executarCombo(ctx, item, previa);
 			else {
 				const r = await abrirPreferencia(ctx, item.label, item.pref, [previa]);

@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.19.0 |
-| **Versão da extensão** | 2.19.0 |
+| **Versão do manual** | 2.20.0 |
+| **Versão da extensão** | 2.20.0 |
 | **Data desta versão** | 03/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -85,6 +85,7 @@
    - 9.5 [RG e CPF das partes nos cumprimentos](#cap-9-5)
    - 9.6 [Dados processuais nas ordenações BNMP](#cap-9-6)
    - 9.7 [Endereço da parte e Mandado Regionalizado](#cap-9-7)
+   - 9.8 [Processo ao passar o mouse nas listas de Decurso de Prazo](#cap-9-8)
 10. [Privacidade e convivência com outras extensões](#cap-10)
     - 10.1 [O que fica guardado no seu navegador](#cap-10-1)
     - 10.2 [Convivência com o AzFlow](#cap-10-2)
@@ -337,7 +338,7 @@ PROJUDI e SEEU**, com a mesma lista: cada sistema guarda as suas próprias
 escolhas. Por padrão, **tudo vem ativo nos dois**. A extensão reconhece em que
 sistema você está pelo endereço da página e abre o Menu na aba dele (marcada
 com "(este)"); você pode clicar na outra aba para configurá-la também. Acima
-da lista aparece "Funcionalidades no PROJUDI: N de 28 ativas" (ou no SEEU).
+da lista aparece "Funcionalidades no PROJUDI: N de 29 ativas" (ou no SEEU).
 
 1. Clique na aba do sistema que quer configurar (PROJUDI ou SEEU).
 2. Clique na chave da função que quer ligar ou desligar.
@@ -362,7 +363,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica | [4](#cap-4) |
-| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
+| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo (Projudi) · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
 Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
@@ -1592,7 +1593,10 @@ da tela de análise ou de cumprimentos, sem abri-lo.
    antes **dispensar as juntadas**, **finalizar a conclusão** ou
    **dispensar os decursos** pendentes do processo. **Sim** acrescenta
    essa etapa; **Não** segue sem ela; **✕** (ou Esc) cancela tudo. Nas
-   telas de cumprimentos não há pergunta: a preferência abre direto.
+   telas de cumprimentos, a extensão primeiro olha o quadro Pendências do
+   processo e só pergunta pelo que houver: **dispensar as juntadas**
+   pendentes e/ou **finalizar a conclusão** (linha "Retorno de
+   Conclusão"). Sem pendências, a preferência abre direto.
 4. O diálogo abre preenchido no popup; confira e clique em ✅ **Sim,
    executar**.
 5. A linha mostra o andamento e o resultado, ex.: "✅ Juntada(s) já
@@ -1727,6 +1731,43 @@ parte(s)**.
 - O endereço deve estar cadastrado na aba **Partes e Outros**; sem ele, nada é
   mostrado.
 
+<a id="cap-9-8"></a>
+### 9.8 Processo ao passar o mouse nas listas de Decurso de Prazo
+
+▶ [**Vídeo V44** — Processo ao passar o mouse](videos/V44-processo-ao-passar-o-mouse.mp4)
+
+*Só no Projudi.*
+
+**Para que serve:** conferir o processo — cabeçalho e **Movimentações** —
+sem sair da lista de decursos e sem abrir outra aba.
+
+**Onde fica:** menu **Decurso de Prazo**, nas listas:
+
+- **Intimação**;
+- **Intimação — Auxiliares da Justiça**;
+- **Citações/Notificações**.
+
+**Passo a passo:**
+
+1. Pare o mouse sobre o **número do processo** (coluna **Processo**).
+2. Em menos de um segundo, a tela do processo abre num painel sobre a lista,
+   **já na aba Movimentações** (enquanto carrega aparece "Carregando o
+   processo…" e, se preciso, "Abrindo a aba Movimentações…").
+3. Role e use a tela dentro do painel normalmente — inclusive a
+   pré-visualização de documentos ([3.1](#cap-3-1)).
+4. Para fechar: tire o mouse do número e do painel, clique em **✕** ou tecle
+   **Esc**.
+
+**Bom saber:**
+
+- **📌 Fixar** mantém o painel aberto mesmo tirando o mouse; ele então só
+  fecha no **✕** (ou em **Esc**). Clique de novo para desafixar.
+- **Abrir em nova aba ↗** abre o processo do jeito tradicional. Clicar no
+  número continua funcionando como sempre.
+- A lista **não muda**: nada é dispensado nem analisado ao abrir o painel.
+- Dentro do painel não aparecem a balança do Menu, os cards dos sistemas do
+  CNJ nem a barra de botões da extensão — eles ficam só na tela principal.
+
 ---
 
 <a id="cap-10"></a>
@@ -1860,6 +1901,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V41](videos/V41-localizador-na-linha-seeu.mp4) | [Localizador pela ⭐ da lista (SEEU)](videos/V41-localizador-na-linha-seeu.mp4) | [9.3](#cap-9-3) | 0:31 |
 | [V42](videos/V42-alterar-classe-e-assuntos.mp4) | [Alterar Classe/Assuntos](videos/V42-alterar-classe-e-assuntos.mp4) | [8.9](#cap-8-9) | 0:44 |
 | [V43](videos/V43-preferencia-de-alteracao-de-classe.mp4) | [Preferência de alteração de classe](videos/V43-preferencia-de-alteracao-de-classe.mp4) | [8.9](#cap-8-9) | 0:43 |
+| [V44](videos/V44-processo-ao-passar-o-mouse.mp4) | [Processo ao passar o mouse no Decurso de Prazo](videos/V44-processo-ao-passar-o-mouse.mp4) | [9.8](#cap-9-8) | 0:48 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -1873,7 +1915,8 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 2.19.0 | 03/10/2026 | Listas de tarefas (9.2) e **⭐** na linha do processo (9.3) também nas telas de cumprimentos: **Expedir Intimações**, **Expedir Citação**, **Expedir Notificação**, **Expedir Intimações de Auxiliares da Justiça** e **Demais Cumprimentos** (para qualquer Tipo de Cumprimento). Nessas telas o ⭐ abre a preferência direto, sem pergunta. Catálogo do Menu atualizado (2.6). |
+| 2.20.0 | 03/10/2026 | Listas de tarefas (9.2) e **⭐** na linha do processo (9.3) também nas telas de cumprimentos: **Expedir Intimações**, **Expedir Citação**, **Expedir Notificação**, **Expedir Intimações de Auxiliares da Justiça** e **Demais Cumprimentos** (para qualquer Tipo de Cumprimento). Nessas telas o ⭐ verifica o quadro Pendências do processo e só pergunta se deve dispensar as juntadas e/ou finalizar a conclusão quando elas existirem; sem pendências, abre a preferência direto. Catálogo do Menu atualizado (2.6). |
+| 2.19.0 | 03/10/2026 | Nova seção **9.8** (só no Projudi): nas listas de **Decurso de Prazo** (Intimação, Auxiliares da Justiça e Citações/Notificações), pousar o mouse sobre o **número do processo** abre a tela dele num painel, já na aba **Movimentações**, com **📌 Fixar**, **Abrir em nova aba** e **✕**. Nova função na tabela da 2.6 (29 funções no Projudi) e vídeo V44. |
 | 2.18.2 | 03/10/2026 | A **balança** do Menu (2.6) também deixa de aparecer **dentro dos popups** (Advogados, Partes, ações rápidas, janelas do Projudi): fica só na tela principal. |
 | 2.18.1 | 03/10/2026 | Corrigido: os cards dos sistemas (8.7) apareciam também **dentro dos popups** (ex.: Advogados), que carregam uma tela com o mesmo cabeçalho; agora aparecem só na tela principal do processo. |
 | 2.18.0 | 03/10/2026 | Novo card **Renajud** (orquídea), só no Projudi (8.7). Corrigido: os cards dos sistemas **não apareciam** no Projudi, porque a tela do processo fica num endereço (projudi2) diferente da página principal e a extensão parava de procurar o processo ao encontrar a página principal; agora ela confere todos os quadros. Vídeo V39 regravado. |
