@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.19.0 |
-| **Versão da extensão** | 2.19.0 |
+| **Versão do manual** | 2.20.0 |
+| **Versão da extensão** | 2.20.0 |
 | **Data desta versão** | 03/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1543,7 +1543,10 @@ normal.
 ▶ [**Vídeo V29** — Listas de tarefas](videos/V29-listas-de-tarefas.mp4)
 
 **Onde fica:** telas **Análise de Juntadas**, **Retorno de Conclusão** e
-**Análise de Decurso de Prazo**.
+**Análise de Decurso de Prazo**, e nas telas de cumprimentos **Expedir
+Intimações**, **Expedir Citação**, **Expedir Notificação**, **Expedir
+Intimações de Auxiliares da Justiça** e **Demais Cumprimentos** (nesta,
+qualquer que seja o **Tipo de Cumprimento** escolhido na busca).
 
 **Criar listas e preferências:** clique em **⚙ Gerenciar listas e
 preferências**:
@@ -1568,8 +1571,9 @@ preferências**:
 **Filtrar:** clique numa lista da legenda **Listas de tarefas** para ver só
 os processos dela; **✕ limpar filtro** volta a mostrar todos.
 
-**Bom saber:** as marcações seguem o **número do processo** (valem nas três
-telas), ficam só no seu navegador e aparecem em todas as abas abertas.
+**Bom saber:** as marcações seguem o **número do processo** (valem em
+todas essas telas), ficam só no seu navegador e aparecem em todas as abas
+abertas.
 
 <a id="cap-9-3"></a>
 ### 9.3 Minhas Preferências na linha do processo (⭐)
@@ -1577,16 +1581,22 @@ telas), ficam só no seu navegador e aparecem em todas as abas abertas.
 ▶ [**Vídeo V30** — ⭐ na linha do processo](videos/V30-minhas-preferencias-na-linha.mp4)
 
 **Para que serve:** executar uma preferência ou combo num processo direto
-da tela de análise, sem abri-lo.
+da tela de análise ou de cumprimentos, sem abri-lo.
+
+**Onde fica:** nas mesmas telas das listas de tarefas ([9.2](#cap-9-2)).
 
 **Passo a passo:**
 
 1. Clique no **⭐** da linha (ao lado do **+**).
 2. Escolha um card.
-3. A extensão pergunta, conforme a tela, se deve antes **dispensar as
-   juntadas**, **finalizar a conclusão** ou **dispensar os decursos**
-   pendentes do processo. **Sim** acrescenta essa etapa; **Não** segue sem
-   ela; **✕** (ou Esc) cancela tudo.
+3. Nas telas de análise, a extensão pergunta, conforme a tela, se deve
+   antes **dispensar as juntadas**, **finalizar a conclusão** ou
+   **dispensar os decursos** pendentes do processo. **Sim** acrescenta
+   essa etapa; **Não** segue sem ela; **✕** (ou Esc) cancela tudo. Nas
+   telas de cumprimentos, a extensão primeiro olha o quadro Pendências do
+   processo e só pergunta pelo que houver: **dispensar as juntadas**
+   pendentes e/ou **finalizar a conclusão** (linha "Retorno de
+   Conclusão"). Sem pendências, a preferência abre direto.
 4. O diálogo abre preenchido no popup; confira e clique em ✅ **Sim,
    executar**.
 5. A linha mostra o andamento e o resultado, ex.: "✅ Juntada(s) já
@@ -1905,6 +1915,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.20.0 | 03/10/2026 | Listas de tarefas (9.2) e **⭐** na linha do processo (9.3) também nas telas de cumprimentos: **Expedir Intimações**, **Expedir Citação**, **Expedir Notificação**, **Expedir Intimações de Auxiliares da Justiça** e **Demais Cumprimentos** (para qualquer Tipo de Cumprimento). Nessas telas o ⭐ verifica o quadro Pendências do processo e só pergunta se deve dispensar as juntadas e/ou finalizar a conclusão quando elas existirem; sem pendências, abre a preferência direto. Catálogo do Menu atualizado (2.6). |
 | 2.19.0 | 03/10/2026 | Nova seção **9.8** (só no Projudi): nas listas de **Decurso de Prazo** (Intimação, Auxiliares da Justiça e Citações/Notificações), pousar o mouse sobre o **número do processo** abre a tela dele num painel, já na aba **Movimentações**, com **📌 Fixar**, **Abrir em nova aba** e **✕**. Nova função na tabela da 2.6 (29 funções no Projudi) e vídeo V44. |
 | 2.18.2 | 03/10/2026 | A **balança** do Menu (2.6) também deixa de aparecer **dentro dos popups** (Advogados, Partes, ações rápidas, janelas do Projudi): fica só na tela principal. |
 | 2.18.1 | 03/10/2026 | Corrigido: os cards dos sistemas (8.7) apareciam também **dentro dos popups** (ex.: Advogados), que carregam uma tela com o mesmo cabeçalho; agora aparecem só na tela principal do processo. |
