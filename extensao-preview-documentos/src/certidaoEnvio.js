@@ -243,7 +243,7 @@
 	}
 
 	// -------------------------------------------------------------------
-	// Variáveis do envio (ver VARIAVEIS em juntarDocumento.js)
+	// Variáveis do envio (ver VARIAVEIS_ENVIO em variaveisProcesso.js)
 	// -------------------------------------------------------------------
 
 	function contato(d) {

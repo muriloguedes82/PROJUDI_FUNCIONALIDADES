@@ -28,6 +28,10 @@
 // linha aparecer imediatamente ao trocar de aba — a busca é refeita a cada
 // carregamento de página, e a linha é atualizada quando ela termina.
 //
+// Os dados também ficam disponíveis em window.__pdpReusCabecalho.partes()
+// (nome, RG e CPF de cada parte), usados pelas variáveis {reus}, {cpfs}...
+// (variaveisProcesso.js) e pelo "📄 Copiar dados".
+//
 // Estrutura real confirmada a partir de um .mhtml salvo do Projudi (TJPR,
 // aba "Partes e Outros"):
 // - todos os polos ficam num mesmo <div class="includeContent">, cada um
@@ -56,7 +60,19 @@
 	}
 
 	if (window.__pdpReusCabecalho) return;
-	window.__pdpReusCabecalho = true;
+	// Dados estruturados das partes, para quem precisa deles sem reler o
+	// texto da linha (variaveisProcesso.js: {reus}, {cpfs}..., "📄 Copiar
+	// dados"). partes(): [{nome, rg, cpf}] ou null enquanto carrega (ou se
+	// falhou: erro() traz o motivo).
+	window.__pdpReusCabecalho = {
+		partes: function () {
+			if (!estado) return null;
+			return estado.partes.map(function (p) { return { nome: p.nome, rg: p.rg, cpf: p.cpf }; });
+		},
+		erro: function () {
+			return erro;
+		},
+	};
 
 	const TAG = "[Projudi Réus no cabeçalho]";
 	const ROW_ATTR = "data-pdp-reus-row";

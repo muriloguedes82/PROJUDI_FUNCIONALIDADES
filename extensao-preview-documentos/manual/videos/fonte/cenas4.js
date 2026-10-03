@@ -636,3 +636,119 @@ CENAS.V43 = {
 		await S.endCard("Gravar uma vez a preferência da certidão com {variáveis} → enviar por e-mail/WhatsApp → 📎 Certificar envio → PIN.");
 	},
 };
+
+// ------------------------------------------------------------------ V44
+// Painel do "📄 Copiar dados" (src/copiarDados.js / copiarDados.css): abre
+// para cima, a partir do botão na fileira da extensão.
+const CD_FORMATOS = [["oficio", "📄", "Cabeçalho de ofício"], ["numero", "🔢", "Só o número"], ["reus", "👥", "Réus com documentos"], ["cpfs", "🪪", "Só os CPFs"], ["planilha", "📊", "Linha para planilha"]];
+const CD_OFICIO = "Autos nº " + PROC + " — Ação Penal - Procedimento Ordinário\n" + REUS.map(r => "Réu: " + r.nome + " (RG " + r.rg + ", CPF " + r.cpf + ")").join("\n") + "\nJuízo: Vara Criminal de Exemplo";
+function painelCopiar(o = {}) {
+	document.querySelectorAll("#x-cd").forEach(n => n.remove());
+	const bt = 'display:flex;align-items:center;gap:6px;padding:5px 8px;border:1px solid #c4c4c4;border-radius:3px;background:linear-gradient(#fafafa,#ececec)';
+	let h = '<div style="font-weight:bold;font-size:12.5px;margin-bottom:6px">Copiar dados do processo</div>';
+	CD_FORMATOS.forEach(([id, ic, nm]) => {
+		h += '<div style="display:flex;gap:4px;margin-top:4px"><span id="cd-' + id + '" style="flex:1;' + bt + '"><span style="width:18px;text-align:center">' + ic + "</span>" + nm + "</span>" +
+			(id === "numero" ? '<span id="cd-digitos" style="padding:4px 8px;font-size:11px;color:#1a5fb4;background:#eef4fc;border:1px solid #b9d0f0;border-radius:3px;align-self:center">só dígitos</span>' : "") + "</div>";
+	});
+	h += '<div style="margin-top:10px;padding-top:6px;border-top:1px solid #e5e5e5;font-weight:bold;font-size:11.5px;color:#555">Meus formatos</div>';
+	h += o.meus ? o.meus.map((n, i) => '<span class="x-chip" id="cd-meu' + i + '">★ ' + n + ' <span class="i">✏️</span> <span class="i">🗑</span></span>').join("") : '<div style="color:#777;font-style:italic;padding:4px">Nenhum formato seu ainda. Use "+ Novo formato".</div>';
+	h += '<div id="cd-novo" style="margin-top:6px;color:#555;font-size:11.5px;padding:3px 4px">+ Novo formato</div>';
+	if (o.editor) h = o.editor;
+	if (o.ok) h += '<div id="cd-sit" style="margin-top:8px;padding:6px 8px;border-radius:4px;background:#eef7e8;border:1px solid #a9cc93;color:#2e5e1f;font-size:11.5px"><b>✅ Copiado — ' + o.ok[0] + '</b><pre style="margin:6px 0 0;padding:5px 6px;background:#fff;border:1px solid #ddd;border-radius:3px;font:11px/1.4 Consolas,monospace;color:#333;white-space:pre-wrap">' + o.ok[1] + "</pre></div>";
+	if (o.aviso) h += '<div id="cd-sit" style="margin-top:8px;padding:6px 8px;border-radius:4px;background:#fff8dc;border:1px solid #d9c46a;color:#5c4a00;font-size:11.5px"><b>⚠️ ' + o.aviso[0] + "</b><div>" + o.aviso[1] + '</div><span style="display:inline-block;margin-top:6px;padding:3px 8px;font-size:11px;color:#1a5fb4;background:#eef4fc;border:1px solid #b9d0f0;border-radius:3px">Copiar assim mesmo (sem o que ficou vazio)</span></div>';
+	$("#x-cd-bt").classList.add("on");
+	const p = add('<div id="x-cd" style="position:fixed;z-index:60;width:340px;box-sizing:border-box;background:#fff;border:1px solid #adadad;border-radius:4px;box-shadow:0 2px 12px rgba(0,0,0,.25);padding:8px;font-size:12px">' + h + "</div>");
+	const r = $("#x-cd-bt").getBoundingClientRect();
+	p.style.left = Math.max(10, Math.min(1270 - 340, r.right - 340)) + "px";
+	p.style.bottom = 720 - r.top + 6 + "px";
+	return p;
+}
+function fecharCopiar() {
+	$("#x-cd").remove();
+	$("#x-cd-bt").classList.remove("on");
+}
+// Janela simulada de outro programa, onde o texto é colado.
+function janelaColar(titulo, corpo, o = {}) {
+	document.querySelectorAll("#x-colar").forEach(n => n.remove());
+	return add('<div id="x-colar" style="position:fixed;left:' + (o.left ?? 60) + "px;top:" + (o.top ?? 90) + "px;width:" + (o.w || 640) + 'px;background:#fff;border:1px solid #888;box-shadow:0 10px 40px rgba(0,0,0,.45);z-index:70;font-size:13px">' +
+		'<div style="background:' + (o.cor || "#2b579a") + ';color:#fff;padding:8px 12px">' + titulo + '</div><div style="padding:14px 18px">' + corpo + "</div></div>");
+}
+CENAS.V44 = {
+	arquivo: "V44-copiar-dados-do-processo.mp4",
+	titulo: "Copiar dados do processo",
+	secao: "8.10",
+	async run() {
+		telaProcesso({});
+		$("#row-assunto").insertAdjacentHTML("afterend", '<tr><td class="l">Réu:</td><td colspan="3">' + REUS.map(r => '<a class="link">' + r.nome + "</a> (RG: " + r.rg + "; CPF: " + r.cpf + ")").join("<br>") + "</td></tr>");
+		$("#x-juntar").insertAdjacentHTML("afterend", '<span class="x-btn" id="x-cd-bt">📄 Copiar dados</span>');
+		await S.titleCard("VÍDEO V44", "Copiar dados do processo", "Número, classe, réus com RG e CPF e juízo, já arrumados para colar no ofício, no e-mail, na planilha ou no Sisbajud.");
+		S.hl("#x-cd-bt", 4);
+		await S.cap("Na barra da extensão, o botão <b>📄 Copiar dados</b> (no Projudi e no SEEU).");
+		S.hlOff();
+		await S.click("#x-cd-bt");
+		painelCopiar();
+		await S.cap("Escolha o formato. Comece pelo <b>Cabeçalho de ofício</b>.");
+		await S.click("#cd-oficio");
+		painelCopiar({ ok: ["Cabeçalho de ofício", CD_OFICIO] });
+		S.hl("#cd-sit", 3);
+		await S.cap("<b>✅ Copiado</b>: número, classe, cada réu com RG e CPF e o juízo — o texto aparece logo abaixo, para conferir.", { ms: 4600 });
+		S.hlOff();
+		fecharCopiar();
+		janelaColar("Ofício — editor de texto", '<div style="font-family:serif;line-height:22px;min-height:200px">OFÍCIO Nº 123/2026<br><br><span id="colado"></span></div>');
+		await S.cap("No ofício, é só colar (<b>Ctrl+V</b>).");
+		$("#colado").innerHTML = CD_OFICIO.replace(/\n/g, "<br>");
+		await sleep(2600);
+		$("#x-colar").remove();
+		await S.click("#x-cd-bt");
+		painelCopiar();
+		await S.cap("Para o <b>Sisbajud</b>, <b>Infojud</b> ou <b>BNMP</b>, que pedem só números: <b>Só os CPFs</b>.");
+		await S.click("#cd-cpfs");
+		painelCopiar({ ok: ["Só os CPFs", REUS.map(r => r.cpf.replace(/\D/g, "")).join("\n")] });
+		await sleep(2200);
+		await S.cap("Para o número sem pontos e traço, use <b>só dígitos</b>, ao lado de <b>Só o número</b>.");
+		await S.click("#cd-digitos");
+		painelCopiar({ ok: ["Só o número (só dígitos)", PROC.replace(/\D/g, "")] });
+		await sleep(2000);
+		await S.click("#cd-planilha");
+		painelCopiar({ ok: ["Linha para planilha", REUS.map(r => PROC + " ⇥ Ação Penal… ⇥ " + r.nome + " ⇥ " + r.cpf).join("\n")] });
+		await S.cap("<b>Linha para planilha</b>: uma linha por réu, com número, classe, réu e CPF.");
+		fecharCopiar();
+		const cel = 'style="border:1px solid #d0d0d0;padding:4px 6px;white-space:nowrap"';
+		janelaColar("Excel — Controle de processos.xlsx",
+			'<table style="border-collapse:collapse;font:12px Calibri,Arial"><tr style="background:#f3f3f3"><td ' + cel + '></td><td ' + cel + '>A</td><td ' + cel + '>B</td><td ' + cel + '>C</td><td ' + cel + '>D</td></tr>' +
+			'<tr><td ' + cel + '>1</td><td ' + cel + '><b>Processo</b></td><td ' + cel + '><b>Classe</b></td><td ' + cel + '><b>Réu</b></td><td ' + cel + '><b>CPF</b></td></tr>' +
+			'<tr id="xl1"><td ' + cel + '>2</td><td ' + cel + '></td><td ' + cel + '></td><td ' + cel + '></td><td ' + cel + '></td></tr><tr id="xl2"><td ' + cel + '>3</td><td ' + cel + '></td><td ' + cel + '></td><td ' + cel + '></td><td ' + cel + '></td></tr></table>',
+			{ cor: "#217346", w: 760, left: 40 });
+		await S.click("#xl1 td:nth-child(2)");
+		REUS.forEach((r, i) => {
+			const tds = $$("#xl" + (i + 1) + " td");
+			[PROC, "Ação Penal - Procedimento Ordinário", r.nome, r.cpf].forEach((v, k) => (tds[k + 1].textContent = v));
+		});
+		await S.cap("Colado numa célula do Excel, cada dado cai na sua coluna.", { ms: 3400 });
+		$("#x-colar").remove();
+		await S.click("#x-cd-bt");
+		painelCopiar();
+		await S.cap("Nenhum formato serve? Crie o seu em <b>+ Novo formato</b>.");
+		await S.click("#cd-novo");
+		const vars = ["{numero_processo}", "{numero_sem_mascara}", "{classe}", "{assunto_processo}", "{juizo}", "{reus}", "{reus_linhas}", "{cpfs}", "{hoje}"];
+		painelCopiar({
+			editor: '<div style="font-weight:bold;font-size:12.5px">Novo formato</div><div style="margin:6px 0 2px;color:#555;font-size:11.5px">Nome</div><div class="x-field" id="cd-nome" style="min-height:20px;font-size:12px"></div>' +
+				'<div style="margin:6px 0 2px;color:#555;font-size:11.5px">Texto</div><div class="x-field" id="cd-texto" style="min-height:70px;font:11.5px Consolas,monospace;white-space:pre-wrap"></div>' +
+				'<div style="margin-top:6px;font-size:11px;color:#555">Clique numa variável para colocá-la no texto:</div><div>' + vars.map(v => '<span style="display:inline-block;margin:3px 3px 0 0;padding:1px 5px;font:11px Consolas,monospace;color:#1f4e79;background:#f2f6fb;border:1px solid #c9d8ec;border-radius:3px">' + v + "</span>").join("") + "</div>" +
+				'<div style="text-align:right;margin-top:8px"><span class="x-btn small" id="cd-salvar" style="font-weight:bold">Salvar</span> <span class="x-btn small">Cancelar</span></div>',
+		});
+		await S.type("#cd-nome", "WhatsApp para a defesa", { speed: 40 });
+		await S.type("#cd-texto", "Processo {numero_processo} ({classe})\nRéus: {reus}", { speed: 34 });
+		await S.cap("Use as mesmas <b>palavras entre chaves</b> do 📎 Juntar Documento — clique numa delas para colocá-la no texto.", { ms: 4200 });
+		await S.click("#cd-salvar");
+		painelCopiar({ meus: ["WhatsApp para a defesa"] });
+		await S.click("#cd-meu0");
+		painelCopiar({ meus: ["WhatsApp para a defesa"], ok: ["WhatsApp para a defesa", "Processo " + PROC + " (Ação Penal - Procedimento Ordinário)\nRéus: " + REUS.map(r => r.nome + " (RG: " + r.rg + "; CPF: " + r.cpf + ")").join("; ")] });
+		await S.cap("O formato fica em <b>Meus formatos</b>: um clique copia, já preenchido. <b>✏️</b> edita, <b>🗑</b> remove.", { ms: 4200 });
+		painelCopiar({ meus: ["WhatsApp para a defesa"], aviso: ["Cabeçalho de ofício", "Sem valor neste processo: {reus}. Nada foi copiado.<br>Nenhum réu cadastrado no polo passivo."] });
+		S.hl("#cd-sit", 3);
+		await S.cap("Se faltar algum dado, <b>nada é copiado</b>: o painel avisa o que ficou vazio e oferece <b>Copiar assim mesmo</b>.", { ms: 4600 });
+		S.hlOff();
+		await S.endCard("📄 Copiar dados → formato (ofício, só o número, réus, só os CPFs, planilha ou um seu) → ✅ Copiado → Ctrl+V onde precisar.");
+	},
+};

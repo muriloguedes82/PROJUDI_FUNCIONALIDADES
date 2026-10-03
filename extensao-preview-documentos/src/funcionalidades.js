@@ -20,8 +20,9 @@
 // demais, os arquivos dela nunca são injetados e ela não aparece no Menu.
 //
 // Os arquivos que não aparecem aqui (hostGuard.js, uiVisibility.js,
-// clipboardProcess.js, documentSelection.js, buttonDrag.js e o próprio Menu)
-// são infraestrutura e são sempre carregados.
+// clipboardProcess.js, documentSelection.js, buttonDrag.js,
+// variaveisProcesso.js e o próprio Menu) são infraestrutura e são sempre
+// carregados.
 self.PDP_FUNCIONALIDADES = Object.freeze({
 	// { projudi: [id], seeu: [id] } em chrome.storage.local
 	chave: "pdpFuncionalidadesDesativadasPorSistema",
@@ -130,6 +131,14 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					js: ["src/certidaoEnvio.js"],
 					css: ["src/certidaoEnvio.css"],
 					requer: ["acoesRapidas", "juntarDocumento"]
+				},
+				{
+					id: "copiarDados",
+					nome: "Copiar dados do processo",
+					descricao: "Botão \"📄 Copiar dados\": número, classe, réus com RG e CPF e juízo em formatos prontos (cabeçalho de ofício, só o número, só os CPFs, linha para planilha) ou criados por você, direto para a área de transferência.",
+					js: ["src/copiarDados.js"],
+					css: ["src/copiarDados.css"],
+					requer: ["acoesRapidas"]
 				},
 				{
 					id: "localizador",

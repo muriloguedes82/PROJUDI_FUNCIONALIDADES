@@ -321,6 +321,7 @@
 		const linhas = [
 			["preferência(s) das ações rápidas", acoes],
 			["preferência(s) de Juntar Documento", tamanho(local.pdpJuntarDocumentoPrefs)],
+			["formato(s) do Copiar dados", tamanho(local.pdpCopiarDadosFormatos)],
 			["combo(s)", tamanho(local.pdpPreferenceCombos)],
 			["lista(s) de tarefas", tamanho(local.pdpTarefasListas)],
 			["contato(s) de WhatsApp", tamanho(local.pdpWhatsappContacts)],

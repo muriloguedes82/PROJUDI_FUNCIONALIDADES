@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.16.0 |
-| **Versão da extensão** | 2.16.0 |
+| **Versão do manual** | 2.17.0 |
+| **Versão da extensão** | 2.17.0 |
 | **Data desta versão** | 03/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -78,6 +78,7 @@
    - 8.7 [Sistemas do CNJ (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud)](#cap-8-7)
    - 8.8 [Localizador (só no SEEU)](#cap-8-8)
    - 8.9 [Alterar Classe/Assuntos](#cap-8-9)
+   - 8.10 [Copiar dados do processo](#cap-8-10)
 9. [Telas de análise, mesas e cumprimentos](#cap-9)
    - 9.1 [Filtro por Sequencial na Análise de Decurso de Prazo](#cap-9-1)
    - 9.2 [Listas de tarefas](#cap-9-2)
@@ -139,7 +140,7 @@ Não é preciso saber nada de informática além disso.
 | Sistema | O que funciona |
 |---|---|
 | **Projudi (TJPR)** | Todas as funções deste manual |
-| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)), a certidão de envio ([5.4](#cap-5-4)), o **📎 Juntar Documento** com preferências e variáveis ([8.2](#cap-8-2)), o ícone do BNMP 3.0 ao lado da balança ([8.7](#cap-8-7)) e o botão **📍 Localizador** ([8.8](#cap-8-8)), que só existe no SEEU — também pela **⭐** das listas de juntadas e de conclusões ([9.3](#cap-9-3)). Vale também para o **SEEU de treino** (ambiente de testes) |
+| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)), a certidão de envio ([5.4](#cap-5-4)), o **📎 Juntar Documento** com preferências e variáveis ([8.2](#cap-8-2)), o **📄 Copiar dados** ([8.10](#cap-8-10)), o ícone do BNMP 3.0 ao lado da balança ([8.7](#cap-8-7)) e o botão **📍 Localizador** ([8.8](#cap-8-8)), que só existe no SEEU — também pela **⭐** das listas de juntadas e de conclusões ([9.3](#cap-9-3)). Vale também para o **SEEU de treino** (ambiente de testes) |
 
 A extensão **não funciona** quando o usuário está logado com perfil de
 advogado(a) ou de assessor(a) de advogado — veja [10.3](#cap-10-3).
@@ -255,6 +256,7 @@ tela, "flutuando" sobre a página.
 | **⚖️ Advogados** | Tela de Advogados em popup ((Des)Habilitar Advogado), com preferências de advogados | [8.3](#cap-8-3) |
 | **👥 Partes** | Tela Partes do Processo em popup (Editar Partes/Outros) | [8.4](#cap-8-4) |
 | **📎 Juntar Documento** | Juntada com preferências gravadas | [8.2](#cap-8-2) |
+| **📄 Copiar dados** | Copia número, classe, réus (RG e CPF) e juízo num formato pronto (ofício, planilha, só os CPFs…) | [8.10](#cap-8-10) |
 | **🖍️ Destacar mov.** | Cores por tipo de usuário | [3.4](#cap-3-4) |
 | **🔗 Combos** | Várias preferências em sequência | [7.4](#cap-7-4) |
 | **Oráculo** | Consulta de antecedentes da parte | [8.6](#cap-8-6) |
@@ -337,7 +339,7 @@ PROJUDI e SEEU**, com a mesma lista: cada sistema guarda as suas próprias
 escolhas. Por padrão, **tudo vem ativo nos dois**. A extensão reconhece em que
 sistema você está pelo endereço da página e abre o Menu na aba dele (marcada
 com "(este)"); você pode clicar na outra aba para configurá-la também. Acima
-da lista aparece "Funcionalidades no PROJUDI: N de 29 ativas" (ou no SEEU).
+da lista aparece "Funcionalidades no PROJUDI: N de 30 ativas" (ou no SEEU).
 
 1. Clique na aba do sistema que quer configurar (PROJUDI ou SEEU).
 2. Clique na chave da função que quer ligar ou desligar.
@@ -360,7 +362,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 | Grupo | Funções que podem ser ligadas/desligadas | Seção |
 |---|---|---|
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
-| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Alvará Eletrônico · Juntar Documento · Certidão de envio · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
+| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Alvará Eletrônico · Juntar Documento · Certidão de envio · Copiar dados do processo · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica | [4](#cap-4) |
 | **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
@@ -1175,7 +1177,7 @@ Bom saber sobre essas preferências:
 <a id="cap-8"></a>
 ## 8. Atalhos para telas do processo
 
-*Só no Projudi* (exceto o [8.8](#cap-8-8), *só no SEEU*, o ícone do BNMP 3.0 do [8.7](#cap-8-7) e o **📎 Juntar Documento** do [8.2](#cap-8-2), que também aparecem no SEEU). Os atalhos de 8.1
+*Só no Projudi* (exceto o [8.8](#cap-8-8), *só no SEEU*, o ícone do BNMP 3.0 do [8.7](#cap-8-7), o **📎 Juntar Documento** do [8.2](#cap-8-2) e o **📄 Copiar dados** do [8.10](#cap-8-10), que também aparecem no SEEU). Os atalhos de 8.1
 a 8.6 abrem num **popup** sobre a tela atual — a aba do processo não sai do
 lugar. Feche com **✕ Fechar**.
 
@@ -1254,13 +1256,18 @@ em **{ } Variáveis no texto**, no próprio painel do 📎 Juntar Documento.
 | Variável | Vira |
 |---|---|
 | `{numero_processo}` | o número do processo |
+| `{numero_sem_mascara}` | o número só com os 20 dígitos, sem pontos e traço |
+| `{classe}` | a classe processual do cabeçalho |
+| `{assunto_processo}` | o assunto principal do cabeçalho |
 | `{hoje}` / `{hoje_extenso}` | a data de hoje (03/10/2026 / 3 de outubro de 2026) |
 | `{agora}` | a hora atual |
 | `{juizo}` | o juízo/vara do cabeçalho |
-| `{reus}` | os réus do cabeçalho, com RG e CPF ([4.3](#cap-4-3)) — só no Projudi |
+| `{reus}` | os réus do cabeçalho, com RG e CPF, separados por ";" ([4.3](#cap-4-3)) — só no Projudi |
+| `{reus_linhas}` | os réus, um por linha: nome, RG e CPF — só no Projudi |
+| `{cpfs}` | os CPFs dos réus só com números, um por linha — só no Projudi |
 | `{evento}` | a movimentação marcada na caixinha da aba Movimentações ([7.7](#cap-7-7)) |
 | `{perguntar:Texto}` | a extensão pergunta o valor na hora (ex.: `{perguntar:Número do ofício}`) |
-| `{meio}`, `{destinatario}`, `{arquivos}`, `{data_envio}`, `{hora_envio}`, `{remetente}`, `{assunto}`, `{comprovante}` | dados do envio — só na certidão de envio ([5.4](#cap-5-4)) |
+| `{meio}`, `{destinatario}`, `{arquivos}`, `{data_envio}`, `{hora_envio}`, `{remetente}`, `{assunto}`, `{comprovante}` | dados do envio — só na certidão de envio ([5.4](#cap-5-4)). Atenção: `{assunto}` é o assunto do **e-mail**; o assunto do **processo** é `{assunto_processo}` |
 
 Se uma variável ficar sem valor, a juntada **para no texto** (*sem valor
 para {…}*): complete e clique em **Continuar** — a extensão segue daí.
@@ -1549,6 +1556,90 @@ lado do **Assunto Principal**. Ele aparece em qualquer aba do processo.
   permissão para alterar este processo — o mesmo que acontece na aba
   **Informações Gerais**.
 
+<a id="cap-8-10"></a>
+### 8.10 Copiar dados do processo
+
+▶ [**Vídeo V44** — Copiar dados do processo](videos/V44-copiar-dados-do-processo.mp4)
+
+*No Projudi e no SEEU* (no SEEU, sem os réus — veja *Bom saber*).
+
+**Para que serve:** copiar de uma vez, já arrumados, os dados do processo
+que você costuma copiar um por um: número, classe, nome, RG e CPF de cada
+réu e juízo. Depois é só colar (**Ctrl+V**) onde precisar. Exemplos:
+
+- **ofícios** e **mandados**: o cabeçalho "Autos nº … — classe", os réus e o
+  juízo, prontos para colar no início do texto;
+- **e-mails** a delegacias, presídios e outros órgãos;
+- **Sisbajud, Infojud, BNMP** e outros sistemas que pedem o **CPF só com
+  números** ou o **número do processo sem pontos e traço**;
+- **planilhas de controle** (Excel): cada dado cai na sua coluna;
+- **WhatsApp**: uma mensagem com o número do processo e os réus.
+
+**Onde fica:** botão **📄 Copiar dados** da barra da extensão, na mesma
+fileira do **📋 Colar processo**, depois do **📎 Juntar Documento**. No SEEU
+(que não tem o Colar processo), fica depois de **⭐ Minhas Preferências** e
+do **📍 Localizador**. Aparece só na tela do processo.
+
+**Formatos prontos:**
+
+| Formato | O que é copiado |
+|---|---|
+| **📄 Cabeçalho de ofício** | `Autos nº 0001234-56.2025.8.16.0001 — Ação Penal - Procedimento Ordinário`, uma linha `Réu: NOME (RG …, CPF …)` para cada réu e `Juízo: Vara Criminal de …` |
+| **🔢 Só o número** | o número com pontos e traço; o botão **só dígitos**, ao lado, copia só os 20 números (`00012345620258160001`) |
+| **👥 Réus com documentos** | um réu por linha: `NOME, RG …, CPF …` |
+| **🪪 Só os CPFs** | os CPFs dos réus só com números, um por linha (`12345678900`) |
+| **📊 Linha para planilha** | número, classe, réu e CPF; colado numa célula do Excel, cada dado vai para uma coluna. Com vários réus, uma linha para cada um |
+
+**Passo a passo:**
+
+1. Com o processo aberto, clique em **📄 Copiar dados**.
+2. Clique no formato que quer.
+3. Aparece **✅ Copiado**, com o texto que foi copiado logo abaixo, para
+   você conferir.
+4. Vá ao ofício, e-mail, sistema ou planilha e cole (**Ctrl+V**).
+
+**Meus formatos (os seus):** se nenhum formato pronto serve, crie o seu.
+
+1. No painel, clique em **+ Novo formato**.
+2. Dê um **nome** (ex.: *E-mail para a delegacia*) e escreva o **texto**,
+   com as palavras entre chaves que a extensão troca pelos dados do
+   processo — clique numa delas, logo abaixo, para colocá-la no texto. Ex.:
+
+   ```
+   Ref.: Autos nº {numero_processo} ({classe})
+   {reus_linhas}
+   ```
+3. Clique em **Salvar**. O formato aparece em **Meus formatos** como
+   **★ nome**: um clique copia o texto já preenchido.
+4. **✏️** muda o nome ou o texto; **🗑** remove o formato.
+
+As palavras entre chaves são as mesmas do **📎 Juntar Documento** (veja a
+tabela em [8.2](#cap-8-2)): `{numero_processo}`, `{numero_sem_mascara}`,
+`{classe}`, `{assunto_processo}`, `{juizo}`, `{reus}`, `{reus_linhas}`,
+`{cpfs}`, `{hoje}`, `{hoje_extenso}`, `{agora}`, `{evento}` e
+`{perguntar:Texto}` (a extensão pergunta o valor na hora de copiar).
+
+**Bom saber:**
+
+- **Quando falta algum dado** (por exemplo, o processo não tem réu
+  cadastrado, ou a classe não aparece na tela), a extensão **não copia
+  nada** e avisa no painel o que ficou vazio. Se quiser assim mesmo, clique
+  em **Copiar assim mesmo (sem o que ficou vazio)**: o texto é copiado sem
+  essas partes.
+- Se um réu não tem RG ou CPF cadastrado, o texto é copiado e o painel
+  avisa: *atenção: NOME: sem CPF*.
+- Os réus vêm da linha de réus do cabeçalho ([4.3](#cap-4-3)): a função
+  **Réus no cabeçalho** precisa estar ligada no Menu ([2.6](#cap-2-6)). Logo
+  depois de abrir o processo, espere a linha dos réus aparecer.
+- **No SEEU**, a extensão ainda não lê os réus: os formatos com réus avisam
+  que eles ficaram vazios (use **Copiar assim mesmo** para copiar o resto). O
+  número e o juízo funcionam normalmente; a classe, quando aparece no
+  cabeçalho do processo.
+- Os seus formatos ficam guardados no navegador e vão junto no **⬇ Exportar**
+  do Menu ([2.6](#cap-2-6)).
+- Se o navegador não deixar copiar, o painel mostra o texto: selecione-o e
+  use **Ctrl+C**.
+
 ---
 
 <a id="cap-9"></a>
@@ -1778,7 +1869,7 @@ ela está instalada (não vai para outro computador):
 | O que | Onde |
 |---|---|
 | Aceite dos Termos de Uso | Armazenamento da extensão |
-| Preferências (inclusive de advogados e de localizadores), combos, ordem dos cards | Armazenamento da extensão |
+| Preferências (inclusive de advogados e de localizadores), combos, ordem dos cards, formatos do Copiar dados | Armazenamento da extensão |
 | Cores de destaque e "sempre ocultar sem arquivo" | Armazenamento da extensão |
 | Listas de tarefas e tarefas | Armazenamento da extensão |
 | Destinatários (WhatsApp e e-mail) e remetentes | Armazenamento da extensão |
@@ -1838,6 +1929,7 @@ telas abertas a partir daí voltam a funcionar.
 | Dispensa de juntadas/decursos parou com erro | Clique em **Ver detalhes**, resolva no Projudi e tente de novo ([6.1](#cap-6-1), [6.3](#cap-6-3)) |
 | Card de suspensão/monitoração não aparece | Só são sinalizados status **ATIVA** e os motivos listados em [4.1](#cap-4-1)/[4.2](#cap-4-2); aguarde alguns segundos após abrir o processo |
 | Mandado não virou Regionalizado | Só muda se a cidade da parte for de outra comarca **e** constar em Comarca de Destino; veja a nota amarela do diálogo ([9.7](#cap-9-7)) |
+| Copiar dados: "Sem valor neste processo: {…}. Nada foi copiado." | O dado não está na tela (ex.: sem réu cadastrado, ou os réus ainda carregando). Espere a linha dos réus no cabeçalho e tente de novo, ou use **Copiar assim mesmo** ([8.10](#cap-8-10)) |
 | Colar processo: "Não encontrei um número de processo" | Copie o número completo (20 dígitos), só um ([8.5](#cap-8-5)) |
 | O popup de um sistema do CNJ fica em branco ou o login não termina | Use **🗂 Nova aba** ou **🖥 Segundo monitor** no topo do popup ([8.7](#cap-8-7)) |
 
@@ -1899,6 +1991,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V41](videos/V41-localizador-na-linha-seeu.mp4) | [Localizador pela ⭐ da lista (SEEU)](videos/V41-localizador-na-linha-seeu.mp4) | [9.3](#cap-9-3) | 0:31 |
 | [V42](videos/V42-alterar-classe-e-assuntos.mp4) | [Alterar Classe/Assuntos](videos/V42-alterar-classe-e-assuntos.mp4) | [8.9](#cap-8-9) | 0:44 |
 | [V43](videos/V43-certidao-de-envio.mp4) | [Certidão de envio (e-mail e WhatsApp)](videos/V43-certidao-de-envio.mp4) | [5.4](#cap-5-4) | 1:06 |
+| [V44](videos/V44-copiar-dados-do-processo.mp4) | [Copiar dados do processo](videos/V44-copiar-dados-do-processo.mp4) | [8.10](#cap-8-10) | 1:20 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -1912,6 +2005,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.17.0 | 03/10/2026 | Nova seção **8.10 Copiar dados do processo** (Projudi e SEEU): botão **📄 Copiar dados** na barra da extensão, com formatos prontos (cabeçalho de ofício, só o número, réus com documentos, só os CPFs, linha para planilha) e formatos criados pelo usuário com as palavras entre chaves; se faltar algum dado, nada é copiado sem aviso. Seção 8.2: novas variáveis `{numero_sem_mascara}`, `{classe}`, `{assunto_processo}`, `{reus_linhas}` e `{cpfs}`. Ajustes em 1.3, 2.4, na abertura do capítulo 8, na 10.1 e na Solução de problemas; nova função na tabela da 2.6 (30 no Projudi) e vídeo V44. |
 | 2.16.0 | 03/10/2026 | **📎 Juntar Documento** (8.2), com preferências e variáveis, e a **Certidão de envio** (5.4) passam a funcionar também no **SEEU**, que usa as mesmas telas de juntada do Projudi; no SEEU, o botão fica depois de **⭐ Minhas Preferências** e do **📍 Localizador**. Ajustes em 1.3, na abertura dos capítulos 5 e 8 e na tabela da 2.6. Sem vídeo novo: a função aparece igual nos dois sistemas. |
 | 2.15.0 | 03/10/2026 | Nova seção **5.4 Certidão de envio (e-mail e WhatsApp)** (só no Projudi): depois de um envio, o quadro **📎 Certificar envio** junta a certidão com uma preferência do Juntar Documento, já com destinatário, documentos e o comprovante conferido nos **Itens Enviados** do Outlook (modo Microsoft Graph) ou na conversa do WhatsApp. Seção 8.2: **variáveis no texto** das preferências do Juntar Documento (`{numero_processo}`, `{hoje}`, `{reus}`, `{perguntar:…}` etc.). Nova função na tabela da 2.6 (29 no Projudi), novas linhas na Solução de problemas e vídeo V43. |
 | 2.14.2 | 02/10/2026 | Corrigida a **Nova Ordenação** com **mandado urgente**: o envio parava com "Selecione o tipo de urgência do Mandado" porque o **Tipo de Urgência** guardado ficava desligado no envio; agora as opções Sim/Não da fila são marcadas como um clique de verdade, que libera os campos ligados a elas (7.5). |

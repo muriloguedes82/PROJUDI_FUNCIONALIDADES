@@ -65,8 +65,10 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/editarPartes.js",
 			"src/alterarClasseAssuntos.js",
 			"src/alvaraEletronico.js",
+			"src/variaveisProcesso.js",
 			"src/juntarDocumento.js",
 			"src/certidaoEnvio.js",
+			"src/copiarDados.js",
 			"src/reusCabecalho.js",
 			"src/cpfPartesCumprimentos.js",
 			"src/bnmpMandadoPrisao.js",
@@ -91,6 +93,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/enderecoMandado.css",
 			"src/juntarDocumento.css",
 			"src/certidaoEnvio.css",
+			"src/copiarDados.css",
 			"src/listaTarefas.css",
 			"src/localizadorSeeu.css"
 		],

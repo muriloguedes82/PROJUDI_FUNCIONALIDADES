@@ -73,6 +73,7 @@
 	// botão "Juntar Documento", mesmas telas), só sob /seeu/.
 	if (window.__pdpJuntarDocumento || !/^\/(projudi|seeu)\//.test(location.pathname)) return;
 	const IS_SEEU = location.pathname.startsWith("/seeu/");
+	if (!window.__pdpVariaveisProcesso) return; // variaveisProcesso.js (infraestrutura)
 	window.__pdpJuntarDocumento = true;
 
 	const PREFS_KEY = "pdpJuntarDocumentoPrefs"; // [{id, name, tipoDocumento, tipoArquivo, descricao, modelo, conteudo, createdAt, updatedAt}]
@@ -191,100 +192,13 @@
 	// Variáveis no texto das preferências
 	// -------------------------------------------------------------------
 
-	// Nome → descrição (a descrição aparece na ajuda do painel). As do envio
-	// só têm valor na certidão de envio (certidaoEnvio.js).
-	const VARIAVEIS = {
-		numero_processo: "número do processo",
-		hoje: "data de hoje (03/10/2026)",
-		hoje_extenso: "data de hoje por extenso (3 de outubro de 2026)",
-		agora: "hora atual (14:32)",
-		juizo: "juízo/vara do cabeçalho",
-		reus: "réus do cabeçalho (com RG e CPF, se a função \"Réus no cabeçalho\" estiver ativa)",
-		evento: "movimentação marcada na caixinha da aba Movimentações",
-		meio: "envio: e-mail ou WhatsApp",
-		destinatario: "envio: nome e contato de quem recebeu",
-		arquivos: "envio: documentos enviados, com o número da movimentação",
-		data_envio: "envio: data do envio",
-		hora_envio: "envio: hora do envio",
-		remetente: "envio: conta que enviou o e-mail",
-		assunto: "envio: assunto do e-mail",
-		comprovante: "envio: quadro com os dados conferidos do envio",
-		perguntar: "{perguntar:Texto} pede o valor na hora",
-	};
-	const VARIAVEL_RE = /\{\s*([a-z_]+)\s*(?::\s*([^{}<>]{1,80}?))?\s*\}/gi;
-	const MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
-
-	function doisDigitos(n) {
-		return (n < 10 ? "0" : "") + n;
-	}
-
-	function dataBr(d) {
-		return doisDigitos(d.getDate()) + "/" + doisDigitos(d.getMonth() + 1) + "/" + d.getFullYear();
-	}
-
-	function horaBr(d) {
-		return doisDigitos(d.getHours()) + ":" + doisDigitos(d.getMinutes());
-	}
-
-	// Lidas na tela do processo, no início do fluxo.
-	function variaveisDoProcesso(doc) {
-		const agora = new Date();
-		const vars = {
-			numero_processo: numeroProcesso(doc) || "",
-			hoje: dataBr(agora),
-			hoje_extenso: agora.getDate() + " de " + MESES[agora.getMonth()] + " de " + agora.getFullYear(),
-			agora: horaBr(agora),
-		};
-		// SEEU: campo "Juízo:" da tabela do processo; Projudi: link "Atuação".
-		const juizoSeeu = doc.querySelector('td[data-label="juízo"]');
-		const juizo = juizoSeeu && juizoSeeu.nextElementSibling ? juizoSeeu.nextElementSibling : doc.querySelector("#areaatuacao");
-		if (juizo && cleanText(juizo.textContent)) vars.juizo = cleanText(juizo.textContent);
-		const reus = Array.prototype.slice.call(doc.querySelectorAll(".pdp-reus-lista > li"))
-			.map(function (el) { return cleanText(el.textContent); })
-			.filter(Boolean);
-		if (reus.length) vars.reus = reus.join("; ");
-		try {
-			const mov = window.__pdpMovimentoBase && window.__pdpMovimentoBase.selecionada();
-			if (mov) vars.evento = (mov.seq ? "mov. " + mov.seq + " – " : "") + (mov.texto || "");
-		} catch (err) {
-			// sem movimentação marcada
-		}
-		return vars;
-	}
-
-	function escapeHtml(text) {
-		return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-	}
-
-	// Rótulos dos {perguntar:...} do texto, sem repetição.
-	function perguntasDoTexto(html) {
-		const rotulos = [];
-		String(html || "").replace(VARIAVEL_RE, function (m, nome, rotulo) {
-			if (nome.toLowerCase() === "perguntar") {
-				const r = cleanText(rotulo || "Valor");
-				if (rotulos.indexOf(r) === -1) rotulos.push(r);
-			}
-			return m;
-		});
-		return rotulos;
-	}
-
-	// Troca as variáveis pelo valor (texto com quebras de linha vira <br>).
-	// Devolve { html, faltando: [nomes sem valor] }; as sem valor ficam como
-	// estão, para o usuário ver e completar.
-	function aplicarVariaveis(html, vars) {
-		const faltando = [];
-		const out = String(html || "").replace(VARIAVEL_RE, function (m, nome, rotulo) {
-			const chave = nome.toLowerCase() === "perguntar" ? "perguntar:" + cleanText(rotulo || "Valor") : nome.toLowerCase();
-			const valor = vars ? vars[chave] : undefined;
-			if (valor === undefined || valor === null || valor === "") {
-				if (faltando.indexOf(m) === -1) faltando.push(m);
-				return m;
-			}
-			return escapeHtml(valor).replace(/\r?\n/g, "<br>");
-		});
-		return { html: out, faltando: faltando };
-	}
+	// Lista, leitura dos valores na tela do processo e troca no texto ficam
+	// em variaveisProcesso.js (compartilhado com o "📄 Copiar dados").
+	const VP = window.__pdpVariaveisProcesso;
+	const VARIAVEIS = VP.VARIAVEIS;
+	const variaveisDoProcesso = VP.variaveisDoProcesso;
+	const perguntasDoTexto = VP.perguntasDoTexto;
+	const aplicarVariaveis = VP.aplicarVariaveis;
 
 	// -------------------------------------------------------------------
 	// Estado do fluxo (sessionStorage: só esta aba, frames da mesma origem)

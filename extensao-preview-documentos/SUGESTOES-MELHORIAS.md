@@ -1,8 +1,9 @@
 # Sugestões de melhorias e novas funcionalidades (Olirum 2.14.2)
 
-Documento de proposta. **Já implementados (2.15.0):** item 4 (variáveis
-no texto do Juntar Documento) e item 7 (certidão de envio) — ver
-`manual/MANUAL.md`, seções 5.4 e 8.2. Ele parte do
+Documento de proposta. **Já implementados:** item 4 (variáveis no texto do
+Juntar Documento) e item 7 (certidão de envio), na 2.15.0 — ver
+`manual/MANUAL.md`, seções 5.4 e 8.2 —, e item 8 (Copiar dados do
+processo), na 2.17.0 — seção 8.10. Ele parte do
 que a extensão já faz (catálogo em `src/funcionalidades.js`, manual em
 `manual/MANUAL.md`) e procura os pontos em que o servidor ainda clica,
 rola, espera ou troca de tela à toa. Cada item diz **o problema**, **a ideia**,
@@ -30,7 +31,7 @@ Regras mantidas em todas as propostas:
 | 5 | "Resolver pendências" num botão só | Projudi | alta | baixo | `juntadaDrag.js`, `finalizarConclusao.js`, `dispensarCumprimentos.js` |
 | 6 | Sugestão da preferência pelo último movimento | Projudi | alta | médio | `movimentoBase.js` |
 | 7 | Certidão de envio automática após e-mail/WhatsApp | Projudi | média | médio | `email.js`, `whatsapp.js`, `juntarDocumento.js` |
-| 8 | Copiar dados do processo formatados | Projudi e SEEU | média | baixo | `reusCabecalho.js`, `clipboardProcess.js` |
+| 8 | Copiar dados do processo formatados ✅ (2.17.0) | Projudi e SEEU | média | baixo | `reusCabecalho.js`, `clipboardProcess.js` |
 | 9 | Cards da execução penal no cabeçalho do SEEU | SEEU | alta | alto | `suspensaoAtiva.js`, `monitoracaoAtiva.js` |
 | 10 | Ações rápidas próprias do SEEU | SEEU | alta | alto | `quickActions.js` (estrutura) |
 | 11 | Compartilhar preferências com a equipe (importar mesclando) | Projudi e SEEU | média | baixo | `menuExtensao.js` |
@@ -184,7 +185,16 @@ como hoje.
 
 ---
 
-## 8. Copiar dados do processo formatados
+## 8. Copiar dados do processo formatados ✅ (2.17.0)
+
+> **Implementado na 2.17.0** (`src/copiarDados.js`, manual 8.10): botão
+> **📄 Copiar dados** na barra da extensão, no Projudi e no SEEU, com cinco
+> formatos prontos (cabeçalho de ofício, só o número com/sem máscara, réus
+> com documentos, só os CPFs, linha para planilha separada por TAB) e
+> formatos personalizados com as variáveis do Juntar Documento, agora em
+> `src/variaveisProcesso.js` (novas: `{classe}`, `{assunto_processo}`,
+> `{numero_sem_mascara}`, `{cpfs}`, `{reus_linhas}`). Variável sem valor:
+> nada é copiado sem aviso. No SEEU os réus ainda não são lidos.
 
 **Ideia.** Botão/atalho **📄 Copiar dados** que coloca na área de
 transferência, num formato pronto para ofício, e-mail ou planilha:
