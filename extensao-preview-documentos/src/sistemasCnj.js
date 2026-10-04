@@ -222,7 +222,7 @@
 	// com o mesmo cabeçalho e a mesma balança): os cards ficam só na tela
 	// principal. É popup quando o quadro está dentro de um popup da extensão
 	// ou quando algum quadro acima dele já é a tela de um processo.
-	const CLASSES_POPUP = ["pdp-qa-modal-iframe", "pdp-sistemas-cnj-iframe"];
+	const CLASSES_POPUP = ["pdp-qa-modal-iframe", "pdp-sistemas-cnj-iframe", "pdp-proc-preview-iframe"];
 	function dentroDePopup() {
 		let win = window;
 		for (let nivel = 0; nivel < 8 && win !== win.top; nivel++) {

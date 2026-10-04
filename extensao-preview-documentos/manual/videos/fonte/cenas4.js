@@ -622,51 +622,124 @@ CENAS.V43 = {
 };
 
 // ------------------------------------------------------------------ V44
-// "Remessa Eletrônica para a Turma Recursal" no grupo Remessa das ações
-// rápidas (ACTION_GROUPS em src/quickActions.js), com preferência.
+// Tela inicial do processo (aba Movimentações) num painel, ao pousar o mouse
+// sobre o número do processo nas listas de decurso de prazo.
+function painelProcesso(n, x, y) {
+	const abas = ABAS.map(([k, nm]) => '<span class="pj-tab' + (k === "mov" ? " on" : "") + '">' + nm + "</span>").join("");
+	const linhas = MOVS.slice(0, 6).map((m, i) => '<tr class="' + (i % 2 ? "alt" : "") + '"><td>' + m.seq + "</td><td>" + m.data + "</td><td>" + (m.files.length ? '<span class="pj-plus">+</span>' : "") + m.ev + "</td><td>" + m.por + '<span class="papel">' + m.papel + "</span></td></tr>").join("");
+	const p = add('<div class="x-preview" id="x-proc" style="width:760px;height:500px;background:#fff">' +
+		'<div class="hd"><span class="t">Processo ' + n + ' — Movimentações</span><span class="x-btn small" id="x-fixar" style="background:#f5f7ef;color:#35412b">📌 Fixar</span><span>Abrir em nova aba ↗</span><span>✕</span></div>' +
+		'<div id="x-proc-bd" style="position:relative;height:464px;overflow:hidden">' +
+		'<div style="padding:8px 12px;font-size:12px"><div class="pj-title">Processo <em class="attention">' + n + '</em><span class="dias">(212 dia(s) em tramitação)</span></div>' +
+		'<table class="pj-info"><tr><td class="l">Classe Processual:</td><td>Ação Penal - Procedimento Ordinário</td><td class="l">Juízo:</td><td>Vara Criminal de Exemplo</td></tr></table>' +
+		'<div class="pj-tabs">' + abas + '</div><table class="pj-table" id="x-proc-movs"><tr><th style="width:40px">Seq.</th><th style="width:110px">Data</th><th>Evento</th><th style="width:200px">Movimentado Por</th></tr>' + linhas + "</table></div>" +
+		'<div id="x-proc-load" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#f5f7ef;color:#35412b;font-size:13px">Carregando o processo…</div>' +
+		"</div></div>");
+	Object.assign(p.style, { left: x + "px", top: y + "px" });
+	return p;
+}
+
 CENAS.V44 = {
-	arquivo: "V44-remessa-turma-recursal.mp4",
-	titulo: "Remessa para a Turma Recursal",
-	secao: "7.1",
+	arquivo: "V44-processo-ao-passar-o-mouse.mp4",
+	titulo: "Processo ao passar o mouse no Decurso de Prazo",
+	secao: "9.8",
 	async run() {
-		telaProcesso({ acoesAbertas: true });
-		const acoes = prefs => [{ nome: "Realizar Remessa" }, { nome: "Remessa Eletrônica para o Tribunal de Justiça" }, { nome: "Remessa Eletrônica para a Turma Recursal", prefs }];
-		await S.titleCard("VÍDEO V44", "Remessa para a Turma Recursal", "Nos Juizados Especiais, pelo botão Remessa — e com preferência.");
-		await S.cap("Clique no grupo <b>Remessa</b>.");
-		await S.click('[data-g="Remessa"]');
-		let pn = panelAt(acaoPanel("Remessa", acoes()), '[data-g="Remessa"]', { w: 440 });
-		await S.cap("Além das remessas de sempre, aparece <b>Remessa Eletrônica para a Turma Recursal</b>.", { ms: 3600 });
-		await S.cap("Para gravar uma preferência, clique em <b>+ Nova preferência</b> nela.");
-		await S.click('[data-nova="Remessa Eletrônica para a Turma Recursal"]');
+		telaLista("Decurso de Prazo - Intimação", { path: "intimacaoBusca.do", col: "Data Decurso" });
+		await S.titleCard("VÍDEO V44", "Processo ao passar o mouse", "Veja a tela do processo, já na aba Movimentações, sem sair da lista de decurso de prazo.");
+		await S.cap("Nas listas de <b>Decurso de Prazo</b> (Intimação, Auxiliares da Justiça e Citações/Notificações), pare o mouse sobre o <b>número do processo</b>.");
+		const link = $('#lista tr[data-i="1"] a.link');
+		await S.move(link);
+		await sleep(500);
+		let p = painelProcesso(LISTA[1].n, 470, 180);
+		await sleep(900);
+		$("#x-proc-load").textContent = "Abrindo a aba Movimentações…";
+		await sleep(800);
+		$("#x-proc-load").remove();
+		await S.cap("A tela do processo abre num painel sobre a lista, já na aba <b>Movimentações</b>. Role dentro dele normalmente.");
+		S.hl("#x-proc-movs", 4);
+		await S.cap("Dentro do painel a tela funciona como sempre: passe o mouse sobre um arquivo para lê-lo.");
+		S.hlOff();
+		await S.cap("Para fechar: tire o mouse do número e do painel, clique em <b>✕</b> ou tecle <b>Esc</b>.");
+		await S.move({ x: 300, y: 560 });
+		p.remove();
+		await sleep(500);
+		await S.cap("Quer o painel aberto mesmo tirando o mouse? Clique em <b>📌 Fixar</b>.");
+		await S.move($('#lista tr[data-i="3"] a.link'));
+		await sleep(500);
+		p = painelProcesso(LISTA[3].n, 470, 180);
+		await sleep(900);
+		$("#x-proc-load").remove();
+		await S.click("#x-fixar");
+		$("#x-fixar").textContent = "📌 Fixado";
+		p.style.outline = "2px solid #b59a1f";
+		await S.move({ x: 300, y: 560 });
+		await S.cap("Fixado, ele só fecha no <b>✕</b>. “Abrir em nova aba” abre o processo do jeito tradicional.", { ms: 3200 });
+		p.remove();
+		await S.endCard("Mouse parado sobre o número do processo = tela do processo na aba Movimentações. 📌 Fixar mantém aberto; Esc ou ✕ fecha.");
+	},
+};
+
+// ------------------------------------------------------------------ V45
+// ⭐ em lote (preferenciasNaLinha.js): caixinha abaixo do "+" da primeira
+// coluna e a barra "⭐ Em lote" acima da tabela.
+CENAS.V45 = {
+	arquivo: "V45-preferencias-em-lote.mp4",
+	titulo: "Preferências em lote (⭐ Em lote)",
+	secao: "9.3",
+	async run() {
+		telaLista("Análise de Juntadas");
+		$$("#lista tr[data-i]").forEach((tr, i) => {
+			tr.cells[0].innerHTML = '<div style="text-align:center"><span style="display:inline-block;width:11px;height:11px;border:1px solid #777;font:bold 10px/10px Arial;text-align:center">+</span><div style="margin-top:4px"><input type="checkbox" data-lote="' + i + '"></div></div>';
+		});
+		$$(".x-rowslot").forEach((s, i) => (s.innerHTML = ' <span class="x-btn small">+</span> <span class="x-btn small">⭐</span><span class="st" data-st="' + i + '" style="margin-left:6px;font-size:11px"></span>'));
+		$("#slot-legenda").innerHTML = '<div id="x-lote" style="display:flex;gap:8px;align-items:center;margin:6px 0;padding:5px 8px;background:#fffaf0;border:1px solid #e8cf8a;border-radius:6px;font-size:12px">' +
+			'<b>⭐ Em lote:</b> <label><input type="checkbox"> marcar todos</label> <span id="x-cont" style="color:#5a6b4a">0 processo(s) marcado(s)</span>' +
+			' <span class="x-btn small" id="x-exec" style="opacity:.5">⭐ Executar preferência nos marcados</span> <span id="x-lote-st" style="color:#1f4a7a;font-weight:bold"></span></div>';
+		const marcar = async i => { await S.click('[data-lote="' + i + '"]'); $('[data-lote="' + i + '"]').checked = true; };
+		const cont = n => { $("#x-cont").textContent = n + " processo(s) marcado(s)"; $("#x-exec").style.opacity = n ? "1" : ".5"; };
+		await S.titleCard("VÍDEO V45", "Preferências em lote (⭐ Em lote)", "A mesma preferência ou combo em vários processos da lista, um de cada vez.");
+		await S.cap("Cada linha ganhou uma <b>caixinha de marcar</b>, logo abaixo do <b>+</b> da primeira coluna.");
+		await marcar(0); cont(1);
+		await marcar(2); cont(2);
+		await marcar(3); cont(3);
+		S.hl("#x-lote", 2);
+		await S.cap("A barra <b>⭐ Em lote</b>, acima da tabela, conta os processos marcados (há também “marcar todos”).");
+		S.hlOff();
+		await S.click("#x-exec");
+		const pn = panelAt('<h4>⭐ Em lote — 3 processo(s) marcado(s)</h4><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">' +
+			'<div class="x-chip" id="card" style="display:block;border-radius:6px;padding:8px;margin:0"><b>★ Remessa MP</b><div style="color:#666">Realizar Remessa</div></div>' +
+			'<div class="x-chip" style="display:block;border-radius:6px;padding:8px;margin:0"><b>★ Concluso p/ sentença</b><div style="color:#666">Enviar Concluso</div></div></div>', "#x-exec", { w: 440 });
+		pn.style.left = "420px"; pn.style.top = "250px";
+		await S.cap("Escolha a preferência ou o combo — os mesmos cards da ⭐ da linha.");
+		await S.click("#card");
 		pn.remove();
-		await abrindo("Remessa Eletrônica para a Turma Recursal", 900);
-		popup("Remessa Eletrônica para a Turma Recursal",
-			'<table class="pj-form"><tr><td class="l">Observação:</td><td><span class="pj-input" style="width:420px;height:50px" id="f-obs"></span></td></tr></table>' +
-			'<div class="pj-btnbar" style="justify-content:flex-start;margin-left:190px"><span class="pj-btn primary">Confirmar</span><span class="pj-btn">Cancelar</span></div>',
-			{ top: 120, h: 300 });
-		const b = bar('Preencha o diálogo e clique em <span class="x-btn small" id="salvarpref">💾 Salvar como preferência</span>', { top: 78 });
-		await S.cap("Preencha a tela do Projudi como sempre…");
-		await S.type("#f-obs", "Recurso inominado - remessa à Turma Recursal");
-		await S.cap("…e clique em <b>💾 Salvar como preferência</b>.");
-		await S.click("#salvarpref");
-		modal('<h3>Salvar como preferência</h3><div class="x-note">Campos que serão gravados:</div><div class="x-list"><div>Observação: Recurso inominado - remessa à Turma Recursal</div></div><div style="margin-top:8px">Nome da preferência:</div><div class="x-field" id="nm"></div><div style="text-align:right;margin-top:10px"><span class="pj-btn">Cancelar</span> <span class="pj-btn primary" id="ok">Salvar</span></div>', { top: 170 });
-		await S.type("#nm", "Turma Recursal");
-		await S.click("#ok");
-		closeModal(); b.remove(); $(".x-popup").remove();
-		await S.click('[data-g="Remessa"]');
-		pn = panelAt(acaoPanel("Remessa", acoes(["Turma Recursal"])), '[data-g="Remessa"]', { w: 440 });
-		await S.cap("Pronto: a preferência <b>★ Turma Recursal</b> fica no painel. Um clique preenche a tela e pede a confirmação.", { ms: 4200 });
-		await S.click('[data-pref="Turma Recursal"]', { dx: -30 });
-		pn.remove();
-		await abrindo("Remessa Eletrônica para a Turma Recursal", 900);
-		popup("Remessa Eletrônica para a Turma Recursal",
-			'<table class="pj-form"><tr><td class="l">Observação:</td><td><span class="pj-input" style="width:420px;height:50px">Recurso inominado - remessa à Turma Recursal</span></td></tr></table>' +
-			'<div class="pj-btnbar" style="justify-content:flex-start;margin-left:190px"><span class="pj-btn primary">Confirmar</span><span class="pj-btn">Cancelar</span></div>',
-			{ top: 120, h: 300 });
-		const c = bar('Confirmar "Remessa Eletrônica para a Turma Recursal" com a preferência "Turma Recursal"? <span class="x-btn small green" id="sim">✅ Sim, executar</span> <span class="x-btn small">Cancelar</span>', { top: 78 });
-		await S.cap("Confira e clique em <b>✅ Sim, executar</b>.");
+		modal('<h3>Em lote (3 processos) · ★ Remessa MP</h3><div>Dispensar as juntadas pendentes de cada processo marcado antes de executar a preferência?</div><div style="color:#888;font-style:italic;margin-top:6px">A resposta vale para os 3 processos marcados.</div><div style="text-align:right;margin-top:12px"><span class="pj-btn primary" id="sim">✅ Sim, dispensar juntadas</span> <span class="pj-btn">Não, seguir sem isso</span></div>', { w: 540, top: 200 });
+		await S.cap("A pergunta sobre as pendências é feita <b>uma vez só</b>, para todos os marcados.", { ms: 3800 });
 		await S.click("#sim");
-		c.remove(); $(".x-popup").remove();
-		await S.endCard("Remessa → Remessa Eletrônica para a Turma Recursal → + Nova preferência → 💾 Salvar → ★ preferência → ✅ Sim, executar.");
+		closeModal();
+		for (const [k, i] of [[1, 0], [2, 2], [3, 3]]) {
+			$("#x-lote-st").textContent = "Processo " + k + " de 3: " + LISTA[i].n + "…";
+			const tr = $('#lista tr[data-i="' + i + '"]');
+			tr.style.outline = "2px solid #f0b400";
+			const st = $('[data-st="' + i + '"]');
+			st.textContent = "Dispensando juntadas…";
+			await sleep(700);
+			st.textContent = "✅ Juntada(s) dispensada(s) · ★ Remessa MP: abrindo…";
+			popup("Realizar Remessa — " + LISTA[i].n, dlgRemessa({ op: "op-mp", dest: "Ministério Público", fin: "Manifestação", prazo: "5" }), { top: 120, h: 480 });
+			bar('Confirmar “Realizar Remessa” com a preferência “Remessa MP”? <span class="x-btn small green" id="exec">✅ Sim, executar</span> <span class="x-btn small">Cancelar</span>', { top: 78 });
+			if (k === 1) await S.cap("O popup de cada processo abre preenchido: basta <b>✅ Sim, executar</b>.");
+			await S.click("#exec");
+			$(".x-bar").remove(); $(".x-popup").remove();
+			st.textContent = "✅ Juntada(s) dispensada(s) · ★ Remessa MP: concluída";
+			$('[data-lote="' + i + '"]').checked = false;
+			tr.style.outline = "";
+			cont(3 - k);
+		}
+		$("#x-lote-st").textContent = "Lote concluído: 3 executado(s)";
+		S.hl("#x-lote", 3);
+		await S.cap("Cada processo executado é desmarcado; os que não forem executados <b>continuam marcados</b>.");
+		S.hlOff();
+		await S.cap("No SEEU, a barra associa os localizadores do <b>📍 Localizador</b> em todos os marcados, sem confirmar um a um.", { ms: 4200 });
+		await S.endCard("Marque os processos → ⭐ Executar preferência nos marcados → card → uma resposta → ✅ Sim, executar em cada um.");
 	},
 };

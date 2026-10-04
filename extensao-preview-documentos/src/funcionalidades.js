@@ -219,16 +219,24 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					js: ["src/decursoPrazoSequencial.js"]
 				},
 				{
+					id: "previewProcesso",
+					nome: "Processo ao passar o mouse no Decurso de Prazo",
+					descricao: "Nas listas de decurso de prazo (Intimação, Auxiliares da Justiça e Citações/Notificações), mostra a tela do processo, na aba Movimentações, ao pousar o mouse sobre o número.",
+					js: ["src/previewProcesso.js"],
+					css: ["src/previewProcesso.css"],
+					sistemas: ["projudi"]
+				},
+				{
 					id: "listaTarefas",
 					nome: "Listas de tarefas",
-					descricao: "Bolinhas coloridas e tarefas escritas nas telas de análise.",
+					descricao: "Bolinhas coloridas e tarefas escritas nas telas de análise e de cumprimentos.",
 					js: ["src/listaTarefas.js"],
 					css: ["src/listaTarefas.css"]
 				},
 				{
 					id: "preferenciasNaLinha",
 					nome: "Minhas Preferências na linha (⭐)",
-					descricao: "Aplica preferências e combos direto na linha do processo (no SEEU, as do \"📍 Localizador\").",
+					descricao: "Aplica preferências e combos direto na linha do processo, ou em lote nos processos marcados (no SEEU, as do \"📍 Localizador\").",
 					js: ["src/preferenciasNaLinha.js"],
 					requer: ["listaTarefas", "acoesRapidas"]
 				}

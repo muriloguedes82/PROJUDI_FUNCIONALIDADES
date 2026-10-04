@@ -30,7 +30,12 @@
 		if (window.frameElement && (window.frameElement.hasAttribute("data-pdp-loader") || window.frameElement.hasAttribute("data-pdp-decurso") || window.frameElement.hasAttribute("data-pdp-dispensa"))) return;
 	} catch (e) { /* frame de outra origem */ }
 
-	const ROTAS = /\/processo\/(analisarJuntada|conclusao|intimacaoBusca)\.do$/;
+	// Telas de análise (Juntadas, Retorno de Conclusão, Decurso de Prazo) e
+	// de cumprimentos (Expedir Intimações, Expedir Citação/Notificação,
+	// Expedir Intimações de Auxiliares da Justiça e Demais Cumprimentos -
+	// esta para qualquer "Tipo de Cumprimento", que é só um filtro da mesma
+	// tela).
+	const ROTAS = /\/processo\/(analisarJuntada|conclusao|intimacaoBusca|expedirIntimacao|expedirCitacao|intimacaoNomeados|cumprimentoCartorio)\.do$/;
 	if (!ROTAS.test(location.pathname)) return;
 
 	const K_LISTAS = "pdpTarefasListas";
@@ -122,7 +127,9 @@
 		const tabelas = document.querySelectorAll("table.resultTable");
 		for (const t of tabelas) {
 			const th = t.querySelector("thead");
-			if (th && /seq\./i.test(th.textContent)) return t;
+			// "Seq." nas telas de análise; "Sequencial" ou só "Processo" nas
+			// de cumprimentos.
+			if (th && /seq\.|sequencial|processo/i.test(th.textContent)) return t;
 		}
 		return null;
 	}
@@ -223,6 +230,11 @@
 	// --- widget na linha ---------------------------------------------------------
 
 	function renderizarLinha(item) {
+		// Caixinha de marcar para executar preferências em lote, abaixo do
+		// "+" da primeira coluna (preferenciasNaLinha.js).
+		if (window.__pdpPreferenciasNaLinha && window.__pdpPreferenciasNaLinha.marcador) {
+			window.__pdpPreferenciasNaLinha.marcador(item.row, item.cnj);
+		}
 		let w = item.row.querySelector(".pdp-tl-linha");
 		if (!w || w.dataset.cnj !== item.cnj) {
 			if (w) w.remove();
@@ -294,6 +306,7 @@
 			renderizarLegenda(tabela, itens);
 			itens.forEach(renderizarLinha);
 			aplicarFiltro(itens);
+			if (window.__pdpPreferenciasNaLinha && window.__pdpPreferenciasNaLinha.atualizarLote) window.__pdpPreferenciasNaLinha.atualizarLote();
 			if (popover && !soTabela) preencherPopover();
 			if (modal && !soTabela) preencherGerenciador();
 		} finally {
