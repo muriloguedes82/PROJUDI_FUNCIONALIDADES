@@ -780,3 +780,62 @@ CENAS.V45 = {
 		await S.endCard("Marque os processos → ⭐ Executar preferência nos marcados → card → uma resposta → ✅ Sim, executar em cada um.");
 	},
 };
+
+// ------------------------------------------------------------------ V46
+// "Remessa Eletrônica para a Turma Recursal" no grupo Remessa das ações
+// rápidas (ACTION_GROUPS em src/quickActions.js). A tela do Projudi
+// (remessaAutos.do, "Envio do Processo ... para a Instância Superior") não
+// tem campos da remessa: a preferência é gravada sem campos e só abre a
+// tela e confirma (ACTIONS_PREF_SEM_CAMPOS).
+function telaEnvioInstanciaSuperior() {
+	return '<h3 style="margin:0 0 8px">Envio do Processo ' + PROC + ' para a Instância Superior</h3>' +
+		'<table class="pj-form"><tr><td class="l">Processo:</td><td><u>' + PROC + '</u></td></tr>' +
+		'<tr><td class="l">Vara:</td><td>Juizado Especial Cível de Exemplo</td></tr>' +
+		'<tr><td class="l">Classe Processual:</td><td>436 - Procedimento do Juizado Especial Cível</td></tr>' +
+		'<tr><td class="l">Polo Ativo:</td><td>JOSÉ EXEMPLO</td></tr>' +
+		'<tr><td class="l">Polo Passivo:</td><td>EMPRESA EXEMPLO S/A</td></tr></table>' +
+		'<h4 style="margin:10px 0 4px">Advogados</h4>' +
+		'<table class="pj-table" style="width:640px"><tr><th style="width:24px"></th><th>OAB</th><th>Advogado/Sociedade de Advogados</th><th>Partes</th></tr>' +
+		'<tr><td><input type="radio"></td><td>12345N-PR</td><td>JOÃO EXEMPLO</td><td>(Polo Ativo) JOSÉ EXEMPLO</td></tr></table>' +
+		'<div class="pj-btnbar" style="justify-content:flex-start"><span class="pj-btn">Adicionar</span><span class="pj-btn">Alterar</span><span class="pj-btn">Remover</span></div>' +
+		'<div class="pj-btnbar" style="justify-content:flex-start"><span class="pj-btn primary" id="f-confirmar">Confirmar</span><span class="pj-btn">Voltar</span></div>';
+}
+CENAS.V46 = {
+	arquivo: "V46-remessa-turma-recursal.mp4",
+	titulo: "Remessa para a Turma Recursal",
+	secao: "7.1",
+	async run() {
+		telaProcesso({ acoesAbertas: true });
+		const acoes = prefs => [{ nome: "Realizar Remessa" }, { nome: "Remessa Eletrônica para o Tribunal de Justiça" }, { nome: "Remessa Eletrônica para a Turma Recursal", prefs }];
+		await S.titleCard("VÍDEO V46", "Remessa para a Turma Recursal", "Nos Juizados Especiais, pelo botão Remessa — e com preferência.");
+		await S.cap("Clique no grupo <b>Remessa</b>.");
+		await S.click('[data-g="Remessa"]');
+		let pn = panelAt(acaoPanel("Remessa", acoes()), '[data-g="Remessa"]', { w: 440 });
+		await S.cap("Além das remessas de sempre, aparece <b>Remessa Eletrônica para a Turma Recursal</b>.", { ms: 3600 });
+		await S.cap("Para gravar uma preferência, clique em <b>+ Nova preferência</b> nela.");
+		await S.click('[data-nova="Remessa Eletrônica para a Turma Recursal"]');
+		pn.remove();
+		await abrindo("Remessa Eletrônica para a Turma Recursal", 900);
+		popup("Remessa Eletrônica para a Turma Recursal", telaEnvioInstanciaSuperior(), { top: 120, h: 470 });
+		const b = bar('Preencha o diálogo e clique em <span class="x-btn small" id="salvarpref">💾 Salvar como preferência</span>', { top: 78 });
+		await S.cap("Abre a tela <b>Envio do Processo para a Instância Superior</b>. Ela não tem campos da remessa: só confere os dados e os advogados.", { ms: 4400 });
+		await S.click("#salvarpref");
+		modal('<h3>Salvar como preferência</h3><div class="x-note">Esta tela não tem campos para gravar: a preferência só abre "Remessa Eletrônica para a Turma Recursal" e pede a confirmação (que clica em "Confirmar").</div><div style="margin-top:8px">Nome da preferência:</div><div class="x-field" id="nm"></div><div style="text-align:right;margin-top:10px"><span class="pj-btn">Cancelar</span> <span class="pj-btn primary" id="ok">Salvar</span></div>', { top: 170 });
+		await S.cap("A preferência guarda só a ação — a bolinha do advogado, que muda de processo para processo, fica de fora.", { ms: 4200 });
+		await S.type("#nm", "Turma Recursal");
+		await S.click("#ok");
+		closeModal(); b.remove(); $(".x-popup").remove();
+		await S.click('[data-g="Remessa"]');
+		pn = panelAt(acaoPanel("Remessa", acoes(["Turma Recursal"])), '[data-g="Remessa"]', { w: 440 });
+		await S.cap("Pronto: a preferência <b>★ Turma Recursal</b> fica no painel.", { ms: 3200 });
+		await S.click('[data-pref="Turma Recursal"]', { dx: -30 });
+		pn.remove();
+		await abrindo("Remessa Eletrônica para a Turma Recursal", 900);
+		popup("Remessa Eletrônica para a Turma Recursal", telaEnvioInstanciaSuperior(), { top: 120, h: 470 });
+		const c = bar('Confirmar "Remessa Eletrônica para a Turma Recursal" com a preferência "Turma Recursal"? <span class="x-btn small green" id="sim">✅ Sim, executar</span> <span class="x-btn small">Cancelar</span>', { top: 78 });
+		await S.cap("Confira a tela e clique em <b>✅ Sim, executar</b> — a extensão clica em <b>Confirmar</b>.", { ms: 3600 });
+		await S.click("#sim");
+		c.remove(); $(".x-popup").remove();
+		await S.endCard("Remessa → Turma Recursal → + Nova preferência → 💾 Salvar (sem campos) → ★ preferência → ✅ Sim, executar (Confirmar).");
+	},
+};

@@ -66,7 +66,9 @@
 			id: "remessa",
 			title: "Remessa",
 			icon: "📦",
-			actions: ["Realizar Remessa", "Remessa Eletrônica para o Tribunal de Justiça"],
+			// "Remessa Eletrônica para a Turma Recursal" só aparece nos
+			// Juizados Especiais (logo abaixo da do Tribunal de Justiça).
+			actions: ["Realizar Remessa", "Remessa Eletrônica para o Tribunal de Justiça", "Remessa Eletrônica para a Turma Recursal"],
 		},
 		{
 			id: "ordenacoes",
@@ -684,12 +686,13 @@
 	// "Movimentar a Partir Desta Movimentação"), `openDialog('...', ...)` /
 	// `openDialogMaximized('...', ...)` (maioria dos itens do painel
 	// Ações) e `confirmaRemessaTribunalJustica('...')` (Remessa Eletrônica
-	// para o Tribunal de Justiça). Resolve relativa a `baseUrl` (a URL da
-	// própria página onde o onclick foi encontrado).
+	// para o Tribunal de Justiça; aceita qualquer `confirmaRemessa...(`,
+	// como a da Turma Recursal nos Juizados). Resolve relativa a `baseUrl`
+	// (a URL da própria página onde o onclick foi encontrado).
 	function extractUrlFromOnclick(onclick, baseUrl) {
 		if (!onclick) return null;
 		const match = onclick.match(
-			/(?:document\.location\.href\s*=\s*|open(?:DialogMaximized|Dialog)\(|confirmaRemessaTribunalJustica\()\s*'([^']+)'/
+			/(?:document\.location\.href\s*=\s*|open(?:DialogMaximized|Dialog)\(|confirmaRemessa\w*\()\s*'([^']+)'/
 		);
 		if (!match) return null;
 		try {
@@ -708,7 +711,9 @@
 	function dialogResultForLink(label, link, acoesUrl) {
 		const dialogUrl = extractUrlFromOnclick(link.getAttribute("onclick"), acoesUrl);
 		if (dialogUrl) return { url: dialogUrl, acoesUrl: acoesUrl };
-		if (ACTIONS_NEEDING_ACOES_PARENT.indexOf(label) !== -1) return { url: null, acoesUrl: acoesUrl };
+		if (ACTIONS_NEEDING_ACOES_PARENT.indexOf(label) !== -1 || ACTIONS_ACOES_PARENT_SEM_URL.indexOf(label) !== -1) {
+			return { url: null, acoesUrl: acoesUrl };
+		}
 		return null;
 	}
 
@@ -2176,7 +2181,9 @@
 				return;
 			}
 			const custom = getCustomAction(label);
+			const ignorados = ACTIONS_PREF_SEM_CAMPOS[label] || null;
 			const fields = captureFormFields(form).filter(function (f) {
+				if (ignorados && ignorados.indexOf(f.name) !== -1) return false;
 				return !custom || !custom.prefFields || custom.prefFields.indexOf(f.name) !== -1;
 			});
 			// Ação personalizada com `captureExtra(doc)`: o que a preferência
@@ -2215,14 +2222,16 @@
 				}
 				if (extra && extra.movimento) movimentoTexto = extra.movimento.texto;
 			}
-			if (!fields.length && !(custom && typeof custom.captureExtra === "function")) {
+			if (!fields.length && !(custom && typeof custom.captureExtra === "function") && !ignorados) {
 				alert('Nenhum campo preenchido ou selecionado no diálogo "' + label + '". Preencha o que a preferência deve guardar e salve de novo.');
 				return;
 			}
 			// Mostra o que vai ser gravado: dá para conferir na hora se algum
 			// campo (ex.: uma lista que carrega depois) ficou de fora.
 			const name = prompt(
-				"Campos que serão gravados:\n" + (fields.length ? describeFields(fields) : "") +
+				(!fields.length && ignorados
+					? 'Esta tela não tem campos para gravar: a preferência só abre "' + label + '" e pede a confirmação (que clica em "Confirmar").'
+					: "Campos que serão gravados:\n" + (fields.length ? describeFields(fields) : "")) +
 					(extra && extra.descricao ? (fields.length ? "\n" : "") + extra.descricao : "") +
 					(movimentoTexto ? "\nMovimento de referência: " + movimentoTexto + " (a preferência parte do movimento mais recente com esse nome; se não houver, pergunta antes de seguir a regra geral)" : "") +
 					"\n\nSe algum estiver errado, cancele, ajuste o diálogo e salve de novo.\n\nNome para esta preferência de \"" + label + '":',
@@ -2374,6 +2383,10 @@
 	function startNewPreferenceCapture(label) {
 		closePanel();
 		removeConfirmBar();
+		if (ACTIONS_TELA_INTEIRA.indexOf(label) !== -1) {
+			startNewPreferenceCaptureViaChain(label, origemTelaAtual());
+			return;
+		}
 		const link = findActionLink(label);
 		if (!link) {
 			alert('Não foi possível localizar a ação "' + label + '" na tela atual.');
@@ -2388,6 +2401,10 @@
 	function applyPreference(label, pref, editing) {
 		closePanel();
 		removeCaptureToolbar();
+		if (ACTIONS_TELA_INTEIRA.indexOf(label) !== -1) {
+			applyPreferenceViaChain(label, pref, editing, origemTelaAtual());
+			return;
+		}
 		const link = findActionLink(label);
 		if (!link) {
 			alert('Não foi possível localizar a ação "' + label + '" na tela atual.');
@@ -2433,8 +2450,38 @@
 		"Solicitar Antecedentes Criminais",
 	];
 
+	// Ações que normalmente abrem como as demais (URL do diálogo tirada do
+	// `onclick`), mas que, se o link vier num formato que a extensão não
+	// reconhece, abrem pelo clique no próprio link dentro da tela de Ações
+	// (como as de ACTIONS_NEEDING_ACOES_PARENT) em vez de falhar.
+	const ACTIONS_ACOES_PARENT_SEM_URL = ["Remessa Eletrônica para a Turma Recursal"];
+
+	// Ações cuja tela NÃO é uma janela interna da tela de Ações: o link troca
+	// a página inteira (ex.: "Envio do Processo ... para a Instância
+	// Superior", remessaAutos.do, da remessa à Turma Recursal). Mesmo já na
+	// tela de Ações, "+ Nova preferência" e as preferências abrem essa tela
+	// no popup desta extensão (como no modo "hop") — clicar no link nativo
+	// trocaria a página e a extensão perderia a barra de captura/confirmação.
+	const ACTIONS_TELA_INTEIRA = ["Remessa Eletrônica para a Turma Recursal"];
+
+	// Ações cuja tela não tem campos da remessa em si, só o botão
+	// "Confirmar" (e controles de outra coisa, como a bolinha de cada
+	// advogado do processo, que só vale naquele processo). A preferência
+	// pode ser gravada sem nenhum campo — ela só abre a tela e pede o
+	// "Sim, executar", que clica no "Confirmar". Valor: nomes de campos que
+	// nunca entram na preferência.
+	const ACTIONS_PREF_SEM_CAMPOS = {
+		"Remessa Eletrônica para a Turma Recursal": ["advogadoSelecionado"],
+	};
+
+	function origemTelaAtual() {
+		return { doc: document, url: window.location.href };
+	}
+
 	function needsAcoesParent(label, result) {
-		return ACTIONS_NEEDING_ACOES_PARENT.indexOf(label) !== -1 && !!(result && result.acoesUrl);
+		if (!(result && result.acoesUrl)) return false;
+		if (ACTIONS_NEEDING_ACOES_PARENT.indexOf(label) !== -1) return true;
+		return !result.url && ACTIONS_ACOES_PARENT_SEM_URL.indexOf(label) !== -1;
 	}
 
 	// Espera o diálogo nativo (iframe interno da tela de Ações) terminar de
@@ -2624,12 +2671,13 @@
 		});
 	}
 
-	function startNewPreferenceCaptureViaChain(label) {
+	// `origem` (opcional): ver resolveDialogUrl.
+	function startNewPreferenceCaptureViaChain(label, origem) {
 		const cancelToken = { cancelled: false };
 		showLoadingOverlay(label, function () {
 			cancelToken.cancelled = true;
 		}, movimentoBaseEscolhido());
-		resolveDialogUrl(label).then(function (result) {
+		resolveDialogUrl(label, origem).then(function (result) {
 			removeLoadingOverlay();
 			if (cancelToken.cancelled) return;
 			if (result.failed) {
