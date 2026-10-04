@@ -324,15 +324,50 @@ CENAS.V38 = {
 // Cards dos sistemas do CNJ ao lado da balança do Menu (src/sistemasCnj.js,
 // nomes e cores em src/sistemasCnjLista.js). Fila da balança para a
 // esquerda (row-reverse), com a largura de cada nome.
+function cardCnj(s) {
+	const el = document.createElement("div");
+	el.id = "x-cnj-" + s.id;
+	el.title = s.nome + " (" + (s.orgao || "CNJ") + ")";
+	el.textContent = s.rotulo;
+	el.style.cssText = "height:24px;box-sizing:border-box;padding:0 6px;border-radius:6px;background:linear-gradient(135deg," + s.cor.claro + "," + s.cor.escuro + ");border:1px solid " + s.cor.borda + ";color:" + s.cor.texto + ";font:700 11px/1 Arial,sans-serif;white-space:nowrap;display:flex;align-items:center;box-shadow:0 1px 4px rgba(0,0,0,.25)";
+	return el;
+}
+const ALFA_CNJ = l => l.slice().sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" }));
+// Fila em ordem alfabética + card "Outros" colado à balança; painel do
+// "Outros" (oculto) com os sistemas marcados `outros: true`.
 function iconesSistemasCnj() {
 	const ic = $("#x-menuicon");
 	const fila = add('<div id="x-cnj-fila"></div>', ic.parentElement);
-	fila.style.cssText = "position:absolute;right:42px;top:50px;z-index:30;display:flex;flex-direction:row-reverse;gap:6px";
-	self.PDP_SISTEMAS_CNJ.forEach(s => {
-		const el = add('<div id="x-cnj-' + s.id + '" title="' + s.nome + " (" + (s.orgao || "CNJ") + ')">' + s.rotulo + "</div>", fila);
-		el.style.cssText = "height:24px;box-sizing:border-box;padding:0 6px;border-radius:6px;background:linear-gradient(135deg," + s.cor.claro + "," + s.cor.escuro + ");border:1px solid " + s.cor.borda + ";color:" + s.cor.texto + ";font:700 11px/1 Arial,sans-serif;white-space:nowrap;display:flex;align-items:center;box-shadow:0 1px 4px rgba(0,0,0,.25)";
-	});
+	fila.style.cssText = "position:absolute;right:42px;top:50px;z-index:30;display:flex;gap:6px";
+	ALFA_CNJ(self.PDP_SISTEMAS_CNJ.filter(s => !s.outros)).forEach(s => fila.append(cardCnj(s)));
+	const outros = cardCnj({ id: "outros", nome: "Outros sistemas", orgao: "extensão", rotulo: "Outros ▾", cor: { claro: "#ffffff", escuro: "#e4e7eb", borda: "#8a939c", texto: "#3d4650" } });
+	fila.append(outros);
+	const painel = add('<div id="x-cnj-painel"><div style="font-weight:bold;margin-bottom:6px;color:#333">Outros sistemas</div><div id="x-cnj-lista" style="display:flex;flex-wrap:wrap;gap:6px"></div><div style="margin-top:8px;color:#777">Clique para abrir. Arraste um card daqui para cima de um card da fila para trocar os dois de lugar; arraste um card da fila para cá para guardá-lo.</div></div>', ic.parentElement);
+	painel.style.cssText = "position:absolute;right:42px;top:82px;z-index:31;width:270px;box-sizing:border-box;padding:8px 10px;background:#fff;border:1px solid #c8ced6;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.18);font:11px/1.35 Arial,sans-serif;color:#444;display:none";
+	ALFA_CNJ(self.PDP_SISTEMAS_CNJ.filter(s => s.outros)).forEach(s => $("#x-cnj-lista").append(cardCnj(s)));
 	return fila;
+}
+function painelCnj(aberto) {
+	$("#x-cnj-painel").style.display = aberto ? "block" : "none";
+	$("#x-cnj-outros").textContent = "Outros " + (aberto ? "▴" : "▾");
+}
+// Anima o card `el` até a posição do card `alvo` (efeito de arrastar).
+async function arrastarCnj(el, alvo, ms = 1300) {
+	const r0 = el.getBoundingClientRect(), r1 = alvo.getBoundingClientRect();
+	const dx = r1.left + r1.width / 2 - (r0.left + r0.width / 2), dy = r1.top + r1.height / 2 - (r0.top + r0.height / 2);
+	el.style.position = "relative";
+	el.style.zIndex = "40";
+	alvo.style.outline = "2px dashed #2a6cb3";
+	alvo.style.outlineOffset = "2px";
+	await S.move("#" + el.id);
+	await Promise.all([
+		S.move("#" + el.id, { dx: dx, dy: dy, ms: ms }),
+		tween(ms, k => { el.style.transform = "translate(" + dx * k + "px," + dy * k + "px) scale(1.08)"; }),
+	]);
+	el.style.transform = "";
+	el.style.position = "";
+	el.style.zIndex = "";
+	alvo.style.outline = "";
 }
 CENAS.V39 = {
 	arquivo: "V39-sistemas-do-cnj.mp4",
@@ -340,26 +375,28 @@ CENAS.V39 = {
 	secao: "8.7",
 	async run() {
 		telaProcesso({});
-		const fila = iconesSistemasCnj();
-		await S.titleCard("VÍDEO V39", "Sistemas do CNJ", "SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Renajud e o Sistema Uniformizado num popup, sem sair do processo.");
+		iconesSistemasCnj();
+		await S.titleCard("VÍDEO V39", "Sistemas do CNJ e outros", "Cards ao lado da balança abrem SerpJud, BNMP, Sisbajud, Renajud e outros num popup, sem sair do processo.");
 		S.hl("#x-cnj-fila", 4);
-		await S.cap("No alto da tela, à esquerda da balança dourada do Menu, ficam os cards dos <b>sistemas</b>, cada um com o nome e a sua cor.", { ms: 4600, bottom: true });
+		await S.cap("No alto da tela, à esquerda da balança dourada do Menu, ficam os cards dos <b>sistemas</b>, em <b>ordem alfabética</b>.", { ms: 4600, bottom: true });
 		S.hlOff();
 		await S.cap("Passe o mouse sobre um card para ver o nome completo do sistema.", { bottom: true });
-		await S.cap("Para mudar a ordem, clique num card e, sem soltar, <b>arraste-o para o lado</b>.", { bottom: true });
-		const arrastado = $("#x-cnj-infojud");
-		const alvo = $("#x-cnj-cniep");
-		await S.move("#x-cnj-infojud");
-		arrastado.style.position = "relative";
-		arrastado.style.zIndex = "31";
-		const dx = alvo.getBoundingClientRect().left - arrastado.getBoundingClientRect().left;
-		await Promise.all([
-			S.move("#x-cnj-infojud", { dx: dx, ms: 1400 }),
-			tween(1400, k => { arrastado.style.transform = "translateX(" + dx * k + "px) scale(1.08)"; }),
-		]);
-		fila.insertBefore(arrastado, alvo);
-		arrastado.style.transform = "";
-		await S.cap("Solte no lugar desejado: a nova ordem fica guardada como sua preferência e vai junto no <b>⬇ Exportar</b> do Menu.", { ms: 4200, bottom: true });
+		await S.cap("O card <b>Outros</b>, colado à balança, guarda mais sistemas. Clique nele.", { bottom: true });
+		await S.click("#x-cnj-outros");
+		painelCnj(true);
+		await S.cap("O painel traz <b>COPEL</b>, <b>FUPEN</b>, <b>SANEPAR</b> e <b>SESP</b>. Clique num deles para abri-lo.", { ms: 4400, bottom: true });
+		await S.cap("Para trazer um deles para a fila, arraste-o <b>para cima de um card da fila</b> — por exemplo, o SANEPAR sobre o CNIEP.", { ms: 4600, bottom: true });
+		const sanepar = $("#x-cnj-sanepar"), cniep = $("#x-cnj-cniep");
+		await arrastarCnj(sanepar, cniep);
+		cniep.replaceWith(sanepar);
+		$("#x-cnj-lista").replaceChildren(...ALFA_CNJ(self.PDP_SISTEMAS_CNJ.filter(s => (s.outros && s.id !== "sanepar") || s.id === "cniep")).map(s => s.id === "cniep" ? cniep : $("#x-cnj-" + s.id)));
+		await S.cap("Os dois trocam de lugar: o SANEPAR fica na fila e o CNIEP vai para dentro do <b>Outros</b>.", { ms: 4400, bottom: true });
+		painelCnj(false);
+		await S.cap("Para mudar a posição na fila, arraste um card para o lado. Para guardá-lo, arraste-o para cima do <b>Outros</b>.", { ms: 4600, bottom: true });
+		const sniper = $("#x-cnj-sniper");
+		await arrastarCnj(sniper, $("#x-cnj-outros"));
+		$("#x-cnj-lista").append(sniper);
+		await S.cap("Tudo fica guardado como sua preferência — inclusive depois de atualizar a extensão — e vai junto no <b>⬇ Exportar</b> do Menu.", { ms: 4600, bottom: true });
 		await S.cap("Um clique sem arrastar abre o sistema. Clique, por exemplo, no <b>SerpJud</b>.", { bottom: true });
 		await S.click("#x-cnj-serpjud");
 		await abrindo("SerpJud", 1000);
