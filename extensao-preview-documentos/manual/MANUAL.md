@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.21.0 |
-| **Versão da extensão** | 2.21.0 |
-| **Data desta versão** | 03/10/2026 |
+| **Versão do manual** | 2.22.0 |
+| **Versão da extensão** | 2.22.0 |
+| **Data desta versão** | 04/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -74,7 +74,7 @@
    - 8.4 [Editar Partes/Outros](#cap-8-4)
    - 8.5 [Colar processo](#cap-8-5)
    - 8.6 [Oráculo](#cap-8-6)
-   - 8.7 [Sistemas do CNJ (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Renajud, Sistema Uniformizado)](#cap-8-7)
+   - 8.7 [Sistemas do CNJ e outros (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Renajud, Sistema Uniformizado, COPEL, FUPEN, SANEPAR, SESP)](#cap-8-7)
    - 8.8 [Localizador (só no SEEU)](#cap-8-8)
    - 8.9 [Alterar Classe/Assuntos](#cap-8-9)
 9. [Telas de análise, mesas e cumprimentos](#cap-9)
@@ -139,7 +139,7 @@ Não é preciso saber nada de informática além disso.
 | Sistema | O que funciona |
 |---|---|
 | **Projudi (TJPR)** | Todas as funções deste manual |
-| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)), os cards do BNMP e do S.U. (Sistema Uniformizado) ao lado da balança ([8.7](#cap-8-7)) e o botão **📍 Localizador** ([8.8](#cap-8-8)), que só existe no SEEU — também pela **⭐** das listas de juntadas e de conclusões ([9.3](#cap-9-3)). Vale também para o **SEEU de treino** (ambiente de testes) |
+| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)), os cards do BNMP, da SESP Intranet e do S.U. (Sistema Uniformizado) ao lado da balança ([8.7](#cap-8-7)) e o botão **📍 Localizador** ([8.8](#cap-8-8)), que só existe no SEEU — também pela **⭐** das listas de juntadas e de conclusões ([9.3](#cap-9-3)). Vale também para o **SEEU de treino** (ambiente de testes) |
 
 A extensão **não funciona** quando o usuário está logado com perfil de
 advogado(a) ou de assessor(a) de advogado — veja [10.3](#cap-10-3).
@@ -268,7 +268,8 @@ tela, "flutuando" sobre a página.
 - O **ícone da balança** (canto superior direito, abaixo de **Sair**) não faz
   parte desta barra: ele abre o **Menu da extensão** — veja [2.6](#cap-2-6).
   Os **cards coloridos com o nome** de cada sistema, logo à esquerda dela, abrem os **sistemas do CNJ**
-  (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud e Renajud, e o Sistema Uniformizado do TJPR) — veja [8.7](#cap-8-7).
+  (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud e Renajud, e o Sistema Uniformizado do TJPR), e o card **Outros** guarda
+  COPEL, FUPEN, SANEPAR e SESP Intranet — veja [8.7](#cap-8-7).
 - Passe o mouse sobre qualquer botão para ver uma dica.
 - A barra acompanha a rolagem da página. Ela se alinha ao quadro
   **Pendências**; quando a tela não tem esse quadro, alinha-se ao quadro
@@ -375,7 +376,7 @@ computador:
 
 - **⬇ Exportar**: baixa um arquivo `.json` com as suas preferências, combos,
   listas de tarefas, contatos do WhatsApp, destinatários e remetentes de
-  e-mail, destaques de movimentações, a ordem dos cards dos sistemas do CNJ
+  e-mail, destaques de movimentações, a ordem dos cards dos sistemas (e o que fica no **Outros**)
   ([8.7](#cap-8-7)) e as funções desligadas em cada sistema.
 - **⬆ Importar**: no outro computador (com a mesma extensão instalada), escolha
   o arquivo. O Menu mostra um **resumo do que ele contém**; depois de você
@@ -1108,7 +1109,7 @@ Bom saber sobre essas preferências:
 <a id="cap-8"></a>
 ## 8. Atalhos para telas do processo
 
-*Só no Projudi* (exceto o [8.8](#cap-8-8), *só no SEEU*, e os cards do BNMP e do S.U. do [8.7](#cap-8-7), que também aparecem no SEEU). Os atalhos de 8.1
+*Só no Projudi* (exceto o [8.8](#cap-8-8), *só no SEEU*, e os cards do BNMP, da SESP e do S.U. do [8.7](#cap-8-7), que também aparecem no SEEU). Os atalhos de 8.1
 a 8.6 abrem num **popup** sobre a tela atual — a aba do processo não sai do
 lugar. Feche com **✕ Fechar**.
 
@@ -1297,12 +1298,12 @@ da parte sem ir até a ficha dela.
 botão Oráculo dela.
 
 <a id="cap-8-7"></a>
-### 8.7 Sistemas do CNJ (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Renajud, Sistema Uniformizado)
+### 8.7 Sistemas do CNJ e outros (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Renajud, Sistema Uniformizado, COPEL, FUPEN, SANEPAR, SESP)
 
 ▶ [**Vídeo V39** — Sistemas do CNJ](videos/V39-sistemas-do-cnj.mp4)
 
-**Para que serve:** abrir sistemas do CNJ usados no dia a dia sem sair do
-processo.
+**Para que serve:** abrir sistemas do CNJ e de outros órgãos usados no dia
+a dia sem sair do processo.
 
 **Onde fica:** no alto da tela, numa fileira de **cards coloridos, com o
 nome de cada sistema escrito**, logo **à esquerda da balança dourada** do
@@ -1310,28 +1311,60 @@ Menu da extensão (abaixo do link **Sair**). Os cards têm a altura da balança
 e acompanham a balança ao rolar a página. **Só aparecem com um processo
 aberto**, e só na **tela principal** dele — na Mesa, nas listas, nas demais
 telas e dentro dos popups (Advogados, Partes, ações rápidas, janelas do
-Projudi) fica só a balança. **No
-SEEU** aparecem só os cards **BNMP** e **S.U.** (também só com um processo
-aberto). Na ordem padrão, da balança para a esquerda:
+Projudi) fica só a balança. **No SEEU** aparecem só os cards **BNMP**,
+**SESP** e **S.U.** (também só com um processo aberto), sem o card
+**Outros**.
+
+**Ordem:** por padrão, os cards ficam em **ordem alfabética** do nome do
+sistema, da esquerda para a direita. Você pode reorganizá-los como quiser
+(veja abaixo); a sua arrumação fica guardada.
 
 | Card | Sistema | Para quê |
 |---|---|---|
-| **SerpJud** (verde-água) | SERP-JUD | Registros públicos (cartórios de imóveis, títulos, pessoas) |
-| **CNIEP** (lilás) | CNIEP | Inspeções em estabelecimentos penais |
 | **BNMP** (azul-lavanda) | BNMP 3.0 | Banco Nacional de Medidas Penais e Prisões (mandados) — Projudi **e SEEU** |
+| **CNIEP** (lilás) | CNIEP | Inspeções em estabelecimentos penais |
+| **Infojud** (coral) | Infojud | Declarações e dados da Receita Federal (pelo e-CAC) |
 | **PrevJud** (pêssego) | PrevJud | Informações previdenciárias |
+| **Renajud** (orquídea) | Renajud | Restrições judiciais sobre veículos (bloqueio de transferência, licenciamento e circulação) |
+| **SerpJud** (verde-água) | SERP-JUD | Registros públicos (cartórios de imóveis, títulos, pessoas) |
 | **Sisbajud** (verde-claro) | Sisbajud | Ordens a bancos (bloqueio de valores, informações) |
+| **S.U.** (cinza-azulado) | Sistema Uniformizado | Sistema do TJPR de fundos, custas e guias — Projudi **e SEEU** |
 | **SNGB** (rosa) | SNGB | Gestão de bens apreendidos |
 | **Sniper** (azul-claro) | Sniper | Investigação patrimonial |
-| **Infojud** (coral) | Infojud | Declarações e dados da Receita Federal (pelo e-CAC) |
-| **Renajud** (orquídea) | Renajud | Restrições judiciais sobre veículos (bloqueio de transferência, licenciamento e circulação) |
-| **S.U.** (cinza-azulado) | Sistema Uniformizado | Sistema do TJPR de fundos, custas e guias — Projudi **e SEEU** |
+| **Outros ▾** (branco) | — | Abre o painel com os sistemas guardados (só no Projudi) |
 
-**Mudar a ordem dos cards:** clique num card e, **sem soltar**, arraste-o
-para a direita ou para a esquerda; os outros abrem espaço. Solte no lugar
-desejado. A nova ordem fica guardada como sua preferência (vale para todas
-as abas do Projudi) e vai junto no **⬇ Exportar** do Menu
-([2.6](#cap-2-6)). Um clique sem arrastar abre o sistema normalmente.
+**Card Outros** (só no Projudi): fica colado à balança. Clique nele para abrir
+um painel com os sistemas guardados, também em ordem alfabética. No começo,
+o painel traz:
+
+| Card | Sistema | Para quê |
+|---|---|---|
+| **COPEL** (areia) | COPEL | Companhia Paranaense de Energia |
+| **FUPEN** (oliva) | FUPEN | Fundo Penitenciário do Paraná (DEPEN-PR) |
+| **SANEPAR** (azul-água) | SANEPAR | Portal da Sanepar para o Poder Judiciário |
+| **SESP** (malva) | SESP Intranet | Intranet da Secretaria da Segurança Pública do Paraná — no SEEU fica na fila, ao lado do BNMP |
+
+Clique num card do painel para abrir o sistema. Para fechar o painel, clique
+de novo em **Outros**, clique fora dele ou tecle **Esc**.
+
+**Arrumar os cards como preferir:**
+
+- **Mudar a posição:** clique num card da fila e, **sem soltar**, arraste-o
+  para a direita ou para a esquerda; os outros abrem espaço. Solte no lugar
+  desejado.
+- **Trazer um sistema do Outros para a fila:** abra o **Outros**, clique num
+  card do painel e, **sem soltar**, arraste-o **para cima de um card da
+  fila**. Os dois trocam de lugar: o novo fica visível no lugar do outro, e
+  o substituído vai para dentro do **Outros**.
+- **Guardar um card da fila no Outros:** arraste-o **para cima do card
+  Outros** (ou do painel aberto) e solte.
+
+Um clique sem arrastar abre o sistema normalmente. A arrumação fica
+guardada como sua preferência: vale para todas as abas, continua depois das
+atualizações da extensão e vai junto no **⬇ Exportar** do Menu
+([2.6](#cap-2-6)), para ser trazida de volta com o **⬆ Importar**. Quem já
+tinha mudado a ordem antes desta versão continua com a sua ordem; os
+sistemas novos entram no **Outros**.
 
 **Passo a passo:**
 
@@ -1358,6 +1391,8 @@ as abas do Projudi) e vai junto no **⬇ Exportar** do Menu
 - O **Infojud** é da Receita Federal e abre pelo **e-CAC**: o acesso é com
   o certificado digital (ou gov.br). Se o e-CAC não abrir no popup, use
   **🗂 Nova aba** ou **🖥 Segundo monitor**.
+- A **SESP Intranet** é da rede interna do Estado: só abre em computadores
+  ligados a essa rede.
 
 ---
 
@@ -1937,7 +1972,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V36](videos/V36-dispensar-cumprimentos.mp4) | [Dispensar cumprimentos para expedir](videos/V36-dispensar-cumprimentos.mp4) | [6.4](#cap-6-4) | 0:29 |
 | [V37](videos/V37-escolher-a-movimentacao.mp4) | [Escolher a movimentação das Ações rápidas](videos/V37-escolher-a-movimentacao.mp4) | [7.7](#cap-7-7) | 1:14 |
 | [V38](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [Preferência a partir de um movimento](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [7.7](#cap-7-7) | 0:56 |
-| [V39](videos/V39-sistemas-do-cnj.mp4) | [Sistemas do CNJ](videos/V39-sistemas-do-cnj.mp4) | [8.7](#cap-8-7) | 0:53 |
+| [V39](videos/V39-sistemas-do-cnj.mp4) | [Sistemas do CNJ](videos/V39-sistemas-do-cnj.mp4) | [8.7](#cap-8-7) | 1:14 |
 | [V40](videos/V40-localizador-seeu.mp4) | [Localizador (SEEU)](videos/V40-localizador-seeu.mp4) | [8.8](#cap-8-8) | 1:02 |
 | [V41](videos/V41-localizador-na-linha-seeu.mp4) | [Localizador pela ⭐ da lista (SEEU)](videos/V41-localizador-na-linha-seeu.mp4) | [9.3](#cap-9-3) | 0:31 |
 | [V42](videos/V42-alterar-classe-e-assuntos.mp4) | [Alterar Classe/Assuntos](videos/V42-alterar-classe-e-assuntos.mp4) | [8.9](#cap-8-9) | 0:44 |
@@ -1957,6 +1992,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.22.0 | 04/10/2026 | Seção 8.7: novo card **Outros ▾** (só no Projudi), com **COPEL**, **FUPEN**, **SANEPAR** e **SESP Intranet**; arrastar um card do painel para cima de um card da fila troca os dois, e arrastar um card da fila para o **Outros** o guarda lá. Os cards passam a ter **ordem alfabética** como padrão (quem já tinha mudado a ordem mantém a sua). No SEEU, novo card **SESP** ao lado do BNMP (1.3 e 8). A arrumação vai no Exportar/Importar (2.6). Vídeo V39 regravado. |
 | 2.21.0 | 03/10/2026 | **⭐ Em lote** (9.3): caixinha de marcar abaixo do **+** de cada linha e barra **⭐ Em lote** acima da tabela, em todas as telas com a ⭐ (Juntadas, Retorno de Conclusão, Decurso de Prazo, cumprimentos e, no SEEU, Juntadas e Conclusão). No Projudi, a pergunta sobre dispensar/finalizar é feita uma vez para todos e cada processo continua pedindo o seu ✅ Sim, executar; no SEEU, os localizadores são associados em todos os marcados. Descrição da função no Menu atualizada e vídeo V45. |
 | 2.20.0 | 03/10/2026 | Listas de tarefas (9.2) e **⭐** na linha do processo (9.3) também nas telas de cumprimentos: **Expedir Intimações**, **Expedir Citação**, **Expedir Notificação**, **Expedir Intimações de Auxiliares da Justiça** e **Demais Cumprimentos** (para qualquer Tipo de Cumprimento). Nessas telas o ⭐ verifica o quadro Pendências do processo e só pergunta se deve dispensar as juntadas e/ou finalizar a conclusão quando elas existirem; sem pendências, abre a preferência direto. Catálogo do Menu atualizado (2.6). |
 | 2.19.0 | 03/10/2026 | Nova seção **9.8** (só no Projudi): nas listas de **Decurso de Prazo** (Intimação, Auxiliares da Justiça e Citações/Notificações), pousar o mouse sobre o **número do processo** abre a tela dele num painel, já na aba **Movimentações**, com **📌 Fixar**, **Abrir em nova aba** e **✕**. Nova função na tabela da 2.6 (29 funções no Projudi) e vídeo V44. |

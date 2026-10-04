@@ -4,8 +4,11 @@
 // (background.js), que só abre em nova aba/segundo monitor os endereços
 // desta lista. Ordem padrão: do mais próximo da balança para a esquerda (o
 // usuário pode reordenar arrastando; a ordem dele fica em
-// "pdpSistemasCnjOrdem", no chrome.storage.local).
+// "pdpSistemasCnjOrdem", no chrome.storage.local). A ordem da lista abaixo
+// não importa: o padrão é a ordem ALFABÉTICA do `nome` (ver sistemasCnj.js).
 //
+// `outros`: true = no Projudi começa guardado no card "Outros" (o usuário
+// pode trazê-lo para a fila arrastando).
 // `orgao`: quem mantém o sistema, no título do popup e na dica (padrão: CNJ).
 // `seeu`: true = o ícone também aparece no SEEU (os demais, só no Projudi).
 // `cor`: fundo (dois tons pastel), borda e texto do card - uma cor por
@@ -97,5 +100,47 @@ self.PDP_SISTEMAS_CNJ = Object.freeze([
 		url: "https://portal.tjpr.jus.br/fundos/index.do?perform=listar",
 		seeu: true,
 		cor: { claro: "#e8edf2", escuro: "#c4d0dc", borda: "#6b7f93", texto: "#34495e" }
+	},
+	{
+		id: "copel",
+		rotulo: "COPEL",
+		nome: "COPEL",
+		orgao: "Copel",
+		titulo: "COPEL — Companhia Paranaense de Energia",
+		url: "https://www.copel.com/externo/public/index.jsf",
+		outros: true,
+		cor: { claro: "#f6eee2", escuro: "#e3cfae", borda: "#a8875a", texto: "#5f4523" }
+	},
+	{
+		id: "fupen",
+		rotulo: "FUPEN",
+		nome: "FUPEN",
+		orgao: "DEPEN-PR",
+		titulo: "FUPEN — Fundo Penitenciário do Paraná",
+		url: "https://www.fupen.depen.pr.gov.br/fupen/",
+		outros: true,
+		cor: { claro: "#eef1d9", escuro: "#d4dba3", borda: "#8a9440", texto: "#4d5520" }
+	},
+	{
+		id: "sanepar",
+		rotulo: "SANEPAR",
+		nome: "SANEPAR",
+		orgao: "Sanepar",
+		titulo: "SANEPAR — Portal do Poder Judiciário",
+		url: "https://poderjudiciario.sanepar.com.br/#/login",
+		outros: true,
+		cor: { claro: "#dff6fb", escuro: "#a9e1ee", borda: "#3a9bb5", texto: "#135e70" }
+	},
+	{
+		// Rede interna do Estado: só abre em computadores ligados a ela.
+		id: "sesp",
+		rotulo: "SESP",
+		nome: "SESP Intranet",
+		orgao: "SESP-PR",
+		titulo: "SESP Intranet — Secretaria da Segurança Pública do Paraná",
+		url: "https://sespintranet.sesp.parana/sespintranet/moduloValidacao.do?action=index",
+		outros: true,
+		seeu: true,
+		cor: { claro: "#f1e6ea", escuro: "#d9c0c9", borda: "#93677a", texto: "#5a3446" }
 	}
 ]);
