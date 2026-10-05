@@ -71,6 +71,11 @@
 	// fim: o botão final foi clicado, ou ficou para o usuário clicar.
 	const DECURSO_CONCLUIDA_KEY = "pdpDecursoAnaliseConcluida";
 	const DECURSO_AGUARDANDO_KEY = "pdpDecursoAnaliseAguardando";
+	// Preferências do "Analisar" dos cumprimentos (Pré-Análise, lista Demais
+	// Cumprimentos - preAnaliseNaLinha.js): Tipo do Arquivo, Modelo, texto e
+	// `postergar` (true = clicar em "Postergar Assinatura" no fim). O fim do
+	// fluxo usa as mesmas marcas do decurso (um fluxo por vez na aba).
+	const PREANALISE_PREFS_KEY = "pdpPreAnalisePrefs";
 	// Preferência gravada no clique em "Concluir Movimento", até o
 	// chrome.storage confirmar a gravação (a página pode navegar antes).
 	const PENDING_SAVE_KEY = "pdpJuntarDocumentoPendingSave";
@@ -472,6 +477,19 @@
 			limparMarcasDecurso();
 			writeJob({ mode: pref ? "edit" : "capture", stage: "juntar", pref: pref || null, rec: {}, numero: numero || null, decurso: true, createdAt: Date.now() });
 		},
+		// Preferências do "Analisar" dos cumprimentos (Pré-Análise).
+		listarPreAnalise: function () {
+			return loadPrefs(PREANALISE_PREFS_KEY);
+		},
+		removerPreAnalise: function (id) {
+			return removePref(id, PREANALISE_PREFS_KEY);
+		},
+		// mode "apply" (com `pref`), "capture" (nova) ou "edit" (com `pref`)
+		// na tela de Pré-Análise aberta a seguir.
+		prepararPreAnalise: function (mode, pref, numero) {
+			limparMarcasDecurso();
+			writeJob({ mode: mode, stage: "upload", pref: pref || null, rec: {}, numero: numero || null, preanalise: true, createdAt: Date.now() });
+		},
 		// Fim da análise iniciada com prepararDecurso: "concluida" (a
 		// extensão clicou no botão final), "aguardando" (o botão final ficou
 		// para o usuário) ou null.
@@ -814,6 +832,207 @@
 		} catch (err) {
 			// sem sessionStorage
 		}
+	}
+
+	// -------------------------------------------------------------------
+	// "Analisar" dos cumprimentos (lista Demais Cumprimentos): tela de
+	// Pré-Análise (preAnalise.do: Tipo do Arquivo, Modelo, "Digitar Texto",
+	// "Salvar e Concluir") e, depois, a tela do cumprimento
+	// (cumprimentoCartorio.do: "Assinar e Expedir" / "Postergar
+	// Assinatura"). Só fluxos iniciados pelo card ⭐ da lista (job.preanalise).
+	// -------------------------------------------------------------------
+
+	function isPreAnaliseScreen() {
+		const form = document.getElementById("preAnaliseForm");
+		return !!form && !!document.getElementById("codTipoArquivo") && !!form.querySelector("#digitarButton");
+	}
+
+	function isCumprimentoScreen() {
+		const form = document.getElementById("cumprimentoCartorioForm");
+		return !!form && (!!form.querySelector("#postergarButton") || !!form.querySelector("#assinarButton"));
+	}
+
+	function lerPreAnalise() {
+		const tipo = selectedOption(document.getElementById("codTipoArquivo"));
+		const modelo = document.getElementById("codModelo");
+		return {
+			tipoArquivo: tipo && tipo.value !== "0" ? tipo : null,
+			modelo: modelo && !modelo.disabled ? selectedOption(modelo) : null,
+		};
+	}
+
+	let preAnaliseActed = false;
+	let preAnaliseBusy = false;
+
+	async function tickPreAnalise(job) {
+		if (preAnaliseBusy) return;
+		const form = document.getElementById("preAnaliseForm");
+		const digitar = form.querySelector("#digitarButton");
+		const salvarConcluir = form.querySelector("#finishButton");
+		if (digitar && !digitar.__pdpJdWatch) {
+			digitar.__pdpJdWatch = true;
+			digitar.addEventListener("click", function () {
+				const lido = lerPreAnalise();
+				if (lido.tipoArquivo) record(lido);
+				advance(["upload"], "digitar");
+			}, true);
+		}
+		if (salvarConcluir && !salvarConcluir.__pdpJdWatch) {
+			salvarConcluir.__pdpJdWatch = true;
+			salvarConcluir.addEventListener("click", function () {
+				advance(["upload", "digitar", "incluir"], "concluir");
+			}, true);
+		}
+
+		if (job.stage === "upload" && !preAnaliseActed) {
+			preAnaliseActed = true;
+			if (job.mode === "capture") {
+				showStatusOnce("capture-preanalise", modeLabel(job) + ' (Pré-Análise): escolha o Tipo do Arquivo (e o Modelo) e clique em "Digitar Texto".', "rec");
+				return;
+			}
+			preAnaliseBusy = true;
+			try {
+				const pref = job.pref;
+				// "Digitar Texto" vale para o envio por texto (tipoUpload 1).
+				const porTexto = form.querySelector('input[name="tipoUpload"][value="1"]');
+				if (porTexto && !porTexto.checked) porTexto.click();
+				showStatus(modeLabel(job) + ': escolhendo o Tipo do Arquivo "' + pref.tipoArquivo.text + '"…', job.mode === "edit" ? "rec" : null);
+				if (!chooseOption(document.getElementById("codTipoArquivo"), pref.tipoArquivo)) {
+					showStatus('O Tipo do Arquivo "' + pref.tipoArquivo.text + '" não está disponível aqui. Escolha-o e clique em "Digitar Texto" — a extensão continua daí.', "warn");
+					return;
+				}
+				const modelo = document.getElementById("codModelo");
+				if (modelo && pref.modelo && pref.modelo.text) {
+					const ok = await waitFor(function () {
+						return !modelo.disabled && chooseOption(modelo, pref.modelo);
+					});
+					if (!ok) {
+						showStatus('O Modelo "' + pref.modelo.text + '" não apareceu. Escolha-o e clique em "Digitar Texto" — a extensão continua daí.', "warn");
+						return;
+					}
+				}
+				await sleep(300);
+				if (job.mode === "edit") {
+					showStatus(modeLabel(job) + ': campos preenchidos. Ajuste se quiser e clique em "Digitar Texto".', "rec");
+					return;
+				}
+				if (!digitar) {
+					showStatus('Não encontrei o botão "Digitar Texto". Clique nele — a extensão continua daí.', "warn");
+					return;
+				}
+				showStatus(modeLabel(job) + ': abrindo "Digitar Documento"…');
+				digitar.click();
+			} finally {
+				preAnaliseBusy = false;
+			}
+			return;
+		}
+
+		// De volta, com o documento incluído: "Salvar e Concluir".
+		if (job.stage === "incluir" && !preAnaliseActed) {
+			preAnaliseActed = true;
+			if (job.mode !== "apply") {
+				if (salvarConcluir) salvarConcluir.classList.add("pdp-jd-highlight");
+				showStatus(modeLabel(job) + ': confira e clique em "Salvar e Concluir". Na tela seguinte a extensão pergunta sobre a assinatura e salva a preferência.', "rec");
+				return;
+			}
+			if (!salvarConcluir) {
+				showStatus('Documento incluído. Clique em "Salvar e Concluir" — a extensão continua daí.', "warn");
+				return;
+			}
+			showStatus(modeLabel(job) + ': clicando em "Salvar e Concluir"…');
+			setTimeout(function () { salvarConcluir.click(); }, 400);
+		}
+	}
+
+	// Pergunta, na tela do cumprimento, se a preferência deve sempre clicar
+	// em "Postergar Assinatura". Resolve com true/false (null = fechou).
+	function perguntarPostergar(padrao) {
+		return new Promise(function (resolve) {
+			const fundo = document.createElement("div");
+			fundo.className = "pdp-jd-pergunta-fundo";
+			fundo.innerHTML =
+				'<div class="pdp-jd-pergunta" role="dialog">' +
+				"<strong>Assinatura</strong>" +
+				'<p>Ao usar esta preferência, a extensão deve <b>sempre clicar em "Postergar Assinatura"</b>?</p>' +
+				'<p class="pdp-jd-pergunta-dica">Sim: a extensão clica em "Postergar Assinatura" agora e sempre que você usar esta preferência. Não: você mesmo clica em "Assinar e Expedir".</p>' +
+				'<div class="pdp-jd-pergunta-botoes"><button type="button" data-r="sim">Sim, postergar sempre</button><button type="button" data-r="nao">Não, eu assino e expeço</button></div>' +
+				"</div>";
+			document.body.appendChild(fundo);
+			const sim = fundo.querySelector('[data-r="sim"]');
+			const nao = fundo.querySelector('[data-r="nao"]');
+			(padrao === false ? nao : sim).focus();
+			fundo.addEventListener("click", function (ev) {
+				const r = ev.target && ev.target.getAttribute && ev.target.getAttribute("data-r");
+				if (!r) return;
+				fundo.remove();
+				resolve(r === "sim");
+			});
+		});
+	}
+
+	function salvarGravacaoPreAnalise(job, postergar) {
+		const rec = job.rec || {};
+		if (!rec.tipoArquivo) {
+			alert('A preferência não foi salva: não consegui gravar o Tipo do Arquivo (grava ao clicar em "Digitar Texto").');
+			return false;
+		}
+		const name = prompt(
+			job.mode === "edit" ? 'Atualizar a preferência de "Analisar" (cumprimentos). Nome:' : 'Nome para esta preferência de "Analisar" (cumprimentos):',
+			job.mode === "edit" ? job.pref.name : ""
+		);
+		if (!name || !name.trim()) return false;
+		const pref = {
+			id: job.mode === "edit" ? job.pref.id : "pa-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8),
+			name: name.trim(),
+			tipoArquivo: rec.tipoArquivo,
+			modelo: rec.modelo || null,
+			conteudo: rec.conteudo || "",
+			ancora: rec.ancora || null,
+			postergar: !!postergar,
+		};
+		persistPref(pref, PREANALISE_PREFS_KEY).catch(function (err) {
+			alert("Não foi possível salvar a preferência: " + err.message);
+		});
+		return pref;
+	}
+
+	// Tela do cumprimento, de volta depois do "Salvar e Concluir" da
+	// Pré-Análise. Gravando: pergunta sobre o "Postergar Assinatura" e salva.
+	// Aplicando: clica em "Postergar Assinatura" se a preferência mandar;
+	// senão, destaca "Assinar e Expedir" para o usuário.
+	let cumprimentoActed = false;
+	async function tickCumprimento(job) {
+		if (job.stage !== "concluir" || cumprimentoActed) return;
+		cumprimentoActed = true;
+		const form = document.getElementById("cumprimentoCartorioForm");
+		const postergarBtn = form.querySelector("#postergarButton");
+		const assinarBtn = form.querySelector("#assinarButton");
+		let postergar;
+		if (job.mode === "capture" || job.mode === "edit") {
+			postergar = await perguntarPostergar(job.mode === "edit" && job.pref ? !!job.pref.postergar : true);
+			const saved = salvarGravacaoPreAnalise(job, postergar);
+			clearJob(true);
+			if (!saved) {
+				showStatus("A preferência não foi salva. Conclua o cumprimento como de costume.", "warn");
+				return;
+			}
+			showStatus('Preferência "' + saved.name + '" ' + (job.mode === "edit" ? "atualizada" : "salva") + ".", "ok");
+		} else {
+			postergar = !!(job.pref && job.pref.postergar);
+			clearJob(true);
+		}
+		if (postergar && postergarBtn && !postergarBtn.disabled) {
+			marcarDecurso(DECURSO_CONCLUIDA_KEY);
+			showStatus('Clicando em "Postergar Assinatura"…', "ok");
+			setTimeout(function () { postergarBtn.click(); }, 500);
+			return;
+		}
+		marcarDecurso(DECURSO_AGUARDANDO_KEY);
+		if (assinarBtn) assinarBtn.classList.add("pdp-jd-highlight");
+		showStatus(postergar
+			? 'Não encontrei o botão "Postergar Assinatura" habilitado. Conclua manualmente.'
+			: 'Pré-análise concluída. Clique em "Assinar e Expedir" para assinar.', postergar ? "warn" : "ok");
 	}
 
 	// Tela "Analisar Decurso de Prazo": só fluxos iniciados pelo "Analisar
@@ -1193,9 +1412,19 @@
 	// conteudoEditor)
 	// -------------------------------------------------------------------
 
-	function isDigitarScreen() {
+	// Formulário da tela "Digitar Documento": o da janela "Inserir Arquivo"
+	// (fileUploadForm) ou, vindo da Pré-Análise dos cumprimentos, qualquer
+	// formulário que envie para digitarTexto.do.
+	function formDigitar() {
 		const form = document.getElementById("fileUploadForm");
-		return !!form && !!document.getElementById("conteudoEditor") && /digitarTexto\.do/i.test(form.getAttribute("action") || "");
+		if (form && /digitarTexto\.do/i.test(form.getAttribute("action") || "")) return form;
+		return Array.prototype.find.call(document.forms, function (f) {
+			return /digitarTexto\.do/i.test(f.getAttribute("action") || "");
+		}) || null;
+	}
+
+	function isDigitarScreen() {
+		return !!document.getElementById("conteudoEditor") && !!formDigitar();
 	}
 
 	function editorBody() {
@@ -1329,7 +1558,7 @@
 	}
 
 	async function tickDigitar(job) {
-		const form = document.getElementById("fileUploadForm");
+		const form = formDigitar();
 		if (!form) return;
 		watchDigitarScreen(form);
 
@@ -1446,6 +1675,17 @@
 	function tick() {
 		try {
 			tickComboAfterConcluir();
+			// Telas dos cumprimentos: vêm antes das demais - a do cumprimento
+			// tem "Concluir" (barra de progresso) e "Alterar", que a fariam
+			// parecer a pré-visualização do documento.
+			if (isCumprimentoScreen() || isPreAnaliseScreen()) {
+				const jobCump = readJob();
+				if (jobCump && jobCump.preanalise) {
+					if (isCumprimentoScreen()) tickCumprimento(jobCump);
+					else tickPreAnalise(jobCump);
+				}
+				return;
+			}
 			const juntar = isJuntarScreen();
 			const upload = !juntar && isUploadScreen();
 			const digitar = !juntar && !upload && isDigitarScreen();

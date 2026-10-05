@@ -907,3 +907,51 @@ CENAS.V47 = {
 		await S.endCard("Dispensar = confirmação aceita sozinha. Analisar Decurso = análise no popup, com preferência (+ Nova, ✏️, 🗑). Em lote: Dispensar / Analisar nos marcados.");
 	},
 };
+
+// ------------------------------------------------------------------ V48
+// "Analisar" (Pré-Análise) dos cumprimentos com preferências, no card ⭐
+// da lista Demais Cumprimentos, com a pergunta do "Postergar Assinatura".
+CENAS.V48 = {
+	arquivo: "V48-pre-analise-com-preferencias.mp4",
+	titulo: "Pré-Análise com preferências",
+	secao: "9.10",
+	async run() {
+		telaLista("Demais Cumprimentos", { path: "cumprimentoCartorio.do", col: "Tipo de Cumprimento", rows: LISTA.map(r => Object.assign({}, r, { d: "ALVARÁ" })) });
+		$$(".x-rowslot").forEach((s, i) => (s.innerHTML = ' <span class="x-btn small">+</span> <span class="x-btn small" data-star="' + i + '">⭐</span><span class="st" data-st="' + i + '" style="margin-left:6px;font-size:11px"></span>'));
+		await S.titleCard("VÍDEO V48", "Pré-Análise com preferências", "Faça o Analisar de um cumprimento com um texto pronto, direto da lista.");
+		await S.cap("Em <b>Demais Cumprimentos</b>, o <b>⭐</b> da linha tem a seção <b>📝 Analisar (Pré-Análise)</b>.");
+		await S.click('[data-star="0"]');
+		let pn = panelAt('<h4>⭐ Minhas Preferências</h4><div style="font-size:11px;color:#5a6b4a;margin:4px 0">📝 ANALISAR (PRÉ-ANÁLISE)</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">' +
+			'<div class="x-chip" id="nova" style="display:block;border-radius:6px;padding:8px;margin:0"><b>+ Nova preferência</b></div>' +
+			'<div class="x-chip" style="display:block;border-radius:6px;padding:8px;margin:0"><b>★ Alvará padrão</b><div style="color:#666">postergar assinatura</div></div></div>', '[data-star="0"]', { w: 420 });
+		pn.style.left = "520px"; pn.style.top = "200px";
+		await S.cap("<b>+ Nova preferência</b> abre a Pré-Análise no popup e grava o que você fizer.");
+		await S.click("#nova");
+		pn.remove();
+		popup("Pré-Análise", '<div style="font-size:12px">Tipo do Arquivo: <span class="pj-select">Mandado</span> · Modelo: <span class="pj-select">Documento em Branco</span> <span class="pj-btn">Digitar Texto</span></div><div style="margin-top:10px"><span class="pj-input" style="min-width:420px;min-height:50px;display:inline-block">Expeça-se alvará…</span></div><div style="margin-top:12px"><span class="pj-btn primary" id="salvar">Salvar e Concluir</span></div>', { hd: "Analisar — gravando nova preferência", top: 120, h: 360 });
+		await S.cap("Escolha o Tipo do Arquivo e o Modelo, digite o texto e clique em <b>Salvar e Concluir</b>.");
+		await S.click("#salvar");
+		$(".x-popup").remove();
+		modal('<h3>Assinatura</h3><div>Ao usar esta preferência, a extensão deve <b>sempre clicar em "Postergar Assinatura"</b>?</div><div style="text-align:right;margin-top:12px"><span class="pj-btn primary" id="sim">Sim, postergar sempre</span> <span class="pj-btn">Não, eu assino e expeço</span></div>', { w: 540, top: 200 });
+		await S.cap("Na última tela, a extensão pergunta: <b>Sim</b> grava isso e clica em <b>Postergar Assinatura</b>; <b>Não</b> deixa o <b>Assinar e Expedir</b> para você.", { ms: 5600 });
+		await S.click("#sim");
+		closeModal();
+		const st = $('[data-st="0"]');
+		st.innerHTML = '<span style="color:#216b32">Preferência salva · pré-análise concluída e assinatura postergada</span>';
+		S.hl(st, 3);
+		await S.cap("Você dá um nome e a preferência aparece no ⭐, com ✏️ (editar) e 🗑 (remover).");
+		S.hlOff();
+		await S.cap("Para usar: <b>⭐ → ★ Alvará padrão</b>. A extensão faz a pré-análise sozinha e, no fim, posterga a assinatura (ou destaca Assinar e Expedir).", { ms: 5200 });
+		await S.click('[data-star="2"]');
+		pn = panelAt('<h4>⭐ Minhas Preferências</h4><div class="x-chip" id="usar" style="display:block;border-radius:6px;padding:8px;margin:0"><b>★ Alvará padrão</b><div style="color:#666">postergar assinatura</div></div>', '[data-star="2"]', { w: 300 });
+		pn.style.left = "520px"; pn.style.top = "280px";
+		await S.click("#usar");
+		pn.remove();
+		const st2 = $('[data-st="2"]');
+		st2.textContent = "★ Alvará padrão: pré-análise no popup…";
+		await sleep(1500);
+		st2.innerHTML = '<span style="color:#216b32">★ Alvará padrão: pré-análise concluída e assinatura postergada</span>';
+		await S.cap("Também em lote: marque os processos e use <b>⭐ Executar preferência nos marcados</b>.");
+		await S.endCard("⭐ → + Nova preferência → Salvar e Concluir → postergar sempre? → nome. Depois: ⭐ → ★ preferência (na linha ou em lote).");
+	},
+};
