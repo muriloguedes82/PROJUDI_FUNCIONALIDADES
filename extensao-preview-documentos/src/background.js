@@ -924,15 +924,18 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   return true;
 });
 
-// Sistemas do CNJ (sistemasCnj.js): "🗂 Nova aba" e "🖥 Segundo monitor" no
-// popup de cada sistema. Só abre endereços da lista (sistemasCnjLista.js) e
-// só atende páginas do Projudi (e do SEEU, apenas o BNMP 3.0).
+// Sistemas do CNJ (sistemasCnj.js): botão "abrir fora do popup" de cada
+// sistema. Por padrão abre no segundo monitor, se houver; sem ele, numa aba
+// nova ao lado da do processo. Só abre endereços da lista
+// (sistemasCnjLista.js) e só atende páginas do Projudi (e do SEEU, apenas
+// os sistemas marcados com `seeu: true`).
 
 // Abre numa janela maximizada no monitor que NÃO tem a janela do processo.
+// Resolve com false (sem abrir nada) quando não há segundo monitor.
 async function pdpSistemaCnjSegundoMonitor(url, windowId) {
-  if (!chrome.system?.display) throw new Error('Este navegador não informa os monitores conectados.');
+  if (!chrome.system?.display) return false;
   const telas = await chrome.system.display.getInfo();
-  if (telas.length < 2) throw new Error('Não encontrei um segundo monitor conectado. Use "Nova aba" ou o próprio popup.');
+  if (telas.length < 2) return false;
   const atual = await chrome.windows.get(windowId);
   const cx = (atual.left || 0) + (atual.width || 0) / 2;
   const cy = (atual.top || 0) + (atual.height || 0) / 2;
@@ -942,6 +945,7 @@ async function pdpSistemaCnjSegundoMonitor(url, windowId) {
   const area = outra.workArea || outra.bounds;
   const nova = await chrome.windows.create({ url, type: 'normal', left: area.left, top: area.top, width: area.width, height: area.height, focused: true });
   await chrome.windows.update(nova.id, { state: 'maximized' }).catch(() => {});
+  return true;
 }
 
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
@@ -955,13 +959,13 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
     sistema = (self.PDP_SISTEMAS_CNJ || []).find(s => s.id === message.sistema);
     // No SEEU só os marcados com `seeu: true` (sistemasCnjLista.js).
     if (!sistema || (doSeeu && sistema.seeu !== true)) throw new Error('Sistema desconhecido.');
-    if (message.onde !== 'aba' && message.onde !== 'monitor') throw new Error('Opção inválida.');
+    if (message.onde !== 'fora') throw new Error('Opção inválida.');
   } catch (error) { reply({ok:false, error:error.message}); return false; }
-  const abrir = message.onde === 'aba'
-    ? chrome.tabs.create({ url: sistema.url, windowId: sender.tab.windowId, index: sender.tab.index + 1, openerTabId: sender.tab.id })
-    : pdpSistemaCnjSegundoMonitor(sistema.url, sender.tab.windowId);
-  Promise.resolve(abrir)
-    .then(() => reply({ok:true}))
+  const novaAba = () => chrome.tabs.create({ url: sistema.url, windowId: sender.tab.windowId, index: sender.tab.index + 1, openerTabId: sender.tab.id });
+  pdpSistemaCnjSegundoMonitor(sistema.url, sender.tab.windowId)
+    .catch(error => { console.warn('[Sistemas do CNJ] segundo monitor:', error); return false; })
+    .then(abriu => abriu ? 'monitor' : novaAba().then(() => 'aba'))
+    .then(onde => reply({ok:true, onde}))
     .catch(error => reply({ok:false, error:error.message}));
   return true;
 });

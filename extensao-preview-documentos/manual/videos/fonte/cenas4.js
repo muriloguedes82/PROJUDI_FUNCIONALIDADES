@@ -401,17 +401,17 @@ CENAS.V39 = {
 		await S.click("#x-cnj-serpjud");
 		await abrindo("SerpJud", 1000);
 		popup("SERP-JUD — Sistema Eletrônico dos Registros Públicos", '<div style="padding:30px;text-align:center;font-size:14px;color:#333"><div style="font-size:22px;font-weight:bold;color:#0d3560;margin-bottom:14px">SERP-JUD</div>Entre com o seu acesso do CNJ para consultar os registros públicos.<br><br><span class="pj-btn primary">Entrar</span><br><br><i style="color:#666">(tela do sistema — conteúdo ilustrativo)</i></div>', { hd: "SerpJud — CNJ", h: 520 });
-		$("#x-fechar").outerHTML = '<span><span id="x-aba" style="margin-right:14px">🗂 Nova aba</span><span id="x-monitor" style="margin-right:16px">🖥 Segundo monitor</span><span id="x-fechar">✕ Fechar</span></span>';
+		$("#x-fechar").outerHTML = '<span><span id="x-fora" style="margin-right:16px">🖥 Segundo monitor</span><span id="x-fechar">✕ Fechar</span></span>';
 		await S.cap("O sistema abre num <b>popup</b> sobre a tela do processo, como os das ações rápidas. Entre com o seu acesso e trabalhe nele.", { ms: 4200, bottom: true });
-		S.hl("#x-aba");
-		await S.cap("Prefere fora do popup? <b>🗂 Nova aba</b> abre o sistema numa aba nova, ao lado da do processo.", { ms: 4200, bottom: true });
-		S.hl("#x-monitor");
-		await S.cap("<b>🖥 Segundo monitor</b> abre o sistema numa janela que ocupa o outro monitor (se houver um conectado).", { ms: 4200, bottom: true });
+		S.hl("#x-fora");
+		await S.cap("Prefere fora do popup? Com dois monitores, <b>🖥 Segundo monitor</b> abre o sistema numa janela que ocupa o outro monitor.", { ms: 4400, bottom: true });
+		$("#x-fora").textContent = "🗂 Nova aba";
+		await S.cap("Com um monitor só, o mesmo botão aparece como <b>🗂 Nova aba</b> e abre o sistema numa aba nova, ao lado da do processo.", { ms: 4400, bottom: true });
 		S.hlOff();
 		await S.cap("Para voltar ao processo, clique em <b>✕ Fechar</b> (ou tecle <b>Esc</b>). Os outros cards funcionam do mesmo jeito.", { bottom: true });
 		await S.click("#x-fechar");
 		$(".x-popup").remove();
-		await S.endCard("Card do sistema ao lado da balança → popup (ou 🗂 Nova aba / 🖥 Segundo monitor) → ✕ Fechar.");
+		await S.endCard("Card do sistema ao lado da balança → popup (ou 🖥 Segundo monitor / 🗂 Nova aba) → ✕ Fechar.");
 	},
 };
 

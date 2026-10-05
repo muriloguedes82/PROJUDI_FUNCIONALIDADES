@@ -2003,6 +2003,12 @@ dos demais domínios de `initiatorDomains`, que continuam na lista porque as
 navegações internas do login (de um sistema para outro dentro do iframe)
 dependem deles.
 
+Para usar o sistema fora do popup, o cabeçalho dele tem um só botão
+(`sistemas-cnj-open` em `background.js`): abre numa janela maximizada no
+segundo monitor sempre que `chrome.system.display` informar mais de um, e
+senão numa aba nova ao lado da do processo. O rótulo (🖥 Segundo monitor ou
+🗂 Nova aba) segue `screen.isExtended`.
+
 Limitação: as demais diretivas de CSP desses sites (como `script-src`)
 deixam de valer quando eles abrem embutidos — `declarativeNetRequest` não
 consegue mesclar CSP. Sistema que não precise abrir embutido deve sair da

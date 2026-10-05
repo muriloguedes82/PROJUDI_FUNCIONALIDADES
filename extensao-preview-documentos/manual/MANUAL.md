@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.23.2 |
-| **Versão da extensão** | 2.23.2 |
+| **Versão do manual** | 2.23.3 |
+| **Versão da extensão** | 2.23.3 |
 | **Data desta versão** | 05/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1392,25 +1392,26 @@ sistemas novos entram no **Outros**.
 2. O sistema abre num **popup** sobre a tela do processo (o mesmo tipo de
    janela usado por Remessa, Concluso e as demais ações rápidas). Entre com
    o seu acesso e trabalhe nele.
-3. Se preferir trabalhar com o sistema fora do popup, use os botões do topo
-   dele:
-   - **🗂 Nova aba** — abre o sistema numa aba nova do navegador, logo ao
-     lado da aba do processo;
-   - **🖥 Segundo monitor** — abre o sistema numa janela que ocupa o
-     **outro monitor** inteiro. Se só houver um monitor conectado, a
-     extensão avisa e o popup continua aberto.
+3. Se preferir trabalhar com o sistema fora do popup, use o botão do topo
+   dele. Ele já escolhe o melhor lugar:
+   - com **dois monitores**, aparece como **🖥 Segundo monitor** e abre o
+     sistema numa janela que ocupa o **outro monitor** inteiro;
+   - com **um monitor só**, aparece como **🗂 Nova aba** e abre o sistema
+     numa aba nova do navegador, logo ao lado da aba do processo.
 4. Para voltar ao processo, clique em **✕ Fechar** (ou tecle **Esc**).
 
 **Bom saber:**
 
 - O popup fica sobre o processo: a aba do processo não muda de lugar.
-- Se o login de um sistema não funcionar dentro do popup, use **🗂 Nova
-  aba** ou **🖥 Segundo monitor**.
+- Se o login de um sistema não funcionar dentro do popup, use o botão
+  **🖥 Segundo monitor** (ou **🗂 Nova aba**, com um monitor só).
+- Se o segundo monitor estiver desligado ou desconectado, o sistema abre
+  numa nova aba.
 - Ao fechar o popup, o que estava aberto no sistema não fica guardado; ao
   clicar de novo, ele abre na tela inicial.
 - O **Infojud** é da Receita Federal e abre pelo **e-CAC**: o acesso é com
   o certificado digital (ou gov.br). Se o e-CAC não abrir no popup, use
-  **🗂 Nova aba** ou **🖥 Segundo monitor**.
+  **🖥 Segundo monitor** (ou **🗂 Nova aba**, com um monitor só).
 - A **SESP Intranet** é da rede interna do Estado: só abre em computadores
   ligados a essa rede.
 
@@ -1956,7 +1957,7 @@ telas abertas a partir daí voltam a funcionar.
 | Card de suspensão/monitoração não aparece | Só são sinalizados status **ATIVA** e os motivos listados em [4.1](#cap-4-1)/[4.2](#cap-4-2); aguarde alguns segundos após abrir o processo |
 | Mandado não virou Regionalizado | Só muda se a cidade da parte for de outra comarca **e** constar em Comarca de Destino; veja a nota amarela do diálogo ([9.7](#cap-9-7)) |
 | Colar processo: "Não encontrei um número de processo" | Copie o número completo (20 dígitos), só um ([8.5](#cap-8-5)) |
-| O popup de um sistema do CNJ fica em branco ou o login não termina | Use **🗂 Nova aba** ou **🖥 Segundo monitor** no topo do popup ([8.7](#cap-8-7)) |
+| O popup de um sistema do CNJ fica em branco ou o login não termina | Use o botão **🖥 Segundo monitor** (ou **🗂 Nova aba**, com um monitor só) no topo do popup ([8.7](#cap-8-7)) |
 
 Se o problema continuar, anote a versão da extensão, a tela e o que
 aconteceu, e informe o responsável pela extensão.
@@ -2032,6 +2033,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.23.3 | 05/10/2026 | Sistemas do CNJ e card **Outros** (8.7): o popup passa a ter **um só botão** para abrir o sistema fora dele, que usa o **segundo monitor** sempre que houver um conectado (**🖥 Segundo monitor**) e, se não houver, abre numa **nova aba** (**🗂 Nova aba**). Antes eram dois botões, e o do segundo monitor só avisava quando não havia outro monitor. Solução de problemas (11) ajustada e vídeo V39 regravado. |
 | 2.23.2 | 05/10/2026 | **⭐ Em lote** (9.3), no Projudi e no SEEU: antes de começar, a confirmação mostra a lista dos processos (até 25 números), a preferência/combo e o que será feito automaticamente antes (dispensar juntadas, finalizar conclusão ou dispensar decursos); o lote **para no primeiro erro**, deixando os seguintes intactos e marcados, e avisa em qual processo foi. Vídeo V45 regravado. |
 | 2.23.1 | 05/10/2026 | Correções de segurança. Opções (2.5): **Tenant ID do Tribunal** obrigatório para o modo Microsoft Graph e novo botão **Sair do Outlook nesta extensão**. E-mail (5.2): o login do Outlook vale só enquanto o navegador estiver aberto. Privacidade (10.1): documentos de um envio interrompido são apagados em até 15 minutos ou ao fechar o navegador. Solução de problemas (11): Tenant ID e envio expirado do WhatsApp. Os sistemas do CNJ (8.7) só podem ser abertos dentro do Projudi/SEEU, não em outras páginas (sem mudança na tela). Sem vídeo novo. |
 | 2.23.0 | 04/10/2026 | Seção 8.7: novo card **Outros ▾** (só no Projudi), com **COPEL**, **FUPEN**, **SANEPAR** e **SESP Intranet**; arrastar um card do painel para cima de um card da fila troca os dois, e arrastar um card da fila para o **Outros** o guarda lá. Os cards passam a ter **ordem alfabética** como padrão (quem já tinha mudado a ordem mantém a sua). No SEEU, novo card **SESP** ao lado do BNMP (1.3 e 8). A arrumação vai no Exportar/Importar (2.6). Vídeo V39 regravado. |
