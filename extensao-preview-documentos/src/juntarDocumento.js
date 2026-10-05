@@ -650,11 +650,23 @@
 
 	// Preferência do "Analisar Decurso": só a janela "Inserir Arquivo" e o
 	// texto (não há Tipo de Documento nessa tela).
+	// Preferência sem texto: ao usá-la, a extensão para no "Digitar
+	// Documento" para o usuário digitar (não clica em "Continuar" sozinha).
+	function confirmarSemTexto(rec) {
+		if (rec.conteudo) return true;
+		return confirm(
+			"Não consegui gravar nenhum texto nesta preferência (o texto é gravado ao clicar em \"Continuar\", no \"Digitar Documento\").\n\n" +
+				"Sem texto, ao usá-la a extensão vai parar no \"Digitar Documento\" para você digitar.\n\n" +
+				"Salvar assim mesmo? (Cancelar = não salvar; depois use ✏️ para gravar de novo com o texto.)"
+		);
+	}
+
 	function salvarGravacaoDecurso(job, rec) {
 		if (!rec.tipoArquivo) {
 			alert('A preferência não foi salva: não consegui gravar o Tipo do Arquivo (grava ao clicar em "Digitar Texto").');
 			return false;
 		}
+		if (!confirmarSemTexto(rec)) return false;
 		const name = prompt(
 			job.mode === "edit" ? 'Atualizar a preferência de "Analisar Decurso". Nome:' : 'Nome para esta preferência de "Analisar Decurso":',
 			job.mode === "edit" ? job.pref.name : ""
@@ -977,6 +989,7 @@
 			alert('A preferência não foi salva: não consegui gravar o Tipo do Arquivo (grava ao clicar em "Digitar Texto").');
 			return false;
 		}
+		if (!confirmarSemTexto(rec)) return false;
 		const name = prompt(
 			job.mode === "edit" ? 'Atualizar a preferência de "Analisar" (cumprimentos). Nome:' : 'Nome para esta preferência de "Analisar" (cumprimentos):',
 			job.mode === "edit" ? job.pref.name : ""
@@ -1471,9 +1484,26 @@
 				return;
 			}
 			if (!cleanText(node.textContent) && !(node.querySelector && node.querySelector("img, table"))) return;
-			if (PLACEHOLDER_RE.test(node.textContent || "")) return;
+			let html = node.nodeType === 1 ? node.outerHTML : node.nodeValue;
+			// Bloco que ainda tem o marcador "XXXXXXXXXX INSIRA O TEXTO AQUI
+			// XXXXXXXXXX": se o usuário digitou ao lado dele (sem apagá-lo),
+			// grava o que foi digitado e tira só o marcador.
+			if (PLACEHOLDER_RE.test(node.textContent || "")) {
+				const restante = cleanText((node.textContent || "").replace(PLACEHOLDER_RE, ""));
+				if (!restante) return;
+				if (node.nodeType === 1) {
+					const copia = node.cloneNode(true);
+					const walker = document.createTreeWalker(copia, NodeFilter.SHOW_TEXT);
+					let t;
+					while ((t = walker.nextNode())) t.nodeValue = t.nodeValue.replace(/X{5,}\s*INSIRA O TEXTO AQUI\s*X{5,}/gi, "");
+					// Marcador partido em vários pedaços de texto: usa só o texto.
+					html = PLACEHOLDER_RE.test(copia.textContent || "") ? "<p>" + restante.replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }) + "</p>" : copia.outerHTML;
+				} else {
+					html = restante;
+				}
+			}
 			if (!parts.length) ancora = lastKeptText;
-			parts.push(node.nodeType === 1 ? node.outerHTML : node.nodeValue);
+			parts.push(html);
 		});
 		return { conteudo: parts.join(""), ancora: ancora };
 	}
@@ -1602,7 +1632,7 @@
 			}
 			if (placeholder) {
 				placeCaret(body, placeholder, true);
-				showStatus(modeLabel(job) + ': esta preferência não tem texto. Digite-o e clique em "Continuar" — a extensão continua daí.', "ok");
+				showStatus(modeLabel(job) + ': esta preferência não tem texto gravado. Digite-o e clique em "Continuar" — a extensão continua daí. (Para gravar o texto nela, use ✏️ Editar.)', "ok");
 				return;
 			}
 			await clickContinuar(form, job, "documento gerado pelo Projudi.");
