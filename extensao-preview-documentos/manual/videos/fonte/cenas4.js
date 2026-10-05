@@ -902,6 +902,7 @@ CENAS.V47 = {
 		S.hl("#lote-disp", 3);
 		await S.cap("Em lote: marque os processos e use <b>Dispensar nos marcados</b> ou <b>Analisar decurso nos marcados</b> (com uma preferência), na barra <b>⭐ Em lote</b>.", { ms: 5600 });
 		S.hlOff();
+		await S.cap("As mesmas preferências também estão no <b>⭐</b> (seção <b>📝 Analisar Decurso</b>), na linha e em <b>⭐ Executar preferência nos marcados</b>.", { ms: 4800 });
 		await S.cap("Os processos são tratados um de cada vez. Na análise, você assina cada documento; o feito é desmarcado.");
 		lote.remove();
 		await S.endCard("Dispensar = confirmação aceita sozinha. Analisar Decurso = análise no popup, com preferência (+ Nova, ✏️, 🗑). Em lote: Dispensar / Analisar nos marcados.");

@@ -497,10 +497,22 @@
 		atualizarLote();
 	}
 
+	// Habilitados com qualquer processo marcado: se nenhum aguardar análise
+	// do decurso, o clique explica (em vez de o botão ficar apagado sem
+	// motivo aparente).
+	function marcadosVisiveis() {
+		return Array.prototype.filter.call(document.querySelectorAll("input.pdp-pl-lote-check"), function (c) {
+			const row = c.closest("tr");
+			return c.checked && row && !row.classList.contains("pdp-tl-oculta");
+		}).length;
+	}
 	function atualizarLote() {
 		if (!loteEl) return;
-		const n = alvosMarcados().alvos.length;
-		loteEl.querySelectorAll('[data-pdp-dec-lote="dispensar"], [data-pdp-dec-lote="analisar"]').forEach(function (b) { b.disabled = !n || emAndamento; });
+		const n = marcadosVisiveis();
+		loteEl.querySelectorAll('[data-pdp-dec-lote="dispensar"], [data-pdp-dec-lote="analisar"]').forEach(function (b) {
+			b.disabled = !n;
+			b.title = b.getAttribute("data-titulo") || b.title;
+		});
 	}
 
 	function statusLote(texto) {
@@ -529,21 +541,50 @@
 			statusLote("Parando: o lote para depois do processo atual…");
 			return;
 		}
-		if (emAndamento) return;
-		const sel = alvosMarcados();
-		if (!sel.alvos.length) return;
-		let escolha = null;
 		if (acao === "dispensar") {
+			const sel = podeLote();
+			if (!sel) return;
 			if (!confirm("Dispensar a análise do decurso de prazo de " + sel.alvos.length + " processo(s) marcado(s)?\n\nA confirmação do Projudi é aceita sozinha em cada um." + (sel.pulados ? "\n\n" + sel.pulados + " marcado(s) não aguardam análise do decurso e serão pulados." : ""))) return;
+			await rodarLote("dispensar", null, sel);
 		} else {
-			escolha = await escolherPreferencia(botao, true);
+			if (!podeLote()) return;
+			const escolha = await escolherPreferencia(botao, true);
 			if (!escolha || !escolha.pref) return;
+			await rodarLote("analisar", escolha, null);
 		}
+	}, true);
+
+	// Confere se dá para começar um lote; avisa o motivo quando não dá.
+	function podeLote() {
+		if (emAndamento) {
+			statusLote("Aguarde: já há um decurso sendo tratado (feche o popup aberto, se houver).");
+			alert("Já há um decurso sendo tratado. Termine-o (ou feche o popup aberto) e tente de novo.");
+			return null;
+		}
+		const sel = alvosMarcados();
+		if (!sel.alvos.length) {
+			const msg = marcadosVisiveis()
+				? "Nenhum dos processos marcados aguarda análise do decurso de prazo nesta lista (já analisados/dispensados, ou sem os botões \"Analisar Decurso\"/\"Dispensar\" na linha)."
+				: "Marque os processos na caixinha de cada linha.";
+			statusLote(msg);
+			alert(msg);
+			return null;
+		}
+		return sel;
+	}
+
+	// Analisa (com `escolha`) ou dispensa os processos marcados, um de cada
+	// vez. Usado pelos botões da barra e pelo card ⭐ (API abaixo).
+	async function rodarLote(acao, escolha, sel) {
+		sel = sel || podeLote();
+		if (!sel) return;
 		emAndamento = true;
 		parar = false;
-		const pararBtn = loteEl.querySelector('[data-pdp-dec-lote="parar"]');
-		pararBtn.hidden = false;
-		pararBtn.disabled = false;
+		const pararBtn = loteEl ? loteEl.querySelector('[data-pdp-dec-lote="parar"]') : null;
+		if (pararBtn) {
+			pararBtn.hidden = false;
+			pararBtn.disabled = false;
+		}
 		atualizarLote();
 		let feitos = 0;
 		let falhas = 0;
@@ -578,14 +619,51 @@
 		} finally {
 			const parado = parar;
 			emAndamento = false;
-			pararBtn.hidden = true;
+			if (pararBtn) pararBtn.hidden = true;
 			atualizarLote();
 			const naoIniciados = total - feitos - falhas;
 			statusLote((parado ? "⏹ Parado: " : (acao === "dispensar" ? "Dispensa" : "Análise") + " em lote concluída: ") + feitos + " feito(s)" +
 				(falhas ? " · " + falhas + " não feito(s)" : "") + (naoIniciados ? " · " + naoIniciados + " não iniciado(s)" : "") +
 				(sel.pulados ? " · " + sel.pulados + " pulado(s) (não aguardam análise)" : ""));
 		}
-	}, true);
+	}
+
+	// API para o card ⭐ (preferenciasNaLinha.js): as preferências do
+	// Analisar Decurso aparecem também lá, na linha e no "Em lote".
+	window.__pdpDecursoNaLinha = {
+		// Esta lista tem linhas com os botões do decurso.
+		disponivel: function () {
+			return !!document.querySelector(".pdp-dec-acoes");
+		},
+		listarPreferencias: listarPreferencias,
+		removerPreferencia: function (id) {
+			const api = window.__pdpJuntarDocumentoApi;
+			return api && api.removerDecurso ? api.removerDecurso(id) : Promise.resolve();
+		},
+		// `escolha`: { acao: "pref" | "nova" | "editar", pref }. Resolve com
+		// { ok, texto }.
+		executarNaLinha: async function (row, escolha) {
+			const caixa = row && row.querySelector(".pdp-dec-acoes");
+			if (!caixa || !caixa.querySelector(".pdp-dec-btn")) return { ok: false, texto: "esta linha não aguarda análise do decurso de prazo." };
+			if (emAndamento) return { ok: false, texto: "já há um decurso sendo tratado." };
+			emAndamento = true;
+			travar(caixa, true);
+			try {
+				const ok = await analisarNaLinha(caixa, caixa.getAttribute("data-pdp-dec-url"), escolha);
+				return { ok: true, texto: ok ? "Análise do decurso concluída (veja a linha)." : "Veja o resultado na linha." };
+			} catch (e) {
+				status(caixa, "⚠ " + ((e && e.message) || "falha."), "erro");
+				return { ok: false, texto: (e && e.message) || "falha." };
+			} finally {
+				emAndamento = false;
+				if (caixa.isConnected) travar(caixa, false);
+				atualizarLote();
+			}
+		},
+		executarLote: function (escolha) {
+			return rodarLote("analisar", escolha, null);
+		}
+	};
 
 	let agendado = false;
 	new MutationObserver(function () {

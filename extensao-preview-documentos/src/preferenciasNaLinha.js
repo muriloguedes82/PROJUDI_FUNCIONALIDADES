@@ -547,6 +547,14 @@
 			alert("As ações rápidas não estão disponíveis nesta tela. Recarregue a página.");
 			return;
 		}
+		// Analisar Decurso (decursoNaLinha.js): a própria linha mostra o
+		// andamento; sem a pergunta de dispensar decursos antes.
+		if (item.decurso) {
+			const dec = window.__pdpDecursoNaLinha;
+			const r = dec ? await dec.executarNaLinha(ctx.row, item.escolha) : { ok: false, texto: "o Analisar Decurso não está ligado nesta tela." };
+			if (!r.ok) mostrar(ctx, ["⚠ " + r.texto], "erro");
+			return;
+		}
 		// Gravar/editar uma preferência do "Analisar" (Pré-Análise): nada é
 		// executado no processo além do que o usuário fizer - sem pendências.
 		if (item.preAnalise && item.acao !== "pref") {
@@ -795,9 +803,76 @@
 			posicionar(box, ancora);
 		}).then(function () {
 			if (tela.preAnalise) secaoPreAnalise(box, ancora, emLote, escolher);
+			const dec = window.__pdpDecursoNaLinha;
+			if (dec && dec.disponivel()) return secaoDecurso(box, ancora, emLote, escolher, dec);
 		}).catch(function (e) {
 			console.error(TAG, "falha ao listar preferências/combos:", e);
 		});
+	}
+
+	// Seção "📝 Analisar Decurso" do card ⭐ nas listas de decurso de prazo
+	// (decursoNaLinha.js): as mesmas preferências do botão "Analisar Decurso"
+	// da linha, para usar também no "Em lote". Fora do lote, "+ Nova
+	// preferência", ✏️ e 🗑. O Analisar Decurso resolve a própria pendência
+	// do decurso: aqui não há a pergunta de dispensar decursos antes.
+	async function secaoDecurso(box, ancora, emLote, escolher, dec) {
+		const prefs = await dec.listarPreferencias();
+		if (!painel || painel.el !== box) return;
+		const vazio = box.querySelector(":scope > .pdp-tl-vazio");
+		if (vazio) vazio.textContent = "Nenhuma preferência de ação salva (crie no painel de uma ação, na tela do processo).";
+		box.appendChild(el("div", { class: "pdp-tl-sec", text: "📝 Analisar Decurso" }));
+		const grade = el("div", { class: "pdp-qa-fav-grid" });
+		box.appendChild(grade);
+		if (!emLote) {
+			grade.appendChild(cardClicavel(el("div", {
+				class: "pdp-qa-fav-card pdp-pl-nova",
+				tabindex: "0",
+				role: "button",
+				title: "Abre a análise do decurso no popup e grava a inclusão do arquivo (Tipo do Arquivo, Modelo e texto); no \"Assinar Arquivos\", pede o nome e salva."
+			}, [
+				el("span", { class: "pdp-qa-fav-card-action", text: "Analisar Decurso" }),
+				el("span", { class: "pdp-qa-fav-card-name", text: "+ Nova preferência" })
+			]), function () {
+				fecharPainel();
+				escolher({ decurso: true, escolha: { acao: "nova" } });
+			}));
+		}
+		const todas = prefs.decurso.map(function (p) { return { pref: p, juntar: false }; })
+			.concat(prefs.juntar.map(function (p) { return { pref: p, juntar: true }; }));
+		if (!todas.length && emLote) {
+			grade.replaceWith(el("div", { class: "pdp-tl-vazio", text: "Nenhuma preferência de Analisar Decurso salva. Crie pelo \"+ Nova preferência\" do ⭐ (ou do botão \"Analisar Decurso\") de uma linha." }));
+		}
+		todas.forEach(function (x) {
+			const pref = x.pref;
+			const filhos = [
+				el("span", { class: "pdp-qa-fav-card-action", text: x.juntar ? "Analisar Decurso · do Juntar Documento" : "Analisar Decurso" }),
+				el("span", { class: "pdp-qa-fav-card-name", text: "★ " + pref.name })
+			];
+			if (!emLote && !x.juntar) {
+				filhos.push(el("span", { class: "pdp-pl-card-icones" }, [
+					el("button", { type: "button", class: "pdp-tl-icone", title: "Editar: abre a análise já preenchida, sem avançar sozinha; no \"Assinar Arquivos\", atualiza a preferência", text: "✏️", onclick: function (ev) {
+						ev.stopPropagation();
+						fecharPainel();
+						escolher({ decurso: true, escolha: { acao: "editar", pref: pref } });
+					} }),
+					el("button", { type: "button", class: "pdp-tl-icone", title: "Remover esta preferência", text: "🗑", onclick: function (ev) {
+						ev.stopPropagation();
+						if (!confirm("Remover a preferência \"" + pref.name + "\" do Analisar Decurso?")) return;
+						dec.removerPreferencia(pref.id).then(function () { fecharPainel(); });
+					} })
+				]));
+			}
+			grade.appendChild(cardClicavel(el("div", {
+				class: "pdp-qa-fav-card",
+				tabindex: "0",
+				role: "button",
+				title: "Analisa o decurso com esta preferência: clica em \"Adicionar\", inclui o arquivo (Tipo do Arquivo, Modelo e texto) e, depois da sua assinatura, conclui" + (emLote ? " — em cada processo marcado, um de cada vez." : ".")
+			}, filhos), function () {
+				fecharPainel();
+				escolher({ decurso: true, escolha: { acao: "pref", pref: pref } });
+			}));
+		});
+		posicionar(box, ancora);
 	}
 
 	// Seção "📝 Analisar (Pré-Análise)" do card ⭐ (Demais Cumprimentos):
@@ -1164,6 +1239,11 @@
 	}
 
 	async function executarLote(item) {
+		if (item.decurso) {
+			const dec = window.__pdpDecursoNaLinha;
+			if (dec) await dec.executarLote(item.escolha);
+			return;
+		}
 		if (emAndamento) {
 			alert("Já há uma preferência ou combo sendo executado. Aguarde terminar.");
 			return;

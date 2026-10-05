@@ -1906,6 +1906,9 @@ coluna **Processo / Seq.**, logo abaixo do sequencial, em cada linha
 3. Ao terminar, o popup fecha sozinho, os botões saem da linha e ela
    mostra **"Análise do decurso concluída com ★ nome"**.
 
+As preferências do Analisar Decurso também estão no card **⭐** da linha,
+na seção **📝 Analisar Decurso** (com **+ Nova preferência**, ✏️ e 🗑).
+
 **Em lote** (vários processos de uma vez):
 
 1. Marque os processos na caixinha de cada linha (ou **marcar todos**), na
@@ -1915,7 +1918,9 @@ coluna **Processo / Seq.**, logo abaixo do sequencial, em cada linha
      processo de cada vez, sozinha;
    - **Analisar decurso nos marcados** — escolha a preferência; a análise
      abre no popup para cada processo, um de cada vez, e você **assina
-     cada documento**.
+     cada documento**. As mesmas preferências também aparecem no
+     **⭐ Executar preferência nos marcados**, na seção **📝 Analisar
+     Decurso**.
 3. Cada linha mostra o seu resultado e o processo feito é desmarcado.
    **⏹ Parar** não começa os próximos (o atual termina). Processos que não
    aguardam análise do decurso são pulados.
@@ -1924,6 +1929,8 @@ coluna **Processo / Seq.**, logo abaixo do sequencial, em cada linha
 
 - A lista **não** é recarregada: atualize-a (Filtrar) quando quiser ver a
   situação nova.
+- Se nenhum dos processos marcados aguardar análise do decurso (já
+  analisados ou dispensados), os botões do lote avisam isso ao clicar.
 - A confirmação aceita sozinha é **só** a da dispensa do decurso; qualquer
   outra pergunta faz a extensão parar, sem dispensar.
 - Se algo não der certo, a linha avisa o motivo (ex.: o botão **Dispensar**
@@ -2133,7 +2140,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V44](videos/V44-processo-ao-passar-o-mouse.mp4) | [Processo ao passar o mouse no Decurso de Prazo](videos/V44-processo-ao-passar-o-mouse.mp4) | [9.8](#cap-9-8) | 0:48 |
 | [V45](videos/V45-preferencias-em-lote.mp4) | [Preferências em lote (⭐ Em lote)](videos/V45-preferencias-em-lote.mp4) | [9.3](#cap-9-3) | 0:52 |
 | [V46](videos/V46-remessa-turma-recursal.mp4) | [Remessa para a Turma Recursal](videos/V46-remessa-turma-recursal.mp4) | [7.1](#cap-7-1) | 0:47 |
-| [V47](videos/V47-analisar-e-dispensar-decurso-na-lista.mp4) | [Analisar e Dispensar decurso na lista](videos/V47-analisar-e-dispensar-decurso-na-lista.mp4) | [9.9](#cap-9-9) | 1:18 |
+| [V47](videos/V47-analisar-e-dispensar-decurso-na-lista.mp4) | [Analisar e Dispensar decurso na lista](videos/V47-analisar-e-dispensar-decurso-na-lista.mp4) | [9.9](#cap-9-9) | 1:22 |
 | [V48](videos/V48-pre-analise-com-preferencias.mp4) | [Pré-Análise com preferências](videos/V48-pre-analise-com-preferencias.mp4) | [9.10](#cap-9-10) | 0:52 |
 <!-- tabela-videos:fim -->
 
@@ -2148,7 +2155,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 2.24.0 | 05/10/2026 | Nova seção **9.9** (só no Projudi): botões **Analisar Decurso** e **Dispensar** em cada linha das listas de **Decurso de Prazo**, abaixo do sequencial. O Dispensar responde OK à confirmação do Projudi sozinho e mostra "Decurso de prazo dispensado com sucesso". O Analisar Decurso abre a análise num popup, com menu para criar (**+ Nova preferência**), editar e remover preferências próprias do Analisar Decurso, ou usar as do Juntar Documento (8.2): a extensão inclui o arquivo, você assina e ela conclui e fecha o popup. Na barra **⭐ Em lote**: **Dispensar nos marcados** e **Analisar decurso nos marcados**. A lista de Citações/Notificações do Decurso de Prazo passa a ter também as listas de tarefas e a ⭐ (9.2, 9.3). Nova função na tabela da 2.6 e vídeo V47. Nova seção **9.10** (só no Projudi): no card **⭐** da lista **Demais Cumprimentos**, seção **📝 Analisar (Pré-Análise)** com **+ Nova preferência**, ✏️ e 🗑; ao criar, a extensão pergunta, na tela do cumprimento, se deve sempre clicar em **Postergar Assinatura** (Sim: grava e clica; Não: você clica em **Assinar e Expedir**); também em lote. Vídeo V48. Ao gravar uma preferência (Juntar Documento, Analisar Decurso ou Pré-Análise), o texto digitado ao lado do marcador "INSIRA O TEXTO AQUI" passa a ser gravado, e a extensão avisa antes de salvar uma preferência sem texto (9.9). |
+| 2.24.0 | 05/10/2026 | Nova seção **9.9** (só no Projudi): botões **Analisar Decurso** e **Dispensar** em cada linha das listas de **Decurso de Prazo**, abaixo do sequencial. O Dispensar responde OK à confirmação do Projudi sozinho e mostra "Decurso de prazo dispensado com sucesso". O Analisar Decurso abre a análise num popup, com menu para criar (**+ Nova preferência**), editar e remover preferências próprias do Analisar Decurso, ou usar as do Juntar Documento (8.2): a extensão inclui o arquivo, você assina e ela conclui e fecha o popup. Na barra **⭐ Em lote**: **Dispensar nos marcados** e **Analisar decurso nos marcados**. A lista de Citações/Notificações do Decurso de Prazo passa a ter também as listas de tarefas e a ⭐ (9.2, 9.3). Nova função na tabela da 2.6 e vídeo V47. Nova seção **9.10** (só no Projudi): no card **⭐** da lista **Demais Cumprimentos**, seção **📝 Analisar (Pré-Análise)** com **+ Nova preferência**, ✏️ e 🗑; ao criar, a extensão pergunta, na tela do cumprimento, se deve sempre clicar em **Postergar Assinatura** (Sim: grava e clica; Não: você clica em **Assinar e Expedir**); também em lote. Vídeo V48. Ao gravar uma preferência (Juntar Documento, Analisar Decurso ou Pré-Análise), o texto digitado ao lado do marcador "INSIRA O TEXTO AQUI" passa a ser gravado, e a extensão avisa antes de salvar uma preferência sem texto (9.9). As preferências do Analisar Decurso também aparecem no card ⭐ (linha e Em lote), seção **📝 Analisar Decurso**; os botões do lote do decurso avisam quando nenhum marcado aguarda análise. |
 | 2.23.0 | 04/10/2026 | Seção 8.7: novo card **Outros ▾** (só no Projudi), com **COPEL**, **FUPEN**, **SANEPAR** e **SESP Intranet**; arrastar um card do painel para cima de um card da fila troca os dois, e arrastar um card da fila para o **Outros** o guarda lá. Os cards passam a ter **ordem alfabética** como padrão (quem já tinha mudado a ordem mantém a sua). No SEEU, novo card **SESP** ao lado do BNMP (1.3 e 8). A arrumação vai no Exportar/Importar (2.6). Vídeo V39 regravado. |
 | 2.22.0 | 04/10/2026 | O grupo **Remessa** das ações rápidas (7.1) ganha a **Remessa Eletrônica para a Turma Recursal** (Juizados Especiais), com **+ Nova preferência**: como a tela do Projudi não tem campos, a preferência só abre a tela e confirma. Vídeo V46. |
 | 2.21.0 | 03/10/2026 | **⭐ Em lote** (9.3): caixinha de marcar abaixo do **+** de cada linha e barra **⭐ Em lote** acima da tabela, em todas as telas com a ⭐ (Juntadas, Retorno de Conclusão, Decurso de Prazo, cumprimentos e, no SEEU, Juntadas e Conclusão). No Projudi, a pergunta sobre dispensar/finalizar é feita uma vez para todos e cada processo continua pedindo o seu ✅ Sim, executar; no SEEU, os localizadores são associados em todos os marcados. Descrição da função no Menu atualizada e vídeo V45. |
