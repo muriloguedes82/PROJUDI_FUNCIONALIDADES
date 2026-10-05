@@ -523,6 +523,7 @@
 			return r.ok;
 		} catch (e) {
 			console.error(TAG, e);
+			ctx.erro = true; // falha real: em lote, interrompe (ver percorrerLote)
 			mostrar(ctx, [previa, (e && e.message) || "falha ao carregar o processo"], "erro");
 			return false;
 		}
@@ -804,9 +805,11 @@
 				mostrar(ctx, [rotulo, "Associando " + i + " de " + total + ": " + local + "…"], "andamento");
 			});
 			mostrar(ctx, [(r.tipo === "ok" ? "✅ " : "⚠ ") + rotulo, r.texto], r.tipo === "ok" ? "ok" : r.tipo === "erro" ? "erro" : "aviso");
+			if (r.tipo === "erro") ctx.erro = true;
 			return r.tipo === "ok";
 		} catch (e) {
 			console.error(TAG, e);
+			ctx.erro = true;
 			mostrar(ctx, ["⚠ " + rotulo, (e && e.message) || "falha ao carregar o processo"], "erro");
 			return false;
 		} finally {
@@ -966,8 +969,26 @@
 		return Promise.resolve("nao");
 	}
 
+	// Segurança das ações em lote: antes de começar, mostra a lista exata de
+	// processos que serão afetados (limitada, para caber na janela).
+	function listaProcessosParaConfirmar(cnjs) {
+		const MAX = 25;
+		const linhas = cnjs.slice(0, MAX).map(function (c, i) { return (i + 1) + ". " + (c || "(número não identificado)"); });
+		if (cnjs.length > MAX) linhas.push("… e mais " + (cnjs.length - MAX) + " processo(s).");
+		return linhas.join("\n");
+	}
+
+	function nomeDoItem(item) {
+		if (item.combo) return "🔗 Combo \"" + item.combo.name + "\" (" + item.combo.steps.length + " etapas)";
+		return "★ " + (item.pref && item.pref.name) + (item.label ? " — " + item.label : "");
+	}
+
 	// Percorre os processos marcados, um de cada vez. `rodarUm(ctx)` resolve
 	// com true quando o processo foi executado (a caixinha é desmarcada).
+	// Segurança: se `rodarUm` marcar `ctx.erro = true` (falha real, não um
+	// popup fechado pelo usuário), o lote PARA ali, para que um problema de
+	// leitura da tela (ex.: o Projudi mudou o layout) não se repita em todos
+	// os processos seguintes.
 	async function percorrerLote(alvos, rodarUm) {
 		emAndamento = true;
 		lote = { parar: false };
@@ -975,6 +996,7 @@
 		const total = alvos.length;
 		let feitos = 0;
 		let falhas = 0;
+		let erroEm = null;
 		try {
 			for (let i = 0; i < total; i++) {
 				if (lote.parar) break;
@@ -987,10 +1009,12 @@
 				a.row.classList.add("pdp-pl-lote-atual");
 				try { a.row.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e) { /* segue */ }
 				let ok = false;
+				const ctx = dadosLinha(a.row, a.cnj);
 				try {
-					ok = await rodarUm(dadosLinha(a.row, a.cnj));
+					ok = await rodarUm(ctx);
 				} catch (e) {
 					console.error(TAG, e);
+					ctx.erro = true;
 				}
 				a.row.classList.remove("pdp-pl-lote-atual");
 				if (ok) {
@@ -1000,6 +1024,10 @@
 					falhas++;
 				}
 				atualizarBarra();
+				if (!ok && ctx.erro) {
+					erroEm = a.cnj || ("processo " + (i + 1));
+					break;
+				}
 			}
 		} finally {
 			const parado = lote.parar;
@@ -1007,10 +1035,18 @@
 			emAndamento = false;
 			atualizarBarra();
 			const pulados = total - feitos - falhas;
-			statusLote((parado ? "⏹ Lote parado: " : "Lote concluído: ") + feitos + " executado(s)" +
+			if (erroEm) {
+				statusLote("⛔ Lote interrompido por erro em " + erroEm + ": " + feitos + " executado(s)" +
+					(pulados ? " · " + pulados + " não iniciado(s) (continuam marcados)" : "") + ". Veja a mensagem na linha do processo.");
+				alert("O lote foi interrompido porque houve um erro no processo " + erroEm + ".\n\n" +
+					feitos + " processo(s) já tinham sido executados. Os demais não foram tocados e continuam marcados.\n\n" +
+					"Confira o erro na linha do processo antes de executar de novo.");
+			} else {
+				statusLote((parado ? "⏹ Lote parado: " : "Lote concluído: ") + feitos + " executado(s)" +
 				(falhas ? " · " + falhas + " não executado(s)" : "") +
 				(pulados ? " · " + pulados + " não iniciado(s)" : "") +
 				(falhas || pulados ? " (continuam marcados)" : ""));
+			}
 		}
 	}
 
@@ -1027,6 +1063,15 @@
 		if (!alvos.length) return;
 		const resposta = await perguntaLote(item, alvos.length);
 		if (!resposta) return;
+		// Avisa da etapa prévia automática: nas telas de cumprimentos, só nos
+		// processos que tiverem pendências; nas telas de análise, em todos
+		// (dispensar juntadas, finalizar conclusão ou dispensar decursos).
+		const previaTexto = resposta !== "sim" ? "" : tela.verificaPendencias
+			? "\n\nAntes, em cada processo que tiver: dispensar juntadas pendentes e finalizar a conclusão (automático)."
+			: "\n\nAntes, em cada processo: " + tela.sim.replace(/^Sim, /, "") + " (automático).";
+		if (!confirm("Executar " + nomeDoItem(item) + " em " + alvos.length + " processo(s):\n\n" +
+			listaProcessosParaConfirmar(alvos.map(function (a) { return a.cnj; })) + previaTexto +
+			"\n\nSe ocorrer um erro, o lote para no processo com erro.")) return;
 		await percorrerLote(alvos, function (ctx) { return rodar(ctx, item, resposta, true); });
 	}
 
@@ -1040,7 +1085,9 @@
 		}
 		const alvos = marcadas();
 		if (!alvos.length) return;
-		if (!confirm("Associar \"★ " + nome + "\" aos " + alvos.length + " processo(s) marcado(s)?\n\n" + pref.localizadores.join("\n"))) return;
+		if (!confirm("Associar \"★ " + nome + "\" aos " + alvos.length + " processo(s) marcado(s)?\n\nLocalizadores:\n" + pref.localizadores.join("\n") +
+			"\n\nProcessos:\n" + listaProcessosParaConfirmar(alvos.map(function (a) { return a.cnj; })) +
+			"\n\nSe ocorrer um erro, o lote para no processo com erro.")) return;
 		await percorrerLote(alvos, function (ctx) { return rodarSeeu(ctx, pref, nome); });
 	}
 

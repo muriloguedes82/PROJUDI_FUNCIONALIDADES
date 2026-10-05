@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.23.1 |
-| **Versão da extensão** | 2.23.1 |
+| **Versão do manual** | 2.23.2 |
+| **Versão da extensão** | 2.23.2 |
 | **Data desta versão** | 05/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1691,15 +1691,27 @@ tabela aparece a barra **⭐ Em lote**.
    os marcados. Nas telas de cumprimentos, a pergunta é se deve dispensar
    as juntadas e finalizar a conclusão nos processos que tiverem essas
    pendências; os que não tiverem seguem direto.
-4. A extensão passa pelos processos **um de cada vez**: a linha da vez fica
+4. Antes de começar, uma janela mostra **a lista dos processos** que
+   serão afetados (até 25 números; acima disso, "… e mais N"), a
+   preferência ou combo escolhido e, se você respondeu **Sim**, o que será
+   feito automaticamente antes em cada um (dispensar juntadas, finalizar a
+   conclusão ou dispensar decursos). Confira e clique em **OK** —
+   **Cancelar** não executa nada.
+5. A extensão passa pelos processos **um de cada vez**: a linha da vez fica
    destacada e o popup dela abre já preenchido. Confira e clique em ✅
    **Sim, executar** — cada processo continua pedindo a sua confirmação.
    Fechar o popup sem executar pula aquele processo.
-5. A barra mostra "Processo 2 de 5…" e, no fim, o resumo (ex.: "Lote
+6. A barra mostra "Processo 2 de 5…" e, no fim, o resumo (ex.: "Lote
    concluído: 4 executado(s) · 1 não executado(s)").
 
 - Cada processo executado é **desmarcado**; os que não foram executados
   **continuam marcados**, para você repetir só com eles.
+- **O lote para no primeiro erro.** Se um processo der erro (por
+  exemplo, não foi possível abri-lo ou fazer a dispensa antes), a extensão
+  **não segue** para os próximos: eles não são tocados e continuam
+  marcados. Um aviso diz em qual processo houve o erro e quantos já tinham
+  sido executados; a mensagem do erro fica na linha do processo. Confira e
+  rode o lote de novo. Fechar o popup **não** é erro: só pula o processo.
 - **⏹ Parar lote** não abre os próximos processos (o que estiver aberto
   continua até você confirmar ou fechar).
 - Em lote não rodam os combos que abrem o processo numa **nova aba**
@@ -1729,10 +1741,14 @@ tabela aparece a barra **⭐ Em lote**.
 - Sem preferências de localizador, a ⭐ avisa para criá-las no botão
   **📍 Localizador**, na tela do processo.
 - **Em lote:** marque os processos, clique em **⭐ Associar localizadores
-  nos marcados**, escolha a preferência e confirme quantos processos vão
-  recebê-la. Os localizadores são associados em todos, um processo de cada
-  vez, sem confirmação processo a processo (no SEEU não há ato a
-  confirmar). O resultado aparece em cada linha e o resumo, na barra.
+  nos marcados**, escolha a preferência e confira a janela, que mostra os
+  localizadores e **a lista dos processos** que vão recebê-los. Os
+  localizadores são associados em todos, um processo de cada vez, sem
+  confirmação processo a processo (no SEEU não há ato a confirmar). O
+  resultado aparece em cada linha e o resumo, na barra. Se a associação
+  der **erro** num processo, o lote para ali e os seguintes continuam
+  marcados; um simples **⚠** (ex.: localizador que não está na lista da
+  unidade) não interrompe o lote.
 
 <a id="cap-9-4"></a>
 ### 9.4 Mesa do Analista sem itens zerados
@@ -2001,7 +2017,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V42](videos/V42-alterar-classe-e-assuntos.mp4) | [Alterar Classe/Assuntos](videos/V42-alterar-classe-e-assuntos.mp4) | [8.9](#cap-8-9) | 0:44 |
 | [V43](videos/V43-preferencia-de-alteracao-de-classe.mp4) | [Preferência de alteração de classe](videos/V43-preferencia-de-alteracao-de-classe.mp4) | [8.9](#cap-8-9) | 0:43 |
 | [V44](videos/V44-processo-ao-passar-o-mouse.mp4) | [Processo ao passar o mouse no Decurso de Prazo](videos/V44-processo-ao-passar-o-mouse.mp4) | [9.8](#cap-9-8) | 0:48 |
-| [V45](videos/V45-preferencias-em-lote.mp4) | [Preferências em lote (⭐ Em lote)](videos/V45-preferencias-em-lote.mp4) | [9.3](#cap-9-3) | 0:52 |
+| [V45](videos/V45-preferencias-em-lote.mp4) | [Preferências em lote (⭐ Em lote)](videos/V45-preferencias-em-lote.mp4) | [9.3](#cap-9-3) | 1:01 |
 | [V46](videos/V46-remessa-turma-recursal.mp4) | [Remessa para a Turma Recursal](videos/V46-remessa-turma-recursal.mp4) | [7.1](#cap-7-1) | 0:47 |
 <!-- tabela-videos:fim -->
 
@@ -2016,6 +2032,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.23.2 | 05/10/2026 | **⭐ Em lote** (9.3), no Projudi e no SEEU: antes de começar, a confirmação mostra a lista dos processos (até 25 números), a preferência/combo e o que será feito automaticamente antes (dispensar juntadas, finalizar conclusão ou dispensar decursos); o lote **para no primeiro erro**, deixando os seguintes intactos e marcados, e avisa em qual processo foi. Vídeo V45 regravado. |
 | 2.23.1 | 05/10/2026 | Correções de segurança. Opções (2.5): **Tenant ID do Tribunal** obrigatório para o modo Microsoft Graph e novo botão **Sair do Outlook nesta extensão**. E-mail (5.2): o login do Outlook vale só enquanto o navegador estiver aberto. Privacidade (10.1): documentos de um envio interrompido são apagados em até 15 minutos ou ao fechar o navegador. Solução de problemas (11): Tenant ID e envio expirado do WhatsApp. Os sistemas do CNJ (8.7) só podem ser abertos dentro do Projudi/SEEU, não em outras páginas (sem mudança na tela). Sem vídeo novo. |
 | 2.23.0 | 04/10/2026 | Seção 8.7: novo card **Outros ▾** (só no Projudi), com **COPEL**, **FUPEN**, **SANEPAR** e **SESP Intranet**; arrastar um card do painel para cima de um card da fila troca os dois, e arrastar um card da fila para o **Outros** o guarda lá. Os cards passam a ter **ordem alfabética** como padrão (quem já tinha mudado a ordem mantém a sua). No SEEU, novo card **SESP** ao lado do BNMP (1.3 e 8). A arrumação vai no Exportar/Importar (2.6). Vídeo V39 regravado. |
 | 2.22.0 | 04/10/2026 | O grupo **Remessa** das ações rápidas (7.1) ganha a **Remessa Eletrônica para a Turma Recursal** (Juizados Especiais), com **+ Nova preferência**: como a tela do Projudi não tem campos, a preferência só abre a tela e confirma. Vídeo V46. |

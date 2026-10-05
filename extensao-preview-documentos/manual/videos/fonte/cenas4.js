@@ -754,6 +754,13 @@ CENAS.V45 = {
 		await S.cap("A pergunta sobre as pendências é feita <b>uma vez só</b>, para todos os marcados.", { ms: 3800 });
 		await S.click("#sim");
 		closeModal();
+		modal('<h3>Confirmar o lote</h3><div>Executar ★ Remessa MP — Realizar Remessa em 3 processo(s):</div>' +
+			'<div style="font-family:monospace;margin:6px 0 6px 10px">1. ' + LISTA[0].n + '<br>2. ' + LISTA[2].n + '<br>3. ' + LISTA[3].n + '</div>' +
+			'<div>Antes, em cada processo: dispensar juntadas (automático).</div><div style="margin-top:6px">Se ocorrer um erro, o lote para no processo com erro.</div>' +
+			'<div style="text-align:right;margin-top:12px"><span class="pj-btn">Cancelar</span> <span class="pj-btn primary" id="okLote">OK</span></div>', { w: 540, top: 190 });
+		await S.cap("Antes de começar, a extensão mostra <b>a lista dos processos</b> que serão afetados e o que será feito automaticamente. Confira e clique em <b>OK</b>.", { ms: 4400 });
+		await S.click("#okLote");
+		closeModal();
 		for (const [k, i] of [[1, 0], [2, 2], [3, 3]]) {
 			$("#x-lote-st").textContent = "Processo " + k + " de 3: " + LISTA[i].n + "…";
 			const tr = $('#lista tr[data-i="' + i + '"]');
@@ -776,6 +783,7 @@ CENAS.V45 = {
 		S.hl("#x-lote", 3);
 		await S.cap("Cada processo executado é desmarcado; os que não forem executados <b>continuam marcados</b>.");
 		S.hlOff();
+		await S.cap("Se der <b>erro</b> num processo, o lote <b>para ali</b>: os seguintes não são tocados e continuam marcados.", { ms: 3800 });
 		await S.cap("No SEEU, a barra associa os localizadores do <b>📍 Localizador</b> em todos os marcados, sem confirmar um a um.", { ms: 4200 });
 		await S.endCard("Marque os processos → ⭐ Executar preferência nos marcados → card → uma resposta → ✅ Sim, executar em cada um.");
 	},
