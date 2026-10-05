@@ -324,15 +324,50 @@ CENAS.V38 = {
 // Cards dos sistemas do CNJ ao lado da balança do Menu (src/sistemasCnj.js,
 // nomes e cores em src/sistemasCnjLista.js). Fila da balança para a
 // esquerda (row-reverse), com a largura de cada nome.
+function cardCnj(s) {
+	const el = document.createElement("div");
+	el.id = "x-cnj-" + s.id;
+	el.title = s.nome + " (" + (s.orgao || "CNJ") + ")";
+	el.textContent = s.rotulo;
+	el.style.cssText = "height:24px;box-sizing:border-box;padding:0 6px;border-radius:6px;background:linear-gradient(135deg," + s.cor.claro + "," + s.cor.escuro + ");border:1px solid " + s.cor.borda + ";color:" + s.cor.texto + ";font:700 11px/1 Arial,sans-serif;white-space:nowrap;display:flex;align-items:center;box-shadow:0 1px 4px rgba(0,0,0,.25)";
+	return el;
+}
+const ALFA_CNJ = l => l.slice().sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" }));
+// Fila em ordem alfabética + card "Outros" colado à balança; painel do
+// "Outros" (oculto) com os sistemas marcados `outros: true`.
 function iconesSistemasCnj() {
 	const ic = $("#x-menuicon");
 	const fila = add('<div id="x-cnj-fila"></div>', ic.parentElement);
-	fila.style.cssText = "position:absolute;right:42px;top:50px;z-index:30;display:flex;flex-direction:row-reverse;gap:6px";
-	self.PDP_SISTEMAS_CNJ.forEach(s => {
-		const el = add('<div id="x-cnj-' + s.id + '" title="' + s.nome + " (" + (s.orgao || "CNJ") + ')">' + s.rotulo + "</div>", fila);
-		el.style.cssText = "height:24px;box-sizing:border-box;padding:0 6px;border-radius:6px;background:linear-gradient(135deg," + s.cor.claro + "," + s.cor.escuro + ");border:1px solid " + s.cor.borda + ";color:" + s.cor.texto + ";font:700 11px/1 Arial,sans-serif;white-space:nowrap;display:flex;align-items:center;box-shadow:0 1px 4px rgba(0,0,0,.25)";
-	});
+	fila.style.cssText = "position:absolute;right:42px;top:50px;z-index:30;display:flex;gap:6px";
+	ALFA_CNJ(self.PDP_SISTEMAS_CNJ.filter(s => !s.outros)).forEach(s => fila.append(cardCnj(s)));
+	const outros = cardCnj({ id: "outros", nome: "Outros sistemas", orgao: "extensão", rotulo: "Outros ▾", cor: { claro: "#ffffff", escuro: "#e4e7eb", borda: "#8a939c", texto: "#3d4650" } });
+	fila.append(outros);
+	const painel = add('<div id="x-cnj-painel"><div style="font-weight:bold;margin-bottom:6px;color:#333">Outros sistemas</div><div id="x-cnj-lista" style="display:flex;flex-wrap:wrap;gap:6px"></div><div style="margin-top:8px;color:#777">Clique para abrir. Arraste um card daqui para cima de um card da fila para trocar os dois de lugar; arraste um card da fila para cá para guardá-lo.</div></div>', ic.parentElement);
+	painel.style.cssText = "position:absolute;right:42px;top:82px;z-index:31;width:270px;box-sizing:border-box;padding:8px 10px;background:#fff;border:1px solid #c8ced6;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.18);font:11px/1.35 Arial,sans-serif;color:#444;display:none";
+	ALFA_CNJ(self.PDP_SISTEMAS_CNJ.filter(s => s.outros)).forEach(s => $("#x-cnj-lista").append(cardCnj(s)));
 	return fila;
+}
+function painelCnj(aberto) {
+	$("#x-cnj-painel").style.display = aberto ? "block" : "none";
+	$("#x-cnj-outros").textContent = "Outros " + (aberto ? "▴" : "▾");
+}
+// Anima o card `el` até a posição do card `alvo` (efeito de arrastar).
+async function arrastarCnj(el, alvo, ms = 1300) {
+	const r0 = el.getBoundingClientRect(), r1 = alvo.getBoundingClientRect();
+	const dx = r1.left + r1.width / 2 - (r0.left + r0.width / 2), dy = r1.top + r1.height / 2 - (r0.top + r0.height / 2);
+	el.style.position = "relative";
+	el.style.zIndex = "40";
+	alvo.style.outline = "2px dashed #2a6cb3";
+	alvo.style.outlineOffset = "2px";
+	await S.move("#" + el.id);
+	await Promise.all([
+		S.move("#" + el.id, { dx: dx, dy: dy, ms: ms }),
+		tween(ms, k => { el.style.transform = "translate(" + dx * k + "px," + dy * k + "px) scale(1.08)"; }),
+	]);
+	el.style.transform = "";
+	el.style.position = "";
+	el.style.zIndex = "";
+	alvo.style.outline = "";
 }
 CENAS.V39 = {
 	arquivo: "V39-sistemas-do-cnj.mp4",
@@ -340,26 +375,28 @@ CENAS.V39 = {
 	secao: "8.7",
 	async run() {
 		telaProcesso({});
-		const fila = iconesSistemasCnj();
-		await S.titleCard("VÍDEO V39", "Sistemas do CNJ", "SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Renajud e o Sistema Uniformizado num popup, sem sair do processo.");
+		iconesSistemasCnj();
+		await S.titleCard("VÍDEO V39", "Sistemas do CNJ e outros", "Cards ao lado da balança abrem SerpJud, BNMP, Sisbajud, Renajud e outros num popup, sem sair do processo.");
 		S.hl("#x-cnj-fila", 4);
-		await S.cap("No alto da tela, à esquerda da balança dourada do Menu, ficam os cards dos <b>sistemas</b>, cada um com o nome e a sua cor.", { ms: 4600, bottom: true });
+		await S.cap("No alto da tela, à esquerda da balança dourada do Menu, ficam os cards dos <b>sistemas</b>, em <b>ordem alfabética</b>.", { ms: 4600, bottom: true });
 		S.hlOff();
 		await S.cap("Passe o mouse sobre um card para ver o nome completo do sistema.", { bottom: true });
-		await S.cap("Para mudar a ordem, clique num card e, sem soltar, <b>arraste-o para o lado</b>.", { bottom: true });
-		const arrastado = $("#x-cnj-infojud");
-		const alvo = $("#x-cnj-cniep");
-		await S.move("#x-cnj-infojud");
-		arrastado.style.position = "relative";
-		arrastado.style.zIndex = "31";
-		const dx = alvo.getBoundingClientRect().left - arrastado.getBoundingClientRect().left;
-		await Promise.all([
-			S.move("#x-cnj-infojud", { dx: dx, ms: 1400 }),
-			tween(1400, k => { arrastado.style.transform = "translateX(" + dx * k + "px) scale(1.08)"; }),
-		]);
-		fila.insertBefore(arrastado, alvo);
-		arrastado.style.transform = "";
-		await S.cap("Solte no lugar desejado: a nova ordem fica guardada como sua preferência e vai junto no <b>⬇ Exportar</b> do Menu.", { ms: 4200, bottom: true });
+		await S.cap("O card <b>Outros</b>, colado à balança, guarda mais sistemas. Clique nele.", { bottom: true });
+		await S.click("#x-cnj-outros");
+		painelCnj(true);
+		await S.cap("O painel traz <b>COPEL</b>, <b>FUPEN</b>, <b>SANEPAR</b> e <b>SESP</b>. Clique num deles para abri-lo.", { ms: 4400, bottom: true });
+		await S.cap("Para trazer um deles para a fila, arraste-o <b>para cima de um card da fila</b> — por exemplo, o SANEPAR sobre o CNIEP.", { ms: 4600, bottom: true });
+		const sanepar = $("#x-cnj-sanepar"), cniep = $("#x-cnj-cniep");
+		await arrastarCnj(sanepar, cniep);
+		cniep.replaceWith(sanepar);
+		$("#x-cnj-lista").replaceChildren(...ALFA_CNJ(self.PDP_SISTEMAS_CNJ.filter(s => (s.outros && s.id !== "sanepar") || s.id === "cniep")).map(s => s.id === "cniep" ? cniep : $("#x-cnj-" + s.id)));
+		await S.cap("Os dois trocam de lugar: o SANEPAR fica na fila e o CNIEP vai para dentro do <b>Outros</b>.", { ms: 4400, bottom: true });
+		painelCnj(false);
+		await S.cap("Para mudar a posição na fila, arraste um card para o lado. Para guardá-lo, arraste-o para cima do <b>Outros</b>.", { ms: 4600, bottom: true });
+		const sniper = $("#x-cnj-sniper");
+		await arrastarCnj(sniper, $("#x-cnj-outros"));
+		$("#x-cnj-lista").append(sniper);
+		await S.cap("Tudo fica guardado como sua preferência — inclusive depois de atualizar a extensão — e vai junto no <b>⬇ Exportar</b> do Menu.", { ms: 4600, bottom: true });
 		await S.cap("Um clique sem arrastar abre o sistema. Clique, por exemplo, no <b>SerpJud</b>.", { bottom: true });
 		await S.click("#x-cnj-serpjud");
 		await abrindo("SerpJud", 1000);
@@ -745,10 +782,69 @@ CENAS.V45 = {
 };
 
 // ------------------------------------------------------------------ V46
+// "Remessa Eletrônica para a Turma Recursal" no grupo Remessa das ações
+// rápidas (ACTION_GROUPS em src/quickActions.js). A tela do Projudi
+// (remessaAutos.do, "Envio do Processo ... para a Instância Superior") não
+// tem campos da remessa: a preferência é gravada sem campos e só abre a
+// tela e confirma (ACTIONS_PREF_SEM_CAMPOS).
+function telaEnvioInstanciaSuperior() {
+	return '<h3 style="margin:0 0 8px">Envio do Processo ' + PROC + ' para a Instância Superior</h3>' +
+		'<table class="pj-form"><tr><td class="l">Processo:</td><td><u>' + PROC + '</u></td></tr>' +
+		'<tr><td class="l">Vara:</td><td>Juizado Especial Cível de Exemplo</td></tr>' +
+		'<tr><td class="l">Classe Processual:</td><td>436 - Procedimento do Juizado Especial Cível</td></tr>' +
+		'<tr><td class="l">Polo Ativo:</td><td>JOSÉ EXEMPLO</td></tr>' +
+		'<tr><td class="l">Polo Passivo:</td><td>EMPRESA EXEMPLO S/A</td></tr></table>' +
+		'<h4 style="margin:10px 0 4px">Advogados</h4>' +
+		'<table class="pj-table" style="width:640px"><tr><th style="width:24px"></th><th>OAB</th><th>Advogado/Sociedade de Advogados</th><th>Partes</th></tr>' +
+		'<tr><td><input type="radio"></td><td>12345N-PR</td><td>JOÃO EXEMPLO</td><td>(Polo Ativo) JOSÉ EXEMPLO</td></tr></table>' +
+		'<div class="pj-btnbar" style="justify-content:flex-start"><span class="pj-btn">Adicionar</span><span class="pj-btn">Alterar</span><span class="pj-btn">Remover</span></div>' +
+		'<div class="pj-btnbar" style="justify-content:flex-start"><span class="pj-btn primary" id="f-confirmar">Confirmar</span><span class="pj-btn">Voltar</span></div>';
+}
+CENAS.V46 = {
+	arquivo: "V46-remessa-turma-recursal.mp4",
+	titulo: "Remessa para a Turma Recursal",
+	secao: "7.1",
+	async run() {
+		telaProcesso({ acoesAbertas: true });
+		const acoes = prefs => [{ nome: "Realizar Remessa" }, { nome: "Remessa Eletrônica para o Tribunal de Justiça" }, { nome: "Remessa Eletrônica para a Turma Recursal", prefs }];
+		await S.titleCard("VÍDEO V46", "Remessa para a Turma Recursal", "Nos Juizados Especiais, pelo botão Remessa — e com preferência.");
+		await S.cap("Clique no grupo <b>Remessa</b>.");
+		await S.click('[data-g="Remessa"]');
+		let pn = panelAt(acaoPanel("Remessa", acoes()), '[data-g="Remessa"]', { w: 440 });
+		await S.cap("Além das remessas de sempre, aparece <b>Remessa Eletrônica para a Turma Recursal</b>.", { ms: 3600 });
+		await S.cap("Para gravar uma preferência, clique em <b>+ Nova preferência</b> nela.");
+		await S.click('[data-nova="Remessa Eletrônica para a Turma Recursal"]');
+		pn.remove();
+		await abrindo("Remessa Eletrônica para a Turma Recursal", 900);
+		popup("Remessa Eletrônica para a Turma Recursal", telaEnvioInstanciaSuperior(), { top: 120, h: 470 });
+		const b = bar('Preencha o diálogo e clique em <span class="x-btn small" id="salvarpref">💾 Salvar como preferência</span>', { top: 78 });
+		await S.cap("Abre a tela <b>Envio do Processo para a Instância Superior</b>. Ela não tem campos da remessa: só confere os dados e os advogados.", { ms: 4400 });
+		await S.click("#salvarpref");
+		modal('<h3>Salvar como preferência</h3><div class="x-note">Esta tela não tem campos para gravar: a preferência só abre "Remessa Eletrônica para a Turma Recursal" e pede a confirmação (que clica em "Confirmar").</div><div style="margin-top:8px">Nome da preferência:</div><div class="x-field" id="nm"></div><div style="text-align:right;margin-top:10px"><span class="pj-btn">Cancelar</span> <span class="pj-btn primary" id="ok">Salvar</span></div>', { top: 170 });
+		await S.cap("A preferência guarda só a ação — a bolinha do advogado, que muda de processo para processo, fica de fora.", { ms: 4200 });
+		await S.type("#nm", "Turma Recursal");
+		await S.click("#ok");
+		closeModal(); b.remove(); $(".x-popup").remove();
+		await S.click('[data-g="Remessa"]');
+		pn = panelAt(acaoPanel("Remessa", acoes(["Turma Recursal"])), '[data-g="Remessa"]', { w: 440 });
+		await S.cap("Pronto: a preferência <b>★ Turma Recursal</b> fica no painel.", { ms: 3200 });
+		await S.click('[data-pref="Turma Recursal"]', { dx: -30 });
+		pn.remove();
+		await abrindo("Remessa Eletrônica para a Turma Recursal", 900);
+		popup("Remessa Eletrônica para a Turma Recursal", telaEnvioInstanciaSuperior(), { top: 120, h: 470 });
+		const c = bar('Confirmar "Remessa Eletrônica para a Turma Recursal" com a preferência "Turma Recursal"? <span class="x-btn small green" id="sim">✅ Sim, executar</span> <span class="x-btn small">Cancelar</span>', { top: 78 });
+		await S.cap("Confira a tela e clique em <b>✅ Sim, executar</b> — a extensão clica em <b>Confirmar</b>.", { ms: 3600 });
+		await S.click("#sim");
+		c.remove(); $(".x-popup").remove();
+		await S.endCard("Remessa → Turma Recursal → + Nova preferência → 💾 Salvar (sem campos) → ★ preferência → ✅ Sim, executar (Confirmar).");
+	},
+};
+
+// ------------------------------------------------------------------ V47
 // "Analisar Decurso" e "Dispensar" na própria lista de decurso de prazo,
 // abaixo do sequencial.
-CENAS.V46 = {
-	arquivo: "V46-analisar-e-dispensar-decurso-na-lista.mp4",
+CENAS.V47 = {
+	arquivo: "V47-analisar-e-dispensar-decurso-na-lista.mp4",
 	titulo: "Analisar e Dispensar decurso na lista",
 	secao: "9.9",
 	async run() {
@@ -760,7 +856,7 @@ CENAS.V46 = {
 				'<span class="x-btn small" data-di="' + i + '">Dispensar</span>' +
 				'<span class="st" data-st="' + i + '" style="flex-basis:100%;font-size:11px"></span></div>');
 		});
-		await S.titleCard("VÍDEO V46", "Analisar e Dispensar decurso na lista", "Os botões da tela da intimação, direto na linha do processo.");
+		await S.titleCard("VÍDEO V47", "Analisar e Dispensar decurso na lista", "Os botões da tela da intimação, direto na linha do processo.");
 		await S.cap("Nas listas de <b>Decurso de Prazo</b>, cada linha aguardando análise ganha, abaixo do <b>Seq.</b>, os botões <b>Analisar Decurso</b> e <b>Dispensar</b>.");
 		S.hl('[data-dec="0"]', 3);
 		await sleep(1200);

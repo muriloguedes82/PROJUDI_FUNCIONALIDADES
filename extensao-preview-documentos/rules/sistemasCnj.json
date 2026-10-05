@@ -23,7 +23,11 @@
         "sso.cloud.pje.jus.br",
         "receita.fazenda.gov.br",
         "sso.acesso.gov.br",
-        "portal.tjpr.jus.br"
+        "portal.tjpr.jus.br",
+        "copel.com",
+        "sanepar.com.br",
+        "depen.pr.gov.br",
+        "sesp.parana"
       ],
       "initiatorDomains": [
         "tjpr.jus.br",
@@ -34,7 +38,11 @@
         "pdpj.jus.br",
         "sso.cloud.pje.jus.br",
         "receita.fazenda.gov.br",
-        "sso.acesso.gov.br"
+        "sso.acesso.gov.br",
+        "copel.com",
+        "sanepar.com.br",
+        "depen.pr.gov.br",
+        "sesp.parana"
       ],
       "resourceTypes": [
         "sub_frame"
