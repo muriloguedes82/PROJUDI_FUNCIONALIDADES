@@ -11,7 +11,8 @@
         },
         {
           "header": "content-security-policy",
-          "operation": "remove"
+          "operation": "set",
+          "value": "frame-ancestors 'self' https://*.tjpr.jus.br https://seeu.pje.jus.br https://seeutreino.pje.jus.br"
         }
       ]
     },

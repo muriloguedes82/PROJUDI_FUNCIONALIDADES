@@ -465,12 +465,22 @@ no Azure AD / Microsoft Entra ID do Tribunal:
    administrador**.
 5. Copie o **Client ID (Application ID)** gerado.
 6. Na extensão, acesse `chrome://extensions` → "Detalhes" → "Opções da
-   extensão" e informe o Client ID (e o Tenant ID, se a organização exigir
-   restringir a um tenant específico em vez de "common").
+   extensão" e informe o Client ID e o **Tenant ID do Tribunal** (GUID,
+   obrigatório). Valores genéricos como `common`, `organizations` ou
+   `consumers` são recusados, para que só contas institucionais do Tribunal
+   consigam entrar.
 
-No primeiro envio, o navegador abrirá a tela de login padrão da
-Microsoft para o usuário autorizar o acesso à própria caixa de Outlook; nas
-próximas vezes o token é reaproveitado/renovado automaticamente.
+No primeiro envio de cada sessão do navegador, abre-se a tela de login
+padrão da Microsoft para o usuário autorizar o acesso à própria caixa de
+Outlook; dentro da mesma sessão o token é reaproveitado/renovado
+automaticamente. O token fica em `chrome.storage.session` (só em memória,
+nunca gravado em disco, inacessível aos content scripts) e é apagado ao
+fechar o navegador; tokens antigos em `chrome.storage.local` são removidos
+automaticamente. Se a renovação falhar, o token é descartado. O botão
+**"Sair do Outlook nesta extensão"** da página de opções apaga o login antes
+disso (mensagem `OUTLOOK_LOGOUT`, aceita só vinda da própria página de
+opções). O texto do corpo do e-mail é escapado antes de virar HTML no
+rascunho.
 
 ### Modo alternativo sem Azure AD (fallback semiautomático)
 
@@ -1738,8 +1748,12 @@ Essa parte depende de dois componentes adicionais:
   contornar CORS em sistemas que redirecionam o link do documento para um
   armazenamento externo, como o SEEU faz para um bucket S3), guarda
   temporariamente o resultado (em `chrome.storage.local`, apenas até serem
-  anexados ou expirarem após alguns minutos) e abre/reaproveita a aba do
-  WhatsApp Web na conversa certa.
+  anexados ou expirarem após 15 minutos — `PENDING_TTL_MS`) e
+  abre/reaproveita a aba do WhatsApp Web na conversa certa. Envios
+  pendentes são apagados ao abrir o navegador (`onStartup`), a cada 5
+  minutos (`chrome.alarms`) quando vencidos, e na hora se a injeção do
+  script no WhatsApp falhar; a mesma limpeza cobre `pendingDownloadInfo`
+  (modo Outlook Web).
 - `src/whatsapp.js`: content script injetado em `web.whatsapp.com` que
   busca esse conteúdo pendente e anexa os arquivos assim que a conversa
   termina de carregar. Ele mostra o andamento na própria tela e também
@@ -1974,6 +1988,31 @@ irmão desta mesma extensão, o envio por e-mail):
   sistemas — e, uma vez que a tela provou ser de um processo, essa
   elegibilidade fica guardada (não é reavaliada do zero a cada vez, o que
   evitava um falso negativo bem no meio de uma troca de aba).
+
+## Regra de rede dos Sistemas do CNJ (`rules/sistemasCnj.json`)
+
+Para que os sistemas do CNJ e de outros órgãos (gov.br, Receita, PDPJ,
+Copel, Sanepar etc.) abram dentro do popup do Projudi/SEEU, a regra de
+`declarativeNetRequest` retira `X-Frame-Options` das respostas carregadas em
+iframe a partir dos domínios de `initiatorDomains`. A
+`Content-Security-Policy` **não é removida**: ela é **substituída** por
+`frame-ancestors 'self' https://*.tjpr.jus.br https://seeu.pje.jus.br https://seeutreino.pje.jus.br`.
+Assim o navegador só deixa esses sites serem embutidos pelo Tribunal e pelo
+SEEU, evitando *clickjacking* a partir de qualquer outra página — inclusive
+dos demais domínios de `initiatorDomains`, que continuam na lista porque as
+navegações internas do login (de um sistema para outro dentro do iframe)
+dependem deles.
+
+Para usar o sistema fora do popup, o cabeçalho dele tem um só botão
+(`sistemas-cnj-open` em `background.js`): abre numa janela maximizada no
+segundo monitor sempre que `chrome.system.display` informar mais de um, e
+senão numa aba nova ao lado da do processo. O rótulo (🖥 Segundo monitor ou
+🗂 Nova aba) segue `screen.isExtended`.
+
+Limitação: as demais diretivas de CSP desses sites (como `script-src`)
+deixam de valer quando eles abrem embutidos — `declarativeNetRequest` não
+consegue mesclar CSP. Sistema que não precise abrir embutido deve sair da
+regra e abrir em aba nova.
 
 ## Limitações conhecidas
 

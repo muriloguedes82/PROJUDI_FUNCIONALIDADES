@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.23.0 |
-| **Versão da extensão** | 2.23.0 |
-| **Data desta versão** | 04/10/2026 |
+| **Versão do manual** | 2.23.3 |
+| **Versão da extensão** | 2.23.3 |
+| **Data desta versão** | 05/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -294,7 +294,8 @@ tela, "flutuando" sobre a página.
 | Campo | Para que serve |
 |---|---|
 | **Modo de envio** | Como o e-mail é preparado: **Automático** (padrão), **Sempre via Microsoft Graph** ou **Sempre via Outlook Web (sem Azure AD)** — veja [5.2](#cap-5-2) |
-| **Client ID** / **Tenant ID** | Dados fornecidos pelo setor de TI para o modo Microsoft Graph. Não preencha se o TI não informou |
+| **Client ID** / **Tenant ID do Tribunal** | Dados fornecidos pelo setor de TI para o modo Microsoft Graph. Não preencha se o TI não informou. Se preencher o Client ID, o **Tenant ID do Tribunal** passa a ser obrigatório (um código como `00000000-0000-0000-0000-000000000000`): ele garante que só contas do Tribunal consigam entrar |
+| **Sair do Outlook nesta extensão** | Apaga o login do Outlook guardado pela extensão. Útil em computador compartilhado; no próximo envio a Microsoft pede login de novo |
 | **Termos de Uso da extensão** | Consultar os termos ou revogar o aceite |
 
 Clique em **Salvar** depois de alterar.
@@ -681,7 +682,15 @@ inferior direito. Com documentos marcados ele mostra a quantidade, ex.:
 | **Microsoft Graph** | Quando o TI cadastrou o aplicativo e informou o Client ID | Anexados automaticamente. No primeiro uso, a Microsoft pede login/autorização |
 | **Outlook Web (sem Azure AD)** | Sem cadastro do TI (é o que o modo **Automático** usa nesse caso) | Os arquivos são baixados para a pasta **Downloads**; um aviso no Outlook orienta: **Anexar arquivo → Navegar neste computador** → escolha os arquivos |
 
-**Bom saber:** anexos grandes seguem o limite do Outlook da instituição
+**Bom saber:** no modo **Microsoft Graph**, o login fica guardado só
+enquanto o navegador estiver aberto: ao fechar e abrir o navegador, a
+Microsoft pede login de novo no primeiro envio. Para sair antes (por
+exemplo, em computador compartilhado), use **Sair do Outlook nesta
+extensão** na página de opções ([2.5](#cap-2-5)). Quem já usava esse modo
+precisa informar o **Tenant ID do Tribunal** nas opções (peça ao TI); até
+lá, o envio mostra uma mensagem explicando isso.
+
+Anexos grandes seguem o limite do Outlook da instituição
 (normalmente 25 MB por e-mail). Se o navegador pergunta onde salvar cada
 download, uma janela aparecerá por arquivo.
 
@@ -1383,25 +1392,26 @@ sistemas novos entram no **Outros**.
 2. O sistema abre num **popup** sobre a tela do processo (o mesmo tipo de
    janela usado por Remessa, Concluso e as demais ações rápidas). Entre com
    o seu acesso e trabalhe nele.
-3. Se preferir trabalhar com o sistema fora do popup, use os botões do topo
-   dele:
-   - **🗂 Nova aba** — abre o sistema numa aba nova do navegador, logo ao
-     lado da aba do processo;
-   - **🖥 Segundo monitor** — abre o sistema numa janela que ocupa o
-     **outro monitor** inteiro. Se só houver um monitor conectado, a
-     extensão avisa e o popup continua aberto.
+3. Se preferir trabalhar com o sistema fora do popup, use o botão do topo
+   dele. Ele já escolhe o melhor lugar:
+   - com **dois monitores**, aparece como **🖥 Segundo monitor** e abre o
+     sistema numa janela que ocupa o **outro monitor** inteiro;
+   - com **um monitor só**, aparece como **🗂 Nova aba** e abre o sistema
+     numa aba nova do navegador, logo ao lado da aba do processo.
 4. Para voltar ao processo, clique em **✕ Fechar** (ou tecle **Esc**).
 
 **Bom saber:**
 
 - O popup fica sobre o processo: a aba do processo não muda de lugar.
-- Se o login de um sistema não funcionar dentro do popup, use **🗂 Nova
-  aba** ou **🖥 Segundo monitor**.
+- Se o login de um sistema não funcionar dentro do popup, use o botão
+  **🖥 Segundo monitor** (ou **🗂 Nova aba**, com um monitor só).
+- Se o segundo monitor estiver desligado ou desconectado, o sistema abre
+  numa nova aba.
 - Ao fechar o popup, o que estava aberto no sistema não fica guardado; ao
   clicar de novo, ele abre na tela inicial.
 - O **Infojud** é da Receita Federal e abre pelo **e-CAC**: o acesso é com
   o certificado digital (ou gov.br). Se o e-CAC não abrir no popup, use
-  **🗂 Nova aba** ou **🖥 Segundo monitor**.
+  **🖥 Segundo monitor** (ou **🗂 Nova aba**, com um monitor só).
 - A **SESP Intranet** é da rede interna do Estado: só abre em computadores
   ligados a essa rede.
 
@@ -1682,15 +1692,27 @@ tabela aparece a barra **⭐ Em lote**.
    os marcados. Nas telas de cumprimentos, a pergunta é se deve dispensar
    as juntadas e finalizar a conclusão nos processos que tiverem essas
    pendências; os que não tiverem seguem direto.
-4. A extensão passa pelos processos **um de cada vez**: a linha da vez fica
+4. Antes de começar, uma janela mostra **a lista dos processos** que
+   serão afetados (até 25 números; acima disso, "… e mais N"), a
+   preferência ou combo escolhido e, se você respondeu **Sim**, o que será
+   feito automaticamente antes em cada um (dispensar juntadas, finalizar a
+   conclusão ou dispensar decursos). Confira e clique em **OK** —
+   **Cancelar** não executa nada.
+5. A extensão passa pelos processos **um de cada vez**: a linha da vez fica
    destacada e o popup dela abre já preenchido. Confira e clique em ✅
    **Sim, executar** — cada processo continua pedindo a sua confirmação.
    Fechar o popup sem executar pula aquele processo.
-5. A barra mostra "Processo 2 de 5…" e, no fim, o resumo (ex.: "Lote
+6. A barra mostra "Processo 2 de 5…" e, no fim, o resumo (ex.: "Lote
    concluído: 4 executado(s) · 1 não executado(s)").
 
 - Cada processo executado é **desmarcado**; os que não foram executados
   **continuam marcados**, para você repetir só com eles.
+- **O lote para no primeiro erro.** Se um processo der erro (por
+  exemplo, não foi possível abri-lo ou fazer a dispensa antes), a extensão
+  **não segue** para os próximos: eles não são tocados e continuam
+  marcados. Um aviso diz em qual processo houve o erro e quantos já tinham
+  sido executados; a mensagem do erro fica na linha do processo. Confira e
+  rode o lote de novo. Fechar o popup **não** é erro: só pula o processo.
 - **⏹ Parar lote** não abre os próximos processos (o que estiver aberto
   continua até você confirmar ou fechar).
 - Em lote não rodam os combos que abrem o processo numa **nova aba**
@@ -1720,10 +1742,14 @@ tabela aparece a barra **⭐ Em lote**.
 - Sem preferências de localizador, a ⭐ avisa para criá-las no botão
   **📍 Localizador**, na tela do processo.
 - **Em lote:** marque os processos, clique em **⭐ Associar localizadores
-  nos marcados**, escolha a preferência e confirme quantos processos vão
-  recebê-la. Os localizadores são associados em todos, um processo de cada
-  vez, sem confirmação processo a processo (no SEEU não há ato a
-  confirmar). O resultado aparece em cada linha e o resumo, na barra.
+  nos marcados**, escolha a preferência e confira a janela, que mostra os
+  localizadores e **a lista dos processos** que vão recebê-los. Os
+  localizadores são associados em todos, um processo de cada vez, sem
+  confirmação processo a processo (no SEEU não há ato a confirmar). O
+  resultado aparece em cada linha e o resumo, na barra. Se a associação
+  der **erro** num processo, o lote para ali e os seguintes continuam
+  marcados; um simples **⚠** (ex.: localizador que não está na lista da
+  unidade) não interrompe o lote.
 
 <a id="cap-9-4"></a>
 ### 9.4 Mesa do Analista sem itens zerados
@@ -1873,7 +1899,8 @@ ela está instalada (não vai para outro computador):
 | Cores de destaque e "sempre ocultar sem arquivo" | Armazenamento da extensão |
 | Listas de tarefas e tarefas | Armazenamento da extensão |
 | Destinatários (WhatsApp e e-mail) e remetentes | Armazenamento da extensão |
-| Documentos a anexar | Só até serem anexados (alguns minutos) |
+| Documentos a anexar | Só até serem anexados; se o envio for interrompido, são apagados em até 15 minutos ou ao fechar o navegador |
+| Login do Outlook (modo Microsoft Graph) | Só enquanto o navegador estiver aberto (nunca gravado no computador) |
 | Cards do cabeçalho, réus, RG/CPF | Só na aba atual, enquanto ela estiver aberta |
 
 Para levar esses dados a outro computador, use **⬇ Exportar** / **⬆ Importar**
@@ -1921,6 +1948,8 @@ telas abertas a partir daí voltam a funcionar.
 | Combo parou numa etapa | Use **↻ Repetir etapa**, **⏭ Próxima etapa** ou **⏹ Parar combo** ([7.4](#cap-7-4)) |
 | WhatsApp abre a conversa, mas sem anexos | Confira se o WhatsApp Web está conectado; recarregue a extensão; anexe manualmente se precisar |
 | E-mail pede Client ID / dá erro de configuração | Mude o **Modo de envio** para **Automático** ou **Outlook Web** nas opções ([2.5](#cap-2-5)), ou peça o Client ID ao TI |
+| E-mail pede o Tenant ID do Tribunal | Peça ao TI o Tenant ID e informe-o nas opções ([2.5](#cap-2-5)), ou mude o **Modo de envio** para **Outlook Web** |
+| WhatsApp: "O envio expirou" | Passaram-se mais de 15 minutos desde o clique em enviar: marque os documentos e envie de novo ([5.1](#cap-5-1)) |
 | No Outlook Web os anexos não entram sozinhos | É o esperado nesse modo: **Anexar arquivo → Navegar neste computador** e escolha os arquivos na pasta **Downloads** |
 | O campo "De" não muda para a conta escolhida | Falta a permissão "Enviar como" nessa caixa — peça ao TI ([5.3](#cap-5-3)) |
 | "Verifique a conclusão" | Confira a conclusão no Projudi antes de repetir ([6.2](#cap-6-2)) |
@@ -1928,7 +1957,7 @@ telas abertas a partir daí voltam a funcionar.
 | Card de suspensão/monitoração não aparece | Só são sinalizados status **ATIVA** e os motivos listados em [4.1](#cap-4-1)/[4.2](#cap-4-2); aguarde alguns segundos após abrir o processo |
 | Mandado não virou Regionalizado | Só muda se a cidade da parte for de outra comarca **e** constar em Comarca de Destino; veja a nota amarela do diálogo ([9.7](#cap-9-7)) |
 | Colar processo: "Não encontrei um número de processo" | Copie o número completo (20 dígitos), só um ([8.5](#cap-8-5)) |
-| O popup de um sistema do CNJ fica em branco ou o login não termina | Use **🗂 Nova aba** ou **🖥 Segundo monitor** no topo do popup ([8.7](#cap-8-7)) |
+| O popup de um sistema do CNJ fica em branco ou o login não termina | Use o botão **🖥 Segundo monitor** (ou **🗂 Nova aba**, com um monitor só) no topo do popup ([8.7](#cap-8-7)) |
 
 Se o problema continuar, anote a versão da extensão, a tela e o que
 aconteceu, e informe o responsável pela extensão.
@@ -1989,7 +2018,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V42](videos/V42-alterar-classe-e-assuntos.mp4) | [Alterar Classe/Assuntos](videos/V42-alterar-classe-e-assuntos.mp4) | [8.9](#cap-8-9) | 0:44 |
 | [V43](videos/V43-preferencia-de-alteracao-de-classe.mp4) | [Preferência de alteração de classe](videos/V43-preferencia-de-alteracao-de-classe.mp4) | [8.9](#cap-8-9) | 0:43 |
 | [V44](videos/V44-processo-ao-passar-o-mouse.mp4) | [Processo ao passar o mouse no Decurso de Prazo](videos/V44-processo-ao-passar-o-mouse.mp4) | [9.8](#cap-9-8) | 0:48 |
-| [V45](videos/V45-preferencias-em-lote.mp4) | [Preferências em lote (⭐ Em lote)](videos/V45-preferencias-em-lote.mp4) | [9.3](#cap-9-3) | 0:52 |
+| [V45](videos/V45-preferencias-em-lote.mp4) | [Preferências em lote (⭐ Em lote)](videos/V45-preferencias-em-lote.mp4) | [9.3](#cap-9-3) | 1:01 |
 | [V46](videos/V46-remessa-turma-recursal.mp4) | [Remessa para a Turma Recursal](videos/V46-remessa-turma-recursal.mp4) | [7.1](#cap-7-1) | 0:47 |
 <!-- tabela-videos:fim -->
 
@@ -2004,6 +2033,9 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.23.3 | 05/10/2026 | Sistemas do CNJ e card **Outros** (8.7): o popup passa a ter **um só botão** para abrir o sistema fora dele, que usa o **segundo monitor** sempre que houver um conectado (**🖥 Segundo monitor**) e, se não houver, abre numa **nova aba** (**🗂 Nova aba**). Antes eram dois botões, e o do segundo monitor só avisava quando não havia outro monitor. Solução de problemas (11) ajustada e vídeo V39 regravado. |
+| 2.23.2 | 05/10/2026 | **⭐ Em lote** (9.3), no Projudi e no SEEU: antes de começar, a confirmação mostra a lista dos processos (até 25 números), a preferência/combo e o que será feito automaticamente antes (dispensar juntadas, finalizar conclusão ou dispensar decursos); o lote **para no primeiro erro**, deixando os seguintes intactos e marcados, e avisa em qual processo foi. Vídeo V45 regravado. |
+| 2.23.1 | 05/10/2026 | Correções de segurança. Opções (2.5): **Tenant ID do Tribunal** obrigatório para o modo Microsoft Graph e novo botão **Sair do Outlook nesta extensão**. E-mail (5.2): o login do Outlook vale só enquanto o navegador estiver aberto. Privacidade (10.1): documentos de um envio interrompido são apagados em até 15 minutos ou ao fechar o navegador. Solução de problemas (11): Tenant ID e envio expirado do WhatsApp. Os sistemas do CNJ (8.7) só podem ser abertos dentro do Projudi/SEEU, não em outras páginas (sem mudança na tela). Sem vídeo novo. |
 | 2.23.0 | 04/10/2026 | Seção 8.7: novo card **Outros ▾** (só no Projudi), com **COPEL**, **FUPEN**, **SANEPAR** e **SESP Intranet**; arrastar um card do painel para cima de um card da fila troca os dois, e arrastar um card da fila para o **Outros** o guarda lá. Os cards passam a ter **ordem alfabética** como padrão (quem já tinha mudado a ordem mantém a sua). No SEEU, novo card **SESP** ao lado do BNMP (1.3 e 8). A arrumação vai no Exportar/Importar (2.6). Vídeo V39 regravado. |
 | 2.22.0 | 04/10/2026 | O grupo **Remessa** das ações rápidas (7.1) ganha a **Remessa Eletrônica para a Turma Recursal** (Juizados Especiais), com **+ Nova preferência**: como a tela do Projudi não tem campos, a preferência só abre a tela e confirma. Vídeo V46. |
 | 2.21.0 | 03/10/2026 | **⭐ Em lote** (9.3): caixinha de marcar abaixo do **+** de cada linha e barra **⭐ Em lote** acima da tabela, em todas as telas com a ⭐ (Juntadas, Retorno de Conclusão, Decurso de Prazo, cumprimentos e, no SEEU, Juntadas e Conclusão). No Projudi, a pergunta sobre dispensar/finalizar é feita uma vez para todos e cada processo continua pedindo o seu ✅ Sim, executar; no SEEU, os localizadores são associados em todos os marcados. Descrição da função no Menu atualizada e vídeo V45. |

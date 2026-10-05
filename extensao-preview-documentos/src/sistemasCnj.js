@@ -34,10 +34,11 @@
 // mesmo tipo de janela usado pelas ações rápidas (Remessa, Concluso etc.,
 // ver showActionModal em quickActions.js) -, sem nova aba. Se a balança
 // estiver num frame só do cabeçalho, o popup é aberto no documento do topo,
-// para ocupar a tela toda. No cabeçalho do popup, "🗂 Nova aba" abre o
-// mesmo endereço numa aba nova do navegador (ao lado da do processo) e
-// "🖥 Segundo monitor" numa janela maximizada no outro monitor, se houver
-// (ver sistemas-cnj-open em background.js).
+// para ocupar a tela toda. No cabeçalho do popup, um botão abre o mesmo
+// endereço fora do popup: numa janela maximizada no segundo monitor, se
+// houver, e senão numa aba nova ao lado da do processo (ver
+// sistemas-cnj-open em background.js). O rótulo ("🖥 Segundo monitor" ou
+// "🗂 Nova aba") segue screen.isExtended, mas quem decide é o background.
 //
 // Esses sistemas costumam recusar ser exibidos dentro de outra página; a
 // regra em rules/sistemasCnj.json retira essa recusa apenas quando a janela
@@ -106,10 +107,10 @@
 	// Popup
 	// ------------------------------------------------------------------
 
-	// `onde`: "aba" ou "monitor". O popup só fecha se abriu de fato (ex.:
-	// sem segundo monitor, avisa e mantém o popup).
-	function openOutside(sistema, onde) {
-		chrome.runtime.sendMessage({ source: "projudi-preview", type: "sistemas-cnj-open", sistema: sistema.id, onde: onde })
+	// Segundo monitor, se houver; senão, nova aba. O popup só fecha se abriu
+	// de fato.
+	function openOutside(sistema) {
+		chrome.runtime.sendMessage({ source: "projudi-preview", type: "sistemas-cnj-open", sistema: sistema.id, onde: "fora" })
 			.then(function (result) {
 				if (result && result.ok) closeModal();
 				else alert((result && result.error) || "Não foi possível abrir o " + sistema.nome + ".");
@@ -138,19 +139,17 @@
 			'<div class="pdp-qa-modal-box" style="width: min(1280px, 96vw); height: 94vh;">' +
 			'<div class="pdp-qa-modal-header"><span class="pdp-sistemas-cnj-titulo"></span>' +
 			'<span style="display: flex; gap: 6px;">' +
-			'<button type="button" class="pdp-qa-modal-close pdp-sistemas-cnj-aba">🗂 Nova aba</button>' +
-			'<button type="button" class="pdp-qa-modal-close pdp-sistemas-cnj-monitor">🖥 Segundo monitor</button>' +
+			'<button type="button" class="pdp-qa-modal-close pdp-sistemas-cnj-fora"></button>' +
 			'<button type="button" class="pdp-qa-modal-close pdp-sistemas-cnj-close">✕ Fechar</button>' +
 			"</span></div>" +
 			'<div class="pdp-qa-modal-body"><iframe class="pdp-sistemas-cnj-iframe" style="width: 100%; height: 100%; border: none; display: block;" allow="clipboard-read; clipboard-write; fullscreen"></iframe></div>' +
 			"</div>";
 		backdrop.querySelector(".pdp-sistemas-cnj-titulo").textContent = sistema.nome + " — " + orgao(sistema);
-		const aba = backdrop.querySelector(".pdp-sistemas-cnj-aba");
-		aba.title = "Abrir o " + sistema.nome + " numa nova aba deste navegador";
-		aba.addEventListener("click", function () { openOutside(sistema, "aba"); });
-		const monitor = backdrop.querySelector(".pdp-sistemas-cnj-monitor");
-		monitor.title = "Abrir o " + sistema.nome + " numa janela no segundo monitor, se houver";
-		monitor.addEventListener("click", function () { openOutside(sistema, "monitor"); });
+		const fora = backdrop.querySelector(".pdp-sistemas-cnj-fora");
+		const doisMonitores = window.screen && window.screen.isExtended === true;
+		fora.textContent = doisMonitores ? "🖥 Segundo monitor" : "🗂 Nova aba";
+		fora.title = "Abrir o " + sistema.nome + " fora do popup: no segundo monitor, se houver; senão, numa nova aba";
+		fora.addEventListener("click", function () { openOutside(sistema); });
 		backdrop.querySelector(".pdp-sistemas-cnj-close").addEventListener("click", closeModal);
 		backdrop.querySelector(".pdp-sistemas-cnj-iframe").src = sistema.url;
 		document.body.appendChild(backdrop);

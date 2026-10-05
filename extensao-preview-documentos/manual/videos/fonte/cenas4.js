@@ -401,17 +401,17 @@ CENAS.V39 = {
 		await S.click("#x-cnj-serpjud");
 		await abrindo("SerpJud", 1000);
 		popup("SERP-JUD — Sistema Eletrônico dos Registros Públicos", '<div style="padding:30px;text-align:center;font-size:14px;color:#333"><div style="font-size:22px;font-weight:bold;color:#0d3560;margin-bottom:14px">SERP-JUD</div>Entre com o seu acesso do CNJ para consultar os registros públicos.<br><br><span class="pj-btn primary">Entrar</span><br><br><i style="color:#666">(tela do sistema — conteúdo ilustrativo)</i></div>', { hd: "SerpJud — CNJ", h: 520 });
-		$("#x-fechar").outerHTML = '<span><span id="x-aba" style="margin-right:14px">🗂 Nova aba</span><span id="x-monitor" style="margin-right:16px">🖥 Segundo monitor</span><span id="x-fechar">✕ Fechar</span></span>';
+		$("#x-fechar").outerHTML = '<span><span id="x-fora" style="margin-right:16px">🖥 Segundo monitor</span><span id="x-fechar">✕ Fechar</span></span>';
 		await S.cap("O sistema abre num <b>popup</b> sobre a tela do processo, como os das ações rápidas. Entre com o seu acesso e trabalhe nele.", { ms: 4200, bottom: true });
-		S.hl("#x-aba");
-		await S.cap("Prefere fora do popup? <b>🗂 Nova aba</b> abre o sistema numa aba nova, ao lado da do processo.", { ms: 4200, bottom: true });
-		S.hl("#x-monitor");
-		await S.cap("<b>🖥 Segundo monitor</b> abre o sistema numa janela que ocupa o outro monitor (se houver um conectado).", { ms: 4200, bottom: true });
+		S.hl("#x-fora");
+		await S.cap("Prefere fora do popup? Com dois monitores, <b>🖥 Segundo monitor</b> abre o sistema numa janela que ocupa o outro monitor.", { ms: 4400, bottom: true });
+		$("#x-fora").textContent = "🗂 Nova aba";
+		await S.cap("Com um monitor só, o mesmo botão aparece como <b>🗂 Nova aba</b> e abre o sistema numa aba nova, ao lado da do processo.", { ms: 4400, bottom: true });
 		S.hlOff();
 		await S.cap("Para voltar ao processo, clique em <b>✕ Fechar</b> (ou tecle <b>Esc</b>). Os outros cards funcionam do mesmo jeito.", { bottom: true });
 		await S.click("#x-fechar");
 		$(".x-popup").remove();
-		await S.endCard("Card do sistema ao lado da balança → popup (ou 🗂 Nova aba / 🖥 Segundo monitor) → ✕ Fechar.");
+		await S.endCard("Card do sistema ao lado da balança → popup (ou 🖥 Segundo monitor / 🗂 Nova aba) → ✕ Fechar.");
 	},
 };
 
@@ -754,6 +754,13 @@ CENAS.V45 = {
 		await S.cap("A pergunta sobre as pendências é feita <b>uma vez só</b>, para todos os marcados.", { ms: 3800 });
 		await S.click("#sim");
 		closeModal();
+		modal('<h3>Confirmar o lote</h3><div>Executar ★ Remessa MP — Realizar Remessa em 3 processo(s):</div>' +
+			'<div style="font-family:monospace;margin:6px 0 6px 10px">1. ' + LISTA[0].n + '<br>2. ' + LISTA[2].n + '<br>3. ' + LISTA[3].n + '</div>' +
+			'<div>Antes, em cada processo: dispensar juntadas (automático).</div><div style="margin-top:6px">Se ocorrer um erro, o lote para no processo com erro.</div>' +
+			'<div style="text-align:right;margin-top:12px"><span class="pj-btn">Cancelar</span> <span class="pj-btn primary" id="okLote">OK</span></div>', { w: 540, top: 190 });
+		await S.cap("Antes de começar, a extensão mostra <b>a lista dos processos</b> que serão afetados e o que será feito automaticamente. Confira e clique em <b>OK</b>.", { ms: 4400 });
+		await S.click("#okLote");
+		closeModal();
 		for (const [k, i] of [[1, 0], [2, 2], [3, 3]]) {
 			$("#x-lote-st").textContent = "Processo " + k + " de 3: " + LISTA[i].n + "…";
 			const tr = $('#lista tr[data-i="' + i + '"]');
@@ -776,6 +783,7 @@ CENAS.V45 = {
 		S.hl("#x-lote", 3);
 		await S.cap("Cada processo executado é desmarcado; os que não forem executados <b>continuam marcados</b>.");
 		S.hlOff();
+		await S.cap("Se der <b>erro</b> num processo, o lote <b>para ali</b>: os seguintes não são tocados e continuam marcados.", { ms: 3800 });
 		await S.cap("No SEEU, a barra associa os localizadores do <b>📍 Localizador</b> em todos os marcados, sem confirmar um a um.", { ms: 4200 });
 		await S.endCard("Marque os processos → ⭐ Executar preferência nos marcados → card → uma resposta → ✅ Sim, executar em cada um.");
 	},

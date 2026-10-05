@@ -28,6 +28,48 @@ const MESSAGE_SOURCE = "projudi-preview";
 const PENDING_KEY = "pdpWhatsappPending";
 const LOG_PREFIX = "[Projudi WhatsApp]";
 
+// Segurança: os documentos de um envio pendente ficam em chrome.storage.local
+// (sem criptografia) até o WhatsApp confirmar o anexo. Se o fluxo for
+// interrompido (aba fechada, erro, navegador encerrado), eles não podem
+// ficar guardados indefinidamente — por isso há um prazo de validade e uma
+// limpeza ao iniciar o navegador e periodicamente (chrome.alarms).
+const PENDING_TTL_MS = 15 * 60 * 1000;
+const ALARME_LIMPEZA = "pdpLimpezaPendencias";
+
+function pendenciaVencida(item, ttlMs) {
+	return !item || !item.createdAt || Date.now() - item.createdAt > ttlMs;
+}
+
+async function limparPendenciasVencidas() {
+	const data = await chrome.storage.local.get([PENDING_KEY, "pendingDownloadInfo", "msalToken"]);
+	const remover = [];
+	if (data[PENDING_KEY] && pendenciaVencida(data[PENDING_KEY], PENDING_TTL_MS)) remover.push(PENDING_KEY);
+	if (data.pendingDownloadInfo && pendenciaVencida(data.pendingDownloadInfo, 10 * 60 * 1000)) remover.push("pendingDownloadInfo");
+	// Migração: versões anteriores guardavam o token do Outlook no
+	// storage.local (gravado em disco). Agora ele fica só no storage.session.
+	if (data.msalToken) remover.push("msalToken");
+	if (remover.length) {
+		await chrome.storage.local.remove(remover);
+		console.info(LOG_PREFIX, "limpeza de dados pendentes:", remover.join(", "));
+	}
+}
+
+chrome.runtime.onStartup.addListener(function () {
+	// Ao abrir o navegador nenhum envio anterior pode continuar: apaga tudo.
+	chrome.storage.local.remove([PENDING_KEY, "pendingDownloadInfo", "msalToken"]);
+});
+chrome.runtime.onInstalled.addListener(function () {
+	limparPendenciasVencidas();
+	chrome.alarms.create(ALARME_LIMPEZA, { periodInMinutes: 5 });
+});
+chrome.alarms.onAlarm.addListener(function (alarm) {
+	if (alarm.name === ALARME_LIMPEZA) limparPendenciasVencidas();
+});
+// Garante o alarme também depois de atualizações em que onInstalled não rodou.
+chrome.alarms.get(ALARME_LIMPEZA).then(function (a) {
+	if (!a) chrome.alarms.create(ALARME_LIMPEZA, { periodInMinutes: 5 });
+});
+
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 	if (!message || message.source !== MESSAGE_SOURCE) return false;
 
@@ -45,6 +87,11 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 	if (message.type === "whatsapp-fetch-pending") {
 		chrome.storage.local.get(PENDING_KEY, function (data) {
 			const pending = data && data[PENDING_KEY];
+			if (pending && pendenciaVencida(pending, PENDING_TTL_MS)) {
+				chrome.storage.local.remove(PENDING_KEY);
+				sendResponse({ pending: null });
+				return;
+			}
 			sendResponse({ pending: pending && pending.tabId === sender.tab?.id ? pending : null });
 		});
 		return true;
@@ -55,6 +102,10 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
 			const data = await chrome.storage.local.get(PENDING_KEY);
 			const pending = data[PENDING_KEY];
 			if (!pending || pending.id !== message.id || pending.tabId !== sender.tab?.id) throw new Error("Envio pendente não corresponde a esta aba.");
+			if (pendenciaVencida(pending, PENDING_TTL_MS)) {
+				await chrome.storage.local.remove(PENDING_KEY);
+				throw new Error("O envio expirou. Selecione os documentos e envie novamente.");
+			}
 			const results = await chrome.scripting.executeScript({
 				target: { tabId: sender.tab.id }, world: "MAIN",
 				func: openWhatsappConversation,
@@ -101,7 +152,15 @@ async function handleShare(message) {
 	const tab = await openOrReuseWhatsappTab(payload.phone);
 	payload.tabId = tab.id;
 	await chrome.storage.local.set({ [PENDING_KEY]: payload });
-	await notifyOrInjectContentScript(tab.id);
+	try {
+		await notifyOrInjectContentScript(tab.id);
+	} catch (err) {
+		// Falhou antes de o WhatsApp receber os arquivos: não deixa os
+		// documentos guardados no navegador.
+		const atual = (await chrome.storage.local.get(PENDING_KEY))[PENDING_KEY];
+		if (atual && atual.id === payload.id) await chrome.storage.local.remove(PENDING_KEY);
+		throw err;
+	}
 }
 
 function ensureFileName(name, mime) {
@@ -261,7 +320,36 @@ async function getAzureConfig() {
 	if (!azureClientId) {
 		throw new Error("Configure o Client ID do Azure AD nas opções da extensão antes de enviar e-mails.");
 	}
-	return { clientId: azureClientId, tenant: azureTenantId || "common" };
+	// Segurança: "common", "organizations" e "consumers" aceitam contas de
+	// qualquer organização (ou pessoais). Exige o Tenant ID do Tribunal para
+	// que só contas institucionais consigam entrar.
+	const tenant = String(azureTenantId || "").trim();
+	if (!TENANT_VALIDO.test(tenant)) {
+		throw new Error("Configure o Tenant ID do Tribunal (um código no formato 00000000-0000-0000-0000-000000000000) nas opções da extensão antes de enviar e-mails.");
+	}
+	return { clientId: azureClientId, tenant: tenant };
+}
+
+const TENANT_VALIDO = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// O token fica em chrome.storage.session: só em memória (nunca gravado em
+// disco), apagado ao fechar o navegador e inacessível aos content scripts.
+// Consequência: o usuário faz login no Outlook uma vez por sessão do
+// navegador.
+const TOKEN_STORAGE = chrome.storage.session;
+
+async function sairDoOutlook() {
+	await TOKEN_STORAGE.remove("msalToken");
+	await chrome.storage.local.remove("msalToken"); // resquício de versões antigas
+}
+
+function escaparHtml(texto) {
+	return String(texto)
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#39;");
 }
 
 function base64UrlEncode(buffer) {
@@ -301,7 +389,7 @@ function bytesToBase64(bytes) {
 }
 
 async function storeToken(tokenResponse) {
-	await chrome.storage.local.set({
+	await TOKEN_STORAGE.set({
 		msalToken: {
 			accessToken: tokenResponse.access_token,
 			refreshToken: tokenResponse.refresh_token || null,
@@ -322,7 +410,10 @@ async function refreshAccessToken(refreshToken) {
 			scope: GRAPH_SCOPES,
 		}),
 	});
-	if (!resp.ok) return null;
+	if (!resp.ok) {
+		await sairDoOutlook(); // token revogado ou inválido: descarta
+		return null;
+	}
 	const data = await resp.json();
 	await storeToken(data);
 	return data.access_token;
@@ -383,7 +474,7 @@ async function interactiveLogin() {
 }
 
 async function acquireAccessToken() {
-	const { msalToken } = await chrome.storage.local.get(["msalToken"]);
+	const { msalToken } = await TOKEN_STORAGE.get(["msalToken"]);
 	if (msalToken && msalToken.expiresAt - 60000 > Date.now()) {
 		return msalToken.accessToken;
 	}
@@ -412,7 +503,7 @@ async function createDraft(token, subject, recipients, bodyText) {
 	// O texto padrão (REF. AUTOS / JUÍZO) vem como texto simples; convertido
 	// para HTML só trocando quebras de linha por <br>, para preservar o
 	// espaçamento no corpo HTML do rascunho.
-	const bodyHtml = (bodyText || "").replace(/\n/g, "<br>");
+	const bodyHtml = escaparHtml(bodyText || "").replace(/\n/g, "<br>");
 	const resp = await graphFetch(token, "/me/messages", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
@@ -666,6 +757,18 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 		consumeDownloadInfo(message.id).then(sendResponse);
 		return true;
 	}
+
+	// "Sair do Outlook" (página de opções): só aceita pedidos da página de
+	// opções da extensão, nunca de content scripts.
+	if (message.type === "OUTLOOK_LOGOUT") {
+		// A página de opções abre numa aba, então sender.tab existe; o que
+		// garante a origem é a URL ser da própria extensão.
+		if (_sender.id !== chrome.runtime.id || !String(_sender.url || "").startsWith(chrome.runtime.getURL("src/options.html"))) return false;
+		sairDoOutlook()
+			.then(() => sendResponse({ ok: true }))
+			.catch((err) => sendResponse({ ok: false, error: err.message }));
+		return true;
+	}
 });
 
 // Executa somente o botão previamente marcado no iframe desta operação.
@@ -821,15 +924,18 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   return true;
 });
 
-// Sistemas do CNJ (sistemasCnj.js): "🗂 Nova aba" e "🖥 Segundo monitor" no
-// popup de cada sistema. Só abre endereços da lista (sistemasCnjLista.js) e
-// só atende páginas do Projudi (e do SEEU, apenas o BNMP 3.0).
+// Sistemas do CNJ (sistemasCnj.js): botão "abrir fora do popup" de cada
+// sistema. Por padrão abre no segundo monitor, se houver; sem ele, numa aba
+// nova ao lado da do processo. Só abre endereços da lista
+// (sistemasCnjLista.js) e só atende páginas do Projudi (e do SEEU, apenas
+// os sistemas marcados com `seeu: true`).
 
 // Abre numa janela maximizada no monitor que NÃO tem a janela do processo.
+// Resolve com false (sem abrir nada) quando não há segundo monitor.
 async function pdpSistemaCnjSegundoMonitor(url, windowId) {
-  if (!chrome.system?.display) throw new Error('Este navegador não informa os monitores conectados.');
+  if (!chrome.system?.display) return false;
   const telas = await chrome.system.display.getInfo();
-  if (telas.length < 2) throw new Error('Não encontrei um segundo monitor conectado. Use "Nova aba" ou o próprio popup.');
+  if (telas.length < 2) return false;
   const atual = await chrome.windows.get(windowId);
   const cx = (atual.left || 0) + (atual.width || 0) / 2;
   const cy = (atual.top || 0) + (atual.height || 0) / 2;
@@ -839,6 +945,7 @@ async function pdpSistemaCnjSegundoMonitor(url, windowId) {
   const area = outra.workArea || outra.bounds;
   const nova = await chrome.windows.create({ url, type: 'normal', left: area.left, top: area.top, width: area.width, height: area.height, focused: true });
   await chrome.windows.update(nova.id, { state: 'maximized' }).catch(() => {});
+  return true;
 }
 
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
@@ -852,13 +959,13 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
     sistema = (self.PDP_SISTEMAS_CNJ || []).find(s => s.id === message.sistema);
     // No SEEU só os marcados com `seeu: true` (sistemasCnjLista.js).
     if (!sistema || (doSeeu && sistema.seeu !== true)) throw new Error('Sistema desconhecido.');
-    if (message.onde !== 'aba' && message.onde !== 'monitor') throw new Error('Opção inválida.');
+    if (message.onde !== 'fora') throw new Error('Opção inválida.');
   } catch (error) { reply({ok:false, error:error.message}); return false; }
-  const abrir = message.onde === 'aba'
-    ? chrome.tabs.create({ url: sistema.url, windowId: sender.tab.windowId, index: sender.tab.index + 1, openerTabId: sender.tab.id })
-    : pdpSistemaCnjSegundoMonitor(sistema.url, sender.tab.windowId);
-  Promise.resolve(abrir)
-    .then(() => reply({ok:true}))
+  const novaAba = () => chrome.tabs.create({ url: sistema.url, windowId: sender.tab.windowId, index: sender.tab.index + 1, openerTabId: sender.tab.id });
+  pdpSistemaCnjSegundoMonitor(sistema.url, sender.tab.windowId)
+    .catch(error => { console.warn('[Sistemas do CNJ] segundo monitor:', error); return false; })
+    .then(abriu => abriu ? 'monitor' : novaAba().then(() => 'aba'))
+    .then(onde => reply({ok:true, onde}))
     .catch(error => reply({ok:false, error:error.message}));
   return true;
 });
