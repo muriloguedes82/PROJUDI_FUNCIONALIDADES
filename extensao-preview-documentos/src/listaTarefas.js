@@ -34,8 +34,8 @@
 	// de cumprimentos (Expedir Intimações, Expedir Citação/Notificação,
 	// Expedir Intimações de Auxiliares da Justiça e Demais Cumprimentos -
 	// esta para qualquer "Tipo de Cumprimento", que é só um filtro da mesma
-	// tela).
-	const ROTAS = /\/processo\/(analisarJuntada|conclusao|intimacaoBusca|citacao|expedirIntimacao|expedirCitacao|intimacaoNomeados|cumprimentoCartorio)\.do$/;
+	// tela - e Mandados).
+	const ROTAS = /\/processo\/(analisarJuntada|conclusao|intimacaoBusca|citacao|expedirIntimacao|expedirCitacao|intimacaoNomeados|cumprimentoCartorio|cumprimentoCartorioMandado)\.do$/;
 	if (!ROTAS.test(location.pathname)) return;
 
 	const K_LISTAS = "pdpTarefasListas";

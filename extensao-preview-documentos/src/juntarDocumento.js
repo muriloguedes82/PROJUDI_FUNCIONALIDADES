@@ -847,11 +847,12 @@
 	}
 
 	// -------------------------------------------------------------------
-	// "Analisar" dos cumprimentos (lista Demais Cumprimentos): tela de
-	// Pré-Análise (preAnalise.do: Tipo do Arquivo, Modelo, "Digitar Texto",
-	// "Salvar e Concluir") e, depois, a tela do cumprimento
-	// (cumprimentoCartorio.do: "Assinar e Expedir" / "Postergar
-	// Assinatura"). Só fluxos iniciados pelo card ⭐ da lista (job.preanalise).
+	// "Analisar" dos cumprimentos (listas Demais Cumprimentos e Mandados):
+	// tela de Pré-Análise (preAnalise.do: Tipo do Arquivo, Modelo, "Digitar
+	// Texto", "Salvar e Concluir") e, depois, a tela do cumprimento
+	// (cumprimentoCartorio.do ou cumprimentoCartorioMandado.do: "Assinar e
+	// Expedir" / "Postergar Assinatura"). Só fluxos iniciados pelo card ⭐ da
+	// lista (job.preanalise).
 	// -------------------------------------------------------------------
 
 	function isPreAnaliseScreen() {
@@ -859,9 +860,31 @@
 		return !!form && !!document.getElementById("codTipoArquivo") && !!form.querySelector("#digitarButton");
 	}
 
+	// Botão "Postergar Assinatura" (qual = "postergar") ou "Assinar e
+	// Expedir" (qual = "assinar"): pelo id e, se a tela usar outro, pelo
+	// texto do botão.
+	function botaoCumprimento(form, qual) {
+		const porId = form.querySelector(qual === "postergar" ? "#postergarButton" : "#assinarButton");
+		if (porId) return porId;
+		const re = qual === "postergar" ? /^postergar assinatura$/i : /^assinar e expedir$/i;
+		return Array.prototype.find.call(form.querySelectorAll('input[type="button"], input[type="submit"], button'), function (b) {
+			return re.test(String(b.value || b.textContent || "").replace(/\s+/g, " ").trim());
+		}) || null;
+	}
+
+	// Formulário da tela do cumprimento (Demais Cumprimentos ou Mandados).
+	// A lista de mandados usa o mesmo id de formulário, mas não tem esses
+	// botões, então não é confundida com a tela do cumprimento.
+	function formCumprimento() {
+		for (const id of ["cumprimentoCartorioForm", "cumprimentoCartorioMandadoForm"]) {
+			const form = document.getElementById(id);
+			if (form && (botaoCumprimento(form, "postergar") || botaoCumprimento(form, "assinar"))) return form;
+		}
+		return null;
+	}
+
 	function isCumprimentoScreen() {
-		const form = document.getElementById("cumprimentoCartorioForm");
-		return !!form && (!!form.querySelector("#postergarButton") || !!form.querySelector("#assinarButton"));
+		return !!formCumprimento();
 	}
 
 	function lerPreAnalise() {
@@ -1018,9 +1041,9 @@
 	async function tickCumprimento(job) {
 		if (job.stage !== "concluir" || cumprimentoActed) return;
 		cumprimentoActed = true;
-		const form = document.getElementById("cumprimentoCartorioForm");
-		const postergarBtn = form.querySelector("#postergarButton");
-		const assinarBtn = form.querySelector("#assinarButton");
+		const form = formCumprimento();
+		const postergarBtn = botaoCumprimento(form, "postergar");
+		const assinarBtn = botaoCumprimento(form, "assinar");
 		let postergar;
 		if (job.mode === "capture" || job.mode === "edit") {
 			postergar = await perguntarPostergar(job.mode === "edit" && job.pref ? !!job.pref.postergar : true);

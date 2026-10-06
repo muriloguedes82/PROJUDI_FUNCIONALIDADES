@@ -85,6 +85,9 @@
 		// Demais Cumprimentos: o card ⭐ também traz as preferências do
 		// "Analisar" (Pré-Análise) - ver abrirPreAnalise.
 		"/projudi/processo/cumprimentoCartorio.do": { tipo: "cumprimento", verificaPendencias: true, preAnalise: true },
+		// Mandados (Expedir Mandados): mesma coluna "Pré-Análise" com o link
+		// "Analisar" de Demais Cumprimentos, então vale o mesmo card ⭐.
+		"/projudi/processo/cumprimentoCartorioMandado.do": { tipo: "cumprimento", verificaPendencias: true, preAnalise: true },
 		// Decurso de Prazo - Citações/Notificações: como as de cumprimentos
 		// (pergunta só pelas pendências que o processo tiver).
 		"/projudi/processo/citacao.do": { tipo: "cumprimento", verificaPendencias: true },
