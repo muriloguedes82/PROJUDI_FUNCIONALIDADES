@@ -1350,18 +1350,35 @@
 
 	// -------------------------------------------------------------------
 	// Pré-visualização "Documento" (depois do "Continuar" do editor): PDF
-	// com os botões "Concluir" e "Alterar".
+	// com os botões "Concluir" e "Alterar" - ou, na Pré-Análise de
+	// mandados (preAnalise.do?actionType=visualizar), "Salvar" e "Voltar".
 	// -------------------------------------------------------------------
 
+	// { concluir, alterar, rotulo, voltar } da pré-visualização, ou null
+	// fora dela.
+	function botoesPreview() {
+		if (editorTextarea()) return null;
+		const concluir = findButton(document, "Concluir");
+		const alterar = findButton(document, "Alterar");
+		if (concluir && alterar) return { concluir: concluir, alterar: alterar, rotulo: "Concluir", voltar: "Alterar" };
+		if (/\/preAnalise\.do$/.test(location.pathname)) {
+			const salvar = findButton(document, "Salvar");
+			const voltar = findButton(document, "Voltar");
+			if (salvar && voltar) return { concluir: salvar, alterar: voltar, rotulo: "Salvar", voltar: "Voltar" };
+		}
+		return null;
+	}
+
 	function isPreviewScreen() {
-		return !!findButton(document, "Concluir") && !!findButton(document, "Alterar") && !editorTextarea();
+		return !!botoesPreview();
 	}
 
 	let previewActed = false;
 
 	function tickPreview(job) {
-		const concluir = findButton(document, "Concluir");
-		const alterar = findButton(document, "Alterar");
+		const botoes = botoesPreview();
+		const concluir = botoes.concluir;
+		const alterar = botoes.alterar;
 		if (!concluir.__pdpJdWatch) {
 			concluir.__pdpJdWatch = true;
 			concluir.addEventListener(
@@ -1388,10 +1405,10 @@
 		if (["digitar", "incluir"].indexOf(job.stage) === -1 || previewActed) return;
 		previewActed = true;
 		if (job.mode !== "apply") {
-			showStatus(modeLabel(job) + ': confira o documento e clique em "Concluir" (ou em "Alterar" para voltar ao texto).', "rec");
+			showStatus(modeLabel(job) + ': confira o documento e clique em "' + botoes.rotulo + '" (ou em "' + botoes.voltar + '" para voltar ao texto).', "rec");
 			return;
 		}
-		showStatus(modeLabel(job) + ': clicando em "Concluir" na pré-visualização…');
+		showStatus(modeLabel(job) + ': clicando em "' + botoes.rotulo + '" na pré-visualização…');
 		setTimeout(function () {
 			concluir.click();
 		}, 400);

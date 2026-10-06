@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.27.1 |
-| **Versão da extensão** | 2.27.1 |
+| **Versão do manual** | 2.27.2 |
+| **Versão da extensão** | 2.27.2 |
 | **Data desta versão** | 06/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -2308,6 +2308,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.27.2 | 06/10/2026 | Sem alteração de texto; corrigido: ao usar uma preferência de Pré-Análise na lista de **Mandados** (9.10), a extensão parava na pré-visualização do documento, que ali tem os botões **Salvar** e **Voltar** (e não Concluir e Alterar). Agora ela clica em **Salvar** e segue. |
 | 2.27.1 | 06/10/2026 | Sem alteração de texto; corrigido: na Pré-Análise da lista de **Mandados** (9.10), o texto digitado no documento não era gravado na preferência (aparecia o aviso "Não consegui gravar nenhum texto nesta preferência"), porque ali a tela de digitar o documento é outra. |
 | 2.27.0 | 06/10/2026 | Lista de **Mandados** (expedição de mandados), no Projudi: ganha as listas de tarefas (9.2), a **⭐** na linha e o **⭐ Em lote** (9.3), com a mesma pergunta sobre juntadas e conclusão pendentes das demais telas de cumprimentos, e a seção **📝 Analisar (Pré-Análise)** com preferências e **Postergar Assinatura**, também em lote (9.10). Descrição da função no Menu atualizada (2.6). Sem vídeo novo: a tela da função é a mesma do V45 e do V50. |
 | 2.26.1 | 06/10/2026 | Decurso em lote (9.9): **Dispensar nos marcados** mostra a lista dos processos antes de começar, e os dois lotes do decurso **param no primeiro erro**, deixando os seguintes intactos e marcados (no Analisar, fechar o popup só pula o processo). Vídeos V49 e V50 regravados (V49 com a nova legenda; os dois com o número novo na abertura). |
