@@ -95,6 +95,30 @@ funcionalidades desativadas. Clique no ícone para abrir o **Menu**
    O manual é atualizado a cada versão da extensão - veja
    [`manual/COMO-ATUALIZAR.md`](manual/COMO-ATUALIZAR.md).
 
+### Aviso de versão nova
+
+A extensão é instalada "sem compactação" e o navegador não a atualiza
+sozinho. Por isso o service worker (`src/background.js`) lê, ao iniciar o
+navegador, ao instalar/recarregar a extensão e a cada 6 horas, o
+`manifest.json` publicado no branch **principal** deste repositório
+(`raw.githubusercontent.com`). Se a versão de lá for maior que a instalada,
+grava `pdpNovaVersao` em `chrome.storage.local` e o Menu
+(`src/menuExtensao.js`) mostra, abaixo do ícone, o cartão **🆕 Há novidades
+na extensão!** com a observação para exportar as preferências antes, os
+botões **1. Exportar preferências** e **2. Atualizar** (baixa o `.zip` do
+branch principal) e, em seguida, **↻ Recarregar a extensão**
+(`chrome.runtime.reload()`). "Agora não" esconde o cartão por um dia
+(`pdpNovaVersaoAdiada`). Nenhuma das duas chaves entra no backup.
+
+Para avisar todos os usuários, basta subir a `version` do `manifest.json`
+no branch principal (o que já é feito a cada versão).
+
+As preferências ficam no armazenamento do navegador ligado à extensão, e
+não na pasta: copiar os arquivos novos por cima da **mesma pasta** e
+recarregar a extensão as preserva. Remover a extensão ou carregá-la de
+outra pasta (o ID da extensão "sem compactação" depende do caminho da
+pasta) começa do zero - daí a orientação de exportar antes.
+
 Tecnicamente, desativar uma funcionalidade faz com que os arquivos dela
 simplesmente deixem de ser injetados nas páginas (o catálogo fica em
 `src/funcionalidades.js`; o registro, em `src/termosUso.js`).

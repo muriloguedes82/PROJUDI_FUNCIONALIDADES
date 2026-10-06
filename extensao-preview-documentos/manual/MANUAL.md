@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.24.0 |
-| **Versão da extensão** | 2.24.0 |
+| **Versão do manual** | 2.25.0 |
+| **Versão da extensão** | 2.25.0 |
 | **Data desta versão** | 06/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -227,17 +227,57 @@ Projudi/SEEU.
 <a id="cap-2-3"></a>
 ### 2.3 Atualização da extensão
 
-Quando receber uma versão nova:
+▶ [**Vídeo V48** — Aviso de versão nova e atualização](videos/V48-aviso-de-versao-nova.mp4)
 
-1. Substitua o conteúdo da pasta **extensao-preview-documentos** pelos
-   arquivos novos (mesmo lugar de antes).
-2. Em `chrome://extensions`, clique no ícone de **recarregar** (↻) no card
-   da extensão.
-3. Recarregue (**F5**) as abas do Projudi, SEEU, WhatsApp Web e Outlook que
-   estavam abertas — só recarregar a página, sem o passo 2, não basta.
+**Para que serve:** saber quando há novidades na extensão e instalar a
+versão nova sem perder as suas preferências.
 
-A versão instalada aparece no card da extensão, em `chrome://extensions`.
-Compare com a versão na capa deste manual.
+**Como você fica sabendo:** a extensão confere sozinha, algumas vezes por
+dia, se saiu uma versão nova. Quando sai, aparece no Projudi/SEEU, logo
+abaixo do **ícone da balança**, o aviso **🆕 Há novidades na extensão!**,
+com a versão nova e a sua. O ícone da balança também ganha um **ponto
+azul**, e o Menu ([2.6](#cap-2-6)) mostra a faixa **"Versão nova
+disponível"**, com o botão **Como atualizar**, que reabre o aviso.
+
+**Passo a passo (pelo aviso):**
+
+1. Leia a **Observação**: *antes de atualizar, exporte suas preferências*.
+2. Clique em **1. Exportar preferências**. Um arquivo com todas as suas
+   preferências, combos e listas vai para a pasta **Downloads** — guarde-o
+   até terminar. (Se você pular este passo e clicar direto em **2.
+   Atualizar**, o aviso pergunta se quer exportar antes.)
+3. Clique em **2. Atualizar**. A versão nova é baixada para a pasta
+   **Downloads** (arquivo **PROJUDI_FUNCIONALIDADES-principal.zip**) e o
+   aviso mostra o que fazer em seguida.
+4. Abra o arquivo baixado e copie a pasta **extensao-preview-documentos**
+   que está dentro dele.
+5. Cole-a **por cima** da pasta da extensão que você já tem (**no mesmo
+   lugar** de antes), substituindo os arquivos.
+6. Clique em **↻ Recarregar a extensão**, no próprio aviso (ou, em
+   `chrome://extensions`, no ícone de recarregar ↻ do card da extensão — o
+   botão **Abrir tela de extensões** leva até lá).
+7. Recarregue (**F5**) as abas do Projudi, SEEU, WhatsApp Web e Outlook que
+   estavam abertas — só recarregar a página, sem o passo 6, não basta.
+
+**As minhas preferências continuam depois da atualização?** **Sim**, desde
+que você cole os arquivos novos **por cima da pasta de antes** e recarregue
+a extensão (passos 5 e 6): o navegador guarda as preferências junto da
+extensão instalada, e não dentro da pasta. Elas **se perdem** se você
+**remover** a extensão em `chrome://extensions`, ou se instalar a versão
+nova a partir de **outra pasta** (o navegador a trata como outra extensão).
+Por isso exporte sempre antes: se algo faltar, abra o Menu e use **⬆
+Importar** com o arquivo exportado ([2.6](#cap-2-6)).
+
+**Bom saber:**
+
+- **Agora não (lembrar amanhã)** (ou o **✕**) esconde o aviso por um dia;
+  depois ele volta, até você atualizar.
+- **Ver o que mudou** abre o histórico do manual ([Anexo B](#anexo-b)) na
+  página da extensão no GitHub.
+- A versão instalada aparece no card da extensão, em `chrome://extensions`,
+  e no topo do Menu. Compare com a versão na capa deste manual.
+- Também é possível atualizar sem o aviso: substitua o conteúdo da pasta
+  pelos arquivos novos e siga os passos 6 e 7.
 
 <a id="cap-2-4"></a>
 ### 2.4 A barra de botões da extensão
@@ -317,13 +357,19 @@ num quadrado dourado — sempre visível no cabeçalho:
 
 Ao rolar a página ele acompanha o cabeçalho e, quando este sai da tela, fica
 preso no topo. Um **pontinho vermelho** no ícone avisa que há funções
-desativadas. O ícone fica só na tela principal: **não aparece dentro dos
+desativadas; um **ponto azul** avisa que há uma versão nova da extensão
+(veja [2.3](#cap-2-3)). O ícone fica só na tela principal: **não aparece dentro dos
 popups** (Advogados, Partes, ações rápidas, janelas do Projudi).
 
 **Como abrir e fechar:** clique no ícone. Para fechar, use o **✕**, a tecla
 **Esc** ou clique fora do Menu.
 
 **O que há no Menu:**
+
+**Versão nova disponível** — quando há uma versão nova, uma faixa azul logo
+abaixo do título do Menu mostra o número dela; o botão **Como atualizar**
+abre o aviso com o passo a passo ([2.3](#cap-2-3)). Esse aviso faz parte do
+Menu e não tem chave para desligar.
 
 **0. Chave geral: ativar e desativar a extensão** — logo abaixo do título do
 Menu há uma faixa com uma chave **"Extensão ativada no PROJUDI"** (ou SEEU,
@@ -2084,6 +2130,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V45](videos/V45-preferencias-em-lote.mp4) | [Preferências em lote (⭐ Em lote)](videos/V45-preferencias-em-lote.mp4) | [9.3](#cap-9-3) | 1:01 |
 | [V46](videos/V46-remessa-turma-recursal.mp4) | [Remessa para a Turma Recursal](videos/V46-remessa-turma-recursal.mp4) | [7.1](#cap-7-1) | 0:47 |
 | [V47](videos/V47-novo-valor-da-causa.mp4) | [Novo Valor da Causa](videos/V47-novo-valor-da-causa.mp4) | [8.10](#cap-8-10) | 0:36 |
+| [V48](videos/V48-aviso-de-versao-nova.mp4) | [Aviso de versão nova e atualização](videos/V48-aviso-de-versao-nova.mp4) | [2.3](#cap-2-3) | 0:41 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -2097,6 +2144,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.25.0 | 06/10/2026 | Nova seção 2.3 (**Atualização da extensão**) reescrita: aviso **🆕 Há novidades na extensão!** abaixo do ícone da balança quando sai versão nova, com a observação para exportar as preferências antes, os botões **1. Exportar preferências** e **2. Atualizar** e o passo a passo para recarregar a extensão; explica que as preferências continuam quando os arquivos novos são colados por cima da mesma pasta. Seção 2.6: ponto azul no ícone e faixa "Versão nova disponível" no Menu. Novo vídeo V48. |
 | 2.24.0 | 06/10/2026 | Nova seção **8.10 Novo Valor da Causa** (só no Projudi): linha **Valor da Causa** no cabeçalho do processo (em qualquer aba), com o balão **💲 Novo Valor da Causa** ao lado do valor; você digita o novo valor e a extensão o grava na tela de alteração do processo e clica em **Salvar** sozinha, sem abrir a tela — o Projudi registra a alteração nas Movimentações. Nova função na tabela da 2.6 (30 funções no Projudi), Solução de problemas (11) e vídeo V47. |
 | 2.23.4 | 06/10/2026 | Destacar movimentações (3.4): novos tipos **Procurador / Procuradora** (ex.: "Procurador do Município de ..."), **Defensor / Defensora** e **Audiência** (esta destaca as movimentações de audiência, seja quem for que as lançou), os mesmos do quadro **Realces** do Projudi. Vídeo V06 regravado. |
 | 2.23.3 | 05/10/2026 | Sistemas do CNJ e card **Outros** (8.7): o popup passa a ter **um só botão** para abrir o sistema fora dele, que usa o **segundo monitor** sempre que houver um conectado (**🖥 Segundo monitor**) e, se não houver, abre numa **nova aba** (**🗂 Nova aba**). Antes eram dois botões, e o do segundo monitor só avisava quando não havia outro monitor. Solução de problemas (11) ajustada e vídeo V39 regravado. |
