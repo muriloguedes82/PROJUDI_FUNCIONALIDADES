@@ -1000,16 +1000,18 @@ CENAS.V49 = {
 
 // ------------------------------------------------------------------ V50
 // "Analisar" (Pré-Análise) dos cumprimentos com preferências, no card ⭐
-// da lista Demais Cumprimentos, com a pergunta do "Postergar Assinatura".
+// das listas Demais Cumprimentos e Mandados: a gravação termina no clique
+// do usuário em "Assinar e Expedir"/"Postergar Assinatura", e o "☆ padrão"
+// da Seleção de Documentos grava o movimento cujos documentos são anexados.
 CENAS.V50 = {
 	arquivo: "V50-pre-analise-com-preferencias.mp4",
 	titulo: "Pré-Análise com preferências",
 	secao: "9.10",
 	async run() {
-		telaLista("Demais Cumprimentos", { path: "cumprimentoCartorio.do", col: "Tipo de Cumprimento", rows: LISTA.map(r => Object.assign({}, r, { d: "ALVARÁ" })) });
+		telaLista("Mandados", { path: "cumprimentoCartorioMandado.do", col: "Natureza do Mandado", rows: LISTA.map(r => Object.assign({}, r, { d: "Intimação" })) });
 		$$(".x-rowslot").forEach((s, i) => (s.innerHTML = ' <span class="x-btn small">+</span> <span class="x-btn small" data-star="' + i + '">⭐</span><span class="st" data-st="' + i + '" style="margin-left:6px;font-size:11px"></span>'));
-		await S.titleCard("VÍDEO V50", "Pré-Análise com preferências", "Faça o Analisar de um cumprimento com um texto pronto, direto da lista.");
-		await S.cap("Em <b>Demais Cumprimentos</b>, o <b>⭐</b> da linha tem a seção <b>📝 Analisar (Pré-Análise)</b>.");
+		await S.titleCard("VÍDEO V50", "Pré-Análise com preferências", "Faça o Analisar de um cumprimento com um texto pronto — e anexe os documentos de um movimento.");
+		await S.cap("Em <b>Mandados</b> (e em <b>Demais Cumprimentos</b>), o <b>⭐</b> da linha tem a seção <b>📝 Analisar (Pré-Análise)</b>.");
 		await S.click('[data-star="0"]');
 		let pn = panelAt('<h4>⭐ Minhas Preferências</h4><div style="font-size:11px;color:#5a6b4a;margin:4px 0">📝 ANALISAR (PRÉ-ANÁLISE)</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">' +
 			'<div class="x-chip" id="nova" style="display:block;border-radius:6px;padding:8px;margin:0"><b>+ Nova preferência</b></div>' +
@@ -1018,30 +1020,50 @@ CENAS.V50 = {
 		await S.cap("<b>+ Nova preferência</b> abre a Pré-Análise no popup e grava o que você fizer.");
 		await S.click("#nova");
 		pn.remove();
-		popup("Pré-Análise", '<div style="font-size:12px">Tipo do Arquivo: <span class="pj-select">Mandado</span> · Modelo: <span class="pj-select">Documento em Branco</span> <span class="pj-btn">Digitar Texto</span></div><div style="margin-top:10px"><span class="pj-input" style="min-width:420px;min-height:50px;display:inline-block">Expeça-se alvará…</span></div><div style="margin-top:12px"><span class="pj-btn primary" id="salvar">Salvar e Concluir</span></div>', { hd: "Analisar — gravando nova preferência", top: 120, h: 360 });
+		popup("Pré-Análise", '<div style="font-size:12px">Tipo do Arquivo: <span class="pj-select">Mandado</span> · Modelo: <span class="pj-select">Documento em Branco</span> <span class="pj-btn">Digitar Texto</span></div><div style="margin-top:10px"><span class="pj-input" style="min-width:420px;min-height:50px;display:inline-block">Intime-se a parte da medida protetiva…</span></div><div style="margin-top:12px"><span class="pj-btn primary" id="salvar">Salvar e Concluir</span></div>', { hd: "Analisar — gravando nova preferência", top: 120, h: 360 });
 		await S.cap("Escolha o Tipo do Arquivo e o Modelo, digite o texto e clique em <b>Salvar e Concluir</b>.");
 		await S.click("#salvar");
 		$(".x-popup").remove();
-		modal('<h3>Assinatura</h3><div>Ao usar esta preferência, a extensão deve <b>sempre clicar em "Postergar Assinatura"</b>?</div><div style="text-align:right;margin-top:12px"><span class="pj-btn primary" id="sim">Sim, postergar sempre</span> <span class="pj-btn">Não, eu assino e expeço</span></div>', { w: 540, top: 200 });
-		await S.cap("Na última tela, a extensão pergunta: <b>Sim</b> grava isso e clica em <b>Postergar Assinatura</b>; <b>Não</b> deixa o <b>Assinar e Expedir</b> para você.", { ms: 5600 });
-		await S.click("#sim");
+		popup("Mandado", '<div style="font-size:12px"><b>Documento(s) do Processo/Recurso</b><div style="border:1px solid #ccc;padding:6px;margin:6px 0">0 registro(s) encontrado(s) <span class="pj-btn" id="adicionar" style="float:right">Adicionar</span></div></div>' +
+			'<div style="margin-top:30px;text-align:right"><span class="pj-btn" id="assinar">Assinar e Expedir</span> <span class="pj-btn" id="postergar">Postergar Assinatura</span></div>', { hd: "Analisar — gravando nova preferência", top: 120, h: 300 });
+		await S.cap("Na tela do mandado, se precisar anexar documentos do processo, clique em <b>Adicionar</b>.");
+		await S.click("#adicionar");
+		modal('<h3>Seleção de Documentos</h3><table style="font-size:12px;width:100%">' +
+			'<tr><td>02/10/2026</td><td><b>CONCEDIDA A MEDIDA PROTETIVA</b> <label style="color:#7a5b00"><input type="checkbox" id="padrao"> ☆ padrão</label></td></tr>' +
+			'<tr><td></td><td style="padding-left:16px"><input type="checkbox" id="doc1"> Decisão — online.pdf</td></tr>' +
+			'<tr><td>01/10/2026</td><td><b>RECEBIDOS OS AUTOS</b> <label style="color:#7a5b00"><input type="checkbox"> ☆ padrão</label></td></tr>' +
+			'</table><div style="text-align:right;margin-top:12px"><span class="pj-btn primary" id="selecionar">Selecionar</span> <span class="pj-btn">Voltar</span></div>', { w: 560, top: 170 });
+		await S.cap("Ao lado de cada movimento aparece <b>☆ padrão</b>. Marque o movimento cujos documentos devem ir sempre (ex.: <b>Concedida a Medida Protetiva</b>): os documentos dele são marcados.", { ms: 5600 });
+		await S.click("#padrao");
+		$("#padrao").checked = true; $("#doc1").checked = true;
+		await sleep(600);
+		await S.click("#selecionar");
 		closeModal();
+		await S.cap("Depois clique, como sempre, em <b>Assinar e Expedir</b> ou <b>Postergar Assinatura</b>: a preferência é gravada nesse clique, com o botão escolhido.", { ms: 5200 });
+		await S.click("#postergar");
+		modal('<h3>tst.tjpr.jus.br diz</h3><div>Nome para esta preferência de "Analisar" (cumprimentos):</div><div class="x-field" id="nm" style="margin-top:6px"></div><div style="text-align:right;margin-top:10px"><span class="pj-btn primary" id="ok">OK</span> <span class="pj-btn">Cancelar</span></div>', { w: 480, top: 200 });
+		await S.type("#nm", "Mandado MPU");
+		await S.click("#ok");
+		closeModal();
+		$(".x-popup").remove();
 		const st = $('[data-st="0"]');
-		st.innerHTML = '<span style="color:#216b32">Preferência salva · pré-análise concluída e assinatura postergada</span>';
+		st.innerHTML = '<span style="color:#216b32">Preferência "Mandado MPU" salva · assinatura postergada</span>';
 		S.hl(st, 3);
-		await S.cap("Você dá um nome e a preferência aparece no ⭐, com ✏️ (editar) e 🗑 (remover).");
+		await S.cap("A preferência aparece no ⭐, com ✏️ (editar) e 🗑 (remover).");
 		S.hlOff();
-		await S.cap("Para usar: <b>⭐ → ★ Alvará padrão</b>. A extensão faz a pré-análise sozinha e, no fim, posterga a assinatura (ou destaca Assinar e Expedir).", { ms: 5200 });
 		await S.click('[data-star="2"]');
-		pn = panelAt('<h4>⭐ Minhas Preferências</h4><div class="x-chip" id="usar" style="display:block;border-radius:6px;padding:8px;margin:0"><b>★ Alvará padrão</b><div style="color:#666">postergar assinatura</div></div>', '[data-star="2"]', { w: 300 });
+		pn = panelAt('<h4>⭐ Minhas Preferências</h4><div class="x-chip" id="usar" style="display:block;border-radius:6px;padding:8px;margin:0"><b>★ Mandado MPU</b><div style="color:#666">+ documentos · postergar assinatura</div></div>', '[data-star="2"]', { w: 300 });
 		pn.style.left = "520px"; pn.style.top = "280px";
+		await S.cap("Para usar: <b>⭐ → ★ Mandado MPU</b>. A extensão faz a pré-análise, procura o movimento padrão mais recente e anexa os documentos dele.", { ms: 5200 });
 		await S.click("#usar");
 		pn.remove();
 		const st2 = $('[data-st="2"]');
-		st2.textContent = "★ Alvará padrão: pré-análise no popup…";
-		await sleep(1500);
-		st2.innerHTML = '<span style="color:#216b32">★ Alvará padrão: pré-análise concluída e assinatura postergada</span>';
-		await S.cap("Também em lote: marque os processos e use <b>⭐ Executar preferência nos marcados</b>.");
-		await S.endCard("⭐ → + Nova preferência → Salvar e Concluir → postergar sempre? → nome. Depois: ⭐ → ★ preferência (na linha ou em lote).");
+		st2.textContent = "★ Mandado MPU: pré-análise no popup…";
+		await sleep(1200);
+		st2.textContent = "★ Mandado MPU: 1 documento(s) anexado(s)…";
+		await sleep(1200);
+		st2.innerHTML = '<span style="color:#216b32">★ Mandado MPU: pré-análise concluída e assinatura postergada</span>';
+		await S.cap("Se o movimento não existir no processo, nada é anexado e a extensão para antes do fim, para você conferir. Também funciona em lote.", { ms: 5200 });
+		await S.endCard("⭐ → + Nova preferência → Salvar e Concluir → (Adicionar → ☆ padrão → Selecionar) → Assinar e Expedir ou Postergar → nome.");
 	},
 };

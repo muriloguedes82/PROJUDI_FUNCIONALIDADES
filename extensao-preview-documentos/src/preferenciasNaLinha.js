@@ -916,8 +916,9 @@
 			}
 			prefs.forEach(function (pref) {
 				const fim = pref.postergar ? "postergar assinatura" : "você assina e expede";
+				const movs = Array.isArray(pref.docMovimentos) ? pref.docMovimentos : [];
 				const filhos = [
-					el("span", { class: "pdp-qa-fav-card-action", text: "Analisar · " + fim }),
+					el("span", { class: "pdp-qa-fav-card-action", text: "Analisar · " + (movs.length ? "+ documentos · " : "") + fim }),
 					el("span", { class: "pdp-qa-fav-card-name", text: "★ " + pref.name })
 				];
 				if (!emLote) {
@@ -938,7 +939,9 @@
 					class: "pdp-qa-fav-card",
 					tabindex: "0",
 					role: "button",
-					title: "Faz a pré-análise com esta preferência (Tipo do Arquivo, Modelo e texto) e, no fim, " + (pref.postergar ? "clica em \"Postergar Assinatura\"" : "deixa \"Assinar e Expedir\" para você") + (emLote ? ", em cada processo marcado." : ".")
+					title: "Faz a pré-análise com esta preferência (Tipo do Arquivo, Modelo e texto)" +
+						(movs.length ? ", anexa os documentos do movimento mais recente \"" + movs.join("\" / \"") + "\" (se houver)" : "") +
+						" e, no fim, " + (pref.postergar ? "clica em \"Postergar Assinatura\"" : "deixa \"Assinar e Expedir\" para você") + (emLote ? ", em cada processo marcado." : ".")
 				}, filhos), function () {
 					fecharPainel();
 					escolher({ preAnalise: true, acao: "pref", pref: pref, label: "Analisar (Pré-Análise)" });

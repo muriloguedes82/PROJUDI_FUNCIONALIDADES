@@ -1587,9 +1587,12 @@ Nas mesmas três telas (Análise de Juntadas, Retorno de Conclusão e Análise
 de Decurso de Prazo) - e também nas listas de cumprimentos, inclusive
 **Demais Cumprimentos** (`cumprimentoCartorio.do`) e **Mandados**
 (`cumprimentoCartorioMandado.do`), que trazem ainda a seção "📝 Analisar
-(Pré-Análise)" com preferências próprias e "Postergar Assinatura" (em
-`juntarDocumento.js`, a tela final do cumprimento é reconhecida pelos dois
-formulários) -, cada linha de processo ganha, ao lado do **+** das
+(Pré-Análise)" com preferências próprias (em `juntarDocumento.js`: a tela
+final do cumprimento é reconhecida pelos dois formulários; a gravação
+termina no clique do usuário em "Assinar e Expedir"/"Postergar
+Assinatura", e o "☆ padrão" da janela "Seleção de Documentos" grava em
+`docMovimentos` os movimentos cujos documentos a preferência anexa, pelo
+mais recente com o mesmo nome) -, cada linha de processo ganha, ao lado do **+** das
 listas de tarefas, o botão **⭐**, que abre os cards de "Minhas
 Preferências" (as mesmas preferências das ações rápidas: Realizar
 Remessa, Enviar Concluso, Intimar Partes, Ordenar Cumprimentos...). Ao

@@ -980,30 +980,12 @@
 		}
 	}
 
-	// Pergunta, na tela do cumprimento, se a preferência deve sempre clicar
-	// em "Postergar Assinatura". Resolve com true/false (null = fechou).
-	function perguntarPostergar(padrao) {
-		return new Promise(function (resolve) {
-			const fundo = document.createElement("div");
-			fundo.className = "pdp-jd-pergunta-fundo";
-			fundo.innerHTML =
-				'<div class="pdp-jd-pergunta" role="dialog">' +
-				"<strong>Assinatura</strong>" +
-				'<p>Ao usar esta preferência, a extensão deve <b>sempre clicar em "Postergar Assinatura"</b>?</p>' +
-				'<p class="pdp-jd-pergunta-dica">Sim: a extensão clica em "Postergar Assinatura" agora e sempre que você usar esta preferência. Não: você mesmo clica em "Assinar e Expedir".</p>' +
-				'<div class="pdp-jd-pergunta-botoes"><button type="button" data-r="sim">Sim, postergar sempre</button><button type="button" data-r="nao">Não, eu assino e expeço</button></div>' +
-				"</div>";
-			document.body.appendChild(fundo);
-			const sim = fundo.querySelector('[data-r="sim"]');
-			const nao = fundo.querySelector('[data-r="nao"]');
-			(padrao === false ? nao : sim).focus();
-			fundo.addEventListener("click", function (ev) {
-				const r = ev.target && ev.target.getAttribute && ev.target.getAttribute("data-r");
-				if (!r) return;
-				fundo.remove();
-				resolve(r === "sim");
-			});
-		});
+	// Nomes dos movimentos cujos documentos a preferência anexa ao
+	// cumprimento ("Documento(s) do Processo/Recurso" → "Adicionar").
+	function movimentosDaGravacao(job) {
+		const rec = job.rec || {};
+		if (Array.isArray(rec.docMovimentos)) return rec.docMovimentos;
+		return job.mode === "edit" && job.pref && Array.isArray(job.pref.docMovimentos) ? job.pref.docMovimentos : [];
 	}
 
 	function salvarGravacaoPreAnalise(job, postergar) {
@@ -1026,6 +1008,7 @@
 			conteudo: rec.conteudo || "",
 			ancora: rec.ancora || null,
 			postergar: !!postergar,
+			docMovimentos: movimentosDaGravacao(job),
 		};
 		persistPref(pref, PREANALISE_PREFS_KEY).catch(function (err) {
 			alert("Não foi possível salvar a preferência: " + err.message);
@@ -1033,42 +1016,236 @@
 		return pref;
 	}
 
+	// Gravando, na tela do cumprimento: a preferência é salva no clique do
+	// próprio usuário em "Assinar e Expedir" ou "Postergar Assinatura" (o
+	// botão escolhido fica gravado). O nome é pedido nesse clique (prompt,
+	// síncrono) e, salvo, o clique segue para o Projudi; persistPref guarda
+	// a preferência também no sessionStorage, então a troca de página não a
+	// perde. Sem nome, o clique é segurado e a gravação continua.
+	function armarGravacaoCumprimento(job) {
+		if (document.__pdpJdGravacaoCumprimento) return;
+		document.__pdpJdGravacaoCumprimento = true;
+		document.addEventListener("click", function (ev) {
+			const form = formCumprimento();
+			if (!form) return;
+			const postergarBtn = botaoCumprimento(form, "postergar");
+			const assinarBtn = botaoCumprimento(form, "assinar");
+			const alvo = ev.target;
+			if (!alvo || (alvo !== postergarBtn && alvo !== assinarBtn)) return;
+			const atual = readJob();
+			if (!atual || !atual.preanalise || (atual.mode !== "capture" && atual.mode !== "edit")) return;
+			const saved = salvarGravacaoPreAnalise(atual, alvo === postergarBtn);
+			if (!saved) {
+				ev.preventDefault();
+				ev.stopImmediatePropagation();
+				showStatus('A preferência não foi salva. Clique de novo em "Assinar e Expedir" ou "Postergar Assinatura" para dar o nome — ou em "Parar" para sair da gravação.', "warn");
+				return;
+			}
+			clearJob(true);
+			showStatus('Preferência "' + saved.name + '" ' + (atual.mode === "edit" ? "atualizada" : "salva") + ".", "ok");
+		}, true);
+		const movs = movimentosDaGravacao(job);
+		showStatus(modeLabel(job) + ': se precisar anexar documentos do processo, clique em "Adicionar" (Documento(s) do Processo/Recurso) e marque ☆ padrão ao lado do movimento. ' +
+			'Depois clique em "Assinar e Expedir" ou "Postergar Assinatura": a preferência é gravada nesse clique (e o botão escolhido fica gravado).' +
+			(movs.length ? " Movimento(s) padrão: " + movs.join("; ") + "." : ""), "rec");
+	}
+
+	// Botão "Adicionar" da lista "Documento(s) do Processo/Recurso".
+	function botaoAdicionarDocumentos() {
+		const porId = document.getElementById("editButton");
+		if (porId && norm(buttonText(porId)) === norm("Adicionar")) return porId;
+		return findButton(document, "Adicionar");
+	}
+
 	// Tela do cumprimento, de volta depois do "Salvar e Concluir" da
-	// Pré-Análise. Gravando: pergunta sobre o "Postergar Assinatura" e salva.
-	// Aplicando: clica em "Postergar Assinatura" se a preferência mandar;
-	// senão, destaca "Assinar e Expedir" para o usuário.
+	// Pré-Análise. Gravando: espera o clique do usuário em "Assinar e
+	// Expedir" ou "Postergar Assinatura" (armarGravacaoCumprimento).
+	// Aplicando: se a preferência tiver movimentos padrão, abre o
+	// "Adicionar" dos documentos do processo e espera a janela de seleção
+	// (tickSelecaoDocumentos) marcar e anexar os documentos; depois clica em
+	// "Postergar Assinatura" se a preferência mandar, ou destaca "Assinar e
+	// Expedir" para o usuário.
+	const DOCS_TIMEOUT_MS = 60000;
 	let cumprimentoActed = false;
-	async function tickCumprimento(job) {
+	function tickCumprimento(job) {
 		if (job.stage !== "concluir" || cumprimentoActed) return;
+		if (job.mode === "capture" || job.mode === "edit") {
+			armarGravacaoCumprimento(job);
+			return;
+		}
+		const movs = (job.pref && Array.isArray(job.pref.docMovimentos)) ? job.pref.docMovimentos : [];
+		if (movs.length && !job.docs) {
+			const adicionar = botaoAdicionarDocumentos();
+			if (adicionar && !adicionar.disabled) {
+				updateJob(function (current) { current.docs = { status: "abrindo", at: Date.now() }; });
+				showStatus('Anexando os documentos do movimento "' + movs.join('" / "') + '": abrindo "Adicionar"…');
+				setTimeout(function () { adicionar.click(); }, 400);
+				return;
+			}
+			updateJob(function (current) { current.docs = { status: "sem-botao" }; });
+			job = readJob() || job;
+		}
+		if (job.docs && job.docs.status === "abrindo") {
+			if (Date.now() - job.docs.at < DOCS_TIMEOUT_MS) return;
+			updateJob(function (current) { current.docs.status = "tempo"; });
+			job = readJob() || job;
+		}
 		cumprimentoActed = true;
+		const docs = job.docs || null;
+		let avisoDocs = "";
+		if (docs) {
+			if (docs.status === "ok") avisoDocs = docs.n + " documento(s) anexado(s). ";
+			else if (docs.status === "nenhum") avisoDocs = 'Nenhum documento anexado: não encontrei o movimento "' + movs.join('" / "') + '" com documentos. ';
+			else avisoDocs = "Não consegui anexar os documentos do movimento padrão; confira em Documento(s) do Processo/Recurso. ";
+		}
 		const form = formCumprimento();
 		const postergarBtn = botaoCumprimento(form, "postergar");
 		const assinarBtn = botaoCumprimento(form, "assinar");
-		let postergar;
-		if (job.mode === "capture" || job.mode === "edit") {
-			postergar = await perguntarPostergar(job.mode === "edit" && job.pref ? !!job.pref.postergar : true);
-			const saved = salvarGravacaoPreAnalise(job, postergar);
-			clearJob(true);
-			if (!saved) {
-				showStatus("A preferência não foi salva. Conclua o cumprimento como de costume.", "warn");
-				return;
-			}
-			showStatus('Preferência "' + saved.name + '" ' + (job.mode === "edit" ? "atualizada" : "salva") + ".", "ok");
-		} else {
-			postergar = !!(job.pref && job.pref.postergar);
-			clearJob(true);
-		}
-		if (postergar && postergarBtn && !postergarBtn.disabled) {
+		const postergar = !!(job.pref && job.pref.postergar);
+		clearJob(true);
+		// Documentos não anexados: não posterga sozinha - o usuário confere.
+		const docsOk = !docs || docs.status === "ok";
+		if (postergar && docsOk && postergarBtn && !postergarBtn.disabled) {
 			marcarDecurso(DECURSO_CONCLUIDA_KEY);
-			showStatus('Clicando em "Postergar Assinatura"…', "ok");
+			showStatus(avisoDocs + 'Clicando em "Postergar Assinatura"…', "ok");
 			setTimeout(function () { postergarBtn.click(); }, 500);
 			return;
 		}
 		marcarDecurso(DECURSO_AGUARDANDO_KEY);
-		if (assinarBtn) assinarBtn.classList.add("pdp-jd-highlight");
-		showStatus(postergar
-			? 'Não encontrei o botão "Postergar Assinatura" habilitado. Conclua manualmente.'
-			: 'Pré-análise concluída. Clique em "Assinar e Expedir" para assinar.', postergar ? "warn" : "ok");
+		if (postergar && postergarBtn) postergarBtn.classList.add("pdp-jd-highlight");
+		else if (assinarBtn) assinarBtn.classList.add("pdp-jd-highlight");
+		showStatus(avisoDocs + (postergar
+			? (docsOk ? 'Não encontrei o botão "Postergar Assinatura" habilitado. Conclua manualmente.' : 'Confira os documentos e clique em "Postergar Assinatura".')
+			: 'Pré-análise concluída. Clique em "Assinar e Expedir" para assinar.'), postergar || !docsOk ? "warn" : "ok");
+	}
+
+	// -------------------------------------------------------------------
+	// Janela "Seleção de Documentos" (botão "Adicionar" de "Documento(s) do
+	// Processo/Recurso" no cumprimento: cumprimentoCartorioMandado.do,
+	// formulário que envia para salvarDocumentosProcesso, com uma linha por
+	// movimento - data e nome em negrito - seguida da linha "rowN" com as
+	// caixinhas dos arquivos dele, "movimentacoesArquivos").
+	// -------------------------------------------------------------------
+
+	function formSelecaoDocumentos() {
+		return Array.prototype.find.call(document.forms, function (f) {
+			return /salvarDocumentosProcesso/i.test(f.getAttribute("action") || "") && !!f.querySelector('input[name="movimentacoesArquivos"], #selectButton');
+		}) || null;
+	}
+
+	function isSelecaoDocumentosScreen() {
+		return !!formSelecaoDocumentos();
+	}
+
+	function nomeMovimento(nome) {
+		return norm(nome).toUpperCase();
+	}
+
+	// [{ nome, row, caixas }] na ordem da tela (a mais recente primeiro).
+	function movimentosSelecao(form) {
+		const tabela = form.querySelector("table.resultTable");
+		const tbody = tabela && tabela.tBodies[0];
+		const lista = [];
+		if (!tbody) return lista;
+		let atual = null;
+		Array.prototype.forEach.call(tbody.rows, function (row) {
+			if (/^row\d+$/.test(row.id)) {
+				if (atual) atual.caixas = Array.prototype.slice.call(row.querySelectorAll('input[type="checkbox"][name="movimentacoesArquivos"]'));
+				return;
+			}
+			const b = row.cells[1] && row.cells[1].querySelector("b");
+			if (!b) return;
+			atual = { nome: b.textContent.replace(/\s+/g, " ").trim(), row: row, caixas: [] };
+			lista.push(atual);
+		});
+		return lista;
+	}
+
+	let selecaoActed = false;
+	function tickSelecaoDocumentos(job) {
+		if (job.stage !== "concluir" || selecaoActed) return;
+		const form = formSelecaoDocumentos();
+		const movimentos = movimentosSelecao(form);
+		if (job.mode === "capture" || job.mode === "edit") {
+			selecaoActed = true;
+			gravarSelecaoDocumentos(job, form, movimentos);
+			return;
+		}
+		if (!job.docs || job.docs.status !== "abrindo") return;
+		selecaoActed = true;
+		const nomes = (job.pref && job.pref.docMovimentos) || [];
+		let n = 0;
+		const achados = [];
+		nomes.forEach(function (nome) {
+			// O mais recente com esse nome (a lista vem do mais novo ao mais antigo).
+			const mov = movimentos.find(function (m) { return nomeMovimento(m.nome) === nomeMovimento(nome) && m.caixas.length; });
+			if (!mov) return;
+			achados.push(mov.nome);
+			mov.caixas.forEach(function (c) {
+				if (c.disabled) return;
+				if (!c.checked) c.click();
+				n++;
+			});
+		});
+		const selecionar = form.querySelector("#selectButton") || findButton(form, "Selecionar");
+		const voltar = form.querySelector("#backButton") || findButton(form, "Voltar");
+		if (n && selecionar) {
+			updateJob(function (current) { current.docs = { status: "ok", n: n, movimentos: achados }; });
+			showStatus("Marcados " + n + " documento(s) do movimento " + achados.join(" / ") + '. Clicando em "Selecionar"…');
+			setTimeout(function () { selecionar.click(); }, 500);
+			return;
+		}
+		updateJob(function (current) { current.docs = { status: n ? "falha" : "nenhum" }; });
+		showStatus(n ? 'Não encontrei o botão "Selecionar".' : "Movimento padrão não encontrado neste processo (ou sem documentos).", "warn");
+		if (voltar) setTimeout(function () { voltar.click(); }, 800);
+	}
+
+	// Gravando: uma caixinha "☆ padrão" ao lado de cada movimento. Marcá-la
+	// marca os documentos dele; no "Selecionar", os movimentos marcados vão
+	// para a gravação (job.rec.docMovimentos).
+	function gravarSelecaoDocumentos(job, form, movimentos) {
+		const gravados = movimentosDaGravacao(job).map(nomeMovimento);
+		const marcas = [];
+		const jaMarcado = {};
+		movimentos.forEach(function (mov) {
+			const cel = mov.row.cells[1];
+			if (!cel || cel.querySelector(".pdp-jd-mov-padrao")) return;
+			const label = document.createElement("label");
+			label.className = "pdp-jd-mov-padrao";
+			label.title = "Movimento padrão desta preferência: ao usá-la, a extensão procura o movimento mais recente com este nome e anexa os documentos dele.";
+			label.style.cssText = "margin-left:10px;font-weight:normal;white-space:nowrap;cursor:pointer;color:#7a5b00";
+			const caixa = document.createElement("input");
+			caixa.type = "checkbox";
+			caixa.style.verticalAlign = "middle";
+			label.appendChild(caixa);
+			label.appendChild(document.createTextNode(" ☆ padrão" + (mov.caixas.length ? "" : " (sem documentos aqui)")));
+			cel.querySelector("b").insertAdjacentElement("afterend", label);
+			marcas.push({ mov: mov, caixa: caixa });
+			// Editando: já vem marcado o mais recente de cada movimento gravado.
+			const chave = nomeMovimento(mov.nome);
+			if (gravados.indexOf(chave) >= 0 && !jaMarcado[chave]) {
+				jaMarcado[chave] = true;
+				caixa.checked = true;
+				mov.caixas.forEach(function (c) { if (!c.checked && !c.disabled) c.click(); });
+			}
+			caixa.addEventListener("change", function () {
+				mov.caixas.forEach(function (c) { if (c.checked !== caixa.checked && !c.disabled) c.click(); });
+			});
+		});
+		const selecionar = form.querySelector("#selectButton") || findButton(form, "Selecionar");
+		if (selecionar) {
+			selecionar.addEventListener("click", function () {
+				const nomes = [];
+				marcas.forEach(function (m) {
+					if (m.caixa.checked && nomes.indexOf(m.mov.nome) < 0) nomes.push(m.mov.nome);
+				});
+				updateJob(function (current) {
+					current.rec = current.rec || {};
+					current.rec.docMovimentos = nomes;
+				});
+			}, true);
+		}
+		showStatus(modeLabel(job) + ': marque ☆ padrão ao lado do movimento cujos documentos devem ser anexados sempre (ex.: "Concedida a Medida Protetiva") e clique em "Selecionar". Documentos marcados sem ☆ são anexados só desta vez.', "rec");
 	}
 
 	// Tela "Analisar Decurso de Prazo": só fluxos iniciados pelo "Analisar
@@ -1785,10 +1962,11 @@
 			// Telas dos cumprimentos: vêm antes das demais - a do cumprimento
 			// tem "Concluir" (barra de progresso) e "Alterar", que a fariam
 			// parecer a pré-visualização do documento.
-			if (isCumprimentoScreen() || isPreAnaliseScreen()) {
+			if (isCumprimentoScreen() || isPreAnaliseScreen() || isSelecaoDocumentosScreen()) {
 				const jobCump = readJob();
 				if (jobCump && jobCump.preanalise) {
 					if (isCumprimentoScreen()) tickCumprimento(jobCump);
+					else if (isSelecaoDocumentosScreen()) tickSelecaoDocumentos(jobCump);
 					else tickPreAnalise(jobCump);
 				}
 				return;

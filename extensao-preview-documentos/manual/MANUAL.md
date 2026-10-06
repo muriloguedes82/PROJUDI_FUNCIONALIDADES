@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.27.2 |
-| **Versão da extensão** | 2.27.2 |
+| **Versão do manual** | 2.28.0 |
+| **Versão da extensão** | 2.28.0 |
 | **Data desta versão** | 06/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -2097,8 +2097,10 @@ na seção **📝 Analisar Decurso** (com **+ Nova preferência**, ✏️ e 🗑
 *Só no Projudi.*
 
 **Para que serve:** fazer o **Analisar** (Pré-Análise) de um cumprimento —
-por exemplo, um ALVARÁ ou um mandado — com um texto pronto, sem abrir o cumprimento, e
-deixar a assinatura **postergada** ou para você **Assinar e Expedir**.
+por exemplo, um ALVARÁ ou um mandado — com um texto pronto, sem abrir o cumprimento,
+anexar os documentos de um movimento do processo (ex.: a decisão de
+**Concedida a Medida Protetiva**) e deixar a assinatura **postergada** ou
+para você **Assinar e Expedir**.
 
 **Onde fica:** listas **Demais Cumprimentos** (qualquer Tipo de
 Cumprimento) e **Mandados** (expedição de mandados), no card **⭐** da
@@ -2113,14 +2115,21 @@ preferência criada numa aparece também na outra.
 2. Escolha o **Tipo do Arquivo** e o **Modelo**, clique em **Digitar
    Texto**, escreva e continue, como de costume.
 3. Clique em **Salvar e Concluir**.
-4. Na tela do cumprimento (a última), a extensão pergunta: **"Ao usar esta
-   preferência, a extensão deve sempre clicar em Postergar Assinatura?"**
-   - **Sim, postergar sempre** — isso fica gravado e ela já clica em
-     **Postergar Assinatura**;
-   - **Não, eu assino e expeço** — ela destaca **Assinar e Expedir** para
-     você clicar.
-5. Dê um **nome** à preferência. Pronto: ela aparece no card ⭐, com
-   **✏️** (editar) e **🗑** (remover).
+4. Na tela do cumprimento (a última), se precisar anexar documentos do
+   processo, clique em **Adicionar** (em **Documento(s) do Processo/Recurso**).
+   Na janela **Seleção de Documentos**, ao lado de cada movimento aparece
+   **☆ padrão**: marque o movimento cujos documentos devem ir sempre (ex.:
+   **Concedida a Medida Protetiva**) — os documentos dele são marcados — e
+   clique em **Selecionar**. Documentos que você marcar sem o ☆ vão só
+   desta vez.
+5. Clique, como sempre, em **Assinar e Expedir** ou em **Postergar
+   Assinatura**. A preferência é gravada nesse clique, com o botão que você
+   escolheu: **Postergar** fica gravado para ser clicado sozinho; **Assinar
+   e Expedir** fica para você clicar a cada uso.
+6. Dê um **nome** à preferência (se cancelar, o clique é desfeito e você
+   pode clicar de novo). Pronto: ela aparece no card ⭐, com **✏️**
+   (editar) e **🗑** (remover). O card mostra "+ documentos" quando a
+   preferência anexa documentos.
 
 **Usar a preferência:**
 
@@ -2131,10 +2140,15 @@ preferência criada numa aparece também na outra.
 3. A Pré-Análise abre no popup e a extensão escolhe o Tipo do Arquivo e o
    Modelo, digita o texto, conclui o documento e clica em **Salvar e
    Concluir**.
-4. Na tela do cumprimento: com "postergar", ela clica em **Postergar
-   Assinatura** e o popup fecha sozinho; senão, ela destaca **Assinar e
-   Expedir** — clique nele e feche o popup.
-5. A linha mostra o resultado.
+4. Na tela do cumprimento, se a preferência tiver movimento padrão, ela
+   clica em **Adicionar**, procura o movimento **mais recente** com esse
+   nome e anexa os documentos dele. Se o movimento não existir no processo
+   (ou não tiver documentos), nada é anexado e ela **não** posterga
+   sozinha: destaca o botão para você conferir.
+5. Com "postergar", ela clica em **Postergar Assinatura** e o popup fecha
+   sozinho; senão, ela destaca **Assinar e Expedir** — clique nele e feche
+   o popup.
+6. A linha mostra o resultado.
 
 **Em lote:** marque os processos, clique em **⭐ Executar preferência nos
 marcados** e escolha a preferência na seção 📝 Analisar. Os cumprimentos
@@ -2294,7 +2308,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V47](videos/V47-novo-valor-da-causa.mp4) | [Novo Valor da Causa](videos/V47-novo-valor-da-causa.mp4) | [8.10](#cap-8-10) | 0:36 |
 | [V48](videos/V48-aviso-de-versao-nova.mp4) | [Aviso de versão nova e atualização](videos/V48-aviso-de-versao-nova.mp4) | [2.3](#cap-2-3) | 0:41 |
 | [V49](videos/V49-analisar-e-dispensar-decurso-na-lista.mp4) | [Analisar e Dispensar decurso na lista](videos/V49-analisar-e-dispensar-decurso-na-lista.mp4) | [9.9](#cap-9-9) | 1:28 |
-| [V50](videos/V50-pre-analise-com-preferencias.mp4) | [Pré-Análise com preferências](videos/V50-pre-analise-com-preferencias.mp4) | [9.10](#cap-9-10) | 0:52 |
+| [V50](videos/V50-pre-analise-com-preferencias.mp4) | [Pré-Análise com preferências](videos/V50-pre-analise-com-preferencias.mp4) | [9.10](#cap-9-10) | 1:11 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -2308,6 +2322,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.28.0 | 06/10/2026 | Pré-Análise com preferências (9.10): a gravação não pergunta mais sobre o "Postergar Assinatura" — ela termina no seu clique em **Assinar e Expedir** ou **Postergar Assinatura** (o botão escolhido fica gravado), e só então a extensão pede o nome. Nova opção **☆ padrão** na janela **Seleção de Documentos** (botão **Adicionar** de Documento(s) do Processo/Recurso): ao usar a preferência, a extensão anexa os documentos do movimento mais recente com esse nome (ex.: Concedida a Medida Protetiva). O card ⭐ mostra "+ documentos". Vídeo V50 regravado. |
 | 2.27.2 | 06/10/2026 | Sem alteração de texto; corrigido: ao usar uma preferência de Pré-Análise na lista de **Mandados** (9.10), a extensão parava na pré-visualização do documento, que ali tem os botões **Salvar** e **Voltar** (e não Concluir e Alterar). Agora ela clica em **Salvar** e segue. |
 | 2.27.1 | 06/10/2026 | Sem alteração de texto; corrigido: na Pré-Análise da lista de **Mandados** (9.10), o texto digitado no documento não era gravado na preferência (aparecia o aviso "Não consegui gravar nenhum texto nesta preferência"), porque ali a tela de digitar o documento é outra. |
 | 2.27.0 | 06/10/2026 | Lista de **Mandados** (expedição de mandados), no Projudi: ganha as listas de tarefas (9.2), a **⭐** na linha e o **⭐ Em lote** (9.3), com a mesma pergunta sobre juntadas e conclusão pendentes das demais telas de cumprimentos, e a seção **📝 Analisar (Pré-Análise)** com preferências e **Postergar Assinatura**, também em lote (9.10). Descrição da função no Menu atualizada (2.6). Sem vídeo novo: a tela da função é a mesma do V45 e do V50. |
