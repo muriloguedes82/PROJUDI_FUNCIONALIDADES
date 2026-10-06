@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.23.3 |
-| **Versão da extensão** | 2.23.3 |
-| **Data desta versão** | 05/10/2026 |
+| **Versão do manual** | 2.23.4 |
+| **Versão da extensão** | 2.23.4 |
+| **Data desta versão** | 06/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -496,8 +496,10 @@ processo aberto.
 ▶ [**Vídeo V06** — Destacar movimentações](videos/V06-destacar-movimentacoes.mp4)
 
 **Para que serve:** colorir automaticamente as movimentações feitas por
-**Magistrado(a)**, **Ministério Público** e/ou **Advogado(a)**, em
-**todos os processos**.
+**Magistrado(a)**, **Ministério Público**, **Advogado(a)**,
+**Procurador(a)** (por exemplo, "Procurador do Município de ..."),
+**Defensor(a)** (Defensoria Pública) e/ou **Audiência**, em **todos os
+processos**.
 
 **Onde fica:** botão **🖍️ Destacar mov.** da barra da extensão
 (com a aba **Movimentações** aberta).
@@ -515,6 +517,16 @@ processo aberto.
   outro tipo troca as cores entre os dois (a cor em uso aparece com ✓).
 - Para mudar, abra o botão de novo — ele vem preenchido com o que foi
   salvo.
+- **Procurador / Procuradora** destaca as movimentações em que a coluna
+  **Movimentado Por** mostra o papel **Procurador** (procuradores de
+  município, estado e outros entes públicos).
+- **Defensor / Defensora** destaca as movimentações feitas pela
+  Defensoria Pública.
+- **Audiência** é diferente dos demais: destaca as movimentações **de
+  audiência** (por exemplo, "Audiência de custódia designada"), seja quem
+  for que as lançou. Se a mesma linha também for de um tipo marcado (por
+  exemplo, um Magistrado), vale a cor da **Audiência**.
+- Os tipos são os mesmos do quadro **Realces** do Projudi.
 - É independente do quadro nativo **Realces** do Projudi (que tem cores
   fixas e não lembra a escolha entre processos).
 
@@ -1979,7 +1991,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V03](videos/V03-pre-visualizacao-de-documentos.mp4) | [Pré-visualização de documentos](videos/V03-pre-visualizacao-de-documentos.mp4) | [3.1](#cap-3-1) | 0:44 |
 | [V04](videos/V04-pre-visualizacao-das-pendencias.mp4) | [Pré-visualização das pendências](videos/V04-pre-visualizacao-das-pendencias.mp4) | [3.2](#cap-3-2) | 0:30 |
 | [V05](videos/V05-expandir-e-ocultar-movimentacoes.mp4) | [Expandir movimentações e ocultar as sem arquivo](videos/V05-expandir-e-ocultar-movimentacoes.mp4) | [3.3](#cap-3-3) | 0:42 |
-| [V06](videos/V06-destacar-movimentacoes.mp4) | [Destacar movimentações por tipo de usuário](videos/V06-destacar-movimentacoes.mp4) | [3.4](#cap-3-4) | 0:36 |
+| [V06](videos/V06-destacar-movimentacoes.mp4) | [Destacar movimentações por tipo de usuário](videos/V06-destacar-movimentacoes.mp4) | [3.4](#cap-3-4) | 0:38 |
 | [V07](videos/V07-envio-por-whatsapp.mp4) | [Envio por WhatsApp Web](videos/V07-envio-por-whatsapp.mp4) | [5.1](#cap-5-1) | 0:44 |
 | [V08](videos/V08-envio-por-email.mp4) | [Envio por e-mail (Outlook)](videos/V08-envio-por-email.mp4) | [5.2](#cap-5-2) | 0:46 |
 | [V09](videos/V09-destinatarios-e-remetentes-do-email.mp4) | [Destinatários favoritos e remetentes do e-mail](videos/V09-destinatarios-e-remetentes-do-email.mp4) | [5.3](#cap-5-3) | 0:46 |
@@ -2033,6 +2045,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.23.4 | 06/10/2026 | Destacar movimentações (3.4): novos tipos **Procurador / Procuradora** (ex.: "Procurador do Município de ..."), **Defensor / Defensora** e **Audiência** (esta destaca as movimentações de audiência, seja quem for que as lançou), os mesmos do quadro **Realces** do Projudi. Vídeo V06 regravado. |
 | 2.23.3 | 05/10/2026 | Sistemas do CNJ e card **Outros** (8.7): o popup passa a ter **um só botão** para abrir o sistema fora dele, que usa o **segundo monitor** sempre que houver um conectado (**🖥 Segundo monitor**) e, se não houver, abre numa **nova aba** (**🗂 Nova aba**). Antes eram dois botões, e o do segundo monitor só avisava quando não havia outro monitor. Solução de problemas (11) ajustada e vídeo V39 regravado. |
 | 2.23.2 | 05/10/2026 | **⭐ Em lote** (9.3), no Projudi e no SEEU: antes de começar, a confirmação mostra a lista dos processos (até 25 números), a preferência/combo e o que será feito automaticamente antes (dispensar juntadas, finalizar conclusão ou dispensar decursos); o lote **para no primeiro erro**, deixando os seguintes intactos e marcados, e avisa em qual processo foi. Vídeo V45 regravado. |
 | 2.23.1 | 05/10/2026 | Correções de segurança. Opções (2.5): **Tenant ID do Tribunal** obrigatório para o modo Microsoft Graph e novo botão **Sair do Outlook nesta extensão**. E-mail (5.2): o login do Outlook vale só enquanto o navegador estiver aberto. Privacidade (10.1): documentos de um envio interrompido são apagados em até 15 minutos ou ao fechar o navegador. Solução de problemas (11): Tenant ID e envio expirado do WhatsApp. Os sistemas do CNJ (8.7) só podem ser abertos dentro do Projudi/SEEU, não em outras páginas (sem mudança na tela). Sem vídeo novo. |
