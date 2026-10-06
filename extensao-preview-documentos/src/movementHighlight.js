@@ -62,6 +62,19 @@
 			rowGroups: ["ADVOGADO"],
 			textPattern: /\badvogad[oa]\b/i,
 		},
+		{
+			// Procurador(a) de ente público (ex.: "Procurador do Município
+			// de ..."). O grupo do id da linha pode variar conforme a
+			// procuradoria; por isso, se o id não trouxer um grupo
+			// conhecido, a linha também é conferida pelo texto da coluna
+			// "Movimentado Por" (ver highlightByRowId).
+			key: "procurador",
+			label: "Procurador / Procuradora",
+			defaultColor: "#f6d9a3",
+			rowGroups: ["PROCURADOR", "PROCURADORIA"],
+			textPattern: /\bprocurador[a]?\b/i,
+			textFallback: true,
+		},
 	];
 
 	let prefs = {};
@@ -173,12 +186,34 @@
 		row.setAttribute(APPLIED_ATTR, signature);
 	}
 
+	// Tipo pelo texto da célula "Movimentado Por" (nome + papel abaixo).
+	function matchedRoleForText(text, onlyFallback) {
+		return ROLE_DEFS.find(function (role) {
+			return (!onlyFallback || role.textFallback) && role.textPattern.test(text);
+		});
+	}
+
 	function highlightByRowId() {
 		const rows = document.querySelectorAll('tr[id^="' + ROW_ID_PREFIX + '"]');
 		if (!rows.length) return false;
+		let columns = null;
 		rows.forEach(function (row) {
 			const group = rowGroupFromId(row);
-			const role = matchedRoleForGroup(group);
+			let role = matchedRoleForGroup(group);
+			if (!role) {
+				// Grupo do id não reconhecido: confere o texto da coluna
+				// "Movimentado Por" só para os tipos que aceitam isso
+				// (Procurador), sem mudar o comportamento dos demais.
+				if (!columns) columns = findMovimentadoPorColumns();
+				const table = row.closest("table");
+				// Cabeçalho na mesma tabela; se estiver numa tabela à parte
+				// e só houver uma coluna "Movimentado Por", usa a posição dela.
+				const info = columns.find(function (c) {
+					return c.table === table;
+				}) || (columns.length === 1 ? columns[0] : null);
+				const cell = info && row.children[info.columnIndex];
+				if (cell) role = matchedRoleForText(cell.textContent || "", true);
+			}
 			applyRowColor(row, role);
 		});
 		return true;
@@ -194,10 +229,7 @@
 				const cell = row.children[info.columnIndex];
 				if (!cell) return;
 				const text = cell.textContent || "";
-				const role = ROLE_DEFS.find(function (r) {
-					return r.textPattern.test(text);
-				});
-				applyRowColor(row, role);
+				applyRowColor(row, matchedRoleForText(text, false));
 			});
 		});
 	}
