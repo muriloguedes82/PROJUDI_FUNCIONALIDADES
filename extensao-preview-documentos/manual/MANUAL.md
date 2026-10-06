@@ -1575,14 +1575,17 @@ o valor novo. Você não precisa clicar em **Alterar**, procurar o campo
 **Valor da Causa** na tela de alteração nem clicar em **Salvar**: a
 extensão faz isso sozinha, sem mostrar aquela tela.
 
-**Onde fica:** na aba **Informações Gerais** do processo, na linha
-**Valor da Causa**, há um pequeno balão cinza **💲 Novo Valor da Causa**,
-ao lado do valor atual.
+**Onde fica:** no cabeçalho do processo, logo abaixo do número — junto da
+**Classe Processual**, do **Assunto Principal** e do **Nível de Sigilo** —,
+a extensão acrescenta a linha **Valor da Causa**, com o valor atual e, ao
+lado dele, um pequeno balão cinza **💲 Novo Valor da Causa**. Ela aparece
+em qualquer aba do processo: não é preciso abrir **Informações Gerais**.
 
 **Passo a passo:**
 
-1. Abra o processo na aba **Informações Gerais**.
-2. Clique em **💲 Novo Valor da Causa**. Abre-se um quadrinho com o
+1. Abra o processo (em qualquer aba).
+2. Na linha **Valor da Causa** do cabeçalho, clique em
+   **💲 Novo Valor da Causa**. Abre-se um quadrinho com o
    **valor atual** e o campo **Novo valor**.
 3. Digite o novo valor, com os centavos (por exemplo, **1.500,00**). Os
    pontos e a vírgula aparecem sozinhos enquanto você digita.
@@ -1595,6 +1598,8 @@ ao lado do valor atual.
 
 **Bom saber:**
 
+- Logo que o processo abre, a linha mostra "carregando…" por um instante,
+  enquanto a extensão busca o valor na aba **Informações Gerais**.
 - O **Salvar** do quadrinho já grava no processo: **não há outra
   confirmação**. Confira o valor antes de clicar.
 - **Cancelar**, a tecla **Esc** ou um clique fora do quadrinho fecham-no
@@ -2066,7 +2071,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V44](videos/V44-processo-ao-passar-o-mouse.mp4) | [Processo ao passar o mouse no Decurso de Prazo](videos/V44-processo-ao-passar-o-mouse.mp4) | [9.8](#cap-9-8) | 0:48 |
 | [V45](videos/V45-preferencias-em-lote.mp4) | [Preferências em lote (⭐ Em lote)](videos/V45-preferencias-em-lote.mp4) | [9.3](#cap-9-3) | 1:01 |
 | [V46](videos/V46-remessa-turma-recursal.mp4) | [Remessa para a Turma Recursal](videos/V46-remessa-turma-recursal.mp4) | [7.1](#cap-7-1) | 0:47 |
-| [V47](videos/V47-novo-valor-da-causa.mp4) | [Novo Valor da Causa](videos/V47-novo-valor-da-causa.mp4) | [8.10](#cap-8-10) | 0:32 |
+| [V47](videos/V47-novo-valor-da-causa.mp4) | [Novo Valor da Causa](videos/V47-novo-valor-da-causa.mp4) | [8.10](#cap-8-10) | 0:36 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -2080,7 +2085,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 2.24.0 | 06/10/2026 | Nova seção **8.10 Novo Valor da Causa** (só no Projudi): balão **💲 Novo Valor da Causa** na linha **Valor da Causa** da aba Informações Gerais; você digita o novo valor e a extensão o grava na tela de alteração do processo e clica em **Salvar** sozinha, sem abrir a tela — o Projudi registra a alteração nas Movimentações. Nova função na tabela da 2.6 (30 funções no Projudi), Solução de problemas (11) e vídeo V47. |
+| 2.24.0 | 06/10/2026 | Nova seção **8.10 Novo Valor da Causa** (só no Projudi): linha **Valor da Causa** no cabeçalho do processo (em qualquer aba), com o balão **💲 Novo Valor da Causa** ao lado do valor; você digita o novo valor e a extensão o grava na tela de alteração do processo e clica em **Salvar** sozinha, sem abrir a tela — o Projudi registra a alteração nas Movimentações. Nova função na tabela da 2.6 (30 funções no Projudi), Solução de problemas (11) e vídeo V47. |
 | 2.23.3 | 05/10/2026 | Sistemas do CNJ e card **Outros** (8.7): o popup passa a ter **um só botão** para abrir o sistema fora dele, que usa o **segundo monitor** sempre que houver um conectado (**🖥 Segundo monitor**) e, se não houver, abre numa **nova aba** (**🗂 Nova aba**). Antes eram dois botões, e o do segundo monitor só avisava quando não havia outro monitor. Solução de problemas (11) ajustada e vídeo V39 regravado. |
 | 2.23.2 | 05/10/2026 | **⭐ Em lote** (9.3), no Projudi e no SEEU: antes de começar, a confirmação mostra a lista dos processos (até 25 números), a preferência/combo e o que será feito automaticamente antes (dispensar juntadas, finalizar conclusão ou dispensar decursos); o lote **para no primeiro erro**, deixando os seguintes intactos e marcados, e avisa em qual processo foi. Vídeo V45 regravado. |
 | 2.23.1 | 05/10/2026 | Correções de segurança. Opções (2.5): **Tenant ID do Tribunal** obrigatório para o modo Microsoft Graph e novo botão **Sair do Outlook nesta extensão**. E-mail (5.2): o login do Outlook vale só enquanto o navegador estiver aberto. Privacidade (10.1): documentos de um envio interrompido são apagados em até 15 minutos ou ao fechar o navegador. Solução de problemas (11): Tenant ID e envio expirado do WhatsApp. Os sistemas do CNJ (8.7) só podem ser abertos dentro do Projudi/SEEU, não em outras páginas (sem mudança na tela). Sem vídeo novo. |

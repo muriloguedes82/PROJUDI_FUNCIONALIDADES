@@ -6,10 +6,14 @@
 // (processoEdicao.do, formulário processoEdicaoForm, campo id="valorAcao")
 // e clicar em "Salvar".
 //
-// Este recurso põe um card (balão cinza) "💲 Novo Valor da Causa" ao lado
-// do valor, na linha "Valor da Causa:" da aba "Informações Gerais". O card
-// abre um quadrinho com o valor atual e um campo para o novo valor; nada
-// de tela nova. Ao clicar em "Salvar" no quadrinho, a extensão:
+// Este recurso mostra a linha "Valor da Causa:" no cabeçalho do processo
+// (`table#informacoesProcessuais`, visível em qualquer aba, junto da Classe,
+// do Assunto, do Nível de Sigilo...), com o valor lido da aba "Informações
+// Gerais" (`__pdpLerAbaProcesso` em habilitarAdvogado.js: o próprio DOM, se
+// já é essa aba; senão, buscada em segundo plano), e põe ao lado dele um
+// card (balão cinza) "💲 Novo Valor da Causa". O card abre um quadrinho com
+// o valor atual e um campo para o novo valor; nada de tela nova. Ao clicar
+// em "Salvar" no quadrinho, a extensão:
 // - carrega a tela de alteração num quadro oculto (a URL é a do `onclick`
 //   do botão nativo "Alterar", lida com `__pdpLerAbaProcesso` em
 //   habilitarAdvogado.js — o mesmo caminho de alterarClasseAssuntos.js);
@@ -45,6 +49,7 @@
 	const LINK_CLASS = "pdp-valor-causa-link";
 	const PANEL_ID = "pdp-valor-causa-painel";
 	const STATUS_ID = "pdp-valor-causa-status";
+	const ROW_ATTR = "data-pdp-valor-causa";
 	const EXEC_TIMEOUT_MS = 30000;
 
 	function normalize(text) {
@@ -378,7 +383,7 @@
 	}
 
 	// -------------------------------------------------------------------
-	// Card na linha "Valor da Causa:" da aba "Informações Gerais"
+	// Linha "Valor da Causa:" + card no cabeçalho do processo
 	// -------------------------------------------------------------------
 
 	// Mesmo card cinza do "✏️ Alterar" (alterarClasseAssuntos.js).
@@ -406,7 +411,7 @@
 		(document.head || document.documentElement).appendChild(style);
 	}
 
-	function criarLink(celula) {
+	function criarLink(celulaValor) {
 		const a = document.createElement("a");
 		a.href = "#";
 		a.className = LINK_CLASS;
@@ -416,31 +421,76 @@
 			event.preventDefault();
 			event.stopPropagation();
 			if (ocupado) return;
-			const valorAtual = Array.prototype.filter.call(celula.childNodes, function (no) {
-				return no !== a;
-			}).map(function (no) {
-				return no.textContent || "";
-			}).join(" ").replace(/\s+/g, " ").trim();
-			abrirPainel(a, valorAtual);
+			abrirPainel(a, celulaValor.textContent.replace(/\s+/g, " ").trim());
 		});
 		return a;
 	}
 
-	// Linha da aba "Informações Gerais" (tela do processo):
+	// Valor da causa lido da aba "Informações Gerais" (`doc`):
 	// <td class="label"><label>Valor da Causa:</label></td>
 	// <td width="1%" nowrap="nowrap">R$ 324,80</td>
-	function reconcile() {
-		if (!document.getElementById("processoForm")) return;
-		const labels = document.querySelectorAll("td.label, td.labelRadio");
+	// Ignora a linha desta extensão no cabeçalho e a tela de alteração.
+	function lerValorDaAba(doc) {
+		const labels = doc.querySelectorAll("td.label, td.labelRadio");
 		for (let i = 0; i < labels.length; i++) {
 			const label = labels[i];
 			if (normalize(label.textContent) !== "valor da causa:") continue;
-			if (label.closest("#" + FORM_ID)) continue;
+			if (label.closest("[" + ROW_ATTR + "], #" + FORM_ID)) continue;
 			const valor = label.nextElementSibling;
-			if (!valor || valor.querySelector("." + LINK_CLASS)) continue;
-			garantirEstilo();
-			valor.appendChild(criarLink(valor));
+			if (valor) return valor.textContent.replace(/\s+/g, " ").trim();
 		}
+		return null;
+	}
+
+	// Linha "Valor da Causa:" no cabeçalho do processo
+	// (`table#informacoesProcessuais`, visível em qualquer aba), logo antes
+	// do "Nível de Sigilo" — depois da Classe, do Assunto e da linha de réus
+	// (reusCabecalho.js, que se põe logo após o Assunto). A linha é inserida
+	// uma vez e nunca movida, para não disputar posição com as linhas das
+	// outras funções (sequencialProcessoPrincipal.js entra após o Sigilo).
+	function criarLinha(table) {
+		const rows = Array.prototype.slice.call(table.rows);
+		const sigilo = rows.filter(function (tr) {
+			const label = tr.querySelector("td.label, td.labelRadio");
+			return label && /^nivel de sigilo/.test(normalize(label.textContent));
+		})[0];
+		const row = document.createElement("tr");
+		row.setAttribute(ROW_ATTR, "");
+		row.innerHTML = '<td class="label"><label>Valor da Causa:</label></td><td colspan="4"><span class="pdp-vc-valor">carregando…</span></td>';
+		if (sigilo) sigilo.insertAdjacentElement("beforebegin", row);
+		else (table.tBodies[0] || table).appendChild(row);
+		return row;
+	}
+
+	let carregando = false;
+
+	async function preencherLinha(row) {
+		const celula = row.querySelector(".pdp-vc-valor");
+		let valor = null;
+		try {
+			if (typeof window.__pdpLerAbaProcesso !== "function") throw new Error("leitura das abas indisponível");
+			const aba = await window.__pdpLerAbaProcesso("tabDadosProcesso", "Informações Gerais");
+			aba.checkContext();
+			valor = lerValorDaAba(aba.doc);
+		} catch (err) {
+			console.info("[Novo Valor da Causa] não consegui ler o valor da causa:", err && err.message);
+		}
+		if (!row.isConnected) return;
+		celula.textContent = valor || "(não informado)";
+		garantirEstilo();
+		celula.insertAdjacentElement("afterend", criarLink(celula));
+	}
+
+	function reconcile() {
+		if (carregando) return;
+		const table = document.getElementById("informacoesProcessuais");
+		if (!table || !document.getElementById("processoForm")) return;
+		if (table.querySelector("tr[" + ROW_ATTR + "]")) return;
+		carregando = true;
+		const row = criarLinha(table);
+		preencherLinha(row).finally(function () {
+			carregando = false;
+		});
 	}
 
 	new MutationObserver(reconcile).observe(document.documentElement, { childList: true, subtree: true });

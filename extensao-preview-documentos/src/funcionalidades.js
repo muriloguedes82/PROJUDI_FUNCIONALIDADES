@@ -111,7 +111,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "alterarValorCausa",
 					nome: "Novo Valor da Causa",
-					descricao: "Balão \"💲 Novo Valor da Causa\" ao lado do valor da causa, na aba Informações Gerais: informe o novo valor e a extensão altera e salva no processo, sem abrir a tela de alteração.",
+					descricao: "Linha \"Valor da Causa\" no cabeçalho do processo, com o balão \"💲 Novo Valor da Causa\": informe o novo valor e a extensão altera e salva no processo, sem abrir a tela de alteração.",
 					js: ["src/alterarValorCausa.js"],
 					requer: ["habilitarAdvogado"],
 					sistemas: ["projudi"]
