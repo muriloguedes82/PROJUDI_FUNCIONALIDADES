@@ -1013,3 +1013,82 @@ chrome.runtime.onMessage.addListener((message, _sender, reply) => {
     .catch(error => reply({ ok: false, error: String(error.message || error) }));
   return true;
 });
+
+// Aviso de versão nova (src/menuExtensao.js mostra o aviso na tela).
+// A extensão é instalada "sem compactação", a partir de uma pasta, então o
+// navegador não a atualiza sozinho. Por isso, ao iniciar o navegador, ao
+// instalar/recarregar a extensão e a cada 6 horas, lemos o manifest.json
+// publicado no branch "principal" do repositório (público) e, se a versão
+// dele for maior que a instalada, gravamos { versao, verificadoEm } em
+// chrome.storage.local (pdpNovaVersao). Sem rede ou com erro, nada muda.
+const NOVA_VERSAO_REPO = 'muriloguedes82/PROJUDI_FUNCIONALIDADES';
+const NOVA_VERSAO_BRANCH = 'principal';
+const NOVA_VERSAO_MANIFEST = `https://raw.githubusercontent.com/${NOVA_VERSAO_REPO}/${NOVA_VERSAO_BRANCH}/extensao-preview-documentos/manifest.json`;
+const NOVA_VERSAO_ZIP = `https://github.com/${NOVA_VERSAO_REPO}/archive/refs/heads/${NOVA_VERSAO_BRANCH}.zip`;
+const NOVA_VERSAO_CHAVE = 'pdpNovaVersao';
+const ALARME_NOVA_VERSAO = 'pdpVerificarNovaVersao';
+
+// > 0 se a for maior que b ("2.24.0" x "2.23.4").
+function compararVersoes(a, b) {
+  const pa = String(a).split('.').map(Number);
+  const pb = String(b).split('.').map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const d = (pa[i] || 0) - (pb[i] || 0);
+    if (d) return d;
+  }
+  return 0;
+}
+
+async function verificarNovaVersao() {
+  try {
+    const resp = await fetch(NOVA_VERSAO_MANIFEST, { cache: 'no-store', credentials: 'omit' });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const versao = String((await resp.json()).version || '');
+    if (!/^\d+(\.\d+){0,3}$/.test(versao)) throw new Error('versão inválida: ' + versao);
+    if (compararVersoes(versao, chrome.runtime.getManifest().version) > 0) {
+      await chrome.storage.local.set({ [NOVA_VERSAO_CHAVE]: { versao, verificadoEm: Date.now() } });
+    } else {
+      await chrome.storage.local.remove(NOVA_VERSAO_CHAVE);
+    }
+  } catch (error) {
+    console.info(LOG_PREFIX, 'verificação de versão nova não concluída:', error.message || error);
+  }
+}
+
+chrome.runtime.onStartup.addListener(verificarNovaVersao);
+chrome.runtime.onInstalled.addListener(function () {
+  verificarNovaVersao();
+  chrome.alarms.create(ALARME_NOVA_VERSAO, { periodInMinutes: 360 });
+});
+chrome.alarms.onAlarm.addListener(function (alarm) {
+  if (alarm.name === ALARME_NOVA_VERSAO) verificarNovaVersao();
+});
+chrome.alarms.get(ALARME_NOVA_VERSAO).then(function (a) {
+  if (!a) chrome.alarms.create(ALARME_NOVA_VERSAO, { periodInMinutes: 360 });
+});
+
+// Botões do aviso de versão nova: baixar o .zip do branch "principal",
+// abrir chrome://extensions (o content script não pode abrir) e recarregar a
+// extensão depois que o usuário copiou os arquivos novos para a pasta dela.
+chrome.runtime.onMessage.addListener((message, _sender, reply) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'nova-versao') return false;
+  if (message.acao === 'baixar') {
+    chrome.downloads.download({ url: NOVA_VERSAO_ZIP, saveAs: false })
+      .then(() => reply({ ok: true }))
+      .catch(error => reply({ ok: false, error: String(error.message || error) }));
+    return true;
+  }
+  if (message.acao === 'extensoes') {
+    chrome.tabs.create({ url: 'chrome://extensions/?id=' + chrome.runtime.id, active: true })
+      .then(() => reply({ ok: true }))
+      .catch(error => reply({ ok: false, error: String(error.message || error) }));
+    return true;
+  }
+  if (message.acao === 'recarregar') {
+    reply({ ok: true });
+    setTimeout(() => chrome.runtime.reload(), 100);
+    return false;
+  }
+  reply({ ok: false, error: 'Ação desconhecida.' });
+  return false;
+});

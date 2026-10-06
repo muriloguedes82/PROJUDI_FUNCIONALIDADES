@@ -27,6 +27,15 @@
 //      preferências;
 //   3. "Manual do Usuário" (src/manual.html) e os Termos de Uso.
 //
+// Aviso de versão nova: o service worker (src/background.js) confere de
+// tempos em tempos a versão publicada no branch "principal" do repositório e
+// grava pdpNovaVersao quando ela é maior que a instalada. Aqui isso vira um
+// cartão logo abaixo do ícone ("Há novidades na extensão"), com o passo a
+// passo: 1) exportar as preferências; 2) baixar a versão nova; 3) copiar os
+// arquivos por cima da pasta atual e recarregar a extensão. "Agora não"
+// esconde o cartão por um dia (pdpNovaVersaoAdiada); o Menu continua
+// mostrando a faixa "Versão nova disponível" e o ícone ganha um ponto azul.
+//
 // O backup nunca leva o aceite dos Termos de Uso (é pessoal e por
 // instalação), tokens de login (msalToken), trabalhos em andamento (envios,
 // combos e juntadas pendentes) nem registros de diagnóstico.
@@ -67,7 +76,9 @@
 		"pdpNovaRemessaLog",
 		"pdpNovaOrdenacaoLog",
 		"pdpNovaRemessaFeito",
-		"pdpNovaOrdenacaoFeito"
+		"pdpNovaOrdenacaoFeito",
+		"pdpNovaVersao",
+		"pdpNovaVersaoAdiada"
 	]);
 	const entraNoBackup = function (chave) { return /^pdp/.test(chave) && !FORA_DO_BACKUP.has(chave); };
 
@@ -358,8 +369,10 @@
 			a.remove();
 			setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
 			avisar("Backup exportado (" + contarBackup(dadosLocal).join("; ") + "). Guarde o arquivo e use \"Importar\" no outro computador.", "ok");
+			return true;
 		} catch (err) {
 			avisar("Falha ao exportar: " + err.message, "erro");
+			return false;
 		}
 	}
 
@@ -452,6 +465,166 @@
 			.catch(function (err) {
 				avisar("Não foi possível abrir a página (" + err.message + "). Recarregue a página e tente de novo.", "erro");
 			});
+	}
+
+	// ------------------------------------------------------------------
+	// Aviso de versão nova
+	// ------------------------------------------------------------------
+
+	const CHAVE_NOVA_VERSAO = "pdpNovaVersao";
+	const CHAVE_ADIADA = "pdpNovaVersaoAdiada";
+	const UM_DIA = 24 * 60 * 60 * 1000;
+	const LINK_NOVIDADES = "https://github.com/muriloguedes82/PROJUDI_FUNCIONALIDADES/blob/principal/extensao-preview-documentos/manual/MANUAL.md#anexo-b";
+	const VERSAO_INSTALADA = chrome.runtime.getManifest().version;
+
+	let novaVersao = null; // versão publicada maior que a instalada, ou null
+	let cartaoVisivel = false;
+	let passoNovaVersao = "inicio"; // inicio | confirmar | baixado
+	let exportouNestaPagina = false;
+	let avisoCartao = null; // {texto, tipo}
+
+	function maiorQueInstalada(versao) {
+		const a = String(versao || "").split(".").map(Number);
+		const b = VERSAO_INSTALADA.split(".").map(Number);
+		for (let i = 0; i < Math.max(a.length, b.length); i++) {
+			const d = (a[i] || 0) - (b[i] || 0);
+			if (d) return d > 0;
+		}
+		return false;
+	}
+
+	function definirNovaVersao(dados) {
+		const info = dados[CHAVE_NOVA_VERSAO];
+		const versao = info && maiorQueInstalada(info.versao) ? info.versao : null;
+		const adiada = dados[CHAVE_ADIADA];
+		const adiou = !!(adiada && adiada.versao === versao && adiada.ate > Date.now());
+		if (versao !== novaVersao) passoNovaVersao = "inicio";
+		novaVersao = versao;
+		// Só é chamada no quadro que mostra o ícone: um cartão por aba.
+		cartaoVisivel = !!versao && !adiou;
+	}
+
+	function pedirNovaVersao(acao) {
+		return chrome.runtime.sendMessage({ source: "projudi-preview", type: "nova-versao", acao: acao })
+			.then(function (r) { if (!r || !r.ok) throw new Error((r && r.error) || "sem resposta"); });
+	}
+
+	function avisarCartao(texto, tipo) {
+		avisoCartao = { texto: texto, tipo: tipo || "info" };
+		render();
+	}
+
+	function mostrarCartao() {
+		if (aberto) fechar();
+		cartaoVisivel = true;
+		avisoCartao = null;
+		render();
+	}
+
+	function adiarCartao() {
+		cartaoVisivel = false;
+		chrome.storage.local.set({ [CHAVE_ADIADA]: { versao: novaVersao, ate: Date.now() + UM_DIA } });
+		render();
+	}
+
+	async function exportarDoCartao() {
+		if (await exportar()) {
+			exportouNestaPagina = true;
+			avisarCartao("Preferências exportadas: o arquivo está na pasta Downloads. Guarde-o até terminar a atualização.", "ok");
+		} else {
+			avisarCartao(aviso ? aviso.texto : "Não foi possível exportar.", "erro");
+		}
+	}
+
+	function baixarNovaVersao() {
+		pedirNovaVersao("baixar").then(function () {
+			passoNovaVersao = "baixado";
+			avisoCartao = null;
+			render();
+		}).catch(function (err) {
+			avisarCartao("Não foi possível baixar a versão nova (" + err.message + "). Recarregue a página e tente de novo.", "erro");
+		});
+	}
+
+	function atualizar() {
+		if (!exportouNestaPagina) {
+			passoNovaVersao = "confirmar";
+			render();
+			return;
+		}
+		baixarNovaVersao();
+	}
+
+	function recarregarExtensao() {
+		pedirNovaVersao("recarregar").then(function () {
+			cartaoVisivel = false;
+			render();
+		}).catch(function (err) {
+			avisarCartao("Não foi possível recarregar a extensão (" + err.message + "). Use o botão ↻ na tela de extensões.", "erro");
+		});
+	}
+
+	function construirCartao() {
+		const filhos = [
+			el("div", { class: "cab" }, [
+				el("span", { class: "selo", text: "🆕" }),
+				el("div", {}, [
+					el("h2", { text: "Há novidades na extensão!" }),
+					el("small", { text: "Versão nova: " + novaVersao + " · a sua: " + VERSAO_INSTALADA })
+				]),
+				el("button", { type: "button", class: "fechar", title: "Agora não (lembrar amanhã)", "aria-label": "Fechar", text: "✕", onclick: adiarCartao })
+			])
+		];
+		const conteudo = el("div", { class: "conteudo" });
+		filhos.push(conteudo);
+
+		if (passoNovaVersao === "baixado") {
+			conteudo.append(
+				el("p", { text: "A versão nova foi baixada (arquivo PROJUDI_FUNCIONALIDADES-principal.zip, na pasta Downloads). Para terminar:" }),
+				el("ol", {}, [
+					el("li", { text: "Abra o arquivo baixado e copie a pasta extensao-preview-documentos que está dentro dele." }),
+					el("li", { text: "Cole-a por cima da pasta da extensão que você já tem (no mesmo lugar), substituindo os arquivos." }),
+					el("li", { text: "Clique em \"↻ Recarregar a extensão\" abaixo." }),
+					el("li", { text: "Recarregue (F5) as abas do Projudi, SEEU, WhatsApp Web e Outlook." })
+				]),
+				el("div", { class: "botoes2" }, [
+					el("button", { type: "button", class: "bt primario", text: "↻ Recarregar a extensão", title: "Use depois de copiar os arquivos novos para a pasta da extensão", onclick: recarregarExtensao }),
+					el("button", { type: "button", class: "bt", text: "Abrir tela de extensões", onclick: function () {
+						pedirNovaVersao("extensoes").catch(function (err) { avisarCartao("Não foi possível abrir (" + err.message + "). Digite chrome://extensions na barra de endereços.", "erro"); });
+					} })
+				]),
+				el("p", { class: "nota", text: "Se as preferências não aparecerem depois da atualização, use ⬆ Importar no Menu (ícone da balança) com o arquivo exportado." })
+			);
+		} else {
+			conteudo.append(
+				el("p", {}, [
+					"Saiu uma versão nova da extensão Olirum. ",
+					el("a", { href: LINK_NOVIDADES, target: "_blank", rel: "noopener", text: "Ver o que mudou" }),
+					"."
+				]),
+				el("div", { class: "obs" }, [
+					el("strong", { text: "Observação: " }),
+					"antes de atualizar, exporte suas preferências (botão 1). Se depois da atualização elas não aparecerem, é só importá-las de novo pelo Menu (ícone da balança → ⬆ Importar)."
+				]),
+				el("div", { class: "botoes2" }, [
+					el("button", { type: "button", class: "bt" + (exportouNestaPagina ? " feito" : " primario"), text: (exportouNestaPagina ? "✔ " : "") + "1. Exportar preferências", onclick: exportarDoCartao }),
+					el("button", { type: "button", class: "bt" + (exportouNestaPagina ? " primario" : ""), text: "2. Atualizar", title: "Baixa a versão nova e mostra como instalá-la", onclick: atualizar })
+				])
+			);
+			if (passoNovaVersao === "confirmar") {
+				conteudo.append(el("div", { class: "confirmar", role: "alertdialog" }, [
+					el("strong", { text: "Você ainda não exportou suas preferências." }),
+					el("p", { text: "Exporte antes de atualizar: é a garantia de não perder preferências, combos e listas." }),
+					el("div", { class: "acoes" }, [
+						el("button", { type: "button", class: "bt", text: "Atualizar sem exportar", onclick: function () { passoNovaVersao = "inicio"; baixarNovaVersao(); } }),
+						el("button", { type: "button", class: "bt primario", text: "Exportar agora", onclick: function () { passoNovaVersao = "inicio"; exportarDoCartao(); } })
+					])
+				]));
+			}
+			conteudo.append(el("button", { type: "button", class: "depois", text: "Agora não (lembrar amanhã)", onclick: adiarCartao }));
+		}
+		if (avisoCartao) conteudo.append(el("div", { class: "aviso " + avisoCartao.tipo, role: "status", text: avisoCartao.texto }));
+		return el("div", { class: "cartao", role: "alertdialog", "aria-label": "Há novidades na extensão" }, filhos);
 	}
 
 	// ------------------------------------------------------------------
@@ -553,9 +726,34 @@ button.bt.primario:hover { background: #1f5591; }
 .confirmar strong { display: block; margin-bottom: 4px; }
 .confirmar p { margin: 0 0 8px; font-size: 12px; }
 .confirmar .acoes { display: flex; gap: 6px; justify-content: flex-end; }
+.icone.novidade::before {
+	content: ""; position: absolute; bottom: -4px; right: -4px; width: 8px; height: 8px; border-radius: 50%;
+	background: #1f7ae0; border: 1.5px solid #fff;
+}
+.novaversao { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #e3f0ff; color: #13396b; border-bottom: 1px solid #d5deea; font-size: 12px; }
+.novaversao button { margin-left: auto; }
+.cartao {
+	position: fixed; z-index: 2147483001; width: 360px; max-width: calc(100vw - 16px); overflow-y: auto;
+	background: #fff; color: #25324a; font-size: 13px; line-height: 1.4;
+	border: 1px solid #d5deea; border-radius: 10px; box-shadow: 0 10px 30px rgba(11,37,69,.3);
+	animation: pdp-entrar .25s ease-out;
+}
+@keyframes pdp-entrar { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+.cartao .selo { font-size: 20px; flex: none; }
+.cartao .conteudo { padding: 10px 12px 12px; }
+.cartao p { margin: 0 0 8px; }
+.cartao a { color: #1f5591; }
+.cartao ol { margin: 0 0 8px; padding-left: 20px; }
+.cartao li { margin-bottom: 3px; }
+.cartao .obs { margin: 0 0 10px; padding: 8px 10px; border-left: 3px solid #c9a227; border-radius: 4px; background: #fffaf0; color: #6b5310; font-size: 12px; }
+.cartao .botoes2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.cartao button.bt { white-space: normal; padding: 8px; }
+.cartao button.bt.feito { background: #e6f4ea; border-color: #8cc49b; color: #1e6b34; }
+.cartao .confirmar, .cartao .aviso { margin: 8px 0 0; }
+.cartao .depois { display: block; margin: 8px auto 0; background: none; border: 0; color: #5b6980; font-size: 11.5px; text-decoration: underline; cursor: pointer; }
 `;
 
-	let host = null, shadow = null, icone = null, painel = null;
+	let host = null, shadow = null, icone = null, painel = null, cartao = null;
 	let aberto = false;
 	let aviso = null; // {texto, tipo}
 	let confirmacao = null; // {titulo, texto, rotulo, acao}
@@ -593,12 +791,23 @@ button.bt.primario:hover { background: #1f5591; }
 		aberto = false;
 		icone.setAttribute("aria-expanded", "false");
 		if (painel) { painel.remove(); painel = null; }
+		if (cartaoVisivel) render();
 	}
 
 	function render() {
 		if (icone) {
 			const qtd = efetivamenteDesativadas(listas[SISTEMA_ATUAL]).size;
 			icone.classList.toggle("desativadas", qtd > 0 || desligada[SISTEMA_ATUAL]);
+			icone.classList.toggle("novidade", !!novaVersao);
+		}
+		if (cartaoVisivel && novaVersao && !aberto && shadow) {
+			const novoCartao = construirCartao();
+			if (cartao) cartao.replaceWith(novoCartao); else shadow.append(novoCartao);
+			cartao = novoCartao;
+			posicionar();
+		} else if (cartao) {
+			cartao.remove();
+			cartao = null;
 		}
 		if (!aberto) return;
 		const foco = shadow.activeElement && shadow.activeElement.dataset ? shadow.activeElement.dataset.id : null;
@@ -690,7 +899,14 @@ button.bt.primario:hover { background: #1f5591; }
 			corpo.append(bloco);
 		});
 
-		const filhos = [cab, geral, abas];
+		const filhos = [cab];
+		if (novaVersao) {
+			filhos.push(el("div", { class: "novaversao" }, [
+				el("span", { text: "🆕 Versão nova disponível: " + novaVersao }),
+				el("button", { type: "button", class: "bt primario", text: "Como atualizar", onclick: mostrarCartao })
+			]));
+		}
+		filhos.push(geral, abas);
 		if (alterouNestaPagina) {
 			filhos.push(el("div", { class: "recarregar" }, [
 				el("span", { text: "As mudanças valem a partir do próximo carregamento da página." }),
@@ -747,6 +963,13 @@ button.bt.primario:hover { background: #1f5591; }
 			painel.style.left = Math.max(8, Math.min(pos.left + 22 - largura, innerWidth - largura - 8)) + "px";
 			painel.style.maxHeight = Math.max(200, innerHeight - top - 8) + "px";
 		}
+		if (cartao) {
+			const largura = cartao.offsetWidth;
+			const top = pos.top + 28;
+			cartao.style.top = top + "px";
+			cartao.style.left = Math.max(8, Math.min(pos.left + 22 - largura, innerWidth - largura - 8)) + "px";
+			cartao.style.maxHeight = Math.max(200, innerHeight - top - 8) + "px";
+		}
 	}
 
 	let agendado = false;
@@ -801,6 +1024,7 @@ button.bt.primario:hover { background: #1f5591; }
 		montar();
 		render();
 		posicionar(true);
+		lerNovaVersao();
 		addEventListener("scroll", agendarPosicao, true);
 		addEventListener("resize", agendarPosicao);
 		setInterval(function () { posicionar(true); }, 1500); // o cabeçalho pode mudar de tamanho sem evento
@@ -813,6 +1037,18 @@ button.bt.primario:hover { background: #1f5591; }
 	chrome.storage.local.get([CHAVE, CAT.chaveAntiga, CHAVE_GERAL]).then(function (data) {
 		definirListas(data);
 		iniciar(0);
+	});
+
+	// Versão nova (gravada pelo service worker). Lida depois de montar o ícone.
+	function lerNovaVersao() {
+		if (!host) return;
+		chrome.storage.local.get([CHAVE_NOVA_VERSAO, CHAVE_ADIADA]).then(function (data) {
+			definirNovaVersao(data);
+			render();
+		});
+	}
+	chrome.storage.onChanged.addListener(function (changes, area) {
+		if (area === "local" && (changes[CHAVE_NOVA_VERSAO] || changes[CHAVE_ADIADA])) lerNovaVersao();
 	});
 
 	// Mudanças feitas em outra aba (ou por uma importação) aparecem aqui também.

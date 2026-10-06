@@ -847,3 +847,42 @@ CENAS.V46 = {
 		await S.endCard("Remessa → Turma Recursal → + Nova preferência → 💾 Salvar (sem campos) → ★ preferência → ✅ Sim, executar (Confirmar).");
 	},
 };
+
+// ------------------------------------------------------------------ V47
+// Aviso de versão nova (cartão abaixo do ícone da balança).
+CENAS.V47 = {
+	arquivo: "V47-aviso-de-versao-nova.mp4",
+	titulo: "Aviso de versão nova e atualização",
+	secao: "2.3",
+	async run() {
+		telaProcesso({});
+		await S.titleCard("VÍDEO V47", "Aviso de versão nova", "Quando sai uma versão nova, a extensão avisa — exporte suas preferências e atualize.");
+		add('<span class="dotnova"></span>', $("#x-menuicon"));
+		const card = add('<div id="x-novidade"><div class="mh"><span style="font-size:20px">🆕</span><div><b>Há novidades na extensão!</b><small>Versão nova: 2.25.0 · a sua: 2.24.0</small></div></div><div class="ct" id="nv-ct">' +
+			'<p>Saiu uma versão nova da extensão Olirum. <u style="color:#1f5591">Ver o que mudou</u>.</p>' +
+			'<div class="obs"><b>Observação:</b> antes de atualizar, exporte suas preferências (botão 1). Se depois da atualização elas não aparecerem, é só importá-las de novo pelo Menu (ícone da balança → ⬆ Importar).</div>' +
+			'<div class="bts"><span class="bt pri" id="nv-exp">1. Exportar preferências</span><span class="bt" id="nv-atu">2. Atualizar</span></div><div class="ok" id="nv-ok" hidden></div>' +
+			'<div class="depois">Agora não (lembrar amanhã)</div></div></div>');
+		S.hl("#x-novidade", 5);
+		await S.cap("Quando sai uma versão nova, aparece este aviso logo abaixo do <b>ícone da balança</b> (que ganha um ponto azul).", { ms: 4600 });
+		S.hlOff();
+		await S.cap("Leia a <b>Observação</b>: antes de atualizar, exporte suas preferências.", { ms: 3800 });
+		await S.click("#nv-exp");
+		$("#nv-exp").className = "bt feito"; $("#nv-exp").textContent = "✔ 1. Exportar preferências";
+		$("#nv-atu").className = "bt pri";
+		const ok = $("#nv-ok"); ok.hidden = false; ok.textContent = "Preferências exportadas: o arquivo está na pasta Downloads. Guarde-o até terminar a atualização.";
+		await S.cap("O arquivo com as preferências vai para a pasta <b>Downloads</b>. Guarde-o.", { ms: 3800 });
+		await S.cap("Agora clique em <b>2. Atualizar</b>: a versão nova é baixada.");
+		await S.click("#nv-atu");
+		$("#nv-ct").innerHTML = '<p>A versão nova foi baixada (arquivo PROJUDI_FUNCIONALIDADES-principal.zip, na pasta Downloads). Para terminar:</p>' +
+			'<ol><li>Abra o arquivo baixado e copie a pasta extensao-preview-documentos que está dentro dele.</li><li>Cole-a por cima da pasta da extensão que você já tem (no mesmo lugar), substituindo os arquivos.</li><li>Clique em "↻ Recarregar a extensão" abaixo.</li><li>Recarregue (F5) as abas do Projudi, SEEU, WhatsApp Web e Outlook.</li></ol>' +
+			'<div class="bts"><span class="bt pri" id="nv-rec">↻ Recarregar a extensão</span><span class="bt">Abrir tela de extensões</span></div>';
+		await S.cap("Siga os passos: copie a pasta nova <b>por cima da pasta atual</b>, no mesmo lugar.", { ms: 4600 });
+		await S.cap("Depois clique em <b>↻ Recarregar a extensão</b> e aperte <b>F5</b> nas abas abertas.", { ms: 3800 });
+		await S.click("#nv-rec");
+		card.remove();
+		$("#x-menuicon .dotnova").remove();
+		await S.cap("Pronto: extensão atualizada, com as suas preferências. Se faltar alguma, use <b>⬆ Importar</b> no Menu com o arquivo exportado.", { ms: 5000 });
+		await S.endCard("Aviso 🆕 → 1. Exportar preferências → 2. Atualizar → copiar a pasta por cima → ↻ Recarregar a extensão → F5.");
+	},
+};
