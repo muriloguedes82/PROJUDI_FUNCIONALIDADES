@@ -182,7 +182,14 @@ CENAS.V06 = {
 	secao: "3.4",
 	async run() {
 		telaProcesso({});
-		await S.titleCard("VÍDEO V06", "Destacar movimentações por tipo de usuário", "Pinte as movimentações de Magistrado, Ministério Público ou Advogado — em todos os processos.");
+		// Uma linha de exemplo movimentada por um Procurador (só nesta cena).
+		const trProc = document.getElementById("mov1Grau,37");
+		if (trProc) {
+			trProc.dataset.papel = "Procurador";
+			trProc.querySelector(".ev").textContent = "JUNTADA DE PETIÇÃO DE MANIFESTAÇÃO DO MUNICÍPIO";
+			trProc.lastElementChild.innerHTML = 'PROCURADOR DO MUNICÍPIO DE EXEMPLO<span class="papel">Procurador</span>';
+		}
+		await S.titleCard("VÍDEO V06", "Destacar movimentações por tipo de usuário", "Pinte as movimentações de Magistrado, Ministério Público, Advogado, Procurador, Defensor ou Audiência — em todos os processos.");
 		await S.cap("Clique em <b>🖍️ Destacar mov.</b>.");
 		await S.click("#x-destacar");
 		const cores = ["#fff3b0", "#cfe8ff", "#d9f2d0", "#ffd6d6", "#e9dcff"];
@@ -191,12 +198,17 @@ CENAS.V06 = {
 			'<div style="margin:8px 0"><label><input type="checkbox" id="c-mag"> <b>Magistrado / Magistrada</b></label><div id="p-mag">' + pal(-1) + "</div></div>" +
 			'<div style="margin:8px 0"><label><input type="checkbox" id="c-mp"> <b>Ministério Público</b></label><div id="p-mp">' + pal(-1) + "</div></div>" +
 			'<div style="margin:8px 0"><label><input type="checkbox" id="c-adv"> <b>Advogado / Advogada</b></label><div id="p-adv">' + pal(-1) + "</div></div>" +
+			'<div style="margin:8px 0"><label><input type="checkbox" id="c-proc"> <b>Procurador / Procuradora</b></label><div id="p-proc">' + pal(-1) + "</div></div>" +
+			'<div style="margin:8px 0"><label><input type="checkbox" id="c-def"> <b>Defensor / Defensora</b></label><div id="p-def">' + pal(-1) + "</div></div>" +
+			'<div style="margin:8px 0"><label><input type="checkbox" id="c-aud"> <b>Audiência</b></label><div id="p-aud">' + pal(-1) + "</div></div>" +
 			'<div style="text-align:right"><span class="pj-btn">Cancelar</span> <span class="pj-btn primary" id="salvar">Salvar</span></div><div id="st" style="color:#2c5e1a"></div>', { top: 120 });
 		await S.cap("Marque os tipos que quer destacar e escolha uma cor para cada um.");
 		await S.click("#c-mag"); $("#c-mag").checked = true;
 		await S.click('#p-mag [data-c="0"]'); $("#p-mag").innerHTML = pal(0);
 		await S.click("#c-mp"); $("#c-mp").checked = true;
 		await S.click('#p-mp [data-c="1"]'); $("#p-mp").innerHTML = pal(1);
+		await S.click("#c-proc"); $("#c-proc").checked = true;
+		await S.click('#p-proc [data-c="3"]'); $("#p-proc").innerHTML = pal(3);
 		await S.cap("Uma cor nunca fica repetida: escolher a cor de outro tipo troca as cores entre os dois.", { ms: 3200 });
 		await S.click("#salvar");
 		$("#st").textContent = "Preferência salva.";
@@ -204,7 +216,7 @@ CENAS.V06 = {
 		closeModal();
 		$$("#movs tr[data-papel]").forEach(tr => {
 			const p = tr.dataset.papel;
-			const c = /Magistrad/.test(p) ? cores[0] : /Minist/.test(p) ? cores[1] : "";
+			const c = /Magistrad/.test(p) ? cores[0] : /Minist/.test(p) ? cores[1] : /Procurador/.test(p) ? cores[3] : "";
 			if (c) tr.querySelectorAll("td").forEach(td => (td.style.background = c));
 		});
 		await S.cap("As linhas passam a aparecer coloridas — <b>em qualquer processo</b>, sempre que abrir a aba Movimentações.");

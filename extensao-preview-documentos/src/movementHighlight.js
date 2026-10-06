@@ -38,8 +38,9 @@
 	const APPLIED_ATTR = "data-pdp-mv-applied";
 	const HEADER_TEXT = /^movimentado\s+por$/i;
 
-	// Ordem de prioridade quando uma linha corresponde a mais de um tipo
-	// marcado (raro): usa só a cor do primeiro que bater nesta lista.
+	// Ordem de exibição no popup. Quando uma linha corresponde a mais de um
+	// tipo marcado, a marca de Audiência vence; entre os demais, usa a cor
+	// do primeiro desta lista.
 	const ROLE_DEFS = [
 		{
 			key: "magistrado",
@@ -61,6 +62,37 @@
 			defaultColor: "#a3c9f6",
 			rowGroups: ["ADVOGADO"],
 			textPattern: /\badvogad[oa]\b/i,
+		},
+		{
+			// Ex.: "Procurador do Município de ..." — id da linha
+			// "mov1Grau,PROCURADOR,,,,," (grupo PROCURADOR do Realces).
+			key: "procurador",
+			label: "Procurador / Procuradora",
+			defaultColor: "#f6d9a3",
+			rowGroups: ["PROCURADOR"],
+			textPattern: /\bprocurador(a)?\b/i,
+		},
+		{
+			// Defensoria Pública — grupo DEFENSOR do quadro Realces.
+			key: "defensor",
+			label: "Defensor / Defensora",
+			defaultColor: "#d9a3f6",
+			rowGroups: ["DEFENSOR"],
+			textPattern: /\bdefensor(a)?\b/i,
+		},
+		{
+			// "Audiência" do quadro Realces marca o TIPO da movimentação, não
+			// quem a fez: o id vem como "mov1Grau,SERVIDOR,,SEMARQUIVO,,AUDIENCIA,"
+			// (ex.: "AUDIÊNCIA DE CUSTÓDIA DESIGNADA", lançada por um analista).
+			// Por isso é procurado entre as marcas do id (rowFlag), tem
+			// prioridade sobre o tipo de usuário e não tem leitura pelo texto
+			// da coluna "Movimentado Por".
+			key: "audiencia",
+			label: "Audiência",
+			defaultColor: "#a3f6e6",
+			rowGroups: [],
+			rowFlag: "AUDIENCIA",
+			textPattern: null,
 		},
 	];
 
@@ -99,15 +131,28 @@
 	// Destaque das linhas
 	// -------------------------------------------------------------------
 
-	function rowGroupFromId(row) {
+	// Partes do id depois de "mov1Grau,": [GRUPO, ..., "SEMARQUIVO", ..., "AUDIENCIA", ...]
+	function rowIdParts(row) {
 		if (!row.id || row.id.indexOf(ROW_ID_PREFIX) !== 0) return null;
-		const rest = row.id.slice(ROW_ID_PREFIX.length);
-		const comma = rest.indexOf(",");
-		return comma === -1 ? rest : rest.slice(0, comma);
+		return row.id.slice(ROW_ID_PREFIX.length).split(",");
 	}
 
-	function matchedRoleForGroup(group) {
-		if (!group) return null;
+	function isEnabled(role) {
+		const pref = role && prefs[role.key];
+		return !!(pref && pref.enabled);
+	}
+
+	// Primeiro tipo marcado que corresponde à linha: a marca (Audiência)
+	// antes do grupo de quem movimentou. Se o tipo da marca não estiver
+	// marcado, a linha ainda pode ser destacada pelo tipo de usuário.
+	function matchedRoleForIdParts(parts) {
+		if (!parts) return null;
+		const group = parts[0];
+		const flags = parts.slice(1);
+		const byFlag = ROLE_DEFS.find(function (role) {
+			return role.rowFlag && flags.indexOf(role.rowFlag) !== -1 && isEnabled(role);
+		});
+		if (byFlag) return byFlag;
 		return ROLE_DEFS.find(function (role) {
 			return role.rowGroups.indexOf(group) !== -1;
 		});
@@ -177,9 +222,7 @@
 		const rows = document.querySelectorAll('tr[id^="' + ROW_ID_PREFIX + '"]');
 		if (!rows.length) return false;
 		rows.forEach(function (row) {
-			const group = rowGroupFromId(row);
-			const role = matchedRoleForGroup(group);
-			applyRowColor(row, role);
+			applyRowColor(row, matchedRoleForIdParts(rowIdParts(row)));
 		});
 		return true;
 	}
@@ -195,7 +238,7 @@
 				if (!cell) return;
 				const text = cell.textContent || "";
 				const role = ROLE_DEFS.find(function (r) {
-					return r.textPattern.test(text);
+					return r.textPattern && r.textPattern.test(text);
 				});
 				applyRowColor(row, role);
 			});
