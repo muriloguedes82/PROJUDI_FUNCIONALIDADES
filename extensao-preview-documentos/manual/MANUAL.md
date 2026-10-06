@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.23.4 |
-| **Versão da extensão** | 2.23.4 |
+| **Versão do manual** | 2.24.0 |
+| **Versão da extensão** | 2.24.0 |
 | **Data desta versão** | 06/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -77,6 +77,7 @@
    - 8.7 [Sistemas do CNJ e outros (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Renajud, Sistema Uniformizado, COPEL, FUPEN, SANEPAR, SESP)](#cap-8-7)
    - 8.8 [Localizador (só no SEEU)](#cap-8-8)
    - 8.9 [Alterar Classe/Assuntos](#cap-8-9)
+   - 8.10 [Novo Valor da Causa](#cap-8-10)
 9. [Telas de análise, mesas e cumprimentos](#cap-9)
    - 9.1 [Filtro por Sequencial na Análise de Decurso de Prazo](#cap-9-1)
    - 9.2 [Listas de tarefas](#cap-9-2)
@@ -340,7 +341,7 @@ PROJUDI e SEEU**, com a mesma lista: cada sistema guarda as suas próprias
 escolhas. Por padrão, **tudo vem ativo nos dois**. A extensão reconhece em que
 sistema você está pelo endereço da página e abre o Menu na aba dele (marcada
 com "(este)"); você pode clicar na outra aba para configurá-la também. Acima
-da lista aparece "Funcionalidades no PROJUDI: N de 29 ativas" (ou no SEEU).
+da lista aparece "Funcionalidades no PROJUDI: N de 30 ativas" (ou no SEEU).
 
 1. Clique na aba do sistema que quer configurar (PROJUDI ou SEEU).
 2. Clique na chave da função que quer ligar ou desligar.
@@ -363,7 +364,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 | Grupo | Funções que podem ser ligadas/desligadas | Seção |
 |---|---|---|
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
-| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
+| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica | [4](#cap-4) |
 | **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo (Projudi) · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
@@ -1574,6 +1575,56 @@ nova.
 - Os **Assuntos Secundários** (Adicionar/Remover) não entram na
   preferência.
 
+<a id="cap-8-10"></a>
+### 8.10 Novo Valor da Causa
+
+*Só no Projudi.*
+
+▶ [**Vídeo V47** — Novo Valor da Causa](videos/V47-novo-valor-da-causa.mp4)
+
+**Para que serve:** alterar o **valor da causa** do processo só digitando
+o valor novo. Você não precisa clicar em **Alterar**, procurar o campo
+**Valor da Causa** na tela de alteração nem clicar em **Salvar**: a
+extensão faz isso sozinha, sem mostrar aquela tela.
+
+**Onde fica:** no cabeçalho do processo, logo abaixo do número — junto da
+**Classe Processual**, do **Assunto Principal** e do **Nível de Sigilo** —,
+a extensão acrescenta a linha **Valor da Causa**, com o valor atual e, ao
+lado dele, um pequeno balão cinza **💲 Novo Valor da Causa**. Ela aparece
+em qualquer aba do processo: não é preciso abrir **Informações Gerais**.
+
+**Passo a passo:**
+
+1. Abra o processo (em qualquer aba).
+2. Na linha **Valor da Causa** do cabeçalho, clique em
+   **💲 Novo Valor da Causa**. Abre-se um quadrinho com o
+   **valor atual** e o campo **Novo valor**.
+3. Digite o novo valor, com os centavos (por exemplo, **1.500,00**). Os
+   pontos e a vírgula aparecem sozinhos enquanto você digita.
+4. Clique em **Salvar** (ou tecle **Enter**). Um aviso no alto da tela
+   mostra o andamento ("abrindo a tela de alteração…", "preenchendo…",
+   "salvando…").
+5. No fim, a tela do processo é recarregada, já com o valor novo. A
+   alteração fica registrada pelo Projudi na aba **Movimentações**, como
+   quando ela é feita pelo botão **Alterar**.
+
+**Bom saber:**
+
+- Logo que o processo abre, a linha mostra "carregando…" por um instante,
+  enquanto a extensão busca o valor na aba **Informações Gerais**.
+- O **Salvar** do quadrinho já grava no processo: **não há outra
+  confirmação**. Confira o valor antes de clicar.
+- **Cancelar**, a tecla **Esc** ou um clique fora do quadrinho fecham-no
+  sem alterar nada.
+- Se o processo **já estiver** com o valor digitado, nada é feito e a
+  extensão avisa.
+- Se o Projudi recusar a alteração (por exemplo, por falta de outro campo
+  obrigatório da tela de alteração), a extensão mostra a mensagem dele e
+  nada é alterado; nesse caso, use o botão **Alterar** da aba
+  **Informações Gerais** para fazer à mão.
+- Se aparecer "Não encontrei o botão Alterar…", o seu perfil não tem
+  permissão para alterar este processo.
+
 ---
 
 <a id="cap-9"></a>
@@ -1953,7 +2004,7 @@ telas abertas a partir daí voltam a funcionar.
 | O painel de ações diz para abrir a aba Movimentações | Abra a aba **Movimentações** do processo e tente de novo ([7.1](#cap-7-1)) |
 | "A movimentação … marcada não leva à ação" | Marque outro evento na aba Movimentações (um despacho/decisão costuma funcionar) ou desmarque a caixinha ([7.7](#cap-7-7)) |
 | "Não localizei o movimento … na aba Movimentações" | O processo não tem movimento com o nome gravado na preferência 📌: **✅ Prosseguir** segue a regra geral, **Cancelar** não executa ([7.7](#cap-7-7)) |
-| "Não encontrei o botão Alterar…" no ✏️ Alterar do cabeçalho | Seu perfil não pode alterar este processo; confira na aba **Informações Gerais** se o botão **Alterar** aparece ([8.9](#cap-8-9)) |
+| "Não encontrei o botão Alterar…" no ✏️ Alterar do cabeçalho ou no 💲 Novo Valor da Causa | Seu perfil não pode alterar este processo; confira na aba **Informações Gerais** se o botão **Alterar** aparece ([8.9](#cap-8-9), [8.10](#cap-8-10)) |
 | Preferência abre com "⚠ Não consegui preencher" | A opção gravada não existe neste processo; preencha o campo à mão, ou edite/recrie a preferência ([7.2](#cap-7-2)) |
 | Preferência de Intimar Partes não marca as caixas certas | Grave-a de novo (preferências anteriores à versão 2.9.84) |
 | Importei o arquivo de backup e nada mudou | Recarregue (F5) as páginas do Projudi/SEEU abertas ([2.6](#cap-2-6)) |
@@ -2032,6 +2083,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V44](videos/V44-processo-ao-passar-o-mouse.mp4) | [Processo ao passar o mouse no Decurso de Prazo](videos/V44-processo-ao-passar-o-mouse.mp4) | [9.8](#cap-9-8) | 0:48 |
 | [V45](videos/V45-preferencias-em-lote.mp4) | [Preferências em lote (⭐ Em lote)](videos/V45-preferencias-em-lote.mp4) | [9.3](#cap-9-3) | 1:01 |
 | [V46](videos/V46-remessa-turma-recursal.mp4) | [Remessa para a Turma Recursal](videos/V46-remessa-turma-recursal.mp4) | [7.1](#cap-7-1) | 0:47 |
+| [V47](videos/V47-novo-valor-da-causa.mp4) | [Novo Valor da Causa](videos/V47-novo-valor-da-causa.mp4) | [8.10](#cap-8-10) | 0:36 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -2045,6 +2097,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.24.0 | 06/10/2026 | Nova seção **8.10 Novo Valor da Causa** (só no Projudi): linha **Valor da Causa** no cabeçalho do processo (em qualquer aba), com o balão **💲 Novo Valor da Causa** ao lado do valor; você digita o novo valor e a extensão o grava na tela de alteração do processo e clica em **Salvar** sozinha, sem abrir a tela — o Projudi registra a alteração nas Movimentações. Nova função na tabela da 2.6 (30 funções no Projudi), Solução de problemas (11) e vídeo V47. |
 | 2.23.4 | 06/10/2026 | Destacar movimentações (3.4): novos tipos **Procurador / Procuradora** (ex.: "Procurador do Município de ..."), **Defensor / Defensora** e **Audiência** (esta destaca as movimentações de audiência, seja quem for que as lançou), os mesmos do quadro **Realces** do Projudi. Vídeo V06 regravado. |
 | 2.23.3 | 05/10/2026 | Sistemas do CNJ e card **Outros** (8.7): o popup passa a ter **um só botão** para abrir o sistema fora dele, que usa o **segundo monitor** sempre que houver um conectado (**🖥 Segundo monitor**) e, se não houver, abre numa **nova aba** (**🗂 Nova aba**). Antes eram dois botões, e o do segundo monitor só avisava quando não havia outro monitor. Solução de problemas (11) ajustada e vídeo V39 regravado. |
 | 2.23.2 | 05/10/2026 | **⭐ Em lote** (9.3), no Projudi e no SEEU: antes de começar, a confirmação mostra a lista dos processos (até 25 números), a preferência/combo e o que será feito automaticamente antes (dispensar juntadas, finalizar conclusão ou dispensar decursos); o lote **para no primeiro erro**, deixando os seguintes intactos e marcados, e avisa em qual processo foi. Vídeo V45 regravado. |
