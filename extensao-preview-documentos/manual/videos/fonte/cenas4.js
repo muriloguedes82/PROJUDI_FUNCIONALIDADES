@@ -849,16 +849,57 @@ CENAS.V46 = {
 };
 
 // ------------------------------------------------------------------ V47
-// Aviso de versão nova (cartão abaixo do ícone da balança).
+// Linha "Valor da Causa" + balão "💲 Novo Valor da Causa" no cabeçalho do processo (alterarValorCausa.js).
 CENAS.V47 = {
-	arquivo: "V47-aviso-de-versao-nova.mp4",
+	arquivo: "V47-novo-valor-da-causa.mp4",
+	titulo: "Novo Valor da Causa",
+	secao: "8.10",
+	async run() {
+		telaProcesso({});
+		$("#row-assunto").insertAdjacentHTML("afterend",
+			'<tr id="row-valor"><td class="l">Valor da Causa:</td><td colspan="3"><span id="x-valor">R$ 324,80</span> <a id="x-novo-valor" style="' + ESTILO_BALAO + '">💲 Novo Valor da Causa</a></td></tr>');
+		await S.titleCard("VÍDEO V47", "Novo Valor da Causa", "Informe o novo valor: a extensão altera e salva no processo, sem abrir a tela de alteração.");
+		S.hl("#row-valor", 4);
+		await S.cap("No cabeçalho do processo, a extensão mostra a linha <b>Valor da Causa</b>, com o card <b>💲 Novo Valor da Causa</b> ao lado.");
+		S.hlOff();
+		await S.cap("Ela aparece em qualquer aba — não é preciso abrir <b>Informações Gerais</b>.", { ms: 2600 });
+		await S.click("#x-novo-valor");
+		const pn = panelAt('<h4>💲 Novo Valor da Causa</h4><p style="color:#555;margin:0 0 8px">Valor atual: R$ 324,80</p>' +
+			'<div><b>Novo valor: R$</b> <span class="pj-input" id="x-nv" style="min-width:120px;display:inline-block;text-align:right"></span></div>' +
+			'<p style="color:#666;margin:6px 0 8px">Digite o valor com os centavos (ex.: 1.500,00). Ao salvar, o Projudi registra a alteração nas Movimentações.</p>' +
+			'<div style="display:flex;gap:6px;justify-content:flex-end"><span class="x-btn small" id="x-nv-salvar"><b>Salvar</b></span><span class="x-btn small">Cancelar</span></div>', "#x-novo-valor", { w: 340 });
+		const ra = $("#x-novo-valor").getBoundingClientRect();
+		pn.style.left = ra.left + "px"; pn.style.top = ra.bottom + 6 + "px";
+		await S.cap("Abre um quadrinho com o valor atual. Digite o <b>novo valor</b>, com os centavos.");
+		await S.type("#x-nv", "1.500,00");
+		await S.click("#x-nv-salvar");
+		pn.remove();
+		const t = toast("Novo Valor da Causa — abrindo a tela de alteração…", { left: 420, top: 90 });
+		await sleep(1100);
+		t.textContent = "Novo Valor da Causa — preenchendo R$ 1.500,00…";
+		await sleep(1100);
+		t.textContent = "Novo Valor da Causa — salvando…";
+		await S.cap("Sem abrir nenhuma tela, a extensão preenche o <b>Valor da Causa</b> na tela de alteração e clica em <b>Salvar</b> sozinha.", { ms: 3800 });
+		t.remove();
+		$("#x-valor").textContent = "R$ 1.500,00";
+		S.hl("#row-valor", 4);
+		await S.cap("A tela do processo é recarregada já com o valor novo; o Projudi registra a alteração na aba <b>Movimentações</b>.", { ms: 3800 });
+		S.hlOff();
+		await S.endCard("Informações Gerais → 💲 Novo Valor da Causa → digite o valor → Salvar → alterado e salvo no processo.");
+	},
+};
+
+// ------------------------------------------------------------------ V48
+// Aviso de versão nova (cartão abaixo do ícone da balança).
+CENAS.V48 = {
+	arquivo: "V48-aviso-de-versao-nova.mp4",
 	titulo: "Aviso de versão nova e atualização",
 	secao: "2.3",
 	async run() {
 		telaProcesso({});
-		await S.titleCard("VÍDEO V47", "Aviso de versão nova", "Quando sai uma versão nova, a extensão avisa — exporte suas preferências e atualize.");
+		await S.titleCard("VÍDEO V48", "Aviso de versão nova", "Quando sai uma versão nova, a extensão avisa — exporte suas preferências e atualize.");
 		add('<span class="dotnova"></span>', $("#x-menuicon"));
-		const card = add('<div id="x-novidade"><div class="mh"><span style="font-size:20px">🆕</span><div><b>Há novidades na extensão!</b><small>Versão nova: 2.25.0 · a sua: 2.24.0</small></div></div><div class="ct" id="nv-ct">' +
+		const card = add('<div id="x-novidade"><div class="mh"><span style="font-size:20px">🆕</span><div><b>Há novidades na extensão!</b><small>Versão nova: 2.26.0 · a sua: 2.25.0</small></div></div><div class="ct" id="nv-ct">' +
 			'<p>Saiu uma versão nova da extensão Olirum. <u style="color:#1f5591">Ver o que mudou</u>.</p>' +
 			'<div class="obs"><b>Observação:</b> antes de atualizar, exporte suas preferências (botão 1). Se depois da atualização elas não aparecerem, é só importá-las de novo pelo Menu (ícone da balança → ⬆ Importar).</div>' +
 			'<div class="bts"><span class="bt pri" id="nv-exp">1. Exportar preferências</span><span class="bt" id="nv-atu">2. Atualizar</span></div><div class="ok" id="nv-ok" hidden></div>' +

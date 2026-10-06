@@ -131,7 +131,8 @@
 	// `document`, se já é essa aba; senão, buscado em segundo plano) e uma
 	// função que confirma que o processo não mudou nesse meio-tempo.
 	// Usado aqui ("Partes e Outros"), por editarPartes.js (idem), por
-	// alterarClasseAssuntos.js ("Informações Gerais", tabDadosProcesso) e por
+	// alterarClasseAssuntos.js e alterarValorCausa.js ("Informações Gerais",
+	// tabDadosProcesso) e por
 	// alvaraEletronico.js ("Informações Adicionais", tabDadosAdicionais).
 	async function lerAbaProcesso(tabId, tabName) {
 		const form = document.getElementById("processoForm");
