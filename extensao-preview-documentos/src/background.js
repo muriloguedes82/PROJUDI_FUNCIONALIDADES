@@ -320,17 +320,8 @@ async function getAzureConfig() {
 	if (!azureClientId) {
 		throw new Error("Configure o Client ID do Azure AD nas opções da extensão antes de enviar e-mails.");
 	}
-	// Segurança: "common", "organizations" e "consumers" aceitam contas de
-	// qualquer organização (ou pessoais). Exige o Tenant ID do Tribunal para
-	// que só contas institucionais consigam entrar.
-	const tenant = String(azureTenantId || "").trim();
-	if (!TENANT_VALIDO.test(tenant)) {
-		throw new Error("Configure o Tenant ID do Tribunal (um código no formato 00000000-0000-0000-0000-000000000000) nas opções da extensão antes de enviar e-mails.");
-	}
-	return { clientId: azureClientId, tenant: tenant };
+	return { clientId: azureClientId, tenant: String(azureTenantId || "").trim() || "common" };
 }
-
-const TENANT_VALIDO = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // O token fica em chrome.storage.session: só em memória (nunca gravado em
 // disco), apagado ao fechar o navegador e inacessível aos content scripts.

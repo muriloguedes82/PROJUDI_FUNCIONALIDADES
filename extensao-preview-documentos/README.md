@@ -489,10 +489,8 @@ no Azure AD / Microsoft Entra ID do Tribunal:
    administrador**.
 5. Copie o **Client ID (Application ID)** gerado.
 6. Na extensão, acesse `chrome://extensions` → "Detalhes" → "Opções da
-   extensão" e informe o Client ID e o **Tenant ID do Tribunal** (GUID,
-   obrigatório). Valores genéricos como `common`, `organizations` ou
-   `consumers` são recusados, para que só contas institucionais do Tribunal
-   consigam entrar.
+   extensão" e informe o Client ID (e o Tenant ID, se a organização exigir
+   restringir a um tenant específico em vez de "common").
 
 No primeiro envio de cada sessão do navegador, abre-se a tela de login
 padrão da Microsoft para o usuário autorizar o acesso à própria caixa de

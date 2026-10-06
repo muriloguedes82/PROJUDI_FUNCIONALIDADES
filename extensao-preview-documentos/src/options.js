@@ -12,8 +12,6 @@
 		sendModeEl.value = data.sendMode || "auto";
 	});
 
-	const TENANT_VALIDO = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 	function mostrarStatus(texto, erro) {
 		statusEl.textContent = texto;
 		statusEl.style.color = erro ? "#b00020" : "#2b6b2b";
@@ -28,15 +26,10 @@
 	});
 
 	document.getElementById("save").addEventListener("click", function () {
-		const tenant = tenantIdEl.value.trim();
-		if (clientIdEl.value.trim() && !TENANT_VALIDO.test(tenant)) {
-			mostrarStatus("Informe o Tenant ID do Tribunal (formato 00000000-0000-0000-0000-000000000000).", true);
-			return;
-		}
 		chrome.storage.sync
 			.set({
 				azureClientId: clientIdEl.value.trim(),
-				azureTenantId: tenant,
+				azureTenantId: tenantIdEl.value.trim() || "common",
 				sendMode: sendModeEl.value,
 			})
 			.then(function () {

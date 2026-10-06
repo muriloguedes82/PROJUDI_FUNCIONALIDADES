@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.25.0 |
-| **Versão da extensão** | 2.25.0 |
+| **Versão do manual** | 2.25.1 |
+| **Versão da extensão** | 2.25.1 |
 | **Data desta versão** | 06/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -335,7 +335,7 @@ tela, "flutuando" sobre a página.
 | Campo | Para que serve |
 |---|---|
 | **Modo de envio** | Como o e-mail é preparado: **Automático** (padrão), **Sempre via Microsoft Graph** ou **Sempre via Outlook Web (sem Azure AD)** — veja [5.2](#cap-5-2) |
-| **Client ID** / **Tenant ID do Tribunal** | Dados fornecidos pelo setor de TI para o modo Microsoft Graph. Não preencha se o TI não informou. Se preencher o Client ID, o **Tenant ID do Tribunal** passa a ser obrigatório (um código como `00000000-0000-0000-0000-000000000000`): ele garante que só contas do Tribunal consigam entrar |
+| **Client ID** / **Tenant ID** | Dados fornecidos pelo setor de TI para o modo Microsoft Graph. Não preencha se o TI não informou (o Tenant ID é opcional) |
 | **Sair do Outlook nesta extensão** | Apaga o login do Outlook guardado pela extensão. Útil em computador compartilhado; no próximo envio a Microsoft pede login de novo |
 | **Termos de Uso da extensão** | Consultar os termos ou revogar o aceite |
 
@@ -745,9 +745,7 @@ inferior direito. Com documentos marcados ele mostra a quantidade, ex.:
 enquanto o navegador estiver aberto: ao fechar e abrir o navegador, a
 Microsoft pede login de novo no primeiro envio. Para sair antes (por
 exemplo, em computador compartilhado), use **Sair do Outlook nesta
-extensão** na página de opções ([2.5](#cap-2-5)). Quem já usava esse modo
-precisa informar o **Tenant ID do Tribunal** nas opções (peça ao TI); até
-lá, o envio mostra uma mensagem explicando isso.
+extensão** na página de opções ([2.5](#cap-2-5)).
 
 Anexos grandes seguem o limite do Outlook da instituição
 (normalmente 25 MB por e-mail). Se o navegador pergunta onde salvar cada
@@ -2057,7 +2055,6 @@ telas abertas a partir daí voltam a funcionar.
 | Combo parou numa etapa | Use **↻ Repetir etapa**, **⏭ Próxima etapa** ou **⏹ Parar combo** ([7.4](#cap-7-4)) |
 | WhatsApp abre a conversa, mas sem anexos | Confira se o WhatsApp Web está conectado; recarregue a extensão; anexe manualmente se precisar |
 | E-mail pede Client ID / dá erro de configuração | Mude o **Modo de envio** para **Automático** ou **Outlook Web** nas opções ([2.5](#cap-2-5)), ou peça o Client ID ao TI |
-| E-mail pede o Tenant ID do Tribunal | Peça ao TI o Tenant ID e informe-o nas opções ([2.5](#cap-2-5)), ou mude o **Modo de envio** para **Outlook Web** |
 | WhatsApp: "O envio expirou" | Passaram-se mais de 15 minutos desde o clique em enviar: marque os documentos e envie de novo ([5.1](#cap-5-1)) |
 | No Outlook Web os anexos não entram sozinhos | É o esperado nesse modo: **Anexar arquivo → Navegar neste computador** e escolha os arquivos na pasta **Downloads** |
 | O campo "De" não muda para a conta escolhida | Falta a permissão "Enviar como" nessa caixa — peça ao TI ([5.3](#cap-5-3)) |
@@ -2144,6 +2141,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.25.1 | 06/10/2026 | Opções (2.5) e e-mail (5.2): o **Tenant ID** volta a ser **opcional** no modo Microsoft Graph (como antes da 2.23.1); quem já usava esse modo não precisa informar nada. Retirada a linha correspondente da Solução de problemas (11). O login só enquanto o navegador estiver aberto e o botão **Sair do Outlook nesta extensão** continuam. |
 | 2.25.0 | 06/10/2026 | Nova seção 2.3 (**Atualização da extensão**) reescrita: aviso **🆕 Há novidades na extensão!** abaixo do ícone da balança quando sai versão nova, com a observação para exportar as preferências antes, os botões **1. Exportar preferências** e **2. Atualizar** e o passo a passo para recarregar a extensão; explica que as preferências continuam quando os arquivos novos são colados por cima da mesma pasta. Seção 2.6: ponto azul no ícone e faixa "Versão nova disponível" no Menu. Novo vídeo V48. |
 | 2.24.0 | 06/10/2026 | Nova seção **8.10 Novo Valor da Causa** (só no Projudi): linha **Valor da Causa** no cabeçalho do processo (em qualquer aba), com o balão **💲 Novo Valor da Causa** ao lado do valor; você digita o novo valor e a extensão o grava na tela de alteração do processo e clica em **Salvar** sozinha, sem abrir a tela — o Projudi registra a alteração nas Movimentações. Nova função na tabela da 2.6 (30 funções no Projudi), Solução de problemas (11) e vídeo V47. |
 | 2.23.4 | 06/10/2026 | Destacar movimentações (3.4): novos tipos **Procurador / Procuradora** (ex.: "Procurador do Município de ..."), **Defensor / Defensora** e **Audiência** (esta destaca as movimentações de audiência, seja quem for que as lançou), os mesmos do quadro **Realces** do Projudi. Vídeo V06 regravado. |
