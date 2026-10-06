@@ -189,7 +189,7 @@ CENAS.V06 = {
 			trProc.querySelector(".ev").textContent = "JUNTADA DE PETIÇÃO DE MANIFESTAÇÃO DO MUNICÍPIO";
 			trProc.lastElementChild.innerHTML = 'PROCURADOR DO MUNICÍPIO DE EXEMPLO<span class="papel">Procurador</span>';
 		}
-		await S.titleCard("VÍDEO V06", "Destacar movimentações por tipo de usuário", "Pinte as movimentações de Magistrado, Ministério Público, Advogado ou Procurador — em todos os processos.");
+		await S.titleCard("VÍDEO V06", "Destacar movimentações por tipo de usuário", "Pinte as movimentações de Magistrado, Ministério Público, Advogado, Procurador, Defensor ou Audiência — em todos os processos.");
 		await S.cap("Clique em <b>🖍️ Destacar mov.</b>.");
 		await S.click("#x-destacar");
 		const cores = ["#fff3b0", "#cfe8ff", "#d9f2d0", "#ffd6d6", "#e9dcff"];
@@ -199,6 +199,8 @@ CENAS.V06 = {
 			'<div style="margin:8px 0"><label><input type="checkbox" id="c-mp"> <b>Ministério Público</b></label><div id="p-mp">' + pal(-1) + "</div></div>" +
 			'<div style="margin:8px 0"><label><input type="checkbox" id="c-adv"> <b>Advogado / Advogada</b></label><div id="p-adv">' + pal(-1) + "</div></div>" +
 			'<div style="margin:8px 0"><label><input type="checkbox" id="c-proc"> <b>Procurador / Procuradora</b></label><div id="p-proc">' + pal(-1) + "</div></div>" +
+			'<div style="margin:8px 0"><label><input type="checkbox" id="c-def"> <b>Defensor / Defensora</b></label><div id="p-def">' + pal(-1) + "</div></div>" +
+			'<div style="margin:8px 0"><label><input type="checkbox" id="c-aud"> <b>Audiência</b></label><div id="p-aud">' + pal(-1) + "</div></div>" +
 			'<div style="text-align:right"><span class="pj-btn">Cancelar</span> <span class="pj-btn primary" id="salvar">Salvar</span></div><div id="st" style="color:#2c5e1a"></div>', { top: 120 });
 		await S.cap("Marque os tipos que quer destacar e escolha uma cor para cada um.");
 		await S.click("#c-mag"); $("#c-mag").checked = true;
