@@ -927,3 +927,120 @@ CENAS.V48 = {
 		await S.endCard("Aviso 🆕 → 1. Exportar preferências → 2. Atualizar → copiar a pasta por cima → ↻ Recarregar a extensão → F5.");
 	},
 };
+
+// ------------------------------------------------------------------ V49
+// "Analisar Decurso" e "Dispensar" na própria lista de decurso de prazo,
+// abaixo do sequencial.
+CENAS.V49 = {
+	arquivo: "V49-analisar-e-dispensar-decurso-na-lista.mp4",
+	titulo: "Analisar e Dispensar decurso na lista",
+	secao: "9.9",
+	async run() {
+		telaLista("Decurso de Prazo - Intimação", { path: "intimacaoBusca.do", col: "Data Decurso" });
+		$$("#lista tr[data-i]").forEach((tr, i) => {
+			tr.children[1].insertAdjacentHTML("beforeend",
+				'<div class="x-dec" data-dec="' + i + '" style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px">' +
+				'<span class="x-btn small" data-an="' + i + '">Analisar Decurso</span>' +
+				'<span class="x-btn small" data-di="' + i + '">Dispensar</span>' +
+				'<span class="st" data-st="' + i + '" style="flex-basis:100%;font-size:11px"></span></div>');
+		});
+		await S.titleCard("VÍDEO V49", "Analisar e Dispensar decurso na lista", "Os botões da tela da intimação, direto na linha do processo.");
+		await S.cap("Nas listas de <b>Decurso de Prazo</b>, cada linha aguardando análise ganha, abaixo do <b>Seq.</b>, os botões <b>Analisar Decurso</b> e <b>Dispensar</b>.");
+		S.hl('[data-dec="0"]', 3);
+		await sleep(1200);
+		S.hlOff();
+		await S.cap("<b>Dispensar</b>: a extensão abre a intimação escondida, clica em Dispensar e responde <b>OK</b> à confirmação do Projudi, sozinha.");
+		await S.click('[data-di="0"]');
+		const st = $('[data-st="0"]');
+		st.textContent = "Dispensando…";
+		await sleep(1500);
+		$$('[data-dec="0"] .x-btn').forEach(b => b.remove());
+		st.innerHTML = '<span style="color:#216b32">✅ Decurso de prazo dispensado com sucesso</span>';
+		S.hl(st, 3);
+		await S.cap("No fim, a linha mostra <b>“Decurso de prazo dispensado com sucesso”</b>. Você continua na lista.");
+		S.hlOff();
+		await S.cap("<b>Analisar Decurso</b> abre um menu: abrir a análise, criar uma preferência ou usar uma já salva.");
+		await S.click('[data-an="2"]');
+		const pn = panelAt('<h4>Analisar Decurso</h4><div class="x-chip" style="display:block;border-radius:6px;padding:6px 8px;margin:0 0 4px">Abrir a análise</div>' +
+			'<div class="x-chip" id="nova-pref" style="display:block;border-radius:6px;padding:6px 8px;margin:0 0 4px">+ Nova preferência</div>' +
+			'<div style="font-size:11px;color:#5a6b4a;margin:6px 0 4px">Preferências de Analisar Decurso:</div>' +
+			'<div class="x-chip" id="pref-cert" style="display:block;border-radius:6px;padding:6px 8px;margin:0">★ Certidão de decurso <span style="float:right">✏️ 🗑</span></div>' +
+			'<div style="font-size:11px;color:#5a6b4a;margin:6px 0 4px">Do 📎 Juntar Documento:</div>' +
+			'<div class="x-chip" style="display:block;border-radius:6px;padding:6px 8px;margin:0">★ Certidão padrão</div>', '[data-an="2"]', { w: 320 });
+		S.hl("#nova-pref", 3);
+		await S.cap("<b>+ Nova preferência</b>: faça a inclusão do arquivo uma vez; no <b>Assinar Arquivos</b> a extensão pede um nome e salva. ✏️ edita e 🗑 remove.", { ms: 5200 });
+		S.hlOff();
+		await S.cap("Escolha uma preferência: a extensão clica em <b>Adicionar</b> e preenche o Tipo do Arquivo, o Modelo e o texto.");
+		await S.click("#pref-cert");
+		pn.remove();
+		const st2 = $('[data-st="2"]');
+		st2.textContent = "Abrindo a análise com ★ Certidão de decurso…";
+		await sleep(900);
+		popup("Analisar Decurso — ★ Certidão de decurso", '<div style="font-size:12px"><b>Inserir Arquivo</b> — Tipo do Arquivo: <span class="pj-select">Certidão</span> · Modelo: <span class="pj-select">Documento em branco</span></div><div style="margin-top:10px"><span class="pj-input" style="min-width:420px;min-height:60px;display:inline-block">Certifico que decorreu o prazo…</span></div><div style="margin-top:12px"><span class="pj-btn primary" id="assinar">Assinar Arquivos</span></div>', { hd: "Analisar Decurso — ★ Certidão de decurso", top: 120, h: 360 });
+		await S.cap("Você só <b>assina</b> no assinador. Depois a extensão clica em <b>Confirmar Inclusão</b> e em <b>Concluir</b>.");
+		await S.click("#assinar");
+		$(".x-popup").remove();
+		$$('[data-dec="2"] .x-btn').forEach(b => b.remove());
+		st2.innerHTML = '<span style="color:#216b32">✅ Análise do decurso concluída com ★ Certidão de decurso</span>';
+		S.hl(st2, 3);
+		await S.cap("Ao terminar, o popup fecha sozinho e a linha mostra o resultado. A lista não é recarregada.");
+		S.hlOff();
+		const lote = add('<div class="x-bar" style="position:fixed;left:16px;right:16px;top:206px;z-index:50;background:#f7f9f3;border:1px solid #d5dcc8;border-radius:6px;padding:6px 10px;font-size:12px;color:#333">' +
+			'<b>⭐ Em lote:</b> ☑ marcar todos · 3 processo(s) marcado(s) · <span class="x-btn small">⭐ Executar preferência nos marcados</span> │ <span class="x-btn small" id="lote-disp">Dispensar nos marcados</span> <span class="x-btn small" id="lote-anal">Analisar decurso nos marcados</span></div>');
+		S.hl("#lote-disp", 3);
+		await S.cap("Em lote: marque os processos e use <b>Dispensar nos marcados</b> ou <b>Analisar decurso nos marcados</b> (com uma preferência), na barra <b>⭐ Em lote</b>.", { ms: 5600 });
+		S.hlOff();
+		await S.cap("As mesmas preferências também estão no <b>⭐</b> (seção <b>📝 Analisar Decurso</b>), na linha e em <b>⭐ Executar preferência nos marcados</b>.", { ms: 4800 });
+		await S.cap("Os processos são tratados um de cada vez. Na análise, você assina cada documento; o feito é desmarcado.");
+		lote.remove();
+		await S.endCard("Dispensar = confirmação aceita sozinha. Analisar Decurso = análise no popup, com preferência (+ Nova, ✏️, 🗑). Em lote: Dispensar / Analisar nos marcados.");
+	},
+};
+
+// ------------------------------------------------------------------ V50
+// "Analisar" (Pré-Análise) dos cumprimentos com preferências, no card ⭐
+// da lista Demais Cumprimentos, com a pergunta do "Postergar Assinatura".
+CENAS.V50 = {
+	arquivo: "V50-pre-analise-com-preferencias.mp4",
+	titulo: "Pré-Análise com preferências",
+	secao: "9.10",
+	async run() {
+		telaLista("Demais Cumprimentos", { path: "cumprimentoCartorio.do", col: "Tipo de Cumprimento", rows: LISTA.map(r => Object.assign({}, r, { d: "ALVARÁ" })) });
+		$$(".x-rowslot").forEach((s, i) => (s.innerHTML = ' <span class="x-btn small">+</span> <span class="x-btn small" data-star="' + i + '">⭐</span><span class="st" data-st="' + i + '" style="margin-left:6px;font-size:11px"></span>'));
+		await S.titleCard("VÍDEO V50", "Pré-Análise com preferências", "Faça o Analisar de um cumprimento com um texto pronto, direto da lista.");
+		await S.cap("Em <b>Demais Cumprimentos</b>, o <b>⭐</b> da linha tem a seção <b>📝 Analisar (Pré-Análise)</b>.");
+		await S.click('[data-star="0"]');
+		let pn = panelAt('<h4>⭐ Minhas Preferências</h4><div style="font-size:11px;color:#5a6b4a;margin:4px 0">📝 ANALISAR (PRÉ-ANÁLISE)</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">' +
+			'<div class="x-chip" id="nova" style="display:block;border-radius:6px;padding:8px;margin:0"><b>+ Nova preferência</b></div>' +
+			'<div class="x-chip" style="display:block;border-radius:6px;padding:8px;margin:0"><b>★ Alvará padrão</b><div style="color:#666">postergar assinatura</div></div></div>', '[data-star="0"]', { w: 420 });
+		pn.style.left = "520px"; pn.style.top = "200px";
+		await S.cap("<b>+ Nova preferência</b> abre a Pré-Análise no popup e grava o que você fizer.");
+		await S.click("#nova");
+		pn.remove();
+		popup("Pré-Análise", '<div style="font-size:12px">Tipo do Arquivo: <span class="pj-select">Mandado</span> · Modelo: <span class="pj-select">Documento em Branco</span> <span class="pj-btn">Digitar Texto</span></div><div style="margin-top:10px"><span class="pj-input" style="min-width:420px;min-height:50px;display:inline-block">Expeça-se alvará…</span></div><div style="margin-top:12px"><span class="pj-btn primary" id="salvar">Salvar e Concluir</span></div>', { hd: "Analisar — gravando nova preferência", top: 120, h: 360 });
+		await S.cap("Escolha o Tipo do Arquivo e o Modelo, digite o texto e clique em <b>Salvar e Concluir</b>.");
+		await S.click("#salvar");
+		$(".x-popup").remove();
+		modal('<h3>Assinatura</h3><div>Ao usar esta preferência, a extensão deve <b>sempre clicar em "Postergar Assinatura"</b>?</div><div style="text-align:right;margin-top:12px"><span class="pj-btn primary" id="sim">Sim, postergar sempre</span> <span class="pj-btn">Não, eu assino e expeço</span></div>', { w: 540, top: 200 });
+		await S.cap("Na última tela, a extensão pergunta: <b>Sim</b> grava isso e clica em <b>Postergar Assinatura</b>; <b>Não</b> deixa o <b>Assinar e Expedir</b> para você.", { ms: 5600 });
+		await S.click("#sim");
+		closeModal();
+		const st = $('[data-st="0"]');
+		st.innerHTML = '<span style="color:#216b32">Preferência salva · pré-análise concluída e assinatura postergada</span>';
+		S.hl(st, 3);
+		await S.cap("Você dá um nome e a preferência aparece no ⭐, com ✏️ (editar) e 🗑 (remover).");
+		S.hlOff();
+		await S.cap("Para usar: <b>⭐ → ★ Alvará padrão</b>. A extensão faz a pré-análise sozinha e, no fim, posterga a assinatura (ou destaca Assinar e Expedir).", { ms: 5200 });
+		await S.click('[data-star="2"]');
+		pn = panelAt('<h4>⭐ Minhas Preferências</h4><div class="x-chip" id="usar" style="display:block;border-radius:6px;padding:8px;margin:0"><b>★ Alvará padrão</b><div style="color:#666">postergar assinatura</div></div>', '[data-star="2"]', { w: 300 });
+		pn.style.left = "520px"; pn.style.top = "280px";
+		await S.click("#usar");
+		pn.remove();
+		const st2 = $('[data-st="2"]');
+		st2.textContent = "★ Alvará padrão: pré-análise no popup…";
+		await sleep(1500);
+		st2.innerHTML = '<span style="color:#216b32">★ Alvará padrão: pré-análise concluída e assinatura postergada</span>';
+		await S.cap("Também em lote: marque os processos e use <b>⭐ Executar preferência nos marcados</b>.");
+		await S.endCard("⭐ → + Nova preferência → Salvar e Concluir → postergar sempre? → nome. Depois: ⭐ → ★ preferência (na linha ou em lote).");
+	},
+};

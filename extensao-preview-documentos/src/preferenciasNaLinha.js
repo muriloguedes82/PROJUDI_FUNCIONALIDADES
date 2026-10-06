@@ -82,7 +82,12 @@
 		"/projudi/processo/expedirIntimacao.do": { tipo: "cumprimento", verificaPendencias: true },
 		"/projudi/processo/expedirCitacao.do": { tipo: "cumprimento", verificaPendencias: true },
 		"/projudi/processo/intimacaoNomeados.do": { tipo: "cumprimento", verificaPendencias: true },
-		"/projudi/processo/cumprimentoCartorio.do": { tipo: "cumprimento", verificaPendencias: true },
+		// Demais Cumprimentos: o card ⭐ também traz as preferências do
+		// "Analisar" (Pré-Análise) - ver abrirPreAnalise.
+		"/projudi/processo/cumprimentoCartorio.do": { tipo: "cumprimento", verificaPendencias: true, preAnalise: true },
+		// Decurso de Prazo - Citações/Notificações: como as de cumprimentos
+		// (pergunta só pelas pendências que o processo tiver).
+		"/projudi/processo/citacao.do": { tipo: "cumprimento", verificaPendencias: true },
 		// SEEU: sem `pergunta` de propósito (o SEEU não trava ações com
 		// pendências - ver a REGRA no início do arquivo).
 		"/seeu/processo/analisarJuntada.do": { tipo: "juntada", seeu: true },
@@ -449,6 +454,62 @@
 	// Abre uma preferência no popup, a partir da tela do processo carregada
 	// de novo em segundo plano (depois da etapa prévia ou da etapa anterior
 	// do combo). Resolve com { ok, texto }.
+	// "Analisar" dos cumprimentos (Pré-Análise): abre o link "Analisar" da
+	// linha (preAnalise.do) no popup das ações rápidas e deixa o motor do
+	// Juntar Documento (juntarDocumento.js, prepararPreAnalise) conduzir:
+	// Tipo do Arquivo/Modelo → "Digitar Texto" → texto → "Salvar e
+	// Concluir" → na tela do cumprimento, "Postergar Assinatura" (se a
+	// preferência mandar) ou "Assinar e Expedir" pelo usuário. `item.acao`:
+	// "pref" (aplicar), "nova" (gravar) ou "editar". Resolve com
+	// { ok, texto, aviso, executado }.
+	function linkPreAnalise(row) {
+		for (const a of row.querySelectorAll("a[href]")) {
+			const url = mesmaOrigem(a.getAttribute("href"));
+			if (url && url.pathname === "/projudi/processo/preAnalise.do" && url.search && !url.hash) return url.href;
+		}
+		return null;
+	}
+
+	function abrirPreAnalise(ctx, item, previa) {
+		const qa = api();
+		const jd = window.__pdpJuntarDocumentoApi;
+		const url = linkPreAnalise(ctx.row);
+		if (!url) return Promise.resolve({ ok: false, texto: "esta linha não tem o link \"Analisar\" (Pré-Análise)." });
+		if (!jd || !jd.prepararPreAnalise) return Promise.resolve({ ok: false, texto: "ligue o \"Juntar Documento\" no Menu da extensão para usar estas preferências." });
+		if (!qa || !qa.openActionModal) return Promise.resolve({ ok: false, texto: "as ações rápidas não estão disponíveis nesta tela." });
+		const mode = item.acao === "pref" ? "apply" : item.acao === "editar" ? "edit" : "capture";
+		const rotulo = mode === "capture" ? "Analisar — gravando nova preferência" : "Analisar — ★ " + item.pref.name;
+		jd.prepararPreAnalise(mode, item.pref || null, ctx.cnj);
+		mostrar(ctx, [previa, mode === "capture" ? "Gravando: faça a pré-análise no popup…" : mode === "edit" ? "Editando ★ " + item.pref.name + " no popup…" : "★ " + item.pref.name + ": pré-análise no popup…"], "andamento");
+		return new Promise(function (resolve) {
+			let concluida = false;
+			let fechar = null;
+			const timer = setInterval(function () {
+				const fim = jd.fimDecurso ? jd.fimDecurso() : null;
+				if (fim === "concluida" && !concluida) {
+					concluida = true;
+					mostrar(ctx, [previa, "Postergando a assinatura…"], "andamento");
+					fechar = setTimeout(function () { if (qa.closeActionModal) qa.closeActionModal(); }, 2500);
+				} else if (fim === "aguardando") {
+					mostrar(ctx, [previa, "Pré-análise concluída: clique em \"Assinar e Expedir\" no popup e, depois, feche-o."], "aviso");
+				}
+			}, 500);
+			qa.openActionModal(rotulo, url, {
+				onClose: function (motivo) {
+					clearInterval(timer);
+					clearTimeout(fechar);
+					const fim = jd.fimDecurso ? jd.fimDecurso() : null;
+					if (jd.hasActiveJob && jd.hasActiveJob()) jd.cancel();
+					const gravou = mode !== "apply" ? "Preferência " + (mode === "edit" ? "atualizada" : "salva") + " · " : "★ " + item.pref.name + ": ";
+					if (concluida) resolve({ ok: true, texto: gravou + "pré-análise concluída e assinatura postergada", executado: true });
+					else if (fim === "aguardando") resolve({ ok: true, texto: gravou + "pré-análise concluída; confira se o cumprimento foi assinado e expedido", aviso: true, executado: true });
+					else if (mode !== "apply") resolve({ ok: true, texto: "Popup fechado. A preferência é salva na tela do cumprimento, depois do \"Salvar e Concluir\".", aviso: true, executado: false });
+					else resolve({ ok: true, texto: motivo === "auto" ? "Pré-análise concluída" : "Popup fechado antes do fim (confira o cumprimento)", aviso: motivo !== "auto", executado: motivo === "auto" });
+				}
+			});
+		});
+	}
+
 	async function abrirPreferencia(ctx, label, pref, prefixo) {
 		const rotulo = "★ " + pref.name;
 		mostrar(ctx, prefixo.concat(["Carregando o processo…"]), "andamento");
@@ -486,6 +547,26 @@
 			alert("As ações rápidas não estão disponíveis nesta tela. Recarregue a página.");
 			return;
 		}
+		// Analisar Decurso (decursoNaLinha.js): a própria linha mostra o
+		// andamento; sem a pergunta de dispensar decursos antes.
+		if (item.decurso) {
+			const dec = window.__pdpDecursoNaLinha;
+			const r = dec ? await dec.executarNaLinha(ctx.row, item.escolha) : { ok: false, texto: "o Analisar Decurso não está ligado nesta tela." };
+			if (!r.ok) mostrar(ctx, ["⚠ " + r.texto], "erro");
+			return;
+		}
+		// Gravar/editar uma preferência do "Analisar" (Pré-Análise): nada é
+		// executado no processo além do que o usuário fizer - sem pendências.
+		if (item.preAnalise && item.acao !== "pref") {
+			emAndamento = true;
+			try {
+				const r = await abrirPreAnalise(ctx, item, null);
+				mostrar(ctx, [r.texto], r.ok ? (r.aviso ? "aviso" : "ok") : "erro");
+			} finally {
+				emAndamento = false;
+			}
+			return;
+		}
 		// Telas de análise: pergunta fixa, conforme a tela. Telas de
 		// cumprimentos (verificaPendencias): perguntas só pelo que estiver
 		// pendente no processo (pendenciasDoProcesso). SEEU: nenhuma.
@@ -518,6 +599,11 @@
 				previa = await fazerPrevia(ctx, resposta);
 			}
 			if (item.combo) return await executarCombo(ctx, item, previa);
+			if (item.preAnalise) {
+				const rp = await abrirPreAnalise(ctx, item, previa);
+				mostrar(ctx, [previa, rp.texto], rp.ok ? (rp.aviso ? "aviso" : "ok") : "erro");
+				return !!rp.executado;
+			}
 			const r = await abrirPreferencia(ctx, item.label, item.pref, [previa]);
 			mostrar(ctx, [previa, r.texto], r.ok ? "ok" : "aviso");
 			return r.ok;
@@ -716,8 +802,146 @@
 				}));
 			});
 			posicionar(box, ancora);
+		}).then(function () {
+			if (tela.preAnalise) secaoPreAnalise(box, ancora, emLote, escolher);
+			const dec = window.__pdpDecursoNaLinha;
+			if (dec && dec.disponivel()) return secaoDecurso(box, ancora, emLote, escolher, dec);
 		}).catch(function (e) {
 			console.error(TAG, "falha ao listar preferências/combos:", e);
+		});
+	}
+
+	// Seção "📝 Analisar Decurso" do card ⭐ nas listas de decurso de prazo
+	// (decursoNaLinha.js): as mesmas preferências do botão "Analisar Decurso"
+	// da linha, para usar também no "Em lote". Fora do lote, "+ Nova
+	// preferência", ✏️ e 🗑. O Analisar Decurso resolve a própria pendência
+	// do decurso: aqui não há a pergunta de dispensar decursos antes.
+	async function secaoDecurso(box, ancora, emLote, escolher, dec) {
+		const prefs = await dec.listarPreferencias();
+		if (!painel || painel.el !== box) return;
+		const vazio = box.querySelector(":scope > .pdp-tl-vazio");
+		if (vazio) vazio.textContent = "Nenhuma preferência de ação salva (crie no painel de uma ação, na tela do processo).";
+		box.appendChild(el("div", { class: "pdp-tl-sec", text: "📝 Analisar Decurso" }));
+		const grade = el("div", { class: "pdp-qa-fav-grid" });
+		box.appendChild(grade);
+		if (!emLote) {
+			grade.appendChild(cardClicavel(el("div", {
+				class: "pdp-qa-fav-card pdp-pl-nova",
+				tabindex: "0",
+				role: "button",
+				title: "Abre a análise do decurso no popup e grava a inclusão do arquivo (Tipo do Arquivo, Modelo e texto); no \"Assinar Arquivos\", pede o nome e salva."
+			}, [
+				el("span", { class: "pdp-qa-fav-card-action", text: "Analisar Decurso" }),
+				el("span", { class: "pdp-qa-fav-card-name", text: "+ Nova preferência" })
+			]), function () {
+				fecharPainel();
+				escolher({ decurso: true, escolha: { acao: "nova" } });
+			}));
+		}
+		const todas = prefs.decurso.map(function (p) { return { pref: p, juntar: false }; })
+			.concat(prefs.juntar.map(function (p) { return { pref: p, juntar: true }; }));
+		if (!todas.length && emLote) {
+			grade.replaceWith(el("div", { class: "pdp-tl-vazio", text: "Nenhuma preferência de Analisar Decurso salva. Crie pelo \"+ Nova preferência\" do ⭐ (ou do botão \"Analisar Decurso\") de uma linha." }));
+		}
+		todas.forEach(function (x) {
+			const pref = x.pref;
+			const filhos = [
+				el("span", { class: "pdp-qa-fav-card-action", text: x.juntar ? "Analisar Decurso · do Juntar Documento" : "Analisar Decurso" }),
+				el("span", { class: "pdp-qa-fav-card-name", text: "★ " + pref.name })
+			];
+			if (!emLote && !x.juntar) {
+				filhos.push(el("span", { class: "pdp-pl-card-icones" }, [
+					el("button", { type: "button", class: "pdp-tl-icone", title: "Editar: abre a análise já preenchida, sem avançar sozinha; no \"Assinar Arquivos\", atualiza a preferência", text: "✏️", onclick: function (ev) {
+						ev.stopPropagation();
+						fecharPainel();
+						escolher({ decurso: true, escolha: { acao: "editar", pref: pref } });
+					} }),
+					el("button", { type: "button", class: "pdp-tl-icone", title: "Remover esta preferência", text: "🗑", onclick: function (ev) {
+						ev.stopPropagation();
+						if (!confirm("Remover a preferência \"" + pref.name + "\" do Analisar Decurso?")) return;
+						dec.removerPreferencia(pref.id).then(function () { fecharPainel(); });
+					} })
+				]));
+			}
+			grade.appendChild(cardClicavel(el("div", {
+				class: "pdp-qa-fav-card",
+				tabindex: "0",
+				role: "button",
+				title: "Analisa o decurso com esta preferência: clica em \"Adicionar\", inclui o arquivo (Tipo do Arquivo, Modelo e texto) e, depois da sua assinatura, conclui" + (emLote ? " — em cada processo marcado, um de cada vez." : ".")
+			}, filhos), function () {
+				fecharPainel();
+				escolher({ decurso: true, escolha: { acao: "pref", pref: pref } });
+			}));
+		});
+		posicionar(box, ancora);
+	}
+
+	// Seção "📝 Analisar (Pré-Análise)" do card ⭐ (Demais Cumprimentos):
+	// "+ Nova preferência" e as preferências gravadas, com ✏️ e 🗑 (fora do
+	// lote, só as preferências).
+	function secaoPreAnalise(box, ancora, emLote, escolher) {
+		const jd = window.__pdpJuntarDocumentoApi;
+		if (!painel || painel.el !== box) return;
+		// Sem preferências de ação, o painel troca a grade por um aviso.
+		const vazio = box.querySelector(":scope > .pdp-tl-vazio");
+		if (vazio) vazio.textContent = "Nenhuma preferência de ação salva (crie no painel de uma ação, na tela do processo).";
+		box.appendChild(el("div", { class: "pdp-tl-sec", text: "📝 Analisar (Pré-Análise)" }));
+		const grade = el("div", { class: "pdp-qa-fav-grid" });
+		box.appendChild(grade);
+		if (!jd || !jd.listarPreAnalise) {
+			grade.replaceWith(el("div", { class: "pdp-tl-vazio", text: "Ligue o \"Juntar Documento\" no Menu da extensão para usar estas preferências." }));
+			return;
+		}
+		if (!emLote) {
+			grade.appendChild(cardClicavel(el("div", {
+				class: "pdp-qa-fav-card pdp-pl-nova",
+				tabindex: "0",
+				role: "button",
+				title: "Abre o \"Analisar\" (Pré-Análise) deste cumprimento no popup e grava o que você fizer: Tipo do Arquivo, Modelo e texto. Na tela do cumprimento, a extensão pergunta se deve sempre clicar em \"Postergar Assinatura\" e salva."
+			}, [
+				el("span", { class: "pdp-qa-fav-card-action", text: "Analisar (Pré-Análise)" }),
+				el("span", { class: "pdp-qa-fav-card-name", text: "+ Nova preferência" })
+			]), function () {
+				fecharPainel();
+				escolher({ preAnalise: true, acao: "nova" });
+			}));
+		}
+		jd.listarPreAnalise().then(function (prefs) {
+			if (!painel || painel.el !== box) return;
+			if (!prefs.length && emLote) {
+				grade.replaceWith(el("div", { class: "pdp-tl-vazio", text: "Nenhuma preferência de Pré-Análise salva. Crie pelo \"+ Nova preferência\" do ⭐ de uma linha." }));
+			}
+			prefs.forEach(function (pref) {
+				const fim = pref.postergar ? "postergar assinatura" : "você assina e expede";
+				const filhos = [
+					el("span", { class: "pdp-qa-fav-card-action", text: "Analisar · " + fim }),
+					el("span", { class: "pdp-qa-fav-card-name", text: "★ " + pref.name })
+				];
+				if (!emLote) {
+					filhos.push(el("span", { class: "pdp-pl-card-icones" }, [
+						el("button", { type: "button", class: "pdp-tl-icone", title: "Editar: abre a pré-análise já preenchida, sem avançar sozinha; na tela do cumprimento, atualiza a preferência", text: "✏️", onclick: function (ev) {
+							ev.stopPropagation();
+							fecharPainel();
+							escolher({ preAnalise: true, acao: "editar", pref: pref });
+						} }),
+						el("button", { type: "button", class: "pdp-tl-icone", title: "Remover esta preferência", text: "🗑", onclick: function (ev) {
+							ev.stopPropagation();
+							if (!confirm("Remover a preferência \"" + pref.name + "\" do Analisar (Pré-Análise)?")) return;
+							jd.removerPreAnalise(pref.id).then(function () { fecharPainel(); });
+						} })
+					]));
+				}
+				grade.appendChild(cardClicavel(el("div", {
+					class: "pdp-qa-fav-card",
+					tabindex: "0",
+					role: "button",
+					title: "Faz a pré-análise com esta preferência (Tipo do Arquivo, Modelo e texto) e, no fim, " + (pref.postergar ? "clica em \"Postergar Assinatura\"" : "deixa \"Assinar e Expedir\" para você") + (emLote ? ", em cada processo marcado." : ".")
+				}, filhos), function () {
+					fecharPainel();
+					escolher({ preAnalise: true, acao: "pref", pref: pref, label: "Analisar (Pré-Análise)" });
+				}));
+			});
+			posicionar(box, ancora);
 		});
 	}
 
@@ -1051,6 +1275,11 @@
 	}
 
 	async function executarLote(item) {
+		if (item.decurso) {
+			const dec = window.__pdpDecursoNaLinha;
+			if (dec) await dec.executarLote(item.escolha);
+			return;
+		}
 		if (emAndamento) {
 			alert("Já há uma preferência ou combo sendo executado. Aguarde terminar.");
 			return;

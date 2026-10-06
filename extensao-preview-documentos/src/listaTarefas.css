@@ -513,3 +513,10 @@ tr.pdp-pl-lote-atual > td {
 	outline: 2px solid #f0b400;
 	outline-offset: -2px;
 }
+
+/* Card ⭐ - ícones ✏️/🗑 das preferências de Pré-Análise (preferenciasNaLinha.js) */
+.pdp-pl-card-icones {
+	display: flex;
+	gap: 2px;
+	justify-content: center;
+}

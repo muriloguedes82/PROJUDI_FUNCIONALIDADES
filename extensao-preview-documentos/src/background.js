@@ -800,9 +800,11 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
 // Aciona somente a dispensa de decurso previamente marcada no iframe oculto.
 function clickDecursoWithConfirmation(token) {
   if (!window.frameElement || window.frameElement.getAttribute('data-pdp-decurso') !== token) return null;
-  if (location.pathname !== '/projudi/processo/intimacao.do') return {ok:false, error:'Página de intimação inesperada.'};
-  const form = document.getElementById('intimacaoForm');
-  const button = form && form.querySelector('[data-pdp-decurso-button="' + token + '"]');
+  // Tela da intimação (Intimação, Auxiliares da Justiça ou Citação/Notificação).
+  const telas = ['/projudi/processo/intimacao.do', '/projudi/processo/intimacaoNomeados.do', '/projudi/processo/citacao.do'];
+  if (telas.indexOf(location.pathname) < 0) return {ok:false, error:'Página de intimação inesperada.'};
+  const marcado = document.querySelector('[data-pdp-decurso-button="' + token + '"]');
+  const button = marcado && marcado.form ? marcado : null;
   if (!button || button.disabled || String(button.value || button.textContent || '').trim().toLowerCase() !== 'dispensar') {
     return {ok:false, error:'Botão de dispensa do decurso indisponível.'};
   }

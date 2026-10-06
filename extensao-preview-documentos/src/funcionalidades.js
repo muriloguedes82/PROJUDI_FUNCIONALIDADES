@@ -235,6 +235,14 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					sistemas: ["projudi"]
 				},
 				{
+					id: "decursoNaLinha",
+					nome: "Analisar e Dispensar decurso na lista",
+					descricao: "Nas listas de decurso de prazo, botões \"Analisar Decurso\" e \"Dispensar\" em cada linha, abaixo do sequencial, sem abrir a intimação.",
+					js: ["src/decursoNaLinha.js"],
+					css: ["src/decursoNaLinha.css"],
+					sistemas: ["projudi"]
+				},
+				{
 					id: "listaTarefas",
 					nome: "Listas de tarefas",
 					descricao: "Bolinhas coloridas e tarefas escritas nas telas de análise e de cumprimentos.",
@@ -244,7 +252,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "preferenciasNaLinha",
 					nome: "Minhas Preferências na linha (⭐)",
-					descricao: "Aplica preferências e combos direto na linha do processo, ou em lote nos processos marcados (no SEEU, as do \"📍 Localizador\").",
+					descricao: "Aplica preferências e combos direto na linha do processo, ou em lote nos processos marcados (no SEEU, as do \"📍 Localizador\"). Em Demais Cumprimentos, também as preferências do Analisar (Pré-Análise).",
 					js: ["src/preferenciasNaLinha.js"],
 					requer: ["listaTarefas", "acoesRapidas"]
 				}
