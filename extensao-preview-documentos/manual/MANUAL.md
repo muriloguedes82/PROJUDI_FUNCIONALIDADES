@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.27.0 |
-| **Versão da extensão** | 2.27.0 |
+| **Versão do manual** | 2.27.1 |
+| **Versão da extensão** | 2.27.1 |
 | **Data desta versão** | 06/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -2308,6 +2308,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.27.1 | 06/10/2026 | Sem alteração de texto; corrigido: na Pré-Análise da lista de **Mandados** (9.10), o texto digitado no documento não era gravado na preferência (aparecia o aviso "Não consegui gravar nenhum texto nesta preferência"), porque ali a tela de digitar o documento é outra. |
 | 2.27.0 | 06/10/2026 | Lista de **Mandados** (expedição de mandados), no Projudi: ganha as listas de tarefas (9.2), a **⭐** na linha e o **⭐ Em lote** (9.3), com a mesma pergunta sobre juntadas e conclusão pendentes das demais telas de cumprimentos, e a seção **📝 Analisar (Pré-Análise)** com preferências e **Postergar Assinatura**, também em lote (9.10). Descrição da função no Menu atualizada (2.6). Sem vídeo novo: a tela da função é a mesma do V45 e do V50. |
 | 2.26.1 | 06/10/2026 | Decurso em lote (9.9): **Dispensar nos marcados** mostra a lista dos processos antes de começar, e os dois lotes do decurso **param no primeiro erro**, deixando os seguintes intactos e marcados (no Analisar, fechar o popup só pula o processo). Vídeos V49 e V50 regravados (V49 com a nova legenda; os dois com o número novo na abertura). |
 | 2.26.0 | 06/10/2026 | Nova seção **9.9** (só no Projudi): botões **Analisar Decurso** e **Dispensar** em cada linha das listas de **Decurso de Prazo**, abaixo do sequencial. O Dispensar responde OK à confirmação do Projudi sozinho e mostra "Decurso de prazo dispensado com sucesso". O Analisar Decurso abre a análise num popup, com menu para criar (**+ Nova preferência**), editar e remover preferências próprias do Analisar Decurso, ou usar as do Juntar Documento (8.2): a extensão inclui o arquivo, você assina e ela conclui e fecha o popup. Na barra **⭐ Em lote**: **Dispensar nos marcados** e **Analisar decurso nos marcados**. A lista de Citações/Notificações do Decurso de Prazo passa a ter também as listas de tarefas e a ⭐ (9.2, 9.3). Nova função na tabela da 2.6 e vídeo V49. Nova seção **9.10** (só no Projudi): no card **⭐** da lista **Demais Cumprimentos**, seção **📝 Analisar (Pré-Análise)** com **+ Nova preferência**, ✏️ e 🗑; ao criar, a extensão pergunta, na tela do cumprimento, se deve sempre clicar em **Postergar Assinatura** (Sim: grava e clica; Não: você clica em **Assinar e Expedir**); também em lote. Vídeo V50. Ao gravar uma preferência (Juntar Documento, Analisar Decurso ou Pré-Análise), o texto digitado ao lado do marcador "INSIRA O TEXTO AQUI" passa a ser gravado, e a extensão avisa antes de salvar uma preferência sem texto (9.9). As preferências do Analisar Decurso também aparecem no card ⭐ (linha e Em lote), seção **📝 Analisar Decurso**; os botões do lote do decurso avisam quando nenhum marcado aguarda análise. |

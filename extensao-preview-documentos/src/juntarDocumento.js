@@ -1354,7 +1354,7 @@
 	// -------------------------------------------------------------------
 
 	function isPreviewScreen() {
-		return !!findButton(document, "Concluir") && !!findButton(document, "Alterar") && !document.getElementById("conteudoEditor");
+		return !!findButton(document, "Concluir") && !!findButton(document, "Alterar") && !editorTextarea();
 	}
 
 	let previewActed = false;
@@ -1448,23 +1448,41 @@
 	// conteudoEditor)
 	// -------------------------------------------------------------------
 
-	// Formulário da tela "Digitar Documento": o da janela "Inserir Arquivo"
-	// (fileUploadForm) ou, vindo da Pré-Análise dos cumprimentos, qualquer
-	// formulário que envie para digitarTexto.do.
-	function formDigitar() {
-		const form = document.getElementById("fileUploadForm");
-		if (form && /digitarTexto\.do/i.test(form.getAttribute("action") || "")) return form;
-		return Array.prototype.find.call(document.forms, function (f) {
-			return /digitarTexto\.do/i.test(f.getAttribute("action") || "");
+	// Caixa de texto do editor (CKEditor): "conteudoEditor" no Digitar
+	// Documento de sempre; em outras telas (ex.: a Pré-Análise de mandados,
+	// preAnalise.do?actionType=visualizar), a primeira caixa de texto que
+	// tenha um CKEditor ligado a ela (div "cke_" + id).
+	function editorTextarea() {
+		const padrao = document.getElementById("conteudoEditor");
+		if (padrao) return padrao;
+		return Array.prototype.find.call(document.querySelectorAll("textarea[id]"), function (t) {
+			return !!document.getElementById("cke_" + t.id);
 		}) || null;
 	}
 
+	// Formulário da tela "Digitar Documento": o da janela "Inserir Arquivo"
+	// (fileUploadForm) ou, vindo da Pré-Análise dos cumprimentos, qualquer
+	// formulário que envie para digitarTexto.do - ou, se nenhum enviar (a
+	// Pré-Análise de mandados usa preAnalise.do), o formulário do editor.
+	function formDigitar() {
+		const form = document.getElementById("fileUploadForm");
+		if (form && /digitarTexto\.do/i.test(form.getAttribute("action") || "")) return form;
+		const porAcao = Array.prototype.find.call(document.forms, function (f) {
+			return /digitarTexto\.do/i.test(f.getAttribute("action") || "");
+		});
+		if (porAcao) return porAcao;
+		const caixa = editorTextarea();
+		return (caixa && caixa.form) || null;
+	}
+
 	function isDigitarScreen() {
-		return !!document.getElementById("conteudoEditor") && !!formDigitar();
+		return !!editorTextarea() && !!formDigitar();
 	}
 
 	function editorBody() {
-		const frame = document.querySelector("#cke_conteudoEditor iframe.cke_wysiwyg_frame, #cke_conteudoEditor iframe");
+		const caixa = editorTextarea();
+		const id = caixa ? caixa.id : "conteudoEditor";
+		const frame = document.querySelector("#cke_" + id + " iframe.cke_wysiwyg_frame, #cke_" + id + " iframe");
 		try {
 			const doc = frame && frame.contentDocument;
 			if (doc && doc.body && doc.body.isContentEditable && doc.body.childNodes.length) return doc.body;
@@ -1584,6 +1602,25 @@
 
 	let digitarActed = false;
 	let digitarSnapshot = null;
+
+	// Diagnóstico (uma vez por página): numa tela da Pré-Análise, durante
+	// um fluxo do card ⭐, que nenhuma etapa reconheceu, registra no console
+	// os formulários e botões, para ajustar o reconhecimento.
+	let diagnosticoFeito = false;
+	function diagnosticoPreAnalise() {
+		if (diagnosticoFeito || !/\/preAnalise\.do$/.test(location.pathname)) return;
+		const job = readJob();
+		if (!job || !job.preanalise) return;
+		diagnosticoFeito = true;
+		const forms = Array.prototype.map.call(document.forms, function (f) {
+			return (f.id || f.name || "(sem id)") + " → " + (f.getAttribute("action") || "");
+		});
+		const botoes = Array.prototype.map.call(document.querySelectorAll('input[type="button"], input[type="submit"], button'), function (b) {
+			return (b.id ? "#" + b.id + " " : "") + String(b.value || b.textContent || "").trim();
+		});
+		const caixas = Array.prototype.map.call(document.querySelectorAll("textarea"), function (t) { return t.id || t.name || "(sem id)"; });
+		console.info(LOG, "Pré-Análise: tela não reconhecida (" + location.search + "). Formulários:", forms, "Botões:", botoes, "Caixas de texto:", caixas);
+	}
 
 	function watchDigitarScreen(form) {
 		if (form.__pdpJdWatch) return;
@@ -1743,7 +1780,10 @@
 			const upload = !juntar && isUploadScreen();
 			const digitar = !juntar && !upload && isDigitarScreen();
 			const preview = !juntar && !upload && !digitar && isPreviewScreen();
-			if (!juntar && !upload && !digitar && !preview) return;
+			if (!juntar && !upload && !digitar && !preview) {
+				diagnosticoPreAnalise();
+				return;
+			}
 
 			const job = readJob();
 			if (!job) {
