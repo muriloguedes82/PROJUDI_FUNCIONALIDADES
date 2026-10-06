@@ -989,6 +989,7 @@ CENAS.V49 = {
 			'<b>⭐ Em lote:</b> ☑ marcar todos · 3 processo(s) marcado(s) · <span class="x-btn small">⭐ Executar preferência nos marcados</span> │ <span class="x-btn small" id="lote-disp">Dispensar nos marcados</span> <span class="x-btn small" id="lote-anal">Analisar decurso nos marcados</span></div>');
 		S.hl("#lote-disp", 3);
 		await S.cap("Em lote: marque os processos e use <b>Dispensar nos marcados</b> ou <b>Analisar decurso nos marcados</b> (com uma preferência), na barra <b>⭐ Em lote</b>.", { ms: 5600 });
+		await S.cap("Antes do <b>Dispensar nos marcados</b>, a extensão mostra <b>a lista dos processos</b>. Se algum falhar, o lote <b>para nele</b> e os seguintes continuam marcados.", { ms: 5200 });
 		S.hlOff();
 		await S.cap("As mesmas preferências também estão no <b>⭐</b> (seção <b>📝 Analisar Decurso</b>), na linha e em <b>⭐ Executar preferência nos marcados</b>.", { ms: 4800 });
 		await S.cap("Os processos são tratados um de cada vez. Na análise, você assina cada documento; o feito é desmarcado.");

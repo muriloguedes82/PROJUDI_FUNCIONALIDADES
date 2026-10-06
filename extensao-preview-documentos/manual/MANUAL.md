@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.26.0 |
-| **Versão da extensão** | 2.26.0 |
+| **Versão do manual** | 2.26.1 |
+| **Versão da extensão** | 2.26.1 |
 | **Data desta versão** | 06/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -2047,8 +2047,10 @@ na seção **📝 Analisar Decurso** (com **+ Nova preferência**, ✏️ e 🗑
 1. Marque os processos na caixinha de cada linha (ou **marcar todos**), na
    barra **⭐ Em lote** acima da tabela ([9.3](#cap-9-3)).
 2. Na mesma barra, clique em:
-   - **Dispensar nos marcados** — confirme uma vez; a extensão dispensa um
-     processo de cada vez, sozinha;
+   - **Dispensar nos marcados** — confira a janela, que mostra **a lista
+     dos processos** que serão dispensados (até 25 números; acima disso,
+     "… e mais N"), e clique em **OK** (**Cancelar** não faz nada); a
+     extensão dispensa um processo de cada vez, sozinha;
    - **Analisar decurso nos marcados** — escolha a preferência; a análise
      abre no popup para cada processo, um de cada vez, e você **assina
      cada documento**. As mesmas preferências também aparecem no
@@ -2057,6 +2059,13 @@ na seção **📝 Analisar Decurso** (com **+ Nova preferência**, ✏️ e 🗑
 3. Cada linha mostra o seu resultado e o processo feito é desmarcado.
    **⏹ Parar** não começa os próximos (o atual termina). Processos que não
    aguardam análise do decurso são pulados.
+4. **O lote para no primeiro erro.** No **Dispensar nos marcados**,
+   qualquer processo que não pôde ser dispensado interrompe o lote; no
+   **Analisar decurso nos marcados**, só um erro de verdade (por exemplo,
+   o processo não abriu) — fechar o popup apenas pula o processo. Os
+   processos seguintes não são tocados e continuam marcados, e um aviso
+   diz em qual processo houve o erro e quantos já tinham sido feitos.
+   Confira a mensagem na linha do processo antes de repetir.
 
 **Bom saber:**
 
@@ -2277,7 +2286,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V46](videos/V46-remessa-turma-recursal.mp4) | [Remessa para a Turma Recursal](videos/V46-remessa-turma-recursal.mp4) | [7.1](#cap-7-1) | 0:47 |
 | [V47](videos/V47-novo-valor-da-causa.mp4) | [Novo Valor da Causa](videos/V47-novo-valor-da-causa.mp4) | [8.10](#cap-8-10) | 0:36 |
 | [V48](videos/V48-aviso-de-versao-nova.mp4) | [Aviso de versão nova e atualização](videos/V48-aviso-de-versao-nova.mp4) | [2.3](#cap-2-3) | 0:41 |
-| [V49](videos/V49-analisar-e-dispensar-decurso-na-lista.mp4) | [Analisar e Dispensar decurso na lista](videos/V49-analisar-e-dispensar-decurso-na-lista.mp4) | [9.9](#cap-9-9) | 1:22 |
+| [V49](videos/V49-analisar-e-dispensar-decurso-na-lista.mp4) | [Analisar e Dispensar decurso na lista](videos/V49-analisar-e-dispensar-decurso-na-lista.mp4) | [9.9](#cap-9-9) | 1:28 |
 | [V50](videos/V50-pre-analise-com-preferencias.mp4) | [Pré-Análise com preferências](videos/V50-pre-analise-com-preferencias.mp4) | [9.10](#cap-9-10) | 0:52 |
 <!-- tabela-videos:fim -->
 
@@ -2292,6 +2301,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.26.1 | 06/10/2026 | Decurso em lote (9.9): **Dispensar nos marcados** mostra a lista dos processos antes de começar, e os dois lotes do decurso **param no primeiro erro**, deixando os seguintes intactos e marcados (no Analisar, fechar o popup só pula o processo). Vídeos V49 e V50 regravados (V49 com a nova legenda; os dois com o número novo na abertura). |
 | 2.26.0 | 06/10/2026 | Nova seção **9.9** (só no Projudi): botões **Analisar Decurso** e **Dispensar** em cada linha das listas de **Decurso de Prazo**, abaixo do sequencial. O Dispensar responde OK à confirmação do Projudi sozinho e mostra "Decurso de prazo dispensado com sucesso". O Analisar Decurso abre a análise num popup, com menu para criar (**+ Nova preferência**), editar e remover preferências próprias do Analisar Decurso, ou usar as do Juntar Documento (8.2): a extensão inclui o arquivo, você assina e ela conclui e fecha o popup. Na barra **⭐ Em lote**: **Dispensar nos marcados** e **Analisar decurso nos marcados**. A lista de Citações/Notificações do Decurso de Prazo passa a ter também as listas de tarefas e a ⭐ (9.2, 9.3). Nova função na tabela da 2.6 e vídeo V49. Nova seção **9.10** (só no Projudi): no card **⭐** da lista **Demais Cumprimentos**, seção **📝 Analisar (Pré-Análise)** com **+ Nova preferência**, ✏️ e 🗑; ao criar, a extensão pergunta, na tela do cumprimento, se deve sempre clicar em **Postergar Assinatura** (Sim: grava e clica; Não: você clica em **Assinar e Expedir**); também em lote. Vídeo V50. Ao gravar uma preferência (Juntar Documento, Analisar Decurso ou Pré-Análise), o texto digitado ao lado do marcador "INSIRA O TEXTO AQUI" passa a ser gravado, e a extensão avisa antes de salvar uma preferência sem texto (9.9). As preferências do Analisar Decurso também aparecem no card ⭐ (linha e Em lote), seção **📝 Analisar Decurso**; os botões do lote do decurso avisam quando nenhum marcado aguarda análise. |
 | 2.25.1 | 06/10/2026 | Opções (2.5) e e-mail (5.2): o **Tenant ID** volta a ser **opcional** no modo Microsoft Graph (como antes da 2.23.1); quem já usava esse modo não precisa informar nada. Retirada a linha correspondente da Solução de problemas (11). O login só enquanto o navegador estiver aberto e o botão **Sair do Outlook nesta extensão** continuam. |
 | 2.25.0 | 06/10/2026 | Nova seção 2.3 (**Atualização da extensão**) reescrita: aviso **🆕 Há novidades na extensão!** abaixo do ícone da balança quando sai versão nova, com a observação para exportar as preferências antes, os botões **1. Exportar preferências** e **2. Atualizar** e o passo a passo para recarregar a extensão; explica que as preferências continuam quando os arquivos novos são colados por cima da mesma pasta. Seção 2.6: ponto azul no ícone e faixa "Versão nova disponível" no Menu. Novo vídeo V48. |

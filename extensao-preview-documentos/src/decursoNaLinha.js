@@ -470,6 +470,15 @@
 	let loteEl = null;
 	let parar = false;
 
+	// Segurança das ações em lote: antes de começar, mostra a lista exata de
+	// processos que serão afetados (limitada, para caber na janela).
+	function listaProcessosParaConfirmar(cnjs) {
+		const MAX = 25;
+		const linhas = cnjs.slice(0, MAX).map(function (c, i) { return (i + 1) + ". " + (c || "(número não identificado)"); });
+		if (cnjs.length > MAX) linhas.push("… e mais " + (cnjs.length - MAX) + " processo(s).");
+		return linhas.join("\n");
+	}
+
 	function alvosMarcados() {
 		const alvos = [];
 		let pulados = 0;
@@ -477,7 +486,7 @@
 			const row = c.closest("tr");
 			if (!c.checked || !row || row.classList.contains("pdp-tl-oculta")) return;
 			const caixa = row.querySelector(".pdp-dec-acoes");
-			if (caixa && caixa.querySelector(".pdp-dec-btn") && caixa.getAttribute("data-pdp-dec-url")) alvos.push({ check: c, row: row, caixa: caixa });
+			if (caixa && caixa.querySelector(".pdp-dec-btn") && caixa.getAttribute("data-pdp-dec-url")) alvos.push({ check: c, row: row, caixa: caixa, cnj: c.getAttribute("data-cnj") });
 			else pulados++;
 		});
 		return { alvos: alvos, pulados: pulados };
@@ -544,7 +553,10 @@
 		if (acao === "dispensar") {
 			const sel = podeLote();
 			if (!sel) return;
-			if (!confirm("Dispensar a análise do decurso de prazo de " + sel.alvos.length + " processo(s) marcado(s)?\n\nA confirmação do Projudi é aceita sozinha em cada um." + (sel.pulados ? "\n\n" + sel.pulados + " marcado(s) não aguardam análise do decurso e serão pulados." : ""))) return;
+			if (!confirm("Dispensar a análise do decurso de prazo de " + sel.alvos.length + " processo(s):\n\n" +
+				listaProcessosParaConfirmar(sel.alvos.map(function (a) { return a.cnj; })) +
+				"\n\nA confirmação do Projudi é aceita sozinha em cada um. Se algum falhar, o lote para nele." +
+				(sel.pulados ? "\n\n" + sel.pulados + " marcado(s) não aguardam análise do decurso e serão pulados." : ""))) return;
 			await rodarLote("dispensar", null, sel);
 		} else {
 			if (!podeLote()) return;
@@ -588,6 +600,7 @@
 		atualizarLote();
 		let feitos = 0;
 		let falhas = 0;
+		let erroEm = null;
 		const total = sel.alvos.length;
 		try {
 			for (let i = 0; i < total; i++) {
@@ -599,12 +612,18 @@
 				try { a.row.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e) { /* segue */ }
 				travar(a.caixa, true);
 				let ok = false;
+				// Segurança: interrompe o lote no primeiro erro real. Na dispensa
+				// (automática), qualquer "não dispensado" é erro; na análise, o
+				// usuário pode fechar o popup para pular, então só exceções contam.
+				let erro = false;
 				try {
 					const url = a.caixa.getAttribute("data-pdp-dec-url");
 					ok = acao === "dispensar" ? await dispensarNaLinha(a.caixa, url) : await analisarNaLinha(a.caixa, url, escolha);
+					if (!ok && acao === "dispensar") erro = true;
 				} catch (e) {
 					console.error(TAG, e);
 					status(a.caixa, "⚠ " + ((e && e.message) || "falha."), "erro");
+					erro = true;
 				}
 				if (a.caixa.isConnected) travar(a.caixa, false);
 				a.row.classList.remove("pdp-pl-lote-atual");
@@ -615,6 +634,10 @@
 				} else {
 					falhas++;
 				}
+				if (erro) {
+					erroEm = a.cnj || ("processo " + (i + 1));
+					break;
+				}
 			}
 		} finally {
 			const parado = parar;
@@ -622,9 +645,17 @@
 			if (pararBtn) pararBtn.hidden = true;
 			atualizarLote();
 			const naoIniciados = total - feitos - falhas;
-			statusLote((parado ? "⏹ Parado: " : (acao === "dispensar" ? "Dispensa" : "Análise") + " em lote concluída: ") + feitos + " feito(s)" +
+			if (erroEm) {
+				statusLote("⛔ Lote interrompido por erro em " + erroEm + ": " + feitos + " feito(s)" +
+					(naoIniciados ? " · " + naoIniciados + " não iniciado(s) (continuam marcados)" : "") + ". Veja a mensagem na linha do processo.");
+				alert("O lote foi interrompido porque houve um erro no processo " + erroEm + ".\n\n" +
+					feitos + " processo(s) já tinham sido concluídos. Os demais não foram tocados e continuam marcados.\n\n" +
+					"Confira o erro na linha do processo antes de executar de novo.");
+			} else {
+				statusLote((parado ? "⏹ Parado: " : (acao === "dispensar" ? "Dispensa" : "Análise") + " em lote concluída: ") + feitos + " feito(s)" +
 				(falhas ? " · " + falhas + " não feito(s)" : "") + (naoIniciados ? " · " + naoIniciados + " não iniciado(s)" : "") +
 				(sel.pulados ? " · " + sel.pulados + " pulado(s) (não aguardam análise)" : ""));
+			}
 		}
 	}
 
