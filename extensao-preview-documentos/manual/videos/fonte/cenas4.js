@@ -927,3 +927,50 @@ CENAS.V48 = {
 		await S.endCard("Aviso 🆕 → 1. Exportar preferências → 2. Atualizar → copiar a pasta por cima → ↻ Recarregar a extensão → F5.");
 	},
 };
+
+// ------------------------------------------------------------------ V49
+// Documento do Juiz (despacho/decisão/sentença) ao pousar o mouse no
+// "Analisar" da lista Retorno de Conclusão (previewConclusao.js).
+function listaConclusao() {
+	telaLista("Retorno de Conclusão", { path: "conclusao.do", col: "Retorno em" });
+	$("#lista tr:first-child").insertAdjacentHTML("beforeend", '<th style="width:80px"></th>');
+	document.querySelectorAll("#lista tr[data-i]").forEach(tr => tr.insertAdjacentHTML("beforeend", '<td><a class="link x-analisar">Analisar</a></td>'));
+}
+function janelaDoc(n, file, x, y, i, total) {
+	const p = preview(file, x, y, 560, 440);
+	$(".hd .t", p).textContent = "Processo " + n + " — " + file + (total > 1 ? " (" + i + "/" + total + ")" : "");
+	$(".hd .t", p).insertAdjacentHTML("afterend", '<span class="x-btn small x-fixar" style="background:#f5f7ef;color:#35412b">📌 Fixar</span>');
+	return p;
+}
+
+CENAS.V49 = {
+	arquivo: "V49-documento-da-conclusao.mp4",
+	titulo: "Documento do Juiz no Retorno de Conclusão",
+	secao: "9.9",
+	async run() {
+		listaConclusao();
+		await S.titleCard("VÍDEO V49", "Documento do Juiz ao passar o mouse", "Leia o despacho, a decisão ou a sentença sem sair da lista Retorno de Conclusão.");
+		await S.cap("Na lista <b>Retorno de Conclusão</b> (Projudi ou SEEU), pare o mouse sobre o <b>Analisar</b> da linha.");
+		await S.move($('#lista tr[data-i="1"] .x-analisar'));
+		await sleep(500);
+		let p = janelaDoc(LISTA[1].n, "Despacho.pdf", 420, 150, 1, 1);
+		await S.cap("Abre só o documento que o Juiz fez — o mesmo da tela <b>Dados da Conclusão</b> —, sem sair da lista.");
+		await S.cap("Para fechar: tire o mouse do Analisar e da janela, clique em <b>✕</b> ou tecle <b>Esc</b>.");
+		await S.move({ x: 200, y: 600 });
+		p.remove();
+		await sleep(400);
+		await S.cap("Se a conclusão tiver mais de um arquivo, abre <b>uma janela para cada um</b>, em cascata.");
+		await S.move($('#lista tr[data-i="3"] .x-analisar'));
+		await sleep(500);
+		const p1 = janelaDoc(LISTA[3].n, "Decisao Recebimento.pdf", 400, 130, 1, 2);
+		const p2 = janelaDoc(LISTA[3].n, "Certidao de Baixa.pdf", 428, 158, 2, 2);
+		await sleep(1200);
+		await S.cap("Quer as janelas abertas mesmo tirando o mouse? Clique em <b>📌 Fixar</b>.");
+		await S.click($(".x-fixar", p2));
+		[p1, p2].forEach(j => { $(".x-fixar", j).textContent = "📌 Fixado"; j.style.outline = "2px solid #b59a1f"; });
+		await S.move({ x: 200, y: 600 });
+		await S.cap("Fixadas, só fecham no <b>✕</b>. Clicar no <b>Analisar</b> continua abrindo a tela como sempre.", { ms: 3200 });
+		p1.remove(); p2.remove();
+		await S.endCard("Mouse parado sobre o Analisar = documento do Juiz, uma janela por arquivo. 📌 Fixar mantém aberto; Esc ou ✕ fecha.");
+	},
+};

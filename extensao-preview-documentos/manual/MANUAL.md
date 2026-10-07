@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.25.0 |
-| **Versão da extensão** | 2.25.0 |
-| **Data desta versão** | 06/10/2026 |
+| **Versão do manual** | 2.26.0 |
+| **Versão da extensão** | 2.26.0 |
+| **Data desta versão** | 07/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -87,6 +87,7 @@
    - 9.6 [Dados processuais nas ordenações BNMP](#cap-9-6)
    - 9.7 [Endereço da parte e Mandado Regionalizado](#cap-9-7)
    - 9.8 [Processo ao passar o mouse nas listas de Decurso de Prazo](#cap-9-8)
+   - 9.9 [Documento do Juiz ao passar o mouse no Retorno de Conclusão](#cap-9-9)
 10. [Privacidade e convivência com outras extensões](#cap-10)
     - 10.1 [O que fica guardado no seu navegador](#cap-10-1)
     - 10.2 [Convivência com o AzFlow](#cap-10-2)
@@ -412,7 +413,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica | [4](#cap-4) |
-| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo (Projudi) · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
+| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo (Projudi) · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
 Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
@@ -1990,6 +1991,44 @@ sem sair da lista de decursos e sem abrir outra aba.
 - Dentro do painel não aparecem a balança do Menu, os cards dos sistemas do
   CNJ nem a barra de botões da extensão — eles ficam só na tela principal.
 
+<a id="cap-9-9"></a>
+### 9.9 Documento do Juiz ao passar o mouse no Retorno de Conclusão
+
+▶ [**Vídeo V49** — Documento do Juiz no Retorno de Conclusão](videos/V49-documento-da-conclusao.mp4)
+
+*No Projudi e no SEEU.*
+
+**Para que serve:** ler o despacho, a decisão ou a sentença que o Juiz fez
+sem sair da lista **Retorno de Conclusão** e sem abrir a tela **Dados da
+Conclusão**.
+
+**Onde fica:** lista **Retorno de Conclusão**, no botão **Analisar** de
+cada linha.
+
+**Passo a passo:**
+
+1. Pare o mouse sobre o **Analisar** da linha do processo.
+2. Aparece uma janela com "Procurando o documento da conclusão…" e, em
+   seguida, o documento que o Juiz fez — o mesmo que a tela **Dados da
+   Conclusão** mostra.
+3. Se a conclusão tiver **mais de um arquivo**, abre **uma janela para cada
+   um**, em cascata (o título mostra "1/2", "2/2"…).
+4. Para fechar: tire o mouse do **Analisar** e das janelas, clique em **✕**
+   ou tecle **Esc**.
+
+**Bom saber:**
+
+- **📌 Fixar** mantém as janelas abertas mesmo tirando o mouse; elas então
+  só fecham no **✕** (ou em **Esc**). Clique de novo para desafixar.
+- **Abrir em nova aba ↗** abre o documento numa aba própria. Clicar no
+  **Analisar** continua abrindo a tela **Dados da Conclusão** como sempre.
+- A lista **não muda**: nada é analisado nem finalizado ao abrir as janelas.
+- Se a tela **Dados da Conclusão** não tiver arquivo, a janela avisa
+  "Nenhum documento encontrado…"; clique em **Analisar** para ver a tela
+  completa.
+- Passar o mouse de novo na mesma linha abre mais rápido: o documento já
+  encontrado é lembrado enquanto a lista estiver aberta.
+
 ---
 
 <a id="cap-10"></a>
@@ -2131,6 +2170,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V46](videos/V46-remessa-turma-recursal.mp4) | [Remessa para a Turma Recursal](videos/V46-remessa-turma-recursal.mp4) | [7.1](#cap-7-1) | 0:47 |
 | [V47](videos/V47-novo-valor-da-causa.mp4) | [Novo Valor da Causa](videos/V47-novo-valor-da-causa.mp4) | [8.10](#cap-8-10) | 0:36 |
 | [V48](videos/V48-aviso-de-versao-nova.mp4) | [Aviso de versão nova e atualização](videos/V48-aviso-de-versao-nova.mp4) | [2.3](#cap-2-3) | 0:41 |
+| [V49](videos/V49-documento-da-conclusao.mp4) | [Documento do Juiz no Retorno de Conclusão](videos/V49-documento-da-conclusao.mp4) | [9.9](#cap-9-9) | 0:44 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -2144,6 +2184,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.26.0 | 07/10/2026 | Nova seção **9.9** (Projudi e SEEU): na lista **Retorno de Conclusão**, pousar o mouse sobre o **Analisar** mostra o documento que o Juiz fez (despacho, decisão ou sentença) — uma janela para cada arquivo —, com **📌 Fixar**, **Abrir em nova aba** e **✕**, sem sair da lista. Nova função na tabela da 2.6 e vídeo V49. |
 | 2.25.0 | 06/10/2026 | Nova seção 2.3 (**Atualização da extensão**) reescrita: aviso **🆕 Há novidades na extensão!** abaixo do ícone da balança quando sai versão nova, com a observação para exportar as preferências antes, os botões **1. Exportar preferências** e **2. Atualizar** e o passo a passo para recarregar a extensão; explica que as preferências continuam quando os arquivos novos são colados por cima da mesma pasta. Seção 2.6: ponto azul no ícone e faixa "Versão nova disponível" no Menu. Novo vídeo V48. |
 | 2.24.0 | 06/10/2026 | Nova seção **8.10 Novo Valor da Causa** (só no Projudi): linha **Valor da Causa** no cabeçalho do processo (em qualquer aba), com o balão **💲 Novo Valor da Causa** ao lado do valor; você digita o novo valor e a extensão o grava na tela de alteração do processo e clica em **Salvar** sozinha, sem abrir a tela — o Projudi registra a alteração nas Movimentações. Nova função na tabela da 2.6 (30 funções no Projudi), Solução de problemas (11) e vídeo V47. |
 | 2.23.4 | 06/10/2026 | Destacar movimentações (3.4): novos tipos **Procurador / Procuradora** (ex.: "Procurador do Município de ..."), **Defensor / Defensora** e **Audiência** (esta destaca as movimentações de audiência, seja quem for que as lançou), os mesmos do quadro **Realces** do Projudi. Vídeo V06 regravado. |
