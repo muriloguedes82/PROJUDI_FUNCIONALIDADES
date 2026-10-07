@@ -627,6 +627,9 @@
 			);
 			return false;
 		}
+		// Juntar Documento salva mesmo sem texto (o documento pode vir do
+		// Modelo); só confirma quando o "texto" é o documento inteiro.
+		if (rec.conteudo && rec.conteudoInteiro && !confirmarSemTexto(rec)) return false;
 		const name = prompt(
 			job.mode === "edit" ? 'Atualizar a preferência de "Juntar Documento". Nome:' : 'Nome para esta preferência de "Juntar Documento":',
 			job.mode === "edit" ? job.pref.name : ""
@@ -641,6 +644,8 @@
 			modelo: rec.modelo || null,
 			conteudo: rec.conteudo || "",
 			ancora: rec.ancora || null,
+			ancoraIndice: typeof rec.ancoraIndice === "number" ? rec.ancoraIndice : null,
+			totalBlocos: typeof rec.totalBlocos === "number" ? rec.totalBlocos : null,
 		};
 		persistPref(pref).catch(function (err) {
 			alert("Não foi possível salvar a preferência: " + err.message);
@@ -653,6 +658,13 @@
 	// Preferência sem texto: ao usá-la, a extensão para no "Digitar
 	// Documento" para o usuário digitar (não clica em "Continuar" sozinha).
 	function confirmarSemTexto(rec) {
+		if (rec.conteudo && rec.conteudoInteiro) {
+			return confirm(
+				"O texto gravado nesta preferência parece ser o documento inteiro, com dados deste processo (nomes, endereços, datas), e não só o trecho que você digitou.\n\n" +
+					"Ao usá-la, esses dados iriam para o documento de outro processo.\n\n" +
+					"Salvar assim mesmo? (Cancelar = não salvar; recomendado gravar de novo.)"
+			);
+		}
 		if (rec.conteudo) return true;
 		return confirm(
 			"Não consegui gravar nenhum texto nesta preferência (o texto é gravado ao clicar em \"Continuar\", no \"Digitar Documento\").\n\n" +
@@ -680,6 +692,8 @@
 			modelo: rec.modelo || null,
 			conteudo: rec.conteudo || "",
 			ancora: rec.ancora || null,
+			ancoraIndice: typeof rec.ancoraIndice === "number" ? rec.ancoraIndice : null,
+			totalBlocos: typeof rec.totalBlocos === "number" ? rec.totalBlocos : null,
 		};
 		persistPref(pref, DECURSO_PREFS_KEY).catch(function (err) {
 			alert("Não foi possível salvar a preferência: " + err.message);
@@ -1007,6 +1021,8 @@
 			modelo: rec.modelo || null,
 			conteudo: rec.conteudo || "",
 			ancora: rec.ancora || null,
+			ancoraIndice: typeof rec.ancoraIndice === "number" ? rec.ancoraIndice : null,
+			totalBlocos: typeof rec.totalBlocos === "number" ? rec.totalBlocos : null,
 			postergar: !!postergar,
 			docMovimentos: movimentosDaGravacao(job),
 		};
@@ -1692,9 +1708,28 @@
 		return null;
 	}
 
+	// Container dos blocos (parágrafos) do documento. Documentos gerados por
+	// Modelo (ex.: mandados) vêm embrulhados num único <div> - às vezes em
+	// dois -, e comparar só o primeiro nível tomaria o documento inteiro
+	// como "texto digitado". Desce enquanto houver um único bloco embrulho.
+	function blocosRaiz(body) {
+		let c = body;
+		for (let i = 0; i < 12; i++) {
+			const kids = Array.prototype.filter.call(c.childNodes, function (n) {
+				if (n.nodeType === 3) return !!cleanText(n.nodeValue);
+				return n.nodeType === 1 && !/^(STYLE|SCRIPT|BR)$/.test(n.tagName);
+			});
+			if (kids.length !== 1 || kids[0].nodeType !== 1) break;
+			const k = kids[0];
+			if (!/^(DIV|SPAN|SECTION|ARTICLE|FONT|CENTER|BLOCKQUOTE)$/.test(k.tagName) || !k.children.length) break;
+			c = k;
+		}
+		return c;
+	}
+
 	// Blocos do corpo quando o editor abriu (antes de qualquer alteração).
 	function snapshotEditor(body) {
-		return Array.prototype.slice.call(body.childNodes).map(nodeKey).filter(Boolean);
+		return Array.prototype.slice.call(blocosRaiz(body).childNodes).map(nodeKey).filter(Boolean);
 	}
 
 	// Só o que o usuário acrescentou/alterou: blocos do corpo que não
@@ -1704,17 +1739,27 @@
 	// primeiro bloco novo — onde inserir o conteúdo quando o documento não
 	// tem o marcador "INSIRA O TEXTO AQUI" (ex.: documento gerado por um
 	// Modelo).
+	//
+	// `ancoraIndice`/`totalBlocos`: posição do primeiro bloco novo (quantos
+	// blocos inalterados vêm antes) e total de blocos na abertura - para
+	// inserir pela posição quando a âncora tem dados do processo (nome,
+	// data) e não se repete noutro documento do mesmo Modelo.
 	function conteudoDigitado(body, snapshot) {
 		const remaining = snapshot.slice();
 		const parts = [];
 		let lastKeptText = null;
 		let ancora = null;
-		Array.prototype.slice.call(body.childNodes).forEach(function (node) {
+		let mantidos = 0;
+		let ancoraIndice = null;
+		let textoNovo = 0;
+		const raiz = blocosRaiz(body);
+		Array.prototype.slice.call(raiz.childNodes).forEach(function (node) {
 			const key = nodeKey(node);
 			if (!key) return;
 			const idx = remaining.indexOf(key);
 			if (idx !== -1) {
 				remaining.splice(idx, 1);
+				mantidos++;
 				if (cleanText(node.textContent)) lastKeptText = cleanText(node.textContent);
 				return;
 			}
@@ -1737,20 +1782,45 @@
 					html = restante;
 				}
 			}
-			if (!parts.length) ancora = lastKeptText;
+			if (!parts.length) {
+				ancora = lastKeptText;
+				ancoraIndice = mantidos;
+			}
+			textoNovo += cleanText(node.textContent || "").length;
 			parts.push(html);
 		});
-		return { conteudo: parts.join(""), ancora: ancora };
+		const textoTotal = cleanText(raiz.textContent || "").length;
+		return {
+			conteudo: parts.join(""),
+			ancora: ancora,
+			ancoraIndice: ancoraIndice,
+			totalBlocos: snapshot.length,
+			// Quase o documento inteiro "digitado": provavelmente não é o
+			// texto da preferência (e traz dados deste processo).
+			conteudoInteiro: textoTotal > 400 && textoNovo > textoTotal * 0.6,
+		};
 	}
 
 	// Onde inserir o conteúdo gravado num documento sem marcador: logo
-	// depois do bloco com o texto da âncora (último, se repetido).
-	function findAncora(body, ancora) {
-		if (!ancora) return null;
-		const nodes = Array.prototype.slice.call(body.childNodes).filter(function (node) {
-			return node.nodeType === 1 && cleanText(node.textContent) === ancora;
-		});
-		return nodes.length ? nodes[nodes.length - 1] : null;
+	// depois do bloco com o texto da âncora (último, se repetido). Sem ele,
+	// pela posição gravada, se o documento tiver o mesmo número de blocos
+	// (mesmo Modelo). Devolve { ref, antes } ou null.
+	function findAncora(body, pref) {
+		const raiz = blocosRaiz(body);
+		if (pref.ancora) {
+			const nodes = Array.prototype.slice.call(raiz.childNodes).filter(function (node) {
+				return node.nodeType === 1 && cleanText(node.textContent) === pref.ancora;
+			});
+			if (nodes.length) return { ref: nodes[nodes.length - 1], antes: false };
+		}
+		if (typeof pref.ancoraIndice === "number" && typeof pref.totalBlocos === "number") {
+			const blocos = Array.prototype.slice.call(raiz.childNodes).filter(function (node) { return !!nodeKey(node); });
+			if (blocos.length === pref.totalBlocos) {
+				if (pref.ancoraIndice === 0 && blocos.length) return { ref: blocos[0], antes: true };
+				if (pref.ancoraIndice > 0 && pref.ancoraIndice <= blocos.length) return { ref: blocos[pref.ancoraIndice - 1], antes: false };
+			}
+		}
+		return null;
 	}
 
 	function findPlaceholder(body) {
@@ -1897,12 +1967,12 @@
 		if (placeholder) {
 			last = insertConteudo(placeholder, conteudo);
 		} else {
-			const ref = findAncora(body, job.pref.ancora);
-			if (!ref) {
+			const onde = findAncora(body, job.pref);
+			if (!onde) {
 				showStatus('Não encontrei onde inserir o texto da preferência neste documento. Digite/cole o texto e clique em "Continuar" — a extensão continua daí.', "warn");
 				return;
 			}
-			last = insertAfter(ref, conteudo, false);
+			last = insertAfter(onde.ref, conteudo, onde.antes);
 		}
 
 		if (job.mode === "edit") {
