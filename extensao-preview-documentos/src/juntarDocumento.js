@@ -629,7 +629,7 @@
 		}
 		// Juntar Documento salva mesmo sem texto (o documento pode vir do
 		// Modelo); só confirma quando o "texto" é o documento inteiro.
-		if (rec.conteudo && rec.conteudoInteiro && !(rec.edicao && rec.edicao.mudou) && !confirmarSemTexto(rec)) return false;
+		if (rec.conteudo && rec.conteudoInteiro && !rec.edicao && !confirmarSemTexto(rec)) return false;
 		const name = prompt(
 			job.mode === "edit" ? 'Atualizar a preferência de "Juntar Documento". Nome:' : 'Nome para esta preferência de "Juntar Documento":',
 			job.mode === "edit" ? job.pref.name : ""
@@ -646,7 +646,7 @@
 			ancora: rec.ancora || null,
 			ancoraIndice: typeof rec.ancoraIndice === "number" ? rec.ancoraIndice : null,
 			totalBlocos: typeof rec.totalBlocos === "number" ? rec.totalBlocos : null,
-			edicao: rec.edicao && rec.edicao.mudou ? rec.edicao : null,
+			edicao: rec.edicao || null,
 		};
 		persistPref(pref).catch(function (err) {
 			alert("Não foi possível salvar a preferência: " + err.message);
@@ -659,9 +659,9 @@
 	// Preferência sem texto: ao usá-la, a extensão para no "Digitar
 	// Documento" para o usuário digitar (não clica em "Continuar" sozinha).
 	function confirmarSemTexto(rec) {
-		// Edição do texto do Modelo (apagar trechos, formatar): é o próprio
-		// "texto" da preferência, mesmo sem nada acrescentado.
-		if (rec.edicao && rec.edicao.mudou) return true;
+		// A versão final foi captada no "Continuar" (rec.edicao): é ela que
+		// vale, com ou sem alterações no texto do Modelo.
+		if (rec.edicao) return true;
 		if (rec.conteudo && rec.conteudoInteiro) {
 			return confirm(
 				"O texto gravado nesta preferência parece ser o documento inteiro, com dados deste processo (nomes, endereços, datas), e não só o trecho que você digitou.\n\n" +
@@ -698,7 +698,7 @@
 			ancora: rec.ancora || null,
 			ancoraIndice: typeof rec.ancoraIndice === "number" ? rec.ancoraIndice : null,
 			totalBlocos: typeof rec.totalBlocos === "number" ? rec.totalBlocos : null,
-			edicao: rec.edicao && rec.edicao.mudou ? rec.edicao : null,
+			edicao: rec.edicao || null,
 		};
 		persistPref(pref, DECURSO_PREFS_KEY).catch(function (err) {
 			alert("Não foi possível salvar a preferência: " + err.message);
@@ -1028,7 +1028,7 @@
 			ancora: rec.ancora || null,
 			ancoraIndice: typeof rec.ancoraIndice === "number" ? rec.ancoraIndice : null,
 			totalBlocos: typeof rec.totalBlocos === "number" ? rec.totalBlocos : null,
-			edicao: rec.edicao && rec.edicao.mudou ? rec.edicao : null,
+			edicao: rec.edicao || null,
 			postergar: !!postergar,
 			docMovimentos: movimentosDaGravacao(job),
 		};
@@ -2247,6 +2247,16 @@
 				return;
 			}
 			await clickContinuar(form, job, "edições da preferência refeitas.");
+			return;
+		}
+		// Versão final gravada sem nenhuma alteração no texto do Modelo:
+		// segue com o documento como o Projudi o gerou.
+		if (edicao && !edicao.mudou) {
+			if (job.mode === "edit") {
+				showStatus(modeLabel(job) + ': esta preferência usa o texto do Modelo sem alterações. Ajuste se quiser e clique em "Continuar".', "rec");
+				return;
+			}
+			await clickContinuar(form, job, "texto do Modelo, como gravado.");
 			return;
 		}
 

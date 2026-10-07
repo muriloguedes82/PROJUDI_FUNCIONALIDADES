@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.29.0 |
-| **Versão da extensão** | 2.29.0 |
+| **Versão do manual** | 2.29.1 |
+| **Versão da extensão** | 2.29.1 |
 | **Data desta versão** | 07/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1257,8 +1257,11 @@ Movimento**.
 
 **Bom saber:**
 
-- Só o que **você** fez no texto é gravado; cabeçalho, número dos autos,
-  data e texto do Modelo são gerados pelo Projudi em cada processo.
+- O que fica gravado é a **versão final** do documento no momento do
+  clique em **Continuar** (é ele que encerra a edição). Se você não
+  alterou nada, fica gravado o texto do Modelo como está; se alterou, a
+  versão alterada. Cabeçalho, número dos autos, data e dados das partes
+  são sempre os do processo em que a preferência é usada.
 - **Editar o texto do Modelo também vale:** se você apagar trechos, mudar
   a formatação (negrito, itálico, sublinhado) ou alterar parágrafos do
   texto que o Modelo gerou, a preferência grava essas edições, parágrafo
@@ -2094,10 +2097,12 @@ na seção **📝 Analisar Decurso** (com **+ Nova preferência**, ✏️ e 🗑
   não **Concluir**, a extensão para e pede que você clique nele e feche o
   popup — no lote, o próximo processo só começa depois disso.
 - O PIN da assinatura **nunca** é guardado.
-- A extensão só clica em **Continuar** sozinha se a preferência tiver um
-  **texto gravado**. Sem texto, ela para no "Digitar Documento" para você
-  digitar. Ao gravar, se nenhum texto for captado, ela avisa antes de
-  salvar; para incluir o texto numa preferência já salva, use **✏️**.
+- O texto gravado é a **versão final** do documento no momento em que
+  você clicou em **Continuar** — com ou sem alterações no texto do Modelo.
+  Ao usar a preferência, a extensão refaz essa versão e clica em
+  **Continuar** sozinha. Preferências antigas, gravadas sem passar pelo
+  Continuar, param no "Digitar Documento" para você digitar; para
+  regravá-las, use **✏️**.
 - Um decurso (ou um lote) por vez.
 
 <a id="cap-9-10"></a>
@@ -2337,6 +2342,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.29.1 | 07/10/2026 | Preferências com texto (8.2, 9.9, 9.10): a versão final do documento no clique em **Continuar** é sempre a gravada — também quando você não altera nada no texto do Modelo (antes aparecia o aviso "Não consegui gravar nenhum texto" e, com o marcador "INSIRA O TEXTO AQUI", a extensão parava para você digitar). Textos das seções 8.2 e 9.9 ajustados. |
 | 2.29.0 | 07/10/2026 | Preferências com texto (Juntar Documento 8.2, Analisar Decurso 9.9 e Pré-Análise 9.10): passam a gravar também as **edições do texto do Modelo** — trechos apagados, formatação (negrito, itálico, sublinhado) e parágrafos alterados —, e as refazem em cada uso no documento novo, trocando os dados do processo (número, nomes, endereço, CPF, datas) pelos do processo novo nos parágrafos alterados. Os parágrafos não alterados ficam como o Projudi os gera. Sem vídeo novo: a tela não muda. |
 | 2.28.1 | 07/10/2026 | Sem alteração de texto; corrigido: em documentos gerados por **Modelo** (ex.: mandados), ao gravar uma preferência (Juntar Documento, Analisar Decurso ou Pré-Análise) a extensão gravava o documento inteiro em vez do texto digitado, e ao usá-la avisava "Não encontrei onde inserir o texto da preferência". Agora grava só o que você digitou e o insere no mesmo lugar — inclusive quando o parágrafo de referência tem dados do processo (nome, data). Se o texto gravado parecer o documento inteiro, a extensão avisa antes de salvar. Preferências gravadas com o erro precisam ser gravadas de novo (✏️). |
 | 2.28.0 | 06/10/2026 | Pré-Análise com preferências (9.10): a gravação não pergunta mais sobre o "Postergar Assinatura" — ela termina no seu clique em **Assinar e Expedir** ou **Postergar Assinatura** (o botão escolhido fica gravado), e só então a extensão pede o nome. Nova opção **☆ padrão** na janela **Seleção de Documentos** (botão **Adicionar** de Documento(s) do Processo/Recurso): ao usar a preferência, a extensão anexa os documentos do movimento mais recente com esse nome (ex.: Concedida a Medida Protetiva). O card ⭐ mostra "+ documentos". Vídeo V50 regravado. |
