@@ -2115,7 +2115,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V15](videos/V15-dispensar-decursos.mp4) | [Dispensar decursos de prazo](videos/V15-dispensar-decursos.mp4) | [6.3](#cap-6-3) | 0:31 |
 | [V16](videos/V16-acoes-rapidas.mp4) | [Ações rápidas](videos/V16-acoes-rapidas.mp4) | [7.1](#cap-7-1) | 0:44 |
 | [V17](videos/V17-preferencias.mp4) | [Preferências](videos/V17-preferencias.mp4) | [7.2](#cap-7-2) | 1:18 |
-| [V18](videos/V18-minhas-preferencias.mp4) | [Minhas Preferências](videos/V18-minhas-preferencias.mp4) | [7.3](#cap-7-3) | 0:48 |
+| [V18](videos/V18-minhas-preferencias.mp4) | [Minhas Preferências](videos/V18-minhas-preferencias.mp4) | [7.3](#cap-7-3) | 0:55 |
 | [V19](videos/V19-combos-de-preferencias.mp4) | [Combos de preferências](videos/V19-combos-de-preferencias.mp4) | [7.4](#cap-7-4) | 0:58 |
 | [V20](videos/V20-alvara-eletronico.mp4) | [Alvará Eletrônico](videos/V20-alvara-eletronico.mp4) | [8.1](#cap-8-1) | 0:45 |
 | [V21](videos/V21-juntar-documento.mp4) | [Juntar Documento com preferências](videos/V21-juntar-documento.mp4) | [8.2](#cap-8-2) | 1:09 |
