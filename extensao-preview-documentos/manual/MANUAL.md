@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.25.0 |
-| **Versão da extensão** | 2.25.0 |
-| **Data desta versão** | 06/10/2026 |
+| **Versão do manual** | 2.25.1 |
+| **Versão da extensão** | 2.25.1 |
+| **Data desta versão** | 07/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -663,8 +663,16 @@ processo principal sem abri-lo.
 **Sequencial do Processo Principal:**, logo abaixo de **Processo
 Principal:**.
 
-**Bom saber:** a linha mostra "carregando…" por um instante. No próprio
-processo principal ela não aparece.
+**Bom saber:**
+
+- A linha mostra "carregando…" por um instante. No próprio processo
+  principal ela não aparece.
+- Quando há apensos de apensos, vale sempre o **primeiro processo da árvore
+  de Apensamentos**. Ex.: uma Petição apensada a uma Medida Protetiva que,
+  por sua vez, está apensada a uma Ação Penal — tanto na Medida Protetiva
+  quanto na Petição aparece o Sequencial da **Ação Penal**.
+- Se a extensão não conseguir confirmar o número do processo principal,
+  a linha mostra "não encontrado" em vez de um número errado.
 
 ---
 
@@ -2144,6 +2152,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.25.1 | 07/10/2026 | Seção 4.4: com apensos de apensos, o **Sequencial do Processo Principal** passa a ser sempre o do primeiro processo da árvore de Apensamentos (antes podia aparecer o de um apenso intermediário); se não der para confirmar, mostra "não encontrado". Sem vídeo novo. |
 | 2.25.0 | 06/10/2026 | Nova seção 2.3 (**Atualização da extensão**) reescrita: aviso **🆕 Há novidades na extensão!** abaixo do ícone da balança quando sai versão nova, com a observação para exportar as preferências antes, os botões **1. Exportar preferências** e **2. Atualizar** e o passo a passo para recarregar a extensão; explica que as preferências continuam quando os arquivos novos são colados por cima da mesma pasta. Seção 2.6: ponto azul no ícone e faixa "Versão nova disponível" no Menu. Novo vídeo V48. |
 | 2.24.0 | 06/10/2026 | Nova seção **8.10 Novo Valor da Causa** (só no Projudi): linha **Valor da Causa** no cabeçalho do processo (em qualquer aba), com o balão **💲 Novo Valor da Causa** ao lado do valor; você digita o novo valor e a extensão o grava na tela de alteração do processo e clica em **Salvar** sozinha, sem abrir a tela — o Projudi registra a alteração nas Movimentações. Nova função na tabela da 2.6 (30 funções no Projudi), Solução de problemas (11) e vídeo V47. |
 | 2.23.4 | 06/10/2026 | Destacar movimentações (3.4): novos tipos **Procurador / Procuradora** (ex.: "Procurador do Município de ..."), **Defensor / Defensora** e **Audiência** (esta destaca as movimentações de audiência, seja quem for que as lançou), os mesmos do quadro **Realces** do Projudi. Vídeo V06 regravado. |

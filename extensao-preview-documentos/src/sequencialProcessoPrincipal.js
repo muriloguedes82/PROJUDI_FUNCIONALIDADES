@@ -111,8 +111,12 @@
 				// navegação de verdade começar; ignora esse primeiro evento.
 				if (finalUrl === "about:blank") return;
 				settled = true;
-				cleanup();
-				resolve(doc);
+				// O iframe NÃO é removido aqui: o conteúdo da aba "Informações
+				// Gerais" (onde ficam "Sequencial" e "Processo Principal") chega
+				// por AJAX depois do "load", e um iframe removido não termina
+				// de carregá-lo. Quem chamou libera com `liberar()` depois de ler.
+				clearTimeout(timeout);
+				resolve({ doc: doc, liberar: cleanup });
 			});
 
 			document.body.appendChild(iframe);
@@ -219,73 +223,125 @@
 		}
 	}
 
-	// Sobe a cadeia de apensamentos até achar a raiz — o processo que já
-	// não tem, ele mesmo, um "Processo Principal:" — e devolve o Sequencial
-	// DELA. Necessário porque um apenso pode estar apensado a outro
-	// processo que, por sua vez, também é apenso de um terceiro (ex.: uma
-	// Liberdade Provisória apensada a uma Medida Protetiva, que por sua vez
-	// está apensada ao Inquérito Policial original): o "processo principal"
-	// que interessa mostrar é sempre o da raiz, não o do primeiro nível.
-	//
-	// O campo "Processo Principal:" fica fora da aba "Informações Gerais"
-	// (não depende dela carregar via AJAX — está sempre presente assim que
-	// a página termina de montar, mesmo padrão já usado em `init()` para a
-	// página atual), por isso dá para checar cada nível assim que o iframe
-	// carrega, sem esperar. Só o "Sequencial" da raiz, que é o que
-	// realmente precisa da aba carregada, é que exige a espera.
-	async function sequencialDaRaizDaCadeia(url) {
-		const LIMITE_NIVEIS = 10;
-		let alvo = url;
-		for (let nivel = 0; nivel < LIMITE_NIVEIS; nivel++) {
-			const targetUrl = comAbaInformacoesGerais(alvo);
-			console.log(TAG, "buscando na cadeia de apensamentos", { nivel: nivel, targetUrl: targetUrl });
-			const doc = await fetchDoc(targetUrl);
-			console.log(TAG, "iframe carregado", {
-				nivel: nivel,
-				finalUrl: doc.location && doc.location.href,
-				title: doc.title,
-				temTabelaInformacoesProcessuais: !!doc.getElementById("informacoesProcessuais"),
-			});
+	const RE_NUMERO_CNJ = /\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/;
 
-			const principalRowNesteNivel = findRowByLabel(doc, "Processo Principal");
-			const linkNesteNivel = principalRowNesteNivel && principalRowNesteNivel.querySelector("a.link");
-			if (linkNesteNivel && linkNesteNivel.href) {
-				// Este processo também é apenso de outro — sobe mais um nível.
-				alvo = linkNesteNivel.href;
-				continue;
-			}
+	// Primeiro processo da árvore de "Apensamentos:" desta página. O Projudi
+	// desenha essa árvore a partir do processo-raiz — o que não é apenso de
+	// ninguém — com os apensos (e os apensos dos apensos) pendurados abaixo
+	// dele, em qualquer processo da árvore que se abra. Ex.:
+	//   Processo: 0037276-16.2025.8.16.0019 - Ação Penal        ← raiz
+	//     Processo: 0035990-03.2025.8.16.0019 - Medidas Protetivas
+	//       Processo: 0022813-35.2026.8.16.0019 - Petição Criminal
+	// Tanto no 35990 quanto no 22813 o "processo principal" que interessa é
+	// o 37276. Devolve { numero, href } ou null se a árvore não estiver na
+	// página (ou o primeiro item não tiver um link utilizável).
+	function raizDaArvoreDeApensamentos() {
+		const row = findRowByLabel(document, "Apensamentos");
+		if (!row) return null;
+		const cells = row.querySelectorAll("td");
+		const valor = cells[cells.length - 1];
+		if (!valor) return null;
+		const links = Array.prototype.filter.call(valor.querySelectorAll("a[href]"), function (link) {
+			const href = link.getAttribute("href") || "";
+			return href && href !== "#" && !/^javascript:/i.test(href);
+		});
+		// De preferência o link cujo próprio texto traz o número do processo;
+		// senão, o primeiro link para um processo cujo item da árvore traga
+		// o número (descarta ícones de abrir/fechar a árvore).
+		for (const link of links) {
+			const m = RE_NUMERO_CNJ.exec(link.textContent);
+			if (m) return { numero: m[0], href: link.href };
+		}
+		for (const link of links) {
+			if (!/processo/i.test(link.href)) continue;
+			const item = link.closest("li, tr, div, span") || link;
+			const m = RE_NUMERO_CNJ.exec(item.textContent);
+			if (m) return { numero: m[0], href: link.href };
+		}
+		return null;
+	}
 
-			// Achou a raiz: busca o Sequencial DELA (aqui sim é preciso esperar
-			// a aba "Informações Gerais" carregar via AJAX).
+	// Carrega um processo num iframe oculto, já na aba "Informações Gerais",
+	// e espera o "Sequencial" aparecer (ele chega por AJAX). Só então lê o
+	// "Processo Principal:" da mesma página — antes, ele podia ainda não ter
+	// chegado, e um apenso intermediário podia ser tomado por raiz.
+	async function lerProcesso(url) {
+		const targetUrl = comAbaInformacoesGerais(url);
+		const carregado = await fetchDoc(targetUrl);
+		const doc = carregado.doc;
+		try {
 			const sequencialRow = await waitForRow(doc, "Sequencial", 10000);
 			const valueCell = sequencialRow && sequencialRow.querySelectorAll("td")[1];
 			const sequencial = valueCell && valueCell.textContent.trim();
+			const principalRow = findRowByLabel(doc, "Processo Principal");
+			const principalLink = principalRow && principalRow.querySelector("a.link, a[href]");
 			if (!sequencial) {
-				// Diagnóstico: sem isso, uma falha aqui não dá nenhuma pista de
-				// qual foi o problema (aba errada, sessão/redirecionamento,
-				// rótulo diferente do esperado etc.) — lista os rótulos que
-				// realmente vieram na página buscada, para comparar com
-				// "Sequencial" à mão no console (F12) sem precisar adivinhar.
-				const rotulosEncontrados = Array.prototype.slice
-					.call(doc.querySelectorAll("td.label label, td.labelRadio label"))
-					.map(function (label) {
-						return label.textContent.trim();
-					})
-					.filter(Boolean);
-				console.warn(TAG, "campo Sequencial não encontrado na raiz da cadeia de apensamentos", {
-					nivel: nivel,
+				// Diagnóstico: lista os rótulos que realmente vieram na página
+				// buscada, para comparar com "Sequencial" à mão no console (F12).
+				console.warn(TAG, "campo Sequencial não encontrado", {
 					targetUrl: targetUrl,
 					finalUrl: doc.location && doc.location.href,
 					title: doc.title,
-					rotulosEncontrados: rotulosEncontrados,
-					bodySnippet: (doc.body ? doc.body.textContent || "" : "").replace(/\s+/g, " ").trim().slice(0, 300),
+					rotulosEncontrados: Array.prototype.slice
+						.call(doc.querySelectorAll("td.label label, td.labelRadio label"))
+						.map(function (label) {
+							return label.textContent.trim();
+						})
+						.filter(Boolean),
 				});
-			} else {
-				console.log(TAG, "Sequencial da raiz da cadeia encontrado:", sequencial, { niveis: nivel + 1 });
 			}
-			return sequencial || null;
+			return {
+				sequencial: sequencial || null,
+				principalHref: principalLink && principalLink.href ? principalLink.href : null,
+				// Texto da página, para conferir se o Projudi devolveu mesmo o
+				// processo pedido.
+				texto: (doc.title || "") + " " + (doc.body ? doc.body.textContent : ""),
+			};
+		} finally {
+			carregado.liberar();
 		}
-		console.warn(TAG, "cadeia de apensamentos excedeu " + LIMITE_NIVEIS + " níveis — abortando para evitar loop infinito", { url: url });
+	}
+
+	// Sobe a cadeia de apensamentos até achar a raiz — o processo que já
+	// não tem, ele mesmo, um "Processo Principal:" — e devolve o Sequencial
+	// DELA. Um apenso pode estar apensado a outro processo que, por sua vez,
+	// também é apenso de um terceiro: o "processo principal" que interessa
+	// mostrar é sempre o primeiro da árvore, não o do primeiro nível.
+	//
+	// Caminho preferido: a árvore de "Apensamentos:" da própria página já diz
+	// qual é a raiz, então basta buscar o Sequencial dela. Se a árvore não
+	// estiver disponível, sobe nível a nível pelo link "Processo Principal:".
+	async function sequencialDaRaizDaCadeia(urlPrincipal) {
+		const LIMITE_NIVEIS = 10;
+		const raiz = raizDaArvoreDeApensamentos();
+		let alvo = raiz ? raiz.href : urlPrincipal;
+		console.log(TAG, raiz ? "raiz pela árvore de Apensamentos:" : "árvore de Apensamentos não encontrada, subindo pelo Processo Principal:", raiz || urlPrincipal);
+
+		const visitados = new Set();
+		for (let nivel = 0; nivel < LIMITE_NIVEIS; nivel++) {
+			if (visitados.has(alvo)) {
+				console.warn(TAG, "cadeia de apensamentos voltou a um processo já visitado — abortando", { alvo: alvo });
+				return null;
+			}
+			visitados.add(alvo);
+			const info = await lerProcesso(alvo);
+			console.log(TAG, "processo lido na cadeia", { nivel: nivel, alvo: alvo, sequencial: info.sequencial, temProcessoPrincipal: !!info.principalHref });
+
+			if (info.principalHref) {
+				// Este processo também é apenso de outro — sobe mais um nível.
+				alvo = info.principalHref;
+				continue;
+			}
+			if (nivel === 0 && raiz && info.texto.indexOf(raiz.numero) === -1) {
+				// O Projudi devolveu outra página que não a do processo pedido:
+				// melhor não mostrar número nenhum do que o de outro processo.
+				console.warn(TAG, "página carregada não é a da raiz esperada", { esperado: raiz.numero });
+				return null;
+			}
+			console.log(TAG, "Sequencial da raiz da cadeia encontrado:", info.sequencial, { niveis: nivel + 1 });
+			return info.sequencial;
+		}
+		console.warn(TAG, "cadeia de apensamentos excedeu " + LIMITE_NIVEIS + " níveis — abortando para evitar loop infinito", { url: urlPrincipal });
 		return null;
 	}
 
