@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.28.1 |
-| **Versão da extensão** | 2.28.1 |
+| **Versão do manual** | 2.29.0 |
+| **Versão da extensão** | 2.29.0 |
 | **Data desta versão** | 07/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1257,8 +1257,19 @@ Movimento**.
 
 **Bom saber:**
 
-- Só o texto que **você** escreveu é gravado; cabeçalho, número dos autos,
+- Só o que **você** fez no texto é gravado; cabeçalho, número dos autos,
   data e texto do Modelo são gerados pelo Projudi em cada processo.
+- **Editar o texto do Modelo também vale:** se você apagar trechos, mudar
+  a formatação (negrito, itálico, sublinhado) ou alterar parágrafos do
+  texto que o Modelo gerou, a preferência grava essas edições, parágrafo
+  a parágrafo, e as refaz em cada uso — no documento novo, gerado pelo
+  mesmo Modelo. Os parágrafos que você não mexeu ficam como o Projudi os
+  gerou para o processo novo; nos que você alterou, os dados do processo
+  (número, nomes das partes, endereço, CPF, datas) são trocados pelos do
+  processo novo. Se o documento não parecer do mesmo Modelo, a extensão
+  não mexe nele e avisa, para você fazer à mão.
+- Confira sempre o documento antes de concluir: um dado que você digitou
+  à mão (fora do que o Modelo gera) não é trocado.
 - O PIN **nunca** é guardado.
 - Se um passo automático falhar, faça-o à mão: a extensão continua do
   seguinte. **Parar**, na faixa, encerra sem gravar.
@@ -2163,6 +2174,10 @@ são feitos um de cada vez; com "postergar", seguem sozinhos até o fim.
   extensão continua do seguinte.
 - Precisa das **Ações rápidas** e do **Juntar Documento** ligados no Menu
   ([2.6](#cap-2-6)).
+- No **Digitar Documento**, você pode tanto escrever um texto quanto
+  **editar o texto do Modelo** (apagar trechos, negrito, itálico): as
+  edições são gravadas e refeitas em cada mandado, com os dados de cada
+  processo (veja [8.2](#cap-8-2)).
 - Na lista de **Mandados**, se a tela final do mandado não mostrar
   **Postergar Assinatura** nem **Assinar e Expedir**, a extensão não faz
   nada nela: termine o mandado à mão e feche o popup.
@@ -2322,6 +2337,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.29.0 | 07/10/2026 | Preferências com texto (Juntar Documento 8.2, Analisar Decurso 9.9 e Pré-Análise 9.10): passam a gravar também as **edições do texto do Modelo** — trechos apagados, formatação (negrito, itálico, sublinhado) e parágrafos alterados —, e as refazem em cada uso no documento novo, trocando os dados do processo (número, nomes, endereço, CPF, datas) pelos do processo novo nos parágrafos alterados. Os parágrafos não alterados ficam como o Projudi os gera. Sem vídeo novo: a tela não muda. |
 | 2.28.1 | 07/10/2026 | Sem alteração de texto; corrigido: em documentos gerados por **Modelo** (ex.: mandados), ao gravar uma preferência (Juntar Documento, Analisar Decurso ou Pré-Análise) a extensão gravava o documento inteiro em vez do texto digitado, e ao usá-la avisava "Não encontrei onde inserir o texto da preferência". Agora grava só o que você digitou e o insere no mesmo lugar — inclusive quando o parágrafo de referência tem dados do processo (nome, data). Se o texto gravado parecer o documento inteiro, a extensão avisa antes de salvar. Preferências gravadas com o erro precisam ser gravadas de novo (✏️). |
 | 2.28.0 | 06/10/2026 | Pré-Análise com preferências (9.10): a gravação não pergunta mais sobre o "Postergar Assinatura" — ela termina no seu clique em **Assinar e Expedir** ou **Postergar Assinatura** (o botão escolhido fica gravado), e só então a extensão pede o nome. Nova opção **☆ padrão** na janela **Seleção de Documentos** (botão **Adicionar** de Documento(s) do Processo/Recurso): ao usar a preferência, a extensão anexa os documentos do movimento mais recente com esse nome (ex.: Concedida a Medida Protetiva). O card ⭐ mostra "+ documentos". Vídeo V50 regravado. |
 | 2.27.2 | 06/10/2026 | Sem alteração de texto; corrigido: ao usar uma preferência de Pré-Análise na lista de **Mandados** (9.10), a extensão parava na pré-visualização do documento, que ali tem os botões **Salvar** e **Voltar** (e não Concluir e Alterar). Agora ela clica em **Salvar** e segue. |

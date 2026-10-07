@@ -629,7 +629,7 @@
 		}
 		// Juntar Documento salva mesmo sem texto (o documento pode vir do
 		// Modelo); só confirma quando o "texto" é o documento inteiro.
-		if (rec.conteudo && rec.conteudoInteiro && !confirmarSemTexto(rec)) return false;
+		if (rec.conteudo && rec.conteudoInteiro && !(rec.edicao && rec.edicao.mudou) && !confirmarSemTexto(rec)) return false;
 		const name = prompt(
 			job.mode === "edit" ? 'Atualizar a preferência de "Juntar Documento". Nome:' : 'Nome para esta preferência de "Juntar Documento":',
 			job.mode === "edit" ? job.pref.name : ""
@@ -646,6 +646,7 @@
 			ancora: rec.ancora || null,
 			ancoraIndice: typeof rec.ancoraIndice === "number" ? rec.ancoraIndice : null,
 			totalBlocos: typeof rec.totalBlocos === "number" ? rec.totalBlocos : null,
+			edicao: rec.edicao && rec.edicao.mudou ? rec.edicao : null,
 		};
 		persistPref(pref).catch(function (err) {
 			alert("Não foi possível salvar a preferência: " + err.message);
@@ -658,6 +659,9 @@
 	// Preferência sem texto: ao usá-la, a extensão para no "Digitar
 	// Documento" para o usuário digitar (não clica em "Continuar" sozinha).
 	function confirmarSemTexto(rec) {
+		// Edição do texto do Modelo (apagar trechos, formatar): é o próprio
+		// "texto" da preferência, mesmo sem nada acrescentado.
+		if (rec.edicao && rec.edicao.mudou) return true;
 		if (rec.conteudo && rec.conteudoInteiro) {
 			return confirm(
 				"O texto gravado nesta preferência parece ser o documento inteiro, com dados deste processo (nomes, endereços, datas), e não só o trecho que você digitou.\n\n" +
@@ -694,6 +698,7 @@
 			ancora: rec.ancora || null,
 			ancoraIndice: typeof rec.ancoraIndice === "number" ? rec.ancoraIndice : null,
 			totalBlocos: typeof rec.totalBlocos === "number" ? rec.totalBlocos : null,
+			edicao: rec.edicao && rec.edicao.mudou ? rec.edicao : null,
 		};
 		persistPref(pref, DECURSO_PREFS_KEY).catch(function (err) {
 			alert("Não foi possível salvar a preferência: " + err.message);
@@ -1023,6 +1028,7 @@
 			ancora: rec.ancora || null,
 			ancoraIndice: typeof rec.ancoraIndice === "number" ? rec.ancoraIndice : null,
 			totalBlocos: typeof rec.totalBlocos === "number" ? rec.totalBlocos : null,
+			edicao: rec.edicao && rec.edicao.mudou ? rec.edicao : null,
 			postergar: !!postergar,
 			docMovimentos: movimentosDaGravacao(job),
 		};
@@ -1801,6 +1807,285 @@
 		};
 	}
 
+	// -------------------------------------------------------------------
+	// Edição do texto do Modelo. Em vez de só acrescentar um trecho, o
+	// usuário pode editar o documento que o Projudi gerou pelo Modelo
+	// (apagar trechos, mudar a formatação, alterar parágrafos). A gravação
+	// guarda essa edição parágrafo a parágrafo, comparando com o documento
+	// como ele abriu: "keep" (parágrafo igual - no uso fica o do documento
+	// novo, com os dados do processo novo), "mod" (parágrafo alterado: a
+	// versão do usuário, com os dados variáveis trocados pelos do processo
+	// novo) e "new" (parágrafo acrescentado). Parágrafos apagados
+	// simplesmente não aparecem. No uso, os parágrafos dos dois documentos
+	// são casados pela posição (mesmo Modelo, mesmo número de parágrafos)
+	// ou pela semelhança do começo do texto.
+	// -------------------------------------------------------------------
+
+	function textoDaChave(key) {
+		if (key.indexOf("#text:") === 0) return cleanText(key.slice(6));
+		try {
+			return cleanText(new DOMParser().parseFromString(key, "text/html").body.textContent);
+		} catch (err) {
+			return "";
+		}
+	}
+
+	function palavras(texto) {
+		return texto ? texto.split(" ") : [];
+	}
+
+	// Pares [i, j] da maior subsequência comum entre `a` e `b`.
+	function lcsPares(a, b, igual) {
+		const n = a.length;
+		const m = b.length;
+		const t = [];
+		for (let i = 0; i <= n; i++) t.push(new Array(m + 1).fill(0));
+		for (let i = n - 1; i >= 0; i--) {
+			for (let j = m - 1; j >= 0; j--) {
+				t[i][j] = igual(a[i], b[j]) ? t[i + 1][j + 1] + 1 : Math.max(t[i + 1][j], t[i][j + 1]);
+			}
+		}
+		const pares = [];
+		let i = 0;
+		let j = 0;
+		while (i < n && j < m) {
+			if (igual(a[i], b[j])) {
+				pares.push([i, j]);
+				i++;
+				j++;
+			} else if (t[i + 1][j] >= t[i][j + 1]) i++;
+			else j++;
+		}
+		return pares;
+	}
+
+	function semelhanca(a, b) {
+		const pa = palavras(a.toLowerCase());
+		const pb = palavras(b.toLowerCase());
+		if (!pa.length && !pb.length) return 1;
+		if (!pa.length || !pb.length) return 0;
+		return (2 * lcsPares(pa, pb, function (x, y) { return x === y; }).length) / (pa.length + pb.length);
+	}
+
+	// Começo do parágrafo, sem números, para casar parágrafos de documentos
+	// do mesmo Modelo quando o número de parágrafos muda.
+	function assinatura(texto) {
+		return palavras(texto.toLowerCase().replace(/\d/g, "#")).slice(0, 8).join(" ");
+	}
+
+	function blocosDoEditor(body) {
+		return Array.prototype.slice.call(blocosRaiz(body).childNodes).filter(function (node) { return !!nodeKey(node); });
+	}
+
+	function blocoVisivel(node) {
+		return !!cleanText(node.textContent || "") || !!(node.querySelector && node.querySelector("img, table, hr"));
+	}
+
+	// Gravação: a edição do documento em relação a `snapshot` (blocos na
+	// abertura do editor).
+	function gerarEdicao(body, snapshot) {
+		const finais = blocosDoEditor(body);
+		const chavesFinais = finais.map(nodeKey);
+		const pares = lcsPares(snapshot, chavesFinais, function (x, y) { return x === y; });
+		pares.push([snapshot.length, chavesFinais.length]);
+		const itens = [];
+		const usados = {};
+		let i = 0;
+		let j = 0;
+		pares.forEach(function (par) {
+			// Trecho alterado entre dois parágrafos iguais: cada parágrafo
+			// final é casado com o original mais parecido do trecho (em
+			// ordem); sem nenhum parecido, é parágrafo novo.
+			let minimo = i;
+			for (let f = j; f < par[1]; f++) {
+				const node = finais[f];
+				if (!blocoVisivel(node)) continue;
+				const texto = cleanText(node.textContent || "");
+				let melhor = -1;
+				let nota = 0.4;
+				for (let o = minimo; o < par[0]; o++) {
+					const s = semelhanca(textoDaChave(snapshot[o]), texto);
+					if (s >= nota) {
+						nota = s;
+						melhor = o;
+					}
+				}
+				const html = node.nodeType === 1 ? node.outerHTML : "<span>" + escapeHtml(node.nodeValue) + "</span>";
+				if (melhor >= 0) {
+					itens.push({ k: "mod", i: melhor, html: html, orig: textoDaChave(snapshot[melhor]) });
+					usados[melhor] = true;
+					minimo = melhor + 1;
+				} else {
+					itens.push({ k: "new", html: html });
+				}
+			}
+			if (par[0] < snapshot.length) {
+				itens.push({ k: "keep", i: par[0] });
+				usados[par[0]] = true;
+			}
+			i = par[0] + 1;
+			j = par[1] + 1;
+		});
+		let apagados = 0;
+		for (let o = 0; o < snapshot.length; o++) if (!usados[o] && cleanText(textoDaChave(snapshot[o]))) apagados++;
+		return {
+			total: snapshot.length,
+			assin: snapshot.map(function (k) { return assinatura(textoDaChave(k)); }),
+			itens: itens,
+			mudou: apagados > 0 || itens.some(function (it) { return it.k !== "keep"; }),
+		};
+	}
+
+	function escapeHtml(texto) {
+		return String(texto).replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; });
+	}
+
+	// Trocas de dados variáveis entre o parágrafo original (gravação) e o
+	// mesmo parágrafo no documento novo: trechos que diferem, com as palavras
+	// iguais em volta servindo de referência (ex.: o nome da parte).
+	// Palavras e sinais de pontuação separados (o nome da parte costuma vir
+	// em negrito, com a vírgula fora dele).
+	function tokens(texto) {
+		return (texto || "").match(/[^\s,;:!?"“”()]+|[,;:!?"“”()]/g) || [];
+	}
+
+	const PONTUACAO_RE = /^[,;:!?"“”().\-–]+$/;
+
+	function trocasEntre(antigo, novo) {
+		const pa = tokens(antigo);
+		const pn = tokens(novo);
+		const pares = lcsPares(pa, pn, function (x, y) { return x === y; });
+		pares.push([pa.length, pn.length]);
+		const trocas = [];
+		let i = 0;
+		let j = 0;
+		function limpa(lista) {
+			let a = 0;
+			let b = lista.length;
+			while (a < b && PONTUACAO_RE.test(lista[a])) a++;
+			while (b > a && PONTUACAO_RE.test(lista[b - 1])) b--;
+			return lista.slice(a, b);
+		}
+		pares.forEach(function (par) {
+			if (par[0] > i && par[1] > j) {
+				const velho = limpa(pa.slice(i, par[0]));
+				const novoRun = limpa(pn.slice(j, par[1]));
+				if (velho.length && novoRun.length) trocas.push([velho, novoRun]);
+			}
+			i = par[0] + 1;
+			j = par[1] + 1;
+		});
+		return trocas;
+	}
+
+	function aplicarTrocas(raiz, trocas) {
+		if (!trocas.length) return;
+		// Cada troca: [tokens antigos, tokens novos]. Entre os tokens, espaço
+		// opcional (a pontuação vem colada na palavra).
+		const ordenadas = trocas.slice().sort(function (a, b) { return b[0].join(" ").length - a[0].join(" ").length; });
+		const walker = raiz.ownerDocument.createTreeWalker(raiz, NodeFilter.SHOW_TEXT);
+		const textos = [];
+		let t;
+		while ((t = walker.nextNode())) textos.push(t);
+		textos.forEach(function (node) {
+			let valor = node.nodeValue;
+			ordenadas.forEach(function (tr) {
+				const velho = tr[0].join(" ");
+				const novo = tr[1].join(" ").replace(/\s+([,;:!?)])/g, "$1").replace(/([(])\s+/g, "$1");
+				if (velho.length < 2 || velho === novo) return;
+				const re = new RegExp(tr[0].map(function (p) { return p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }).join("[\\s\\u00a0]*"), "g");
+				valor = valor.replace(re, function () { return novo; });
+			});
+			if (valor !== node.nodeValue) node.nodeValue = valor;
+		});
+	}
+
+	// Casa os parágrafos da gravação (0..total-1) com os do documento novo.
+	// Devolve um array orig -> índice novo (ou -1).
+	function casarParagrafos(edicao, novosTextos) {
+		const mapa = new Array(edicao.total).fill(-1);
+		if (novosTextos.length === edicao.total) {
+			for (let o = 0; o < edicao.total; o++) mapa[o] = o;
+			return mapa;
+		}
+		const assinNovas = novosTextos.map(assinatura);
+		const pares = lcsPares(edicao.assin || [], assinNovas, function (x, y) { return x === y || (!!x && !!y && semelhanca(x, y) >= 0.6); });
+		pares.forEach(function (p) { mapa[p[0]] = p[1]; });
+		return mapa;
+	}
+
+	// Uso: refaz a edição gravada no documento aberto. Devolve o último nó
+	// colocado, ou null se o documento não parecer do mesmo Modelo.
+	function aplicarEdicao(body, edicao) {
+		const raiz = blocosRaiz(body);
+		const novos = blocosDoEditor(body);
+		const novosTextos = novos.map(function (n) { return cleanText(n.textContent || ""); });
+		const mapa = casarParagrafos(edicao, novosTextos);
+		// Só segue se os parágrafos que a edição usa foram achados.
+		let precisa = 0;
+		let achados = 0;
+		edicao.itens.forEach(function (it) {
+			if (it.k === "new") return;
+			precisa++;
+			if (mapa[it.i] >= 0) achados++;
+		});
+		if (precisa && achados / precisa < 0.8) return null;
+
+		const doc = body.ownerDocument;
+		const globais = [];
+		edicao.itens.forEach(function (it) {
+			if (it.k === "mod" && mapa[it.i] >= 0) Array.prototype.push.apply(globais, trocasEntre(it.orig, novosTextos[mapa[it.i]]));
+		});
+		// Parágrafos do documento novo sem par na gravação (ex.: uma parte a
+		// mais): ficam depois do parágrafo anterior que tem par.
+		const usadosNovos = {};
+		mapa.forEach(function (j) { if (j >= 0) usadosNovos[j] = true; });
+		const extrasDepoisDe = {};
+		let anteriorOrig = -1;
+		const origDoNovo = {};
+		mapa.forEach(function (j, o) { if (j >= 0) origDoNovo[j] = o; });
+		novos.forEach(function (node, j) {
+			if (usadosNovos[j]) {
+				anteriorOrig = origDoNovo[j];
+				return;
+			}
+			(extrasDepoisDe[anteriorOrig] = extrasDepoisDe[anteriorOrig] || []).push(node);
+		});
+
+		const saida = (extrasDepoisDe[-1] || []).slice();
+		const emitidos = { "-1": true };
+		function emitirExtrasAte(o) {
+			Object.keys(extrasDepoisDe).forEach(function (k) {
+				if (!emitidos[k] && Number(k) <= o) {
+					emitidos[k] = true;
+					Array.prototype.push.apply(saida, extrasDepoisDe[k]);
+				}
+			});
+		}
+		function fragmento(html, trocas) {
+			const caixa = doc.createElement("div");
+			caixa.innerHTML = html;
+			aplicarTrocas(caixa, trocas);
+			return Array.prototype.slice.call(caixa.childNodes);
+		}
+		edicao.itens.forEach(function (it) {
+			if (it.k === "keep") {
+				if (mapa[it.i] >= 0) saida.push(novos[mapa[it.i]]);
+				emitirExtrasAte(it.i);
+			} else if (it.k === "mod") {
+				const trocas = mapa[it.i] >= 0 ? trocasEntre(it.orig, novosTextos[mapa[it.i]]) : [];
+				Array.prototype.push.apply(saida, fragmento(it.html, trocas.concat(globais)));
+				emitirExtrasAte(it.i);
+			} else {
+				Array.prototype.push.apply(saida, fragmento(it.html, globais));
+			}
+		});
+		emitirExtrasAte(Infinity);
+		while (raiz.firstChild) raiz.removeChild(raiz.firstChild);
+		saida.forEach(function (node) { raiz.appendChild(node); });
+		return saida.length ? saida[saida.length - 1] : null;
+	}
+
 	// Onde inserir o conteúdo gravado num documento sem marcador: logo
 	// depois do bloco com o texto da âncora (último, se repetido). Sem ele,
 	// pela posição gravada, se o documento tiver o mesmo número de blocos
@@ -1891,7 +2176,10 @@
 		form.__pdpJdWatch = true;
 		function onContinuar() {
 			const body = editorBody();
-			if (body && digitarSnapshot) record(conteudoDigitado(body, digitarSnapshot));
+			if (body && digitarSnapshot) {
+				record(conteudoDigitado(body, digitarSnapshot));
+				record({ edicao: gerarEdicao(body, digitarSnapshot) });
+			}
 			advance(["upload", "digitar"], "incluir");
 		}
 		// "Continuar" (submit), do usuário ou automático.
@@ -1942,6 +2230,23 @@
 				modeLabel(job) + ': digite/ajuste o texto e clique em "Continuar". O que você acrescentar ou alterar (sem cabeçalho, data e assinatura) vai para a preferência.',
 				"rec"
 			);
+			return;
+		}
+
+		// Preferência gravada como edição do texto do Modelo: refaz a edição.
+		const edicao = job.pref.edicao;
+		if (edicao && edicao.mudou) {
+			const ultimo = aplicarEdicao(body, edicao);
+			if (!ultimo) {
+				showStatus('Este documento não parece ser do mesmo Modelo da preferência: não refiz as edições gravadas. Faça-as à mão e clique em "Continuar" — a extensão continua daí.', "warn");
+				return;
+			}
+			if (job.mode === "edit") {
+				if (ultimo.nodeType === 1) placeCaret(body, ultimo, false);
+				showStatus(modeLabel(job) + ': edições da preferência refeitas neste documento. Ajuste se quiser e clique em "Continuar".', "rec");
+				return;
+			}
+			await clickContinuar(form, job, "edições da preferência refeitas.");
 			return;
 		}
 
