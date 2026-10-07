@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.25.0 |
-| **Versão da extensão** | 2.25.0 |
-| **Data desta versão** | 06/10/2026 |
+| **Versão do manual** | 2.26.0 |
+| **Versão da extensão** | 2.26.0 |
+| **Data desta versão** | 07/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -1618,8 +1618,48 @@ nova.
   trocada **e** o motivo foi marcado.
 - Para apagar uma preferência, use **🗑** ao lado dela. As preferências
   entram no **⬇ Exportar** do Menu da extensão ([2.6](#cap-2-6)).
-- Os **Assuntos Secundários** (Adicionar/Remover) não entram na
-  preferência.
+- A ⭐ do **assunto principal** grava só o assunto principal. Para os
+  **Assuntos Secundários**, use a ⭐ própria deles (abaixo).
+
+**Preferências de assuntos secundários (⭐ Secundários)**
+
+▶ [**Vídeo V49** — Preferência de assunto secundário](videos/V49-preferencia-de-assunto-secundario.mp4)
+
+Funciona como a ⭐ da classe e do assunto principal, mas para **incluir**
+(ou **excluir**) um assunto secundário que se repete muito — por exemplo,
+acrescentar **5560 - Violência Doméstica Contra a Mulher**.
+
+**Onde fica:** se o processo já tem assunto secundário, o cabeçalho mostra
+a linha **Assunto Secundário**, e nela há **✏️ Alterar** e **⭐**. Se ainda
+não tem, o balão **⭐ Secundários** fica na linha do **Assunto Principal**,
+depois da ⭐ dele.
+
+*Gravar uma preferência:*
+
+1. Clique na **⭐** dos assuntos secundários (ou em **⭐ Secundários**) e em
+   **+ Nova preferência**.
+2. Abre-se a tela de alteração no popup, já na linha **Assuntos
+   Secundários**, com o aviso amarelo "Gravando preferência".
+3. Use **Adicionar** (ou **Remover**) dos **Assuntos Secundários** como de
+   costume no Projudi. Pode incluir mais de um.
+4. Clique em **Salvar**. Nesse momento **o processo não é alterado**: a
+   extensão guarda os passos que você fez, pede um nome para a preferência
+   e fecha o popup.
+
+*Usar a preferência:* clique na **⭐** dos assuntos secundários e no nome da
+preferência (**★ …**). A extensão repete, sozinha e sem mostrar a tela, o
+**Adicionar**/**Remover** e clica em **Salvar**; no fim, a tela do processo
+é recarregada já com o assunto secundário.
+
+*Bom saber:*
+
+- Se o processo **já tiver** o assunto secundário da preferência (ou já
+  não tiver o que ela exclui), nada é feito e a extensão avisa.
+- Antes de salvar, a extensão confere se a lista de assuntos secundários
+  ficou igual à que você gravou. Se não ficou, **nada é salvo** e aparece
+  um aviso — grave a preferência de novo ou use **✏️ Alterar**.
+- Para apagar, use **🗑** ao lado da preferência. Elas também entram no
+  **⬇ Exportar** do Menu da extensão ([2.6](#cap-2-6)).
 
 <a id="cap-8-10"></a>
 ### 8.10 Novo Valor da Causa
@@ -2131,6 +2171,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V46](videos/V46-remessa-turma-recursal.mp4) | [Remessa para a Turma Recursal](videos/V46-remessa-turma-recursal.mp4) | [7.1](#cap-7-1) | 0:47 |
 | [V47](videos/V47-novo-valor-da-causa.mp4) | [Novo Valor da Causa](videos/V47-novo-valor-da-causa.mp4) | [8.10](#cap-8-10) | 0:36 |
 | [V48](videos/V48-aviso-de-versao-nova.mp4) | [Aviso de versão nova e atualização](videos/V48-aviso-de-versao-nova.mp4) | [2.3](#cap-2-3) | 0:41 |
+| [V49](videos/V49-preferencia-de-assunto-secundario.mp4) | [Preferência de assunto secundário](videos/V49-preferencia-de-assunto-secundario.mp4) | [8.9](#cap-8-9) | 0:49 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -2144,6 +2185,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.26.0 | 07/10/2026 | Alterar Classe/Assuntos (8.9): novas **preferências de assuntos secundários** — **✏️ Alterar** e **⭐** na linha **Assunto Secundário** do cabeçalho (ou o balão **⭐ Secundários** na linha do Assunto Principal, quando o processo ainda não tem assunto secundário); grava um **Adicionar**/**Remover** de assunto secundário e depois o repete e salva com um clique, conferindo a lista antes de salvar. Novo vídeo V49. |
 | 2.25.0 | 06/10/2026 | Nova seção 2.3 (**Atualização da extensão**) reescrita: aviso **🆕 Há novidades na extensão!** abaixo do ícone da balança quando sai versão nova, com a observação para exportar as preferências antes, os botões **1. Exportar preferências** e **2. Atualizar** e o passo a passo para recarregar a extensão; explica que as preferências continuam quando os arquivos novos são colados por cima da mesma pasta. Seção 2.6: ponto azul no ícone e faixa "Versão nova disponível" no Menu. Novo vídeo V48. |
 | 2.24.0 | 06/10/2026 | Nova seção **8.10 Novo Valor da Causa** (só no Projudi): linha **Valor da Causa** no cabeçalho do processo (em qualquer aba), com o balão **💲 Novo Valor da Causa** ao lado do valor; você digita o novo valor e a extensão o grava na tela de alteração do processo e clica em **Salvar** sozinha, sem abrir a tela — o Projudi registra a alteração nas Movimentações. Nova função na tabela da 2.6 (30 funções no Projudi), Solução de problemas (11) e vídeo V47. |
 | 2.23.4 | 06/10/2026 | Destacar movimentações (3.4): novos tipos **Procurador / Procuradora** (ex.: "Procurador do Município de ..."), **Defensor / Defensora** e **Audiência** (esta destaca as movimentações de audiência, seja quem for que as lançou), os mesmos do quadro **Realces** do Projudi. Vídeo V06 regravado. |

@@ -103,7 +103,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "alterarClasseAssuntos",
 					nome: "Alterar Classe/Assuntos",
-					descricao: "Balão \"✏️ Alterar\" ao lado da classe processual e do assunto principal, no cabeçalho do processo, que abre a tela de alteração num popup, e ⭐ com preferências que fazem a alteração e salvam com um clique.",
+					descricao: "Balão \"✏️ Alterar\" ao lado da classe processual e do assunto principal, no cabeçalho do processo, que abre a tela de alteração num popup, e ⭐ com preferências que fazem a alteração (classe, assunto principal ou inclusão/exclusão de assunto secundário) e salvam com um clique.",
 					js: ["src/alterarClasseAssuntos.js"],
 					requer: ["acoesRapidas", "habilitarAdvogado"],
 					sistemas: ["projudi"]

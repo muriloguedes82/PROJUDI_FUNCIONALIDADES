@@ -927,3 +927,66 @@ CENAS.V48 = {
 		await S.endCard("Aviso 🆕 → 1. Exportar preferências → 2. Atualizar → copiar a pasta por cima → ↻ Recarregar a extensão → F5.");
 	},
 };
+
+// ------------------------------------------------------------------ V49
+// Preferência de assunto secundário (⭐ Secundários, alterarClasseAssuntos.js).
+CENAS.V49 = {
+	arquivo: "V49-preferencia-de-assunto-secundario.mp4",
+	titulo: "Preferência de assunto secundário",
+	secao: "8.9",
+	async run() {
+		telaProcesso({});
+		cardsAlterar();
+		$("#row-assunto td:nth-child(2)").insertAdjacentHTML("beforeend", '<a id="x-alt-sec-pref" style="' + ESTILO_BALAO + ';margin-left:4px;padding:1px 6px">⭐ Secundários</a>');
+		await S.titleCard("VÍDEO V49", "Preferência de assunto secundário", "Grave uma vez a inclusão de um assunto secundário; depois, um clique inclui e salva.");
+		S.hl("#x-alt-sec-pref", 3);
+		await S.cap("Na linha do <b>Assunto Principal</b> há o balão <b>⭐ Secundários</b> (se o processo já tem assunto secundário, a ⭐ fica na linha dele).");
+		S.hlOff();
+		await S.click("#x-alt-sec-pref");
+		let pn = panelAt('<h4>⭐ Preferências — Assuntos secundários</h4><p style="color:#666;margin:0 0 8px">Nenhuma preferência gravada.</p><span class="x-btn small" id="x-nova">+ Nova preferência</span>', "#x-alt-sec-pref", { w: 320 });
+		pn.style.left = "430px"; pn.style.top = "205px";
+		await S.click("#x-nova");
+		pn.remove();
+		await abrindo("Alterar Classe/Assuntos", 900);
+		const campo = (rot, val) => '<tr><td class="l" style="width:230px"><b style="color:#c00">*</b> ' + rot + '</td><td><span class="pj-select" style="min-width:420px;display:inline-block">' + val + '</span> <span class="pj-btn">🔍</span></td></tr>';
+		popup("Alteração de Processo",
+			'<div style="margin:0 0 10px;padding:8px 10px;border:1px solid #d4b106;background:#fffbe6;color:#5c4400;border-radius:4px"><b>⭐ Gravando preferência.</b> Use <b>Adicionar</b> (ou <b>Remover</b>) dos <b>Assuntos Secundários</b>, como de costume, e clique em <b>Salvar</b>. Esse clique só grava a preferência: <b>o processo não é alterado agora</b>.</div>' +
+			'<table class="pj-info" style="width:100%">' +
+			campo("Classe Processual:", "283 - Ação Penal - Procedimento Ordinário") +
+			campo("Assunto Principal:", "3418 - Furto Qualificado") +
+			'<tr id="x-ed-sec"><td class="l">Assuntos Secundários:</td><td><div id="x-ed-sec-lista" style="color:#666;margin-bottom:4px">Nenhum assunto secundário.</div><span class="pj-btn" id="x-ed-add">Adicionar</span> <span class="pj-btn">Remover</span></td></tr></table>' +
+			'<div class="pj-btnbar" style="justify-content:flex-start"><span class="pj-btn" id="x-ed-salvar">Salvar</span><span class="pj-btn">Voltar</span></div>',
+			{ hd: "Alterar Classe/Assuntos — popup da extensão" });
+		S.hl("#x-ed-sec", 3);
+		await S.cap("A tela abre já nos <b>Assuntos Secundários</b>, com o aviso amarelo de que você está <b>gravando</b>.");
+		S.hlOff();
+		await S.click("#x-ed-add");
+		const lista = $("#x-ed-sec-lista");
+		lista.style.color = "#222";
+		lista.textContent = "5560 - Violência Doméstica Contra a Mulher";
+		await S.cap("Use <b>Adicionar</b> como de costume e escolha o assunto. Depois, clique em <b>Salvar</b>.");
+		await S.click("#x-ed-salvar");
+		modal('<b>Nome da preferência:</b><div class="pj-select" style="display:block;margin:8px 0">Violência Doméstica Contra a Mulher</div><span class="x-btn small green" id="x-ok">OK</span>', { w: 380, top: 200 });
+		await S.cap("A extensão só guarda os passos — <b>o processo não é alterado</b> — e pede um nome.");
+		await S.click("#x-ok");
+		closeModal();
+		$(".x-popup").remove();
+		await S.cap("Para usar, clique em <b>⭐ Secundários</b> e no nome da preferência.");
+		await S.click("#x-alt-sec-pref");
+		pn = panelAt('<h4>⭐ Preferências — Assuntos secundários</h4><div style="display:flex;gap:4px;margin-bottom:6px"><span class="x-btn small" id="x-pref" style="flex:1">★ Violência Doméstica Contra a Mulher</span><span class="x-btn small">🗑</span></div><span class="x-btn small">+ Nova preferência</span>', "#x-alt-sec-pref", { w: 340 });
+		pn.style.left = "430px"; pn.style.top = "205px";
+		await S.click("#x-pref");
+		pn.remove();
+		const t = toast("★ Violência Doméstica Contra a Mulher — preenchendo (1 de 1)…", { left: 430, top: 90 });
+		await sleep(1200);
+		t.innerHTML = "★ Violência Doméstica Contra a Mulher — salvando…";
+		await sleep(1200);
+		t.remove();
+		$("#x-alt-sec-pref").remove();
+		$("#row-assunto").insertAdjacentHTML("afterend", '<tr id="row-sec"><td class="l">Assunto Secundário:</td><td colspan="3">Violência Doméstica Contra a Mulher <a style="' + ESTILO_BALAO + '">✏️ Alterar</a><a style="' + ESTILO_BALAO + ';margin-left:4px;padding:1px 6px">⭐</a></td></tr>');
+		S.hl("#row-sec", 4);
+		await S.cap("A extensão repete o <b>Adicionar</b>, confere a lista e clica em <b>Salvar</b> sozinha. A tela é recarregada já com o assunto secundário.", { ms: 3800 });
+		S.hlOff();
+		await S.endCard("⭐ Secundários → + Nova preferência → Adicionar → Salvar (só grava). Depois: ⭐ → ★ preferência → incluído e salvo, sem confirmação.");
+	},
+};
