@@ -93,11 +93,12 @@ CENAS.V30 = {
 		await S.titleCard("VÍDEO V30", "Minhas Preferências na linha do processo (⭐)", "Execute uma preferência num processo direto da tela de análise.");
 		await S.cap("Nas telas de análise, cada linha tem o botão <b>⭐</b>, ao lado do <b>+</b>.");
 		await S.click('[data-star="0"]');
-		const pn = panelAt('<h4>Minhas Preferências</h4><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">' +
-			'<div class="x-chip" id="card" style="display:block;border-radius:6px;padding:8px;margin:0"><b>★ Remessa MP</b><div style="color:#666">Realizar Remessa</div></div>' +
-			'<div class="x-chip" style="display:block;border-radius:6px;padding:8px;margin:0"><b>★ Concluso p/ sentença</b><div style="color:#666">Enviar Concluso</div></div>' +
-			'<div class="x-chip" style="display:block;border-radius:6px;padding:8px;margin:0;opacity:.5"><b>★ Certidão de decurso</b><div style="color:#666">Juntar Documento</div></div>' +
-			'<div class="x-chip" style="display:block;border-radius:6px;padding:8px;margin:0"><b>▶ Decurso + concluso</b><div style="color:#666">🔗 Combo · nova aba</div></div></div>', '[data-star="0"]', { w: 440 });
+		const pn = panelAt('<h4>⭐ Minhas Preferências — ' + LISTA[0].n + '</h4>' + favBlocos([
+			{ icon: "📦", title: "Realizar Remessa", cards: [{ name: "Remessa MP", id: "card" }] },
+			{ icon: "📤", title: "Enviar Concluso", cards: [{ name: "Concluso p/ sentença" }] },
+			{ icon: "📎", title: "Juntar Documento", cards: [{ name: "Certidão de decurso", off: true }] },
+			{ icon: "🔗", title: "Combos", cards: [{ name: "Decurso + concluso ↗", combo: true }] },
+		]), '[data-star="0"]', { w: 440 });
 		pn.style.left = "520px"; pn.style.top = "200px";
 		await S.cap("Escolha um card. Preferências de Juntar Documento e Alvará ficam esmaecidas (só na tela do processo).");
 		await S.click("#card");

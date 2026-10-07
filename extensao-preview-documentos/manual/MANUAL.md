@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.25.0 |
-| **Versão da extensão** | 2.25.0 |
-| **Data desta versão** | 06/10/2026 |
+| **Versão do manual** | 2.26.0 |
+| **Versão da extensão** | 2.26.0 |
+| **Data desta versão** | 07/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -997,13 +997,25 @@ Atualizar preferência** (nada é enviado); 🗑 remove.
 do Juntar Documento e, no SEEU, do **📍 Localizador**) e os combos, em
 cards, num só lugar.
 
+**Como o painel é organizado:** as preferências ficam em **blocos, um por
+ação**. No alto de cada bloco aparecem o ícone do botão da ação, o nome
+dela e quantas preferências ela tem, ex.: **📤 Enviar Concluso (3)**. Os
+combos ficam no bloco **🔗 Combos**, em azul. Os blocos ficam lado a lado,
+e cada preferência é um card retangular de uma linha com **★ nome**, o
+**✏️** (editar) e o **🗑** (remover). Se o nome for comprido e aparecer
+cortado ("…"), pare o mouse sobre o card para lê-lo inteiro.
+
 **Passo a passo:**
 
 1. Clique em **⭐ Minhas Preferências**.
 2. Clique no card desejado — o fluxo é o mesmo do item [7.2](#cap-7-2)
    (pergunta sobre juntadas/conclusão pendentes, se houver, diálogo
    preenchido + ✅ **Sim, executar**).
-3. Para mudar a ordem: **✏️ Editar posição**, arraste os cards e clique em
+3. Para **editar** uma preferência, clique no **✏️** do card: o diálogo da
+   ação abre preenchido com ela, para você ajustar os campos (e o nome) e
+   salvar de novo. No card de um combo, o **✏️** abre o editor de etapas.
+4. Para mudar a ordem: **✏️ Editar posição**, arraste os cards dentro do
+   bloco ou o **título de um bloco** para mudá-lo de lugar, e clique em
    **✅ Concluir**. A ordem é salva na hora.
 
 **Bom saber:** só os primeiros cards aparecem de início; marque **Mostrar
@@ -1773,7 +1785,10 @@ processos marcados, **em lote**.
 - A lista **não** é recarregada ao final, para não perder a busca feita.
 - Preferências avulsas de **Juntar Documento**, **Alvará Eletrônico** e
   **Advogados** aparecem esmaecidas (use-as na tela do processo).
-- Combos com essas etapas abrem o processo numa **nova aba** e rodam lá.
+- Combos com essas etapas abrem o processo numa **nova aba** e rodam lá;
+  o card deles tem o sinal **↗**.
+- Os cards ficam em blocos, um por ação, como em **⭐ Minhas
+  Preferências** ([7.3](#cap-7-3)), mas sem os botões ✏️ e 🗑.
 - No **Retorno de Conclusão**, o **Sim** finaliza a conclusão pela linha
   **"Retorno de Conclusão"** do quadro Pendências do processo (a mesma do
   botão **Finalizar conclusão** da capa). Se o processo não tiver essa
@@ -2100,7 +2115,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V15](videos/V15-dispensar-decursos.mp4) | [Dispensar decursos de prazo](videos/V15-dispensar-decursos.mp4) | [6.3](#cap-6-3) | 0:31 |
 | [V16](videos/V16-acoes-rapidas.mp4) | [Ações rápidas](videos/V16-acoes-rapidas.mp4) | [7.1](#cap-7-1) | 0:44 |
 | [V17](videos/V17-preferencias.mp4) | [Preferências](videos/V17-preferencias.mp4) | [7.2](#cap-7-2) | 1:18 |
-| [V18](videos/V18-minhas-preferencias.mp4) | [Minhas Preferências](videos/V18-minhas-preferencias.mp4) | [7.3](#cap-7-3) | 0:48 |
+| [V18](videos/V18-minhas-preferencias.mp4) | [Minhas Preferências](videos/V18-minhas-preferencias.mp4) | [7.3](#cap-7-3) | 0:55 |
 | [V19](videos/V19-combos-de-preferencias.mp4) | [Combos de preferências](videos/V19-combos-de-preferencias.mp4) | [7.4](#cap-7-4) | 0:58 |
 | [V20](videos/V20-alvara-eletronico.mp4) | [Alvará Eletrônico](videos/V20-alvara-eletronico.mp4) | [8.1](#cap-8-1) | 0:45 |
 | [V21](videos/V21-juntar-documento.mp4) | [Juntar Documento com preferências](videos/V21-juntar-documento.mp4) | [8.2](#cap-8-2) | 1:09 |
@@ -2144,6 +2159,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.26.0 | 07/10/2026 | Seção 7.3: o painel **⭐ Minhas Preferências** passa a mostrar as preferências em **blocos, um por ação** (ícone do botão, nome da ação e quantidade), com o bloco **🔗 Combos** no fim, e cada preferência vira um **card retangular de uma linha** com ✏️ (editar) e 🗑 (remover) sempre à vista; **✏️ Editar posição** passa a arrastar os cards dentro do bloco e os blocos entre si. Seção 9.3: a **⭐** da linha e o **⭐ Em lote** usam os mesmos blocos (combos que abrem nova aba ganham o sinal ↗). Todas as preferências e combos, em qualquer painel (Ordenações, Concluso, Partes, Juntar Documento, Combos, Alterar Classe/Assunto, Localizador, Listas de tarefas etc.), deixam de ser ovais e passam a ser retangulares com cantos levemente arredondados. Vídeos V16 a V22, V26, V27, V30, V35, V37, V38, V40, V41, V43, V45 e V46 regravados. |
 | 2.25.0 | 06/10/2026 | Nova seção 2.3 (**Atualização da extensão**) reescrita: aviso **🆕 Há novidades na extensão!** abaixo do ícone da balança quando sai versão nova, com a observação para exportar as preferências antes, os botões **1. Exportar preferências** e **2. Atualizar** e o passo a passo para recarregar a extensão; explica que as preferências continuam quando os arquivos novos são colados por cima da mesma pasta. Seção 2.6: ponto azul no ícone e faixa "Versão nova disponível" no Menu. Novo vídeo V48. |
 | 2.24.0 | 06/10/2026 | Nova seção **8.10 Novo Valor da Causa** (só no Projudi): linha **Valor da Causa** no cabeçalho do processo (em qualquer aba), com o balão **💲 Novo Valor da Causa** ao lado do valor; você digita o novo valor e a extensão o grava na tela de alteração do processo e clica em **Salvar** sozinha, sem abrir a tela — o Projudi registra a alteração nas Movimentações. Nova função na tabela da 2.6 (30 funções no Projudi), Solução de problemas (11) e vídeo V47. |
 | 2.23.4 | 06/10/2026 | Destacar movimentações (3.4): novos tipos **Procurador / Procuradora** (ex.: "Procurador do Município de ..."), **Defensor / Defensora** e **Audiência** (esta destaca as movimentações de audiência, seja quem for que as lançou), os mesmos do quadro **Realces** do Projudi. Vídeo V06 regravado. |
