@@ -126,6 +126,20 @@ section.modelo { display: flex; flex-direction: column; gap: 12px; }
 .chip.combo { background: #eef4fc; border-color: #b9d0f0; }
 .chip.combo .run { color: #1a5fb4; }
 
+/* Modelo E — grupos do D + mini-cards do B */
+.m-e { width: 720px; }
+.m-e .cols { display: flex; flex-wrap: wrap; gap: 6px; }
+.m-e .grp { display: flex; flex-direction: column; gap: 3px; max-width: 100%; min-width: 0; background: #fafafa; border: 1px solid #ececec; border-radius: 4px; padding: 3px 5px 5px; }
+.m-e .grp-label { display: flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: bold; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m-e .grp-label .qtd { font-weight: normal; color: #999; }
+.m-e .cards { display: flex; flex-wrap: wrap; gap: 3px; }
+.m-e .card { position: relative; display: flex; align-items: center; min-width: 0; max-width: 190px; background: #fff8e6; border: 1px solid #e8cf8a; border-radius: 4px; padding: 3px 6px; cursor: pointer; }
+.m-e .nm { font-size: 11px; font-weight: bold; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.m-e .card .tools { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); background: inherit; padding-left: 4px; }
+.m-e .card.combo { background: #eef4fc; border-color: #b9d0f0; }
+.m-e .card.combo .nm { color: #1a5fb4; }
+.novo { color: var(--pick); }
+
 /* Referência — painel de uma ação (Ordenações) */
 .m-ref { width: 300px; }
 .m-ref .acao + .acao { margin-top: 10px; padding-top: 8px; border-top: 1px solid #e5e5e5; }
@@ -144,11 +158,22 @@ section.modelo { display: flex; flex-direction: column; gap: 12px; }
 <div class="wrap">
 	<header>
 		<h1>Cards das Preferências</h1>
-		<p>Quatro formas de deixar o painel <b>⭐ Minhas Preferências</b> mais enxuto, todas com as mesmas 16 preferências e 2 combos de exemplo, em tamanho real. Passe o mouse sobre um item para ver os botões ✏️ e 🗑. Abaixo de cada modelo aparece a altura do painel comparada com o atual.</p>
+		<p>O <b>Modelo E</b>, logo abaixo, junta a separação por tipo do D com os cards do B. Mais abaixo estão as quatro formas iniciais para deixar o painel <b>⭐ Minhas Preferências</b> mais enxuto, todas com as mesmas 16 preferências e 2 combos de exemplo, em tamanho real. Passe o mouse sobre um item para ver os botões ✏️ e 🗑. Abaixo de cada modelo aparece a altura do painel comparada com o atual.</p>
 		<nav class="toc" aria-label="Modelos">
-			<a href="#atual">Atual</a><a href="#ref">Referência: painel de uma ação</a><a href="#modeloA">Modelo A</a><a href="#modeloB">Modelo B</a><a href="#modeloC">Modelo C</a><a href="#modeloD">Modelo D (mesmo padrão)</a>
+			<a href="#modeloE">Modelo E (D + B)</a><a href="#atual">Atual</a><a href="#ref">Referência: painel de uma ação</a><a href="#modeloA">Modelo A</a><a href="#modeloB">Modelo B</a><a href="#modeloC">Modelo C</a><a href="#modeloD">Modelo D (mesmo padrão)</a>
 		</nav>
 	</header>
+
+	<section class="modelo" id="modeloE">
+		<div class="modelo-head"><h2><span class="tag novo">Modelo E · novo</span>Separado por tipo, com os cards do B</h2><span class="medida" data-medida="e"></span></div>
+		<div class="tela-scroll"><div class="tela ext"><div class="qa-row" data-row></div><div class="qa-panel m-e" data-modelo="e"></div></div></div>
+		<ul class="notas">
+			<li>Cada tipo de ação é um bloco com o nome da ação em cima (com o ícone do botão e a quantidade), como no D. Os blocos ficam lado a lado e só ocupam a largura dos seus cards, então o painel não cresce para baixo.</li>
+			<li>Dentro de cada grupo, os mini-cards de uma linha do B. ✏️ e 🗑 aparecem ao passar o mouse, sem ocupar espaço.</li>
+			<li>Os combos ficam num grupo próprio, em azul, no fim.</li>
+			<li>"Editar posição" arrastaria os cards dentro do grupo e os grupos entre si.</li>
+		</ul>
+	</section>
 
 	<section class="modelo" id="atual">
 		<div class="modelo-head"><h2><span class="tag">Hoje</span>Como está agora</h2><span class="medida" data-medida="atual"></span></div>
@@ -204,7 +229,7 @@ section.modelo { display: flex; flex-direction: column; gap: 12px; }
 
 	<div class="escolha">
 		<h2>Qual seguir?</h2>
-		<p>Responda com a letra do modelo (A, B, C ou D) e, se quiser, ajustes como "B com 4 por linha" ou "A sem o nome da ação". Depois da escolha, a mudança entra na extensão com versão nova, manual e vídeo atualizados.</p>
+		<p>Responda com a letra do modelo (A, B, C, D ou E) e, se quiser, ajustes como "B com 4 por linha" ou "A sem o nome da ação". Depois da escolha, a mudança entra na extensão com versão nova, manual e vídeo atualizados.</p>
 	</div>
 </div>
 
@@ -326,6 +351,35 @@ section.modelo { display: flex; flex-direction: column; gap: 12px; }
 				const ch = el("div", "chips");
 				lista.forEach((it) => ch.append(chip(it)));
 				g.append(ch);
+				cols.append(g);
+			});
+			p.append(cols);
+		},
+		e(p) {
+			head(p);
+			const cols = el("div", "cols");
+			const grupos = new Map();
+			ITEMS.forEach((it) => {
+				const k = it.combo ? "Combos" : it.a;
+				if (!grupos.has(k)) grupos.set(k, []);
+				grupos.get(k).push(it);
+			});
+			const chaves = [...grupos.keys()].filter((k) => k !== "Combos");
+			if (grupos.has("Combos")) chaves.push("Combos");
+			chaves.forEach((k) => {
+				const lista = grupos.get(k);
+				const g = el("div", "grp");
+				const lb = el("span", "grp-label");
+				lb.title = k;
+				lb.append(el("span", "", k === "Combos" ? "🔗" : ICON[k]), el("span", "", k), el("span", "qtd", "(" + lista.length + ")"));
+				g.append(lb);
+				const cs = el("div", "cards");
+				lista.forEach((it) => {
+					const c = item("div", "card hov so-hover", it);
+					c.append(el("span", "nm", nome(it)), tools());
+					cs.append(c);
+				});
+				g.append(cs);
 				cols.append(g);
 			});
 			p.append(cols);
