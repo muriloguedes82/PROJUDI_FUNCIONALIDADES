@@ -133,9 +133,12 @@ section.modelo { display: flex; flex-direction: column; gap: 12px; }
 .m-e .grp-label { display: flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: bold; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .m-e .grp-label .qtd { font-weight: normal; color: #999; }
 .m-e .cards { display: flex; flex-wrap: wrap; gap: 3px; }
-.m-e .card { position: relative; display: flex; align-items: center; min-width: 0; max-width: 190px; background: #fff8e6; border: 1px solid #e8cf8a; border-radius: 4px; padding: 3px 6px; cursor: pointer; }
+.m-e .card { position: relative; display: flex; align-items: center; gap: 3px; min-width: 0; max-width: 220px; background: #fff8e6; border: 1px solid #e8cf8a; border-radius: 4px; padding: 3px 6px; cursor: pointer; }
 .m-e .nm { font-size: 11px; font-weight: bold; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-.m-e .card .tools { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); background: inherit; padding-left: 4px; }
+.m-e .card .tools { flex: none; margin-right: -3px; }
+.m-e .card .tools button { opacity: .6; }
+.m-e .card:hover .tools button { opacity: .9; }
+.m-e .card .tools button:hover { opacity: 1; }
 .m-e .card.combo { background: #eef4fc; border-color: #b9d0f0; }
 .m-e .card.combo .nm { color: #1a5fb4; }
 .novo { color: var(--pick); }
@@ -168,8 +171,9 @@ section.modelo { display: flex; flex-direction: column; gap: 12px; }
 		<div class="modelo-head"><h2><span class="tag novo">Modelo E · novo</span>Separado por tipo, com os cards do B</h2><span class="medida" data-medida="e"></span></div>
 		<div class="tela-scroll"><div class="tela ext"><div class="qa-row" data-row></div><div class="qa-panel m-e" data-modelo="e"></div></div></div>
 		<ul class="notas">
-			<li>Cada tipo de ação é um bloco com o nome da ação em cima (com o ícone do botão e a quantidade), como no D. Os blocos ficam lado a lado e só ocupam a largura dos seus cards, então o painel não cresce para baixo.</li>
-			<li>Dentro de cada grupo, os mini-cards de uma linha do B. ✏️ e 🗑 aparecem ao passar o mouse, sem ocupar espaço.</li>
+			<li>Cada tipo de ação é um bloco com o nome da ação em cima (com o ícone do botão e a quantidade), como no D. Os blocos ficam lado a lado e só ocupam a largura dos seus cards.</li>
+			<li>Dentro de cada grupo, os mini-cards de uma linha do B.</li>
+			<li>Cada card tem o ✏️ (editar a preferência) e o 🗑 (remover) sempre à vista, no canto direito. Clicar no ✏️ abre o diálogo da ação já preenchido com a preferência, para ajustar os campos e o nome e salvar de novo, como hoje. No combo, o ✏️ abre o editor de etapas.</li>
 			<li>Os combos ficam num grupo próprio, em azul, no fim.</li>
 			<li>"Editar posição" arrastaria os cards dentro do grupo e os grupos entre si.</li>
 		</ul>
@@ -273,9 +277,10 @@ section.modelo { display: flex; flex-direction: column; gap: 12px; }
 		if (txt != null) e.textContent = txt;
 		return e;
 	}
-	function tools() {
+	function tools(it) {
 		const t = el("span", "tools");
-		const ed = el("button", "", "✏️"); ed.type = "button"; ed.title = "Editar esta preferência";
+		const ed = el("button", "", "✏️"); ed.type = "button";
+		ed.title = it && it.combo ? "Editar este combo (etapas, ordem e nome)" : "Editar esta preferência: abre o diálogo preenchido com ela para ajustar os campos (e o nome) e salvar de novo";
 		const dl = el("button", "del", "🗑"); dl.type = "button"; dl.title = "Remover esta preferência";
 		t.append(ed, dl);
 		return t;
@@ -375,8 +380,8 @@ section.modelo { display: flex; flex-direction: column; gap: 12px; }
 				g.append(lb);
 				const cs = el("div", "cards");
 				lista.forEach((it) => {
-					const c = item("div", "card hov so-hover", it);
-					c.append(el("span", "nm", nome(it)), tools());
+					const c = item("div", "card hov", it);
+					c.append(el("span", "nm", nome(it)), tools(it));
 					cs.append(c);
 				});
 				g.append(cs);
