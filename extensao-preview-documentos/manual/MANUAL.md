@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.26.1 |
-| **Versão da extensão** | 2.26.1 |
+| **Versão do manual** | 2.26.2 |
+| **Versão da extensão** | 2.26.2 |
 | **Data desta versão** | 08/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -2187,6 +2187,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.26.2 | 08/10/2026 | Sem alteração de texto; corrigido: fora da tela do processo (por exemplo, na tela de alteração do processo), os indicadores de suspensão e de monitoração e o botão do WhatsApp deixam de repetir avisos internos a cada 1,5 segundo. |
 | 2.26.1 | 08/10/2026 | Correção nas **preferências de assuntos secundários** (8.9): ao usar a preferência, o assunto gravado não entrava na lista da tela de alteração, e a extensão avisava "os assuntos secundários da tela não ficaram como na preferência" sem salvar. Agora a gravação guarda o assunto como ele aparece na lista e a extensão o repõe antes de salvar. As preferências gravadas na 2.26.0 precisam ser gravadas de novo. |
 | 2.26.0 | 07/10/2026 | Alterar Classe/Assuntos (8.9): novas **preferências de assuntos secundários** — **✏️ Alterar** e **⭐** na linha **Assunto Secundário** do cabeçalho (ou o balão **⭐ Secundários** na linha do Assunto Principal, quando o processo ainda não tem assunto secundário); grava um **Adicionar**/**Remover** de assunto secundário e depois o repete e salva com um clique, conferindo a lista antes de salvar. Novo vídeo V49. |
 | 2.25.0 | 06/10/2026 | Nova seção 2.3 (**Atualização da extensão**) reescrita: aviso **🆕 Há novidades na extensão!** abaixo do ícone da balança quando sai versão nova, com a observação para exportar as preferências antes, os botões **1. Exportar preferências** e **2. Atualizar** e o passo a passo para recarregar a extensão; explica que as preferências continuam quando os arquivos novos são colados por cima da mesma pasta. Seção 2.6: ponto azul no ícone e faixa "Versão nova disponível" no Menu. Novo vídeo V48. |

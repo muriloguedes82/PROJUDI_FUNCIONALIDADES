@@ -654,6 +654,9 @@
 	let buscaEmSegundoPlanoFeita = false;
 	function buscarEmSegundoPlano() {
 		if (buscaEmSegundoPlanoFeita) return;
+		// Fora da tela do processo (ex.: tela de alteração), não há como
+		// buscar a aba: sai em silêncio, sem repetir o aviso a cada 1,5 s.
+		if (!document.getElementById("processoForm")) return;
 		buscaEmSegundoPlanoFeita = true;
 		console.log(TAG, "aba '" + ABA_LABEL + "' não está na página atual — buscando em segundo plano (POST)");
 		fetchAbaInformacoesAdicionaisPOST()
