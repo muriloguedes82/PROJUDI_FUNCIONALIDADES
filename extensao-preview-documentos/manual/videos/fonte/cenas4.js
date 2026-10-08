@@ -496,7 +496,7 @@ CENAS.V40 = {
 		await S.click("#x-fav");
 		const cards = [["Audiência cumprida", "📍 Localizador"], ["Intimar MP - ciência 5 dias", "Intimar Partes"], ["🔗 Decurso + concluso", "Combo · 2 etapas"]];
 		const pn = panelAt('<div style="display:flex;justify-content:space-between;align-items:center"><h4 style="margin:0">⭐ Minhas Preferências</h4><span class="x-btn small">✏️ Editar posição</span></div>' +
-			'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px">' + cards.map((c, i) => '<div class="x-chip" data-card="' + i + '" style="display:block;border-radius:6px;padding:8px;margin:0;font-size:12px"><div style="color:#666;font-size:11px">' + c[1] + "</div><b>" + (c[0].startsWith("🔗") ? "" : "★ ") + c[0] + "</b></div>").join("") + "</div>", "#x-fav", { w: 520 });
+			'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px">' + cards.map((c, i) => '<div class="x-chip' + (c[0].startsWith("🔗") ? " combo" : "") + '" data-card="' + i + '" style="display:block;border-radius:6px;padding:8px;margin:0;font-size:12px"><div style="color:#666;font-size:11px">' + c[1] + "</div><b>" + (c[0].startsWith("🔗") ? "" : "★ ") + c[0] + "</b></div>").join("") + "</div>", "#x-fav", { w: 520 });
 		await S.cap("Um clique no card <b>📍 Localizador · ★ Audiência cumprida</b> associa os localizadores.");
 		await S.click('[data-card="0"]');
 		pn.remove();

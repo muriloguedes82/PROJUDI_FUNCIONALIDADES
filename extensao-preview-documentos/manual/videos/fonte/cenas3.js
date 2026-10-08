@@ -97,7 +97,7 @@ CENAS.V30 = {
 			'<div class="x-chip" id="card" style="display:block;border-radius:6px;padding:8px;margin:0"><b>★ Remessa MP</b><div style="color:#666">Realizar Remessa</div></div>' +
 			'<div class="x-chip" style="display:block;border-radius:6px;padding:8px;margin:0"><b>★ Concluso p/ sentença</b><div style="color:#666">Enviar Concluso</div></div>' +
 			'<div class="x-chip" style="display:block;border-radius:6px;padding:8px;margin:0;opacity:.5"><b>★ Certidão de decurso</b><div style="color:#666">Juntar Documento</div></div>' +
-			'<div class="x-chip" style="display:block;border-radius:6px;padding:8px;margin:0"><b>▶ Decurso + concluso</b><div style="color:#666">🔗 Combo · nova aba</div></div></div>', '[data-star="0"]', { w: 440 });
+			'<div class="x-chip combo" style="display:block;border-radius:6px;padding:8px;margin:0"><b>▶ Decurso + concluso</b><div class="acao" style="color:#1a5fb4">🔗 Combo · nova aba</div></div></div>', '[data-star="0"]', { w: 440 });
 		pn.style.left = "520px"; pn.style.top = "200px";
 		await S.cap("Escolha um card. Preferências de Juntar Documento e Alvará ficam esmaecidas (só na tela do processo).");
 		await S.click("#card");

@@ -166,3 +166,7 @@ a.link { color: #0645ad; text-decoration: underline; cursor: pointer; }
 #x-novidade .bt.pri { background: #13396b; border-color: #13396b; color: #fff; } #x-novidade .bt.feito { background: #e6f4ea; border-color: #8cc49b; color: #1e6b34; }
 #x-novidade .ok { margin-top: 8px; padding: 8px 10px; border-radius: 6px; background: #e6f4ea; color: #1e6b34; font-size: 12px; }
 #x-novidade .depois { text-align: center; margin-top: 8px; color: #5b6980; font-size: 11.5px; text-decoration: underline; }
+
+/* Card de combo (🔗): azul em todo lugar, como na extensão (pdp-qa-fav-combo). */
+.x-chip.combo { background: #eef4fc; border-color: #b9d0f0; }
+.x-chip.combo .acao { color: #1a5fb4; }

@@ -701,7 +701,7 @@
 					return (i + 1) + ". " + p.label + " — ★ " + (pref ? pref.name : p.prefName || "(preferência removida)");
 				}).join("\n");
 				const card = el("div", {
-					class: "pdp-qa-fav-card pdp-pl-combo" + (motivo ? " pdp-qa-fav-unavailable" : ""),
+					class: "pdp-qa-fav-card pdp-qa-fav-combo pdp-pl-combo" + (motivo ? " pdp-qa-fav-unavailable" : ""),
 					tabindex: "0",
 					role: "button",
 					title: motivo || ((novaAba ? "Tem etapa que só roda na tela do processo: o combo começa numa nova aba.\n" : "Executar as etapas " + onde + ", uma a uma:\n") + descricao)

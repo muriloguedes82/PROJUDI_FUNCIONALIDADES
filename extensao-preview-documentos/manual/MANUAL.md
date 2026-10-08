@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.26.2 |
-| **Versão da extensão** | 2.26.2 |
+| **Versão do manual** | 2.26.3 |
+| **Versão da extensão** | 2.26.3 |
 | **Data desta versão** | 08/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1010,7 +1010,9 @@ cards, num só lugar.
 **Bom saber:** só os primeiros cards aparecem de início; marque **Mostrar
 todas** para ver o restante. Os cards **📍 Localizador** (só no SEEU)
 associam os localizadores na hora, sem diálogo nem ✅ **Sim, executar**
-— veja [8.8](#cap-8-8).
+— veja [8.8](#cap-8-8). Os cards de **combo** (🔗) são sempre **azuis**,
+aqui e na ⭐ das listas ([9.3](#cap-9-3)), para se destacarem das
+preferências.
 
 <a id="cap-7-4"></a>
 ### 7.4 Combos de preferências
@@ -1775,6 +1777,8 @@ processos marcados, **em lote**.
 - Preferências avulsas de **Juntar Documento**, **Alvará Eletrônico** e
   **Advogados** aparecem esmaecidas (use-as na tela do processo).
 - Combos com essas etapas abrem o processo numa **nova aba** e rodam lá.
+- Os cards de **combo** (🔗) são **azuis**, como na tela do processo, para
+  se destacarem das preferências — também na barra **⭐ Em lote**.
 - No **Retorno de Conclusão**, o **Sim** finaliza a conclusão pela linha
   **"Retorno de Conclusão"** do quadro Pendências do processo (a mesma do
   botão **Finalizar conclusão** da capa). Se o processo não tiver essa
@@ -2192,6 +2196,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.26.3 | 08/10/2026 | Os cards de **combo** na ⭐ das listas e na barra **⭐ Em lote** (9.3) passam a ser **azuis**, como em ⭐ Minhas Preferências na tela do processo (7.3), para se destacarem das preferências; texto da 7.3 e da 9.3 ajustado. Vídeos V18, V30 e V40 regravados com o card azul. |
 | 2.26.2 | 08/10/2026 | Seção **9.9**, com mais de um arquivo: o **✕** passa a fechar só a janela dele (antes fechava todas) e clicar numa janela de trás a traz para a frente; o título começa pelo número do arquivo ("1/3"), visível na faixa das janelas de trás. Vídeo V49 regravado. |
 | 2.26.1 | 08/10/2026 | Correção na seção **9.9**: o documento não aparecia, porque ele não fica na tela **Dados da Conclusão**, e sim na tela seguinte (**Movimentar Processo**, aberta pelo botão **Analisar** dela), na linha **Documentos**. A extensão agora percorre as duas telas e mostra só os arquivos dessa linha (não os das Movimentações Realizadas). Texto da 9.9 ajustado e vídeo V49 regravado. |
 | 2.26.0 | 07/10/2026 | Nova seção **9.9** (Projudi e SEEU): na lista **Retorno de Conclusão**, pousar o mouse sobre o **Analisar** mostra o documento que o Juiz fez (despacho, decisão ou sentença) — uma janela para cada arquivo —, com **📌 Fixar**, **Abrir em nova aba** e **✕**, sem sair da lista. Nova função na tabela da 2.6 e vídeo V49. |
