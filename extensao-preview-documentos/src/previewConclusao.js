@@ -1,25 +1,20 @@
 // Projudi/SEEU - Documento do Juiz ao passar o mouse no Retorno de Conclusão
 //
 // Na lista "Retorno de Conclusão" (processo/conclusao.do, no Projudi e no
-// SEEU), cada linha tem o link "Analisar", que abre a tela "Dados da
-// Conclusão" com o despacho/decisão/sentença que o Juiz fez. Ao pousar o
-// mouse sobre esse "Analisar", a extensão lê essa tela por trás (sem sair
-// da lista) e mostra só o(s) arquivo(s) dela, cada um numa janela
-// sobreposta — mesma ideia da pré-visualização do processo no Decurso de
-// Prazo (previewProcesso.js), mas aqui só com o documento, não o processo
-// inteiro.
+// SEEU), cada linha tem o link "Analisar". Para ver o despacho/decisão/
+// sentença que o Juiz fez, o usuário precisaria clicar nele (tela "Dados da
+// Conclusão"), depois no botão "Analisar" dessa tela (tela "Movimentar
+// Processo") e só então abrir o arquivo da linha "Documentos:". Ao pousar o
+// mouse sobre o "Analisar" da lista, a extensão percorre essas duas telas
+// por trás (sem sair da lista) e mostra só o(s) arquivo(s) da linha
+// "Documentos:", cada um numa janela sobreposta — mesma ideia da
+// pré-visualização do processo no Decurso de Prazo (previewProcesso.js),
+// mas aqui só com o documento, não o processo inteiro.
 //
-// Leitura da tela "Dados da Conclusão":
-//   1. fetch() da mesma URL do "Analisar" (mesma sessão) e coleta dos links
-//      de arquivo (…/arquivo.do?…) que já vêm no HTML;
-//   2. se não vier nenhum (o arquivo pode só aparecer depois de abrir o "+"
-//      da linha), carrega a tela num iframe oculto e espera os links
-//      aparecerem — se nada surgir sozinho, clica uma vez nos "+" da tela,
-//      como o usuário faria (somente leitura: nada é analisado ou
-//      finalizado).
-// Se a tela tiver arquivos em mais de um quadro, fica só com os do primeiro
-// quadro que tiver arquivo (é o da conclusão; os demais seriam contexto do
-// processo).
+// As telas são lidas direto (fetch, mesma sessão); se a leitura não trouxer
+// o documento, elas são abertas num iframe oculto, seguindo o mesmo
+// endereço do botão "Analisar". Somente leitura: nada é analisado nem
+// finalizado.
 //
 // A lista nunca navega: as janelas fecham ao tirar o mouse delas (ou com
 // "✕"/Esc); "📌 Fixar" mantém todas abertas até o "✕". Clicar no
@@ -45,7 +40,6 @@
 	const MARGIN = 12;
 	const CASCADE_OFFSET = 28;
 	const TIMEOUT_MS = 15000;
-	const EXPAND_ICON_SELECTOR = 'a[id^="linkArquivos"] img, img[onclick*="showDetail"], img[id^="icon"]';
 
 	let panels = [];
 	let activeLink = null;
@@ -90,49 +84,79 @@
 		return m ? m[0] : "";
 	}
 
-	// --- leitura da tela "Dados da Conclusão" ------------------------------------
+	// --- leitura das telas "Dados da Conclusão" e "Movimentar Processo" ----------
+	//
+	// O "Analisar" da lista abre "Dados da Conclusão", que não tem arquivo: o
+	// documento só aparece na tela seguinte, a do botão "Analisar" dela
+	// (<input id="editButton" onclick="...document.location.href='...'">),
+	// "Movimentar Processo", na linha "Documentos:" (tabela Descrição /
+	// Assinado Por / Arquivo / Nível de Sigilo). Essa mesma tela também lista,
+	// mais abaixo, as "Movimentações Realizadas" do processo, com outros
+	// arquivos — por isso só a linha "Documentos:" conta.
 
-	function linksDeArquivo(doc, base) {
-		return Array.prototype.filter.call(doc.querySelectorAll("a[href]"), function (a) {
+	function urlDoBotaoAnalisar(doc, base) {
+		const botao = doc.querySelector("#editButton") ||
+			Array.prototype.find.call(doc.querySelectorAll('input[type="button"], button'), function (b) {
+				return norm(b.value || b.textContent) === "analisar";
+			});
+		const m = /location\.href\s*=\s*['"]([^'"]+)['"]/.exec((botao && botao.getAttribute("onclick")) || "");
+		return m ? urlConclusao(m[1], base) : null;
+	}
+
+	function linksDeArquivo(raiz, base) {
+		const vistos = Object.create(null);
+		return Array.prototype.filter.call(raiz.querySelectorAll("a[href]"), function (a) {
 			return (a.getAttribute("href") || "").indexOf("/arquivo.do") !== -1;
 		}).map(function (a) {
 			let href;
 			try { href = new URL(a.getAttribute("href"), base).href; } catch (e) { return null; }
-			return { el: a, href: href, text: (a.textContent || "").replace(/\s+/g, " ").trim() || "Documento" };
+			if (vistos[href]) return null;
+			vistos[href] = true;
+			return { href: href, text: (a.textContent || "").replace(/\s+/g, " ").trim() || "Documento" };
 		}).filter(Boolean);
 	}
 
-	// Só o primeiro quadro (fieldset/tabela de nível mais alto) que tiver
-	// arquivo, sem repetir o mesmo arquivo.
-	function documentosDaConclusao(doc, base) {
-		const todos = linksDeArquivo(doc, base);
-		if (!todos.length) return [];
-		const quadro = function (el) {
-			return el.closest("fieldset") || el.closest("form") || doc.body;
-		};
-		const primeiro = quadro(todos[0].el);
-		const vistos = Object.create(null);
-		return todos.filter(function (d) {
-			if (quadro(d.el) !== primeiro || vistos[d.href]) return false;
-			vistos[d.href] = true;
-			return true;
-		}).map(function (d) {
-			return { href: d.href, text: d.text };
-		});
+	// Célula ao lado do rótulo "Documentos:" (fora do quadro Pendências e das
+	// Movimentações Realizadas).
+	function celulaDocumentos(doc) {
+		const rotulos = doc.querySelectorAll("td.labelRadio, td.label");
+		for (const td of rotulos) {
+			if (norm(td.textContent) !== "documentos:" || td.closest("#quadroPendencias")) continue;
+			const celula = td.nextElementSibling;
+			if (celula) return celula;
+		}
+		return null;
 	}
 
-	async function lerPorFetch(url) {
+	function documentosDaTela(doc, base) {
+		const celula = celulaDocumentos(doc);
+		return celula ? linksDeArquivo(celula, base) : [];
+	}
+
+	async function buscar(url) {
 		const resposta = await fetch(url, { credentials: "same-origin" });
 		if (!resposta.ok) throw new Error("o sistema respondeu " + resposta.status);
 		const bytes = await resposta.arrayBuffer();
 		const inicio = new TextDecoder("windows-1252").decode(bytes.slice(0, 4096));
 		const m = /charset\s*=\s*["']?([\w-]+)/i.exec(resposta.headers.get("content-type") || "") || /charset\s*=\s*["']?([\w-]+)/i.exec(inicio);
 		const doc = new DOMParser().parseFromString(new TextDecoder((m && m[1]) || "windows-1252").decode(bytes), "text/html");
-		return documentosDaConclusao(doc, resposta.url);
+		return { doc: doc, url: resposta.url };
 	}
 
-	// Iframe oculto (navegação de verdade): para quando o arquivo só aparece
-	// depois do "+" da linha, carregado pelo próprio script da tela.
+	// Dados da Conclusão -> (botão Analisar) -> Movimentar Processo.
+	async function lerPorFetch(url) {
+		const dados = await buscar(url);
+		let docs = documentosDaTela(dados.doc, dados.url);
+		if (docs.length) return { docs: docs };
+		const seguinte = urlDoBotaoAnalisar(dados.doc, dados.url);
+		if (!seguinte) return { docs: [] };
+		const mov = await buscar(seguinte);
+		return { docs: documentosDaTela(mov.doc, mov.url), seguinte: seguinte };
+	}
+
+	// Iframe oculto (navegação de verdade), para quando a leitura direta não
+	// traz a tela completa: abre a tela e, se for a "Dados da Conclusão",
+	// segue o endereço do botão "Analisar" dela, como o clique faria.
 	function lerNavegando(url) {
 		return new Promise(function (resolve) {
 			const iframe = document.createElement("iframe");
@@ -140,8 +164,9 @@
 			iframe.setAttribute("aria-hidden", "true");
 			iframe.style.cssText = "position:fixed;top:0;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none";
 			const inicio = Date.now();
-			let clicou = false;
-			let carregado = 0;
+			let seguiu = false;
+			let carregadoEm = 0;
+			let ultimoURL = "";
 			function fim(docs) {
 				clearInterval(timer);
 				iframe.remove();
@@ -150,22 +175,21 @@
 			function verificar() {
 				let doc = null;
 				try { doc = iframe.contentDocument; } catch (e) { /* segue */ }
-				const decorrido = Date.now() - inicio;
-				if (doc && doc.body && doc.URL !== "about:blank" && doc.readyState !== "loading") {
-					if (!carregado) carregado = Date.now();
-					const docs = documentosDaConclusao(doc, doc.URL);
-					if (docs.length) return fim(docs);
-					// Nada sozinho em 2s (a pré-visualização de pendências pode
-					// estar abrindo os "+" por conta própria): abre uma vez.
-					if (!clicou && Date.now() - carregado > 2000) {
-						clicou = true;
-						doc.querySelectorAll(EXPAND_ICON_SELECTOR).forEach(function (icon) {
-							try { icon.click(); } catch (e) { /* segue */ }
-						});
-					}
-					if (clicou && Date.now() - carregado > 6000) return fim([]);
+				if (Date.now() - inicio > TIMEOUT_MS) return fim([]);
+				if (!doc || !doc.body || doc.URL === "about:blank" || doc.readyState === "loading") return;
+				if (doc.URL !== ultimoURL) {
+					ultimoURL = doc.URL;
+					carregadoEm = Date.now();
 				}
-				if (decorrido > TIMEOUT_MS) fim([]);
+				const docs = documentosDaTela(doc, doc.URL);
+				if (docs.length) return fim(docs);
+				const seguinte = !seguiu && urlDoBotaoAnalisar(doc, doc.URL);
+				if (seguinte) {
+					seguiu = true;
+					iframe.src = seguinte;
+					return;
+				}
+				if (Date.now() - carregadoEm > 3000) fim([]);
 			}
 			const timer = setInterval(verificar, 200);
 			document.body.appendChild(iframe);
@@ -176,12 +200,15 @@
 	async function documentos(url) {
 		if (cache.has(url)) return cache.get(url);
 		let docs = [];
+		let alvo = url;
 		try {
-			docs = await lerPorFetch(url);
+			const r = await lerPorFetch(url);
+			docs = r.docs;
+			if (r.seguinte) alvo = r.seguinte;
 		} catch (e) {
 			console.warn("[Projudi Documento da Conclusão] falha ao ler a tela:", e);
 		}
-		if (!docs.length) docs = await lerNavegando(url);
+		if (!docs.length) docs = await lerNavegando(alvo);
 		if (docs.length) cache.set(url, docs);
 		return docs;
 	}
@@ -287,7 +314,7 @@
 		if (id !== carga || activeLink !== link) return; // o mouse foi para outra linha
 
 		if (!docs.length) {
-			espera.loading.textContent = "Nenhum documento encontrado na tela Dados da Conclusão. Clique em \"Analisar\" para abrir a tela completa.";
+			espera.loading.textContent = "Nenhum documento encontrado na linha \"Documentos\" da conclusão. Clique em \"Analisar\" para abrir a tela completa.";
 			return;
 		}
 		const manterFixado = fixado;

@@ -954,7 +954,7 @@ CENAS.V49 = {
 		await S.move($('#lista tr[data-i="1"] .x-analisar'));
 		await sleep(500);
 		let p = janelaDoc(LISTA[1].n, "Despacho.pdf", 420, 150, 1, 1);
-		await S.cap("Abre só o documento que o Juiz fez — o mesmo da tela <b>Dados da Conclusão</b> —, sem sair da lista.");
+		await S.cap("Abre só o documento que o Juiz fez — o da linha <b>Documentos</b> da tela Movimentar Processo —, sem precisar clicar duas vezes em Analisar.");
 		await S.cap("Para fechar: tire o mouse do Analisar e da janela, clique em <b>✕</b> ou tecle <b>Esc</b>.");
 		await S.move({ x: 200, y: 600 });
 		p.remove();
