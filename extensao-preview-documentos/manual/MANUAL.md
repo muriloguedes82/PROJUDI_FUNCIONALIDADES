@@ -1,5 +1,5 @@
-Warning: truncated output (original token count: 31903)
-Total output lines: 2209
+Warning: truncated output (original token count: 31936)
+Total output lines: 2210
 
 # Manual do Usuário — Extensão Projudi/SEEU
 
@@ -7,8 +7,8 @@ Total output lines: 2209
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.26.3 |
-| **Versão da extensão** | 2.26.3 |
+| **Versão do manual** | 2.26.4 |
+| **Versão da extensão** | 2.26.4 |
 | **Data desta versão** | 08/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -591,9 +591,7 @@ Projudi.*
 <a id="cap-4-1"></a>
 ### 4.1 Suspensão ativa no cabeçalho
 
-▶ [**Vídeo V10** — Suspensão e mon…16903 tokens truncated…r ativo, a pré-visualização desta extensão
-fica desligada para não conflitar — o AzFlow cuida disso. O envio por
-WhatsApp e e-mail continua funcionando. No Projudi, as duas convivem
+▶ [**Vídeo V10** — Suspensão e mon…16936 tokens truncated…mail continua funcionando. No Projudi, as duas convivem
 normalmente.
 
 <a id="cap-10-3"></a>
@@ -714,6 +712,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.26.4 | 08/10/2026 | Sem alteração de texto; associadas as linhas **Analisar** e da data pelo código do mandado na listagem. |
 | 2.26.3 | 08/10/2026 | Sem alteração de texto; a dispensa de mandados agora abre a ficha diretamente pela data da linha na listagem. |
 | 2.26.2 | 08/10/2026 | Sem alteração de texto; corrigido o reconhecimento do link **Analisar** na listagem de mandados. |
 | 2.26.1 | 08/10/2026 | Seção 6.4: **Dispensar pendências** também funciona para mandados para expedir. |

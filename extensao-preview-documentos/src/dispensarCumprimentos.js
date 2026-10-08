@@ -69,17 +69,21 @@
         const linkDetail = Array.from(form.querySelectorAll('a[href]')).find(a => normalize(a.textContent) === detailLabel);
         if (!linkDetail) throw new Error(mandado ? 'Não foi encontrado o link Analisar na listagem de mandados.' : 'A quantidade de pendências mudou. Confira a listagem.');
         // Na linha do mandado há também um link na data que abre diretamente
-        // a ficha editável. "Analisar" passa por preAnalise.do, que não traz
-        // o id do mandado no action do formulário.
+        // a ficha editável. Ele fica numa linha irmã de "Analisar"; o código
+        // do semáforo (chave) identifica as duas linhas do mesmo mandado.
         const row = linkDetail.closest('tr');
-        const directDetailLink = mandado && row && Array.from(row.querySelectorAll('a.url[href]')).find(a => {
-          try { return new URL(a.href, list.url).pathname === MANDADO_PATH; } catch (_) { return false; }
+        const rowKey = row && /"chave"\s*:\s*"([^"]+)"/.exec(row.innerHTML);
+        const itemKey = rowKey && rowKey[1];
+        const directDetailLink = mandado && itemKey && Array.from(form.querySelectorAll('a.url[href]')).find(a => {
+          const dateRow = a.closest('tr');
+          const dateRowKey = dateRow && /"chave"\s*:\s*"([^"]+)"/.exec(dateRow.innerHTML);
+          try { return dateRowKey && dateRowKey[1] === itemKey && new URL(a.href, list.url).pathname === MANDADO_PATH; } catch (_) { return false; }
         });
         const detailLink = directDetailLink || linkDetail;
         const detail = await page(checkedUrl(detailLink.getAttribute('href'), list.url));
         const detailForm = detail.doc.querySelector(mandado ? 'form#cumprimentoCartorioMandadoForm' : 'form#cumprimentoCartorioForm');
         const id = mandado
-          ? detailForm && new URL(detailForm.action, detail.url).searchParams.get('id')
+          ? (detailForm && new URL(detailForm.getAttribute('action') || detail.url, detail.url).searchParams.get('id')) || itemKey
           : detailForm && detailForm.querySelector('[name="codCumprimentoCartorio"]')?.value;
         if (!id || removed.has(id)) throw new Error('Item não identificado ou já removido.');
         const action = removalAction(detail.doc, detail.url, mandado);
