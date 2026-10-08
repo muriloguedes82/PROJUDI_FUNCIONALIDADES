@@ -60,6 +60,10 @@
 // Na execução, cada passo é repetido no quadro oculto (campos → envio),
 // depois os campos finais; antes de clicar em "Salvar", a extensão confere
 // se a lista da tela ficou como a gravada — se não ficou, nada é salvo.
+// Quando o "Adicionar" monta a lista na própria tela, sem envio (não há
+// passo a repetir), a gravação guarda também como cada assunto adicionado
+// aparece na lista (a opção ou a linha da tabela) e os campos ocultos que
+// entraram/saíram (`lista`); a execução os repõe antes de conferir.
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
@@ -155,6 +159,7 @@
 		// o "Salvar") e a lista de assuntos secundários da primeira tela.
 		const passos = [];
 		let itensIniciais;
+		let ocultosIniciais;
 
 		function encerrar(recarregar) {
 			if (encerrado) return;
@@ -198,7 +203,10 @@
 			}
 
 			if (gravacao && gravacao.tipo === "secundario") {
-				if (itensIniciais === undefined) itensIniciais = itensSecundarios(doc);
+				if (itensIniciais === undefined) {
+					itensIniciais = itensSecundarios(doc);
+					ocultosIniciais = lerOcultos(doc.getElementById(FORM_ID));
+				}
 				const base = lerCampos(doc.getElementById(FORM_ID));
 				acompanharPassos(doc, win, base, function (passo) {
 					if (!encerrado) passos.push(passo);
@@ -206,12 +214,18 @@
 				prepararGravacao(doc, gravacao.tipo, function () {
 					const form = doc.getElementById(FORM_ID);
 					const depois = itensSecundarios(doc);
+					const adicionados = itensIniciais && depois ? itensFaltando(depois, itensIniciais) : [];
 					return gravacao.concluir(
 						{
+							lista: gravarLista(doc, adicionados, ocultosIniciais),
 							passos: passos.slice(),
-							campos: listaDiferencas(base, lerCampos(form)),
+							// Campos que não existiam na tela (ex.: um oculto por assunto
+							// adicionado) vão em `lista`, não aqui.
+							campos: listaDiferencas(base, lerCampos(form)).filter(function (c) {
+								return c.name in base;
+							}),
 							listaLida: itensIniciais !== null && depois !== null,
-							adicionados: itensIniciais && depois ? itensFaltando(depois, itensIniciais) : [],
+							adicionados: adicionados,
 							removidos: itensIniciais && depois ? itensFaltando(itensIniciais, depois) : [],
 						},
 						function () {
@@ -402,62 +416,216 @@
 	// Assuntos secundários: lista da tela e passos (envios)
 	// -------------------------------------------------------------------
 
-	// Linha "Assuntos Secundários" da tela de alteração (rótulo curto numa
-	// célula; a lista e os botões nas células seguintes).
-	function linhaSecundarios(doc) {
+	function textoRotulo(el) {
+		return normalize(el.textContent).replace(/^\*\s*/, "");
+	}
+
+	// Área "Assuntos Secundários" da tela de alteração: { linha, celulas }.
+	// O rótulo (<label> ou célula com o texto curto "Assuntos
+	// Secundários:") fica numa célula e a lista e os botões nas células
+	// seguintes da mesma linha; fora de tabela, a área é o elemento que
+	// contém o <label> (sem ele).
+	function areaSecundarios(doc) {
 		const raiz = doc.getElementById(FORM_ID) || doc;
-		const tds = raiz.querySelectorAll("td, th");
-		for (let i = 0; i < tds.length; i++) {
-			const texto = normalize(tds[i].textContent).replace(/^\*\s*/, "");
-			if (texto.length <= 40 && SECUNDARIOS_ROTULO.test(texto) && tds[i].nextElementSibling) return tds[i].closest("tr");
+		const rotulos = raiz.querySelectorAll("label, td, th");
+		for (let i = 0; i < rotulos.length; i++) {
+			const el = rotulos[i];
+			const texto = textoRotulo(el);
+			if (texto.length > 40 || !SECUNDARIOS_ROTULO.test(texto)) continue;
+			const celula = el.tagName === "LABEL" ? el.closest("td, th") : el;
+			const tr = celula && celula.parentElement && celula.parentElement.tagName === "TR" ? celula.parentElement : null;
+			if (tr) {
+				const celulas = [];
+				let c = celula;
+				while ((c = c.nextElementSibling)) celulas.push(c);
+				// Rótulo sozinho na célula e nada depois: a lista pode estar
+				// na mesma célula, depois do <label>.
+				if (!celulas.length && el.tagName === "LABEL") celulas.push(celula);
+				if (celulas.length) return { linha: tr, celulas: celulas };
+				continue;
+			}
+			if (el.tagName === "LABEL" && el.parentElement) return { linha: el.parentElement, celulas: [el.parentElement] };
 		}
 		return null;
 	}
 
-	// Assuntos secundários que a tela mostra (texto de cada um), ou null se
-	// a linha não foi encontrada. Lê, nas células após o rótulo: as opções
-	// de uma lista (select múltiplo ou com várias linhas), as linhas de uma
-	// tabela interna ou, na falta delas, as linhas de texto (sem botões).
-	function itensSecundarios(doc) {
-		const tr = linhaSecundarios(doc);
-		if (!tr) return null;
+	function linhaSecundarios(doc) {
+		const area = areaSecundarios(doc);
+		return area ? area.linha : null;
+	}
+
+	function limparTexto(t) {
+		return String(t || "").replace(/\s+/g, " ").trim();
+	}
+
+	function textoDeItem(t) {
+		const n = normalize(t);
+		return t.length > 2 && !/^(adicionar|remover|nenhum.*)$/.test(n) && !SECUNDARIOS_ROTULO.test(n);
+	}
+
+	// Itens da lista de assuntos secundários: [{ texto, el, tipo }], com
+	// tipo "option" (lista de seleção múltipla ou com várias linhas), "tr"
+	// (tabela interna), "li" ou "texto" (linhas soltas, sem elemento
+	// próprio). null se a área não foi encontrada.
+	function elementosSecundarios(doc) {
+		const area = areaSecundarios(doc);
+		if (!area) return null;
 		const itens = [];
-		let celula = Array.prototype.filter.call(tr.cells, function (td) {
-			return SECUNDARIOS_ROTULO.test(normalize(td.textContent).replace(/^\*\s*/, ""));
-		})[0];
-		while (celula && (celula = celula.nextElementSibling)) {
+		area.celulas.forEach(function (celula) {
 			const listas = Array.prototype.filter.call(celula.querySelectorAll("select"), function (sel) {
 				return sel.multiple || sel.size > 1;
 			});
 			if (listas.length) {
 				listas.forEach(function (sel) {
-					Array.prototype.forEach.call(sel.options, function (o) { itens.push(o.text); });
+					Array.prototype.forEach.call(sel.options, function (o) { itens.push({ texto: limparTexto(o.text), el: o, tipo: "option" }); });
 				});
-				continue;
+				return;
 			}
 			const linhas = celula.querySelectorAll("tr");
 			if (linhas.length) {
 				Array.prototype.forEach.call(linhas, function (linha) {
-					if (!linha.querySelector("th")) itens.push(linha.textContent);
+					if (!linha.querySelector("th, tr")) itens.push({ texto: limparTexto(linha.textContent), el: linha, tipo: "tr" });
 				});
-				continue;
+				return;
+			}
+			const lis = celula.querySelectorAll("li");
+			if (lis.length) {
+				Array.prototype.forEach.call(lis, function (li) { itens.push({ texto: limparTexto(li.textContent), el: li, tipo: "li" }); });
+				return;
 			}
 			const copia = celula.cloneNode(true);
 			Array.prototype.forEach.call(copia.querySelectorAll("br"), function (br) { br.replaceWith("\n"); });
-			Array.prototype.forEach.call(copia.querySelectorAll("p, div, li"), function (el) { el.append("\n"); });
-			Array.prototype.forEach.call(copia.querySelectorAll("input, button, select, script, style, img"), function (el) { el.remove(); });
-			copia.textContent.split("\n").forEach(function (linha) { itens.push(linha); });
-		}
-		return itens
-			.map(function (t) { return String(t || "").replace(/\s+/g, " ").trim(); })
-			.filter(function (t) { return t.length > 2 && !/^(adicionar|remover|nenhum.*)$/.test(normalize(t)); });
+			Array.prototype.forEach.call(copia.querySelectorAll("p, div"), function (el) { el.append("\n"); });
+			Array.prototype.forEach.call(copia.querySelectorAll("label, input, button, select, script, style, img"), function (el) { el.remove(); });
+			copia.textContent.split("\n").forEach(function (linha) { itens.push({ texto: limparTexto(linha), el: null, tipo: "texto" }); });
+		});
+		return itens.filter(function (i) { return textoDeItem(i.texto); });
+	}
+
+	// Assuntos secundários que a tela mostra (texto de cada um), ou null.
+	function itensSecundarios(doc) {
+		const els = elementosSecundarios(doc);
+		return els ? els.map(function (i) { return i.texto; }) : null;
+	}
+
+	// Campos ocultos do formulário como "nome=valor" (com repetições).
+	function lerOcultos(form) {
+		const lista = [];
+		if (!form) return lista;
+		Array.prototype.forEach.call(form.querySelectorAll('input[type="hidden"]'), function (el) {
+			if (el.name && !CAMPOS_IGNORADOS.test(el.name)) lista.push(el.name + "=" + el.value);
+		});
+		return lista;
+	}
+
+	// Itens de `a` que sobram depois de descontar os de `b` (multiconjunto).
+	function sobra(a, b) {
+		const resto = b.slice();
+		return a.filter(function (x) {
+			const i = resto.indexOf(x);
+			if (i === -1) return true;
+			resto.splice(i, 1);
+			return false;
+		});
+	}
+
+	function separarOculto(par) {
+		const i = par.indexOf("=");
+		return { name: par.slice(0, i), value: par.slice(i + 1) };
+	}
+
+	// Na gravação (no "Salvar"): como cada assunto adicionado aparece na
+	// lista da tela (a opção ou a linha da tabela) e os campos ocultos que
+	// entraram/saíram desde a primeira tela. É o que permite repor o
+	// assunto quando o "Adicionar" do Projudi monta a lista na própria
+	// tela, sem envio.
+	function gravarLista(doc, adicionados, ocultosIniciais) {
+		const els = elementosSecundarios(doc) || [];
+		const itens = [];
+		adicionados.forEach(function (texto) {
+			const item = els.filter(function (i) { return normalize(i.texto) === normalize(texto); })[0];
+			if (!item || !item.el) return;
+			if (item.tipo === "option") itens.push({ tipo: "option", texto: item.el.text, value: item.el.value, selected: item.el.selected });
+			else itens.push({ tipo: item.tipo, texto: texto, html: item.el.outerHTML });
+		});
+		const finais = lerOcultos(doc.getElementById(FORM_ID));
+		return {
+			itens: itens,
+			ocultosNovos: sobra(finais, ocultosIniciais || []),
+			ocultosRemovidos: sobra(ocultosIniciais || [], finais),
+		};
+	}
+
+	// Na execução: repõe na lista da tela os assuntos gravados (e tira os
+	// removidos), com os campos ocultos que o "Adicionar" tinha criado.
+	function aplicarLista(doc, pref) {
+		const form = doc.getElementById(FORM_ID);
+		const area = areaSecundarios(doc);
+		const lista = pref.lista || {};
+		if (!form || !area) return false;
+		let mexeu = false;
+		const atuais = elementosSecundarios(doc) || [];
+		(pref.removidos || []).forEach(function (texto) {
+			atuais.forEach(function (i) {
+				if (i.el && normalize(i.texto) === normalize(texto)) {
+					i.el.remove();
+					mexeu = true;
+				}
+			});
+		});
+		(lista.itens || []).forEach(function (item) {
+			if (contemItem(itensSecundarios(doc) || [], item.texto)) return;
+			let alvo = null;
+			area.celulas.some(function (c) {
+				if (item.tipo === "option") {
+					alvo = Array.prototype.filter.call(c.querySelectorAll("select"), function (sel) { return sel.multiple || sel.size > 1; })[0] || null;
+				} else if (item.tipo === "tr") {
+					const tabela = c.querySelector("table");
+					alvo = tabela ? tabela.tBodies[0] || tabela : null;
+				} else if (item.tipo === "li") {
+					alvo = c.querySelector("ul, ol");
+				}
+				return !!alvo;
+			});
+			if (!alvo) return;
+			if (item.tipo === "option") {
+				const opt = doc.createElement("option");
+				opt.value = item.value;
+				opt.text = item.texto;
+				alvo.appendChild(opt);
+				opt.selected = !!item.selected;
+				disparar(alvo);
+			} else {
+				alvo.insertAdjacentHTML("beforeend", item.html);
+			}
+			mexeu = true;
+		});
+		(lista.ocultosRemovidos || []).forEach(function (par) {
+			const c = separarOculto(par);
+			const el = Array.prototype.filter.call(form.querySelectorAll('input[type="hidden"]'), function (i) { return i.name === c.name && i.value === c.value; })[0];
+			if (el) {
+				el.remove();
+				mexeu = true;
+			}
+		});
+		const presentes = lerOcultos(form);
+		sobra(lista.ocultosNovos || [], presentes).forEach(function (par) {
+			const c = separarOculto(par);
+			const el = doc.createElement("input");
+			el.type = "hidden";
+			el.name = c.name;
+			el.value = c.value;
+			form.appendChild(el);
+			mexeu = true;
+		});
+		return mexeu;
 	}
 
 	function contemItem(lista, item) {
 		const alvo = normalize(item);
 		return lista.some(function (t) {
 			const n = normalize(t);
-			return n === alvo || n.indexOf(alvo) !== -1 || alvo.indexOf(n) !== -1;
+			return n === alvo || n.indexOf(alvo) !== -1;
 		});
 	}
 
@@ -591,6 +759,7 @@
 			removidos: resultado.removidos,
 			passos: resultado.passos,
 			campos: resultado.campos,
+			lista: resultado.lista,
 			criadaEm: new Date().toISOString(),
 		};
 		const prefs = await carregarPrefs();
@@ -822,7 +991,12 @@
 			mostrarStatus(titulo + " — preenchendo…");
 			const faltando = reporCampos(form, pref.campos || []);
 			if (faltando.length) throw new Error("a tela de alteração não tem mais o(s) campo(s) " + faltando.join(", ") + ". Grave a preferência de novo.");
+			// Os passos não deixaram a lista como a gravada (o "Adicionar" do
+			// Projudi monta a lista na própria tela): repõe os itens gravados.
+			if (listaConfere(doc, pref) === false && pref.lista) aplicarLista(doc, pref);
 			if (listaConfere(doc, pref) === false) {
+				const area = areaSecundarios(doc);
+				console.warn("[Alterar Classe/Assuntos] lista de assuntos secundários não conferiu.", { preferencia: pref, tela: area ? area.linha.outerHTML : "(área não encontrada)" });
 				throw new Error("os assuntos secundários da tela não ficaram como na preferência (" + pref.descricao + "). Nada foi salvo. Grave a preferência de novo ou use \"✏️ Alterar\".");
 			}
 			const salvar = doc.getElementById("saveButton");

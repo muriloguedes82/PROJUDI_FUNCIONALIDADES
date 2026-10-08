@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.26.0 |
-| **Versão da extensão** | 2.26.0 |
-| **Data desta versão** | 07/10/2026 |
+| **Versão do manual** | 2.26.1 |
+| **Versão da extensão** | 2.26.1 |
+| **Data desta versão** | 08/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -1658,6 +1658,8 @@ preferência (**★ …**). A extensão repete, sozinha e sem mostrar a tela, o
 - Antes de salvar, a extensão confere se a lista de assuntos secundários
   ficou igual à que você gravou. Se não ficou, **nada é salvo** e aparece
   um aviso — grave a preferência de novo ou use **✏️ Alterar**.
+- Preferências de assunto secundário gravadas na versão 2.26.0 precisam
+  ser **gravadas de novo** (apague a antiga com **🗑**).
 - Para apagar, use **🗑** ao lado da preferência. Elas também entram no
   **⬇ Exportar** do Menu da extensão ([2.6](#cap-2-6)).
 
@@ -2185,6 +2187,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.26.1 | 08/10/2026 | Correção nas **preferências de assuntos secundários** (8.9): ao usar a preferência, o assunto gravado não entrava na lista da tela de alteração, e a extensão avisava "os assuntos secundários da tela não ficaram como na preferência" sem salvar. Agora a gravação guarda o assunto como ele aparece na lista e a extensão o repõe antes de salvar. As preferências gravadas na 2.26.0 precisam ser gravadas de novo. |
 | 2.26.0 | 07/10/2026 | Alterar Classe/Assuntos (8.9): novas **preferências de assuntos secundários** — **✏️ Alterar** e **⭐** na linha **Assunto Secundário** do cabeçalho (ou o balão **⭐ Secundários** na linha do Assunto Principal, quando o processo ainda não tem assunto secundário); grava um **Adicionar**/**Remover** de assunto secundário e depois o repete e salva com um clique, conferindo a lista antes de salvar. Novo vídeo V49. |
 | 2.25.0 | 06/10/2026 | Nova seção 2.3 (**Atualização da extensão**) reescrita: aviso **🆕 Há novidades na extensão!** abaixo do ícone da balança quando sai versão nova, com a observação para exportar as preferências antes, os botões **1. Exportar preferências** e **2. Atualizar** e o passo a passo para recarregar a extensão; explica que as preferências continuam quando os arquivos novos são colados por cima da mesma pasta. Seção 2.6: ponto azul no ícone e faixa "Versão nova disponível" no Menu. Novo vídeo V48. |
 | 2.24.0 | 06/10/2026 | Nova seção **8.10 Novo Valor da Causa** (só no Projudi): linha **Valor da Causa** no cabeçalho do processo (em qualquer aba), com o balão **💲 Novo Valor da Causa** ao lado do valor; você digita o novo valor e a extensão o grava na tela de alteração do processo e clica em **Salvar** sozinha, sem abrir a tela — o Projudi registra a alteração nas Movimentações. Nova função na tabela da 2.6 (30 funções no Projudi), Solução de problemas (11) e vídeo V47. |
