@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.26.3 |
-| **Versão da extensão** | 2.26.3 |
+| **Versão do manual** | 2.26.4 |
+| **Versão da extensão** | 2.26.4 |
 | **Data desta versão** | 08/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1626,8 +1626,8 @@ nova.
 ▶ [**Vídeo V49** — Preferência de assunto secundário](videos/V49-preferencia-de-assunto-secundario.mp4)
 
 Funciona como a ⭐ da classe e do assunto principal, mas para **incluir**
-(ou **excluir**) um assunto secundário que se repete muito — por exemplo,
-acrescentar **5560 - Violência Doméstica Contra a Mulher**.
+um assunto secundário que se repete muito — por exemplo, acrescentar
+**3418 - Furto de coisa comum**.
 
 **Onde fica:** se o processo já tem assunto secundário, o cabeçalho mostra
 a linha **Assunto Secundário**, e nela há **✏️ Alterar** e **⭐**. Se ainda
@@ -1640,31 +1640,31 @@ depois da ⭐ dele.
    **+ Nova preferência**.
 2. Abre-se a tela de alteração no popup, já na linha **Assuntos
    Secundários**, com o aviso amarelo "Gravando preferência".
-3. Use **Adicionar** (ou **Remover**) dos **Assuntos Secundários** como de
-   costume no Projudi. Pode incluir mais de um.
-4. Clique em **Salvar**. Nesse momento **o processo não é alterado**: a
-   extensão guarda os passos que você fez, pede um nome para a preferência
+3. Clique em **Adicionar**. Na janela de seleção do Projudi, pesquise o
+   assunto, marque-o e clique em **Selecionar**.
+4. Nesse momento **nada é alterado**: o assunto não entra no processo. A
+   extensão só guarda o assunto escolhido, pede um nome para a preferência
    e fecha o popup.
 
 *Usar a preferência:* clique na **⭐** dos assuntos secundários e no nome da
-preferência (**★ …**). A extensão repete, sozinha e sem mostrar a tela, o
-**Adicionar**/**Remover** e clica em **Salvar**; no fim, a tela do processo
-é recarregada já com o assunto secundário.
+preferência (**★ …**). A extensão faz, sozinha e sem mostrar a tela, o
+mesmo que você faria: **Adicionar**, pesquisa o assunto, marca, clica em
+**Selecionar**, confere se ele entrou na lista e só então clica em
+**Salvar**. Um aviso no alto da tela mostra o andamento; no fim, a tela do
+processo é recarregada.
 
 *Bom saber:*
 
-- Se o processo **já tiver** o assunto secundário da preferência (ou já
-  não tiver o que ela exclui), nada é feito e a extensão avisa.
-- Antes de salvar, a extensão confere se a lista de assuntos secundários
-  ficou igual à que você gravou. Se não ficou, **nada é salvo** e aparece
-  um aviso — grave a preferência de novo ou use **✏️ Alterar**.
-- Preferências de assunto secundário gravadas nas versões 2.26.0 a
-  2.26.2 não funcionam: apague-as com **🗑**.
-- **Ainda em desenvolvimento:** no Projudi, o **Adicionar** dos assuntos
-  secundários usa uma janela de seleção que grava o assunto direto no
-  sistema. A extensão ainda não consegue repetir esse passo; por isso, ao
-  tentar gravar uma preferência com **Adicionar**, ela avisa e **não grava**.
-  Clique em **Voltar** para sair sem alterar o processo.
+- Se o processo **já tiver** o assunto secundário da preferência, nada é
+  feito e a extensão avisa.
+- Se o assunto não aparecer na pesquisa ou não entrar na lista, **nada é
+  salvo** e aparece um aviso — use **✏️ Alterar** para fazer à mão.
+- A preferência só **inclui** assunto secundário. Para remover, use
+  **✏️ Alterar** e o botão **Remover** do Projudi.
+- O Projudi não mostra os assuntos secundários no cabeçalho do processo:
+  para conferir, veja a aba **Informações Gerais** (ou **✏️ Alterar**).
+- Preferências de assunto secundário gravadas nas versões 2.26.0 a 2.26.3
+  não funcionam: apague-as com **🗑** e grave de novo.
 - Para apagar, use **🗑** ao lado da preferência. Elas também entram no
   **⬇ Exportar** do Menu da extensão ([2.6](#cap-2-6)).
 
@@ -2178,7 +2178,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V46](videos/V46-remessa-turma-recursal.mp4) | [Remessa para a Turma Recursal](videos/V46-remessa-turma-recursal.mp4) | [7.1](#cap-7-1) | 0:47 |
 | [V47](videos/V47-novo-valor-da-causa.mp4) | [Novo Valor da Causa](videos/V47-novo-valor-da-causa.mp4) | [8.10](#cap-8-10) | 0:36 |
 | [V48](videos/V48-aviso-de-versao-nova.mp4) | [Aviso de versão nova e atualização](videos/V48-aviso-de-versao-nova.mp4) | [2.3](#cap-2-3) | 0:41 |
-| [V49](videos/V49-preferencia-de-assunto-secundario.mp4) | [Preferência de assunto secundário](videos/V49-preferencia-de-assunto-secundario.mp4) | [8.9](#cap-8-9) | 0:49 |
+| [V49](videos/V49-preferencia-de-assunto-secundario.mp4) | [Preferência de assunto secundário](videos/V49-preferencia-de-assunto-secundario.mp4) | [8.9](#cap-8-9) | 0:52 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -2192,6 +2192,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.26.4 | 08/10/2026 | **Preferências de assuntos secundários** (8.9) refeitas para o jeito do Projudi: para gravar, use **Adicionar**, pesquise, marque o assunto e clique em **Selecionar** (só grava a preferência, nada é alterado); ao usar, a extensão faz o mesmo caminho na janela de seleção do Projudi, confere se o assunto entrou na lista e só então salva. A preferência só inclui assunto secundário. As preferências gravadas antes (2.26.0 a 2.26.3) precisam ser gravadas de novo. Vídeo V49 regravado. |
 | 2.26.3 | 08/10/2026 | Correção de segurança nas **preferências de assuntos secundários** (8.9): uma preferência gravada com **Adicionar** podia, ao ser usada, salvar a tela de alteração sem o assunto novo (gerando movimentação sem a alteração). Agora a extensão recusa gravar esse passo, que ainda não consegue repetir, e recusa usar as preferências gravadas antes (2.26.0 a 2.26.2), sem salvar nada. |
 | 2.26.2 | 08/10/2026 | Sem alteração de texto; corrigido: fora da tela do processo (por exemplo, na tela de alteração do processo), os indicadores de suspensão e de monitoração e o botão do WhatsApp deixam de repetir avisos internos a cada 1,5 segundo. |
 | 2.26.1 | 08/10/2026 | Correção nas **preferências de assuntos secundários** (8.9): ao usar a preferência, o assunto gravado não entrava na lista da tela de alteração, e a extensão avisava "os assuntos secundários da tela não ficaram como na preferência" sem salvar. Agora a gravação guarda o assunto como ele aparece na lista e a extensão o repõe antes de salvar. As preferências gravadas na 2.26.0 precisam ser gravadas de novo. |

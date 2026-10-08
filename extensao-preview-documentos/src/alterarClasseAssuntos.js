@@ -49,21 +49,21 @@
 //
 // ASSUNTOS SECUNDÁRIOS (tipo "secundario"): a ⭐ fica na linha "Assunto(s)
 // Secundário(s)" do cabeçalho, se houver; senão, um balão "⭐ Secundários"
-// na linha do Assunto Principal. Aqui o "Adicionar"/"Remover" do Projudi
-// pode recarregar a tela (o formulário é enviado com outro actionType), e
-// só repor os campos no fim não basta. Por isso a gravação guarda PASSOS:
-// a cada tela, a extensão tira uma foto dos campos; quando a tela vai ser
-// trocada (pagehide) por um envio que não é o "Salvar", guarda o que mudou
-// desde a foto, o actionType, o endereço do formulário e o botão de envio
-// (se houve). No "Salvar" (barrado), guarda o que mudou na última tela e
-// a lista de assuntos secundários antes/depois (adicionados e removidos).
-// Na execução, cada passo é repetido no quadro oculto (campos → envio),
-// depois os campos finais; antes de clicar em "Salvar", a extensão confere
-// se a lista da tela ficou como a gravada — se não ficou, nada é salvo.
-// Quando o "Adicionar" monta a lista na própria tela, sem envio (não há
-// passo a repetir), a gravação guarda também como cada assunto adicionado
-// aparece na lista (a opção ou a linha da tabela) e os campos ocultos que
-// entraram/saíram (`lista`); a execução os repõe antes de conferir.
+// na linha do Assunto Principal. A preferência ADICIONA um assunto
+// secundário. No Projudi a lista de assuntos secundários fica no servidor:
+// o "Adicionar" (addButton) abre a janela de seleção (quadro com
+// /projudi/processo/assunto.do, formulário assuntoForm, dentro da tela de
+// alteração); nela se pesquisa (descricaoPesquisa + searchButton), marca o
+// assunto (rádio idAssuntoSelecionado) e clica em "Selecionar"
+// (selectButton → confirmarSelecaoAssuntoSecundario), que grava o assunto
+// na lista do servidor e recarrega a tela de alteração, já com a linha nova
+// (rádio idAssuntoSecundarioSelecionado = id do assunto).
+// - Gravar: o "Selecionar" da janela é barrado (o processo e a lista não
+//   mudam); a extensão guarda o id e a descrição do assunto marcado.
+// - Executar: no quadro oculto, faz o mesmo que o usuário — Adicionar →
+//   pesquisa pela descrição → marca o assunto → Selecionar —, espera a tela
+//   de alteração voltar com o assunto na lista e só então clica em
+//   "Salvar". Se o assunto não aparecer na lista, nada é salvo.
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
@@ -155,11 +155,6 @@
 		let foto = null;
 		let primeiraTela = true;
 		let encerrado = false;
-		// Só na gravação de assuntos secundários: passos (envios que não são
-		// o "Salvar") e a lista de assuntos secundários da primeira tela.
-		const passos = [];
-		let itensIniciais;
-		let ocultosIniciais;
 
 		function encerrar(recarregar) {
 			if (encerrado) return;
@@ -203,35 +198,13 @@
 			}
 
 			if (gravacao && gravacao.tipo === "secundario") {
-				if (itensIniciais === undefined) {
-					itensIniciais = itensSecundarios(doc);
-					ocultosIniciais = lerOcultos(doc.getElementById(FORM_ID));
-				}
-				const base = lerCampos(doc.getElementById(FORM_ID));
-				acompanharPassos(doc, win, base, function (passo) {
-					if (!encerrado) passos.push(passo);
-				});
 				prepararGravacao(doc, gravacao.tipo, function () {
-					const form = doc.getElementById(FORM_ID);
-					const depois = itensSecundarios(doc);
-					const adicionados = itensIniciais && depois ? itensFaltando(depois, itensIniciais) : [];
-					return gravacao.concluir(
-						{
-							lista: gravarLista(doc, adicionados, ocultosIniciais),
-							passos: passos.slice(),
-							// Campos que não existiam na tela (ex.: um oculto por assunto
-							// adicionado) vão em `lista`, não aqui.
-							campos: listaDiferencas(base, lerCampos(form)).filter(function (c) {
-								return c.name in base;
-							}),
-							listaLida: itensIniciais !== null && depois !== null,
-							adicionados: adicionados,
-							removidos: itensIniciais && depois ? itensFaltando(itensIniciais, depois) : [],
-						},
-						function () {
-							encerrar(false);
-						}
-					);
+					alert('Para gravar a preferência, use "Adicionar" dos Assuntos Secundários: pesquise, marque o assunto e clique em "Selecionar".');
+				});
+				vigiarJanelaDeSelecao(doc, function (assunto) {
+					return gravacao.concluir(assunto, function () {
+						encerrar(false);
+					});
 				});
 				if (primeiraTela) {
 					primeiraTela = false;
@@ -413,311 +386,224 @@
 	}
 
 	// -------------------------------------------------------------------
-	// Assuntos secundários: lista da tela e passos (envios)
+	// Assuntos secundários: lista da tela e janela de seleção
 	// -------------------------------------------------------------------
 
-	function textoRotulo(el) {
-		return normalize(el.textContent).replace(/^\*\s*/, "");
-	}
-
-	// Área "Assuntos Secundários" da tela de alteração: { linha, celulas }.
-	// O rótulo (<label> ou célula com o texto curto "Assuntos
-	// Secundários:") fica numa célula e a lista e os botões nas células
-	// seguintes da mesma linha; fora de tabela, a área é o elemento que
-	// contém o <label> (sem ele).
-	function areaSecundarios(doc) {
+	// Linha "Assuntos Secundários" da tela de alteração (rótulo curto, num
+	// <label> ou na própria célula).
+	function linhaSecundarios(doc) {
 		const raiz = doc.getElementById(FORM_ID) || doc;
 		const rotulos = raiz.querySelectorAll("label, td, th");
 		for (let i = 0; i < rotulos.length; i++) {
-			const el = rotulos[i];
-			const texto = textoRotulo(el);
-			if (texto.length > 40 || !SECUNDARIOS_ROTULO.test(texto)) continue;
-			const celula = el.tagName === "LABEL" ? el.closest("td, th") : el;
-			const tr = celula && celula.parentElement && celula.parentElement.tagName === "TR" ? celula.parentElement : null;
-			if (tr) {
-				const celulas = [];
-				let c = celula;
-				while ((c = c.nextElementSibling)) celulas.push(c);
-				// Rótulo sozinho na célula e nada depois: a lista pode estar
-				// na mesma célula, depois do <label>.
-				if (!celulas.length && el.tagName === "LABEL") celulas.push(celula);
-				if (celulas.length) return { linha: tr, celulas: celulas };
-				continue;
-			}
-			if (el.tagName === "LABEL" && el.parentElement) return { linha: el.parentElement, celulas: [el.parentElement] };
+			const texto = normalize(rotulos[i].textContent).replace(/^\*\s*/, "");
+			if (texto.length <= 40 && SECUNDARIOS_ROTULO.test(texto)) return rotulos[i].closest("tr") || rotulos[i].parentElement;
 		}
 		return null;
 	}
 
-	function linhaSecundarios(doc) {
-		const area = areaSecundarios(doc);
-		return area ? area.linha : null;
-	}
-
-	function limparTexto(t) {
-		return String(t || "").replace(/\s+/g, " ").trim();
-	}
-
-	function textoDeItem(t) {
-		const n = normalize(t);
-		return t.length > 2 && !/^(adicionar|remover|nenhum.*)$/.test(n) && !SECUNDARIOS_ROTULO.test(n);
-	}
-
-	// Itens da lista de assuntos secundários: [{ texto, el, tipo }], com
-	// tipo "option" (lista de seleção múltipla ou com várias linhas), "tr"
-	// (tabela interna), "li" ou "texto" (linhas soltas, sem elemento
-	// próprio). null se a área não foi encontrada.
-	function elementosSecundarios(doc) {
-		const area = areaSecundarios(doc);
-		if (!area) return null;
-		const itens = [];
-		area.celulas.forEach(function (celula) {
-			const listas = Array.prototype.filter.call(celula.querySelectorAll("select"), function (sel) {
-				return sel.multiple || sel.size > 1;
-			});
-			if (listas.length) {
-				listas.forEach(function (sel) {
-					Array.prototype.forEach.call(sel.options, function (o) { itens.push({ texto: limparTexto(o.text), el: o, tipo: "option" }); });
-				});
-				return;
-			}
-			const linhas = celula.querySelectorAll("tr");
-			if (linhas.length) {
-				Array.prototype.forEach.call(linhas, function (linha) {
-					if (!linha.querySelector("th, tr")) itens.push({ texto: limparTexto(linha.textContent), el: linha, tipo: "tr" });
-				});
-				return;
-			}
-			const lis = celula.querySelectorAll("li");
-			if (lis.length) {
-				Array.prototype.forEach.call(lis, function (li) { itens.push({ texto: limparTexto(li.textContent), el: li, tipo: "li" }); });
-				return;
-			}
-			const copia = celula.cloneNode(true);
-			Array.prototype.forEach.call(copia.querySelectorAll("br"), function (br) { br.replaceWith("\n"); });
-			Array.prototype.forEach.call(copia.querySelectorAll("p, div"), function (el) { el.append("\n"); });
-			Array.prototype.forEach.call(copia.querySelectorAll("label, input, button, select, script, style, img"), function (el) { el.remove(); });
-			copia.textContent.split("\n").forEach(function (linha) { itens.push({ texto: limparTexto(linha), el: null, tipo: "texto" }); });
-		});
-		return itens.filter(function (i) { return textoDeItem(i.texto); });
-	}
-
-	// Assuntos secundários que a tela mostra (texto de cada um), ou null.
-	function itensSecundarios(doc) {
-		const els = elementosSecundarios(doc);
-		return els ? els.map(function (i) { return i.texto; }) : null;
-	}
-
-	// Campos ocultos do formulário como "nome=valor" (com repetições).
-	function lerOcultos(form) {
-		const lista = [];
-		if (!form) return lista;
-		Array.prototype.forEach.call(form.querySelectorAll('input[type="hidden"]'), function (el) {
-			if (el.name && !CAMPOS_IGNORADOS.test(el.name)) lista.push(el.name + "=" + el.value);
-		});
-		return lista;
-	}
-
-	// Itens de `a` que sobram depois de descontar os de `b` (multiconjunto).
-	function sobra(a, b) {
-		const resto = b.slice();
-		return a.filter(function (x) {
-			const i = resto.indexOf(x);
-			if (i === -1) return true;
-			resto.splice(i, 1);
-			return false;
-		});
-	}
-
-	function separarOculto(par) {
-		const i = par.indexOf("=");
-		return { name: par.slice(0, i), value: par.slice(i + 1) };
-	}
-
-	// Na gravação (no "Salvar"): como cada assunto adicionado aparece na
-	// lista da tela (a opção ou a linha da tabela) e os campos ocultos que
-	// entraram/saíram desde a primeira tela. É o que permite repor o
-	// assunto quando o "Adicionar" do Projudi monta a lista na própria
-	// tela, sem envio.
-	function gravarLista(doc, adicionados, ocultosIniciais) {
-		const els = elementosSecundarios(doc) || [];
-		const itens = [];
-		adicionados.forEach(function (texto) {
-			const item = els.filter(function (i) { return normalize(i.texto) === normalize(texto); })[0];
-			if (!item || !item.el) return;
-			if (item.tipo === "option") itens.push({ tipo: "option", texto: item.el.text, value: item.el.value, selected: item.el.selected });
-			else itens.push({ tipo: item.tipo, texto: texto, html: item.el.outerHTML });
-		});
-		const finais = lerOcultos(doc.getElementById(FORM_ID));
-		return {
-			itens: itens,
-			ocultosNovos: sobra(finais, ocultosIniciais || []),
-			ocultosRemovidos: sobra(ocultosIniciais || [], finais),
-		};
-	}
-
-	// Na execução: repõe na lista da tela os assuntos gravados (e tira os
-	// removidos), com os campos ocultos que o "Adicionar" tinha criado.
-	function aplicarLista(doc, pref) {
+	// O assunto `id` está na lista de assuntos secundários da tela?
+	function temSecundario(doc, id) {
 		const form = doc.getElementById(FORM_ID);
-		const area = areaSecundarios(doc);
-		const lista = pref.lista || {};
-		if (!form || !area) return false;
-		let mexeu = false;
-		const atuais = elementosSecundarios(doc) || [];
-		(pref.removidos || []).forEach(function (texto) {
-			atuais.forEach(function (i) {
-				if (i.el && normalize(i.texto) === normalize(texto)) {
-					i.el.remove();
-					mexeu = true;
-				}
-			});
+		if (!form) return false;
+		return Array.prototype.some.call(form.querySelectorAll('input[name="idAssuntoSecundarioSelecionado"]'), function (r) {
+			return r.value === String(id);
 		});
-		(lista.itens || []).forEach(function (item) {
-			if (contemItem(itensSecundarios(doc) || [], item.texto)) return;
-			let alvo = null;
-			area.celulas.some(function (c) {
-				if (item.tipo === "option") {
-					alvo = Array.prototype.filter.call(c.querySelectorAll("select"), function (sel) { return sel.multiple || sel.size > 1; })[0] || null;
-				} else if (item.tipo === "tr") {
-					const tabela = c.querySelector("table");
-					alvo = tabela ? tabela.tBodies[0] || tabela : null;
-				} else if (item.tipo === "li") {
-					alvo = c.querySelector("ul, ol");
-				}
-				return !!alvo;
-			});
-			if (!alvo) return;
-			if (item.tipo === "option") {
-				const opt = doc.createElement("option");
-				opt.value = item.value;
-				opt.text = item.texto;
-				alvo.appendChild(opt);
-				opt.selected = !!item.selected;
-				disparar(alvo);
-			} else {
-				alvo.insertAdjacentHTML("beforeend", item.html);
+	}
+
+	// Documento da janela de seleção de assunto aberta dentro da tela de
+	// alteração (quadro com o formulário assuntoForm), ou null.
+	function docDaJanela(doc) {
+		const quadros = doc.querySelectorAll("iframe, frame");
+		for (let i = 0; i < quadros.length; i++) {
+			try {
+				const d = quadros[i].contentDocument;
+				if (d && d.getElementById("assuntoForm")) return { quadro: quadros[i], doc: d };
+			} catch (err) {
+				// quadro de outra origem — ignora
 			}
-			mexeu = true;
-		});
-		(lista.ocultosRemovidos || []).forEach(function (par) {
-			const c = separarOculto(par);
-			const el = Array.prototype.filter.call(form.querySelectorAll('input[type="hidden"]'), function (i) { return i.name === c.name && i.value === c.value; })[0];
-			if (el) {
-				el.remove();
-				mexeu = true;
-			}
-		});
-		const presentes = lerOcultos(form);
-		sobra(lista.ocultosNovos || [], presentes).forEach(function (par) {
-			const c = separarOculto(par);
-			const el = doc.createElement("input");
-			el.type = "hidden";
-			el.name = c.name;
-			el.value = c.value;
-			form.appendChild(el);
-			mexeu = true;
-		});
-		return mexeu;
+		}
+		return null;
 	}
 
-	function contemItem(lista, item) {
-		const alvo = normalize(item);
-		return lista.some(function (t) {
-			const n = normalize(t);
-			return n === alvo || n.indexOf(alvo) !== -1;
-		});
+	// Assunto marcado na janela de seleção: { idAssunto, descricao }.
+	function assuntoMarcado(dlg) {
+		const radio = dlg.querySelector('input[name="idAssuntoSelecionado"]:checked');
+		if (!radio) return null;
+		const oculto = radio.nextElementSibling && radio.nextElementSibling.name === "descricaoAssuntoSelecionado" ? radio.nextElementSibling : null;
+		const li = radio.closest("li");
+		const link = li ? li.querySelector("a") : null;
+		const descricao = String((oculto && oculto.value) || (link && link.textContent) || radio.value).replace(/\s+/g, " ").trim();
+		return { idAssunto: radio.value, descricao: descricao };
 	}
 
-	// Itens de `lista` que não estão em `outra`.
-	function itensFaltando(lista, outra) {
-		return lista.filter(function (t) { return !contemItem(outra, t); });
-	}
-
-	// A tela já mostra os assuntos secundários como a preferência deixaria?
-	// null = não dá para saber (lista não lida ou nada gravado sobre ela).
-	function listaConfere(doc, pref) {
-		const itens = itensSecundarios(doc);
-		const adicionados = pref.adicionados || [];
-		const removidos = pref.removidos || [];
-		if (itens === null || (!adicionados.length && !removidos.length)) return null;
-		return adicionados.every(function (t) { return contemItem(itens, t); }) && !removidos.some(function (t) { return contemItem(itens, t); });
-	}
-
-	function valorActionType(form) {
-		const el = form.elements.namedItem("actionType");
-		if (!el) return null;
-		return el.length !== undefined && !el.tagName ? (el[0] ? el[0].value : null) : el.value;
-	}
-
-	// Na gravação: quando a tela vai ser trocada por um envio que não é o
-	// "Salvar" (ex.: "Adicionar"), chama `aoPasso` com o que mudou desde a
-	// foto `base`, o actionType, o endereço do formulário e o botão de envio.
-	//
-	// Só conta como passo repetível um ENVIO do formulário: com botão de
-	// envio (evento submit) ou com o endereço do formulário trocado pela
-	// página (ex.: "Remover" troca para actionType=removerAssuntoSecundario
-	// e chama form.submit()). Qualquer outra troca de tela — como a volta
-	// da janela de seleção do "Adicionar", que registra o assunto no
-	// servidor e recarrega a tela — vira um passo { navegacao: true }, que
-	// NÃO pode ser repetido: reenviar o formulário com o endereço original
-	// seria o "Salvar" (actionType=salvarEdicao).
-	function acompanharPassos(doc, win, base, aoPasso) {
-		let botao = null;
-		let enviou = false;
-		const formInicial = doc.getElementById(FORM_ID);
-		const actionInicial = formInicial ? formInicial.getAttribute("action") || "" : "";
-		doc.addEventListener(
-			"submit",
-			function (event) {
-				const b = event.submitter;
-				if (b && b.id === "saveButton") return;
-				if (event.target && event.target.id === FORM_ID) enviou = true;
-				if (b) botao = { id: b.id || "", name: b.name || "", value: b.value || "" };
-			},
-			true
-		);
-		win.addEventListener("pagehide", function () {
-			const form = doc.getElementById(FORM_ID);
-			if (!form) return;
-			const action = form.getAttribute("action") || "";
-			if (!enviou && action === actionInicial) {
-				aoPasso({ navegacao: true });
+	// Na gravação: em cada janela de seleção que abrir na tela, barra o
+	// "Selecionar" e entrega o assunto marcado a `aoEscolher` (a lista do
+	// processo não é tocada).
+	function vigiarJanelaDeSelecao(doc, aoEscolher) {
+		function preparar(d) {
+			if (!d || d.__pdpSelecaoVigiada || !d.getElementById("assuntoForm")) return;
+			d.__pdpSelecaoVigiada = true;
+			let processando = false;
+			d.addEventListener(
+				"click",
+				function (event) {
+					const alvo = event.target && event.target.closest ? event.target.closest("#selectButton") : null;
+					if (!alvo) return;
+					event.preventDefault();
+					event.stopImmediatePropagation();
+					if (processando) return;
+					const assunto = assuntoMarcado(d);
+					if (!assunto) {
+						alert("Marque um assunto na lista antes de clicar em Selecionar.");
+						return;
+					}
+					processando = true;
+					Promise.resolve(aoEscolher(assunto)).finally(function () {
+						processando = false;
+					});
+				},
+				true
+			);
+		}
+		const timer = setInterval(function () {
+			if (!doc.defaultView) {
+				clearInterval(timer);
 				return;
 			}
-			aoPasso({
-				campos: listaDiferencas(base, lerCampos(form)),
-				actionType: valorActionType(form),
-				action: form.getAttribute("action") || "",
-				botao: botao,
+			Array.prototype.forEach.call(doc.querySelectorAll("iframe, frame"), function (q) {
+				try {
+					preparar(q.contentDocument);
+				} catch (err) {
+					// segue
+				}
 			});
+		}, 300);
+		doc.defaultView.addEventListener("pagehide", function () {
+			clearInterval(timer);
 		});
 	}
 
-	// Na execução: repete um passo gravado (campos → envio). O envio usa o
-	// mesmo botão, se houve; senão, o envio do próprio formulário.
-	function executarPasso(form, passo) {
-		if (passo.navegacao) {
-			throw new Error('o "Adicionar" dos assuntos secundários (janela de seleção do Projudi) ainda não pode ser repetido pela extensão. Nada foi salvo.');
+	function pausa(ms) {
+		return new Promise(function (resolve) { setTimeout(resolve, ms); });
+	}
+
+	// Espera `teste()` devolver algo verdadeiro (ou falha com `erro`).
+	async function esperar(teste, ms, erro) {
+		const fim = Date.now() + ms;
+		while (Date.now() < fim) {
+			let r = null;
+			try {
+				r = teste();
+			} catch (err) {
+				r = null;
+			}
+			if (r) return r;
+			await pausa(250);
 		}
-		// Segurança: um passo nunca pode ser o próprio "Salvar".
-		if (!passo.botao && /salvarEdicao/i.test(passo.action || form.getAttribute("action") || "") && !passo.actionType) {
-			throw new Error("esta preferência foi gravada numa versão com erro e enviaria a tela como um \"Salvar\". Nada foi salvo. Apague-a (🗑).");
+		throw new Error(erro);
+	}
+
+	// Próxima carga de `quadro` (resolve com o documento novo).
+	function proximaCarga(quadro, ms, erro) {
+		return new Promise(function (resolve, reject) {
+			const limite = setTimeout(function () {
+				quadro.removeEventListener("load", aoCarregar);
+				reject(new Error(erro || "o Projudi demorou demais para responder."));
+			}, ms || EXEC_TIMEOUT_MS);
+			function aoCarregar() {
+				let d = null;
+				try {
+					if (quadro.contentWindow.location.href === "about:blank") return;
+					d = quadro.contentDocument;
+				} catch (err) {
+					d = null;
+				}
+				clearTimeout(limite);
+				quadro.removeEventListener("load", aoCarregar);
+				// Repasse de confirm/alert da página (ver rodarNoQuadro).
+				try {
+					quadro.contentWindow.confirm = function () { return true; };
+					quadro.contentWindow.alert = function (msg) { console.info("[Alterar Classe/Assuntos] alerta do Projudi:", msg); };
+				} catch (err) {
+					// segue
+				}
+				resolve(d);
+			}
+			quadro.addEventListener("load", aoCarregar);
+		});
+	}
+
+	function respostaDoSalvar(doc) {
+		const form = doc && doc.getElementById(FORM_ID);
+		const texto = doc && doc.body ? doc.body.textContent || "" : "";
+		if (!form || doc.defaultView.location.pathname !== EDICAO_PATH) return { ok: true };
+		if (/sucesso/i.test(texto) && !/erro|n[aã]o foi poss[ií]vel|inv[aá]lid|obrigat[oó]ri/i.test(texto)) return { ok: true };
+		return { ok: false, mensagem: mensagemDaTela(doc) };
+	}
+
+	// Execução de uma preferência de assunto secundário (ver o início do
+	// arquivo): Adicionar → pesquisa → marca → Selecionar → confere → Salvar.
+	async function executarSecundario(pref, titulo) {
+		if (!pref.idAssunto) {
+			throw new Error("esta preferência foi gravada numa versão anterior da extensão e não pode ser usada. Apague-a (🗑) e grave de novo.");
 		}
-		const faltando = reporCampos(form, passo.campos || []);
-		if (faltando.length) throw new Error("a tela de alteração não tem mais o(s) campo(s) " + faltando.join(", ") + ". Grave a preferência de novo.");
-		if (passo.action && form.getAttribute("action") !== passo.action) form.setAttribute("action", passo.action);
-		if (passo.actionType !== null && passo.actionType !== undefined) {
-			const el = form.elements.namedItem("actionType");
-			if (el && el.tagName) el.value = passo.actionType;
-			else if (el && el[0]) el[0].value = passo.actionType;
+		const url = await urlDaEdicao();
+		const quadro = document.createElement("iframe");
+		quadro.setAttribute("data-pdp-loader", "");
+		quadro.setAttribute("aria-hidden", "true");
+		quadro.style.cssText = "position:absolute;left:-9999px;top:-9999px;width:1024px;height:768px;visibility:hidden";
+		document.body.appendChild(quadro);
+		try {
+			let carga = proximaCarga(quadro);
+			quadro.src = url;
+			let doc = await carga;
+			if (!doc || !doc.getElementById(FORM_ID)) throw new Error("a tela de alteração do processo não abriu.");
+			if (temSecundario(doc, pref.idAssunto)) return { jaEstava: true };
+			const adicionar = doc.getElementById("addButton");
+			if (!adicionar) throw new Error('não encontrei o botão "Adicionar" dos Assuntos Secundários.');
+
+			mostrarStatus(titulo + " — abrindo a seleção de assunto…");
+			adicionar.click();
+			const janela = await esperar(function () {
+				const j = docDaJanela(doc);
+				return j && j.doc.getElementById("descricaoPesquisa") && j.doc.getElementById("searchButton") ? j : null;
+			}, 20000, "a janela de seleção de assunto não abriu.");
+
+			mostrarStatus(titulo + " — pesquisando o assunto…");
+			const pesquisa = String(pref.descricao || "").replace(/^\d+\s*-\s*/, "").trim();
+			const cargaJanela = proximaCarga(janela.quadro, EXEC_TIMEOUT_MS, "a pesquisa de assunto não respondeu.");
+			janela.doc.getElementById("descricaoPesquisa").value = pesquisa;
+			janela.doc.getElementById("searchButton").click();
+			await cargaJanela;
+			const radio = await esperar(function () {
+				const d = janela.quadro.contentDocument;
+				return d && d.querySelector('input[name="idAssuntoSelecionado"][value="' + String(pref.idAssunto).replace(/"/g, "") + '"]');
+			}, 20000, 'o assunto "' + pref.descricao + '" não apareceu na pesquisa da janela de seleção. Nada foi salvo.');
+			const dlg = radio.ownerDocument;
+			if (!radio.checked) radio.click();
+			const continuar = dlg.getElementById("continuarCadastrando");
+			if (continuar && continuar.checked) continuar.click();
+			const selecionar = dlg.getElementById("selectButton");
+			if (!selecionar) throw new Error('não encontrei o botão "Selecionar" da janela de seleção.');
+
+			mostrarStatus(titulo + " — selecionando o assunto…");
+			carga = proximaCarga(quadro, EXEC_TIMEOUT_MS, "a tela de alteração não voltou depois de selecionar o assunto. Nada foi salvo.");
+			selecionar.click();
+			doc = await carga;
+			if (!doc || !doc.getElementById(FORM_ID)) throw new Error("a tela de alteração não voltou depois de selecionar o assunto. Nada foi salvo.");
+			if (!temSecundario(doc, pref.idAssunto)) {
+				throw new Error('o assunto "' + pref.descricao + '" não entrou na lista de assuntos secundários. Nada foi salvo.' + (mensagemDaTela(doc) ? "\n\n" + mensagemDaTela(doc) : ""));
+			}
+			const salvar = doc.getElementById("saveButton");
+			if (!salvar) throw new Error('não encontrei o botão "Salvar".');
+
+			mostrarStatus(titulo + " — salvando…");
+			carga = proximaCarga(quadro);
+			salvar.click();
+			return respostaDoSalvar(await carga);
+		} finally {
+			setTimeout(function () { quadro.remove(); }, 0);
 		}
-		const b = passo.botao;
-		const botao = b && Array.prototype.filter.call(form.elements, function (el) {
-			return (b.id && el.id === b.id) || (!b.id && b.name && el.name === b.name && el.value === b.value);
-		})[0];
-		if (botao) botao.click();
-		else HTMLFormElement.prototype.submit.call(form);
 	}
 
 	// -------------------------------------------------------------------
@@ -736,9 +622,10 @@
 			aviso.style.cssText = "margin:6px 0 10px;padding:8px 10px;border:1px solid #d4b106;background:#fffbe6;color:#5c4400;font:12px Arial,sans-serif;border-radius:4px";
 			aviso.innerHTML = "<b>⭐ Gravando preferência.</b> " +
 				(tipo === "secundario"
-					? "Use <b>Adicionar</b> (ou <b>Remover</b>) dos <b>Assuntos Secundários</b>, como de costume, e clique em <b>Salvar</b>. "
-					: "Escolha a nova classe (lupa) e o <b>Motivo da Alteração</b> — ou o novo assunto principal — e clique em <b>Salvar</b>. ") +
-				"Esse clique só grava a preferência: <b>o processo não é alterado agora</b>.";
+					? "Clique em <b>Adicionar</b> dos <b>Assuntos Secundários</b>, pesquise, marque o assunto e clique em <b>Selecionar</b>. " +
+						"Esse clique só grava a preferência: <b>o assunto não entra no processo agora</b>."
+					: "Escolha a nova classe (lupa) e o <b>Motivo da Alteração</b> — ou o novo assunto principal — e clique em <b>Salvar</b>. " +
+						"Esse clique só grava a preferência: <b>o processo não é alterado agora</b>.");
 			form.insertBefore(aviso, form.firstChild);
 		}
 		let processando = false;
@@ -764,32 +651,16 @@
 		);
 	}
 
-	async function concluirGravacaoSecundario(resultado, fechar) {
-		if (resultado.passos.some(function (p) { return p.navegacao; })) {
-			alert('A extensão ainda não consegue repetir o "Adicionar" dos assuntos secundários (a janela de seleção do Projudi grava o assunto direto no servidor). A preferência NÃO foi gravada.\n\nClique em "Voltar" para sair sem alterar o processo.');
-			return;
-		}
-		const mudouLista = resultado.adicionados.length || resultado.removidos.length;
-		if (!mudouLista && (resultado.listaLida || (!resultado.passos.length && !resultado.campos.length))) {
-			alert('Adicione (ou remova) um assunto secundário com os botões de "Assuntos Secundários" antes de clicar em Salvar.');
-			return;
-		}
-		const partes = resultado.adicionados.map(function (t) { return "+ " + t; }).concat(resultado.removidos.map(function (t) { return "− " + t; }));
-		const descricao = partes.join("; ") || "assuntos secundários alterados";
-		const sugestao =
-			resultado.adicionados.concat(resultado.removidos).map(function (t) { return t.replace(/^\d+\s*-\s*/, ""); }).join(" + ") || "Assuntos secundários";
+	async function concluirGravacaoSecundario(assunto, fechar) {
+		const sugestao = assunto.descricao.replace(/^\d+\s*-\s*/, "");
 		const nome = prompt("Nome da preferência:", sugestao);
 		if (nome === null) return; // continua na tela de gravação
 		const pref = {
 			id: "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
 			tipo: "secundario",
 			name: nome.trim() || sugestao,
-			descricao: descricao,
-			adicionados: resultado.adicionados,
-			removidos: resultado.removidos,
-			passos: resultado.passos,
-			campos: resultado.campos,
-			lista: resultado.lista,
+			descricao: assunto.descricao,
+			idAssunto: assunto.idAssunto,
 			criadaEm: new Date().toISOString(),
 		};
 		const prefs = await carregarPrefs();
@@ -797,7 +668,7 @@
 		await salvarPrefs(prefs);
 		console.info("[Alterar Classe/Assuntos] preferência gravada:", pref);
 		fechar();
-		alert('Preferência "★ ' + pref.name + '" gravada. O processo não foi alterado.\n\nPara usá-la, clique na ⭐ dos assuntos secundários e escolha a preferência: a alteração é feita e salva automaticamente.');
+		alert('Preferência "★ ' + pref.name + '" gravada. O processo não foi alterado.\n\nPara usá-la, clique na ⭐ dos assuntos secundários e escolha a preferência: o assunto é adicionado e salvo automaticamente.');
 	}
 
 	async function concluirGravacao(tipo, resultado, fechar) {
@@ -949,8 +820,7 @@
 		const titulo = "★ " + pref.name;
 		try {
 			mostrarStatus(titulo + " — abrindo a tela de alteração…");
-			const url = await urlDaEdicao();
-			const resultado = await rodarNoQuadro(url, pref.tipo === "secundario" ? etapasSecundario(pref, titulo) : function (doc, n, win) {
+			const resultado = pref.tipo === "secundario" ? await executarSecundario(pref, titulo) : await rodarNoQuadro(await urlDaEdicao(), function (doc, n, win) {
 				const form = doc.getElementById(FORM_ID);
 				if (n === 0) {
 					if (!form) throw new Error("a tela de alteração do processo não abriu.");
@@ -974,7 +844,7 @@
 			});
 			esconderStatus();
 			if (resultado.jaEstava) {
-				const oQue = pref.tipo === "classe" ? "a classe" : pref.tipo === "secundario" ? "os assuntos secundários" : "o assunto principal";
+				const oQue = pref.tipo === "classe" ? "a classe" : pref.tipo === "secundario" ? "o assunto secundário" : "o assunto principal";
 				alert(titulo + ": o processo já está com " + oQue + ' "' + pref.descricao + '". Nada foi alterado.');
 				return;
 			}
@@ -990,52 +860,6 @@
 		} finally {
 			ocupado = false;
 		}
-	}
-
-	// Etapas da execução de uma preferência de assuntos secundários: tela 0
-	// confere se já está como a preferência deixaria; telas 0..k-1 repetem
-	// os k passos gravados (cada envio recarrega a tela); a tela k repõe os
-	// campos finais, confere a lista e clica em "Salvar"; a seguinte é a
-	// resposta do "Salvar".
-	function etapasSecundario(pref, titulo) {
-		const passos = pref.passos || [];
-		let salvarClicado = false;
-		return function (doc, n, win) {
-			const form = doc.getElementById(FORM_ID);
-			if (salvarClicado) {
-				const texto = doc.body ? doc.body.textContent || "" : "";
-				if (!form || win.location.pathname !== EDICAO_PATH) return { ok: true };
-				if (/sucesso/i.test(texto) && !/erro|n[aã]o foi poss[ií]vel|inv[aá]lid|obrigat[oó]ri/i.test(texto)) return { ok: true };
-				return { ok: false, mensagem: mensagemDaTela(doc) };
-			}
-			if (!form || win.location.pathname !== EDICAO_PATH) {
-				const msg = n === 0 ? "a tela de alteração do processo não abriu." : "a tela de alteração não voltou depois de " + (passos.length > 1 ? "um dos passos" : "adicionar/remover") + "; nada foi salvo." + (mensagemDaTela(doc) ? " " + mensagemDaTela(doc) : "");
-				throw new Error(msg);
-			}
-			if (n === 0 && listaConfere(doc, pref) === true) return { jaEstava: true };
-			if (n < passos.length) {
-				mostrarStatus(titulo + " — preenchendo (" + (n + 1) + " de " + passos.length + ")…");
-				executarPasso(form, passos[n]);
-				return undefined;
-			}
-			mostrarStatus(titulo + " — preenchendo…");
-			const faltando = reporCampos(form, pref.campos || []);
-			if (faltando.length) throw new Error("a tela de alteração não tem mais o(s) campo(s) " + faltando.join(", ") + ". Grave a preferência de novo.");
-			// Os passos não deixaram a lista como a gravada (o "Adicionar" do
-			// Projudi monta a lista na própria tela): repõe os itens gravados.
-			if (listaConfere(doc, pref) === false && pref.lista) aplicarLista(doc, pref);
-			if (listaConfere(doc, pref) === false) {
-				const area = areaSecundarios(doc);
-				console.warn("[Alterar Classe/Assuntos] lista de assuntos secundários não conferiu.", { preferencia: pref, tela: area ? area.linha.outerHTML : "(área não encontrada)" });
-				throw new Error("os assuntos secundários da tela não ficaram como na preferência (" + pref.descricao + "). Nada foi salvo. Grave a preferência de novo ou use \"✏️ Alterar\".");
-			}
-			const salvar = doc.getElementById("saveButton");
-			if (!salvar) throw new Error('não encontrei o botão "Salvar".');
-			mostrarStatus(titulo + " — salvando…");
-			salvarClicado = true;
-			salvar.click();
-			return undefined;
-		};
 	}
 
 	// -------------------------------------------------------------------
@@ -1081,7 +905,7 @@
 			usar.type = "button";
 			usar.className = "pdp-acp-usar";
 			usar.textContent = "★ " + pref.name;
-			usar.title = (pref.tipo === "secundario" ? "Alterar agora os assuntos secundários (" + pref.descricao + ")" : "Alterar agora para \"" + pref.descricao + "\"") + (pref.motivo ? " (motivo: " + textoMotivo(pref.motivo) + ")" : "") + " e salvar — sem confirmação";
+			usar.title = (pref.tipo === "secundario" ? "Adicionar agora o assunto secundário \"" + pref.descricao + "\"" : "Alterar agora para \"" + pref.descricao + "\"") + (pref.motivo ? " (motivo: " + textoMotivo(pref.motivo) + ")" : "") + " e salvar — sem confirmação";
 			usar.addEventListener("click", function () {
 				fecharPainel();
 				executarPreferencia(pref);
@@ -1193,7 +1017,7 @@
 		a.title = alvo.tipo === "classe"
 			? "Preferências de alteração de classe: grave uma alteração (classe + motivo) e repita-a com um clique, já salva no processo"
 			: alvo.tipo === "secundario"
-				? "Preferências de assuntos secundários: grave uma inclusão (ou exclusão) de assunto secundário e repita-a com um clique, já salva no processo"
+				? "Preferências de assuntos secundários: grave um assunto secundário e adicione-o com um clique, já salvo no processo"
 				: "Preferências de alteração do assunto principal: grave uma alteração e repita-a com um clique, já salva no processo";
 		a.addEventListener("click", function (event) {
 			event.preventDefault();
