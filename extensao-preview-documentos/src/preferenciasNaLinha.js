@@ -611,6 +611,20 @@
 		return card;
 	}
 
+	// Cards em blocos por ação (mesmo visual de "⭐ Minhas Preferências",
+	// ver buildFavGroups em quickActions.js); sem as ações rápidas, os
+	// cards vão direto na grade.
+	function emBlocos(grade, itens, criarCard) {
+		const qa = window.__pdpQuickActions;
+		if (qa && qa.buildFavGroups) {
+			qa.buildFavGroups(grade, itens, criarCard);
+			return;
+		}
+		itens.forEach(function (item) {
+			grade.appendChild(criarCard(item));
+		});
+	}
+
 	function novoPainel(ancora, titulo) {
 		const box = el("div", { class: "pdp-tl-popover pdp-pl-painel", id: "pdpPreferenciasLinha" });
 		box.appendChild(el("div", { class: "pdp-tl-pop-cab" }, [
@@ -665,22 +679,21 @@
 				posicionar(box, ancora);
 				return;
 			}
-			itens.forEach(function (item) {
+			emBlocos(grade, itens, function (item) {
 				const motivo = disponivel(item);
 				const card = el("div", {
 					class: "pdp-qa-fav-card" + (motivo ? " pdp-qa-fav-unavailable" : ""),
 					tabindex: "0",
 					role: "button",
-					title: motivo || ("Executar \"" + item.label + "\" com esta preferência " + onde + (item.pref.descricao ? "\n" + item.pref.descricao : ""))
+					title: "★ " + item.pref.name + "\n" + (motivo || ("Executar \"" + item.label + "\" com esta preferência " + onde + (item.pref.descricao ? "\n" + item.pref.descricao : "")))
 				}, [
-					el("span", { class: "pdp-qa-fav-card-action", text: item.label }),
 					el("span", { class: "pdp-qa-fav-card-name", text: "★ " + item.pref.name })
 				]);
-				grade.appendChild(cardClicavel(card, function () {
+				return cardClicavel(card, function () {
 					if (motivo) return;
 					fecharPainel();
 					escolher(item);
-				}));
+				});
 			});
 			posicionar(box, ancora);
 		}).then(function () {
@@ -688,10 +701,17 @@
 		}).then(function (dados) {
 			const combos = dados[0] || [];
 			if (!painel || painel.el !== box || !combos.length) return;
-			box.appendChild(el("div", { class: "pdp-tl-sec", text: "🔗 Combos" }));
-			const gradeCombos = el("div", { class: "pdp-qa-fav-grid" });
-			box.appendChild(gradeCombos);
-			combos.forEach(function (combo) {
+			// Bloco "🔗 Combos" no fim da mesma grade (sem preferências, a
+			// grade já foi trocada pelo aviso: os combos ganham uma nova).
+			let gradeCombos = grade;
+			if (!grade.isConnected) {
+				gradeCombos = el("div", { class: "pdp-qa-fav-grid" });
+				box.appendChild(gradeCombos);
+			}
+			emBlocos(gradeCombos, combos.map(function (combo) {
+				return { kind: "combo", combo: combo };
+			}), function (itemCombo) {
+				const combo = itemCombo.combo;
 				const passos = combo.steps || [];
 				const novaAba = passos.some(function (p) { return qa.stepNeedsProcessScreen(p.label); });
 				// Em lote, um combo que abre uma nova aba por processo não roda.
@@ -701,19 +721,19 @@
 					return (i + 1) + ". " + p.label + " — ★ " + (pref ? pref.name : p.prefName || "(preferência removida)");
 				}).join("\n");
 				const card = el("div", {
-					class: "pdp-qa-fav-card pdp-qa-fav-combo pdp-pl-combo" + (motivo ? " pdp-qa-fav-unavailable" : ""),
+					class: "pdp-qa-fav-card pdp-qa-fav-combo" + (motivo ? " pdp-qa-fav-unavailable" : ""),
 					tabindex: "0",
 					role: "button",
-					title: motivo || ((novaAba ? "Tem etapa que só roda na tela do processo: o combo começa numa nova aba.\n" : "Executar as etapas " + onde + ", uma a uma:\n") + descricao)
+					title: "▶ " + combo.name + " (" + passos.length + " etapas" + (novaAba ? ", começa numa nova aba" : "") + ")\n" +
+						(motivo || ((novaAba ? "Tem etapa que só roda na tela do processo: o combo começa numa nova aba.\n" : "Executar as etapas " + onde + ", uma a uma:\n") + descricao))
 				}, [
-					el("span", { class: "pdp-qa-fav-card-action", text: "Combo · " + passos.length + " etapas" + (novaAba ? " · nova aba" : "") }),
-					el("span", { class: "pdp-qa-fav-card-name", text: "▶ " + combo.name })
+					el("span", { class: "pdp-qa-fav-card-name", text: "▶ " + combo.name + (novaAba ? " ↗" : "") })
 				]);
-				gradeCombos.appendChild(cardClicavel(card, function () {
+				return cardClicavel(card, function () {
 					if (motivo) return;
 					fecharPainel();
 					escolher({ combo: combo, novaAba: novaAba });
-				}));
+				});
 			});
 			posicionar(box, ancora);
 		}).catch(function (e) {
@@ -741,21 +761,23 @@
 				posicionar(box, ancora);
 				return;
 			}
-			prefs.forEach(function (pref) {
+			emBlocos(grade, prefs.map(function (pref) {
+				return { kind: "localizador", pref: pref };
+			}), function (item) {
+				const pref = item.pref;
 				const nome = pref.nome || pref.localizadores.join(" • ");
 				const card = el("div", {
 					class: "pdp-qa-fav-card",
 					tabindex: "0",
 					role: "button",
-					title: (emLote ? "Associar aos processos marcados, em segundo plano:\n" : "Associar a este processo, em segundo plano:\n") + pref.localizadores.join("\n")
+					title: "★ " + nome + "\n" + (emLote ? "Associar aos processos marcados, em segundo plano:\n" : "Associar a este processo, em segundo plano:\n") + pref.localizadores.join("\n")
 				}, [
-					el("span", { class: "pdp-qa-fav-card-action", text: "📍 Localizador" }),
 					el("span", { class: "pdp-qa-fav-card-name", text: "★ " + nome })
 				]);
-				grade.appendChild(cardClicavel(card, function () {
+				return cardClicavel(card, function () {
 					fecharPainel();
 					escolher(pref, nome);
-				}));
+				});
 			});
 			posicionar(box, ancora);
 		}).catch(function (e) {

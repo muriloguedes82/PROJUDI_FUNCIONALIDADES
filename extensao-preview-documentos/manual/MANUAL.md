@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.26.3 |
-| **Versão da extensão** | 2.26.3 |
+| **Versão do manual** | 2.29.0 |
+| **Versão da extensão** | 2.29.0 |
 | **Data desta versão** | 08/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -850,13 +850,13 @@ onde parou. Uma operação por vez.
 
 ▶ [**Vídeo V36** — Dispensar cumprimentos para expedir](videos/V36-dispensar-cumprimentos.mp4)
 
-**Para que serve:** remover os cumprimentos pendentes de expedição de um mesmo tipo.
+**Para que serve:** remover os cumprimentos pendentes de expedição de um mesmo tipo, incluindo mandados.
 
-**Onde fica:** no quadro **Pendências**, ao lado de cada tipo em **Cumprimentos para Expedir** com quantidade maior que zero.
+**Onde fica:** no quadro **Pendências**, ao lado de cada tipo em **Cumprimentos para Expedir** com quantidade maior que zero, inclusive **Mandado**.
 
 **Passo a passo:**
 
-1. Confira o tipo e a quantidade. Clique em **Dispensar pendências** somente se quiser remover todos os cumprimentos daquele tipo.
+1. Confira o tipo e a quantidade. Clique em **Dispensar pendências** somente se quiser remover todos os cumprimentos daquele tipo, inclusive os mandados.
 2. Acompanhe **Dispensando 1/N…**. O botão fica desabilitado durante a operação.
 3. Ao terminar, aparece **Cumprimentos dispensados (N)**. A página principal permanece aberta; recarregue-a para atualizar os contadores.
 
@@ -998,21 +998,31 @@ Atualizar preferência** (nada é enviado); 🗑 remove.
 do Juntar Documento e, no SEEU, do **📍 Localizador**) e os combos, em
 cards, num só lugar.
 
+**Como o painel é organizado:** as preferências ficam em **blocos, um por
+ação**. No alto de cada bloco aparecem o ícone do botão da ação, o nome
+dela e quantas preferências ela tem, ex.: **📤 Enviar Concluso (3)**. Os
+combos ficam no bloco **🔗 Combos**, em azul. Os blocos ficam lado a lado,
+e cada preferência é um card retangular de uma linha com **★ nome**, o
+**✏️** (editar) e o **🗑** (remover). Se o nome for comprido e aparecer
+cortado ("…"), pare o mouse sobre o card para lê-lo inteiro.
+
 **Passo a passo:**
 
 1. Clique em **⭐ Minhas Preferências**.
 2. Clique no card desejado — o fluxo é o mesmo do item [7.2](#cap-7-2)
    (pergunta sobre juntadas/conclusão pendentes, se houver, diálogo
    preenchido + ✅ **Sim, executar**).
-3. Para mudar a ordem: **✏️ Editar posição**, arraste os cards e clique em
+3. Para **editar** uma preferência, clique no **✏️** do card: o diálogo da
+   ação abre preenchido com ela, para você ajustar os campos (e o nome) e
+   salvar de novo. No card de um combo, o **✏️** abre o editor de etapas.
+4. Para mudar a ordem: **✏️ Editar posição**, arraste os cards dentro do
+   bloco ou o **título de um bloco** para mudá-lo de lugar, e clique em
    **✅ Concluir**. A ordem é salva na hora.
 
 **Bom saber:** só os primeiros cards aparecem de início; marque **Mostrar
 todas** para ver o restante. Os cards **📍 Localizador** (só no SEEU)
 associam os localizadores na hora, sem diálogo nem ✅ **Sim, executar**
-— veja [8.8](#cap-8-8). Os cards de **combo** (🔗) são sempre **azuis**,
-aqui e na ⭐ das listas ([9.3](#cap-9-3)), para se destacarem das
-preferências.
+— veja [8.8](#cap-8-8).
 
 <a id="cap-7-4"></a>
 ### 7.4 Combos de preferências
@@ -1621,8 +1631,75 @@ nova.
   trocada **e** o motivo foi marcado.
 - Para apagar uma preferência, use **🗑** ao lado dela. As preferências
   entram no **⬇ Exportar** do Menu da extensão ([2.6](#cap-2-6)).
-- Os **Assuntos Secundários** (Adicionar/Remover) não entram na
-  preferência.
+- A ⭐ do **assunto principal** grava só o assunto principal. Para os
+  **Assuntos Secundários**, use a ⭐ própria deles (abaixo).
+
+**Preferências de assuntos secundários (⭐ Secundários)**
+
+▶ [**Vídeo V49** — Preferência de assunto secundário](videos/V49-preferencia-de-assunto-secundario.mp4)
+
+Funciona como a ⭐ da classe e do assunto principal, mas para **incluir**
+um assunto secundário que se repete muito — por exemplo, acrescentar
+**3418 - Furto de coisa comum**.
+
+**Onde fica:** se o processo já tem assunto secundário, o cabeçalho mostra
+a linha **Assuntos Secundários**, e nela há **✏️ Alterar** e **⭐**. Se ainda
+não tem, o balão **⭐ Secundários** fica na linha do **Assunto Principal**,
+depois da ⭐ dele.
+
+*Gravar uma preferência:*
+
+1. Clique na **⭐** dos assuntos secundários (ou em **⭐ Secundários**) e em
+   **+ Nova preferência**.
+2. Abre-se a tela de alteração no popup, já na linha **Assuntos
+   Secundários**, com o aviso amarelo "Gravando preferência".
+3. Clique em **Adicionar**. Na janela de seleção do Projudi, pesquise o
+   assunto, marque-o e clique em **Selecionar**.
+4. Nesse momento **nada é alterado**: o assunto não entra no processo. A
+   extensão só guarda o assunto escolhido, pede um nome para a preferência
+   e fecha o popup.
+
+*Usar a preferência:* clique na **⭐** dos assuntos secundários e no nome da
+preferência (**★ …**). A extensão faz, sozinha e sem mostrar a tela, o
+mesmo que você faria: **Adicionar**, pesquisa o assunto, marca, clica em
+**Selecionar**, confere se ele entrou na lista e só então clica em
+**Salvar**. Um aviso no alto da tela mostra o andamento; no fim, a tela do
+processo é recarregada.
+
+*Bom saber:*
+
+- Se o processo **já tiver** o assunto secundário da preferência, nada é
+  feito e a extensão avisa.
+- Se o assunto não aparecer na pesquisa ou não entrar na lista, **nada é
+  salvo** e aparece um aviso — use **✏️ Alterar** para fazer à mão.
+- A preferência só **inclui** assunto secundário. Para remover, use o
+  **✖** ao lado do assunto (abaixo).
+- Preferências de assunto secundário gravadas em versões de teste
+  anteriores à 2.28.0 não funcionam: apague-as com **🗑** e grave de novo.
+- Para apagar, use **🗑** ao lado da preferência. Elas também entram no
+  **⬇ Exportar** do Menu da extensão ([2.6](#cap-2-6)).
+
+**Remover um assunto secundário (✖)**
+
+▶ [**Vídeo V50** — Remover assunto secundário](videos/V50-remover-assunto-secundario.mp4)
+
+No cabeçalho do processo, na linha **Assuntos Secundários**, cada assunto
+tem no fim um pequeno balão **✖**. Ele tira aquele assunto do processo sem
+você abrir a tela de alteração.
+
+1. Clique no **✖** do assunto que quer tirar.
+2. Confirme a pergunta "Remover o assunto secundário … deste processo?".
+3. Um aviso no alto da tela mostra o andamento ("removendo da lista…",
+   "salvando…"). A extensão faz o mesmo que o botão **Remover** da tela de
+   alteração, confere se o assunto saiu da lista e só então clica em
+   **Salvar**. No fim, a tela do processo é recarregada sem o assunto.
+
+*Bom saber:*
+
+- Só os assuntos **secundários** têm **✖**; o assunto principal não pode ser
+  removido, só trocado (**✏️ Alterar** ou **⭐**).
+- Se o assunto não sair da lista, **nada é salvo** e a extensão avisa — use
+  **✏️ Alterar** para fazer à mão.
 
 <a id="cap-8-10"></a>
 ### 8.10 Novo Valor da Causa
@@ -1776,9 +1853,10 @@ processos marcados, **em lote**.
 - A lista **não** é recarregada ao final, para não perder a busca feita.
 - Preferências avulsas de **Juntar Documento**, **Alvará Eletrônico** e
   **Advogados** aparecem esmaecidas (use-as na tela do processo).
-- Combos com essas etapas abrem o processo numa **nova aba** e rodam lá.
-- Os cards de **combo** (🔗) são **azuis**, como na tela do processo, para
-  se destacarem das preferências — também na barra **⭐ Em lote**.
+- Combos com essas etapas abrem o processo numa **nova aba** e rodam lá;
+  o card deles tem o sinal **↗**.
+- Os cards ficam em blocos, um por ação, como em **⭐ Minhas
+  Preferências** ([7.3](#cap-7-3)), mas sem os botões ✏️ e 🗑.
 - No **Retorno de Conclusão**, o **Sim** finaliza a conclusão pela linha
   **"Retorno de Conclusão"** do quadro Pendências do processo (a mesma do
   botão **Finalizar conclusão** da capa). Se o processo não tiver essa
@@ -1998,7 +2076,7 @@ sem sair da lista de decursos e sem abrir outra aba.
 <a id="cap-9-9"></a>
 ### 9.9 Documento do Juiz ao passar o mouse no Retorno de Conclusão
 
-▶ [**Vídeo V49** — Documento do Juiz no Retorno de Conclusão](videos/V49-documento-da-conclusao.mp4)
+▶ [**Vídeo V51** — Documento do Juiz no Retorno de Conclusão](videos/V51-documento-da-conclusao.mp4)
 
 *No Projudi e no SEEU.*
 
@@ -2151,7 +2229,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V15](videos/V15-dispensar-decursos.mp4) | [Dispensar decursos de prazo](videos/V15-dispensar-decursos.mp4) | [6.3](#cap-6-3) | 0:31 |
 | [V16](videos/V16-acoes-rapidas.mp4) | [Ações rápidas](videos/V16-acoes-rapidas.mp4) | [7.1](#cap-7-1) | 0:44 |
 | [V17](videos/V17-preferencias.mp4) | [Preferências](videos/V17-preferencias.mp4) | [7.2](#cap-7-2) | 1:18 |
-| [V18](videos/V18-minhas-preferencias.mp4) | [Minhas Preferências](videos/V18-minhas-preferencias.mp4) | [7.3](#cap-7-3) | 0:48 |
+| [V18](videos/V18-minhas-preferencias.mp4) | [Minhas Preferências](videos/V18-minhas-preferencias.mp4) | [7.3](#cap-7-3) | 0:55 |
 | [V19](videos/V19-combos-de-preferencias.mp4) | [Combos de preferências](videos/V19-combos-de-preferencias.mp4) | [7.4](#cap-7-4) | 0:58 |
 | [V20](videos/V20-alvara-eletronico.mp4) | [Alvará Eletrônico](videos/V20-alvara-eletronico.mp4) | [8.1](#cap-8-1) | 0:45 |
 | [V21](videos/V21-juntar-documento.mp4) | [Juntar Documento com preferências](videos/V21-juntar-documento.mp4) | [8.2](#cap-8-2) | 1:09 |
@@ -2182,7 +2260,9 @@ pode variar um pouco. Clique no título para assistir.
 | [V46](videos/V46-remessa-turma-recursal.mp4) | [Remessa para a Turma Recursal](videos/V46-remessa-turma-recursal.mp4) | [7.1](#cap-7-1) | 0:47 |
 | [V47](videos/V47-novo-valor-da-causa.mp4) | [Novo Valor da Causa](videos/V47-novo-valor-da-causa.mp4) | [8.10](#cap-8-10) | 0:36 |
 | [V48](videos/V48-aviso-de-versao-nova.mp4) | [Aviso de versão nova e atualização](videos/V48-aviso-de-versao-nova.mp4) | [2.3](#cap-2-3) | 0:41 |
-| [V49](videos/V49-documento-da-conclusao.mp4) | [Documento do Juiz no Retorno de Conclusão](videos/V49-documento-da-conclusao.mp4) | [9.9](#cap-9-9) | 0:59 |
+| [V49](videos/V49-preferencia-de-assunto-secundario.mp4) | [Preferência de assunto secundário](videos/V49-preferencia-de-assunto-secundario.mp4) | [8.9](#cap-8-9) | 0:52 |
+| [V50](videos/V50-remover-assunto-secundario.mp4) | [Remover assunto secundário](videos/V50-remover-assunto-secundario.mp4) | [8.9](#cap-8-9) | 0:22 |
+| [V51](videos/V51-documento-da-conclusao.mp4) | [Documento do Juiz no Retorno de Conclusão](videos/V51-documento-da-conclusao.mp4) | [9.9](#cap-9-9) | 0:59 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -2196,10 +2276,13 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 2.26.3 | 08/10/2026 | Os cards de **combo** na ⭐ das listas e na barra **⭐ Em lote** (9.3) passam a ser **azuis**, como em ⭐ Minhas Preferências na tela do processo (7.3), para se destacarem das preferências; texto da 7.3 e da 9.3 ajustado. Vídeos V18, V30 e V40 regravados com o card azul. |
-| 2.26.2 | 08/10/2026 | Seção **9.9**, com mais de um arquivo: o **✕** passa a fechar só a janela dele (antes fechava todas) e clicar numa janela de trás a traz para a frente; o título começa pelo número do arquivo ("1/3"), visível na faixa das janelas de trás. Vídeo V49 regravado. |
-| 2.26.1 | 08/10/2026 | Correção na seção **9.9**: o documento não aparecia, porque ele não fica na tela **Dados da Conclusão**, e sim na tela seguinte (**Movimentar Processo**, aberta pelo botão **Analisar** dela), na linha **Documentos**. A extensão agora percorre as duas telas e mostra só os arquivos dessa linha (não os das Movimentações Realizadas). Texto da 9.9 ajustado e vídeo V49 regravado. |
-| 2.26.0 | 07/10/2026 | Nova seção **9.9** (Projudi e SEEU): na lista **Retorno de Conclusão**, pousar o mouse sobre o **Analisar** mostra o documento que o Juiz fez (despacho, decisão ou sentença) — uma janela para cada arquivo —, com **📌 Fixar**, **Abrir em nova aba** e **✕**, sem sair da lista. Nova função na tabela da 2.6 e vídeo V49. |
+| 2.29.0 | 08/10/2026 | Nova seção **9.9** (Projudi e SEEU): na lista **Retorno de Conclusão**, pousar o mouse sobre o **Analisar** mostra o documento que o Juiz fez (despacho, decisão ou sentença) — o da linha **Documentos** da tela **Movimentar Processo**, sem clicar duas vezes em Analisar —, uma janela por arquivo, com **📌 Fixar**, **Abrir em nova aba** e **✕**. Com mais de um arquivo, o **✕** fecha só aquela janela e clicar numa janela de trás a traz para a frente. Nova função na tabela da 2.6 e vídeo V51. |
+| 2.28.0 | 08/10/2026 | Alterar Classe/Assuntos (8.9): novas **preferências de assuntos secundários** (**⭐** na linha **Assuntos Secundários** do cabeçalho, ou **⭐ Secundários** na linha do Assunto Principal quando ainda não há assunto secundário) — para gravar, use **Adicionar**, pesquise, marque o assunto e clique em **Selecionar** (só grava a preferência); ao usar, a extensão faz o mesmo caminho na janela de seleção do Projudi, confere se o assunto entrou na lista e só então salva. Novo balão **✖** no fim de cada assunto secundário do cabeçalho, que remove aquele assunto e salva (pede confirmação). Corrigido: fora da tela do processo, os indicadores de suspensão e de monitoração e o botão do WhatsApp deixam de repetir avisos internos a cada 1,5 segundo. Novos vídeos V49 e V50. |
+| 2.26.4 | 08/10/2026 | Sem alteração de texto; associadas as linhas **Analisar** e da data pelo código do mandado na listagem. |
+| 2.26.3 | 08/10/2026 | Sem alteração de texto; a dispensa de mandados agora abre a ficha diretamente pela data da linha na listagem. |
+| 2.26.2 | 08/10/2026 | Sem alteração de texto; corrigido o reconhecimento do link **Analisar** na listagem de mandados. |
+| 2.26.1 | 08/10/2026 | Seção 6.4: **Dispensar pendências** também funciona para mandados para expedir. |
+| 2.26.0 | 07/10/2026 | Seção 7.3: o painel **⭐ Minhas Preferências** passa a mostrar as preferências em **blocos, um por ação** (ícone do botão, nome da ação e quantidade), com o bloco **🔗 Combos** no fim, e cada preferência vira um **card retangular de uma linha** com ✏️ (editar) e 🗑 (remover) sempre à vista; **✏️ Editar posição** passa a arrastar os cards dentro do bloco e os blocos entre si. Seção 9.3: a **⭐** da linha e o **⭐ Em lote** usam os mesmos blocos (combos que abrem nova aba ganham o sinal ↗). Todas as preferências e combos, em qualquer painel (Ordenações, Concluso, Partes, Juntar Documento, Combos, Alterar Classe/Assunto, Localizador, Listas de tarefas etc.), deixam de ser ovais e passam a ser retangulares com cantos levemente arredondados. Vídeos V16 a V22, V26, V27, V30, V35, V37, V38, V40, V41, V43, V45 e V46 regravados. |
 | 2.25.0 | 06/10/2026 | Nova seção 2.3 (**Atualização da extensão**) reescrita: aviso **🆕 Há novidades na extensão!** abaixo do ícone da balança quando sai versão nova, com a observação para exportar as preferências antes, os botões **1. Exportar preferências** e **2. Atualizar** e o passo a passo para recarregar a extensão; explica que as preferências continuam quando os arquivos novos são colados por cima da mesma pasta. Seção 2.6: ponto azul no ícone e faixa "Versão nova disponível" no Menu. Novo vídeo V48. |
 | 2.24.0 | 06/10/2026 | Nova seção **8.10 Novo Valor da Causa** (só no Projudi): linha **Valor da Causa** no cabeçalho do processo (em qualquer aba), com o balão **💲 Novo Valor da Causa** ao lado do valor; você digita o novo valor e a extensão o grava na tela de alteração do processo e clica em **Salvar** sozinha, sem abrir a tela — o Projudi registra a alteração nas Movimentações. Nova função na tabela da 2.6 (30 funções no Projudi), Solução de problemas (11) e vídeo V47. |
 | 2.23.4 | 06/10/2026 | Destacar movimentações (3.4): novos tipos **Procurador / Procuradora** (ex.: "Procurador do Município de ..."), **Defensor / Defensora** e **Audiência** (esta destaca as movimentações de audiência, seja quem for que as lançou), os mesmos do quadro **Realces** do Projudi. Vídeo V06 regravado. |

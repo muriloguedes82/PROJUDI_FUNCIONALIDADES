@@ -449,7 +449,7 @@ function listaPrefsLoc(prefs, status) {
 	let h = SL_TIT("Minhas preferências de localizadores");
 	if (!prefs.length) h += '<div style="color:#64748b;font-style:italic">Nenhuma preferência ainda. Crie uma com os localizadores que você mais usa: depois, um clique associa todos ao processo.</div>';
 	prefs.forEach((p, i) => {
-		h += '<div style="display:flex;gap:2px;margin:4px 0"><span id="sl-pref' + i + '" style="flex:1;padding:6px 8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;color:#1e3a8a"><b>' + p[0] + '</b><br><small style="color:#475569">' + p[1].join(" • ") + '</small></span><span style="width:24px;text-align:center;opacity:.5">↑</span><span style="width:24px;text-align:center">✏️</span><span style="width:24px;text-align:center">🗑</span></div>';
+		h += '<div style="display:flex;gap:2px;margin:4px 0"><span id="sl-pref' + i + '" style="flex:1;padding:6px 8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:4px;color:#1e3a8a"><b>' + p[0] + '</b><br><small style="color:#475569">' + p[1].join(" • ") + '</small></span><span style="width:24px;text-align:center;opacity:.5">↑</span><span style="width:24px;text-align:center">✏️</span><span style="width:24px;text-align:center">🗑</span></div>';
 	});
 	h += '<div style="text-align:right;margin-top:6px">' + SL_BT("sl-nova", "➕ Nova preferência", true) + "</div>";
 	if (status) h += '<div style="margin-top:8px;padding:6px 8px;border-radius:6px;background:' + (status[1] ? "#ecfdf5;color:#065f46" : "#f1f5f9;color:#334155") + '">' + status[0] + "</div>";
@@ -494,11 +494,13 @@ CENAS.V40 = {
 		await S.cap("A preferência também entra em <b>⭐ Minhas Preferências</b>, junto das outras.");
 		$("#sl-painel").remove();
 		await S.click("#x-fav");
-		const cards = [["Audiência cumprida", "📍 Localizador"], ["Intimar MP - ciência 5 dias", "Intimar Partes"], ["🔗 Decurso + concluso", "Combo · 2 etapas"]];
-		const pn = panelAt('<div style="display:flex;justify-content:space-between;align-items:center"><h4 style="margin:0">⭐ Minhas Preferências</h4><span class="x-btn small">✏️ Editar posição</span></div>' +
-			'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px">' + cards.map((c, i) => '<div class="x-chip' + (c[0].startsWith("🔗") ? " combo" : "") + '" data-card="' + i + '" style="display:block;border-radius:6px;padding:8px;margin:0;font-size:12px"><div style="color:#666;font-size:11px">' + c[1] + "</div><b>" + (c[0].startsWith("🔗") ? "" : "★ ") + c[0] + "</b></div>").join("") + "</div>", "#x-fav", { w: 520 });
-		await S.cap("Um clique no card <b>📍 Localizador · ★ Audiência cumprida</b> associa os localizadores.");
-		await S.click('[data-card="0"]');
+		const pn = panelAt('<div style="display:flex;justify-content:space-between;align-items:center"><h4 style="margin:0">⭐ Minhas Preferências</h4><span class="x-btn small">✏️ Editar posição</span></div>' + favBlocos([
+			{ icon: "📍", title: "Localizador", cards: [{ name: "Audiência cumprida", id: "card-loc" }] },
+			{ icon: "📨", title: "Intimar Partes", cards: [{ name: "Intimar MP - ciência 5 dias" }] },
+			{ icon: "🔗", title: "Combos", cards: [{ name: "Decurso + concluso", combo: true }] },
+		], { tools: true }), "#x-fav", { w: 520 });
+		await S.cap("Um clique no card <b>★ Audiência cumprida</b>, do bloco <b>📍 Localizador</b>, associa os localizadores.");
+		await S.click("#card-loc");
 		pn.remove();
 		listaPrefsLoc([pref], ["Associando 1 de 2: ABERTO..."]);
 		await sleep(900);
@@ -530,9 +532,9 @@ CENAS.V41 = {
 		await S.titleCard("VÍDEO V41", "Localizador pela ⭐ da lista (SEEU)", "Associe localizadores a um processo sem sair da lista de juntadas ou conclusões.");
 		await S.cap("No SEEU, as listas <b>Análise de Juntadas</b> e <b>Retorno de Conclusão</b> também têm a <b>⭐</b> em cada linha.");
 		await S.click('[data-star="0"]');
-		const pn = panelAt('<h4>⭐ Minhas Preferências — ' + LISTA[0].n + '</h4><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">' +
-			'<div class="x-chip" id="card" style="display:block;border-radius:6px;padding:8px;margin:0"><div style="color:#666">📍 Localizador</div><b>★ Audiência cumprida</b></div>' +
-			'<div class="x-chip" style="display:block;border-radius:6px;padding:8px;margin:0"><div style="color:#666">📍 Localizador</div><b>★ Cálculo de pena</b></div></div>', '[data-star="0"]', { w: 440 });
+		const pn = panelAt('<h4>⭐ Minhas Preferências — ' + LISTA[0].n + '</h4>' + favBlocos([
+			{ icon: "📍", title: "Localizador", cards: [{ name: "Audiência cumprida", id: "card" }, { name: "Cálculo de pena" }] },
+		]), '[data-star="0"]', { w: 440 });
 		pn.style.left = "520px"; pn.style.top = "200px";
 		await S.cap("No SEEU, a ⭐ mostra as preferências do <b>📍 Localizador</b>. Escolha uma.");
 		await S.click("#card");
@@ -641,7 +643,7 @@ CENAS.V43 = {
 		$(".x-popup").remove();
 		await S.cap("Pronto. Para usar, clique na <b>⭐</b> e no nome da preferência.");
 		await S.click("#x-alt-classe-pref");
-		pn = panelAt('<h4>⭐ Preferências — Alterar classe</h4><div style="display:flex;gap:4px;margin-bottom:6px"><span class="x-btn small" id="x-pref" style="flex:1">★ Inquérito Policial (Evolução)</span><span class="x-btn small">🗑</span></div><span class="x-btn small">+ Nova preferência</span>', "#x-alt-classe-pref", { w: 320 });
+		pn = panelAt('<h4>⭐ Preferências — Alterar classe</h4><div class="x-fcard" style="display:flex;justify-content:space-between;margin-bottom:6px"><span id="x-pref">★ Inquérito Policial (Evolução)</span><span class="i">🗑</span></div><span class="x-btn small">+ Nova preferência</span>', "#x-alt-classe-pref", { w: 320 });
 		pn.style.left = "330px"; pn.style.top = "180px";
 		await S.click("#x-pref");
 		pn.remove();
@@ -743,9 +745,10 @@ CENAS.V45 = {
 		await S.cap("A barra <b>⭐ Em lote</b>, acima da tabela, conta os processos marcados (há também “marcar todos”).");
 		S.hlOff();
 		await S.click("#x-exec");
-		const pn = panelAt('<h4>⭐ Em lote — 3 processo(s) marcado(s)</h4><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">' +
-			'<div class="x-chip" id="card" style="display:block;border-radius:6px;padding:8px;margin:0"><b>★ Remessa MP</b><div style="color:#666">Realizar Remessa</div></div>' +
-			'<div class="x-chip" style="display:block;border-radius:6px;padding:8px;margin:0"><b>★ Concluso p/ sentença</b><div style="color:#666">Enviar Concluso</div></div></div>', "#x-exec", { w: 440 });
+		const pn = panelAt('<h4>⭐ Em lote — 3 processo(s) marcado(s)</h4>' + favBlocos([
+			{ icon: "📦", title: "Realizar Remessa", cards: [{ name: "Remessa MP", id: "card" }] },
+			{ icon: "📤", title: "Enviar Concluso", cards: [{ name: "Concluso p/ sentença" }] },
+		]), "#x-exec", { w: 440 });
 		pn.style.left = "420px"; pn.style.top = "250px";
 		await S.cap("Escolha a preferência ou o combo — os mesmos cards da ⭐ da linha.");
 		await S.click("#card");
@@ -929,6 +932,104 @@ CENAS.V48 = {
 };
 
 // ------------------------------------------------------------------ V49
+// Preferência de assunto secundário (⭐ Secundários, alterarClasseAssuntos.js).
+CENAS.V49 = {
+	arquivo: "V49-preferencia-de-assunto-secundario.mp4",
+	titulo: "Preferência de assunto secundário",
+	secao: "8.9",
+	async run() {
+		telaProcesso({});
+		cardsAlterar();
+		$("#row-assunto td:nth-child(2)").insertAdjacentHTML("beforeend", '<a id="x-alt-sec-pref" style="' + ESTILO_BALAO + ';margin-left:4px;padding:1px 6px">⭐ Secundários</a>');
+		await S.titleCard("VÍDEO V49", "Preferência de assunto secundário", "Grave uma vez o assunto secundário; depois, um clique inclui e salva.");
+		S.hl("#x-alt-sec-pref", 3);
+		await S.cap("Na linha do <b>Assunto Principal</b> há o balão <b>⭐ Secundários</b> (se o processo já tem assunto secundário, a ⭐ fica na linha dele).");
+		S.hlOff();
+		await S.click("#x-alt-sec-pref");
+		let pn = panelAt('<h4>⭐ Preferências — Assuntos secundários</h4><p style="color:#666;margin:0 0 8px">Nenhuma preferência gravada.</p><span class="x-btn small" id="x-nova">+ Nova preferência</span>', "#x-alt-sec-pref", { w: 320 });
+		pn.style.left = "430px"; pn.style.top = "205px";
+		await S.click("#x-nova");
+		pn.remove();
+		await abrindo("Alterar Classe/Assuntos", 900);
+		const campo = (rot, val) => '<tr><td class="l" style="width:230px"><b style="color:#c00">*</b> ' + rot + '</td><td><span class="pj-select" style="min-width:420px;display:inline-block">' + val + '</span> <span class="pj-btn">🔍</span></td></tr>';
+		popup("Alteração de Processo",
+			'<div style="margin:0 0 10px;padding:8px 10px;border:1px solid #d4b106;background:#fffbe6;color:#5c4400;border-radius:4px"><b>⭐ Gravando preferência.</b> Clique em <b>Adicionar</b> dos <b>Assuntos Secundários</b>, pesquise, marque o assunto e clique em <b>Selecionar</b>. Esse clique só grava a preferência: <b>o assunto não entra no processo agora</b>.</div>' +
+			'<table class="pj-info" style="width:100%">' +
+			campo("Classe Processual:", "283 - Ação Penal - Procedimento Ordinário") +
+			campo("Assunto Principal:", "3418 - Furto Qualificado") +
+			'<tr id="x-ed-sec"><td class="l">Assuntos Secundários:</td><td><table class="pj-info" style="width:420px;margin-bottom:4px"><tr><td style="width:24px">○</td><td>3416 - Furto</td></tr></table><span class="pj-btn" id="x-ed-add">Adicionar</span> <span class="pj-btn">Remover</span></td></tr></table>' +
+			'<div class="pj-btnbar" style="justify-content:flex-start"><span class="pj-btn">Salvar</span><span class="pj-btn">Voltar</span></div>',
+			{ hd: "Alterar Classe/Assuntos — popup da extensão" });
+		S.hl("#x-ed-sec", 3);
+		await S.cap("A tela abre já nos <b>Assuntos Secundários</b>, com o aviso amarelo de que você está <b>gravando</b>.");
+		S.hlOff();
+		await S.click("#x-ed-add");
+		const jan = modal('<b>Seleção de Assunto</b><div style="margin:8px 0">Descrição: <span class="pj-select" style="display:inline-block;min-width:200px">furto de coisa comum</span> <span class="pj-btn">Pesquisar</span></div>' +
+			'<div style="border:1px solid #ccc;padding:6px;margin-bottom:8px">○ 3416 - Furto<br><span id="x-dlg-3418">○ 3418 - Furto de coisa comum</span><br>○ 5564 - Furto Privilegiado</div><span class="x-btn small" id="x-dlg-sel">Selecionar</span> <span class="x-btn small">Cancelar</span>', { w: 420, top: 170 });
+		await S.cap("Na janela de seleção do Projudi, pesquise o assunto e marque-o.");
+		await S.click("#x-dlg-3418");
+		$("#x-dlg-3418").textContent = "● 3418 - Furto de coisa comum";
+		await S.cap("Clique em <b>Selecionar</b>. A extensão só guarda o assunto — <b>nada é alterado</b> — e pede um nome.");
+		await S.click("#x-dlg-sel");
+		closeModal();
+		modal('<b>Nome da preferência:</b><div class="pj-select" style="display:block;margin:8px 0">Furto de coisa comum</div><span class="x-btn small green" id="x-ok">OK</span>', { w: 380, top: 200 });
+		await S.click("#x-ok");
+		closeModal();
+		$(".x-popup").remove();
+		await S.cap("Para usar, clique em <b>⭐ Secundários</b> e no nome da preferência.");
+		await S.click("#x-alt-sec-pref");
+		pn = panelAt('<h4>⭐ Preferências — Assuntos secundários</h4><div style="display:flex;gap:4px;margin-bottom:6px"><span class="x-btn small" id="x-pref" style="flex:1">★ Furto de coisa comum</span><span class="x-btn small">🗑</span></div><span class="x-btn small">+ Nova preferência</span>', "#x-alt-sec-pref", { w: 340 });
+		pn.style.left = "430px"; pn.style.top = "205px";
+		await S.click("#x-pref");
+		pn.remove();
+		const t = toast("★ Furto de coisa comum — pesquisando o assunto…", { left: 430, top: 90 });
+		await sleep(1100);
+		t.innerHTML = "★ Furto de coisa comum — selecionando o assunto…";
+		await sleep(1100);
+		t.innerHTML = "★ Furto de coisa comum — salvando…";
+		await sleep(1100);
+		t.remove();
+		await S.cap("A extensão faz sozinha o mesmo caminho — Adicionar, pesquisa, Selecionar —, confere se o assunto entrou na lista e só então clica em <b>Salvar</b>.", { ms: 4200 });
+		await S.endCard("⭐ Secundários → + Nova preferência → Adicionar → marcar → Selecionar (só grava). Depois: ⭐ → ★ preferência → incluído e salvo, sem confirmação.");
+	},
+};
+
+// ------------------------------------------------------------------ V50
+// ✖ ao lado de cada assunto secundário do cabeçalho (alterarClasseAssuntos.js).
+CENAS.V50 = {
+	arquivo: "V50-remover-assunto-secundario.mp4",
+	titulo: "Remover assunto secundário",
+	secao: "8.9",
+	async run() {
+		telaProcesso({});
+		cardsAlterar();
+		const x = id => '<a id="' + id + '" style="' + ESTILO_BALAO + ';margin-left:6px;padding:0 6px;color:#a00">✖</a>';
+		$("#row-assunto").insertAdjacentHTML("afterend", '<tr id="row-sec"><td class="l" style="vertical-align:top">Assuntos Secundários:</td><td colspan="3"><ul style="margin:0;padding-left:18px">' +
+			'<li id="x-li-1">3416 - Furto' + x("x-rem-1") + '</li><li id="x-li-2">12194 - Contra a Mulher' + x("x-rem-2") + '</li></ul>' +
+			'<a style="' + ESTILO_BALAO + '">✏️ Alterar</a><a style="' + ESTILO_BALAO + ';margin-left:4px;padding:1px 6px">⭐</a></td></tr>');
+		await S.titleCard("VÍDEO V50", "Remover assunto secundário", "Um clique no ✖ tira o assunto do processo e salva, sem abrir a tela de alteração.");
+		S.hl("#row-sec", 3);
+		await S.cap("No cabeçalho, cada assunto da linha <b>Assuntos Secundários</b> tem no fim o balão <b>✖</b>.");
+		S.hlOff();
+		await S.click("#x-rem-2");
+		modal('<b>Remover o assunto secundário "12194 - Contra a Mulher" deste processo?</b><p style="margin:8px 0">A alteração é salva em seguida, sem abrir a tela de alteração.</p><span class="x-btn small green" id="x-ok">OK</span> <span class="x-btn small">Cancelar</span>', { w: 420, top: 200 });
+		await S.cap("A extensão pede confirmação.");
+		await S.click("#x-ok");
+		closeModal();
+		const t = toast("✖ 12194 - Contra a Mulher — removendo da lista…", { left: 430, top: 90 });
+		await sleep(1200);
+		t.innerHTML = "✖ 12194 - Contra a Mulher — salvando…";
+		await sleep(1200);
+		t.remove();
+		$("#x-li-2").remove();
+		S.hl("#row-sec", 4);
+		await S.cap("Ela faz o mesmo que o <b>Remover</b> da tela de alteração, confere se o assunto saiu da lista e clica em <b>Salvar</b>. A tela é recarregada sem ele.", { ms: 4000 });
+		S.hlOff();
+		await S.endCard("✖ ao lado do assunto secundário → confirmar → removido e salvo.");
+	},
+};
+
+// ------------------------------------------------------------------ V51
 // Documento do Juiz (despacho/decisão/sentença) ao pousar o mouse no
 // "Analisar" da lista Retorno de Conclusão (previewConclusao.js).
 function listaConclusao() {
@@ -943,13 +1044,13 @@ function janelaDoc(n, file, x, y, i, total) {
 	return p;
 }
 
-CENAS.V49 = {
-	arquivo: "V49-documento-da-conclusao.mp4",
+CENAS.V51 = {
+	arquivo: "V51-documento-da-conclusao.mp4",
 	titulo: "Documento do Juiz no Retorno de Conclusão",
 	secao: "9.9",
 	async run() {
 		listaConclusao();
-		await S.titleCard("VÍDEO V49", "Documento do Juiz ao passar o mouse", "Leia o despacho, a decisão ou a sentença sem sair da lista Retorno de Conclusão.");
+		await S.titleCard("VÍDEO V51", "Documento do Juiz ao passar o mouse", "Leia o despacho, a decisão ou a sentença sem sair da lista Retorno de Conclusão.");
 		await S.cap("Na lista <b>Retorno de Conclusão</b> (Projudi ou SEEU), pare o mouse sobre o <b>Analisar</b> da linha.");
 		await S.move($('#lista tr[data-i="1"] .x-analisar'));
 		await sleep(500);
