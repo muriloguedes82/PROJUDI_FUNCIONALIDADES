@@ -449,7 +449,7 @@ function listaPrefsLoc(prefs, status) {
 	let h = SL_TIT("Minhas preferências de localizadores");
 	if (!prefs.length) h += '<div style="color:#64748b;font-style:italic">Nenhuma preferência ainda. Crie uma com os localizadores que você mais usa: depois, um clique associa todos ao processo.</div>';
 	prefs.forEach((p, i) => {
-		h += '<div style="display:flex;gap:2px;margin:4px 0"><span id="sl-pref' + i + '" style="flex:1;padding:6px 8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;color:#1e3a8a"><b>' + p[0] + '</b><br><small style="color:#475569">' + p[1].join(" • ") + '</small></span><span style="width:24px;text-align:center;opacity:.5">↑</span><span style="width:24px;text-align:center">✏️</span><span style="width:24px;text-align:center">🗑</span></div>';
+		h += '<div style="display:flex;gap:2px;margin:4px 0"><span id="sl-pref' + i + '" style="flex:1;padding:6px 8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:4px;color:#1e3a8a"><b>' + p[0] + '</b><br><small style="color:#475569">' + p[1].join(" • ") + '</small></span><span style="width:24px;text-align:center;opacity:.5">↑</span><span style="width:24px;text-align:center">✏️</span><span style="width:24px;text-align:center">🗑</span></div>';
 	});
 	h += '<div style="text-align:right;margin-top:6px">' + SL_BT("sl-nova", "➕ Nova preferência", true) + "</div>";
 	if (status) h += '<div style="margin-top:8px;padding:6px 8px;border-radius:6px;background:' + (status[1] ? "#ecfdf5;color:#065f46" : "#f1f5f9;color:#334155") + '">' + status[0] + "</div>";
@@ -494,11 +494,13 @@ CENAS.V40 = {
 		await S.cap("A preferência também entra em <b>⭐ Minhas Preferências</b>, junto das outras.");
 		$("#sl-painel").remove();
 		await S.click("#x-fav");
-		const cards = [["Audiência cumprida", "📍 Localizador"], ["Intimar MP - ciência 5 dias", "Intimar Partes"], ["🔗 Decurso + concluso", "Combo · 2 etapas"]];
-		const pn = panelAt('<div style="display:flex;justify-content:space-between;align-items:center"><h4 style="margin:0">⭐ Minhas Preferências</h4><span class="x-btn small">✏️ Editar posição</span></div>' +
-			'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px">' + cards.map((c, i) => '<div class="x-chip" data-card="' + i + '" style="display:block;border-radius:6px;padding:8px;margin:0;font-size:12px"><div style="color:#666;font-size:11px">' + c[1] + "</div><b>" + (c[0].startsWith("🔗") ? "" : "★ ") + c[0] + "</b></div>").join("") + "</div>", "#x-fav", { w: 520 });
-		await S.cap("Um clique no card <b>📍 Localizador · ★ Audiência cumprida</b> associa os localizadores.");
-		await S.click('[data-card="0"]');
+		const pn = panelAt('<div style="display:flex;justify-content:space-between;align-items:center"><h4 style="margin:0">⭐ Minhas Preferências</h4><span class="x-btn small">✏️ Editar posição</span></div>' + favBlocos([
+			{ icon: "📍", title: "Localizador", cards: [{ name: "Audiência cumprida", id: "card-loc" }] },
+			{ icon: "📨", title: "Intimar Partes", cards: [{ name: "Intimar MP - ciência 5 dias" }] },
+			{ icon: "🔗", title: "Combos", cards: [{ name: "Decurso + concluso", combo: true }] },
+		], { tools: true }), "#x-fav", { w: 520 });
+		await S.cap("Um clique no card <b>★ Audiência cumprida</b>, do bloco <b>📍 Localizador</b>, associa os localizadores.");
+		await S.click("#card-loc");
 		pn.remove();
 		listaPrefsLoc([pref], ["Associando 1 de 2: ABERTO..."]);
 		await sleep(900);
@@ -530,9 +532,9 @@ CENAS.V41 = {
 		await S.titleCard("VÍDEO V41", "Localizador pela ⭐ da lista (SEEU)", "Associe localizadores a um processo sem sair da lista de juntadas ou conclusões.");
 		await S.cap("No SEEU, as listas <b>Análise de Juntadas</b> e <b>Retorno de Conclusão</b> também têm a <b>⭐</b> em cada linha.");
 		await S.click('[data-star="0"]');
-		const pn = panelAt('<h4>⭐ Minhas Preferências — ' + LISTA[0].n + '</h4><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">' +
-			'<div class="x-chip" id="card" style="display:block;border-radius:6px;padding:8px;margin:0"><div style="color:#666">📍 Localizador</div><b>★ Audiência cumprida</b></div>' +
-			'<div class="x-chip" style="display:block;border-radius:6px;padding:8px;margin:0"><div style="color:#666">📍 Localizador</div><b>★ Cálculo de pena</b></div></div>', '[data-star="0"]', { w: 440 });
+		const pn = panelAt('<h4>⭐ Minhas Preferências — ' + LISTA[0].n + '</h4>' + favBlocos([
+			{ icon: "📍", title: "Localizador", cards: [{ name: "Audiência cumprida", id: "card" }, { name: "Cálculo de pena" }] },
+		]), '[data-star="0"]', { w: 440 });
 		pn.style.left = "520px"; pn.style.top = "200px";
 		await S.cap("No SEEU, a ⭐ mostra as preferências do <b>📍 Localizador</b>. Escolha uma.");
 		await S.click("#card");
@@ -641,7 +643,7 @@ CENAS.V43 = {
 		$(".x-popup").remove();
 		await S.cap("Pronto. Para usar, clique na <b>⭐</b> e no nome da preferência.");
 		await S.click("#x-alt-classe-pref");
-		pn = panelAt('<h4>⭐ Preferências — Alterar classe</h4><div style="display:flex;gap:4px;margin-bottom:6px"><span class="x-btn small" id="x-pref" style="flex:1">★ Inquérito Policial (Evolução)</span><span class="x-btn small">🗑</span></div><span class="x-btn small">+ Nova preferência</span>', "#x-alt-classe-pref", { w: 320 });
+		pn = panelAt('<h4>⭐ Preferências — Alterar classe</h4><div class="x-fcard" style="display:flex;justify-content:space-between;margin-bottom:6px"><span id="x-pref">★ Inquérito Policial (Evolução)</span><span class="i">🗑</span></div><span class="x-btn small">+ Nova preferência</span>', "#x-alt-classe-pref", { w: 320 });
 		pn.style.left = "330px"; pn.style.top = "180px";
 		await S.click("#x-pref");
 		pn.remove();
@@ -743,9 +745,10 @@ CENAS.V45 = {
 		await S.cap("A barra <b>⭐ Em lote</b>, acima da tabela, conta os processos marcados (há também “marcar todos”).");
 		S.hlOff();
 		await S.click("#x-exec");
-		const pn = panelAt('<h4>⭐ Em lote — 3 processo(s) marcado(s)</h4><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">' +
-			'<div class="x-chip" id="card" style="display:block;border-radius:6px;padding:8px;margin:0"><b>★ Remessa MP</b><div style="color:#666">Realizar Remessa</div></div>' +
-			'<div class="x-chip" style="display:block;border-radius:6px;padding:8px;margin:0"><b>★ Concluso p/ sentença</b><div style="color:#666">Enviar Concluso</div></div></div>', "#x-exec", { w: 440 });
+		const pn = panelAt('<h4>⭐ Em lote — 3 processo(s) marcado(s)</h4>' + favBlocos([
+			{ icon: "📦", title: "Realizar Remessa", cards: [{ name: "Remessa MP", id: "card" }] },
+			{ icon: "📤", title: "Enviar Concluso", cards: [{ name: "Concluso p/ sentença" }] },
+		]), "#x-exec", { w: 440 });
 		pn.style.left = "420px"; pn.style.top = "250px";
 		await S.cap("Escolha a preferência ou o combo — os mesmos cards da ⭐ da linha.");
 		await S.click("#card");

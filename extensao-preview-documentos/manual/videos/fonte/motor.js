@@ -3,7 +3,7 @@
 // (gravar.mjs): cada setTimeout/Date.now é controlado quadro a quadro.
 "use strict";
 
-const VERSAO_EXTENSAO = "2.9.94";
+const VERSAO_EXTENSAO = "2.26.0";
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const easeInOut = p => (p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2);
 async function tween(ms, fn, ease = easeInOut) {
@@ -294,6 +294,13 @@ function panelAt(html, anchor, o = {}) {
 	p.style.left = Math.max(10, Math.min(1270 - p.getBoundingClientRect().width, r.right - p.getBoundingClientRect().width)) + "px";
 	p.style.top = Math.max(50, r.top - ph - 8) + "px";
 	return p;
+}
+// Blocos de "⭐ Minhas Preferências": grupos = [{ icon, title, id, cards: [{ name, id, combo, off }] }];
+// o.tools: mostra ✏️ 🗑 em cada card (painel do botão; a ⭐ da linha não tem).
+function favBlocos(grupos, o = {}) {
+	return '<div class="x-fg">' + grupos.map(g => '<div class="x-fgrp"' + (g.id ? ' id="' + g.id + '"' : "") + '><span class="x-fgl">' + g.icon + " " + g.title + " <small>(" + g.cards.length + ")</small></span><div class=\"x-fcards\">" +
+		g.cards.map(c => '<span class="x-fcard' + (c.combo ? " combo" : "") + (c.off ? " off" : "") + '"' + (c.id ? ' id="' + c.id + '"' : "") + ">" + (c.combo ? "▶ " : "★ ") + c.name +
+			(o.tools ? ' <span class="i">✏️</span><span class="i">🗑</span>' : "") + "</span>").join("") + "</div></div>").join("") + "</div>";
 }
 function modal(html, o = {}) {
 	if (o.bg !== false) add('<div class="x-modal-bg"></div>');

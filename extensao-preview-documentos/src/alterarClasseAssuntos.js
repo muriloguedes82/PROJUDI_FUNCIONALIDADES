@@ -1057,10 +1057,16 @@
 			"#" + PANEL_ID + "{position:absolute;z-index:2147483640;min-width:260px;max-width:420px;padding:8px;background:#fff;border:1px solid #adadad;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.18);font:12px Arial,Helvetica,sans-serif;color:#222}" +
 			"#" + PANEL_ID + " .pdp-acp-titulo{font-weight:bold;margin:0 0 6px}" +
 			"#" + PANEL_ID + " .pdp-acp-vazio{color:#666;margin:0 0 8px;line-height:1.4}" +
-			"#" + PANEL_ID + " .pdp-acp-linha{display:flex;gap:4px;margin:0 0 4px}" +
-			"#" + PANEL_ID + " button{font:12px Arial,Helvetica,sans-serif;color:#222;cursor:pointer;background:linear-gradient(to bottom,#fafafa,#e9e9e9);border:1px solid #adadad;border-radius:10px;padding:3px 9px}" +
+			"#" + PANEL_ID + " button{font:12px Arial,Helvetica,sans-serif;color:#222;cursor:pointer;background:linear-gradient(to bottom,#fafafa,#e9e9e9);border:1px solid #adadad;border-radius:4px;padding:3px 9px}" +
 			"#" + PANEL_ID + " button:hover{background:linear-gradient(to bottom,#ffffff,#dcdcdc);border-color:#888}" +
-			"#" + PANEL_ID + " .pdp-acp-usar{flex:1;text-align:left}" +
+			// Cada preferência: card retangular de uma linha (★ nome 🗑), o
+			// mesmo de "⭐ Minhas Preferências" (quickActions.css).
+			"#" + PANEL_ID + " .pdp-acp-linha{display:flex;align-items:center;gap:2px;margin:0 0 4px;background:#fff8e6;border:1px solid #e8cf8a;border-radius:4px}" +
+			"#" + PANEL_ID + " .pdp-acp-linha:hover{background:#fff0c7;border-color:#d4b25a}" +
+			"#" + PANEL_ID + " .pdp-acp-linha button{background:none;border:none;border-radius:3px}" +
+			"#" + PANEL_ID + " .pdp-acp-usar{flex:1;min-width:0;text-align:left;font-weight:bold;font-size:11.5px;color:#333;padding:4px 6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +
+			"#" + PANEL_ID + " .pdp-acp-apagar{flex:none;font-size:11px;padding:2px 5px;opacity:.6}" +
+			"#" + PANEL_ID + " .pdp-acp-apagar:hover{opacity:1;background:#f6d6d6}" +
 			"#" + PANEL_ID + " .pdp-acp-nova{margin-top:4px}";
 		(document.head || document.documentElement).appendChild(style);
 	}
