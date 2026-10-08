@@ -1138,11 +1138,11 @@
 		const alvos = itens.length ? Array.prototype.slice.call(itens) : [celula];
 		alvos.forEach(function (item) {
 			if (item.querySelector("." + REMOVER_CLASS)) return;
-			let texto = "";
-			item.childNodes.forEach(function (n) {
-				if (n.nodeType === 3 || (n.nodeType === 1 && !n.classList.contains(LINK_CLASS))) texto += n.textContent;
-			});
-			texto = texto.replace(/\s+/g, " ").trim();
+			// Só o texto visível: o Projudi põe no item um <script> (balão de
+			// informações, AjaxJspTag.Callout), que não pode entrar no nome.
+			const copia = item.cloneNode(true);
+			Array.prototype.forEach.call(copia.querySelectorAll("script, style, noscript, ul, ol, ." + LINK_CLASS), function (el) { el.remove(); });
+			const texto = copia.textContent.replace(/\s+/g, " ").trim();
 			const m = /^(\d+)\s*-/.exec(texto);
 			if (!m) return;
 			const a = document.createElement("a");

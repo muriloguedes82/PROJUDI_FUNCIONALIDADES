@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.27.0 |
-| **Versão da extensão** | 2.27.0 |
+| **Versão do manual** | 2.27.1 |
+| **Versão da extensão** | 2.27.1 |
 | **Data desta versão** | 08/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -2213,6 +2213,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.27.1 | 08/10/2026 | Sem alteração de texto; corrigido: a pergunta do **✖** (remover assunto secundário, 8.9) mostrava, junto do nome do assunto, um trecho de código do Projudi. Agora mostra só o nome (ex.: "3416 - Furto"). |
 | 2.27.0 | 08/10/2026 | Alterar Classe/Assuntos (8.9): novo balão **✖** no fim de cada assunto da linha **Assuntos Secundários** do cabeçalho, que remove aquele assunto do processo e salva (pede confirmação; confere que o assunto saiu da lista antes de salvar). Corrigido o texto que dizia que o cabeçalho não mostra os assuntos secundários. Novo vídeo V50. |
 | 2.26.4 | 08/10/2026 | **Preferências de assuntos secundários** (8.9) refeitas para o jeito do Projudi: para gravar, use **Adicionar**, pesquise, marque o assunto e clique em **Selecionar** (só grava a preferência, nada é alterado); ao usar, a extensão faz o mesmo caminho na janela de seleção do Projudi, confere se o assunto entrou na lista e só então salva. A preferência só inclui assunto secundário. As preferências gravadas antes (2.26.0 a 2.26.3) precisam ser gravadas de novo. Vídeo V49 regravado. |
 | 2.26.3 | 08/10/2026 | Correção de segurança nas **preferências de assuntos secundários** (8.9): uma preferência gravada com **Adicionar** podia, ao ser usada, salvar a tela de alteração sem o assunto novo (gerando movimentação sem a alteração). Agora a extensão recusa gravar esse passo, que ainda não consegue repetir, e recusa usar as preferências gravadas antes (2.26.0 a 2.26.2), sem salvar nada. |
