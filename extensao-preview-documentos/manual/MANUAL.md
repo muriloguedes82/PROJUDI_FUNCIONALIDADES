@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.26.4 |
-| **Versão da extensão** | 2.26.4 |
+| **Versão do manual** | 2.27.1 |
+| **Versão da extensão** | 2.27.1 |
 | **Data desta versão** | 08/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -50,6 +50,7 @@
    - 4.2 [Monitoração eletrônica ativa no cabeçalho](#cap-4-2)
    - 4.3 [Réus, indiciados e noticiados no cabeçalho](#cap-4-3)
    - 4.4 [Sequencial do processo principal (apensos)](#cap-4-4)
+   - 4.5 [Bloco de anotações](#cap-4-5)
 5. [Envio de documentos](#cap-5)
    - 5.1 [Envio por WhatsApp Web](#cap-5-1)
    - 5.2 [Envio por e-mail (Outlook)](#cap-5-2)
@@ -411,7 +412,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 |---|---|---|
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
-| **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica | [4](#cap-4) |
+| **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Bloco de anotações | [4](#cap-4) |
 | **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo (Projudi) · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
@@ -665,6 +666,19 @@ Principal:**.
 
 **Bom saber:** a linha mostra "carregando…" por um instante. No próprio
 processo principal ela não aparece.
+
+---
+
+<a id="cap-4-5"></a>
+### 4.5 Bloco de anotações
+
+**Para que serve:** guardar lembretes pessoais, separados por processo ou permanentes para todos os processos.
+
+**Onde fica:** no canto superior direito da tela do processo. Pode ser desligado pelo Menu, em **Informações do processo**.
+
+**Passo a passo:** escreva no post-it; o salvamento é automático. Arraste pelo título **Anotações** para mudar a posição. Use **−** para recolher e **▾** para reabrir. Os quadrinhos ao lado de **Salvo neste navegador** escolhem amarelo, azul, verde ou vermelho. Clique em **+** no título para criar outra nota do processo; cada nota tem sua própria cor e posição. Use **×** para excluir uma nota adicional (pede confirmação se houver texto). Escolha **Deste processo** ou **Permanente (todos os processos)** para alternar entre duas notas independentes.
+
+**Bom saber:** acompanha a rolagem da página e guarda a posição neste navegador. As notas não são juntadas aos autos, nem enviadas a outros usuários. Ficam neste perfil do navegador; não são sincronizadas entre computadores. Para apagar, apague o texto. Não aparece nas janelas de diálogo bloqueadas para os botões.
 
 ---
 
@@ -2159,6 +2173,8 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.27.1 | 08/10/2026 | Cores amarelo, azul, verde e vermelho e várias notas por processo; preservadas as notas anteriores. |
+| 2.27.0 | 08/10/2026 | Novo bloco de anotações móvel, por processo ou permanente, com salvamento automático. |
 | 2.26.4 | 08/10/2026 | Sem alteração de texto; associadas as linhas **Analisar** e da data pelo código do mandado na listagem. |
 | 2.26.3 | 08/10/2026 | Sem alteração de texto; a dispensa de mandados agora abre a ficha diretamente pela data da linha na listagem. |
 | 2.26.2 | 08/10/2026 | Sem alteração de texto; corrigido o reconhecimento do link **Analisar** na listagem de mandados. |
