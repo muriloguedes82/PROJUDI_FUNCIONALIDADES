@@ -136,3 +136,27 @@
 	border: 0;
 	background: #fff;
 }
+
+/* Várias janelas (um documento cada): as de trás ganham uma capa
+   transparente para que o clique as traga para a frente (o clique dentro
+   do documento não chegaria à página). */
+.pdp-pc-cover {
+	display: none;
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	cursor: pointer;
+}
+
+.pdp-pc-atras .pdp-pc-cover {
+	display: block;
+}
+
+.pdp-pc-atras .pdp-pc-header {
+	cursor: pointer;
+	background: #7d8f52;
+}
+
+.pdp-pc-atras .pdp-pc-header:hover {
+	background: #5d6e30;
+}

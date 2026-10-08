@@ -38,7 +38,10 @@
 	const PANEL_WIDTH = 780;
 	const PANEL_HEIGHT_RATIO = 0.85;
 	const MARGIN = 12;
-	const CASCADE_OFFSET = 28;
+	// Deslocamento de cada janela da cascata: o bastante para ler, na faixa
+	// que sobra das de trás, o número do documento ("2/3").
+	const CASCADE_OFFSET = 40;
+	const Z_BASE = 2147483000;
 	const TIMEOUT_MS = 15000;
 
 	let panels = [];
@@ -227,16 +230,13 @@
 			'<a class="pdp-pc-open-tab" target="_blank" rel="noopener" title="Abrir o documento numa nova aba">Abrir em nova aba ↗</a>' +
 			'<button type="button" class="pdp-pc-close" title="Fechar (Esc)">✕</button>' +
 			"</span></div>" +
-			'<div class="pdp-pc-body"><div class="pdp-pc-loading">Carregando o documento…</div></div>' +
+			'<div class="pdp-pc-body"><div class="pdp-pc-loading">Carregando o documento…</div>' +
+			'<div class="pdp-pc-cover" title="Clique para trazer este documento para a frente"></div></div>' +
 			"</div>";
 		wrap.addEventListener("mouseenter", cancelClose);
 		wrap.addEventListener("mouseleave", scheduleClose);
-		wrap.querySelector(".pdp-pc-close").addEventListener("click", closeNow);
-		wrap.querySelector(".pdp-pc-pin").addEventListener("click", function () {
-			setFixado(!fixado);
-		});
 		document.body.appendChild(wrap);
-		return {
+		const p = {
 			wrap: wrap,
 			title: wrap.querySelector(".pdp-pc-title"),
 			openTab: wrap.querySelector(".pdp-pc-open-tab"),
@@ -245,6 +245,53 @@
 			loading: wrap.querySelector(".pdp-pc-loading"),
 			frame: null
 		};
+		// ✕ fecha só esta janela (a última fecha tudo).
+		wrap.querySelector(".pdp-pc-close").addEventListener("click", function (e) {
+			e.stopPropagation();
+			fecharJanela(p);
+		});
+		wrap.querySelector(".pdp-pc-pin").addEventListener("click", function () {
+			setFixado(!fixado);
+		});
+		// Clique numa janela de trás (na faixa do título ou na parte que
+		// aparece do documento) a traz para a frente.
+		wrap.addEventListener("mousedown", function (e) {
+			if (p === panels[panels.length - 1]) return;
+			if (e.target.closest(".pdp-pc-close, .pdp-pc-pin, .pdp-pc-open-tab")) return;
+			e.preventDefault();
+			trazerParaFrente(p);
+		});
+		return p;
+	}
+
+	// `panels` está na ordem da pilha: a última é a da frente. Reposiciona a
+	// cascata e marca as de trás (que ganham a capa clicável).
+	function arrumarPilha() {
+		const ultima = panels.length - 1;
+		panels.forEach(function (p, i) {
+			if (activeLink) positionPanel(p, activeLink, i);
+			p.wrap.style.zIndex = String(Z_BASE + i);
+			p.wrap.classList.toggle("pdp-pc-atras", i < ultima);
+		});
+	}
+
+	function trazerParaFrente(p) {
+		const i = panels.indexOf(p);
+		if (i < 0 || i === panels.length - 1) return;
+		panels.splice(i, 1);
+		panels.push(p);
+		arrumarPilha();
+	}
+
+	function fecharJanela(p) {
+		if (panels.length <= 1) {
+			closeNow();
+			return;
+		}
+		if (p.frame) p.frame.src = "about:blank";
+		p.wrap.remove();
+		panels = panels.filter(function (q) { return q !== p; });
+		arrumarPilha();
 	}
 
 	function setFixado(valor) {
@@ -321,7 +368,9 @@
 		removePanels();
 		docs.forEach(function (doc, index) {
 			const p = buildPanel();
-			p.title.textContent = openTitulo(link) + " — " + doc.text + (docs.length > 1 ? " (" + (index + 1) + "/" + docs.length + ")" : "");
+			// Com mais de um, o número vem primeiro: é o que se lê na faixa
+			// das janelas de trás.
+			p.title.textContent = (docs.length > 1 ? (index + 1) + "/" + docs.length + " · " : "") + doc.text + " — " + openTitulo(link);
 			p.title.title = doc.text;
 			p.openTab.href = doc.href;
 			const iframe = document.createElement("iframe");
@@ -333,10 +382,12 @@
 			p.body.appendChild(iframe);
 			p.frame = iframe;
 			iframe.src = doc.href;
-			positionPanel(p, link, index);
 			p.wrap.classList.add("pdp-pc-visible");
 			panels.push(p);
 		});
+		// O 1º documento fica na frente; os demais atrás, na ordem.
+		panels.reverse();
+		arrumarPilha();
 		setFixado(manterFixado);
 		// A janela de espera sumiu debaixo do mouse sem "mouseleave": se o
 		// mouse já não está no "Analisar" nem numa janela, fecha como sempre.

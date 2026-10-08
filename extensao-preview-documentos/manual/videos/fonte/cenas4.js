@@ -938,7 +938,7 @@ function listaConclusao() {
 }
 function janelaDoc(n, file, x, y, i, total) {
 	const p = preview(file, x, y, 560, 440);
-	$(".hd .t", p).textContent = "Processo " + n + " — " + file + (total > 1 ? " (" + i + "/" + total + ")" : "");
+	$(".hd .t", p).textContent = (total > 1 ? i + "/" + total + " · " : "") + file + " — Processo " + n;
 	$(".hd .t", p).insertAdjacentHTML("afterend", '<span class="x-btn small x-fixar" style="background:#f5f7ef;color:#35412b">📌 Fixar</span>');
 	return p;
 }
@@ -962,9 +962,20 @@ CENAS.V49 = {
 		await S.cap("Se a conclusão tiver mais de um arquivo, abre <b>uma janela para cada um</b>, em cascata.");
 		await S.move($('#lista tr[data-i="3"] .x-analisar'));
 		await sleep(500);
-		const p1 = janelaDoc(LISTA[3].n, "Decisao Recebimento.pdf", 400, 130, 1, 2);
-		const p2 = janelaDoc(LISTA[3].n, "Certidao de Baixa.pdf", 428, 158, 2, 2);
+		let p2 = janelaDoc(LISTA[3].n, "Certidao de Baixa.pdf", 400, 130, 2, 2);
+		let p1 = janelaDoc(LISTA[3].n, "Decisao Recebimento.pdf", 440, 170, 1, 2);
+		await sleep(1000);
+		await S.cap("Para ver o outro arquivo, <b>clique na janela de trás</b>: ela passa para a frente.");
+		await S.click({ x: 420, y: 144 });
+		p2.remove(); p1.remove();
+		p1 = janelaDoc(LISTA[3].n, "Decisao Recebimento.pdf", 400, 130, 1, 2);
+		p2 = janelaDoc(LISTA[3].n, "Certidao de Baixa.pdf", 440, 170, 2, 2);
 		await sleep(1200);
+		await S.cap("O <b>✕</b> fecha só aquela janela; as outras continuam abertas.");
+		await S.click({ x: 990, y: 184 });
+		p2.remove();
+		await sleep(800);
+		p2 = janelaDoc(LISTA[3].n, "Certidao de Baixa.pdf", 440, 170, 2, 2);
 		await S.cap("Quer as janelas abertas mesmo tirando o mouse? Clique em <b>📌 Fixar</b>.");
 		await S.click($(".x-fixar", p2));
 		[p1, p2].forEach(j => { $(".x-fixar", j).textContent = "📌 Fixado"; j.style.outline = "2px solid #b59a1f"; });

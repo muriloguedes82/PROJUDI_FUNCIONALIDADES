@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.26.1 |
-| **Versão da extensão** | 2.26.1 |
+| **Versão do manual** | 2.26.2 |
+| **Versão da extensão** | 2.26.2 |
 | **Data desta versão** | 08/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -2016,8 +2016,13 @@ cada linha.
    **Movimentar Processo**. Os arquivos das **Movimentações Realizadas**,
    mais abaixo naquela tela, não aparecem.
 3. Se a conclusão tiver **mais de um arquivo**, abre **uma janela para cada
-   um**, em cascata (o título mostra "1/2", "2/2"…).
-4. Para fechar: tire o mouse do **Analisar** e das janelas, clique em **✕**
+   um**, em cascata. O título de cada janela começa pelo número do arquivo
+   ("1/3", "2/3"…), que aparece também na faixa das janelas de trás.
+   - Para ver outro arquivo, **clique na janela de trás** (na faixa do
+     título ou na parte que aparece do documento): ela passa para a frente.
+   - O **✕** fecha **só aquela janela**; as outras continuam abertas. O ✕ da
+     última fecha tudo.
+4. Para fechar todas de uma vez: tire o mouse do **Analisar** e das janelas
    ou tecle **Esc**.
 
 **Bom saber:**
@@ -2173,7 +2178,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V46](videos/V46-remessa-turma-recursal.mp4) | [Remessa para a Turma Recursal](videos/V46-remessa-turma-recursal.mp4) | [7.1](#cap-7-1) | 0:47 |
 | [V47](videos/V47-novo-valor-da-causa.mp4) | [Novo Valor da Causa](videos/V47-novo-valor-da-causa.mp4) | [8.10](#cap-8-10) | 0:36 |
 | [V48](videos/V48-aviso-de-versao-nova.mp4) | [Aviso de versão nova e atualização](videos/V48-aviso-de-versao-nova.mp4) | [2.3](#cap-2-3) | 0:41 |
-| [V49](videos/V49-documento-da-conclusao.mp4) | [Documento do Juiz no Retorno de Conclusão](videos/V49-documento-da-conclusao.mp4) | [9.9](#cap-9-9) | 0:47 |
+| [V49](videos/V49-documento-da-conclusao.mp4) | [Documento do Juiz no Retorno de Conclusão](videos/V49-documento-da-conclusao.mp4) | [9.9](#cap-9-9) | 0:59 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -2187,6 +2192,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.26.2 | 08/10/2026 | Seção **9.9**, com mais de um arquivo: o **✕** passa a fechar só a janela dele (antes fechava todas) e clicar numa janela de trás a traz para a frente; o título começa pelo número do arquivo ("1/3"), visível na faixa das janelas de trás. Vídeo V49 regravado. |
 | 2.26.1 | 08/10/2026 | Correção na seção **9.9**: o documento não aparecia, porque ele não fica na tela **Dados da Conclusão**, e sim na tela seguinte (**Movimentar Processo**, aberta pelo botão **Analisar** dela), na linha **Documentos**. A extensão agora percorre as duas telas e mostra só os arquivos dessa linha (não os das Movimentações Realizadas). Texto da 9.9 ajustado e vídeo V49 regravado. |
 | 2.26.0 | 07/10/2026 | Nova seção **9.9** (Projudi e SEEU): na lista **Retorno de Conclusão**, pousar o mouse sobre o **Analisar** mostra o documento que o Juiz fez (despacho, decisão ou sentença) — uma janela para cada arquivo —, com **📌 Fixar**, **Abrir em nova aba** e **✕**, sem sair da lista. Nova função na tabela da 2.6 e vídeo V49. |
 | 2.25.0 | 06/10/2026 | Nova seção 2.3 (**Atualização da extensão**) reescrita: aviso **🆕 Há novidades na extensão!** abaixo do ícone da balança quando sai versão nova, com a observação para exportar as preferências antes, os botões **1. Exportar preferências** e **2. Atualizar** e o passo a passo para recarregar a extensão; explica que as preferências continuam quando os arquivos novos são colados por cima da mesma pasta. Seção 2.6: ponto azul no ícone e faixa "Versão nova disponível" no Menu. Novo vídeo V48. |
