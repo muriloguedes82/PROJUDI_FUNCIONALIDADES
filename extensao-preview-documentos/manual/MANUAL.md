@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.26.4 |
-| **Versão da extensão** | 2.26.4 |
+| **Versão do manual** | 2.27.0 |
+| **Versão da extensão** | 2.27.0 |
 | **Data desta versão** | 08/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1630,7 +1630,7 @@ um assunto secundário que se repete muito — por exemplo, acrescentar
 **3418 - Furto de coisa comum**.
 
 **Onde fica:** se o processo já tem assunto secundário, o cabeçalho mostra
-a linha **Assunto Secundário**, e nela há **✏️ Alterar** e **⭐**. Se ainda
+a linha **Assuntos Secundários**, e nela há **✏️ Alterar** e **⭐**. Se ainda
 não tem, o balão **⭐ Secundários** fica na linha do **Assunto Principal**,
 depois da ⭐ dele.
 
@@ -1659,14 +1659,34 @@ processo é recarregada.
   feito e a extensão avisa.
 - Se o assunto não aparecer na pesquisa ou não entrar na lista, **nada é
   salvo** e aparece um aviso — use **✏️ Alterar** para fazer à mão.
-- A preferência só **inclui** assunto secundário. Para remover, use
-  **✏️ Alterar** e o botão **Remover** do Projudi.
-- O Projudi não mostra os assuntos secundários no cabeçalho do processo:
-  para conferir, veja a aba **Informações Gerais** (ou **✏️ Alterar**).
+- A preferência só **inclui** assunto secundário. Para remover, use o
+  **✖** ao lado do assunto (abaixo).
 - Preferências de assunto secundário gravadas nas versões 2.26.0 a 2.26.3
   não funcionam: apague-as com **🗑** e grave de novo.
 - Para apagar, use **🗑** ao lado da preferência. Elas também entram no
   **⬇ Exportar** do Menu da extensão ([2.6](#cap-2-6)).
+
+**Remover um assunto secundário (✖)**
+
+▶ [**Vídeo V50** — Remover assunto secundário](videos/V50-remover-assunto-secundario.mp4)
+
+No cabeçalho do processo, na linha **Assuntos Secundários**, cada assunto
+tem no fim um pequeno balão **✖**. Ele tira aquele assunto do processo sem
+você abrir a tela de alteração.
+
+1. Clique no **✖** do assunto que quer tirar.
+2. Confirme a pergunta "Remover o assunto secundário … deste processo?".
+3. Um aviso no alto da tela mostra o andamento ("removendo da lista…",
+   "salvando…"). A extensão faz o mesmo que o botão **Remover** da tela de
+   alteração, confere se o assunto saiu da lista e só então clica em
+   **Salvar**. No fim, a tela do processo é recarregada sem o assunto.
+
+*Bom saber:*
+
+- Só os assuntos **secundários** têm **✖**; o assunto principal não pode ser
+  removido, só trocado (**✏️ Alterar** ou **⭐**).
+- Se o assunto não sair da lista, **nada é salvo** e a extensão avisa — use
+  **✏️ Alterar** para fazer à mão.
 
 <a id="cap-8-10"></a>
 ### 8.10 Novo Valor da Causa
@@ -2179,6 +2199,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V47](videos/V47-novo-valor-da-causa.mp4) | [Novo Valor da Causa](videos/V47-novo-valor-da-causa.mp4) | [8.10](#cap-8-10) | 0:36 |
 | [V48](videos/V48-aviso-de-versao-nova.mp4) | [Aviso de versão nova e atualização](videos/V48-aviso-de-versao-nova.mp4) | [2.3](#cap-2-3) | 0:41 |
 | [V49](videos/V49-preferencia-de-assunto-secundario.mp4) | [Preferência de assunto secundário](videos/V49-preferencia-de-assunto-secundario.mp4) | [8.9](#cap-8-9) | 0:52 |
+| [V50](videos/V50-remover-assunto-secundario.mp4) | [Remover assunto secundário](videos/V50-remover-assunto-secundario.mp4) | [8.9](#cap-8-9) | 0:22 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -2192,6 +2213,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.27.0 | 08/10/2026 | Alterar Classe/Assuntos (8.9): novo balão **✖** no fim de cada assunto da linha **Assuntos Secundários** do cabeçalho, que remove aquele assunto do processo e salva (pede confirmação; confere que o assunto saiu da lista antes de salvar). Corrigido o texto que dizia que o cabeçalho não mostra os assuntos secundários. Novo vídeo V50. |
 | 2.26.4 | 08/10/2026 | **Preferências de assuntos secundários** (8.9) refeitas para o jeito do Projudi: para gravar, use **Adicionar**, pesquise, marque o assunto e clique em **Selecionar** (só grava a preferência, nada é alterado); ao usar, a extensão faz o mesmo caminho na janela de seleção do Projudi, confere se o assunto entrou na lista e só então salva. A preferência só inclui assunto secundário. As preferências gravadas antes (2.26.0 a 2.26.3) precisam ser gravadas de novo. Vídeo V49 regravado. |
 | 2.26.3 | 08/10/2026 | Correção de segurança nas **preferências de assuntos secundários** (8.9): uma preferência gravada com **Adicionar** podia, ao ser usada, salvar a tela de alteração sem o assunto novo (gerando movimentação sem a alteração). Agora a extensão recusa gravar esse passo, que ainda não consegue repetir, e recusa usar as preferências gravadas antes (2.26.0 a 2.26.2), sem salvar nada. |
 | 2.26.2 | 08/10/2026 | Sem alteração de texto; corrigido: fora da tela do processo (por exemplo, na tela de alteração do processo), os indicadores de suspensão e de monitoração e o botão do WhatsApp deixam de repetir avisos internos a cada 1,5 segundo. |

@@ -990,3 +990,38 @@ CENAS.V49 = {
 		await S.endCard("⭐ Secundários → + Nova preferência → Adicionar → marcar → Selecionar (só grava). Depois: ⭐ → ★ preferência → incluído e salvo, sem confirmação.");
 	},
 };
+
+// ------------------------------------------------------------------ V50
+// ✖ ao lado de cada assunto secundário do cabeçalho (alterarClasseAssuntos.js).
+CENAS.V50 = {
+	arquivo: "V50-remover-assunto-secundario.mp4",
+	titulo: "Remover assunto secundário",
+	secao: "8.9",
+	async run() {
+		telaProcesso({});
+		cardsAlterar();
+		const x = id => '<a id="' + id + '" style="' + ESTILO_BALAO + ';margin-left:6px;padding:0 6px;color:#a00">✖</a>';
+		$("#row-assunto").insertAdjacentHTML("afterend", '<tr id="row-sec"><td class="l" style="vertical-align:top">Assuntos Secundários:</td><td colspan="3"><ul style="margin:0;padding-left:18px">' +
+			'<li id="x-li-1">3416 - Furto' + x("x-rem-1") + '</li><li id="x-li-2">12194 - Contra a Mulher' + x("x-rem-2") + '</li></ul>' +
+			'<a style="' + ESTILO_BALAO + '">✏️ Alterar</a><a style="' + ESTILO_BALAO + ';margin-left:4px;padding:1px 6px">⭐</a></td></tr>');
+		await S.titleCard("VÍDEO V50", "Remover assunto secundário", "Um clique no ✖ tira o assunto do processo e salva, sem abrir a tela de alteração.");
+		S.hl("#row-sec", 3);
+		await S.cap("No cabeçalho, cada assunto da linha <b>Assuntos Secundários</b> tem no fim o balão <b>✖</b>.");
+		S.hlOff();
+		await S.click("#x-rem-2");
+		modal('<b>Remover o assunto secundário "12194 - Contra a Mulher" deste processo?</b><p style="margin:8px 0">A alteração é salva em seguida, sem abrir a tela de alteração.</p><span class="x-btn small green" id="x-ok">OK</span> <span class="x-btn small">Cancelar</span>', { w: 420, top: 200 });
+		await S.cap("A extensão pede confirmação.");
+		await S.click("#x-ok");
+		closeModal();
+		const t = toast("✖ 12194 - Contra a Mulher — removendo da lista…", { left: 430, top: 90 });
+		await sleep(1200);
+		t.innerHTML = "✖ 12194 - Contra a Mulher — salvando…";
+		await sleep(1200);
+		t.remove();
+		$("#x-li-2").remove();
+		S.hl("#row-sec", 4);
+		await S.cap("Ela faz o mesmo que o <b>Remover</b> da tela de alteração, confere se o assunto saiu da lista e clica em <b>Salvar</b>. A tela é recarregada sem ele.", { ms: 4000 });
+		S.hlOff();
+		await S.endCard("✖ ao lado do assunto secundário → confirmar → removido e salvo.");
+	},
+};

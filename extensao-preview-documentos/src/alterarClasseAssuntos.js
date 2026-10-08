@@ -64,6 +64,14 @@
 //   pesquisa pela descrição → marca o assunto → Selecionar —, espera a tela
 //   de alteração voltar com o assunto na lista e só então clica em
 //   "Salvar". Se o assunto não aparecer na lista, nada é salvo.
+//
+// REMOVER (✖ no fim de cada assunto secundário do cabeçalho): depois de
+// confirmar, a extensão carrega a tela de alteração num quadro oculto,
+// marca o assunto (rádio idAssuntoSecundarioSelecionado) e faz o mesmo
+// envio do "Remover" do Projudi (removerAssuntoSecundario: endereço do
+// formulário → processoEdicao.do?actionType=removerAssuntoSecundario e
+// form.submit(), sem o confirm nativo); quando a tela volta, confere que
+// o assunto saiu da lista e só então clica em "Salvar".
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
@@ -541,6 +549,80 @@
 		return { ok: false, mensagem: mensagemDaTela(doc) };
 	}
 
+	function criarQuadroOculto() {
+		const quadro = document.createElement("iframe");
+		quadro.setAttribute("data-pdp-loader", "");
+		quadro.setAttribute("aria-hidden", "true");
+		quadro.style.cssText = "position:absolute;left:-9999px;top:-9999px;width:1024px;height:768px;visibility:hidden";
+		document.body.appendChild(quadro);
+		return quadro;
+	}
+
+	// Remove o assunto secundário `id` (ver o início do arquivo):
+	// marca → envio do "Remover" → confere que saiu → "Salvar".
+	async function removerSecundarioNoQuadro(id, titulo) {
+		const url = await urlDaEdicao();
+		const quadro = criarQuadroOculto();
+		try {
+			let carga = proximaCarga(quadro);
+			quadro.src = url;
+			let doc = await carga;
+			let form = doc && doc.getElementById(FORM_ID);
+			if (!form) throw new Error("a tela de alteração do processo não abriu.");
+			const radio = Array.prototype.filter.call(form.querySelectorAll('input[name="idAssuntoSecundarioSelecionado"]'), function (r) {
+				return r.value === String(id);
+			})[0];
+			if (!radio) return { naoEstava: true };
+			if (!radio.checked) radio.click();
+			if (!radio.checked) throw new Error("não consegui marcar o assunto na tela de alteração. Nada foi alterado.");
+
+			mostrarStatus(titulo + " — removendo da lista…");
+			carga = proximaCarga(quadro, EXEC_TIMEOUT_MS, "a tela de alteração não voltou depois de remover o assunto. Nada foi salvo.");
+			form.setAttribute("action", EDICAO_PATH + "?actionType=removerAssuntoSecundario");
+			HTMLFormElement.prototype.submit.call(form);
+			doc = await carga;
+			form = doc && doc.getElementById(FORM_ID);
+			if (!form) throw new Error("a tela de alteração não voltou depois de remover o assunto. Nada foi salvo." + (doc && mensagemDaTela(doc) ? "\n\n" + mensagemDaTela(doc) : ""));
+			if (temSecundario(doc, id)) throw new Error("o assunto não saiu da lista de assuntos secundários. Nada foi salvo." + (mensagemDaTela(doc) ? "\n\n" + mensagemDaTela(doc) : ""));
+			const salvar = doc.getElementById("saveButton");
+			if (!salvar) throw new Error('não encontrei o botão "Salvar".');
+
+			mostrarStatus(titulo + " — salvando…");
+			carga = proximaCarga(quadro);
+			salvar.click();
+			return respostaDoSalvar(await carga);
+		} finally {
+			setTimeout(function () { quadro.remove(); }, 0);
+		}
+	}
+
+	async function removerSecundario(id, descricao) {
+		if (ocupado) return;
+		if (!confirm('Remover o assunto secundário "' + descricao + '" deste processo?\n\nA alteração é salva em seguida, sem abrir a tela de alteração.')) return;
+		ocupado = true;
+		const titulo = "✖ " + descricao;
+		try {
+			mostrarStatus(titulo + " — abrindo a tela de alteração…");
+			const resultado = await removerSecundarioNoQuadro(id, titulo);
+			esconderStatus();
+			if (resultado.naoEstava) {
+				alert(titulo + ": o assunto já não está na lista de assuntos secundários do processo. Nada foi alterado.");
+				return;
+			}
+			if (!resultado.ok) {
+				alert(titulo + ": o Projudi não aceitou a alteração." + (resultado.mensagem ? "\n\n" + resultado.mensagem : "") + '\n\nUse "✏️ Alterar" para ver a tela e fazer a alteração à mão.');
+				return;
+			}
+			mostrarStatus(titulo + " — assunto removido. Recarregando o processo…");
+			window.location.reload();
+		} catch (error) {
+			esconderStatus();
+			alert(titulo + ": " + (error && error.message ? error.message : error));
+		} finally {
+			ocupado = false;
+		}
+	}
+
 	// Execução de uma preferência de assunto secundário (ver o início do
 	// arquivo): Adicionar → pesquisa → marca → Selecionar → confere → Salvar.
 	async function executarSecundario(pref, titulo) {
@@ -548,11 +630,7 @@
 			throw new Error("esta preferência foi gravada numa versão anterior da extensão e não pode ser usada. Apague-a (🗑) e grave de novo.");
 		}
 		const url = await urlDaEdicao();
-		const quadro = document.createElement("iframe");
-		quadro.setAttribute("data-pdp-loader", "");
-		quadro.setAttribute("aria-hidden", "true");
-		quadro.style.cssText = "position:absolute;left:-9999px;top:-9999px;width:1024px;height:768px;visibility:hidden";
-		document.body.appendChild(quadro);
+		const quadro = criarQuadroOculto();
 		try {
 			let carga = proximaCarga(quadro);
 			quadro.src = url;
@@ -975,6 +1053,7 @@
 			"box-shadow:0 1px 2px rgba(0,0,0,0.08);}" +
 			"a." + LINK_CLASS + ":hover{background:linear-gradient(to bottom,#ffffff,#dcdcdc);border-color:#888;}" +
 			"a." + PREF_BTN_CLASS + "{margin-left:4px;padding:1px 6px;}" +
+			"a." + LINK_CLASS + ".pdp-remover-secundario{margin-left:6px;padding:0 6px;color:#a00 !important;}" +
 			"#" + PANEL_ID + "{position:absolute;z-index:2147483640;min-width:260px;max-width:420px;padding:8px;background:#fff;border:1px solid #adadad;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.18);font:12px Arial,Helvetica,sans-serif;color:#222}" +
 			"#" + PANEL_ID + " .pdp-acp-titulo{font-weight:bold;margin:0 0 6px}" +
 			"#" + PANEL_ID + " .pdp-acp-vazio{color:#666;margin:0 0 8px;line-height:1.4}" +
@@ -1049,6 +1128,39 @@
 	];
 	const ALVO_SECUNDARIO = ALVOS[2];
 
+	const REMOVER_CLASS = "pdp-remover-secundario";
+
+	// ✖ no fim de cada assunto secundário da célula (um por <li>; sem
+	// lista, a própria célula é um assunto). O código do assunto é o número
+	// do início do texto ("3416 - Furto").
+	function botoesRemover(celula) {
+		const itens = celula.querySelectorAll("li");
+		const alvos = itens.length ? Array.prototype.slice.call(itens) : [celula];
+		alvos.forEach(function (item) {
+			if (item.querySelector("." + REMOVER_CLASS)) return;
+			let texto = "";
+			item.childNodes.forEach(function (n) {
+				if (n.nodeType === 3 || (n.nodeType === 1 && !n.classList.contains(LINK_CLASS))) texto += n.textContent;
+			});
+			texto = texto.replace(/\s+/g, " ").trim();
+			const m = /^(\d+)\s*-/.exec(texto);
+			if (!m) return;
+			const a = document.createElement("a");
+			a.href = "#";
+			a.className = LINK_CLASS + " " + REMOVER_CLASS;
+			a.textContent = "✖";
+			a.title = 'Remover o assunto secundário "' + texto + '" e salvar (pede confirmação)';
+			a.addEventListener("click", function (event) {
+				event.preventDefault();
+				event.stopPropagation();
+				removerSecundario(m[1], texto);
+			});
+			// Sem lista, o ✖ vai antes dos balões "✏️ Alterar"/⭐ da célula.
+			const antes = item === celula ? item.querySelector(":scope > ." + LINK_CLASS) : null;
+			item.insertBefore(a, antes);
+		});
+	}
+
 	function reconcile() {
 		const table = document.getElementById("informacoesProcessuais");
 		if (!table || !document.getElementById("processoForm")) return;
@@ -1067,11 +1179,14 @@
 			if (!valor) continue;
 			if (alvo.tipo === "assunto") celulaPrincipal = valor;
 			if (alvo.tipo === "secundario") {
+				garantirEstilo();
+				botoesRemover(valor);
 				// Uma linha por assunto secundário: os balões só na primeira.
 				if (temLinhaSecundario) continue;
 				temLinhaSecundario = true;
 			}
-			if (valor.querySelector("." + LINK_CLASS)) continue;
+			// (o ✖ dos assuntos secundários também é um balão: conta o "✏️ Alterar")
+			if (valor.querySelector("a[data-pdp-campo]")) continue;
 			garantirEstilo();
 			valor.appendChild(criarLink(alvo.campo, alvo.title));
 			valor.appendChild(criarBotaoPref(alvo));
