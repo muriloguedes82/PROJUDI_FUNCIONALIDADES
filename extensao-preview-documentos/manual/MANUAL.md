@@ -1,5 +1,5 @@
-Warning: truncated output (original token count: 31837)
-Total output lines: 2207
+Warning: truncated output (original token count: 31869)
+Total output lines: 2208
 
 # Manual do Usuário — Extensão Projudi/SEEU
 
@@ -7,8 +7,8 @@ Total output lines: 2207
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.26.1 |
-| **Versão da extensão** | 2.26.1 |
+| **Versão do manual** | 2.26.2 |
+| **Versão da extensão** | 2.26.2 |
 | **Data desta versão** | 08/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -591,11 +591,7 @@ Projudi.*
 <a id="cap-4-1"></a>
 ### 4.1 Suspensão ativa no cabeçalho
 
-▶ [**Vídeo V10** — Suspensão e mon…16837 tokens truncated…⬆ Importar**
-no Menu ([2.6](#cap-2-6)).
-
-Documentos são sempre lidos do Projudi/SEEU na hora; não há cópia guardada.
-A senha/PIN do certificado **nunca** é guardada.
+▶ [**Vídeo V10** — Suspensão e mon…16869 tokens truncated…senha/PIN do certificado **nunca** é guardada.
 
 <a id="cap-10-2"></a>
 ### 10.2 Convivência com o AzFlow
@@ -723,6 +719,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.26.2 | 08/10/2026 | Sem alteração de texto; corrigido o reconhecimento do link **Analisar** na listagem de mandados. |
 | 2.26.1 | 08/10/2026 | Seção 6.4: **Dispensar pendências** também funciona para mandados para expedir. |
 | 2.26.0 | 07/10/2026 | Seção 7.3: o painel **⭐ Minhas Preferências** passa a mostrar as preferências em **blocos, um por ação** (ícone do botão, nome da ação e quantidade), com o bloco **🔗 Combos** no fim, e cada preferência vira um **card retangular de uma linha** com ✏️ (editar) e 🗑 (remover) sempre à vista; **✏️ Editar posição** passa a arrastar os cards dentro do bloco e os blocos entre si. Seção 9.3: a **⭐** da linha e o **⭐ Em lote** usam os mesmos blocos (combos que abrem nova aba ganham o sinal ↗). Todas as preferências e combos, em qualquer painel (Ordenações, Concluso, Partes, Juntar Documento, Combos, Alterar Classe/Assunto, Localizador, Listas de tarefas etc.), deixam de ser ovais e passam a ser retangulares com cantos levemente arredondados. Vídeos V16 a V22, V26, V27, V30, V35, V37, V38, V40, V41, V43, V45 e V46 regravados. |
 | 2.25.0 | 06/10/2026 | Nova seção 2.3 (**Atualização da extensão**) reescrita: aviso **🆕 Há novidades na extensão!** abaixo do ícone da balança quando sai versão nova, com a observação para exportar as preferências antes, os botões **1. Exportar preferências** e **2. Atualizar** e o passo a passo para recarregar a extensão; explica que as preferências continuam quando os arquivos novos são colados por cima da mesma pasta. Seção 2.6: ponto azul no ícone e faixa "Versão nova disponível" no Menu. Novo vídeo V48. |

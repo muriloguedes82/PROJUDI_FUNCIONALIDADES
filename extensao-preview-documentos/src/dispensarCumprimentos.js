@@ -65,8 +65,9 @@
         const list = await page(url);
         const form = list.doc.querySelector(mandado ? 'form#cumprimentoCartorioMandadoForm' : 'form#cumprimentoCartorioForm');
         if (!form) throw new Error('Listagem indisponível. Confira sua sessão.');
-        const linkDetail = Array.from(form.querySelectorAll('a.link[href]')).find(a => normalize(a.textContent) === (mandado ? 'analisar' : 'visualizar'));
-        if (!linkDetail) throw new Error('A quantidade de pendências mudou. Confira a listagem.');
+        const detailLabel = mandado ? 'analisar' : 'visualizar';
+        const linkDetail = Array.from(form.querySelectorAll('a[href]')).find(a => normalize(a.textContent) === detailLabel);
+        if (!linkDetail) throw new Error(mandado ? 'Não foi encontrado o link Analisar na listagem de mandados.' : 'A quantidade de pendências mudou. Confira a listagem.');
         const detail = await page(checkedUrl(linkDetail.getAttribute('href'), list.url));
         const detailForm = detail.doc.querySelector(mandado ? 'form#cumprimentoCartorioMandadoForm' : 'form#cumprimentoCartorioForm');
         const id = mandado
