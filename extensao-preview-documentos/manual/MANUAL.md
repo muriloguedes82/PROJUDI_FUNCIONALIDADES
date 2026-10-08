@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.26.2 |
-| **Versão da extensão** | 2.26.2 |
+| **Versão do manual** | 2.26.3 |
+| **Versão da extensão** | 2.26.3 |
 | **Data desta versão** | 08/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1658,8 +1658,13 @@ preferência (**★ …**). A extensão repete, sozinha e sem mostrar a tela, o
 - Antes de salvar, a extensão confere se a lista de assuntos secundários
   ficou igual à que você gravou. Se não ficou, **nada é salvo** e aparece
   um aviso — grave a preferência de novo ou use **✏️ Alterar**.
-- Preferências de assunto secundário gravadas na versão 2.26.0 precisam
-  ser **gravadas de novo** (apague a antiga com **🗑**).
+- Preferências de assunto secundário gravadas nas versões 2.26.0 a
+  2.26.2 não funcionam: apague-as com **🗑**.
+- **Ainda em desenvolvimento:** no Projudi, o **Adicionar** dos assuntos
+  secundários usa uma janela de seleção que grava o assunto direto no
+  sistema. A extensão ainda não consegue repetir esse passo; por isso, ao
+  tentar gravar uma preferência com **Adicionar**, ela avisa e **não grava**.
+  Clique em **Voltar** para sair sem alterar o processo.
 - Para apagar, use **🗑** ao lado da preferência. Elas também entram no
   **⬇ Exportar** do Menu da extensão ([2.6](#cap-2-6)).
 
@@ -2187,6 +2192,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.26.3 | 08/10/2026 | Correção de segurança nas **preferências de assuntos secundários** (8.9): uma preferência gravada com **Adicionar** podia, ao ser usada, salvar a tela de alteração sem o assunto novo (gerando movimentação sem a alteração). Agora a extensão recusa gravar esse passo, que ainda não consegue repetir, e recusa usar as preferências gravadas antes (2.26.0 a 2.26.2), sem salvar nada. |
 | 2.26.2 | 08/10/2026 | Sem alteração de texto; corrigido: fora da tela do processo (por exemplo, na tela de alteração do processo), os indicadores de suspensão e de monitoração e o botão do WhatsApp deixam de repetir avisos internos a cada 1,5 segundo. |
 | 2.26.1 | 08/10/2026 | Correção nas **preferências de assuntos secundários** (8.9): ao usar a preferência, o assunto gravado não entrava na lista da tela de alteração, e a extensão avisava "os assuntos secundários da tela não ficaram como na preferência" sem salvar. Agora a gravação guarda o assunto como ele aparece na lista e a extensão o repõe antes de salvar. As preferências gravadas na 2.26.0 precisam ser gravadas de novo. |
 | 2.26.0 | 07/10/2026 | Alterar Classe/Assuntos (8.9): novas **preferências de assuntos secundários** — **✏️ Alterar** e **⭐** na linha **Assunto Secundário** do cabeçalho (ou o balão **⭐ Secundários** na linha do Assunto Principal, quando o processo ainda não tem assunto secundário); grava um **Adicionar**/**Remover** de assunto secundário e depois o repete e salva com um clique, conferindo a lista antes de salvar. Novo vídeo V49. |

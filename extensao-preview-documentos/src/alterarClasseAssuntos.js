@@ -653,19 +653,38 @@
 	// Na gravação: quando a tela vai ser trocada por um envio que não é o
 	// "Salvar" (ex.: "Adicionar"), chama `aoPasso` com o que mudou desde a
 	// foto `base`, o actionType, o endereço do formulário e o botão de envio.
+	//
+	// Só conta como passo repetível um ENVIO do formulário: com botão de
+	// envio (evento submit) ou com o endereço do formulário trocado pela
+	// página (ex.: "Remover" troca para actionType=removerAssuntoSecundario
+	// e chama form.submit()). Qualquer outra troca de tela — como a volta
+	// da janela de seleção do "Adicionar", que registra o assunto no
+	// servidor e recarrega a tela — vira um passo { navegacao: true }, que
+	// NÃO pode ser repetido: reenviar o formulário com o endereço original
+	// seria o "Salvar" (actionType=salvarEdicao).
 	function acompanharPassos(doc, win, base, aoPasso) {
 		let botao = null;
+		let enviou = false;
+		const formInicial = doc.getElementById(FORM_ID);
+		const actionInicial = formInicial ? formInicial.getAttribute("action") || "" : "";
 		doc.addEventListener(
 			"submit",
 			function (event) {
 				const b = event.submitter;
-				if (b && b.id !== "saveButton") botao = { id: b.id || "", name: b.name || "", value: b.value || "" };
+				if (b && b.id === "saveButton") return;
+				if (event.target && event.target.id === FORM_ID) enviou = true;
+				if (b) botao = { id: b.id || "", name: b.name || "", value: b.value || "" };
 			},
 			true
 		);
 		win.addEventListener("pagehide", function () {
 			const form = doc.getElementById(FORM_ID);
 			if (!form) return;
+			const action = form.getAttribute("action") || "";
+			if (!enviou && action === actionInicial) {
+				aoPasso({ navegacao: true });
+				return;
+			}
 			aoPasso({
 				campos: listaDiferencas(base, lerCampos(form)),
 				actionType: valorActionType(form),
@@ -678,6 +697,13 @@
 	// Na execução: repete um passo gravado (campos → envio). O envio usa o
 	// mesmo botão, se houve; senão, o envio do próprio formulário.
 	function executarPasso(form, passo) {
+		if (passo.navegacao) {
+			throw new Error('o "Adicionar" dos assuntos secundários (janela de seleção do Projudi) ainda não pode ser repetido pela extensão. Nada foi salvo.');
+		}
+		// Segurança: um passo nunca pode ser o próprio "Salvar".
+		if (!passo.botao && /salvarEdicao/i.test(passo.action || form.getAttribute("action") || "") && !passo.actionType) {
+			throw new Error("esta preferência foi gravada numa versão com erro e enviaria a tela como um \"Salvar\". Nada foi salvo. Apague-a (🗑).");
+		}
 		const faltando = reporCampos(form, passo.campos || []);
 		if (faltando.length) throw new Error("a tela de alteração não tem mais o(s) campo(s) " + faltando.join(", ") + ". Grave a preferência de novo.");
 		if (passo.action && form.getAttribute("action") !== passo.action) form.setAttribute("action", passo.action);
@@ -739,6 +765,10 @@
 	}
 
 	async function concluirGravacaoSecundario(resultado, fechar) {
+		if (resultado.passos.some(function (p) { return p.navegacao; })) {
+			alert('A extensão ainda não consegue repetir o "Adicionar" dos assuntos secundários (a janela de seleção do Projudi grava o assunto direto no servidor). A preferência NÃO foi gravada.\n\nClique em "Voltar" para sair sem alterar o processo.');
+			return;
+		}
 		const mudouLista = resultado.adicionados.length || resultado.removidos.length;
 		if (!mudouLista && (resultado.listaLida || (!resultado.passos.length && !resultado.campos.length))) {
 			alert('Adicione (ou remova) um assunto secundário com os botões de "Assuntos Secundários" antes de clicar em Salvar.');
