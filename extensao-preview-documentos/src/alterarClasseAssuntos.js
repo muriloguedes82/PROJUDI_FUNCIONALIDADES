@@ -46,6 +46,32 @@
 //   devolver a tela com erro, a mensagem é mostrada e nada mais é feito.
 // As preferências ficam em chrome.storage.local (chave PREFS_KEY, com o
 // prefixo "pdp" para entrarem no Exportar/Importar do Menu).
+//
+// ASSUNTOS SECUNDÁRIOS (tipo "secundario"): a ⭐ fica na linha "Assunto(s)
+// Secundário(s)" do cabeçalho, se houver; senão, um balão "⭐ Secundários"
+// na linha do Assunto Principal. A preferência ADICIONA um assunto
+// secundário. No Projudi a lista de assuntos secundários fica no servidor:
+// o "Adicionar" (addButton) abre a janela de seleção (quadro com
+// /projudi/processo/assunto.do, formulário assuntoForm, dentro da tela de
+// alteração); nela se pesquisa (descricaoPesquisa + searchButton), marca o
+// assunto (rádio idAssuntoSelecionado) e clica em "Selecionar"
+// (selectButton → confirmarSelecaoAssuntoSecundario), que grava o assunto
+// na lista do servidor e recarrega a tela de alteração, já com a linha nova
+// (rádio idAssuntoSecundarioSelecionado = id do assunto).
+// - Gravar: o "Selecionar" da janela é barrado (o processo e a lista não
+//   mudam); a extensão guarda o id e a descrição do assunto marcado.
+// - Executar: no quadro oculto, faz o mesmo que o usuário — Adicionar →
+//   pesquisa pela descrição → marca o assunto → Selecionar —, espera a tela
+//   de alteração voltar com o assunto na lista e só então clica em
+//   "Salvar". Se o assunto não aparecer na lista, nada é salvo.
+//
+// REMOVER (✖ no fim de cada assunto secundário do cabeçalho): depois de
+// confirmar, a extensão carrega a tela de alteração num quadro oculto,
+// marca o assunto (rádio idAssuntoSecundarioSelecionado) e faz o mesmo
+// envio do "Remover" do Projudi (removerAssuntoSecundario: endereço do
+// formulário → processoEdicao.do?actionType=removerAssuntoSecundario e
+// form.submit(), sem o confirm nativo); quando a tela volta, confere que
+// o assunto saiu da lista e só então clica em "Salvar".
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
@@ -72,6 +98,7 @@
 	const PREF_BTN_CLASS = "pdp-alterar-classe-pref";
 	const PANEL_ID = "pdp-alterar-classe-painel";
 	const MOTIVO_NAME = "retificacaoEvolucaoClasseProcessual";
+	const SECUNDARIOS_ROTULO = /^assuntos? secundarios?\b/;
 	const EXEC_TIMEOUT_MS = 30000;
 	// Campos de controle da página (tokens de uso único etc.): nunca entram
 	// numa preferência — repor um valor antigo invalidaria o envio.
@@ -113,7 +140,7 @@
 
 	// Rola o popup até o campo clicado e o destaca por um instante.
 	function focarCampo(doc, campoId) {
-		const campo = doc.getElementById(campoId);
+		const campo = campoId === "secundarios" ? linhaSecundarios(doc) : doc.getElementById(campoId);
 		if (!campo) return;
 		const linha = campo.closest("tr") || campo;
 		try {
@@ -178,10 +205,26 @@
 				return;
 			}
 
+			if (gravacao && gravacao.tipo === "secundario") {
+				prepararGravacao(doc, gravacao.tipo, function () {
+					alert('Para gravar a preferência, use "Adicionar" dos Assuntos Secundários: pesquise, marque o assunto e clique em "Selecionar".');
+				});
+				vigiarJanelaDeSelecao(doc, function (assunto) {
+					return gravacao.concluir(assunto, function () {
+						encerrar(false);
+					});
+				});
+				if (primeiraTela) {
+					primeiraTela = false;
+					focarCampo(doc, campoId);
+				}
+				return;
+			}
+
 			if (gravacao) {
 				// Foto dos campos na PRIMEIRA tela (antes de qualquer escolha).
 				if (!foto) foto = lerCampos(doc.getElementById(FORM_ID));
-				prepararGravacao(doc, function () {
+				prepararGravacao(doc, gravacao.tipo, function () {
 					const resultado = diferencas(foto, lerCampos(doc.getElementById(FORM_ID)));
 					return gravacao.concluir(resultado, function () {
 						encerrar(false);
@@ -269,11 +312,18 @@
 		return campos;
 	}
 
-	function diferencas(antes, depois) {
+	// [{ name, value }] dos campos que mudaram de `antes` para `depois`.
+	function listaDiferencas(antes, depois) {
 		const campos = [];
 		Object.keys(depois).forEach(function (nome) {
-			if (nome === MOTIVO_NAME) return; // o motivo vai à parte
 			if ((antes[nome] || "") !== (depois[nome] || "")) campos.push({ name: nome, value: depois[nome] });
+		});
+		return campos;
+	}
+
+	function diferencas(antes, depois) {
+		const campos = listaDiferencas(antes, depois).filter(function (c) {
+			return c.name !== MOTIVO_NAME; // o motivo vai à parte
 		});
 		return {
 			campos: campos,
@@ -344,12 +394,303 @@
 	}
 
 	// -------------------------------------------------------------------
+	// Assuntos secundários: lista da tela e janela de seleção
+	// -------------------------------------------------------------------
+
+	// Linha "Assuntos Secundários" da tela de alteração (rótulo curto, num
+	// <label> ou na própria célula).
+	function linhaSecundarios(doc) {
+		const raiz = doc.getElementById(FORM_ID) || doc;
+		const rotulos = raiz.querySelectorAll("label, td, th");
+		for (let i = 0; i < rotulos.length; i++) {
+			const texto = normalize(rotulos[i].textContent).replace(/^\*\s*/, "");
+			if (texto.length <= 40 && SECUNDARIOS_ROTULO.test(texto)) return rotulos[i].closest("tr") || rotulos[i].parentElement;
+		}
+		return null;
+	}
+
+	// O assunto `id` está na lista de assuntos secundários da tela?
+	function temSecundario(doc, id) {
+		const form = doc.getElementById(FORM_ID);
+		if (!form) return false;
+		return Array.prototype.some.call(form.querySelectorAll('input[name="idAssuntoSecundarioSelecionado"]'), function (r) {
+			return r.value === String(id);
+		});
+	}
+
+	// Documento da janela de seleção de assunto aberta dentro da tela de
+	// alteração (quadro com o formulário assuntoForm), ou null.
+	function docDaJanela(doc) {
+		const quadros = doc.querySelectorAll("iframe, frame");
+		for (let i = 0; i < quadros.length; i++) {
+			try {
+				const d = quadros[i].contentDocument;
+				if (d && d.getElementById("assuntoForm")) return { quadro: quadros[i], doc: d };
+			} catch (err) {
+				// quadro de outra origem — ignora
+			}
+		}
+		return null;
+	}
+
+	// Assunto marcado na janela de seleção: { idAssunto, descricao }.
+	function assuntoMarcado(dlg) {
+		const radio = dlg.querySelector('input[name="idAssuntoSelecionado"]:checked');
+		if (!radio) return null;
+		const oculto = radio.nextElementSibling && radio.nextElementSibling.name === "descricaoAssuntoSelecionado" ? radio.nextElementSibling : null;
+		const li = radio.closest("li");
+		const link = li ? li.querySelector("a") : null;
+		const descricao = String((oculto && oculto.value) || (link && link.textContent) || radio.value).replace(/\s+/g, " ").trim();
+		return { idAssunto: radio.value, descricao: descricao };
+	}
+
+	// Na gravação: em cada janela de seleção que abrir na tela, barra o
+	// "Selecionar" e entrega o assunto marcado a `aoEscolher` (a lista do
+	// processo não é tocada).
+	function vigiarJanelaDeSelecao(doc, aoEscolher) {
+		function preparar(d) {
+			if (!d || d.__pdpSelecaoVigiada || !d.getElementById("assuntoForm")) return;
+			d.__pdpSelecaoVigiada = true;
+			let processando = false;
+			d.addEventListener(
+				"click",
+				function (event) {
+					const alvo = event.target && event.target.closest ? event.target.closest("#selectButton") : null;
+					if (!alvo) return;
+					event.preventDefault();
+					event.stopImmediatePropagation();
+					if (processando) return;
+					const assunto = assuntoMarcado(d);
+					if (!assunto) {
+						alert("Marque um assunto na lista antes de clicar em Selecionar.");
+						return;
+					}
+					processando = true;
+					Promise.resolve(aoEscolher(assunto)).finally(function () {
+						processando = false;
+					});
+				},
+				true
+			);
+		}
+		const timer = setInterval(function () {
+			if (!doc.defaultView) {
+				clearInterval(timer);
+				return;
+			}
+			Array.prototype.forEach.call(doc.querySelectorAll("iframe, frame"), function (q) {
+				try {
+					preparar(q.contentDocument);
+				} catch (err) {
+					// segue
+				}
+			});
+		}, 300);
+		doc.defaultView.addEventListener("pagehide", function () {
+			clearInterval(timer);
+		});
+	}
+
+	function pausa(ms) {
+		return new Promise(function (resolve) { setTimeout(resolve, ms); });
+	}
+
+	// Espera `teste()` devolver algo verdadeiro (ou falha com `erro`).
+	async function esperar(teste, ms, erro) {
+		const fim = Date.now() + ms;
+		while (Date.now() < fim) {
+			let r = null;
+			try {
+				r = teste();
+			} catch (err) {
+				r = null;
+			}
+			if (r) return r;
+			await pausa(250);
+		}
+		throw new Error(erro);
+	}
+
+	// Próxima carga de `quadro` (resolve com o documento novo).
+	function proximaCarga(quadro, ms, erro) {
+		return new Promise(function (resolve, reject) {
+			const limite = setTimeout(function () {
+				quadro.removeEventListener("load", aoCarregar);
+				reject(new Error(erro || "o Projudi demorou demais para responder."));
+			}, ms || EXEC_TIMEOUT_MS);
+			function aoCarregar() {
+				let d = null;
+				try {
+					if (quadro.contentWindow.location.href === "about:blank") return;
+					d = quadro.contentDocument;
+				} catch (err) {
+					d = null;
+				}
+				clearTimeout(limite);
+				quadro.removeEventListener("load", aoCarregar);
+				// Repasse de confirm/alert da página (ver rodarNoQuadro).
+				try {
+					quadro.contentWindow.confirm = function () { return true; };
+					quadro.contentWindow.alert = function (msg) { console.info("[Alterar Classe/Assuntos] alerta do Projudi:", msg); };
+				} catch (err) {
+					// segue
+				}
+				resolve(d);
+			}
+			quadro.addEventListener("load", aoCarregar);
+		});
+	}
+
+	function respostaDoSalvar(doc) {
+		const form = doc && doc.getElementById(FORM_ID);
+		const texto = doc && doc.body ? doc.body.textContent || "" : "";
+		if (!form || doc.defaultView.location.pathname !== EDICAO_PATH) return { ok: true };
+		if (/sucesso/i.test(texto) && !/erro|n[aã]o foi poss[ií]vel|inv[aá]lid|obrigat[oó]ri/i.test(texto)) return { ok: true };
+		return { ok: false, mensagem: mensagemDaTela(doc) };
+	}
+
+	function criarQuadroOculto() {
+		const quadro = document.createElement("iframe");
+		quadro.setAttribute("data-pdp-loader", "");
+		quadro.setAttribute("aria-hidden", "true");
+		quadro.style.cssText = "position:absolute;left:-9999px;top:-9999px;width:1024px;height:768px;visibility:hidden";
+		document.body.appendChild(quadro);
+		return quadro;
+	}
+
+	// Remove o assunto secundário `id` (ver o início do arquivo):
+	// marca → envio do "Remover" → confere que saiu → "Salvar".
+	async function removerSecundarioNoQuadro(id, titulo) {
+		const url = await urlDaEdicao();
+		const quadro = criarQuadroOculto();
+		try {
+			let carga = proximaCarga(quadro);
+			quadro.src = url;
+			let doc = await carga;
+			let form = doc && doc.getElementById(FORM_ID);
+			if (!form) throw new Error("a tela de alteração do processo não abriu.");
+			const radio = Array.prototype.filter.call(form.querySelectorAll('input[name="idAssuntoSecundarioSelecionado"]'), function (r) {
+				return r.value === String(id);
+			})[0];
+			if (!radio) return { naoEstava: true };
+			if (!radio.checked) radio.click();
+			if (!radio.checked) throw new Error("não consegui marcar o assunto na tela de alteração. Nada foi alterado.");
+
+			mostrarStatus(titulo + " — removendo da lista…");
+			carga = proximaCarga(quadro, EXEC_TIMEOUT_MS, "a tela de alteração não voltou depois de remover o assunto. Nada foi salvo.");
+			form.setAttribute("action", EDICAO_PATH + "?actionType=removerAssuntoSecundario");
+			HTMLFormElement.prototype.submit.call(form);
+			doc = await carga;
+			form = doc && doc.getElementById(FORM_ID);
+			if (!form) throw new Error("a tela de alteração não voltou depois de remover o assunto. Nada foi salvo." + (doc && mensagemDaTela(doc) ? "\n\n" + mensagemDaTela(doc) : ""));
+			if (temSecundario(doc, id)) throw new Error("o assunto não saiu da lista de assuntos secundários. Nada foi salvo." + (mensagemDaTela(doc) ? "\n\n" + mensagemDaTela(doc) : ""));
+			const salvar = doc.getElementById("saveButton");
+			if (!salvar) throw new Error('não encontrei o botão "Salvar".');
+
+			mostrarStatus(titulo + " — salvando…");
+			carga = proximaCarga(quadro);
+			salvar.click();
+			return respostaDoSalvar(await carga);
+		} finally {
+			setTimeout(function () { quadro.remove(); }, 0);
+		}
+	}
+
+	async function removerSecundario(id, descricao) {
+		if (ocupado) return;
+		if (!confirm('Remover o assunto secundário "' + descricao + '" deste processo?\n\nA alteração é salva em seguida, sem abrir a tela de alteração.')) return;
+		ocupado = true;
+		const titulo = "✖ " + descricao;
+		try {
+			mostrarStatus(titulo + " — abrindo a tela de alteração…");
+			const resultado = await removerSecundarioNoQuadro(id, titulo);
+			esconderStatus();
+			if (resultado.naoEstava) {
+				alert(titulo + ": o assunto já não está na lista de assuntos secundários do processo. Nada foi alterado.");
+				return;
+			}
+			if (!resultado.ok) {
+				alert(titulo + ": o Projudi não aceitou a alteração." + (resultado.mensagem ? "\n\n" + resultado.mensagem : "") + '\n\nUse "✏️ Alterar" para ver a tela e fazer a alteração à mão.');
+				return;
+			}
+			mostrarStatus(titulo + " — assunto removido. Recarregando o processo…");
+			window.location.reload();
+		} catch (error) {
+			esconderStatus();
+			alert(titulo + ": " + (error && error.message ? error.message : error));
+		} finally {
+			ocupado = false;
+		}
+	}
+
+	// Execução de uma preferência de assunto secundário (ver o início do
+	// arquivo): Adicionar → pesquisa → marca → Selecionar → confere → Salvar.
+	async function executarSecundario(pref, titulo) {
+		if (!pref.idAssunto) {
+			throw new Error("esta preferência foi gravada numa versão anterior da extensão e não pode ser usada. Apague-a (🗑) e grave de novo.");
+		}
+		const url = await urlDaEdicao();
+		const quadro = criarQuadroOculto();
+		try {
+			let carga = proximaCarga(quadro);
+			quadro.src = url;
+			let doc = await carga;
+			if (!doc || !doc.getElementById(FORM_ID)) throw new Error("a tela de alteração do processo não abriu.");
+			if (temSecundario(doc, pref.idAssunto)) return { jaEstava: true };
+			const adicionar = doc.getElementById("addButton");
+			if (!adicionar) throw new Error('não encontrei o botão "Adicionar" dos Assuntos Secundários.');
+
+			mostrarStatus(titulo + " — abrindo a seleção de assunto…");
+			adicionar.click();
+			const janela = await esperar(function () {
+				const j = docDaJanela(doc);
+				return j && j.doc.getElementById("descricaoPesquisa") && j.doc.getElementById("searchButton") ? j : null;
+			}, 20000, "a janela de seleção de assunto não abriu.");
+
+			mostrarStatus(titulo + " — pesquisando o assunto…");
+			const pesquisa = String(pref.descricao || "").replace(/^\d+\s*-\s*/, "").trim();
+			const cargaJanela = proximaCarga(janela.quadro, EXEC_TIMEOUT_MS, "a pesquisa de assunto não respondeu.");
+			janela.doc.getElementById("descricaoPesquisa").value = pesquisa;
+			janela.doc.getElementById("searchButton").click();
+			await cargaJanela;
+			const radio = await esperar(function () {
+				const d = janela.quadro.contentDocument;
+				return d && d.querySelector('input[name="idAssuntoSelecionado"][value="' + String(pref.idAssunto).replace(/"/g, "") + '"]');
+			}, 20000, 'o assunto "' + pref.descricao + '" não apareceu na pesquisa da janela de seleção. Nada foi salvo.');
+			const dlg = radio.ownerDocument;
+			if (!radio.checked) radio.click();
+			const continuar = dlg.getElementById("continuarCadastrando");
+			if (continuar && continuar.checked) continuar.click();
+			const selecionar = dlg.getElementById("selectButton");
+			if (!selecionar) throw new Error('não encontrei o botão "Selecionar" da janela de seleção.');
+
+			mostrarStatus(titulo + " — selecionando o assunto…");
+			carga = proximaCarga(quadro, EXEC_TIMEOUT_MS, "a tela de alteração não voltou depois de selecionar o assunto. Nada foi salvo.");
+			selecionar.click();
+			doc = await carga;
+			if (!doc || !doc.getElementById(FORM_ID)) throw new Error("a tela de alteração não voltou depois de selecionar o assunto. Nada foi salvo.");
+			if (!temSecundario(doc, pref.idAssunto)) {
+				throw new Error('o assunto "' + pref.descricao + '" não entrou na lista de assuntos secundários. Nada foi salvo.' + (mensagemDaTela(doc) ? "\n\n" + mensagemDaTela(doc) : ""));
+			}
+			const salvar = doc.getElementById("saveButton");
+			if (!salvar) throw new Error('não encontrei o botão "Salvar".');
+
+			mostrarStatus(titulo + " — salvando…");
+			carga = proximaCarga(quadro);
+			salvar.click();
+			return respostaDoSalvar(await carga);
+		} finally {
+			setTimeout(function () { quadro.remove(); }, 0);
+		}
+	}
+
+	// -------------------------------------------------------------------
 	// Gravação: "Salvar" barrado, campos alterados guardados
 	// -------------------------------------------------------------------
 
 	const AVISO_GRAVACAO_ID = "pdp-alterar-classe-aviso";
 
-	function prepararGravacao(doc, aoSalvar) {
+	function prepararGravacao(doc, tipo, aoSalvar) {
 		if (doc.__pdpGravacaoPronta) return;
 		doc.__pdpGravacaoPronta = true;
 		const form = doc.getElementById(FORM_ID);
@@ -357,8 +698,12 @@
 			const aviso = doc.createElement("div");
 			aviso.id = AVISO_GRAVACAO_ID;
 			aviso.style.cssText = "margin:6px 0 10px;padding:8px 10px;border:1px solid #d4b106;background:#fffbe6;color:#5c4400;font:12px Arial,sans-serif;border-radius:4px";
-			aviso.innerHTML = "<b>⭐ Gravando preferência.</b> Escolha a nova classe (lupa) e o <b>Motivo da Alteração</b> — ou o novo assunto principal — e clique em <b>Salvar</b>. " +
-				"Esse clique só grava a preferência: <b>o processo não é alterado agora</b>.";
+			aviso.innerHTML = "<b>⭐ Gravando preferência.</b> " +
+				(tipo === "secundario"
+					? "Clique em <b>Adicionar</b> dos <b>Assuntos Secundários</b>, pesquise, marque o assunto e clique em <b>Selecionar</b>. " +
+						"Esse clique só grava a preferência: <b>o assunto não entra no processo agora</b>."
+					: "Escolha a nova classe (lupa) e o <b>Motivo da Alteração</b> — ou o novo assunto principal — e clique em <b>Salvar</b>. " +
+						"Esse clique só grava a preferência: <b>o processo não é alterado agora</b>.");
 			form.insertBefore(aviso, form.firstChild);
 		}
 		let processando = false;
@@ -384,7 +729,28 @@
 		);
 	}
 
+	async function concluirGravacaoSecundario(assunto, fechar) {
+		const sugestao = assunto.descricao.replace(/^\d+\s*-\s*/, "");
+		const nome = prompt("Nome da preferência:", sugestao);
+		if (nome === null) return; // continua na tela de gravação
+		const pref = {
+			id: "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+			tipo: "secundario",
+			name: nome.trim() || sugestao,
+			descricao: assunto.descricao,
+			idAssunto: assunto.idAssunto,
+			criadaEm: new Date().toISOString(),
+		};
+		const prefs = await carregarPrefs();
+		prefs.push(pref);
+		await salvarPrefs(prefs);
+		console.info("[Alterar Classe/Assuntos] preferência gravada:", pref);
+		fechar();
+		alert('Preferência "★ ' + pref.name + '" gravada. O processo não foi alterado.\n\nPara usá-la, clique na ⭐ dos assuntos secundários e escolha a preferência: o assunto é adicionado e salvo automaticamente.');
+	}
+
 	async function concluirGravacao(tipo, resultado, fechar) {
+		if (tipo === "secundario") return concluirGravacaoSecundario(resultado, fechar);
 		if (tipo === "classe" && !resultado.classeMudou) {
 			alert("Escolha uma classe diferente da atual (lupa da Classe Processual) antes de clicar em Salvar.");
 			return;
@@ -532,8 +898,7 @@
 		const titulo = "★ " + pref.name;
 		try {
 			mostrarStatus(titulo + " — abrindo a tela de alteração…");
-			const url = await urlDaEdicao();
-			const resultado = await rodarNoQuadro(url, function (doc, n, win) {
+			const resultado = pref.tipo === "secundario" ? await executarSecundario(pref, titulo) : await rodarNoQuadro(await urlDaEdicao(), function (doc, n, win) {
 				const form = doc.getElementById(FORM_ID);
 				if (n === 0) {
 					if (!form) throw new Error("a tela de alteração do processo não abriu.");
@@ -557,7 +922,8 @@
 			});
 			esconderStatus();
 			if (resultado.jaEstava) {
-				alert(titulo + ": o processo já está com " + (pref.tipo === "classe" ? "a classe" : "o assunto principal") + ' "' + pref.descricao + '". Nada foi alterado.');
+				const oQue = pref.tipo === "classe" ? "a classe" : pref.tipo === "secundario" ? "o assunto secundário" : "o assunto principal";
+				alert(titulo + ": o processo já está com " + oQue + ' "' + pref.descricao + '". Nada foi alterado.');
 				return;
 			}
 			if (!resultado.ok) {
@@ -602,7 +968,7 @@
 		painel.setAttribute("data-tipo", alvo.tipo);
 		const titulo = document.createElement("div");
 		titulo.className = "pdp-acp-titulo";
-		titulo.textContent = "⭐ Preferências — " + (alvo.tipo === "classe" ? "Alterar classe" : "Alterar assunto");
+		titulo.textContent = "⭐ Preferências — " + (alvo.tipo === "classe" ? "Alterar classe" : alvo.tipo === "secundario" ? "Assuntos secundários" : "Alterar assunto");
 		painel.appendChild(titulo);
 		if (!prefs.length) {
 			const vazio = document.createElement("div");
@@ -617,7 +983,7 @@
 			usar.type = "button";
 			usar.className = "pdp-acp-usar";
 			usar.textContent = "★ " + pref.name;
-			usar.title = "Alterar agora para \"" + pref.descricao + "\"" + (pref.motivo ? " (motivo: " + textoMotivo(pref.motivo) + ")" : "") + " e salvar — sem confirmação";
+			usar.title = (pref.tipo === "secundario" ? "Adicionar agora o assunto secundário \"" + pref.descricao + "\"" : "Alterar agora para \"" + pref.descricao + "\"") + (pref.motivo ? " (motivo: " + textoMotivo(pref.motivo) + ")" : "") + " e salvar — sem confirmação";
 			usar.addEventListener("click", function () {
 				fecharPainel();
 				executarPreferencia(pref);
@@ -648,6 +1014,7 @@
 			ocupado = true;
 			try {
 				await abrir(alvo.campo, {
+					tipo: alvo.tipo,
 					concluir: function (resultado, fechar) {
 						return concluirGravacao(alvo.tipo, resultado, fechar);
 					},
@@ -686,6 +1053,7 @@
 			"box-shadow:0 1px 2px rgba(0,0,0,0.08);}" +
 			"a." + LINK_CLASS + ":hover{background:linear-gradient(to bottom,#ffffff,#dcdcdc);border-color:#888;}" +
 			"a." + PREF_BTN_CLASS + "{margin-left:4px;padding:1px 6px;}" +
+			"a." + LINK_CLASS + ".pdp-remover-secundario{margin-left:6px;padding:0 6px;color:#a00 !important;}" +
 			"#" + PANEL_ID + "{position:absolute;z-index:2147483640;min-width:260px;max-width:420px;padding:8px;background:#fff;border:1px solid #adadad;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.18);font:12px Arial,Helvetica,sans-serif;color:#222}" +
 			"#" + PANEL_ID + " .pdp-acp-titulo{font-weight:bold;margin:0 0 6px}" +
 			"#" + PANEL_ID + " .pdp-acp-vazio{color:#666;margin:0 0 8px;line-height:1.4}" +
@@ -726,14 +1094,16 @@
 		return a;
 	}
 
-	function criarBotaoPref(alvo) {
+	function criarBotaoPref(alvo, texto) {
 		const a = document.createElement("a");
 		a.href = "#";
 		a.className = LINK_CLASS + " " + PREF_BTN_CLASS;
-		a.textContent = "⭐";
+		a.textContent = texto || "⭐";
 		a.title = alvo.tipo === "classe"
 			? "Preferências de alteração de classe: grave uma alteração (classe + motivo) e repita-a com um clique, já salva no processo"
-			: "Preferências de alteração do assunto principal: grave uma alteração e repita-a com um clique, já salva no processo";
+			: alvo.tipo === "secundario"
+				? "Preferências de assuntos secundários: grave um assunto secundário e adicione-o com um clique, já salvo no processo"
+				: "Preferências de alteração do assunto principal: grave uma alteração e repita-a com um clique, já salva no processo";
 		a.addEventListener("click", function (event) {
 			event.preventDefault();
 			event.stopPropagation();
@@ -755,11 +1125,53 @@
 			campo: "descricaoAssuntoPrincipal",
 			title: 'Alterar o assunto principal e os assuntos secundários num popup, sem sair desta tela (mesma tela do botão "Alterar" da aba Informações Gerais)',
 		},
+		{
+			rotulo: SECUNDARIOS_ROTULO,
+			tipo: "secundario",
+			campo: "secundarios",
+			title: 'Alterar os assuntos secundários num popup, sem sair desta tela (mesma tela do botão "Alterar" da aba Informações Gerais)',
+		},
 	];
+	const ALVO_SECUNDARIO = ALVOS[2];
+
+	const REMOVER_CLASS = "pdp-remover-secundario";
+
+	// ✖ no fim de cada assunto secundário da célula (um por <li>; sem
+	// lista, a própria célula é um assunto). O código do assunto é o número
+	// do início do texto ("3416 - Furto").
+	function botoesRemover(celula) {
+		const itens = celula.querySelectorAll("li");
+		const alvos = itens.length ? Array.prototype.slice.call(itens) : [celula];
+		alvos.forEach(function (item) {
+			if (item.querySelector("." + REMOVER_CLASS)) return;
+			// Só o texto visível: o Projudi põe no item um <script> (balão de
+			// informações, AjaxJspTag.Callout), que não pode entrar no nome.
+			const copia = item.cloneNode(true);
+			Array.prototype.forEach.call(copia.querySelectorAll("script, style, noscript, ul, ol, ." + LINK_CLASS), function (el) { el.remove(); });
+			const texto = copia.textContent.replace(/\s+/g, " ").trim();
+			const m = /^(\d+)\s*-/.exec(texto);
+			if (!m) return;
+			const a = document.createElement("a");
+			a.href = "#";
+			a.className = LINK_CLASS + " " + REMOVER_CLASS;
+			a.textContent = "✖";
+			a.title = 'Remover o assunto secundário "' + texto + '" e salvar (pede confirmação)';
+			a.addEventListener("click", function (event) {
+				event.preventDefault();
+				event.stopPropagation();
+				removerSecundario(m[1], texto);
+			});
+			// Sem lista, o ✖ vai antes dos balões "✏️ Alterar"/⭐ da célula.
+			const antes = item === celula ? item.querySelector(":scope > ." + LINK_CLASS) : null;
+			item.insertBefore(a, antes);
+		});
+	}
 
 	function reconcile() {
 		const table = document.getElementById("informacoesProcessuais");
 		if (!table || !document.getElementById("processoForm")) return;
+		let celulaPrincipal = null;
+		let temLinhaSecundario = false;
 		for (const tr of table.rows) {
 			const label = tr.querySelector("td.label, td.labelRadio");
 			if (!label) continue;
@@ -770,10 +1182,28 @@
 			if (!alvo) continue;
 			// Célula do valor: a seguinte ao rótulo.
 			const valor = label.nextElementSibling;
-			if (!valor || valor.querySelector("." + LINK_CLASS)) continue;
+			if (!valor) continue;
+			if (alvo.tipo === "assunto") celulaPrincipal = valor;
+			if (alvo.tipo === "secundario") {
+				garantirEstilo();
+				botoesRemover(valor);
+				// Uma linha por assunto secundário: os balões só na primeira.
+				if (temLinhaSecundario) continue;
+				temLinhaSecundario = true;
+			}
+			// (o ✖ dos assuntos secundários também é um balão: conta o "✏️ Alterar")
+			if (valor.querySelector("a[data-pdp-campo]")) continue;
 			garantirEstilo();
 			valor.appendChild(criarLink(alvo.campo, alvo.title));
 			valor.appendChild(criarBotaoPref(alvo));
+		}
+		// Sem linha de assunto secundário no cabeçalho: a ⭐ dos secundários
+		// vai para a linha do Assunto Principal.
+		if (!temLinhaSecundario && celulaPrincipal && !celulaPrincipal.querySelector("[data-pdp-secundario]")) {
+			garantirEstilo();
+			const botao = criarBotaoPref(ALVO_SECUNDARIO, "⭐ Secundários");
+			botao.setAttribute("data-pdp-secundario", "");
+			celulaPrincipal.appendChild(botao);
 		}
 	}
 

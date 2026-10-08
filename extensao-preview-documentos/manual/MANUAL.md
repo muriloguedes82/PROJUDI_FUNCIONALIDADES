@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.26.4 |
-| **Versão da extensão** | 2.26.4 |
+| **Versão do manual** | 2.28.0 |
+| **Versão da extensão** | 2.28.0 |
 | **Data desta versão** | 08/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1630,8 +1630,75 @@ nova.
   trocada **e** o motivo foi marcado.
 - Para apagar uma preferência, use **🗑** ao lado dela. As preferências
   entram no **⬇ Exportar** do Menu da extensão ([2.6](#cap-2-6)).
-- Os **Assuntos Secundários** (Adicionar/Remover) não entram na
-  preferência.
+- A ⭐ do **assunto principal** grava só o assunto principal. Para os
+  **Assuntos Secundários**, use a ⭐ própria deles (abaixo).
+
+**Preferências de assuntos secundários (⭐ Secundários)**
+
+▶ [**Vídeo V49** — Preferência de assunto secundário](videos/V49-preferencia-de-assunto-secundario.mp4)
+
+Funciona como a ⭐ da classe e do assunto principal, mas para **incluir**
+um assunto secundário que se repete muito — por exemplo, acrescentar
+**3418 - Furto de coisa comum**.
+
+**Onde fica:** se o processo já tem assunto secundário, o cabeçalho mostra
+a linha **Assuntos Secundários**, e nela há **✏️ Alterar** e **⭐**. Se ainda
+não tem, o balão **⭐ Secundários** fica na linha do **Assunto Principal**,
+depois da ⭐ dele.
+
+*Gravar uma preferência:*
+
+1. Clique na **⭐** dos assuntos secundários (ou em **⭐ Secundários**) e em
+   **+ Nova preferência**.
+2. Abre-se a tela de alteração no popup, já na linha **Assuntos
+   Secundários**, com o aviso amarelo "Gravando preferência".
+3. Clique em **Adicionar**. Na janela de seleção do Projudi, pesquise o
+   assunto, marque-o e clique em **Selecionar**.
+4. Nesse momento **nada é alterado**: o assunto não entra no processo. A
+   extensão só guarda o assunto escolhido, pede um nome para a preferência
+   e fecha o popup.
+
+*Usar a preferência:* clique na **⭐** dos assuntos secundários e no nome da
+preferência (**★ …**). A extensão faz, sozinha e sem mostrar a tela, o
+mesmo que você faria: **Adicionar**, pesquisa o assunto, marca, clica em
+**Selecionar**, confere se ele entrou na lista e só então clica em
+**Salvar**. Um aviso no alto da tela mostra o andamento; no fim, a tela do
+processo é recarregada.
+
+*Bom saber:*
+
+- Se o processo **já tiver** o assunto secundário da preferência, nada é
+  feito e a extensão avisa.
+- Se o assunto não aparecer na pesquisa ou não entrar na lista, **nada é
+  salvo** e aparece um aviso — use **✏️ Alterar** para fazer à mão.
+- A preferência só **inclui** assunto secundário. Para remover, use o
+  **✖** ao lado do assunto (abaixo).
+- Preferências de assunto secundário gravadas em versões de teste
+  anteriores à 2.28.0 não funcionam: apague-as com **🗑** e grave de novo.
+- Para apagar, use **🗑** ao lado da preferência. Elas também entram no
+  **⬇ Exportar** do Menu da extensão ([2.6](#cap-2-6)).
+
+**Remover um assunto secundário (✖)**
+
+▶ [**Vídeo V50** — Remover assunto secundário](videos/V50-remover-assunto-secundario.mp4)
+
+No cabeçalho do processo, na linha **Assuntos Secundários**, cada assunto
+tem no fim um pequeno balão **✖**. Ele tira aquele assunto do processo sem
+você abrir a tela de alteração.
+
+1. Clique no **✖** do assunto que quer tirar.
+2. Confirme a pergunta "Remover o assunto secundário … deste processo?".
+3. Um aviso no alto da tela mostra o andamento ("removendo da lista…",
+   "salvando…"). A extensão faz o mesmo que o botão **Remover** da tela de
+   alteração, confere se o assunto saiu da lista e só então clica em
+   **Salvar**. No fim, a tela do processo é recarregada sem o assunto.
+
+*Bom saber:*
+
+- Só os assuntos **secundários** têm **✖**; o assunto principal não pode ser
+  removido, só trocado (**✏️ Alterar** ou **⭐**).
+- Se o assunto não sair da lista, **nada é salvo** e a extensão avisa — use
+  **✏️ Alterar** para fazer à mão.
 
 <a id="cap-8-10"></a>
 ### 8.10 Novo Valor da Causa
@@ -2146,6 +2213,8 @@ pode variar um pouco. Clique no título para assistir.
 | [V46](videos/V46-remessa-turma-recursal.mp4) | [Remessa para a Turma Recursal](videos/V46-remessa-turma-recursal.mp4) | [7.1](#cap-7-1) | 0:47 |
 | [V47](videos/V47-novo-valor-da-causa.mp4) | [Novo Valor da Causa](videos/V47-novo-valor-da-causa.mp4) | [8.10](#cap-8-10) | 0:36 |
 | [V48](videos/V48-aviso-de-versao-nova.mp4) | [Aviso de versão nova e atualização](videos/V48-aviso-de-versao-nova.mp4) | [2.3](#cap-2-3) | 0:41 |
+| [V49](videos/V49-preferencia-de-assunto-secundario.mp4) | [Preferência de assunto secundário](videos/V49-preferencia-de-assunto-secundario.mp4) | [8.9](#cap-8-9) | 0:52 |
+| [V50](videos/V50-remover-assunto-secundario.mp4) | [Remover assunto secundário](videos/V50-remover-assunto-secundario.mp4) | [8.9](#cap-8-9) | 0:22 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -2159,6 +2228,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.28.0 | 08/10/2026 | Alterar Classe/Assuntos (8.9): novas **preferências de assuntos secundários** (**⭐** na linha **Assuntos Secundários** do cabeçalho, ou **⭐ Secundários** na linha do Assunto Principal quando ainda não há assunto secundário) — para gravar, use **Adicionar**, pesquise, marque o assunto e clique em **Selecionar** (só grava a preferência); ao usar, a extensão faz o mesmo caminho na janela de seleção do Projudi, confere se o assunto entrou na lista e só então salva. Novo balão **✖** no fim de cada assunto secundário do cabeçalho, que remove aquele assunto e salva (pede confirmação). Corrigido: fora da tela do processo, os indicadores de suspensão e de monitoração e o botão do WhatsApp deixam de repetir avisos internos a cada 1,5 segundo. Novos vídeos V49 e V50. |
 | 2.26.4 | 08/10/2026 | Sem alteração de texto; associadas as linhas **Analisar** e da data pelo código do mandado na listagem. |
 | 2.26.3 | 08/10/2026 | Sem alteração de texto; a dispensa de mandados agora abre a ficha diretamente pela data da linha na listagem. |
 | 2.26.2 | 08/10/2026 | Sem alteração de texto; corrigido o reconhecimento do link **Analisar** na listagem de mandados. |
