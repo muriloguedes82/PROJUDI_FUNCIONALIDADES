@@ -235,6 +235,13 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					sistemas: ["projudi"]
 				},
 				{
+					id: "previewConclusao",
+					nome: "Documento do Juiz ao passar o mouse no Retorno de Conclusão",
+					descricao: "Na lista Retorno de Conclusão, mostra o despacho/decisão/sentença (uma janela por arquivo) ao pousar o mouse sobre o \"Analisar\".",
+					js: ["src/previewConclusao.js"],
+					css: ["src/previewConclusao.css"]
+				},
+				{
 					id: "listaTarefas",
 					nome: "Listas de tarefas",
 					descricao: "Bolinhas coloridas e tarefas escritas nas telas de análise e de cumprimentos.",
