@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.26.0 |
-| **Versão da extensão** | 2.26.0 |
-| **Data desta versão** | 07/10/2026 |
+| **Versão do manual** | 2.26.4 |
+| **Versão da extensão** | 2.26.4 |
+| **Data desta versão** | 08/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -849,13 +849,13 @@ onde parou. Uma operação por vez.
 
 ▶ [**Vídeo V36** — Dispensar cumprimentos para expedir](videos/V36-dispensar-cumprimentos.mp4)
 
-**Para que serve:** remover os cumprimentos pendentes de expedição de um mesmo tipo.
+**Para que serve:** remover os cumprimentos pendentes de expedição de um mesmo tipo, incluindo mandados.
 
-**Onde fica:** no quadro **Pendências**, ao lado de cada tipo em **Cumprimentos para Expedir** com quantidade maior que zero.
+**Onde fica:** no quadro **Pendências**, ao lado de cada tipo em **Cumprimentos para Expedir** com quantidade maior que zero, inclusive **Mandado**.
 
 **Passo a passo:**
 
-1. Confira o tipo e a quantidade. Clique em **Dispensar pendências** somente se quiser remover todos os cumprimentos daquele tipo.
+1. Confira o tipo e a quantidade. Clique em **Dispensar pendências** somente se quiser remover todos os cumprimentos daquele tipo, inclusive os mandados.
 2. Acompanhe **Dispensando 1/N…**. O botão fica desabilitado durante a operação.
 3. Ao terminar, aparece **Cumprimentos dispensados (N)**. A página principal permanece aberta; recarregue-a para atualizar os contadores.
 
@@ -2159,6 +2159,10 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.26.4 | 08/10/2026 | Sem alteração de texto; associadas as linhas **Analisar** e da data pelo código do mandado na listagem. |
+| 2.26.3 | 08/10/2026 | Sem alteração de texto; a dispensa de mandados agora abre a ficha diretamente pela data da linha na listagem. |
+| 2.26.2 | 08/10/2026 | Sem alteração de texto; corrigido o reconhecimento do link **Analisar** na listagem de mandados. |
+| 2.26.1 | 08/10/2026 | Seção 6.4: **Dispensar pendências** também funciona para mandados para expedir. |
 | 2.26.0 | 07/10/2026 | Seção 7.3: o painel **⭐ Minhas Preferências** passa a mostrar as preferências em **blocos, um por ação** (ícone do botão, nome da ação e quantidade), com o bloco **🔗 Combos** no fim, e cada preferência vira um **card retangular de uma linha** com ✏️ (editar) e 🗑 (remover) sempre à vista; **✏️ Editar posição** passa a arrastar os cards dentro do bloco e os blocos entre si. Seção 9.3: a **⭐** da linha e o **⭐ Em lote** usam os mesmos blocos (combos que abrem nova aba ganham o sinal ↗). Todas as preferências e combos, em qualquer painel (Ordenações, Concluso, Partes, Juntar Documento, Combos, Alterar Classe/Assunto, Localizador, Listas de tarefas etc.), deixam de ser ovais e passam a ser retangulares com cantos levemente arredondados. Vídeos V16 a V22, V26, V27, V30, V35, V37, V38, V40, V41, V43, V45 e V46 regravados. |
 | 2.25.0 | 06/10/2026 | Nova seção 2.3 (**Atualização da extensão**) reescrita: aviso **🆕 Há novidades na extensão!** abaixo do ícone da balança quando sai versão nova, com a observação para exportar as preferências antes, os botões **1. Exportar preferências** e **2. Atualizar** e o passo a passo para recarregar a extensão; explica que as preferências continuam quando os arquivos novos são colados por cima da mesma pasta. Seção 2.6: ponto azul no ícone e faixa "Versão nova disponível" no Menu. Novo vídeo V48. |
 | 2.24.0 | 06/10/2026 | Nova seção **8.10 Novo Valor da Causa** (só no Projudi): linha **Valor da Causa** no cabeçalho do processo (em qualquer aba), com o balão **💲 Novo Valor da Causa** ao lado do valor; você digita o novo valor e a extensão o grava na tela de alteração do processo e clica em **Salvar** sozinha, sem abrir a tela — o Projudi registra a alteração nas Movimentações. Nova função na tabela da 2.6 (30 funções no Projudi), Solução de problemas (11) e vídeo V47. |
