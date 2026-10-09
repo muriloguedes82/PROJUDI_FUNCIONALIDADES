@@ -2242,6 +2242,17 @@
 		if (diagnosticoFeito || !/\/preAnalise\.do$/.test(location.pathname)) return;
 		const job = readJob();
 		if (!job || !job.preanalise) return;
+		// Página de erro do servidor (ex.: "403 Forbidden", do nginx): avisa
+		// na própria janela o que fazer.
+		if (!document.forms.length && /\b(403|404|500|502|503)\b/.test(document.title + " " + ((document.body && document.body.textContent) || "").slice(0, 300))) {
+			diagnosticoFeito = true;
+			console.warn(LOG, "Pré-Análise: o Projudi devolveu uma página de erro:", document.title || (document.body && document.body.textContent || "").trim().slice(0, 80));
+			showStatus("O Projudi recusou esta página (erro do servidor, não da extensão). Feche o popup e comece de novo pelo ⭐ da linha. Se acontecer de novo no mesmo ponto, anote o último botão clicado.", "warn");
+			return;
+		}
+		// Páginas sem formulário (o PDF da pré-visualização etc.) não são
+		// etapas do fluxo.
+		if (!document.forms.length) return;
 		diagnosticoFeito = true;
 		const forms = Array.prototype.map.call(document.forms, function (f) {
 			return (f.id || f.name || "(sem id)") + " → " + (f.getAttribute("action") || "");
