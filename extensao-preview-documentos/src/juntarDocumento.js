@@ -1065,6 +1065,7 @@
 			edicao: rec.edicao || null,
 			postergar: !!postergar,
 			docMovimentos: movimentosDaGravacao(job),
+			camposFinais: rec.camposFinais || null,
 			tela: (job.mode === "edit" && job.pref && job.pref.tela) || job.tela || null,
 		};
 		persistPref(pref, PREANALISE_PREFS_KEY).catch(function (err) {
@@ -1091,6 +1092,8 @@
 			if (!alvo || (alvo !== postergarBtn && alvo !== assinarBtn)) return;
 			const atual = readJob();
 			if (!atual || !atual.preanalise || (atual.mode !== "capture" && atual.mode !== "edit")) return;
+			atual.rec = atual.rec || {};
+			atual.rec.camposFinais = lerCamposFinais(form);
 			const saved = salvarGravacaoPreAnalise(atual, alvo === postergarBtn);
 			if (!saved) {
 				ev.preventDefault();
@@ -1105,6 +1108,47 @@
 		showStatus(modeLabel(job) + ": " + (botaoAdicionarDocumentos() ? 'se precisar anexar documentos do processo, clique em "Adicionar" (Documento(s) do Processo/Recurso) e marque ☆ padrão ao lado do movimento. Depois clique' : "clique") +
 			' em "Assinar e Expedir" ou "Postergar Assinatura": a preferência é gravada nesse clique (e o botão escolhido fica gravado).' +
 			(movs.length ? " Movimento(s) padrão: " + movs.join("; ") + "." : ""), "rec");
+	}
+
+	// Campos da tela final gravados na preferência (Expedir Intimações/
+	// Citação: tipo e número do Prazo e "Usar Anexos"). Lista fechada, para
+	// não gravar dados do processo (endereços etc.).
+	const CAMPOS_FINAIS = ["tipoPrazo", "prazo", "utilizarContraFe"];
+
+	function lerCamposFinais(form) {
+		const campos = {};
+		CAMPOS_FINAIS.forEach(function (nome) {
+			const el = form.querySelector('[name="' + nome + '"]');
+			if (!el || el.disabled || el.type === "hidden") return;
+			if (el.type === "checkbox" || el.type === "radio") campos[nome] = !!el.checked;
+			else campos[nome] = el.value;
+		});
+		return campos;
+	}
+
+	// Preenche na ordem da lista (o tipo do prazo antes do número, que pode
+	// depender dele). Devolve quantos campos foram preenchidos.
+	function preencherCamposFinais(form, campos) {
+		if (!form || !campos) return 0;
+		let n = 0;
+		CAMPOS_FINAIS.forEach(function (nome) {
+			if (!(nome in campos)) return;
+			const el = form.querySelector('[name="' + nome + '"]');
+			if (!el || el.disabled || el.readOnly) return;
+			if (el.type === "checkbox" || el.type === "radio") {
+				if (el.checked !== !!campos[nome]) el.click();
+			} else if (el.tagName === "SELECT") {
+				if (!Array.prototype.some.call(el.options, function (o) { return o.value === campos[nome]; })) return;
+				el.value = campos[nome];
+				fire(el, "change");
+			} else {
+				el.value = campos[nome];
+				fire(el, "input");
+				fire(el, "change");
+			}
+			n++;
+		});
+		return n;
 	}
 
 	// Botão "Adicionar" da lista "Documento(s) do Processo/Recurso".
@@ -1159,6 +1203,9 @@
 		const postergarBtn = botaoCumprimento(form, "postergar");
 		const assinarBtn = botaoCumprimento(form, "assinar");
 		const postergar = !!(job.pref && job.pref.postergar);
+		if (job.pref && job.pref.camposFinais && preencherCamposFinais(form, job.pref.camposFinais)) {
+			avisoDocs += "Prazo/campos da preferência preenchidos. ";
+		}
 		clearJob(true);
 		// Documentos não anexados: não posterga sozinha - o usuário confere.
 		const docsOk = !docs || docs.status === "ok";

@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.30.1 |
-| **Versão da extensão** | 2.30.1 |
+| **Versão do manual** | 2.30.2 |
+| **Versão da extensão** | 2.30.2 |
 | **Data desta versão** | 09/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -2143,7 +2143,9 @@ aparecem em todas).
 5. Clique, como sempre, em **Assinar e Expedir** ou em **Postergar
    Assinatura**. A preferência é gravada nesse clique, com o botão que você
    escolheu: **Postergar** fica gravado para ser clicado sozinho; **Assinar
-   e Expedir** fica para você clicar a cada uso.
+   e Expedir** fica para você clicar a cada uso. Em Expedir Intimações e
+   Expedir Citação, o **Prazo** (tipo e número de dias) e a caixinha
+   **Usar Anexos** dessa tela também ficam gravados.
 6. Dê um **nome** à preferência (se cancelar, o clique é desfeito e você
    pode clicar de novo). Pronto: ela aparece no card ⭐, com **✏️**
    (editar) e **🗑** (remover). O card mostra "+ documentos" quando a
@@ -2348,6 +2350,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.30.2 | 09/10/2026 | Corrigido (9.10): em Expedir Intimações e Expedir Citação, o **Prazo** e o **Usar Anexos** da tela final não ficavam gravados na preferência; agora são gravados no clique em Assinar e Expedir/Postergar Assinatura e preenchidos em cada uso. |
 | 2.30.1 | 09/10/2026 | Corrigido (9.10): em Expedir Intimações e Expedir Citação, o campo **Descrição** da Pré-Análise não ficava gravado na preferência; agora é gravado e preenchido em cada uso. |
 | 2.30.0 | 09/10/2026 | Pré-Análise com preferências (9.10) também nas listas **Expedir Intimações** e **Expedir Citação**, na linha e em lote: grava a versão final do texto no "Continuar" (editada ou não), troca os dados de cada processo e parte, e salva no clique em **Assinar e Expedir** ou **Postergar Assinatura**. Essas telas não têm "Tipo do Arquivo" (só o Modelo). Cada lista passa a mostrar só as preferências criadas nela. Sem vídeo novo: a tela é a mesma do V50. |
 | 2.29.1 | 07/10/2026 | Preferências com texto (8.2, 9.9, 9.10): a versão final do documento no clique em **Continuar** é sempre a gravada — também quando você não altera nada no texto do Modelo (antes aparecia o aviso "Não consegui gravar nenhum texto" e, com o marcador "INSIRA O TEXTO AQUI", a extensão parava para você digitar). Textos das seções 8.2 e 9.9 ajustados. |
