@@ -2181,19 +2181,22 @@
 				return;
 			}
 			const custom = getCustomAction(label);
+			const especial = PREF_ESPECIAIS[label] || null;
 			const ignorados = ACTIONS_PREF_SEM_CAMPOS[label] || null;
 			const fields = captureFormFields(form).filter(function (f) {
 				if (ignorados && ignorados.indexOf(f.name) !== -1) return false;
+				if (especial && especial.camposIgnorados.indexOf(f.name) !== -1) return false;
 				return !custom || !custom.prefFields || custom.prefFields.indexOf(f.name) !== -1;
 			});
 			// Ação personalizada com `captureExtra(doc)`: o que a preferência
 			// guarda além dos campos é lido da tela na hora de salvar (ex.: a
 			// lista de advogados de "Advogados"); um erro lançado ali é o
-			// aviso ao usuário (nada é salvo).
+			// aviso ao usuário (nada é salvo). Idem as de PREF_ESPECIAIS.
 			let extra = getExtra ? getExtra() : null;
-			if (custom && typeof custom.captureExtra === "function") {
+			const captureExtra = (custom && custom.captureExtra) || (especial && especial.captureExtra);
+			if (typeof captureExtra === "function") {
 				try {
-					extra = Object.assign({}, extra || {}, custom.captureExtra(currentDoc));
+					extra = Object.assign({}, extra || {}, captureExtra(currentDoc, form));
 				} catch (err) {
 					alert(err && err.message ? err.message : String(err));
 					return;
@@ -2222,7 +2225,7 @@
 				}
 				if (extra && extra.movimento) movimentoTexto = extra.movimento.texto;
 			}
-			if (!fields.length && !(custom && typeof custom.captureExtra === "function") && !ignorados) {
+			if (!fields.length && typeof captureExtra !== "function" && !ignorados) {
 				alert('Nenhum campo preenchido ou selecionado no diálogo "' + label + '". Preencha o que a preferência deve guardar e salve de novo.');
 				return;
 			}
@@ -2302,6 +2305,10 @@
 
 	// Preenche o diálogo com a preferência e, no fim, mostra a barra certa.
 	function fillPreference(label, pref, form, doc, editing) {
+		if (PREF_ESPECIAIS[label]) {
+			PREF_ESPECIAIS[label].aplicar(label, pref, form, doc, editing);
+			return;
+		}
 		showFillingBar(label, pref);
 		fillFormFields(form, pref.fields, function (missing) {
 			removeConfirmBar();
@@ -2367,6 +2374,480 @@
 		return div.innerHTML;
 	}
 
+	// Função que devolve o documento ATUAL da janela em que `doc` está (a
+	// janela interna do Projudi pode recarregar — o documento antigo morre,
+	// o <iframe> continua).
+	function documentoAtualDaJanela(doc) {
+		let frame = null;
+		try {
+			frame = doc && doc.defaultView ? doc.defaultView.frameElement : null;
+		} catch (err) {
+			frame = null;
+		}
+		if (!frame) return doc;
+		return function () {
+			try {
+				return frame.contentDocument || doc;
+			} catch (err) {
+				return doc;
+			}
+		};
+	}
+
+	// -------------------------------------------------------------------
+	// Preferências com preenchimento próprio (PREF_ESPECIAIS)
+	//
+	// "Anotações Criminais" (tela "Cadastro de Comunicação ao IIPR",
+	// comunicacaoIIPR.do): além dos campos da tela, o Projudi sempre exige
+	// pelo menos um item na seção "Itens", incluído pelo botão "Adicionar"
+	// numa janela interna ("Cadastro de Item Comunicados ao IIPR",
+	// itemComunicacaoIIPR.do: Tipo de Decisão/Evento Criminal, Data,
+	// Complemento). Campos que mudam de processo para processo não são
+	// gravados:
+	// - Parte do Processo (codParteProcesso): com uma só pessoa na lista, é
+	//   escolhida sozinha; com mais de uma, a barra pede que o usuário
+	//   escolha, e a preferência continua sozinha depois;
+	// - Origem (codOrigem, carregada pelo Projudi depois da parte; oculta em
+	//   "Outros"): com uma só opção, ela; com várias (ex.: mais de uma
+	//   sentença), a mais antiga (pela data no texto da opção).
+	// A preferência guarda a Comunicação (Denúncia, Sentença, Transação
+	// Penal/Suspensões, Outros) e os itens (tipo e complemento; a data,
+	// se tiver sido preenchida ao gravar, é a da Origem escolhida — ou a de
+	// hoje, se a Origem não tiver data). Ao usar: comunicação → parte →
+	// origem → demais campos → um "Adicionar" por item → "Sim, executar".
+	// -------------------------------------------------------------------
+
+	const IIPR_TICK_MS = 400;
+	const IIPR_ORIGEM_TIMEOUT_MS = 12000;
+	const IIPR_ITEM_TIMEOUT_MS = 20000;
+	const IIPR_ITEM_MAX_TENTATIVAS = 2;
+
+	function iiprOpcoesReais(select) {
+		return Array.prototype.filter.call(select ? select.options : [], function (o) {
+			return o.value !== "" && o.value !== "-1" && o.value !== "0";
+		});
+	}
+
+	// Data dd/mm/aaaa no texto (ex.: "publicada em: 10/06/2026",
+	// "Início: 01/01/2026", "Oferecida em 19/01/2026") ou null.
+	function iiprDataDoTexto(text) {
+		const m = /(\d{2})\/(\d{2})\/(\d{4})/.exec(text || "");
+		if (!m) return null;
+		return { texto: m[0], valor: Number(m[3]) * 10000 + Number(m[2]) * 100 + Number(m[1]) };
+	}
+
+	// A opção mais antiga (pela data no texto); sem datas, a primeira.
+	function iiprOrigemMaisAntiga(opcoes) {
+		let escolhida = opcoes[0];
+		let menor = Infinity;
+		opcoes.forEach(function (o) {
+			const d = iiprDataDoTexto(o.textContent);
+			if (d && d.valor < menor) {
+				menor = d.valor;
+				escolhida = o;
+			}
+		});
+		return escolhida;
+	}
+
+	function iiprHoje() {
+		const d = new Date();
+		return String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") + "/" + d.getFullYear();
+	}
+
+	// Linhas da tabela "Itens" (colunas: seleção, Data, Tipo, Complemento).
+	function iiprItensNaTela(doc) {
+		const botao = doc.getElementById("vincButtonItem");
+		const caixa = botao && botao.closest("td.resultBorder");
+		const tabela = caixa && caixa.querySelector("table.resultTable");
+		if (!tabela) return [];
+		const linhas = [];
+		Array.prototype.forEach.call(tabela.tBodies, function (tbody) {
+			Array.prototype.forEach.call(tbody.rows, function (tr) {
+				if (tr.cells.length < 4) return; // "Nenhum registro encontrado"
+				const tipo = cleanLabel(tr.cells[2].textContent);
+				if (!tipo) return;
+				linhas.push({ data: cleanLabel(tr.cells[1].textContent), tipo: tipo, complemento: (tr.cells[3].textContent || "").replace(/\s+/g, " ").trim() });
+			});
+		});
+		return linhas;
+	}
+
+	// Itens gravados que ainda não estão na tabela (pelo tipo).
+	function iiprItensFaltando(gravados, naTela) {
+		const restantes = naTela.map(function (l) {
+			return normText(l.tipo);
+		});
+		return gravados.filter(function (item) {
+			const i = restantes.indexOf(normText(item.tipo));
+			if (i === -1) return true;
+			restantes.splice(i, 1);
+			return false;
+		});
+	}
+
+	// A janela interna "Item a ser comunicado" aberta pelo "Adicionar".
+	function iiprJanelaDoItem(doc) {
+		const frames = doc.querySelectorAll("iframe");
+		for (let i = 0; i < frames.length; i++) {
+			try {
+				const w = frames[i].contentWindow;
+				if (w && /itemComunicacaoIIPR\.do/.test(w.location.href)) return frames[i];
+			} catch (err) {
+				// outra origem: não é a janela do item
+			}
+		}
+		return null;
+	}
+
+	function iiprFormPrincipal(doc) {
+		const form = doc.getElementById("comunicacaoIIPRForm");
+		return form && form.tagName === "FORM" ? form : findLikelyDialogFormIn(doc);
+	}
+
+	function iiprEscolher(select, option) {
+		if (!option || select.value === option.value) return false;
+		select.value = option.value;
+		fireFieldEvents(select);
+		return true;
+	}
+
+	// Barra que pede a escolha da Parte do Processo (mais de uma pessoa).
+	function iiprMostrarPedidoDeParte(label, pref, aoCancelar) {
+		removeConfirmBar();
+		confirmBar = document.createElement("div");
+		confirmBar.className = "pdp-qa-confirm-bar pdp-qa-confirm-warn";
+		confirmBar.innerHTML =
+			(comboStep ? '<span class="pdp-qa-confirm-combo">' + escapeHtml(comboStepCaption()) + "</span>" : "") +
+			'<span>"' + escapeHtml(label) + '" — preferência "' + escapeHtml(pref.name) + '": este processo tem mais de uma pessoa. ' +
+			"Escolha a <b>Parte do Processo</b> na tela acima — a preferência continua sozinha depois.</span>" +
+			'<button type="button" class="pdp-qa-confirm-cancel">Cancelar</button>';
+		document.body.appendChild(confirmBar);
+		confirmBar.querySelector(".pdp-qa-confirm-cancel").addEventListener("click", function () {
+			removeConfirmBar();
+			aoCancelar();
+		});
+	}
+
+	function aplicarAnotacoesCriminais(label, pref, formInicial, docInicial, editing) {
+		const dados = Object.assign({}, pref.anotacoesCriminais || {});
+		const itens = dados.itens || [];
+		// Preferências gravadas antes da versão 2.29.2 guardavam a parte, a
+		// origem e a comunicação entre os campos: só a comunicação vale.
+		const ignorados = PREF_ESPECIAIS[label].camposIgnorados;
+		const antigaComunicacao = (pref.fields || []).filter(function (f) {
+			return f.name === "idOrigemComunicacaoIIPR";
+		})[0];
+		if (!dados.comunicacao && antigaComunicacao) dados.comunicacao = { value: antigaComunicacao.value, text: antigaComunicacao.text };
+		const campos = (pref.fields || []).filter(function (f) {
+			return ignorados.indexOf(f.name) === -1;
+		});
+		const docAtual = documentoAtualDaJanela(docInicial);
+		const frame = typeof docAtual === "function" ? docInicial.defaultView.frameElement : null;
+		function getDoc() {
+			return typeof docAtual === "function" ? docAtual() : docAtual;
+		}
+		const estado = {
+			parado: false,
+			pedindoParte: false,
+			parteEm: 0, // quando a parte ficou escolhida (espera da Origem)
+			parteEscolhida: null,
+			camposForm: null,
+			camposFase: null, // null | "preenchendo" | "ok"
+			faltando: [],
+			itemFase: "livre", // "livre" | "abrindo" | "enviado"
+			itemDesde: 0,
+			itemLinhasAntes: 0,
+			itemDocEnviado: null,
+			itemDocPreenchido: null,
+			itemTentativas: 0,
+			dataItem: null,
+		};
+		let campoParteDestacado = null;
+
+		function parar() {
+			estado.parado = true;
+			clearInterval(timer);
+			if (campoParteDestacado) campoParteDestacado.style.outline = "";
+		}
+		function falhar(mensagem) {
+			if (estado.parado) return;
+			parar();
+			removeConfirmBar();
+			logChainStep("Anotações Criminais: preenchimento interrompido", mensagem);
+			alert(mensagem + "\n\nConfira a tela e complete manualmente.");
+		}
+		function janelaFechada() {
+			if (!frame) return !docInicial.defaultView;
+			return !frame.isConnected || !frame.ownerDocument.defaultView;
+		}
+		function concluir(form) {
+			parar();
+			removeConfirmBar();
+			if (editing) {
+				warnMissingFields(label, pref, estado.faltando);
+				showCaptureToolbar(label, docAtual, null, pref);
+			} else {
+				showConfirmBar(label, Object.assign({}, pref, { fields: campos }), form, estado.faltando);
+			}
+		}
+
+		function passo() {
+			if (estado.parado) return;
+			if (janelaFechada()) {
+				parar();
+				removeConfirmBar();
+				return;
+			}
+			let doc;
+			try {
+				doc = getDoc();
+			} catch (err) {
+				return;
+			}
+			if (!doc || doc.readyState !== "complete") return;
+			const form = iiprFormPrincipal(doc);
+			if (!form) return; // recarregando
+			const el = form.elements;
+
+			// 1. Comunicação (Denúncia, Sentença, Transação Penal, Outros).
+			const comunicacao = el.namedItem("idOrigemComunicacaoIIPR");
+			if (dados.comunicacao && comunicacao && comunicacao.tagName === "SELECT") {
+				const opcao = findOption(comunicacao, dados.comunicacao.value, dados.comunicacao.text);
+				if (!opcao) {
+					falhar('A comunicação "' + (dados.comunicacao.text || dados.comunicacao.value) + '" da preferência não está disponível neste processo.');
+					return;
+				}
+				if (iiprEscolher(comunicacao, opcao)) return;
+			}
+
+			// 2. Parte do Processo: uma só pessoa, escolhe; mais de uma, pede.
+			// (Se a tela recarregar e perder a parte já escolhida, volta a ela.)
+			const parte = el.namedItem("codParteProcesso");
+			const parteAtual = parte && parte.tagName === "SELECT" ? parte.options[parte.selectedIndex] : null;
+			if (parte && parte.tagName === "SELECT" && (!parteAtual || iiprOpcoesReais(parte).indexOf(parteAtual) === -1)) {
+				const pessoas = iiprOpcoesReais(parte);
+				const anterior = pessoas.filter(function (o) {
+					return o.value === estado.parteEscolhida;
+				})[0];
+				if (anterior) {
+					iiprEscolher(parte, anterior);
+					return;
+				}
+				if (!pessoas.length) {
+					falhar('Não há nenhuma pessoa na lista "Parte do Processo" de "' + label + '".');
+					return;
+				}
+				if (pessoas.length === 1) {
+					iiprEscolher(parte, pessoas[0]);
+					estado.parteEm = Date.now();
+					return;
+				}
+				if (!estado.pedindoParte) {
+					estado.pedindoParte = true;
+					logChainStep("Anotações Criminais: mais de uma pessoa — aguardando a escolha da parte", { pessoas: pessoas.length });
+					iiprMostrarPedidoDeParte(label, pref, function () {
+						parar();
+					});
+					campoParteDestacado = parte;
+					parte.style.outline = "3px solid #e0a800";
+					try {
+						parte.scrollIntoView({ block: "center" });
+						parte.focus();
+					} catch (err) {
+						// sem foco: o usuário acha o campo pela barra
+					}
+				}
+				return;
+			}
+			if (estado.pedindoParte) {
+				estado.pedindoParte = false;
+				if (campoParteDestacado) campoParteDestacado.style.outline = "";
+				campoParteDestacado = null;
+				showFillingBar(label, pref);
+			}
+			if (!estado.parteEm) estado.parteEm = Date.now();
+			if (parte && parte.tagName === "SELECT") estado.parteEscolhida = parte.value;
+
+			// 3. Origem (carregada pelo Projudi depois da parte; oculta em
+			// "Outros"): a única ou a mais antiga.
+			const origem = el.namedItem("codOrigem");
+			const linhaOrigem = doc.getElementById("trOrigem");
+			const origemVisivel = origem && origem.tagName === "SELECT" && (!linhaOrigem || isRendered(linhaOrigem));
+			if (origemVisivel) {
+				const opcoes = iiprOpcoesReais(origem);
+				const atual = origem.options[origem.selectedIndex];
+				if (!atual || opcoes.indexOf(atual) === -1) {
+					if (origem.disabled || !opcoes.length) {
+						if (Date.now() - estado.parteEm > IIPR_ORIGEM_TIMEOUT_MS) {
+							falhar('O campo "Origem" ficou vazio para esta parte (ex.: nenhuma sentença ou transação penal cadastrada para ela).');
+						}
+						return;
+					}
+					iiprEscolher(origem, opcoes.length === 1 ? opcoes[0] : iiprOrigemMaisAntiga(opcoes));
+					return;
+				}
+			}
+			if (estado.dataItem === null) {
+				const textoOrigem = origemVisivel && origem.options[origem.selectedIndex] ? origem.options[origem.selectedIndex].textContent : "";
+				const d = iiprDataDoTexto(textoOrigem);
+				estado.dataItem = d ? d.texto : iiprHoje();
+			}
+
+			// 4. Demais campos gravados (antecedentes, magistrado, observação)
+			// — de novo se a tela recarregar.
+			if (estado.camposFase === "ok" && estado.camposForm !== form) estado.camposFase = null;
+			if (estado.camposFase === null) {
+				estado.camposFase = "preenchendo";
+				estado.camposForm = form;
+				fillFormFields(form, campos, function (faltando) {
+					estado.faltando = faltando;
+					estado.camposFase = "ok";
+				});
+				return;
+			}
+			if (estado.camposFase !== "ok") return;
+
+			// 5. Itens: um "Adicionar" por item que ainda não está na tabela.
+			const naTela = iiprItensNaTela(doc);
+			if (!itens.length && !naTela.length) {
+				falhar('A preferência "' + pref.name + '" foi gravada sem itens (versão anterior da extensão), e o Projudi exige pelo menos um em "Itens". Inclua o item pelo botão "Adicionar" e, para as próximas vezes, grave a preferência de novo.');
+				return;
+			}
+			const faltandoItens = iiprItensFaltando(itens, naTela);
+			const janela = iiprJanelaDoItem(doc);
+			if (!faltandoItens.length) {
+				concluir(form);
+				return;
+			}
+			const item = faltandoItens[0];
+			if (estado.itemFase === "enviado") {
+				if (naTela.length > estado.itemLinhasAntes) {
+					estado.itemFase = "livre";
+					estado.itemTentativas = 0;
+					return;
+				}
+				if (Date.now() - estado.itemDesde > IIPR_ITEM_TIMEOUT_MS) {
+					falhar('O item "' + item.tipo + '" não apareceu na seção Itens depois de salvo.');
+					return;
+				}
+			}
+			if (janela) {
+				let idoc;
+				try {
+					idoc = janela.contentDocument;
+				} catch (err) {
+					return;
+				}
+				if (!idoc || idoc.readyState !== "complete") return;
+				const iform = idoc.getElementById("itemComunicacaoIIPRForm");
+				const tipo = iform && iform.elements.namedItem("codTipoDecisaoCelepar");
+				if (!iform || !tipo) return; // salvando/fechando
+				if (estado.itemFase === "enviado" && idoc === estado.itemDocEnviado) return; // aguardando a resposta
+				if (idoc !== estado.itemDocPreenchido) {
+					// Janela nova (ou de volta, com aviso do Projudi).
+					if (estado.itemFase === "enviado") estado.itemTentativas++;
+					if (estado.itemTentativas >= IIPR_ITEM_MAX_TENTATIVAS) {
+						falhar('O Projudi não aceitou o item "' + item.tipo + '" (veja a mensagem na janela do item).');
+						return;
+					}
+					const opcao = findOption(tipo, item.tipoValor || "", item.tipo);
+					if (!opcao) {
+						falhar('O tipo "' + item.tipo + '" não está disponível para a comunicação escolhida.');
+						return;
+					}
+					iiprEscolher(tipo, opcao);
+					const data = iform.elements.namedItem("dataOrigem");
+					if (data && item.comData) {
+						data.value = estado.dataItem;
+						fireFieldEvents(data);
+					}
+					const complemento = iform.elements.namedItem("complemento");
+					if (complemento && item.complemento) {
+						complemento.value = item.complemento;
+						fireFieldEvents(complemento);
+					}
+					const continuar = iform.elements.namedItem("continuarCadastrando");
+					if (continuar && continuar.checked) continuar.click();
+					estado.itemDocPreenchido = idoc;
+					estado.itemFase = "abrindo";
+					return; // envia no próximo passo (a tela pode reagir ao tipo)
+				}
+				const salvar = idoc.getElementById("saveButton");
+				if (!salvar) {
+					falhar('Não encontrei o botão "Salvar" da janela do item.');
+					return;
+				}
+				logChainStep("Anotações Criminais: salvando item", { tipo: item.tipo, data: item.comData ? estado.dataItem : "" });
+				estado.itemFase = "enviado";
+				estado.itemDesde = Date.now();
+				estado.itemLinhasAntes = naTela.length;
+				estado.itemDocEnviado = idoc;
+				salvar.click();
+				return;
+			}
+			if (estado.itemFase === "abrindo" && Date.now() - estado.itemDesde < IIPR_ITEM_TIMEOUT_MS) return;
+			if (estado.itemFase === "abrindo") {
+				falhar('A janela "Item a ser comunicado" não abriu.');
+				return;
+			}
+			if (estado.itemFase === "enviado") return;
+			const adicionar = doc.getElementById("vincButtonItem");
+			if (!adicionar || adicionar.disabled) {
+				falhar('Não encontrei o botão "Adicionar" da seção Itens.');
+				return;
+			}
+			logChainStep("Anotações Criminais: adicionando item", { tipo: item.tipo });
+			estado.itemFase = "abrindo";
+			estado.itemDesde = Date.now();
+			estado.itemDocPreenchido = null;
+			adicionar.click();
+		}
+
+		showFillingBar(label, pref);
+		const timer = setInterval(passo, IIPR_TICK_MS);
+		passo();
+	}
+
+	// Lê da tela, ao salvar a preferência, a Comunicação e os itens.
+	function capturarAnotacoesCriminais(doc, form) {
+		const comunicacao = form.elements.namedItem("idOrigemComunicacaoIIPR");
+		const itens = iiprItensNaTela(doc);
+		if (!itens.length) {
+			throw new Error(
+				'Inclua pelo menos um item na seção "Itens" (botão "Adicionar") antes de salvar a preferência: o Projudi sempre exige um item em "Anotações Criminais".'
+			);
+		}
+		const dados = { itens: itens.map(function (l) {
+			return { tipo: l.tipo, complemento: l.complemento, comData: !!l.data };
+		}) };
+		let descricao = "";
+		if (comunicacao && comunicacao.tagName === "SELECT" && comunicacao.selectedIndex >= 0) {
+			const opcao = comunicacao.options[comunicacao.selectedIndex];
+			dados.comunicacao = { value: comunicacao.value, text: cleanLabel(opcao.textContent) };
+			descricao += "• Comunicação: " + dados.comunicacao.text + "\n";
+		}
+		descricao +=
+			"• Itens: " +
+			dados.itens.map(function (i) {
+				return i.tipo + (i.complemento ? " (" + i.complemento.slice(0, 40) + ")" : "");
+			}).join("; ") +
+			"\n• Parte do Processo: escolhida sozinha se houver só uma pessoa (com mais de uma, você escolhe e a preferência continua)" +
+			"\n• Origem: a única, ou a mais antiga se houver mais de uma" +
+			(dados.itens.some(function (i) { return i.comData; }) ? "\n• Data do item: a da Origem escolhida (sem data na Origem, a de hoje)" : "");
+		return { anotacoesCriminais: dados, descricao: descricao };
+	}
+
+	const PREF_ESPECIAIS = {
+		"Anotações Criminais": {
+			// Mudam de processo para processo (a Comunicação vai à parte, em
+			// `anotacoesCriminais`, para valer mesmo quando é a padrão).
+			camposIgnorados: ["idOrigemComunicacaoIIPR", "codParteProcesso", "codOrigem"],
+			captureExtra: capturarAnotacoesCriminais,
+			aplicar: aplicarAnotacoesCriminais,
+		},
+	};
+
 	// -------------------------------------------------------------------
 	// Ações dos itens do painel
 	// -------------------------------------------------------------------
@@ -2383,7 +2864,7 @@
 	function startNewPreferenceCapture(label) {
 		closePanel();
 		removeConfirmBar();
-		if (ACTIONS_TELA_INTEIRA.indexOf(label) !== -1) {
+		if (ACTIONS_TELA_INTEIRA.indexOf(label) !== -1 || PREF_ESPECIAIS[label]) {
 			startNewPreferenceCaptureViaChain(label, origemTelaAtual());
 			return;
 		}
@@ -2401,7 +2882,7 @@
 	function applyPreference(label, pref, editing) {
 		closePanel();
 		removeCaptureToolbar();
-		if (ACTIONS_TELA_INTEIRA.indexOf(label) !== -1) {
+		if (ACTIONS_TELA_INTEIRA.indexOf(label) !== -1 || PREF_ESPECIAIS[label]) {
 			applyPreferenceViaChain(label, pref, editing, origemTelaAtual());
 			return;
 		}
@@ -2690,7 +3171,10 @@
 						alert('A janela de "' + label + '" não apareceu a tempo. Preencha manualmente desta vez.');
 						return;
 					}
-					showCaptureToolbar(label, dialogDoc);
+					// O documento ATUAL da janela no momento de salvar (a tela
+					// pode recarregar enquanto o usuário preenche — ex.: ao
+					// incluir um item em "Anotações Criminais").
+					showCaptureToolbar(label, documentoAtualDaJanela(dialogDoc));
 				});
 				return;
 			}

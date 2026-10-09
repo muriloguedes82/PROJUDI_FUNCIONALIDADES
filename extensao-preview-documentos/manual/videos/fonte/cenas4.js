@@ -1086,3 +1086,107 @@ CENAS.V51 = {
 		await S.endCard("Mouse parado sobre o Analisar = documento do Juiz, uma janela por arquivo. 📌 Fixar mantém aberto; Esc ou ✕ fecha.");
 	},
 };
+
+// ------------------------------------------------------------------ V52
+// Preferência de "Anotações Criminais" (Cadastro de Comunicação ao IIPR):
+// a seção Itens (botão Adicionar) é obrigatória; a Parte do Processo é
+// escolhida sozinha com uma pessoa (com mais, o usuário escolhe e a
+// preferência continua) e a Origem é a única ou a mais antiga
+// (PREF_ESPECIAIS em src/quickActions.js).
+function telaComunicacaoIIPR(pre = {}) {
+	return '<table class="pj-form">' +
+		'<tr><td class="l">Comunicação:</td><td><span class="pj-select" id="f-com">' + (pre.com || "DENÚNCIA") + '</span></td></tr>' +
+		'<tr><td class="l">* Parte do Processo:</td><td><span class="pj-select" id="f-parte" style="min-width:300px">' + (pre.parte || "Clique para selecionar") + '</span></td></tr>' +
+		'<tr><td class="l">* Origem:</td><td><span class="pj-select" id="f-origem" style="min-width:420px">' + (pre.origem || "") + '</span></td></tr>' +
+		'<tr><td class="l">Solicitar Antecedentes:</td><td><label><input type="radio"> Sim</label> <label><input type="radio" checked> Não</label></td></tr>' +
+		'<tr><td class="l">Observação:</td><td><span class="pj-input" style="min-width:320px"></span></td></tr></table>' +
+		'<h4 style="margin:10px 0 4px">Comunicações ao IIPR — Itens</h4>' +
+		'<table class="pj-table" style="width:700px"><tr><th style="width:24px"></th><th>Data da Decisão/Evento Criminal</th><th>Tipo de Decisão/Evento Criminal</th><th>Complemento</th></tr>' +
+		'<tbody id="f-itens"><tr><td colspan="4">Nenhum registro encontrado</td></tr></tbody></table>' +
+		'<div class="pj-btnbar" style="justify-content:flex-start"><span class="pj-btn" id="f-adicionar">Adicionar</span><span class="pj-btn">Alterar</span><span class="pj-btn">Remover</span></div>' +
+		'<div class="pj-btnbar" style="justify-content:flex-start"><span class="pj-btn primary" id="f-salvar">Salvar</span><span class="pj-btn">Fechar</span></div>';
+}
+function janelaItemIIPR() {
+	return add('<div class="x-modal" id="x-item" style="width:620px;left:330px;top:300px"><div style="background:#3c4b5c;color:#fff;padding:5px 8px;margin:-16px -18px 10px;border-radius:6px 6px 0 0">Item a ser comunicado</div>' +
+		'<b>Cadastro de Item Comunicados ao IIPR</b><table class="pj-form" style="margin-top:6px">' +
+		'<tr><td class="l">Tipo de Decisão/Evento:</td><td><span class="pj-select" id="i-tipo" style="min-width:260px">Clique para selecionar</span></td></tr>' +
+		'<tr><td class="l">Data da Decisão/Evento:</td><td><span class="pj-input" id="i-data" style="min-width:100px"></span></td></tr>' +
+		'<tr><td class="l">Complemento:</td><td><span class="pj-input" id="i-comp" style="min-width:300px;min-height:40px"></span></td></tr></table>' +
+		'<div class="pj-btnbar"><span class="pj-btn primary" id="i-salvar">Salvar</span><span class="pj-btn">Cancelar</span></div></div>');
+}
+function itemNaTabela(data, tipo, comp) {
+	$("#f-itens").innerHTML = '<tr><td><input type="radio"></td><td>' + data + "</td><td>" + tipo + "</td><td>" + comp + "</td></tr>";
+}
+CENAS.V52 = {
+	arquivo: "V52-preferencia-de-anotacoes-criminais.mp4",
+	titulo: "Preferência de Anotações Criminais",
+	secao: "7.1",
+	async run() {
+		telaProcesso({ acoesAbertas: true });
+		const acoes = prefs => [{ nome: "Anotações Criminais", prefs }, { nome: "Solicitar Antecedentes Criminais" }];
+		await S.titleCard("VÍDEO V52", "Preferência de Anotações Criminais", "Comunicação ao IIPR com o item já incluído — a extensão escolhe a parte e a origem.");
+		await S.click('[data-g="Outras"]');
+		let pn = panelAt(acaoPanel("Outras", acoes()), '[data-g="Outras"]', { w: 440 });
+		await S.cap("No grupo <b>Outras</b>, clique em <b>+ Nova preferência</b> de <b>Anotações Criminais</b>.");
+		await S.click('[data-nova="Anotações Criminais"]');
+		pn.remove();
+		await abrindo("Anotações Criminais", 900);
+		popup("Cadastro de Comunicação ao IIPR", telaComunicacaoIIPR(), { top: 120, h: 520 });
+		const b = bar('Preencha o diálogo e clique em <span class="x-btn small" id="salvarpref">💾 Salvar como preferência</span>', { top: 78 });
+		await S.cap("Escolha a <b>Comunicação</b> (ex.: Sentença), a parte e a origem, como sempre.");
+		await selecionar("#f-com", "SENTENÇA");
+		await selecionar("#f-parte", "JOSÉ EXEMPLO");
+		await selecionar("#f-origem", "Primeiro Grau - SENTENÇA - publicada em: 05/02/2025 - ATIVA");
+		await S.cap("O Projudi sempre exige um item em <b>Itens</b>: clique em <b>Adicionar</b>.");
+		await S.click("#f-adicionar");
+		janelaItemIIPR();
+		await selecionar("#i-tipo", "Sentença Condenatória");
+		await S.type("#i-data", "05/02/2025");
+		await S.click("#i-salvar");
+		$("#x-item").remove();
+		itemNaTabela("05/02/2025", "SENTENÇA CONDENATÓRIA", "");
+		S.hl("#f-itens", 3);
+		await S.cap("O item aparece na seção <b>Itens</b>. Agora salve a preferência.", { ms: 2800 });
+		S.hlOff();
+		await S.click("#salvarpref");
+		modal('<h3>Salvar como preferência</h3><div class="x-note">• Comunicação: SENTENÇA<br>• Itens: SENTENÇA CONDENATÓRIA<br>• Parte do Processo: escolhida sozinha se houver só uma pessoa (com mais de uma, você escolhe e a preferência continua)<br>• Origem: a única, ou a mais antiga se houver mais de uma<br>• Data do item: a da Origem escolhida (sem data na Origem, a de hoje)</div><div style="margin-top:8px">Nome da preferência:</div><div class="x-field" id="nm"></div><div style="text-align:right;margin-top:10px"><span class="pj-btn">Cancelar</span> <span class="pj-btn primary" id="ok">Salvar</span></div>', { top: 150, w: 560 });
+		await S.cap("A preferência guarda a comunicação e os itens. Parte e origem mudam de processo para processo: são escolhidas na hora.", { ms: 4600 });
+		await S.type("#nm", "Sentença condenatória");
+		await S.click("#ok");
+		closeModal(); b.remove(); $(".x-popup").remove();
+		await S.cap("Em outro processo, com <b>duas</b> pessoas, clique na preferência.", { ms: 2600 });
+		await S.click('[data-g="Outras"]');
+		pn = panelAt(acaoPanel("Outras", acoes(["Sentença condenatória"])), '[data-g="Outras"]', { w: 440 });
+		await S.click('[data-pref="Sentença condenatória"]', { dx: -30 });
+		pn.remove();
+		await abrindo("Anotações Criminais", 900);
+		popup("Cadastro de Comunicação ao IIPR", telaComunicacaoIIPR({ com: "SENTENÇA" }), { top: 120, h: 520 });
+		const p = bar('<span>"Anotações Criminais" — este processo tem mais de uma pessoa. Escolha a <b>Parte do Processo</b> na tela acima — a preferência continua sozinha depois.</span> <span class="x-btn small">Cancelar</span>', { top: 78 });
+		$("#f-parte").style.outline = "3px solid #e0a800";
+		await S.cap("Com mais de uma pessoa, a barra pede só a <b>Parte do Processo</b> (com uma só, ela é escolhida sozinha).", { ms: 3800 });
+		await selecionar("#f-parte", "MARIA EXEMPLO");
+		$("#f-parte").style.outline = "";
+		p.remove();
+		const f = bar('Preenchendo "Anotações Criminais" com a preferência "Sentença condenatória"…', { top: 78 });
+		await sleep(700);
+		$("#f-origem").textContent = "Primeiro Grau - SENTENÇA - publicada em: 05/02/2025 - ATIVA";
+		S.hl("#f-origem", 3);
+		await S.cap("A <b>Origem</b> é escolhida sozinha: havendo mais de uma sentença, a <b>mais antiga</b>.", { ms: 3600 });
+		S.hlOff();
+		janelaItemIIPR();
+		$("#i-tipo").textContent = "Sentença Condenatória";
+		$("#i-data").textContent = "05/02/2025";
+		await sleep(900);
+		$("#x-item").remove();
+		itemNaTabela("05/02/2025", "SENTENÇA CONDENATÓRIA", "");
+		S.hl("#f-itens", 3);
+		await S.cap("Em seguida, a extensão clica em <b>Adicionar</b> e inclui o item gravado, com a data da origem.", { ms: 3800 });
+		S.hlOff();
+		f.remove();
+		const c = bar('Confirmar "Anotações Criminais" com a preferência "Sentença condenatória"? <span class="x-btn small green" id="sim">✅ Sim, executar</span> <span class="x-btn small">Cancelar</span>', { top: 78 });
+		await S.cap("Confira e clique em <b>✅ Sim, executar</b> — a extensão clica em <b>Salvar</b>.", { ms: 3200 });
+		await S.click("#sim");
+		c.remove(); $(".x-popup").remove();
+		await S.endCard("Outras → Anotações Criminais → ★ preferência → (escolha a parte, se houver mais de uma) → origem e item sozinhos → ✅ Sim, executar.");
+	},
+};

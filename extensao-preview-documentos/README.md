@@ -607,7 +607,13 @@ lado a lado, no mesmo canto da tela dos botões de WhatsApp/e-mail
   Antecedentes Criminais (estas duas ficam no bloco "Comunicar ao IIPR"
   da coluna de Ações, só em processos criminais; como "Arquivar
   Processo", fora da tela de Ações o popup carrega a própria tela de
-  Ações e abre o diálogo pelo link nativo)
+  Ações e abre o diálogo pelo link nativo). A preferência de "Anotações
+  Criminais" tem preenchimento próprio (PREF_ESPECIAIS em
+  quickActions.js): grava a Comunicação e os itens da seção "Itens"
+  (obrigatória no Projudi) e, ao usar, escolhe a Parte do Processo
+  sozinha quando há uma só pessoa (com mais de uma, pede a escolha e
+  continua), a Origem única ou a mais antiga, e inclui cada item pelo
+  botão "Adicionar"
 
 Numa segunda linha, logo abaixo do botão **"▸/▾ Ações"** (que recolhe ou
 mostra os botões dos grupos acima), ficam o botão **"📋 Processo

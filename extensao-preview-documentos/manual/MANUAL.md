@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.29.1 |
-| **Versão da extensão** | 2.29.1 |
+| **Versão do manual** | 2.29.2 |
+| **Versão da extensão** | 2.29.2 |
 | **Data desta versão** | 09/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -895,6 +895,7 @@ onde parou. Uma operação por vez.
 
 ▶ [**Vídeo V16** — Ações rápidas](videos/V16-acoes-rapidas.mp4)
 ▶ [**Vídeo V46** — Remessa para a Turma Recursal](videos/V46-remessa-turma-recursal.mp4)
+▶ [**Vídeo V52** — Preferência de Anotações Criminais](videos/V52-preferencia-de-anotacoes-criminais.mp4)
 
 **Para que serve:** abrir as ações do painel lateral **Ações** do Projudi
 (Enviar Concluso, Realizar Remessa, Intimar Partes…) sem rolar a tela e sem
@@ -945,6 +946,29 @@ sair da aba em que você está.
   aparecem em processos criminais. Pelo botão **Outras**, a extensão abre
   a tela de Ações do processo no popup e clica ela mesma na opção, para a
   janela do Projudi aparecer exatamente como apareceria clicando lá.
+- **Preferência de Anotações Criminais** (tela **Cadastro de Comunicação
+  ao IIPR**): o Projudi sempre exige **pelo menos um item** na seção
+  **Itens**. Para gravar, escolha a **Comunicação**, a parte e a origem,
+  clique em **Adicionar**, escolha o **Tipo de Decisão/Evento Criminal**
+  (e a data, o complemento), salve o item e só então clique em **💾 Salvar
+  como preferência** — sem item, a extensão avisa e não salva. A
+  preferência guarda a **Comunicação** (Denúncia, Sentença, Transação
+  Penal/Suspensões ou Outros), os demais campos e os **itens**. Ao usar:
+  - **Parte do Processo:** com **uma só pessoa** na lista, ela é escolhida
+    sozinha; com **mais de uma**, a barra pede que você escolha a parte e,
+    feita a escolha, a preferência **continua sozinha**. É o único campo
+    que você pode precisar escolher.
+  - **Origem:** com uma só opção, ela; com **mais de uma** (ex.: duas
+    sentenças), a **mais antiga**. Se não houver nenhuma (ex.: a parte não
+    tem sentença ou transação penal), a extensão avisa e você completa à
+    mão.
+  - **Itens:** a extensão clica em **Adicionar** e inclui cada item
+    gravado. Se a data do item foi preenchida ao gravar, ela passa a ser a
+    data da **Origem** escolhida (ex.: a da publicação da sentença) — ou a
+    de hoje, se a Origem não tiver data (ex.: **Outros**). Confira a data
+    antes do **✅ Sim, executar**, que clica em **Salvar**.
+  - Preferências de Anotações Criminais gravadas antes da versão 2.29.2
+    não têm itens: grave-as de novo.
 - Em outra aba (ex.: **Partes e Outros**), o painel pede para abrir a aba
   **Movimentações** primeiro.
 - Ao terminar ações como **Ordenar Cumprimentos**, o popup se fecha e a
@@ -2284,6 +2308,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V49](videos/V49-preferencia-de-assunto-secundario.mp4) | [Preferência de assunto secundário](videos/V49-preferencia-de-assunto-secundario.mp4) | [8.9](#cap-8-9) | 0:52 |
 | [V50](videos/V50-remover-assunto-secundario.mp4) | [Remover assunto secundário](videos/V50-remover-assunto-secundario.mp4) | [8.9](#cap-8-9) | 0:22 |
 | [V51](videos/V51-documento-da-conclusao.mp4) | [Documento do Juiz no Retorno de Conclusão](videos/V51-documento-da-conclusao.mp4) | [9.9](#cap-9-9) | 0:59 |
+| [V52](videos/V52-preferencia-de-anotacoes-criminais.mp4) | [Preferência de Anotações Criminais](videos/V52-preferencia-de-anotacoes-criminais.mp4) | [7.1](#cap-7-1) | 1:12 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -2297,6 +2322,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.29.2 | 09/10/2026 | Seção 7.1: corrigida a **preferência de Anotações Criminais** — ela passa a gravar a **Comunicação** e os **itens** da seção **Itens** (exigida pelo Projudi) e, ao usar, inclui os itens pelo **Adicionar**; a **Parte do Processo** é escolhida sozinha quando há uma só pessoa (com mais de uma, você escolhe e a preferência continua) e a **Origem** é a única ou a mais antiga. Preferências antigas devem ser gravadas de novo. Novo vídeo V52. |
 | 2.29.1 | 09/10/2026 | Seção 4.4 reescrita: o processo principal é sempre o **primeiro processo da linha Apensamentos:**, também nos apensos de apensos (antes podia aparecer o Sequencial de outro processo, ou "não encontrado"); no primeiro processo da lista, e em processos sem apensos, aparece a linha **Sequencial:** do próprio processo. Vídeo V12 refeito. |
 | 2.29.0 | 08/10/2026 | Nova seção **9.9** (Projudi e SEEU): na lista **Retorno de Conclusão**, pousar o mouse sobre o **Analisar** mostra o documento que o Juiz fez (despacho, decisão ou sentença) — o da linha **Documentos** da tela **Movimentar Processo**, sem clicar duas vezes em Analisar —, uma janela por arquivo, com **📌 Fixar**, **Abrir em nova aba** e **✕**. Com mais de um arquivo, o **✕** fecha só aquela janela e clicar numa janela de trás a traz para a frente. Nova função na tabela da 2.6 e vídeo V51. |
 | 2.28.0 | 08/10/2026 | Alterar Classe/Assuntos (8.9): novas **preferências de assuntos secundários** (**⭐** na linha **Assuntos Secundários** do cabeçalho, ou **⭐ Secundários** na linha do Assunto Principal quando ainda não há assunto secundário) — para gravar, use **Adicionar**, pesquise, marque o assunto e clique em **Selecionar** (só grava a preferência); ao usar, a extensão faz o mesmo caminho na janela de seleção do Projudi, confere se o assunto entrou na lista e só então salva. Novo balão **✖** no fim de cada assunto secundário do cabeçalho, que remove aquele assunto e salva (pede confirmação). Corrigido: fora da tela do processo, os indicadores de suspensão e de monitoração e o botão do WhatsApp deixam de repetir avisos internos a cada 1,5 segundo. Novos vídeos V49 e V50. |
