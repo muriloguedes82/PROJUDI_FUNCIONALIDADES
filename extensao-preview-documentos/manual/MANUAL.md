@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.29.0 |
-| **Versão da extensão** | 2.29.0 |
-| **Data desta versão** | 08/10/2026 |
+| **Versão do manual** | 2.29.1 |
+| **Versão da extensão** | 2.29.1 |
+| **Data desta versão** | 09/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -658,14 +658,35 @@ aba **Partes e Outros**.
 ▶ [**Vídeo V12** — Sequencial do processo principal](videos/V12-sequencial-do-processo-principal.mp4)
 
 **Para que serve:** num processo **apenso**, ver o **Sequencial** do
-processo principal sem abri-lo.
+processo principal sem abri-lo; no processo principal, ver o próprio
+**Sequencial** sem precisar abrir a aba **Informações Gerais**.
 
-**Onde fica:** aba **Informações Gerais** do apenso, na nova linha
-**Sequencial do Processo Principal:**, logo abaixo de **Processo
-Principal:**.
+**Qual é o processo principal:** é sempre o **primeiro processo da linha
+Apensamentos:** da tela do processo, mesmo quando há apensos de apensos.
+Exemplo:
 
-**Bom saber:** a linha mostra "carregando…" por um instante. No próprio
-processo principal ela não aparece.
+| Linha Apensamentos: | O que a extensão mostra |
+|---|---|
+| Processo 0037276… — Ação Penal (primeiro da lista) | **Sequencial:** da própria Ação Penal |
+| ↳ Processo 0035990… — Medidas Protetivas | **Sequencial do Processo Principal:** o da Ação Penal |
+| ↳↳ Processo 0022813… — Petição Criminal | **Sequencial do Processo Principal:** o da Ação Penal |
+
+O campo **Processo Principal:** do Projudi não é usado para isso, porque
+ele às vezes indica só a origem de um desmembramento.
+
+**Onde fica:**
+
+- **No apenso:** linha laranja **Sequencial do Processo Principal:**, logo
+  abaixo de **Processo Principal:** (ou de **Nível de Sigilo:**, quando o
+  apenso não tem esse campo).
+- **No primeiro processo da lista de Apensamentos, ou num processo sem
+  apensos:** linha laranja **Sequencial:**, com o Sequencial do próprio
+  processo (o mesmo da aba **Informações Gerais**), logo abaixo de
+  **Nível de Sigilo:**.
+
+**Bom saber:** a linha mostra "Buscando…" por um instante. Se a extensão
+não conseguir confirmar o número do processo principal, mostra "não
+encontrado" em vez de um número errado.
 
 ---
 
@@ -2223,7 +2244,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V09](videos/V09-destinatarios-e-remetentes-do-email.mp4) | [Destinatários favoritos e remetentes do e-mail](videos/V09-destinatarios-e-remetentes-do-email.mp4) | [5.3](#cap-5-3) | 0:46 |
 | [V10](videos/V10-suspensao-e-monitoracao-no-cabecalho.mp4) | [Suspensão e monitoração eletrônica no cabeçalho](videos/V10-suspensao-e-monitoracao-no-cabecalho.mp4) | [4.1](#cap-4-1) | 0:37 |
 | [V11](videos/V11-reus-no-cabecalho.mp4) | [Réus, indiciados e noticiados no cabeçalho](videos/V11-reus-no-cabecalho.mp4) | [4.3](#cap-4-3) | 0:27 |
-| [V12](videos/V12-sequencial-do-processo-principal.mp4) | [Sequencial do processo principal (apensos)](videos/V12-sequencial-do-processo-principal.mp4) | [4.4](#cap-4-4) | 0:22 |
+| [V12](videos/V12-sequencial-do-processo-principal.mp4) | [Sequencial do processo principal (apensos)](videos/V12-sequencial-do-processo-principal.mp4) | [4.4](#cap-4-4) | 0:34 |
 | [V13](videos/V13-dispensar-juntadas.mp4) | [Dispensar juntadas](videos/V13-dispensar-juntadas.mp4) | [6.1](#cap-6-1) | 0:31 |
 | [V14](videos/V14-finalizar-conclusao.mp4) | [Finalizar conclusão pendente](videos/V14-finalizar-conclusao.mp4) | [6.2](#cap-6-2) | 0:27 |
 | [V15](videos/V15-dispensar-decursos.mp4) | [Dispensar decursos de prazo](videos/V15-dispensar-decursos.mp4) | [6.3](#cap-6-3) | 0:31 |
@@ -2276,6 +2297,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.29.1 | 09/10/2026 | Seção 4.4 reescrita: o processo principal é sempre o **primeiro processo da linha Apensamentos:**, também nos apensos de apensos (antes podia aparecer o Sequencial de outro processo, ou "não encontrado"); no primeiro processo da lista, e em processos sem apensos, aparece a linha **Sequencial:** do próprio processo. Vídeo V12 refeito. |
 | 2.29.0 | 08/10/2026 | Nova seção **9.9** (Projudi e SEEU): na lista **Retorno de Conclusão**, pousar o mouse sobre o **Analisar** mostra o documento que o Juiz fez (despacho, decisão ou sentença) — o da linha **Documentos** da tela **Movimentar Processo**, sem clicar duas vezes em Analisar —, uma janela por arquivo, com **📌 Fixar**, **Abrir em nova aba** e **✕**. Com mais de um arquivo, o **✕** fecha só aquela janela e clicar numa janela de trás a traz para a frente. Nova função na tabela da 2.6 e vídeo V51. |
 | 2.28.0 | 08/10/2026 | Alterar Classe/Assuntos (8.9): novas **preferências de assuntos secundários** (**⭐** na linha **Assuntos Secundários** do cabeçalho, ou **⭐ Secundários** na linha do Assunto Principal quando ainda não há assunto secundário) — para gravar, use **Adicionar**, pesquise, marque o assunto e clique em **Selecionar** (só grava a preferência); ao usar, a extensão faz o mesmo caminho na janela de seleção do Projudi, confere se o assunto entrou na lista e só então salva. Novo balão **✖** no fim de cada assunto secundário do cabeçalho, que remove aquele assunto e salva (pede confirmação). Corrigido: fora da tela do processo, os indicadores de suspensão e de monitoração e o botão do WhatsApp deixam de repetir avisos internos a cada 1,5 segundo. Novos vídeos V49 e V50. |
 | 2.26.4 | 08/10/2026 | Sem alteração de texto; associadas as linhas **Analisar** e da data pelo código do mandado na listagem. |

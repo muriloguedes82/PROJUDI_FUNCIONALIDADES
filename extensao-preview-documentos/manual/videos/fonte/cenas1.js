@@ -406,14 +406,22 @@ CENAS.V12 = {
 		S.hl("#row-principal", 3);
 		await S.cap("Num processo <b>apenso</b>, a aba <b>Informações Gerais</b> mostra o “Processo Principal”.");
 		S.hlOff();
-		$("#row-principal").insertAdjacentHTML("afterend", '<tr id="row-seqp"><td class="l">Sequencial do Processo Principal:</td><td id="seqp" style="color:#888">carregando…</td></tr>');
-		await S.cap("Logo abaixo, a extensão acrescenta o <b>Sequencial do Processo Principal</b>…");
-		$("#seqp").textContent = "45054"; $("#seqp").style.color = "";
+		$("#row-principal").parentNode.insertAdjacentHTML("beforeend",
+			'<tr id="row-apens"><td class="l">Apensamentos:</td><td style="line-height:1.6">' +
+			'<span id="apens-raiz">Processo: <a class="link">' + PROC + '</a> - Ação Penal - ATIVO</span><br>' +
+			'&nbsp;&nbsp;&nbsp;&nbsp;↳ Processo: 0003456-12.2025.8.16.0001 - Medidas Protetivas - ATIVO<br>' +
+			'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↳ <b>Processo: 0005678-90.2025.8.16.0001 - Incidente - ATIVO</b></td></tr>');
+		S.hl("#apens-raiz", 3);
+		await S.cap("O processo principal é sempre o <b>primeiro da linha Apensamentos</b> — mesmo num apenso de apenso.");
+		S.hlOff();
+		$("#row-principal").insertAdjacentHTML("afterend", '<tr id="row-seqp"><td class="l" style="color:#ff6a00">Sequencial do Processo Principal:</td><td id="seqp" style="color:#888">Buscando…</td></tr>');
+		await S.cap("Logo abaixo de “Processo Principal”, a extensão acrescenta o <b>Sequencial do Processo Principal</b>…");
+		$("#seqp").textContent = "45054"; $("#seqp").style.color = "#ff6a00";
 		S.hl("#row-seqp", 3);
 		await S.cap("…buscado em segundo plano, sem abrir o processo principal.");
 		S.hlOff();
-		await S.cap("No próprio processo principal essa linha não aparece.");
-		await S.endCard("Apenso → Informações Gerais → “Sequencial do Processo Principal”.");
+		await S.cap("No primeiro processo da lista (ou num processo sem apensos) aparece a linha <b>Sequencial:</b> do próprio processo.");
+		await S.endCard("Apenso → “Sequencial do Processo Principal” = Sequencial do 1º processo da linha Apensamentos.");
 	},
 };
 
