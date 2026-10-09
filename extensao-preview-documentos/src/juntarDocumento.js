@@ -914,10 +914,20 @@
 		return !!formCumprimento();
 	}
 
+	// Campo "Descrição" da Pré-Análise (Expedir Intimações/Citação:
+	// name="descricao", sem id).
+	function campoDescricaoPreAnalise() {
+		const form = document.getElementById("preAnaliseForm");
+		const campo = form && form.querySelector('input[name="descricao"]');
+		return campo && !campo.readOnly && !campo.disabled ? campo : null;
+	}
+
 	function lerPreAnalise() {
 		const tipo = selectedOption(document.getElementById("codTipoArquivo"));
 		const modelo = document.getElementById("codModelo");
+		const descricao = campoDescricaoPreAnalise();
 		return {
+			descricao: descricao ? cleanText(descricao.value) : "",
 			tipoArquivo: tipo && tipo.value !== "0" ? tipo : null,
 			modelo: modelo && !modelo.disabled ? selectedOption(modelo) : null,
 			semTipoArquivo: !document.getElementById("codTipoArquivo"),
@@ -981,6 +991,13 @@
 						return;
 					}
 				}
+				// Descrição depois do Modelo (que pode mexer nela).
+				const descricao = campoDescricaoPreAnalise();
+				if (descricao && pref.descricao) {
+					descricao.value = pref.descricao;
+					fire(descricao, "input");
+					fire(descricao, "change");
+				}
 				await sleep(300);
 				if (job.mode === "edit") {
 					showStatus(modeLabel(job) + ': campos preenchidos. Ajuste se quiser e clique em "Digitar Texto".', "rec");
@@ -1039,6 +1056,7 @@
 			id: job.mode === "edit" ? job.pref.id : "pa-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8),
 			name: name.trim(),
 			tipoArquivo: rec.tipoArquivo,
+			descricao: rec.descricao || "",
 			modelo: rec.modelo || null,
 			conteudo: rec.conteudo || "",
 			ancora: rec.ancora || null,
