@@ -1231,10 +1231,25 @@
 	// caixinhas dos arquivos dele, "movimentacoesArquivos").
 	// -------------------------------------------------------------------
 
+	// Dois formatos da janela: o dos mandados (salvarDocumentosProcesso,
+	// caixinhas "movimentacoesArquivos", botão #selectButton) e o de Demais
+	// Cumprimentos (título "Seleção de Documentos", colunas Seq./Data/
+	// Evento/Movimentado por, caixinhas "arquivo", botão #confirmarButton).
+	const CAIXAS_ARQUIVO = 'input[type="checkbox"][name="movimentacoesArquivos"], input[type="checkbox"][name="arquivo"]';
+
 	function formSelecaoDocumentos() {
 		return Array.prototype.find.call(document.forms, function (f) {
-			return /salvarDocumentosProcesso/i.test(f.getAttribute("action") || "") && !!f.querySelector('input[name="movimentacoesArquivos"], #selectButton');
+			if (/salvarDocumentosProcesso/i.test(f.getAttribute("action") || "") && f.querySelector('input[name="movimentacoesArquivos"], #selectButton')) return true;
+			const titulo = f.querySelector("h3");
+			return !!titulo && norm(titulo.textContent).toLowerCase() === "selecao de documentos" && !!f.querySelector("#confirmarButton, #selectButton") && !!f.querySelector("table.resultTable");
 		}) || null;
+	}
+
+	function botoesSelecao(form) {
+		return {
+			selecionar: form.querySelector("#selectButton, #confirmarButton") || findButton(form, "Selecionar"),
+			voltar: form.querySelector("#backButton, #cancelarButton") || findButton(form, "Voltar") || findButton(form, "Cancelar"),
+		};
 	}
 
 	function isSelecaoDocumentosScreen() {
@@ -1245,7 +1260,10 @@
 		return norm(nome).toUpperCase();
 	}
 
-	// [{ nome, row, caixas }] na ordem da tela (a mais recente primeiro).
+	// [{ nome, b, row, caixas }] na ordem da tela (a mais recente primeiro).
+	// Linha do movimento: o nome em negrito numa das células; logo abaixo,
+	// a linha "rowN" (mandados) ou "rowmovimentacoesN" (Demais
+	// Cumprimentos) com as caixinhas dos arquivos dele.
 	function movimentosSelecao(form) {
 		const tabela = form.querySelector("table.resultTable");
 		const tbody = tabela && tabela.tBodies[0];
@@ -1253,13 +1271,13 @@
 		if (!tbody) return lista;
 		let atual = null;
 		Array.prototype.forEach.call(tbody.rows, function (row) {
-			if (/^row\d+$/.test(row.id)) {
-				if (atual) atual.caixas = Array.prototype.slice.call(row.querySelectorAll('input[type="checkbox"][name="movimentacoesArquivos"]'));
+			if (/^row(movimentacoes)?\d+$/.test(row.id)) {
+				if (atual) atual.caixas = Array.prototype.slice.call(row.querySelectorAll(CAIXAS_ARQUIVO));
 				return;
 			}
-			const b = row.cells[1] && row.cells[1].querySelector("b");
+			const b = row.querySelector(":scope > td > b");
 			if (!b) return;
-			atual = { nome: b.textContent.replace(/\s+/g, " ").trim(), row: row, caixas: [] };
+			atual = { nome: b.textContent.replace(/\s+/g, " ").trim(), b: b, row: row, caixas: [] };
 			lista.push(atual);
 		});
 		return lista;
@@ -1270,6 +1288,8 @@
 		if (job.stage !== "concluir" || selecaoActed) return;
 		const form = formSelecaoDocumentos();
 		const movimentos = movimentosSelecao(form);
+		// A lista de movimentos pode chegar depois (carregada em segundo plano).
+		if (!movimentos.length) return;
 		if (job.mode === "capture" || job.mode === "edit") {
 			selecaoActed = true;
 			gravarSelecaoDocumentos(job, form, movimentos);
@@ -1291,8 +1311,9 @@
 				n++;
 			});
 		});
-		const selecionar = form.querySelector("#selectButton") || findButton(form, "Selecionar");
-		const voltar = form.querySelector("#backButton") || findButton(form, "Voltar");
+		const botoes = botoesSelecao(form);
+		const selecionar = botoes.selecionar;
+		const voltar = botoes.voltar;
 		if (n && selecionar) {
 			updateJob(function (current) { current.docs = { status: "ok", n: n, movimentos: achados }; });
 			showStatus("Marcados " + n + " documento(s) do movimento " + achados.join(" / ") + '. Clicando em "Selecionar"…');
@@ -1312,8 +1333,7 @@
 		const marcas = [];
 		const jaMarcado = {};
 		movimentos.forEach(function (mov) {
-			const cel = mov.row.cells[1];
-			if (!cel || cel.querySelector(".pdp-jd-mov-padrao")) return;
+			if (!mov.b || mov.row.querySelector(".pdp-jd-mov-padrao")) return;
 			const label = document.createElement("label");
 			label.className = "pdp-jd-mov-padrao";
 			label.title = "Movimento padrão desta preferência: ao usá-la, a extensão procura o movimento mais recente com este nome e anexa os documentos dele.";
@@ -1323,7 +1343,7 @@
 			caixa.style.verticalAlign = "middle";
 			label.appendChild(caixa);
 			label.appendChild(document.createTextNode(" ☆ padrão" + (mov.caixas.length ? "" : " (sem documentos aqui)")));
-			cel.querySelector("b").insertAdjacentElement("afterend", label);
+			mov.b.insertAdjacentElement("afterend", label);
 			marcas.push({ mov: mov, caixa: caixa });
 			// Editando: já vem marcado o mais recente de cada movimento gravado.
 			const chave = nomeMovimento(mov.nome);
@@ -1336,7 +1356,7 @@
 				mov.caixas.forEach(function (c) { if (c.checked !== caixa.checked && !c.disabled) c.click(); });
 			});
 		});
-		const selecionar = form.querySelector("#selectButton") || findButton(form, "Selecionar");
+		const selecionar = botoesSelecao(form).selecionar;
 		if (selecionar) {
 			selecionar.addEventListener("click", function () {
 				const nomes = [];
