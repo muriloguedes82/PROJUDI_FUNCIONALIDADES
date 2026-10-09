@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.29.1 |
-| **Versão da extensão** | 2.29.1 |
-| **Data desta versão** | 07/10/2026 |
+| **Versão do manual** | 2.30.0 |
+| **Versão da extensão** | 2.30.0 |
+| **Data desta versão** | 09/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -2119,17 +2119,19 @@ anexar os documentos de um movimento do processo (ex.: a decisão de
 para você **Assinar e Expedir**.
 
 **Onde fica:** listas **Demais Cumprimentos** (qualquer Tipo de
-Cumprimento) e **Mandados** (expedição de mandados), no card **⭐** da
-linha, seção **📝 Analisar (Pré-Análise)** — e no **⭐ Em lote**, para
-vários processos. As preferências são as mesmas nas duas listas: uma
-preferência criada numa aparece também na outra.
+Cumprimento), **Mandados** (expedição de mandados), **Expedir Intimações**
+e **Expedir Citação**, no card **⭐** da linha, seção **📝 Analisar
+(Pré-Análise)** — e no **⭐ Em lote**, para vários processos. Cada lista
+mostra as preferências criadas nela (as gravadas antes da versão 2.30.0
+aparecem em todas).
 
 **Criar uma preferência (+ Nova preferência):**
 
 1. No **⭐** de uma linha, clique em **+ Nova preferência** (seção
    📝 Analisar). A Pré-Análise desse cumprimento abre num popup.
-2. Escolha o **Tipo do Arquivo** e o **Modelo**, clique em **Digitar
-   Texto**, escreva e continue, como de costume.
+2. Escolha o **Tipo do Arquivo** e o **Modelo** (em Expedir Intimações e
+   Expedir Citação há só o Modelo), clique em **Digitar Texto**, escreva
+   ou edite o texto do Modelo e continue, como de costume.
 3. Clique em **Salvar e Concluir**.
 4. Na tela do cumprimento (a última), se precisar anexar documentos do
    processo, clique em **Adicionar** (em **Documento(s) do Processo/Recurso**).
@@ -2183,6 +2185,10 @@ são feitos um de cada vez; com "postergar", seguem sozinhos até o fim.
   **editar o texto do Modelo** (apagar trechos, negrito, itálico): as
   edições são gravadas e refeitas em cada mandado, com os dados de cada
   processo (veja [8.2](#cap-8-2)).
+- Em **Expedir Intimações** e **Expedir Citação**, anexar documentos por
+  movimento padrão ainda não está disponível (a tela final usa
+  "Selecionar Arquivos", diferente do "Adicionar" dos mandados): anexe à
+  mão, se precisar, antes de clicar em Assinar e Expedir ou Postergar.
 - Na lista de **Mandados**, se a tela final do mandado não mostrar
   **Postergar Assinatura** nem **Assinar e Expedir**, a extensão não faz
   nada nela: termine o mandado à mão e feche o popup.
@@ -2342,6 +2348,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.30.0 | 09/10/2026 | Pré-Análise com preferências (9.10) também nas listas **Expedir Intimações** e **Expedir Citação**, na linha e em lote: grava a versão final do texto no "Continuar" (editada ou não), troca os dados de cada processo e parte, e salva no clique em **Assinar e Expedir** ou **Postergar Assinatura**. Essas telas não têm "Tipo do Arquivo" (só o Modelo). Cada lista passa a mostrar só as preferências criadas nela. Sem vídeo novo: a tela é a mesma do V50. |
 | 2.29.1 | 07/10/2026 | Preferências com texto (8.2, 9.9, 9.10): a versão final do documento no clique em **Continuar** é sempre a gravada — também quando você não altera nada no texto do Modelo (antes aparecia o aviso "Não consegui gravar nenhum texto" e, com o marcador "INSIRA O TEXTO AQUI", a extensão parava para você digitar). Textos das seções 8.2 e 9.9 ajustados. |
 | 2.29.0 | 07/10/2026 | Preferências com texto (Juntar Documento 8.2, Analisar Decurso 9.9 e Pré-Análise 9.10): passam a gravar também as **edições do texto do Modelo** — trechos apagados, formatação (negrito, itálico, sublinhado) e parágrafos alterados —, e as refazem em cada uso no documento novo, trocando os dados do processo (número, nomes, endereço, CPF, datas) pelos do processo novo nos parágrafos alterados. Os parágrafos não alterados ficam como o Projudi os gera. Sem vídeo novo: a tela não muda. |
 | 2.28.1 | 07/10/2026 | Sem alteração de texto; corrigido: em documentos gerados por **Modelo** (ex.: mandados), ao gravar uma preferência (Juntar Documento, Analisar Decurso ou Pré-Análise) a extensão gravava o documento inteiro em vez do texto digitado, e ao usá-la avisava "Não encontrei onde inserir o texto da preferência". Agora grava só o que você digitou e o insere no mesmo lugar — inclusive quando o parágrafo de referência tem dados do processo (nome, data). Se o texto gravado parecer o documento inteiro, a extensão avisa antes de salvar. Preferências gravadas com o erro precisam ser gravadas de novo (✏️). |

@@ -79,8 +79,11 @@
 		// processo (quickActions.js). Sem pendências, abre direto. Demais
 		// Cumprimentos vale para qualquer "Tipo de Cumprimento" (filtro da
 		// mesma tela).
-		"/projudi/processo/expedirIntimacao.do": { tipo: "cumprimento", verificaPendencias: true },
-		"/projudi/processo/expedirCitacao.do": { tipo: "cumprimento", verificaPendencias: true },
+		// Expedir Intimações/Citação: também a coluna "Pré-Análise" com o
+		// link "Analisar" - mesmas preferências do Analisar de Demais
+		// Cumprimentos e Mandados.
+		"/projudi/processo/expedirIntimacao.do": { tipo: "cumprimento", verificaPendencias: true, preAnalise: true },
+		"/projudi/processo/expedirCitacao.do": { tipo: "cumprimento", verificaPendencias: true, preAnalise: true },
 		"/projudi/processo/intimacaoNomeados.do": { tipo: "cumprimento", verificaPendencias: true },
 		// Demais Cumprimentos: o card ⭐ também traz as preferências do
 		// "Analisar" (Pré-Análise) - ver abrirPreAnalise.
@@ -909,8 +912,11 @@
 				escolher({ preAnalise: true, acao: "nova" });
 			}));
 		}
-		jd.listarPreAnalise().then(function (prefs) {
+		jd.listarPreAnalise().then(function (todas) {
 			if (!painel || painel.el !== box) return;
+			// Cada lista mostra as preferências criadas nela (as antigas, sem
+			// tela gravada, aparecem em todas).
+			const prefs = todas.filter(function (p) { return !p.tela || p.tela === location.pathname; });
 			if (!prefs.length && emLote) {
 				grade.replaceWith(el("div", { class: "pdp-tl-vazio", text: "Nenhuma preferência de Pré-Análise salva. Crie pelo \"+ Nova preferência\" do ⭐ de uma linha." }));
 			}

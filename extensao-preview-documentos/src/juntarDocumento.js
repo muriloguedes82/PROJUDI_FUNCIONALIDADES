@@ -488,7 +488,9 @@
 		// na tela de Pré-Análise aberta a seguir.
 		prepararPreAnalise: function (mode, pref, numero) {
 			limparMarcasDecurso();
-			writeJob({ mode: mode, stage: "upload", pref: pref || null, rec: {}, numero: numero || null, preanalise: true, createdAt: Date.now() });
+			// `tela`: lista de onde veio (Demais Cumprimentos, Mandados, Expedir
+			// Intimações, Expedir Citação) - cada uma mostra só as suas.
+			writeJob({ mode: mode, stage: "upload", pref: pref || null, rec: {}, numero: numero || null, preanalise: true, tela: location.pathname, createdAt: Date.now() });
 		},
 		// Fim da análise iniciada com prepararDecurso: "concluida" (a
 		// extensão clicou no botão final), "aguardando" (o botão final ficou
@@ -874,9 +876,11 @@
 	// lista (job.preanalise).
 	// -------------------------------------------------------------------
 
+	// A Pré-Análise de Expedir Intimações/Citação não tem "Tipo do Arquivo"
+	// (só o Modelo).
 	function isPreAnaliseScreen() {
 		const form = document.getElementById("preAnaliseForm");
-		return !!form && !!document.getElementById("codTipoArquivo") && !!form.querySelector("#digitarButton");
+		return !!form && (!!document.getElementById("codTipoArquivo") || !!document.getElementById("codModelo")) && !!form.querySelector("#digitarButton");
 	}
 
 	// Botão "Postergar Assinatura" (qual = "postergar") ou "Assinar e
@@ -895,11 +899,15 @@
 	// A lista de mandados usa o mesmo id de formulário, mas não tem esses
 	// botões, então não é confundida com a tela do cumprimento.
 	function formCumprimento() {
-		for (const id of ["cumprimentoCartorioForm", "cumprimentoCartorioMandadoForm"]) {
+		for (const id of ["cumprimentoCartorioForm", "cumprimentoCartorioMandadoForm", "expedirIntimacaoForm", "expedirCitacaoForm"]) {
 			const form = document.getElementById(id);
 			if (form && (botaoCumprimento(form, "postergar") || botaoCumprimento(form, "assinar"))) return form;
 		}
-		return null;
+		// Outra tela de expedição com os dois botões ("Assinar e Expedir" e
+		// "Postergar Assinatura").
+		return Array.prototype.find.call(document.forms, function (f) {
+			return !!f.querySelector("#postergarButton") && !!f.querySelector("#assinarButton");
+		}) || null;
 	}
 
 	function isCumprimentoScreen() {
@@ -912,6 +920,7 @@
 		return {
 			tipoArquivo: tipo && tipo.value !== "0" ? tipo : null,
 			modelo: modelo && !modelo.disabled ? selectedOption(modelo) : null,
+			semTipoArquivo: !document.getElementById("codTipoArquivo"),
 		};
 	}
 
@@ -927,7 +936,7 @@
 			digitar.__pdpJdWatch = true;
 			digitar.addEventListener("click", function () {
 				const lido = lerPreAnalise();
-				if (lido.tipoArquivo) record(lido);
+				if (lido.tipoArquivo || lido.semTipoArquivo) record(lido);
 				advance(["upload"], "digitar");
 			}, true);
 		}
@@ -941,7 +950,7 @@
 		if (job.stage === "upload" && !preAnaliseActed) {
 			preAnaliseActed = true;
 			if (job.mode === "capture") {
-				showStatusOnce("capture-preanalise", modeLabel(job) + ' (Pré-Análise): escolha o Tipo do Arquivo (e o Modelo) e clique em "Digitar Texto".', "rec");
+				showStatusOnce("capture-preanalise", modeLabel(job) + " (Pré-Análise): escolha " + (document.getElementById("codTipoArquivo") ? "o Tipo do Arquivo (e o Modelo)" : "o Modelo") + ' e clique em "Digitar Texto".', "rec");
 				return;
 			}
 			preAnaliseBusy = true;
@@ -950,9 +959,16 @@
 				// "Digitar Texto" vale para o envio por texto (tipoUpload 1).
 				const porTexto = form.querySelector('input[name="tipoUpload"][value="1"]');
 				if (porTexto && !porTexto.checked) porTexto.click();
-				showStatus(modeLabel(job) + ': escolhendo o Tipo do Arquivo "' + pref.tipoArquivo.text + '"…', job.mode === "edit" ? "rec" : null);
-				if (!chooseOption(document.getElementById("codTipoArquivo"), pref.tipoArquivo)) {
-					showStatus('O Tipo do Arquivo "' + pref.tipoArquivo.text + '" não está disponível aqui. Escolha-o e clique em "Digitar Texto" — a extensão continua daí.', "warn");
+				const tipoSel = document.getElementById("codTipoArquivo");
+				if (pref.tipoArquivo) {
+					showStatus(modeLabel(job) + ': escolhendo o Tipo do Arquivo "' + pref.tipoArquivo.text + '"…', job.mode === "edit" ? "rec" : null);
+					if (!chooseOption(tipoSel, pref.tipoArquivo)) {
+						showStatus('O Tipo do Arquivo "' + pref.tipoArquivo.text + '" não está disponível aqui. Escolha-o e clique em "Digitar Texto" — a extensão continua daí.', "warn");
+						return;
+					}
+				} else if (tipoSel) {
+					// Preferência gravada numa tela sem "Tipo do Arquivo".
+					showStatus('Esta preferência não tem Tipo do Arquivo gravado. Escolha-o e clique em "Digitar Texto" — a extensão continua daí.', "warn");
 					return;
 				}
 				const modelo = document.getElementById("codModelo");
@@ -987,7 +1003,7 @@
 			preAnaliseActed = true;
 			if (job.mode !== "apply") {
 				if (salvarConcluir) salvarConcluir.classList.add("pdp-jd-highlight");
-				showStatus(modeLabel(job) + ': confira e clique em "Salvar e Concluir". Na tela seguinte a extensão pergunta sobre a assinatura e salva a preferência.', "rec");
+				showStatus(modeLabel(job) + ': confira e clique em "Salvar e Concluir". Na tela seguinte, a preferência é salva quando você clicar em "Assinar e Expedir" ou "Postergar Assinatura".', "rec");
 				return;
 			}
 			if (!salvarConcluir) {
@@ -1009,7 +1025,7 @@
 
 	function salvarGravacaoPreAnalise(job, postergar) {
 		const rec = job.rec || {};
-		if (!rec.tipoArquivo) {
+		if (!rec.tipoArquivo && !rec.semTipoArquivo) {
 			alert('A preferência não foi salva: não consegui gravar o Tipo do Arquivo (grava ao clicar em "Digitar Texto").');
 			return false;
 		}
@@ -1031,6 +1047,7 @@
 			edicao: rec.edicao || null,
 			postergar: !!postergar,
 			docMovimentos: movimentosDaGravacao(job),
+			tela: (job.mode === "edit" && job.pref && job.pref.tela) || job.tela || null,
 		};
 		persistPref(pref, PREANALISE_PREFS_KEY).catch(function (err) {
 			alert("Não foi possível salvar a preferência: " + err.message);
@@ -1067,8 +1084,8 @@
 			showStatus('Preferência "' + saved.name + '" ' + (atual.mode === "edit" ? "atualizada" : "salva") + ".", "ok");
 		}, true);
 		const movs = movimentosDaGravacao(job);
-		showStatus(modeLabel(job) + ': se precisar anexar documentos do processo, clique em "Adicionar" (Documento(s) do Processo/Recurso) e marque ☆ padrão ao lado do movimento. ' +
-			'Depois clique em "Assinar e Expedir" ou "Postergar Assinatura": a preferência é gravada nesse clique (e o botão escolhido fica gravado).' +
+		showStatus(modeLabel(job) + ": " + (botaoAdicionarDocumentos() ? 'se precisar anexar documentos do processo, clique em "Adicionar" (Documento(s) do Processo/Recurso) e marque ☆ padrão ao lado do movimento. Depois clique' : "clique") +
+			' em "Assinar e Expedir" ou "Postergar Assinatura": a preferência é gravada nesse clique (e o botão escolhido fica gravado).' +
 			(movs.length ? " Movimento(s) padrão: " + movs.join("; ") + "." : ""), "rec");
 	}
 
