@@ -103,7 +103,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "alterarClasseAssuntos",
 					nome: "Alterar Classe/Assuntos",
-					descricao: "Balão \"✏️ Alterar\" ao lado da classe processual e do assunto principal, no cabeçalho do processo, que abre a tela de alteração num popup, e ⭐ com preferências que fazem a alteração e salvam com um clique.",
+					descricao: "Balão \"✏️ Alterar\" ao lado da classe processual e do assunto principal, no cabeçalho do processo, que abre a tela de alteração num popup, e ⭐ com preferências que fazem a alteração (classe, assunto principal ou inclusão de assunto secundário) e salvam com um clique, e ✖ ao lado de cada assunto secundário do cabeçalho para removê-lo e salvar.",
 					js: ["src/alterarClasseAssuntos.js"],
 					requer: ["acoesRapidas", "habilitarAdvogado"],
 					sistemas: ["projudi"]
@@ -233,6 +233,13 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					js: ["src/previewProcesso.js"],
 					css: ["src/previewProcesso.css"],
 					sistemas: ["projudi"]
+				},
+				{
+					id: "previewConclusao",
+					nome: "Documento do Juiz ao passar o mouse no Retorno de Conclusão",
+					descricao: "Na lista Retorno de Conclusão, mostra o despacho/decisão/sentença (uma janela por arquivo) ao pousar o mouse sobre o \"Analisar\".",
+					js: ["src/previewConclusao.js"],
+					css: ["src/previewConclusao.css"]
 				},
 				{
 					id: "listaTarefas",

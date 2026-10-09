@@ -126,7 +126,7 @@
 	align-items: center;
 	background: #fff8e6;
 	border: 1px solid #e8cf8a;
-	border-radius: 999px;
+	border-radius: 4px;
 	overflow: hidden;
 }
 
@@ -181,7 +181,10 @@
 	text-decoration: underline;
 }
 
-/* Painel "⭐ Minhas Preferências" */
+/* Painel "⭐ Minhas Preferências": um bloco por ação (ícone do botão, nome
+   da ação e quantidade), lado a lado, com cards retangulares de uma linha
+   (★ nome ✏️ 🗑) dentro. O mesmo visual é usado no ⭐ da linha do processo
+   (preferenciasNaLinha.js), lá sem os botões ✏️ 🗑. */
 .pdp-qa-fav-panel {
 	width: 720px;
 	max-width: calc(100vw - 24px);
@@ -196,22 +199,64 @@
 }
 
 .pdp-qa-fav-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-	gap: 5px;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.pdp-qa-fav-group {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	min-width: 0;
+	max-width: 100%;
+	box-sizing: border-box;
+	background: #fafafa;
+	border: 1px solid #ececec;
+	border-radius: 4px;
+	padding: 3px 5px 5px;
+}
+
+.pdp-qa-fav-group.pdp-qa-fav-hidden {
+	display: none;
+}
+
+.pdp-qa-fav-group-label {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 10.5px;
+	font-weight: bold;
+	color: #666;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.pdp-qa-fav-group-count {
+	font-weight: normal;
+	color: #999;
+}
+
+.pdp-qa-fav-group-cards {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 3px;
 }
 
 .pdp-qa-fav-card {
+	position: relative;
 	display: flex;
-	flex-direction: column;
 	align-items: center;
-	justify-content: center;
-	text-align: center;
-	gap: 1px;
+	gap: 3px;
+	min-width: 0;
+	max-width: 240px;
+	box-sizing: border-box;
 	background: #fff8e6;
 	border: 1px solid #e8cf8a;
-	border-radius: 6px;
-	padding: 4px 6px;
+	border-radius: 4px;
+	padding: 3px 6px;
 	cursor: pointer;
 	user-select: none;
 	font-family: Arial, Helvetica, sans-serif;
@@ -224,17 +269,11 @@
 	border-color: #d4b25a;
 }
 
-.pdp-qa-fav-card {
-	position: relative;
-	padding: 13px 6px 4px;
-}
-
 .pdp-qa-fav-tools {
-	position: absolute;
-	top: 1px;
-	right: 1px;
-	display: flex;
+	flex: none;
+	display: inline-flex;
 	gap: 1px;
+	margin-right: -3px;
 }
 
 .pdp-qa-fav-edit,
@@ -246,14 +285,14 @@
 	font-size: 10px;
 	line-height: 1;
 	cursor: pointer;
-	opacity: 0.45;
+	opacity: 0.6;
 }
 
 .pdp-qa-fav-card:hover .pdp-qa-fav-edit,
 .pdp-qa-fav-card:hover .pdp-qa-fav-del,
 .pdp-qa-fav-card:focus-within .pdp-qa-fav-edit,
 .pdp-qa-fav-card:focus-within .pdp-qa-fav-del {
-	opacity: 0.85;
+	opacity: 0.9;
 }
 
 .pdp-qa-fav-edit:hover,
@@ -276,18 +315,14 @@
 	cursor: default;
 }
 
-.pdp-qa-fav-card-action {
-	font-size: 9.5px;
-	color: #8a6d1c;
-	text-transform: uppercase;
-	letter-spacing: 0.02em;
-}
-
 .pdp-qa-fav-card-name {
-	font-size: 11.5px;
+	min-width: 0;
+	font-size: 11px;
 	font-weight: bold;
 	color: #333;
-	word-break: break-word;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .pdp-qa-fav-card.pdp-qa-fav-combo {
@@ -301,7 +336,7 @@
 	border-color: #8fb1e3;
 }
 
-.pdp-qa-fav-card.pdp-qa-fav-combo .pdp-qa-fav-card-action {
+.pdp-qa-fav-card.pdp-qa-fav-combo .pdp-qa-fav-card-name {
 	color: #1a5fb4;
 }
 
@@ -314,17 +349,30 @@
 	cursor: default;
 }
 
+/* "Editar posição": arrasta cards dentro do bloco e blocos (pelo título)
+   entre si. */
 .pdp-qa-fav-editing .pdp-qa-fav-card {
 	cursor: grab;
 	border-style: dashed;
 	opacity: 1;
 }
 
-.pdp-qa-fav-card.pdp-qa-fav-dragging {
+.pdp-qa-fav-editing .pdp-qa-fav-group-label {
+	cursor: grab;
+}
+
+.pdp-qa-fav-editing .pdp-qa-fav-group {
+	border-style: dashed;
+	border-color: #cfcfcf;
+}
+
+.pdp-qa-fav-card.pdp-qa-fav-dragging,
+.pdp-qa-fav-group.pdp-qa-fav-dragging {
 	opacity: 0.4;
 }
 
-.pdp-qa-fav-card.pdp-qa-fav-over {
+.pdp-qa-fav-card.pdp-qa-fav-over,
+.pdp-qa-fav-group.pdp-qa-fav-over {
 	outline: 2px dashed #c49a2c;
 	outline-offset: 1px;
 }
