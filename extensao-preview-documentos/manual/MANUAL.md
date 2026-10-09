@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.27.1 |
-| **Versão da extensão** | 2.27.1 |
-| **Data desta versão** | 08/10/2026 |
+| **Versão do manual** | 2.29.2 |
+| **Versão da extensão** | 2.29.2 |
+| **Data desta versão** | 09/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -88,6 +88,7 @@
    - 9.6 [Dados processuais nas ordenações BNMP](#cap-9-6)
    - 9.7 [Endereço da parte e Mandado Regionalizado](#cap-9-7)
    - 9.8 [Processo ao passar o mouse nas listas de Decurso de Prazo](#cap-9-8)
+   - 9.9 [Documento do Juiz ao passar o mouse no Retorno de Conclusão](#cap-9-9)
 10. [Privacidade e convivência com outras extensões](#cap-10)
     - 10.1 [O que fica guardado no seu navegador](#cap-10-1)
     - 10.2 [Convivência com o AzFlow](#cap-10-2)
@@ -413,7 +414,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Bloco de anotações | [4](#cap-4) |
-| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo (Projudi) · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
+| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo (Projudi) · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
 Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
@@ -658,14 +659,35 @@ aba **Partes e Outros**.
 ▶ [**Vídeo V12** — Sequencial do processo principal](videos/V12-sequencial-do-processo-principal.mp4)
 
 **Para que serve:** num processo **apenso**, ver o **Sequencial** do
-processo principal sem abri-lo.
+processo principal sem abri-lo; no processo principal, ver o próprio
+**Sequencial** sem precisar abrir a aba **Informações Gerais**.
 
-**Onde fica:** aba **Informações Gerais** do apenso, na nova linha
-**Sequencial do Processo Principal:**, logo abaixo de **Processo
-Principal:**.
+**Qual é o processo principal:** é sempre o **primeiro processo da linha
+Apensamentos:** da tela do processo, mesmo quando há apensos de apensos.
+Exemplo:
 
-**Bom saber:** a linha mostra "carregando…" por um instante. No próprio
-processo principal ela não aparece.
+| Linha Apensamentos: | O que a extensão mostra |
+|---|---|
+| Processo 0037276… — Ação Penal (primeiro da lista) | **Sequencial:** da própria Ação Penal |
+| ↳ Processo 0035990… — Medidas Protetivas | **Sequencial do Processo Principal:** o da Ação Penal |
+| ↳↳ Processo 0022813… — Petição Criminal | **Sequencial do Processo Principal:** o da Ação Penal |
+
+O campo **Processo Principal:** do Projudi não é usado para isso, porque
+ele às vezes indica só a origem de um desmembramento.
+
+**Onde fica:**
+
+- **No apenso:** linha laranja **Sequencial do Processo Principal:**, logo
+  abaixo de **Processo Principal:** (ou de **Nível de Sigilo:**, quando o
+  apenso não tem esse campo).
+- **No primeiro processo da lista de Apensamentos, ou num processo sem
+  apensos:** linha laranja **Sequencial:**, com o Sequencial do próprio
+  processo (o mesmo da aba **Informações Gerais**), logo abaixo de
+  **Nível de Sigilo:**.
+
+**Bom saber:** a linha mostra "Buscando…" por um instante. Se a extensão
+não conseguir confirmar o número do processo principal, mostra "não
+encontrado" em vez de um número errado.
 
 ---
 
@@ -1644,8 +1666,75 @@ nova.
   trocada **e** o motivo foi marcado.
 - Para apagar uma preferência, use **🗑** ao lado dela. As preferências
   entram no **⬇ Exportar** do Menu da extensão ([2.6](#cap-2-6)).
-- Os **Assuntos Secundários** (Adicionar/Remover) não entram na
-  preferência.
+- A ⭐ do **assunto principal** grava só o assunto principal. Para os
+  **Assuntos Secundários**, use a ⭐ própria deles (abaixo).
+
+**Preferências de assuntos secundários (⭐ Secundários)**
+
+▶ [**Vídeo V49** — Preferência de assunto secundário](videos/V49-preferencia-de-assunto-secundario.mp4)
+
+Funciona como a ⭐ da classe e do assunto principal, mas para **incluir**
+um assunto secundário que se repete muito — por exemplo, acrescentar
+**3418 - Furto de coisa comum**.
+
+**Onde fica:** se o processo já tem assunto secundário, o cabeçalho mostra
+a linha **Assuntos Secundários**, e nela há **✏️ Alterar** e **⭐**. Se ainda
+não tem, o balão **⭐ Secundários** fica na linha do **Assunto Principal**,
+depois da ⭐ dele.
+
+*Gravar uma preferência:*
+
+1. Clique na **⭐** dos assuntos secundários (ou em **⭐ Secundários**) e em
+   **+ Nova preferência**.
+2. Abre-se a tela de alteração no popup, já na linha **Assuntos
+   Secundários**, com o aviso amarelo "Gravando preferência".
+3. Clique em **Adicionar**. Na janela de seleção do Projudi, pesquise o
+   assunto, marque-o e clique em **Selecionar**.
+4. Nesse momento **nada é alterado**: o assunto não entra no processo. A
+   extensão só guarda o assunto escolhido, pede um nome para a preferência
+   e fecha o popup.
+
+*Usar a preferência:* clique na **⭐** dos assuntos secundários e no nome da
+preferência (**★ …**). A extensão faz, sozinha e sem mostrar a tela, o
+mesmo que você faria: **Adicionar**, pesquisa o assunto, marca, clica em
+**Selecionar**, confere se ele entrou na lista e só então clica em
+**Salvar**. Um aviso no alto da tela mostra o andamento; no fim, a tela do
+processo é recarregada.
+
+*Bom saber:*
+
+- Se o processo **já tiver** o assunto secundário da preferência, nada é
+  feito e a extensão avisa.
+- Se o assunto não aparecer na pesquisa ou não entrar na lista, **nada é
+  salvo** e aparece um aviso — use **✏️ Alterar** para fazer à mão.
+- A preferência só **inclui** assunto secundário. Para remover, use o
+  **✖** ao lado do assunto (abaixo).
+- Preferências de assunto secundário gravadas em versões de teste
+  anteriores à 2.28.0 não funcionam: apague-as com **🗑** e grave de novo.
+- Para apagar, use **🗑** ao lado da preferência. Elas também entram no
+  **⬇ Exportar** do Menu da extensão ([2.6](#cap-2-6)).
+
+**Remover um assunto secundário (✖)**
+
+▶ [**Vídeo V50** — Remover assunto secundário](videos/V50-remover-assunto-secundario.mp4)
+
+No cabeçalho do processo, na linha **Assuntos Secundários**, cada assunto
+tem no fim um pequeno balão **✖**. Ele tira aquele assunto do processo sem
+você abrir a tela de alteração.
+
+1. Clique no **✖** do assunto que quer tirar.
+2. Confirme a pergunta "Remover o assunto secundário … deste processo?".
+3. Um aviso no alto da tela mostra o andamento ("removendo da lista…",
+   "salvando…"). A extensão faz o mesmo que o botão **Remover** da tela de
+   alteração, confere se o assunto saiu da lista e só então clica em
+   **Salvar**. No fim, a tela do processo é recarregada sem o assunto.
+
+*Bom saber:*
+
+- Só os assuntos **secundários** têm **✖**; o assunto principal não pode ser
+  removido, só trocado (**✏️ Alterar** ou **⭐**).
+- Se o assunto não sair da lista, **nada é salvo** e a extensão avisa — use
+  **✏️ Alterar** para fazer à mão.
 
 <a id="cap-8-10"></a>
 ### 8.10 Novo Valor da Causa
@@ -2019,6 +2108,52 @@ sem sair da lista de decursos e sem abrir outra aba.
 - Dentro do painel não aparecem a balança do Menu, os cards dos sistemas do
   CNJ nem a barra de botões da extensão — eles ficam só na tela principal.
 
+<a id="cap-9-9"></a>
+### 9.9 Documento do Juiz ao passar o mouse no Retorno de Conclusão
+
+▶ [**Vídeo V51** — Documento do Juiz no Retorno de Conclusão](videos/V51-documento-da-conclusao.mp4)
+
+*No Projudi e no SEEU.*
+
+**Para que serve:** ler o despacho, a decisão ou a sentença que o Juiz fez
+sem sair da lista **Retorno de Conclusão**. Sem a extensão, seria preciso
+clicar em **Analisar** (tela **Dados da Conclusão**), de novo em **Analisar**
+(tela **Movimentar Processo**) e só então abrir o arquivo da linha
+**Documentos**.
+
+**Onde fica:** lista **Retorno de Conclusão**, no botão **Analisar** de
+cada linha.
+
+**Passo a passo:**
+
+1. Pare o mouse sobre o **Analisar** da linha do processo.
+2. Aparece uma janela com "Procurando o documento da conclusão…" e, em
+   seguida, o documento que o Juiz fez — o mesmo da linha **Documentos**
+   (colunas Descrição, Assinado Por, Arquivo e Nível de Sigilo) da tela
+   **Movimentar Processo**. Os arquivos das **Movimentações Realizadas**,
+   mais abaixo naquela tela, não aparecem.
+3. Se a conclusão tiver **mais de um arquivo**, abre **uma janela para cada
+   um**, em cascata. O título de cada janela começa pelo número do arquivo
+   ("1/3", "2/3"…), que aparece também na faixa das janelas de trás.
+   - Para ver outro arquivo, **clique na janela de trás** (na faixa do
+     título ou na parte que aparece do documento): ela passa para a frente.
+   - O **✕** fecha **só aquela janela**; as outras continuam abertas. O ✕ da
+     última fecha tudo.
+4. Para fechar todas de uma vez: tire o mouse do **Analisar** e das janelas
+   ou tecle **Esc**.
+
+**Bom saber:**
+
+- **📌 Fixar** mantém as janelas abertas mesmo tirando o mouse; elas então
+  só fecham no **✕** (ou em **Esc**). Clique de novo para desafixar.
+- **Abrir em nova aba ↗** abre o documento numa aba própria. Clicar no
+  **Analisar** continua abrindo a tela **Dados da Conclusão** como sempre.
+- A lista **não muda**: nada é analisado nem finalizado ao abrir as janelas.
+- Se a linha **Documentos** não tiver arquivo, a janela avisa "Nenhum
+  documento encontrado…"; clique em **Analisar** para ver a tela completa.
+- Passar o mouse de novo na mesma linha abre mais rápido: o documento já
+  encontrado é lembrado enquanto a lista estiver aberta.
+
 ---
 
 <a id="cap-10"></a>
@@ -2123,7 +2258,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V09](videos/V09-destinatarios-e-remetentes-do-email.mp4) | [Destinatários favoritos e remetentes do e-mail](videos/V09-destinatarios-e-remetentes-do-email.mp4) | [5.3](#cap-5-3) | 0:46 |
 | [V10](videos/V10-suspensao-e-monitoracao-no-cabecalho.mp4) | [Suspensão e monitoração eletrônica no cabeçalho](videos/V10-suspensao-e-monitoracao-no-cabecalho.mp4) | [4.1](#cap-4-1) | 0:37 |
 | [V11](videos/V11-reus-no-cabecalho.mp4) | [Réus, indiciados e noticiados no cabeçalho](videos/V11-reus-no-cabecalho.mp4) | [4.3](#cap-4-3) | 0:27 |
-| [V12](videos/V12-sequencial-do-processo-principal.mp4) | [Sequencial do processo principal (apensos)](videos/V12-sequencial-do-processo-principal.mp4) | [4.4](#cap-4-4) | 0:22 |
+| [V12](videos/V12-sequencial-do-processo-principal.mp4) | [Sequencial do processo principal (apensos)](videos/V12-sequencial-do-processo-principal.mp4) | [4.4](#cap-4-4) | 0:34 |
 | [V13](videos/V13-dispensar-juntadas.mp4) | [Dispensar juntadas](videos/V13-dispensar-juntadas.mp4) | [6.1](#cap-6-1) | 0:31 |
 | [V14](videos/V14-finalizar-conclusao.mp4) | [Finalizar conclusão pendente](videos/V14-finalizar-conclusao.mp4) | [6.2](#cap-6-2) | 0:27 |
 | [V15](videos/V15-dispensar-decursos.mp4) | [Dispensar decursos de prazo](videos/V15-dispensar-decursos.mp4) | [6.3](#cap-6-3) | 0:31 |
@@ -2160,6 +2295,9 @@ pode variar um pouco. Clique no título para assistir.
 | [V46](videos/V46-remessa-turma-recursal.mp4) | [Remessa para a Turma Recursal](videos/V46-remessa-turma-recursal.mp4) | [7.1](#cap-7-1) | 0:47 |
 | [V47](videos/V47-novo-valor-da-causa.mp4) | [Novo Valor da Causa](videos/V47-novo-valor-da-causa.mp4) | [8.10](#cap-8-10) | 0:36 |
 | [V48](videos/V48-aviso-de-versao-nova.mp4) | [Aviso de versão nova e atualização](videos/V48-aviso-de-versao-nova.mp4) | [2.3](#cap-2-3) | 0:41 |
+| [V49](videos/V49-preferencia-de-assunto-secundario.mp4) | [Preferência de assunto secundário](videos/V49-preferencia-de-assunto-secundario.mp4) | [8.9](#cap-8-9) | 0:52 |
+| [V50](videos/V50-remover-assunto-secundario.mp4) | [Remover assunto secundário](videos/V50-remover-assunto-secundario.mp4) | [8.9](#cap-8-9) | 0:22 |
+| [V51](videos/V51-documento-da-conclusao.mp4) | [Documento do Juiz no Retorno de Conclusão](videos/V51-documento-da-conclusao.mp4) | [9.9](#cap-9-9) | 0:59 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -2173,6 +2311,10 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.29.2 | 09/10/2026 | Integradas as novidades da versão 2.29.1 com o bloco de anotações por processo, cores e múltiplas notas. |
+| 2.29.1 | 09/10/2026 | Seção 4.4 reescrita: o processo principal é sempre o **primeiro processo da linha Apensamentos:**, também nos apensos de apensos (antes podia aparecer o Sequencial de outro processo, ou "não encontrado"); no primeiro processo da lista, e em processos sem apensos, aparece a linha **Sequencial:** do próprio processo. Vídeo V12 refeito. |
+| 2.29.0 | 08/10/2026 | Nova seção **9.9** (Projudi e SEEU): na lista **Retorno de Conclusão**, pousar o mouse sobre o **Analisar** mostra o documento que o Juiz fez (despacho, decisão ou sentença) — o da linha **Documentos** da tela **Movimentar Processo**, sem clicar duas vezes em Analisar —, uma janela por arquivo, com **📌 Fixar**, **Abrir em nova aba** e **✕**. Com mais de um arquivo, o **✕** fecha só aquela janela e clicar numa janela de trás a traz para a frente. Nova função na tabela da 2.6 e vídeo V51. |
+| 2.28.0 | 08/10/2026 | Alterar Classe/Assuntos (8.9): novas **preferências de assuntos secundários** (**⭐** na linha **Assuntos Secundários** do cabeçalho, ou **⭐ Secundários** na linha do Assunto Principal quando ainda não há assunto secundário) — para gravar, use **Adicionar**, pesquise, marque o assunto e clique em **Selecionar** (só grava a preferência); ao usar, a extensão faz o mesmo caminho na janela de seleção do Projudi, confere se o assunto entrou na lista e só então salva. Novo balão **✖** no fim de cada assunto secundário do cabeçalho, que remove aquele assunto e salva (pede confirmação). Corrigido: fora da tela do processo, os indicadores de suspensão e de monitoração e o botão do WhatsApp deixam de repetir avisos internos a cada 1,5 segundo. Novos vídeos V49 e V50. |
 | 2.27.1 | 08/10/2026 | Cores amarelo, azul, verde e vermelho e várias notas por processo; preservadas as notas anteriores. |
 | 2.27.0 | 08/10/2026 | Novo bloco de anotações móvel, por processo ou permanente, com salvamento automático. |
 | 2.26.4 | 08/10/2026 | Sem alteração de texto; associadas as linhas **Analisar** e da data pelo código do mandado na listagem. |
