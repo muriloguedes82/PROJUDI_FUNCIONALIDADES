@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.30.3 |
-| **Versão da extensão** | 2.30.3 |
+| **Versão do manual** | 2.30.4 |
+| **Versão da extensão** | 2.30.4 |
 | **Data desta versão** | 09/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -2350,6 +2350,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.30.4 | 09/10/2026 | Sem alteração de texto; preferências com texto (8.2, 9.9, 9.10): se a versão gravada trouxer variáveis do Modelo sem dados (ex.: "$parteSelecionadaDadosBasicos"), a extensão não a aplica, deixa o documento como o Projudi o gerou e avisa para gravar a preferência de novo. |
 | 2.30.3 | 09/10/2026 | Sem alteração de texto; Pré-Análise com preferências (9.10): se o Projudi devolver uma página de erro (ex.: "403 Forbidden") no popup, a extensão avisa que o erro é do servidor e como recomeçar. |
 | 2.30.2 | 09/10/2026 | Corrigido (9.10): em Expedir Intimações e Expedir Citação, o **Prazo** e o **Usar Anexos** da tela final não ficavam gravados na preferência; agora são gravados no clique em Assinar e Expedir/Postergar Assinatura e preenchidos em cada uso. |
 | 2.30.1 | 09/10/2026 | Corrigido (9.10): em Expedir Intimações e Expedir Citação, o campo **Descrição** da Pré-Análise não ficava gravado na preferência; agora é gravado e preenchido em cada uso. |

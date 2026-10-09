@@ -2096,10 +2096,22 @@
 		return mapa;
 	}
 
+	// Variáveis do Modelo ainda não resolvidas pelo Projudi
+	// ("$parteSelecionadaDadosBasicos", "$audienciaDataHora"...).
+	const VARIAVEL_MODELO_RE = /\$[a-zA-Z][a-zA-Z0-9]{3,}/g;
+
+	function contarVariaveis(no) {
+		return ((no.textContent || "").match(VARIAVEL_MODELO_RE) || []).length;
+	}
+
 	// Uso: refaz a edição gravada no documento aberto. Devolve o último nó
-	// colocado, ou null se o documento não parecer do mesmo Modelo.
+	// colocado; null se o documento não parecer do mesmo Modelo; ou
+	// "variaveis" se a edição traria variáveis do Modelo não resolvidas
+	// (nesse caso o documento volta a ser o que o Projudi gerou).
 	function aplicarEdicao(body, edicao) {
 		const raiz = blocosRaiz(body);
+		const originais = Array.prototype.slice.call(raiz.childNodes);
+		const variaveisAntes = contarVariaveis(raiz);
 		const novos = blocosDoEditor(body);
 		const novosTextos = novos.map(function (n) { return cleanText(n.textContent || ""); });
 		const mapa = casarParagrafos(edicao, novosTextos);
@@ -2165,6 +2177,12 @@
 		emitirExtrasAte(Infinity);
 		while (raiz.firstChild) raiz.removeChild(raiz.firstChild);
 		saida.forEach(function (node) { raiz.appendChild(node); });
+		if (contarVariaveis(raiz) > variaveisAntes) {
+			console.warn(LOG, "edição gravada traria variáveis do Modelo não resolvidas:", (raiz.textContent.match(VARIAVEL_MODELO_RE) || []).join(", "));
+			while (raiz.firstChild) raiz.removeChild(raiz.firstChild);
+			originais.forEach(function (node) { raiz.appendChild(node); });
+			return "variaveis";
+		}
 		return saida.length ? saida[saida.length - 1] : null;
 	}
 
@@ -2330,6 +2348,10 @@
 		const edicao = job.pref.edicao;
 		if (edicao && edicao.mudou) {
 			const ultimo = aplicarEdicao(body, edicao);
+			if (ultimo === "variaveis") {
+				showStatus('A versão gravada nesta preferência tem variáveis do Modelo sem dados (ex.: "$parteSelecionadaDadosBasicos"). Deixei o documento como o Projudi o gerou: confira e clique em "Continuar". Para corrigir, grave a preferência de novo (✏️).', "warn");
+				return;
+			}
 			if (!ultimo) {
 				showStatus('Este documento não parece ser do mesmo Modelo da preferência: não refiz as edições gravadas. Faça-as à mão e clique em "Continuar" — a extensão continua daí.', "warn");
 				return;
