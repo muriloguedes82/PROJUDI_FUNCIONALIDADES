@@ -2044,7 +2044,8 @@ Para usar o sistema fora do popup, o cabeçalho dele tem um só botão
 (`sistemas-cnj-open` em `background.js`): abre numa janela maximizada no
 segundo monitor sempre que `chrome.system.display` informar mais de um, e
 senão numa aba nova ao lado da do processo. O rótulo (🖥 Segundo monitor ou
-🗂 Nova aba) segue `screen.isExtended`.
+🗂 Nova aba) segue o mesmo `chrome.system.display` (mensagem
+`sistemas-cnj-monitores`), para não dizer "Nova aba" e abrir no monitor.
 
 Limitação: as demais diretivas de CSP desses sites (como `script-src`)
 deixam de valer quando eles abrem embutidos — `declarativeNetRequest` não

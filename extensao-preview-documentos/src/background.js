@@ -941,6 +941,18 @@ async function pdpSistemaCnjSegundoMonitor(url, windowId) {
   return true;
 }
 
+// Rótulo do botão (sistemasCnj.js): quantos monitores o Chrome enxerga. O
+// screen.isExtended da página nem sempre informa (o site pode bloqueá-lo),
+// e então o botão dizia "Nova aba" mas abria no segundo monitor.
+chrome.runtime.onMessage.addListener((message, sender, reply) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'sistemas-cnj-monitores') return false;
+  if (!sender.tab || !chrome.system?.display) { reply({ok:true, dois:false}); return false; }
+  chrome.system.display.getInfo()
+    .then(telas => reply({ok:true, dois: telas.length >= 2}))
+    .catch(() => reply({ok:true, dois:false}));
+  return true;
+});
+
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
   if (message?.source !== 'projudi-preview' || message.type !== 'sistemas-cnj-open') return false;
   let sistema;
