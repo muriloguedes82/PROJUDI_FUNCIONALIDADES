@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.32.0 |
-| **Versão da extensão** | 2.32.0 |
+| **Versão do manual** | 2.32.1 |
+| **Versão da extensão** | 2.32.1 |
 | **Data desta versão** | 13/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1542,6 +1542,9 @@ sistemas novos entram no **Outros**.
 - O popup fica sobre o processo: a aba do processo não muda de lugar.
 - Se o login de um sistema não funcionar dentro do popup, use o botão
   **🖥 Segundo monitor** (ou **🗂 Nova aba**, com um monitor só).
+- O nome do botão segue o que o navegador enxerga: se ele mostra
+  **🖥 Segundo monitor**, abre no outro monitor; se mostra **🗂 Nova aba**,
+  abre numa aba nova.
 - Se o segundo monitor estiver desligado ou desconectado, o sistema abre
   numa nova aba.
 - Ao fechar o popup, o que estava aberto no sistema não fica guardado; ao
@@ -2532,6 +2535,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.32.1 | 13/10/2026 | Sistemas do CNJ e card **Outros** (8.7): corrigido o nome do botão do topo do popup, que podia aparecer como **🗂 Nova aba** mesmo com dois monitores (e então abria o sistema no segundo monitor). Agora, com dois monitores, ele aparece como **🖥 Segundo monitor**, como descrito. Nota nova no *Bom saber*. |
 | 2.32.0 | 13/10/2026 | Seção 7.4: os **🔗 Combos** passam a aceitar toda preferência usada na tela do processo, incluindo as do **✏️ Alterar Classe/Assuntos** (Projudi) e as do **📍 Localizador** (SEEU). Essas etapas não abrem janela: a barra do combo mostra o que será feito e executa no **▶ Sim, executar** dela; a alteração de classe/assuntos recarrega o processo e o combo segue. Pela **⭐** das listas (9.3), combos com essas etapas abrem o processo numa nova aba (↗). |
 | 2.31.1 | 13/10/2026 | Seção 2.6: o **⬇ Exportar** passa a levar toda e qualquer preferência criada pelo usuário — inclusive as de Analisar Decurso, Pré-Análise, classe e assuntos, localizador (SEEU) e as listas de tarefas — e qualquer preferência de função nova entra automaticamente; o resumo mostrado ao exportar e ao importar lista cada tipo de preferência com a quantidade. |
 | 2.31.0 | 13/10/2026 | Mescla com a versão principal (até a 2.29.1). As funções desenvolvidas em paralelo, listadas abaixo nas linhas de 2.25.1 a 2.30.5 (sobre preferências de Pré-Análise, Mandados, Expedir Intimações/Citação, decurso em lote, Sistemas do CNJ e e-mail), passam a conviver com as da principal (2.26.0 a 2.29.1). Renumeração: as seções **Analisar e Dispensar decurso na lista** e **Analisar (Pré-Análise) dos cumprimentos com preferências** passam a **9.10** e **9.11** (a 9.9 é a do Documento do Juiz no Retorno de Conclusão), e os vídeos delas passam a **V52** e **V53** (V49 a V51 são os da principal). Nas linhas antigas abaixo, essas seções e vídeos aparecem com a numeração da época. |
