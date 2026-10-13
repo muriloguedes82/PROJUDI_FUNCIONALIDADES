@@ -171,7 +171,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 		{
 			nome: "Informações do processo",
 			itens: [
-				{ id: "anotacoes", nome: "Bloco de anotações", descricao: "Post-it móvel com notas por processo ou permanentes, salvas neste navegador.", js: ["src/blocoAnotacoes.js"], css: ["src/blocoAnotacoes.css"] },
+				{ id: "anotacoes", nome: "Bloco de anotações", descricao: "Post-it móvel: rascunhos pessoais no navegador e envio explícito do texto para o lembrete ativo do Projudi.", js: ["src/blocoAnotacoes.js"], css: ["src/blocoAnotacoes.css"] },
 				{
 					id: "reus",
 					nome: "Réus no cabeçalho",

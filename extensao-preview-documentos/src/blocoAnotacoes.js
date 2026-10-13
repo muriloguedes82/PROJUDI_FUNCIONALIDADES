@@ -1,22 +1,55 @@
-// Notas locais: nenhuma anotação é enviada ao processo ou ao servidor.
+// Notas locais e sincronização explícita com o lembrete ativo do Projudi.
 (function () {
   'use strict';
   if (!window.__pdpHostPermitido || window.__pdpButtonGroupBlocked || window.__pdpPostit) return;
-  try {
-    if (window.frameElement && (window.frameElement.matches('.pdp-qa-modal-iframe, [data-pdp-loader], [data-pdp-hide-button-group]') || /dialog|popup/i.test(window.frameElement.id))) return;
-  } catch (_) { return; }
-  const header = document.querySelector('em.attention') || document.querySelector('#informacoesProcessuais');
-  if (!header) return;
-  const match = /\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/.exec(header.textContent + ' ' + document.title);
-  if (!match) return;
-  window.__pdpPostit = true;
+  function deveOcultarPostitNesteFrame() {
+    const classesPopup = ['pdp-qa-modal-iframe', 'pdp-proc-preview-iframe', 'pdp-sistemas-cnj-iframe'];
+    let atual = window;
+    let primeiroFrame = null;
+    try {
+      while (atual !== atual.top) {
+        const frame = atual.frameElement;
+        if (!frame) return true;
+        if (atual === window) primeiroFrame = frame;
+        if (frame.hasAttribute('data-pdp-loader') || frame.hasAttribute('data-pdp-hide-button-group') ||
+            classesPopup.some(nome => frame.classList.contains(nome)) || /dialog|popup/i.test(frame.id || '')) return true;
+        atual = atual.parent;
+      }
+      // A aplicação usa um frameset com quadros de cabeçalho e conteúdo.
+      // Só o userMainFrame representa a tela atual; nos demais quadros o post-it
+      // ficava sobreposto ao que era renderizado no quadro principal.
+      if (window === window.top) {
+        return document.documentElement?.tagName === 'FRAMESET' || document.body?.tagName === 'FRAMESET';
+      }
+      const nome = String(primeiroFrame?.name || primeiroFrame?.id || '').toLowerCase();
+      return nome !== 'usermainframe';
+    } catch (_) { return true; }
+  }
+  if (deveOcultarPostitNesteFrame()) return;
+  const isProjudi = location.pathname.startsWith('/projudi/');
+  // A ficha inicial também pode usar processo.do com um token opaco, sem
+  // actionType/id na URL. A listagem usa essa rota, mas não tem a barra de
+  // título individual verificada logo abaixo.
+  const isProjudiProcessRoute = /^\/projudi\/(?:processo|visualizacaoProcesso|movimentarProcesso)\.do$/i.test(location.pathname);
+  // Só a barra de título da ficha individual é uma fonte segura para o número.
+  // Títulos genéricos e linhas de tabela em listagens podem conter vários processos.
+  const header = document.querySelector('#barraTituloStatusProcessual');
+  const match = (!isProjudi || isProjudiProcessRoute) && header ?
+    /\bProcesso\s+(\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4})\b/i.exec(header.textContent) : null;
+  const hasProcessContext = !!match;
   const prefix = 'pdpPostit:' + location.hostname + ':';
-  const processKey = prefix + match[0], globalKey = prefix + 'permanente';
+  const globalKey = prefix + 'permanente';
+  // Em páginas sem uma ficha individual, a nota principal aponta sempre para
+  // a nota permanente. O conteúdo por processo nunca usa um número extraído de listagens.
+  const processKey = hasProcessContext ? prefix + match[1] : globalKey;
   const settingsKey = prefix + 'posicao', extrasKey = processKey + ':extras';
+  const createUrlKey = processKey + ':linkNovoLembrete';
   const colors = { amarelo: 'Amarelo', azul: 'Azul', verde: 'Verde', vermelho: 'Vermelho' };
   const cards = new Set();
   const records = {};
+  const defaultSubject = 'Anotação compartilhada - Abra ou instale a extensão Olirum';
   let extraIds = [], queue = Promise.resolve(), main;
+  let lembrete = { mode: 'loading', url: '', detail: '', subject: '', problem: '', cachedCreateUrl: '' };
   function normalize(value, fallback = {}) {
     const data = value && typeof value === 'object' ? value : { ...fallback, text: typeof value === 'string' ? value : '' };
     return { text: typeof data.text === 'string' ? data.text : '', color: colors[data.color] ? data.color : 'amarelo',
@@ -52,10 +85,210 @@
     toggle.textContent = data.collapsed ? '▾' : '−';
     toggle.title = data.collapsed ? 'Abrir anotações' : 'Recolher anotações';
     toggle.setAttribute('aria-label', toggle.title);
-    box.querySelector('small').textContent = card.key === globalKey ? 'Nota pessoal para todos os processos' : match[0];
+    box.querySelector('small').textContent = card.key === globalKey ? 'Nota pessoal para todos os processos' :
+      (lembrete.mode === 'active' ? 'Lembrete ativo · ' + (lembrete.subject || match?.[1] || '') :
+        lembrete.mode === 'create' ? 'Novo lembrete · ' + defaultSubject : (match?.[1] || 'Nota permanente'));
     box.querySelectorAll('[data-color]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.color === data.color)));
     box.querySelector('output').textContent = 'Salvo neste navegador';
+    const sync = box.querySelector('[data-sync]');
+    if (sync) {
+      sync.hidden = card !== main || card.key === globalKey || !hasProcessContext || !isProjudi;
+      sync.disabled = lembrete.mode === 'loading' || lembrete.mode === 'idle' || lembrete.mode === 'unavailable' || !records[processKey];
+      sync.textContent = lembrete.mode === 'create' ? 'Salvar no Projudi (novo lembrete)' : 'Salvar no Projudi';
+      const message = box.querySelector('[data-sync-status]');
+      if (message && !message.dataset.edited) {
+        message.textContent = lembrete.mode === 'loading' ? 'Verificando lembrete ativo…' :
+          lembrete.mode === 'unavailable' ? (lembrete.problem || 'Não foi possível localizar o lembrete ativo.') :
+          lembrete.mode === 'create' ? 'Será criado com o assunto “' + defaultSubject + '”.' :
+          lembrete.mode === 'active' ? 'Lembrete ativo conectado.' :
+          lembrete.mode === 'personal' ? 'Nota pessoal, salva neste navegador.' : '';
+      }
+    }
     clamp(card);
+  }
+  function normalizarTexto(value) { return String(value || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('pt-BR'); }
+  function urlDeCriacaoValida(value) {
+    try {
+      const url = new URL(value);
+      return url.origin === location.origin && /\/projudi\/util\/lembrete\.do$/i.test(url.pathname);
+    } catch (_) { return false; }
+  }
+  function encontrarLembretes(root = document) {
+    const fieldset = Array.from(root.querySelectorAll('fieldset')).find(box =>
+      /^lembrete ativo:?$/i.test(normalizarTexto(box.querySelector('legend')?.textContent)));
+    if (fieldset) {
+      const activeLink = Array.from(fieldset.querySelectorAll('a[href]')).find(a =>
+        /\/projudi\/util\/lembrete\.do/i.test(a.href) && !/^desativar$/i.test(normalizarTexto(a.textContent)));
+      if (activeLink) return { mode: 'active', url: activeLink.href };
+    }
+    const rows = Array.from(root.querySelectorAll('tr'));
+    const active = rows.find(row => {
+      const label = row.querySelector('td.label, td.labelRadio, th');
+      return label && /^lembrete ativo:?$/i.test(normalizarTexto(label.textContent));
+    });
+    const activeLink = active && Array.from(active.querySelectorAll('a[href]')).find(a => /\/projudi\/util\/lembrete\.do/i.test(a.href));
+    if (activeLink) return { mode: 'active', url: activeLink.href };
+    const list = rows.find(row => {
+      const label = row.querySelector('td.label, td.labelRadio, th');
+      return label && /^lembretes?:?$/i.test(normalizarTexto(label.textContent));
+    });
+    // Dependendo do layout, “Novo Lembrete” pode ficar numa célula separada
+    // ou fora da linha que contém o rótulo “Lembretes”. Procure primeiro a
+    // linha conhecida e depois o link na página inteira.
+    const linkValido = a => /\/projudi\/util\/lembrete\.do/i.test(a.href) &&
+      /novo lembrete/i.test(normalizarTexto(a.textContent));
+    const createLink = (list && Array.from(list.querySelectorAll('a[href]')).find(linkValido)) ||
+      Array.from(root.querySelectorAll('a[href]')).find(linkValido);
+    if (createLink) return { mode: 'create', url: createLink.href };
+    // Um quadro “Lembrete Ativo” vazio pode coexistir com o link de criação.
+    // Só bloqueie duplicação se o quadro existir e nenhum link de criação foi encontrado.
+    return fieldset ? { mode: 'invalid', url: '' } : null;
+  }
+  async function aguardarLinkLembrete(root = document) {
+    let found = encontrarLembretes(root);
+    for (let tentativa = 0; !found && tentativa < 10; tentativa++) {
+      await new Promise(resolve => setTimeout(resolve, 250));
+      found = encontrarLembretes(root);
+    }
+    return found;
+  }
+  async function obterPagina(url, options) {
+    const response = await fetch(url, Object.assign({ credentials: 'same-origin', cache: 'no-store' }, options || {}));
+    if (!response.ok) throw new Error('O Projudi respondeu com erro (' + response.status + ').');
+    return { url: response.url || url, html: await response.text() };
+  }
+  function parsePagina(htmlText) { return new DOMParser().parseFromString(htmlText, 'text/html'); }
+  function textoHTML(markup) {
+    const doc = parsePagina('<body>' + (markup || '') + '</body>');
+    doc.querySelectorAll('br').forEach(el => el.replaceWith('\n'));
+    doc.querySelectorAll('p,div,li,tr').forEach(el => el.append('\n'));
+    return (doc.body.textContent || '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+  function conteudoDoLembrete(doc) {
+    const editor = doc.querySelector('textarea[name="conteudoEditor"]');
+    const rendered = doc.querySelector('table.tabelaImpressao');
+    return textoHTML(rendered ? rendered.innerHTML : editor ? editor.value : '');
+  }
+  function assuntoDoLembrete(doc) {
+    const input = doc.querySelector('input[name="assunto"]');
+    if (input && input.value) return input.value;
+    const row = Array.from(doc.querySelectorAll('tr')).find(tr => /^assunto:?$/i.test(normalizarTexto(tr.querySelector('td.label')?.textContent)));
+    return row ? (row.querySelectorAll('td')[1]?.textContent || '').trim() : '';
+  }
+  function enderecoDeAlteracao(doc, pageUrl) {
+    const button = doc.querySelector('#alterarButton, input[name="alterarButton"]');
+    const match = button && /submitPage\s*\(\s*['"]([^'"]+)/i.exec(button.getAttribute('onclick') || '');
+    return match ? new URL(match[1], pageUrl).href : '';
+  }
+  function corpoDoFormulario(form, overrides) {
+    const params = new URLSearchParams(Array.from(new FormData(form).entries()));
+    Object.entries(overrides || {}).forEach(([name, value]) => params.set(name, value));
+    return params;
+  }
+  async function postForm(form, action, overrides) {
+    return obterPagina(action || form.action, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+      body: corpoDoFormulario(form, overrides).toString()
+    });
+  }
+  async function buscarLembreteNaAbaGeral() {
+    const form = document.querySelector('#processoForm') || document.forms[0];
+    if (!form || !form.elements.namedItem('selectedIcon') ||
+        !/\/projudi\/visualizacaoProcesso\.do(?:\?|$)/i.test(form.action)) return null;
+    // Replica a troca de aba do Projudi sem navegar nem alterar a tela visível.
+    const page = await postForm(form, form.action, { selectedIcon: 'tabDadosProcesso' });
+    return encontrarLembretes(parsePagina(page.html));
+  }
+  async function carregarLembreteAtivo() {
+    lembrete.problem = '';
+    let found = await aguardarLinkLembrete();
+    if (!found) {
+      try { found = await buscarLembreteNaAbaGeral(); }
+      catch (error) { lembrete.problem = error.message || 'Não foi possível consultar Informações Gerais.'; }
+    }
+    if (!found && urlDeCriacaoValida(lembrete.cachedCreateUrl)) {
+      found = { mode: 'create', url: lembrete.cachedCreateUrl };
+    }
+    if (!found) throw new Error(lembrete.problem || 'Não foi possível localizar o lembrete na ficha deste processo.');
+    if (found.mode === 'invalid') throw new Error('O quadro “Lembrete Ativo” existe, mas não foi possível ler o link do assunto.');
+    lembrete.url = found.url;
+    if (found.mode === 'create') {
+      lembrete.mode = 'create';
+      lembrete.cachedCreateUrl = found.url;
+      chrome.storage.local.set({ [createUrlKey]: { url: found.url, savedAt: Date.now() } });
+      render(main);
+      return;
+    }
+    lembrete.cachedCreateUrl = '';
+    chrome.storage.local.remove(createUrlKey);
+    const detail = await obterPagina(found.url);
+    const doc = parsePagina(detail.html);
+    if (!doc.querySelector('form[name="lembreteForm"]') || !enderecoDeAlteracao(doc, detail.url)) {
+      throw new Error('Não foi possível abrir o lembrete ativo para edição.');
+    }
+    lembrete.detail = detail.html;
+    lembrete.subject = assuntoDoLembrete(doc);
+    records[processKey].text = conteudoDoLembrete(doc);
+    lembrete.mode = 'active';
+    if (main && main.key === processKey) render(main);
+    persist({ [processKey]: records[processKey] }, main);
+    lembrete.mode = 'active';
+  }
+  async function salvarLembrete(button, message) {
+    if (lembrete.mode !== 'active' && lembrete.mode !== 'create') return;
+    button.disabled = true;
+    message.dataset.edited = 'true';
+    message.textContent = 'Salvando no Projudi…';
+    const noteText = records[processKey].text;
+    let submissionStarted = false;
+    try {
+      if (!noteText.trim()) throw new Error('Escreva o texto do lembrete antes de salvar no Projudi.');
+      let editorPage;
+      if (lembrete.mode === 'active') {
+        const detailDoc = parsePagina(lembrete.detail);
+        const form = detailDoc.querySelector('form[name="lembreteForm"]');
+        const editUrl = enderecoDeAlteracao(detailDoc, lembrete.url);
+        if (!form || !editUrl) throw new Error('O formulário do lembrete ativo não está disponível.');
+        editorPage = await postForm(form, editUrl);
+      } else {
+        editorPage = await obterPagina(lembrete.url);
+      }
+      const editorDoc = parsePagina(editorPage.html);
+      const editorForm = editorDoc.querySelector('form[name="lembreteForm"]');
+      if (!editorForm) throw new Error('O Projudi não abriu o formulário de edição do lembrete.');
+      const subject = editorForm.querySelector('[name="assunto"]');
+      const content = editorForm.querySelector('textarea[name="conteudoEditor"]');
+      if (!subject || !content) throw new Error('Não encontrei os campos de assunto e texto do lembrete.');
+      if (lembrete.mode === 'create') subject.value = defaultSubject;
+      content.value = noteText.split('\n').map(line => line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')).join('<br>');
+      submissionStarted = true;
+      const saved = await postForm(editorForm, new URL(editorForm.getAttribute('action') || editorPage.url, editorPage.url).href);
+      const savedDoc = parsePagina(saved.html);
+      const errors = savedDoc.querySelector('#errorMessages, .errorMessages');
+      if (errors && errors.textContent.trim()) throw new Error(errors.textContent.trim());
+      const savedForm = savedDoc.querySelector('form[name="lembreteForm"]');
+      const savedText = conteudoDoLembrete(savedDoc);
+      if (!savedForm || normalizarTexto(savedText) !== normalizarTexto(noteText)) {
+        throw new Error('O Projudi não confirmou o texto salvo. Confira o lembrete antes de tentar novamente.');
+      }
+      lembrete.mode = 'active'; lembrete.detail = saved.html; lembrete.url = saved.url;
+      lembrete.subject = assuntoDoLembrete(savedDoc);
+      lembrete.cachedCreateUrl = '';
+      chrome.storage.local.remove(createUrlKey);
+      render(main);
+      message.textContent = 'Lembrete compartilhado salvo no Projudi.';
+      delete message.dataset.edited;
+    } catch (error) {
+      if (submissionStarted) {
+        lembrete.mode = 'unavailable';
+        lembrete.problem = 'Não foi possível confirmar o salvamento. Confira o lembrete no Projudi antes de tentar novamente.';
+        render(main);
+      }
+      message.textContent = error.message || 'Não foi possível salvar no Projudi.';
+    } finally {
+      button.disabled = lembrete.mode === 'unavailable';
+    }
   }
   function createCard(key, isMain, id) {
     const box = document.createElement('aside');
@@ -65,9 +298,11 @@
     box.innerHTML = '<header><strong>📝 Anotações</strong><span><button type="button" data-add title="Nova nota neste processo" aria-label="Nova nota neste processo">+</button><button type="button" data-toggle></button>' +
       (isMain ? '' : '<button type="button" data-delete title="Excluir esta nota" aria-label="Excluir esta nota">×</button>') +
       '</span></header><div class="pdp-postit-body">' + (isMain ? '<select aria-label="Tipo de anotação"><option value="processo">Deste processo</option><option value="permanente">Permanente (todos os processos)</option></select>' : '') +
-      '<small></small><textarea aria-label="Anotações" placeholder="Escreva suas anotações…" spellcheck="true"></textarea><footer><output aria-live="polite"></output><div class="pdp-postit-colors" aria-label="Cor da nota"></div></footer></div>';
+      '<small></small><textarea aria-label="Anotações" placeholder="Escreva suas anotações…" spellcheck="true"></textarea><footer><output aria-live="polite"></output><div class="pdp-postit-colors" aria-label="Cor da nota"></div></footer>' +
+      (isMain ? '<div class="pdp-postit-sync"><button type="button" data-sync disabled>Salvar no Projudi</button><output data-sync-status aria-live="polite">Verificando lembrete ativo…</output></div>' : '') + '</div>';
     const card = { box, key, revision: 0 };
     cards.add(card); document.body.appendChild(box);
+    if (isMain && !hasProcessContext) box.querySelector('[data-add]').hidden = true;
     const palette = box.querySelector('.pdp-postit-colors');
     Object.entries(colors).forEach(([color, name]) => {
       const button = document.createElement('button');
@@ -76,7 +311,13 @@
       button.addEventListener('click', () => { records[card.key].color = color; render(card); save(card); });
       palette.appendChild(button);
     });
-    box.querySelector('textarea').addEventListener('input', event => { records[card.key].text = event.target.value; save(card); });
+    box.querySelector('textarea').addEventListener('input', event => {
+      records[card.key].text = event.target.value; save(card);
+      const syncMessage = box.querySelector('[data-sync-status]');
+      if (syncMessage && card.key === processKey && lembrete.mode === 'active') {
+        syncMessage.dataset.edited = 'true'; syncMessage.textContent = 'Alterações não enviadas ao Projudi.';
+      }
+    });
     box.querySelector('[data-add]').addEventListener('click', () => {
       const noteId = crypto.randomUUID(), noteKey = processKey + ':note:' + noteId;
       const origin = records[card.key];
@@ -106,9 +347,17 @@
     if (isMain) {
       const scope = box.querySelector('select');
       scope.value = key === globalKey ? 'permanente' : 'processo';
+      box.querySelector('[data-sync]').addEventListener('click', event => salvarLembrete(event.currentTarget, box.querySelector('[data-sync-status]')));
       scope.addEventListener('change', () => {
         card.revision++;
         card.key = scope.value === 'permanente' ? globalKey : processKey;
+        if (card.key === processKey && lembrete.mode === 'idle') {
+          lembrete.mode = 'loading';
+          const editor = box.querySelector('textarea'); editor.disabled = true;
+          carregarLembreteAtivo().catch(error => {
+            lembrete.mode = 'unavailable'; lembrete.problem = error.message || 'Não foi possível verificar o lembrete ativo.';
+          }).finally(() => { editor.disabled = false; render(card); });
+        }
         render(card); persist({ [settingsKey]: { scope: scope.value } }, card);
       });
     }
@@ -129,17 +378,58 @@
     render(card); return card;
   }
   window.addEventListener('resize', () => cards.forEach(clamp));
-  chrome.storage.local.get([processKey, globalKey, settingsKey, extrasKey]).then(async data => {
+  const storageKeys = [...new Set([processKey, globalKey, settingsKey, ...(hasProcessContext ? [extrasKey, createUrlKey] : [])])];
+  chrome.storage.local.get(storageKeys).then(async data => {
     // Mantém o texto da primeira versão e usa a antiga posição como ponto inicial.
     const prefs = data[settingsKey] || {};
     records[processKey] = normalize(data[processKey], prefs);
     records[globalKey] = normalize(data[globalKey], prefs);
-    extraIds = Array.isArray(data[extrasKey]) ? [...new Set(data[extrasKey].filter(id => typeof id === 'string'))] : [];
+    const cachedCreate = hasProcessContext ? data[createUrlKey] : null;
+    if (cachedCreate && Date.now() - cachedCreate.savedAt < 45 * 60 * 1000 && urlDeCriacaoValida(cachedCreate.url)) {
+      lembrete.cachedCreateUrl = cachedCreate.url;
+    } else if (cachedCreate) {
+      chrome.storage.local.remove(createUrlKey);
+    }
+    extraIds = hasProcessContext && Array.isArray(data[extrasKey]) ? [...new Set(data[extrasKey].filter(id => typeof id === 'string'))] : [];
     const extraKeys = extraIds.map(id => processKey + ':note:' + id);
     const extraData = extraKeys.length ? await chrome.storage.local.get(extraKeys) : {};
-    main = createCard(prefs.scope === 'permanente' ? globalKey : processKey, true);
+    window.__pdpPostit = true;
+    main = createCard(!hasProcessContext || prefs.scope === 'permanente' ? globalKey : processKey, true);
+    if (!hasProcessContext) {
+      const processOption = main.box.querySelector('select option[value="processo"]');
+      if (processOption) { processOption.hidden = true; processOption.disabled = true; }
+    }
+    render(main);
+    if (hasProcessContext && prefs.scope !== 'permanente' && isProjudi) {
+      const editor = main.box.querySelector('textarea');
+      editor.disabled = true;
+      carregarLembreteAtivo().catch(error => {
+        lembrete.mode = 'unavailable';
+        lembrete.problem = error.message || 'Não foi possível verificar o lembrete ativo.';
+      }).finally(() => { editor.disabled = false; render(main); });
+    } else if (hasProcessContext && isProjudi) {
+      lembrete.mode = 'idle';
+      render(main);
+    } else {
+      lembrete.mode = 'personal';
+      render(main);
+    }
     extraIds.forEach((id, index) => {
       const key = extraKeys[index]; records[key] = normalize(extraData[key]); createCard(key, false, id);
     });
   }).catch(error => { console.error('[Projudi Anotações] Não foi possível carregar as notas:', error); });
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== 'local' || !changes[createUrlKey] || !main) return;
+    const cached = changes[createUrlKey].newValue;
+    if (cached && urlDeCriacaoValida(cached.url) && lembrete.mode !== 'active' && lembrete.mode !== 'invalid') {
+      lembrete.cachedCreateUrl = cached.url;
+      if (lembrete.mode === 'unavailable' || lembrete.mode === 'idle') lembrete.mode = 'create';
+      if (lembrete.mode === 'loading') return;
+    } else if (!cached && lembrete.mode === 'create') {
+      lembrete.cachedCreateUrl = '';
+      lembrete.mode = 'unavailable';
+      lembrete.problem = 'O lembrete mudou em outra aba. Atualize esta página antes de salvar novamente.';
+    }
+    render(main);
+  });
 })();
