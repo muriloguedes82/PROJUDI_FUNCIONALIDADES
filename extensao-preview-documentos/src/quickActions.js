@@ -4573,9 +4573,11 @@
 	// "⭐ Minhas Preferências": todas as preferências salvas (das ações
 	// rápidas, do "📎 Juntar Documento" e, no SEEU, do "📍 Localizador")
 	// em cards, num painel que abre
-	// para baixo do botão. Só as FAV_VISIBLE_LIMIT primeiras aparecem por
-	// padrão; o modo de edição permite arrastar os cards para reordená-los
-	// (ordem gravada em FAV_ORDER_KEY).
+	// para baixo do botão, agrupados num bloco por ação (ícone do botão,
+	// nome da ação e quantidade). Só as FAV_VISIBLE_LIMIT primeiras aparecem
+	// por padrão; o modo de edição permite arrastar os cards dentro do bloco
+	// e os blocos (pelo título) entre si (ordem gravada em FAV_ORDER_KEY: a
+	// ordem dos blocos é a do primeiro card de cada um).
 	// -------------------------------------------------------------------
 
 	function groupForLabel(label) {
@@ -4600,6 +4602,61 @@
 
 	function loadFavItems() {
 		return loadFavItemsWith(false);
+	}
+
+	// Bloco de "Minhas Preferências" de um item: { key, icon, title }.
+	function favGroupOf(item) {
+		if (item.kind === "combo") return { key: "combo", icon: "🔗", title: "Combos" };
+		if (item.kind === "localizador") return { key: "localizador", icon: "📍", title: "Localizador" };
+		if (item.kind === "juntar") return { key: "a:" + JUNTAR_LABEL, icon: "📎", title: JUNTAR_LABEL };
+		const group = groupForLabel(item.label);
+		return { key: "a:" + item.label, icon: group ? group.icon : "★", title: item.label };
+	}
+
+	// Agrupa os itens (já na ordem salva) em blocos, na ordem do primeiro
+	// item de cada um, e monta cada bloco em `container` com
+	// buildCard(item) para os cards. Devolve os blocos criados.
+	function buildFavGroups(container, items, buildCard) {
+		const groups = new Map();
+		items.forEach(function (item) {
+			const info = favGroupOf(item);
+			if (!groups.has(info.key)) groups.set(info.key, { info: info, items: [] });
+			groups.get(info.key).items.push(item);
+		});
+		const built = [];
+		groups.forEach(function (g) {
+			const box = document.createElement("div");
+			box.className = "pdp-qa-fav-group";
+			box.dataset.group = g.info.key;
+			const label = document.createElement("span");
+			label.className = "pdp-qa-fav-group-label";
+			label.title = g.info.title;
+			const icon = document.createElement("span");
+			icon.textContent = g.info.icon;
+			const title = document.createElement("span");
+			title.textContent = g.info.title;
+			const count = document.createElement("span");
+			count.className = "pdp-qa-fav-group-count";
+			label.appendChild(icon);
+			label.appendChild(title);
+			label.appendChild(count);
+			box.appendChild(label);
+			const cards = document.createElement("div");
+			cards.className = "pdp-qa-fav-group-cards";
+			box.appendChild(cards);
+			g.items.forEach(function (item) {
+				cards.appendChild(buildCard(item));
+			});
+			updateFavGroupCount(box);
+			container.appendChild(box);
+			built.push(box);
+		});
+		return built;
+	}
+
+	function updateFavGroupCount(box) {
+		const count = box.querySelector(".pdp-qa-fav-group-count");
+		if (count) count.textContent = "(" + box.querySelectorAll(".pdp-qa-fav-card").length + ")";
 	}
 
 	// `includeCombos`: também os combos e as preferências de localizadores
@@ -4718,7 +4775,7 @@
 
 		const hint = document.createElement("div");
 		hint.className = "pdp-qa-note";
-		hint.textContent = 'Arraste os cards para reordená-los. A ordem é salva na hora. Clique em "✅ Concluir" ao terminar.';
+		hint.textContent = 'Arraste os cards para mudar a ordem dentro do bloco, ou o título de um bloco para mudá-lo de lugar. A ordem é salva na hora. Clique em "✅ Concluir" ao terminar.';
 		hint.hidden = true;
 		panel.appendChild(hint);
 
@@ -4742,6 +4799,9 @@
 			cards.forEach(function (card, index) {
 				card.classList.toggle("pdp-qa-fav-hidden", !showAll && index >= FAV_VISIBLE_LIMIT);
 			});
+			grid.querySelectorAll(".pdp-qa-fav-group").forEach(function (box) {
+				box.classList.toggle("pdp-qa-fav-hidden", !box.querySelector(".pdp-qa-fav-card:not(.pdp-qa-fav-hidden)"));
+			});
 			const hiddenCount = Math.max(0, cards.length - FAV_VISIBLE_LIMIT);
 			footer.hidden = hiddenCount === 0;
 			showAllBox.checked = showAll;
@@ -4760,13 +4820,14 @@
 			panel.classList.toggle("pdp-qa-fav-editing", state.editing);
 			editBtn.textContent = state.editing ? "✅ Concluir" : "✏️ Editar posição";
 			hint.hidden = !state.editing;
-			grid.querySelectorAll(".pdp-qa-fav-card").forEach(function (card) {
-				card.draggable = state.editing;
+			grid.querySelectorAll(".pdp-qa-fav-card, .pdp-qa-fav-group-label").forEach(function (el) {
+				el.draggable = state.editing;
 			});
 			applyVisibility();
 		});
 
 		let draggedCard = null;
+		let draggedGroup = null;
 		// Mesmo critério do painel "🔗 Combos" (qualquer aba da tela do processo).
 		const comboCanRun = isOnAcoesScreen() || !!findMovimentarButton() || !!findLatestValidEventLink() || hasProcessoForm() || !!findBackToProcessUrl();
 
@@ -4797,10 +4858,6 @@
 						? (window.__pdpLocalizador && window.__pdpLocalizador.disponivel() ? "localizador" : null)
 						: modeForLabel(item.label);
 
-			const actionEl = document.createElement("span");
-			actionEl.className = "pdp-qa-fav-card-action";
-			actionEl.textContent = item.label;
-			card.appendChild(actionEl);
 			const nameEl = document.createElement("span");
 			nameEl.className = "pdp-qa-fav-card-name";
 			nameEl.textContent = (isCombo ? "▶ " : "★ ") + item.pref.name;
@@ -4864,7 +4921,10 @@
 					: 'Remover a preferência "' + item.pref.name + '" de "' + item.label + '"?';
 				if (!confirm(question)) return;
 				removeFavItem(item).then(function () {
+					const box = card.closest(".pdp-qa-fav-group");
 					card.remove();
+					if (box && !box.querySelector(".pdp-qa-fav-card")) box.remove();
+					else if (box) updateFavGroupCount(box);
 					if (!grid.querySelector(".pdp-qa-fav-card")) showEmpty();
 					applyVisibility();
 				}).catch(function (err) {
@@ -4897,6 +4957,8 @@
 					: 'Preenche automaticamente e pede 1 confirmação para executar "' + item.label + '"';
 				if (item.pref.descricao) card.title += "\n" + item.pref.descricao;
 			}
+			// O nome pode aparecer cortado ("…") no card: vai inteiro no balão.
+			card.title = (isCombo ? "▶ " : "★ ") + item.pref.name + "\n" + card.title;
 
 			function activate() {
 				if (state.editing || !mode) return;
@@ -4929,6 +4991,7 @@
 			});
 
 			card.addEventListener("dragstart", function (e) {
+				e.stopPropagation();
 				if (!state.editing) {
 					e.preventDefault();
 					return;
@@ -4945,9 +5008,11 @@
 				});
 				draggedCard = null;
 			});
+			// Card só troca de lugar dentro do próprio bloco.
 			card.addEventListener("dragover", function (e) {
-				if (!draggedCard || draggedCard === card) return;
+				if (!draggedCard || draggedCard === card || draggedCard.parentNode !== card.parentNode) return;
 				e.preventDefault();
+				e.stopPropagation();
 				e.dataTransfer.dropEffect = "move";
 				card.classList.add("pdp-qa-fav-over");
 			});
@@ -4955,16 +5020,61 @@
 				card.classList.remove("pdp-qa-fav-over");
 			});
 			card.addEventListener("drop", function (e) {
+				if (!draggedCard) return;
 				e.preventDefault();
+				e.stopPropagation();
 				card.classList.remove("pdp-qa-fav-over");
-				if (!draggedCard || draggedCard === card) return;
-				const cards = Array.prototype.slice.call(grid.children);
+				if (draggedCard === card || draggedCard.parentNode !== card.parentNode) return;
+				const cards = Array.prototype.slice.call(card.parentNode.children);
 				const movingForward = cards.indexOf(draggedCard) < cards.indexOf(card);
 				card.insertAdjacentElement(movingForward ? "afterend" : "beforebegin", draggedCard);
 				persistOrder();
 			});
 
 			return card;
+		}
+
+		// Blocos: arrastados pelo título, trocam de lugar entre si.
+		function makeGroupDraggable(box) {
+			const label = box.querySelector(".pdp-qa-fav-group-label");
+			label.title += " — em \"Editar posição\", arraste por aqui para mudar o bloco de lugar";
+			label.addEventListener("dragstart", function (e) {
+				if (!state.editing) {
+					e.preventDefault();
+					return;
+				}
+				draggedGroup = box;
+				box.classList.add("pdp-qa-fav-dragging");
+				e.dataTransfer.effectAllowed = "move";
+				e.dataTransfer.setData("text/plain", box.dataset.group);
+			});
+			label.addEventListener("dragend", function () {
+				box.classList.remove("pdp-qa-fav-dragging");
+				grid.querySelectorAll(".pdp-qa-fav-over").forEach(function (c) {
+					c.classList.remove("pdp-qa-fav-over");
+				});
+				draggedGroup = null;
+			});
+			box.addEventListener("dragover", function (e) {
+				if (!draggedGroup || draggedGroup === box) return;
+				e.preventDefault();
+				e.dataTransfer.dropEffect = "move";
+				box.classList.add("pdp-qa-fav-over");
+			});
+			box.addEventListener("dragleave", function (e) {
+				if (!box.contains(e.relatedTarget)) box.classList.remove("pdp-qa-fav-over");
+			});
+			box.addEventListener("drop", function (e) {
+				if (!draggedGroup) return;
+				e.preventDefault();
+				box.classList.remove("pdp-qa-fav-over");
+				if (draggedGroup === box) return;
+				const boxes = Array.prototype.slice.call(grid.children);
+				const movingForward = boxes.indexOf(draggedGroup) < boxes.indexOf(box);
+				box.insertAdjacentElement(movingForward ? "afterend" : "beforebegin", draggedGroup);
+				persistOrder();
+				applyVisibility();
+			});
 		}
 
 		function showEmpty() {
@@ -4981,9 +5091,7 @@
 			if (!items.length) {
 				showEmpty();
 			} else {
-				items.forEach(function (item) {
-					grid.appendChild(buildCard(item));
-				});
+				buildFavGroups(grid, items, buildCard).forEach(makeGroupDraggable);
 			}
 			applyVisibility();
 		});
@@ -5256,6 +5364,9 @@
 		resolveDialogUrl: resolveDialogUrl,
 		// Preferências salvas (mesma lista/ordem de "Minhas Preferências").
 		loadFavItems: loadFavItems,
+		// Monta os blocos por ação (mesmo visual de "Minhas Preferências")
+		// em `container`, com buildCard(item) para cada card.
+		buildFavGroups: buildFavGroups,
 		// Aplica uma preferência de ação (não "Juntar Documento" nem ações
 		// personalizadas) partindo de uma tela já carregada em segundo plano
 		// (`origem` = { doc, url }, ex.: a tela do processo) - mesmo popup,

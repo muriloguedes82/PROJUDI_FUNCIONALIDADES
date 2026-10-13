@@ -151,13 +151,21 @@ CENAS.V18 = {
 		await S.titleCard("VÍDEO V18", "Minhas Preferências", "Todas as preferências salvas, em cards, num só lugar.");
 		await S.cap("Clique em <b>⭐ Minhas Preferências</b>.");
 		await S.click("#x-fav");
-		const cards = [["Intimar MP - ciência 5 dias", "Intimar Partes"], ["Concluso p/ sentença", "Enviar Concluso"], ["Remessa MP", "Realizar Remessa"], ["Certidão de decurso", "Juntar Documento"], ["🔗 Decurso + concluso", "Combo · 2 etapas"], ["Mandado de intimação", "Ordenar Cumprimentos"]];
+		const blocos = [
+			{ icon: "📨", title: "Intimar Partes", cards: [{ name: "Intimar MP - ciência 5 dias" }] },
+			{ icon: "📤", title: "Enviar Concluso", cards: [{ name: "Concluso p/ sentença", id: "card-concluso" }, { name: "Concluso p/ despacho" }] },
+			{ icon: "📦", title: "Realizar Remessa", cards: [{ name: "Remessa MP" }] },
+			{ icon: "📎", title: "Juntar Documento", cards: [{ name: "Certidão de decurso" }] },
+			{ icon: "🔀", title: "Ordenar Cumprimentos", id: "grp-ord", cards: [{ name: "Mandado de intimação" }] },
+			{ icon: "🔗", title: "Combos", cards: [{ name: "Decurso + concluso", combo: true }] },
+		];
 		const pn = panelAt('<div style="display:flex;justify-content:space-between;align-items:center"><h4 style="margin:0">⭐ Minhas Preferências</h4><span class="x-btn small" id="editpos">✏️ Editar posição</span></div>' +
-			'<div id="grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px">' + cards.map((c, i) => '<div class="x-chip" data-card="' + i + '" style="display:block;border-radius:6px;padding:8px;margin:0;font-size:12px"><b>' + (c[0].startsWith("🔗") ? "" : "★ ") + c[0] + '</b><div style="color:#666;font-size:11px">' + c[1] + "</div></div>").join("") +
-			'</div><label style="display:block;margin-top:8px;font-size:11px"><input type="checkbox"> Mostrar todas</label>', "#x-fav", { w: 560 });
-		await S.cap("Cada card é uma preferência (das ações rápidas e do Juntar Documento) ou um combo 🔗.");
+			favBlocos(blocos, { tools: true }), "#x-fav", { w: 600 });
+		$(".x-fg", pn).id = "grid";
+		await S.cap("As preferências ficam em <b>blocos, um por ação</b> (com o ícone do botão e a quantidade). Os combos 🔗 têm um bloco próprio.", { ms: 4600 });
+		await S.cap("Cada card tem o <b>✏️</b> para editar a preferência e o <b>🗑</b> para removê-la.");
 		await S.cap("Clique num card para executá-lo. Exemplo: <b>★ Concluso p/ sentença</b>.");
-		await S.click('[data-card="1"]');
+		await S.click("#card-concluso");
 		pn.style.display = "none";
 		perguntaPend("★ Concluso p/ sentença — Enviar Concluso", ...PERG_JUNTADAS);
 		await S.cap("Com juntadas a analisar no quadro Pendências, vem antes a pergunta: <b>dispensar as juntadas</b>?", { ms: 4800 });
@@ -175,12 +183,13 @@ CENAS.V18 = {
 		$(".x-bar").remove(); $(".x-popup").remove();
 		await S.click("#x-fav");
 		pn.style.display = "";
-		await S.cap("Para mudar a ordem, clique em <b>✏️ Editar posição</b> e arraste os cards.");
+		await S.cap("Para mudar a ordem, clique em <b>✏️ Editar posição</b>: arraste os cards dentro do bloco, ou o título de um bloco para mudá-lo de lugar.", { ms: 4600 });
 		await S.click("#editpos");
 		$("#editpos").textContent = "✅ Concluir";
-		const c = $('[data-card="5"]');
+		pn.classList.add("editando");
+		const c = $("#grp-ord");
 		await S.move(c);
-		const r0 = c.getBoundingClientRect(), r1 = $('[data-card="0"]').getBoundingClientRect();
+		const r0 = c.getBoundingClientRect(), r1 = $("#grid").firstChild.getBoundingClientRect();
 		c.style.position = "relative";
 		await tween(900, k => { c.style.left = (r1.left - r0.left) * k + "px"; c.style.top = (r1.top - r0.top) * k + "px"; S.x = r0.left + r0.width / 2 + (r1.left - r0.left) * k; S.y = r0.top + r0.height / 2 + (r1.top - r0.top) * k; S.place(); });
 		c.style.position = ""; c.style.left = ""; c.style.top = "";
@@ -188,7 +197,8 @@ CENAS.V18 = {
 		await S.cap("A ordem é salva na hora. Clique em <b>✅ Concluir</b> ao terminar.");
 		await S.click("#editpos");
 		$("#editpos").textContent = "✏️ Editar posição";
-		await S.endCard("⭐ Minhas Preferências → clique no card → pendências? → conferir → ✅ Sim, executar. ✏️ Editar posição reordena.");
+		pn.classList.remove("editando");
+		await S.endCard("⭐ Minhas Preferências → clique no card → pendências? → conferir → ✅ Sim, executar. ✏️ no card edita; ✏️ Editar posição reordena cards e blocos.");
 	},
 };
 

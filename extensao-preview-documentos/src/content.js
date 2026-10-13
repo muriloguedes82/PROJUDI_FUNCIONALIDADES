@@ -1939,6 +1939,9 @@
 	// estar rodando mais nessa página/aba.
 	const WA_UI_LOG_PREFIX = "[Projudi WA-UI]";
 	let waUiLauncherWasPresent = null;
+	// Fora da tela do processo o botão não é criado; avisa uma vez só por
+	// página, não a cada reconciliação.
+	let waUiAvisouSemBotao = false;
 
 	function logWaUi() {
 		console.info.apply(console, [WA_UI_LOG_PREFIX].concat(Array.prototype.slice.call(arguments)));
@@ -1960,7 +1963,8 @@
 				// troca de aba).
 				updateWaLauncherCount();
 
-				if (!isElementUsable(document.getElementById("pdp-wa-launcher"))) {
+				if (!isElementUsable(document.getElementById("pdp-wa-launcher")) && !waUiAvisouSemBotao) {
+					waUiAvisouSemBotao = true;
 					logWaUi("initWhatsappLauncher() não criou o botão — isOnProcessScreen() retornou falso?", isOnProcessScreen());
 				}
 			}

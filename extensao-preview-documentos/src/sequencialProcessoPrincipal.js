@@ -1,33 +1,26 @@
 // Projudi - Sequencial do processo principal nos processos apensos (e do
 // próprio processo, quando ele é o principal)
 //
-// Na aba "Informações Gerais" de um processo apenso (ex.: um incidente
-// processual apensado a uma Ação Penal), o Projudi já mostra o link do
-// processo principal no campo "Processo Principal:", mas não mostra o
-// "Sequencial" dele — um identificador numérico (ex.: 45054) que só
-// aparece na aba "Informações Gerais" DAQUELE outro processo, e que às
-// vezes é necessário (ex.: para localizar o processo por esse número em
-// outras telas do Projudi).
+// REGRA: o processo principal é sempre o PRIMEIRO processo da linha
+// "Apensamentos:" da tela do processo, mesmo num apenso de apenso. Ex.:
+//   Processo: 0037276-16.2025.8.16.0019 - Ação Penal        ← principal
+//     Processo: 0035990-03.2025.8.16.0019 - Medidas Protetivas
+//       Processo: 0022813-35.2026.8.16.0019 - Petição Criminal
+// No 35990 e no 22813 aparece "Sequencial do Processo Principal:" com o
+// Sequencial do 37276. O campo "Processo Principal:" do Projudi NÃO é usado
+// para isso: ele pode apontar para a origem de um desmembramento (no
+// exemplo, o próprio 37276 mostra "Processo Principal: 35990").
 //
-// Este recurso busca esse número em segundo plano — um iframe oculto,
-// mesma técnica já usada com sucesso em quickActions.js/content.js,
-// necessária porque o Projudi devolve a página "capada" quando a
-// requisição não parece uma navegação de aba de verdade — e insere uma
-// linha "Sequencial do Processo Principal:" logo abaixo do campo
-// "Processo Principal:" já existente, só nos processos apensos (os que
-// têm esse campo).
+// No primeiro processo da árvore, e em qualquer processo sem a linha
+// "Apensamentos:", mostra o "Sequencial:" do próprio processo, logo abaixo de
+// "Nível de Sigilo:".
 //
-// No processo principal em si (que não tem "Processo Principal:", por não
-// ser apenso de ninguém) o próprio "Sequencial" já aparece nativamente
-// nessa mesma página, só que mais abaixo no quadro (perto de "Chave do
-// Processo") e só depois que a aba "Informações Gerais" carregar — o que
-// não acontece sozinho se o processo abrir noutra aba (o padrão é
-// "Movimentações"). Por isso, quando o campo ainda não estiver disponível
-// localmente, ele é buscado em segundo plano com um POST para o próprio
-// "processoForm" da página (sem iframe, sem depender de nenhum link de
-// Apensamentos/Vínculos) — e o valor é repetido, destacado, numa linha
-// "Sequencial:" logo abaixo de "Nível de Sigilo:", para ficar tão visível
-// quanto nos apensos.
+// O Sequencial só existe na aba "Informações Gerais", que costuma não estar
+// aberta (o padrão é "Movimentações"). Ele é buscado em segundo plano com um
+// POST para a action do "processoForm" com selectedIcon=tabDadosProcesso.
+// Para o processo principal, troca-se o "id" dessa action pelo id dele, que
+// se descobre abrindo o link da árvore (processo.do?_tj=..., que não revela
+// o id) num iframe oculto e lendo a action do "processoForm" de lá.
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
@@ -111,28 +104,14 @@
 				// navegação de verdade começar; ignora esse primeiro evento.
 				if (finalUrl === "about:blank") return;
 				settled = true;
-				cleanup();
-				resolve(doc);
+				// Quem chamou remove o iframe com `liberar()` depois de ler.
+				clearTimeout(timeout);
+				resolve({ doc: doc, liberar: cleanup });
 			});
 
 			document.body.appendChild(iframe);
 			iframe.src = url;
 		});
-	}
-
-	// Sem indicar a aba, o Projudi abre a página na última aba que a sessão
-	// do usuário deixou selecionada (pode não ser "Informações Gerais", onde
-	// fica o Sequencial) — o mesmo parâmetro já é usado nativamente pelo
-	// Projudi noutros links da própria página (ex.: "selectedIcon=
-	// tabAcoesVinculadas" para abrir na aba Vínculos).
-	function comAbaInformacoesGerais(href) {
-		try {
-			const url = new URL(href, window.location.href);
-			url.searchParams.set("selectedIcon", "tabDadosProcesso");
-			return url.href;
-		} catch (err) {
-			return href;
-		}
 	}
 
 	// Busca a aba "Informações Gerais" DESTA MESMA página em segundo plano —
@@ -146,8 +125,12 @@
 	// em "Movimentações", não em "Informações Gerais", então o campo
 	// "Sequencial" só existiria no documento se o usuário já tivesse clicado
 	// nessa aba — o que não pode ser exigido aqui.
+	//
+	// Com `idOutroProcesso`, faz o MESMO POST trocando só o "id" da action
+	// (visualizacaoProcesso.do?actionType=visualizar&id=...) — é assim que se
+	// busca o Sequencial do processo principal de um apenso.
 	let avisouFormNaoProcesso = false;
-	async function fetchAbaInformacoesGeraisPOST() {
+	async function fetchAbaInformacoesGeraisPOST(idOutroProcesso) {
 		const form = document.getElementById("processoForm");
 		if (!form) {
 			console.warn(TAG, "#processoForm não encontrado nesta página — não é possível buscar a aba em segundo plano aqui");
@@ -184,6 +167,8 @@
 			return null;
 		}
 
+		if (idOutroProcesso) actionUrl.searchParams.set("id", idOutroProcesso);
+
 		const body = new URLSearchParams();
 		for (const [name, value] of new FormData(form)) {
 			if (typeof value === "string") body.append(name, value);
@@ -219,74 +204,111 @@
 		}
 	}
 
-	// Sobe a cadeia de apensamentos até achar a raiz — o processo que já
-	// não tem, ele mesmo, um "Processo Principal:" — e devolve o Sequencial
-	// DELA. Necessário porque um apenso pode estar apensado a outro
-	// processo que, por sua vez, também é apenso de um terceiro (ex.: uma
-	// Liberdade Provisória apensada a uma Medida Protetiva, que por sua vez
-	// está apensada ao Inquérito Policial original): o "processo principal"
-	// que interessa mostrar é sempre o da raiz, não o do primeiro nível.
-	//
-	// O campo "Processo Principal:" fica fora da aba "Informações Gerais"
-	// (não depende dela carregar via AJAX — está sempre presente assim que
-	// a página termina de montar, mesmo padrão já usado em `init()` para a
-	// página atual), por isso dá para checar cada nível assim que o iframe
-	// carrega, sem esperar. Só o "Sequencial" da raiz, que é o que
-	// realmente precisa da aba carregada, é que exige a espera.
-	async function sequencialDaRaizDaCadeia(url) {
-		const LIMITE_NIVEIS = 10;
-		let alvo = url;
-		for (let nivel = 0; nivel < LIMITE_NIVEIS; nivel++) {
-			const targetUrl = comAbaInformacoesGerais(alvo);
-			console.log(TAG, "buscando na cadeia de apensamentos", { nivel: nivel, targetUrl: targetUrl });
-			const doc = await fetchDoc(targetUrl);
-			console.log(TAG, "iframe carregado", {
-				nivel: nivel,
-				finalUrl: doc.location && doc.location.href,
-				title: doc.title,
-				temTabelaInformacoesProcessuais: !!doc.getElementById("informacoesProcessuais"),
-			});
+	const RE_NUMERO_CNJ = /\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/;
 
-			const principalRowNesteNivel = findRowByLabel(doc, "Processo Principal");
-			const linkNesteNivel = principalRowNesteNivel && principalRowNesteNivel.querySelector("a.link");
-			if (linkNesteNivel && linkNesteNivel.href) {
-				// Este processo também é apenso de outro — sobe mais um nível.
-				alvo = linkNesteNivel.href;
-				continue;
-			}
-
-			// Achou a raiz: busca o Sequencial DELA (aqui sim é preciso esperar
-			// a aba "Informações Gerais" carregar via AJAX).
-			const sequencialRow = await waitForRow(doc, "Sequencial", 10000);
-			const valueCell = sequencialRow && sequencialRow.querySelectorAll("td")[1];
-			const sequencial = valueCell && valueCell.textContent.trim();
-			if (!sequencial) {
-				// Diagnóstico: sem isso, uma falha aqui não dá nenhuma pista de
-				// qual foi o problema (aba errada, sessão/redirecionamento,
-				// rótulo diferente do esperado etc.) — lista os rótulos que
-				// realmente vieram na página buscada, para comparar com
-				// "Sequencial" à mão no console (F12) sem precisar adivinhar.
-				const rotulosEncontrados = Array.prototype.slice
-					.call(doc.querySelectorAll("td.label label, td.labelRadio label"))
-					.map(function (label) {
-						return label.textContent.trim();
-					})
-					.filter(Boolean);
-				console.warn(TAG, "campo Sequencial não encontrado na raiz da cadeia de apensamentos", {
-					nivel: nivel,
-					targetUrl: targetUrl,
-					finalUrl: doc.location && doc.location.href,
-					title: doc.title,
-					rotulosEncontrados: rotulosEncontrados,
-					bodySnippet: (doc.body ? doc.body.textContent || "" : "").replace(/\s+/g, " ").trim().slice(0, 300),
-				});
-			} else {
-				console.log(TAG, "Sequencial da raiz da cadeia encontrado:", sequencial, { niveis: nivel + 1 });
-			}
-			return sequencial || null;
+	// Primeiro processo da árvore de "Apensamentos:" desta página. O Projudi
+	// desenha essa árvore a partir do processo-raiz — o que não é apenso de
+	// ninguém — com os apensos (e os apensos dos apensos) pendurados abaixo
+	// dele, em qualquer processo da árvore que se abra. Ex.:
+	//   Processo: 0037276-16.2025.8.16.0019 - Ação Penal        ← raiz
+	//     Processo: 0035990-03.2025.8.16.0019 - Medidas Protetivas
+	//       Processo: 0022813-35.2026.8.16.0019 - Petição Criminal
+	// Tanto no 35990 quanto no 22813 o "processo principal" que interessa é
+	// o 37276. Devolve { numero, href } ou null se a árvore não estiver na
+	// página (ou o primeiro item não tiver um link utilizável).
+	function raizDaArvoreDeApensamentos() {
+		const row = document.getElementById("trApensamento") || findRowByLabel(document, "Apensamentos");
+		if (!row) return null;
+		const cells = row.querySelectorAll("td");
+		const valor = cells[cells.length - 1];
+		if (!valor) return null;
+		const links = Array.prototype.filter.call(valor.querySelectorAll("a[href]"), function (link) {
+			const href = link.getAttribute("href") || "";
+			return href && href !== "#" && !/^javascript:/i.test(href);
+		});
+		// De preferência o link cujo próprio texto traz o número do processo
+		// (o processo aberto aparece em negrito); senão, o primeiro link para
+		// um processo cujo item da árvore traga o número (descarta ícones de
+		// abrir/fechar a árvore).
+		for (const link of links) {
+			const m = RE_NUMERO_CNJ.exec(link.textContent);
+			if (m) return { numero: m[0], href: link.href, atual: !!link.querySelector("b, strong") };
 		}
-		console.warn(TAG, "cadeia de apensamentos excedeu " + LIMITE_NIVEIS + " níveis — abortando para evitar loop infinito", { url: url });
+		for (const link of links) {
+			if (!/processo/i.test(link.href)) continue;
+			const item = link.closest("li, tr, div, span") || link;
+			const m = RE_NUMERO_CNJ.exec(item.textContent);
+			if (m) return { numero: m[0], href: link.href };
+		}
 		return null;
+	}
+
+	// Número do processo exibido numa página do Projudi: o <title> da tela do
+	// processo é o próprio número (ex.: " 0022813-35.2026.8.16.0019 ").
+	function numeroDaPagina(doc) {
+		const m = RE_NUMERO_CNJ.exec(doc.title || "");
+		return m ? m[0] : null;
+	}
+
+	// Id interno do processo, que fica na action do #processoForm
+	// (visualizacaoProcesso.do?actionType=visualizar&id=100000019278347).
+	function idDoProcesso(doc) {
+		const form = doc.getElementById("processoForm");
+		if (!form) return null;
+		try {
+			return new URL(form.getAttribute("action") || "", window.location.href).searchParams.get("id");
+		} catch (err) {
+			return null;
+		}
+	}
+
+	function valorDaAba(root) {
+		const row = findRowByLabel(root, "Sequencial");
+		const cell = row && row.querySelectorAll("td")[1];
+		return (cell && cell.textContent.trim()) || null;
+	}
+
+	// Os links das árvores do Projudi (processo.do?_tj=...) não revelam o id
+	// do processo. Abre o link num iframe oculto só para ler o id e o número
+	// da página carregada; o Sequencial vem depois, pelo POST da aba
+	// "Informações Gerais" (o mesmo que já funciona no próprio processo).
+	async function identificarPorLink(href) {
+		const carregado = await fetchDoc(href);
+		try {
+			return { id: idDoProcesso(carregado.doc), numero: numeroDaPagina(carregado.doc) };
+		} finally {
+			carregado.liberar();
+		}
+	}
+
+	// Lê, pelo POST da aba "Informações Gerais", o Sequencial do processo
+	// apontado por `href`. Confere o número do processo em cada passo: se o
+	// Projudi devolver outra página, não mostra número nenhum (melhor do que
+	// mostrar o Sequencial de outro processo).
+	async function lerProcessoPorLink(href, numeroEsperado) {
+		const ident = await identificarPorLink(href);
+		console.log(TAG, "processo identificado pelo link", { href: href, id: ident.id, numero: ident.numero, numeroEsperado: numeroEsperado });
+		if (!ident.id) return null;
+		if (numeroEsperado && ident.numero && ident.numero !== numeroEsperado) {
+			console.warn(TAG, "o link abriu outro processo", { esperado: numeroEsperado, aberto: ident.numero });
+			return null;
+		}
+		const doc = await fetchAbaInformacoesGeraisPOST(ident.id);
+		if (!doc) return null;
+		const numero = numeroDaPagina(doc) || ident.numero;
+		const esperado = numeroEsperado || ident.numero;
+		if (esperado && numero && numero !== esperado) {
+			console.warn(TAG, "a aba Informações Gerais veio de outro processo", { esperado: esperado, recebido: numero });
+			return null;
+		}
+		return { numero: numero, sequencial: valorDaAba(doc) };
+	}
+
+	// Com a árvore de Apensamentos: o principal é o primeiro processo dela.
+	async function sequencialDaRaiz(raiz) {
+		const info = await lerProcessoPorLink(raiz.href, raiz.numero);
+		console.log(TAG, "Sequencial do primeiro processo da árvore de Apensamentos:", info && info.sequencial, raiz);
+		return info && info.sequencial;
 	}
 
 	// Insere a linha "labelTexto:" logo depois de `anchorRow`, com o valor
@@ -318,23 +340,26 @@
 		if (!table) return;
 
 		const principalRow = findRowByLabel(table, "Processo Principal");
+		const raiz = raizDaArvoreDeApensamentos();
+		const numeroAtual = numeroDaPagina(document);
 
-		if (principalRow) {
-			// Processo apenso: mostra o Sequencial do processo principal, logo
-			// abaixo do campo "Processo Principal:" já existente — subindo a
-			// cadeia de apensamentos até a raiz, se este processo estiver
-			// apensado a outro que, por sua vez, também é apenso de um
-			// terceiro.
-			const principalLink = principalRow.querySelector("a.link");
-			if (!principalLink || !principalLink.href) return;
-			inserirLinhaSequencial(principalRow, "Sequencial do Processo Principal", function () {
-				return sequencialDaRaizDaCadeia(principalLink.href);
+		// O processo principal é sempre o PRIMEIRO da linha "Apensamentos:",
+		// quando ela existe — mesmo num apenso de apenso. O campo "Processo
+		// Principal:" do Projudi não serve para isso: ele pode apontar para a
+		// origem de um desmembramento (ex.: a Ação Penal 37276 mostra
+		// "Processo Principal: 35990", que é apenso DELA).
+		const atualEhRaiz = raiz && (numeroAtual ? raiz.numero === numeroAtual : raiz.atual);
+		if (raiz && !atualEhRaiz) {
+			const anchor = principalRow || findRowByLabel(table, "Nível de Sigilo") || table.rows[table.rows.length - 1];
+			if (!anchor) return;
+			inserirLinhaSequencial(anchor, "Sequencial do Processo Principal", function () {
+				return sequencialDaRaiz(raiz);
 			});
 			return;
 		}
 
-		// Processo principal (ou um processo qualquer que não é apenso de
-		// ninguém): o Projudi já mostra nativamente o próprio "Sequencial:"
+		// Primeiro processo da árvore de Apensamentos, ou processo sem
+		// Apensamentos: o Projudi já mostra nativamente o próprio "Sequencial:"
 		// nessa mesma página, só que mais abaixo no quadro (perto de "Chave
 		// do Processo") — mas só depois que a aba "Informações Gerais" for
 		// carregada, o que não acontece sozinho quando o processo abre
@@ -364,12 +389,6 @@
 				'<td colspan="4" style="color:' + COR + '"></td>';
 			newRow.querySelector("td:last-child").textContent = sequencial;
 			anchorRow.insertAdjacentElement("afterend", newRow);
-		}
-
-		function valorDaAba(root) {
-			const row = findRowByLabel(root, "Sequencial");
-			const cell = row && row.querySelectorAll("td")[1];
-			return cell && cell.textContent.trim();
 		}
 
 		// Espera um pouco pela aba local (cobre tanto o caso em que o

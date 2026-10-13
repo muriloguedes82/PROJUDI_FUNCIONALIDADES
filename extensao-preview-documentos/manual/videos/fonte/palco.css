@@ -69,8 +69,19 @@ a.link { color: #0645ad; text-decoration: underline; cursor: pointer; }
 .x-panel h4 { margin: 0 0 6px; font-size: 13px; color: #0d3560; }
 .x-action { border-top: 1px solid #e3e3e3; padding: 6px 0; }
 .x-action .nm { font-weight: bold; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; gap: 6px; }
-.x-chip { display: inline-flex; align-items: center; gap: 4px; background: #fff6cc; border: 1px solid #d9c46a; border-radius: 12px; padding: 2px 8px; margin: 3px 3px 0 0; font-size: 11px; }
+.x-chip { display: inline-flex; align-items: center; gap: 4px; background: #fff6cc; border: 1px solid #d9c46a; border-radius: 4px; padding: 2px 8px; margin: 3px 3px 0 0; font-size: 11px; }
 .x-chip .i { opacity: .8; }
+/* ⭐ Minhas Preferências: um bloco por ação, com cards de uma linha (favBlocos em motor.js). */
+.x-fg { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.x-fgrp { display: flex; flex-direction: column; gap: 3px; background: #fafafa; border: 1px solid #e6e6e6; border-radius: 4px; padding: 3px 5px 5px; }
+.x-fgl { font-size: 11px; font-weight: bold; color: #666; white-space: nowrap; }
+.x-fgl small { font-weight: normal; color: #999; font-size: 11px; }
+.x-fcards { display: flex; flex-wrap: wrap; gap: 3px; }
+.x-fcard { display: inline-flex; align-items: center; gap: 3px; background: #fff8e6; border: 1px solid #e8cf8a; border-radius: 4px; padding: 3px 6px; font-size: 12px; font-weight: bold; color: #333; white-space: nowrap; }
+.x-fcard.combo { background: #eef4fc; border-color: #b9d0f0; color: #1a5fb4; }
+.x-fcard.off { opacity: .5; }
+.x-fcard .i { font-size: 10px; font-weight: normal; opacity: .65; }
+.x-panel.editando .x-fcard, .x-panel.editando .x-fgrp { border-style: dashed; }
 .x-note { color: #666; font-size: 11px; margin: 4px 0; }
 .x-popup { position: fixed; left: 150px; top: 70px; width: 980px; height: 560px; z-index: 55; background: #fff; border: 1px solid #777; box-shadow: 0 6px 30px rgba(0,0,0,.35); border-radius: 4px; overflow: hidden; }
 .x-popup .hd { background: #3c4b5c; color: #fff; padding: 6px 10px; display: flex; justify-content: space-between; font-size: 12px; }
