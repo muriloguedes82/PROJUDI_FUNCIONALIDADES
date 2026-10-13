@@ -2995,7 +2995,9 @@
 	//
 	// Um combo é uma lista ORDENADA de preferências já salvas (de qualquer
 	// ação do painel, e também do "📎 Juntar Documento" — ver
-	// juntarDocumento.js), executadas uma depois da outra. O editor mostra uma
+	// juntarDocumento.js —, do "✏️ Alterar Classe/Assuntos" e do
+	// "📍 Localizador" — ver "Etapas diretas" abaixo), executadas uma depois
+	// da outra. O editor mostra uma
 	// caixa por etapa: na 1ª o usuário escolhe a preferência que roda
 	// primeiro; "+ Adicionar preferência" cria a caixa seguinte, e assim por
 	// diante. Guardados em chrome.storage.local, em COMBOS_KEY:
@@ -3025,6 +3027,14 @@
 	// "Concluir Movimento"), conduzida por juntarDocumento.js, que marca
 	// COMBO_JUNTAR_DONE_KEY no "Concluir Movimento". De volta à tela do
 	// processo, maybeResumeCombo vê a marca e segue para a próxima etapa.
+	//
+	// Etapas diretas ("Alterar Classe/Assuntos", só no Projudi, e
+	// "📍 Localizador", só no SEEU): não têm popup — a preferência é
+	// executada pelo próprio arquivo dela (alterarClasseAssuntos.js,
+	// localizadorSeeu.js). A barra do combo mostra o que será feito e só
+	// executa no "▶ Sim, executar" dela; terminada a etapa, segue para a
+	// próxima (a alteração de classe/assuntos recarrega a tela antes, para
+	// o cabeçalho mostrar o novo valor).
 	// -------------------------------------------------------------------
 
 	const COMBOS_KEY = "pdpPreferenceCombos";
@@ -3037,6 +3047,8 @@
 	const JUNTAR_LABEL = "Juntar Documento"; // preferências em JUNTAR_PREFS_KEY (topo)
 	const COMBO_JUNTAR_DONE_KEY = "pdpComboJuntadaConcluida"; // idem
 	const COMBO_JUNTAR_CONCLUIR_KEY = "pdpComboJuntadaConcluir"; // idem
+	const ALTERAR_CLASSE_LABEL = "Alterar Classe/Assuntos";
+	const ALTERAR_CLASSE_PREFS_KEY = "pdpAlterarClassePrefs"; // ver alterarClasseAssuntos.js
 	let comboResumeChecked = false;
 
 	function loadCombos() {
@@ -3073,21 +3085,42 @@
 		});
 	}
 
-	// Todas as preferências que podem entrar num combo, por rótulo da ação:
-	// as das Ações rápidas e as do "Juntar Documento" (em JUNTAR_LABEL).
-	function loadComboPreferences() {
-		return Promise.all([loadAllPreferences(), chrome.storage.local.get([JUNTAR_PREFS_KEY])]).then(function (data) {
-			const all = Object.assign({}, data[0]);
-			const juntar = data[1][JUNTAR_PREFS_KEY];
-			if (Array.isArray(juntar) && juntar.length) all[JUNTAR_LABEL] = juntar;
-			return all;
+	const COMBO_PREFS_STORAGE_KEYS = [PREFERENCES_KEY, JUNTAR_PREFS_KEY, ALTERAR_CLASSE_PREFS_KEY, LOCALIZADOR_PREFS_KEY];
+
+	// Todas as preferências que podem entrar num combo, por rótulo da ação,
+	// a partir do chrome.storage (chaves COMBO_PREFS_STORAGE_KEYS): as das
+	// Ações rápidas e, em JUNTAR_LABEL, ALTERAR_CLASSE_LABEL e
+	// LOCALIZADOR_LABEL, as do "Juntar Documento", do "Alterar
+	// Classe/Assuntos" e do "Localizador" (estas com `name` = nome gravado
+	// ou os localizadores, como em "Minhas Preferências").
+	function comboPreferencesFrom(data) {
+		const all = Object.assign({}, data[PREFERENCES_KEY] || {});
+		const juntar = data[JUNTAR_PREFS_KEY];
+		if (Array.isArray(juntar) && juntar.length) all[JUNTAR_LABEL] = juntar;
+		const alterar = data[ALTERAR_CLASSE_PREFS_KEY];
+		if (Array.isArray(alterar) && alterar.length) all[ALTERAR_CLASSE_LABEL] = alterar;
+		const loc = (Array.isArray(data[LOCALIZADOR_PREFS_KEY]) ? data[LOCALIZADOR_PREFS_KEY] : []).filter(function (pref) {
+			return pref && Array.isArray(pref.localizadores) && pref.localizadores.length;
 		});
+		if (loc.length) {
+			all[LOCALIZADOR_LABEL] = loc.map(function (pref) {
+				return { id: pref.id, name: pref.nome || pref.localizadores.join(" • "), createdAt: pref.createdAt, localizadores: pref.localizadores };
+			});
+		}
+		return all;
+	}
+
+	function loadComboPreferences() {
+		return chrome.storage.local.get(COMBO_PREFS_STORAGE_KEYS).then(comboPreferencesFrom);
 	}
 
 	// Todas as preferências salvas, na ordem dos grupos do painel, depois o
-	// "Juntar Documento" (ações desconhecidas — de versões antigas — no
-	// fim): [{ label, pref }].
-	function flattenPreferences(all) {
+	// "Juntar Documento" e as etapas diretas (ações desconhecidas — de
+	// versões antigas — no fim): [{ label, pref }]. As etapas diretas só
+	// entram onde podem rodar (Alterar Classe/Assuntos no Projudi,
+	// Localizador no SEEU), salvo as de `keepLabels` (já usadas no combo
+	// em edição).
+	function flattenPreferences(all, keepLabels) {
 		const labels = [];
 		ACTION_GROUPS.forEach(function (group) {
 			group.actions.forEach(function (label) {
@@ -3095,8 +3128,11 @@
 			});
 		});
 		labels.push(JUNTAR_LABEL);
+		Object.keys(DIRECT_STEPS).forEach(function (label) {
+			if (DIRECT_STEPS[label].nesteSistema() || (keepLabels || []).indexOf(label) !== -1) labels.push(label);
+		});
 		Object.keys(all).forEach(function (label) {
-			if (labels.indexOf(label) === -1) labels.push(label);
+			if (labels.indexOf(label) === -1 && !DIRECT_STEPS[label]) labels.push(label);
 		});
 		const items = [];
 		labels.forEach(function (label) {
@@ -3179,8 +3215,12 @@
 	// `message` (opcional): aviso sobre a etapa atual. Fora da fase
 	// "pending" (a etapa está abrindo), a barra oferece Repetir/Próxima —
 	// também quando a etapa não chegou a abrir (erro, "Cancelar" no
-	// "Abrindo…").
-	function renderComboBar(message) {
+	// "Abrindo…"). `options` (opcional): { actions: [{ caption, tip,
+	// onClick }] } — botões antes dos demais (ex.: "▶ Sim, executar" de uma
+	// etapa direta) — e { busy: true } — etapa executando: sem
+	// Repetir/Próxima.
+	function renderComboBar(message, options) {
+		options = options || {};
 		const run = readComboRun();
 		removeComboBar();
 		if (!run) return;
@@ -3211,7 +3251,10 @@
 			btn.addEventListener("click", onClick);
 			bar.appendChild(btn);
 		}
-		if (run.phase !== "pending") {
+		(options.actions || []).forEach(function (action) {
+			addButton(action.caption, action.tip, action.onClick);
+		});
+		if (run.phase !== "pending" && !options.busy) {
 			addButton("↻ Repetir etapa", "Abrir de novo esta etapa", function () {
 				restartComboStep(0);
 			});
@@ -3490,6 +3533,10 @@
 				startJuntarStep(pref);
 				return;
 			}
+			if (DIRECT_STEPS[step.label]) {
+				offerDirectStep(step, pref);
+				return;
+			}
 			comboStep = { confirmed: false, iframe: null };
 			renderComboBar();
 			if (getCustomAction(step.label)) {
@@ -3572,6 +3619,11 @@
 		}
 		if (getCustomAction(step.label)) {
 			return Promise.resolve(hasProcessoForm() ? {} : goBackOr("Abra a tela do processo e clique em \"Repetir etapa\"."));
+		}
+		const direct = DIRECT_STEPS[step.label];
+		if (direct) {
+			if (direct.disponivel()) return Promise.resolve({});
+			return Promise.resolve(direct.nesteSistema() ? goBackOr(direct.indisponivel) : { fail: direct.outroSistema });
 		}
 		if (isOnAcoesScreen() || findMovimentarButton() || findLatestValidEventLink()) return Promise.resolve({});
 		if (!hasProcessoForm()) return Promise.resolve(goBackOr('Abra a aba "Movimentações" do processo e clique em "Repetir etapa".'));
@@ -3673,6 +3725,105 @@
 		return !!(api && api.hasActiveJob());
 	}
 
+	// --- Etapas diretas (sem popup) --------------------------------------
+	//
+	// Por rótulo: nesteSistema() — o recurso está carregado nesta tela
+	// (Projudi/SEEU, função ligada); disponivel() — dá para executar já;
+	// descrever(pref) — o que será feito, na barra; executar(pref) —
+	// resolve com { ok, texto, recarregar }.
+	const DIRECT_STEPS = {
+		[ALTERAR_CLASSE_LABEL]: {
+			nesteSistema: function () {
+				return !!window.__pdpAlterarClasseApi;
+			},
+			disponivel: function () {
+				return !!window.__pdpAlterarClasseApi && window.__pdpAlterarClasseApi.disponivel();
+			},
+			indisponivel: 'Abra a tela do processo (com a Classe Processual no cabeçalho) e clique em "Repetir etapa".',
+			outroSistema: '"Alterar Classe/Assuntos" só roda no Projudi, com essa função ligada no Menu. Pule esta etapa ou pare o combo.',
+			descrever: function (pref) {
+				return window.__pdpAlterarClasseApi.descrever(pref);
+			},
+			executar: function (pref) {
+				return window.__pdpAlterarClasseApi.executar(pref).then(function (r) {
+					return { ok: r.ok, texto: r.texto, recarregar: !!r.mudou };
+				});
+			},
+		},
+		[LOCALIZADOR_LABEL]: {
+			nesteSistema: function () {
+				return !!window.__pdpLocalizador;
+			},
+			disponivel: function () {
+				return !!window.__pdpLocalizador && window.__pdpLocalizador.podeAssociar(document);
+			},
+			indisponivel: 'Abra a tela do processo (com o "+" dos localizadores no cabeçalho) e clique em "Repetir etapa".',
+			outroSistema: "Localizadores só são associados no SEEU, com essa função ligada no Menu. Pule esta etapa ou pare o combo.",
+			descrever: function (pref) {
+				return "Associar ao processo: " + pref.localizadores.join(", ") + ".";
+			},
+			executar: function (pref) {
+				return window.__pdpLocalizador
+					.associarEm(document, pref.localizadores, function (i, total, nome) {
+						renderComboBar("Associando " + i + " de " + total + ": " + nome + "…", { busy: true });
+					})
+					.then(function (r) {
+						return { ok: r.tipo !== "erro", texto: r.texto, recarregar: false };
+					});
+			},
+		},
+	};
+
+	// A barra mostra o que a etapa fará e espera o "▶ Sim, executar" — o
+	// combo nunca executa um ato sozinho.
+	function offerDirectStep(step, pref) {
+		const direct = DIRECT_STEPS[step.label];
+		renderComboBar(direct.descrever(pref), {
+			actions: [
+				{
+					caption: "▶ Sim, executar",
+					tip: "Executar esta etapa agora",
+					onClick: function () {
+						runDirectStep(step, pref);
+					},
+				},
+			],
+		});
+	}
+
+	function runDirectStep(step, pref) {
+		const direct = DIRECT_STEPS[step.label];
+		const startRun = readComboRun();
+		if (!startRun) return;
+		const index = startRun.index;
+		renderComboBar("Executando…", { busy: true });
+		logChainStep("combo: executando etapa direta " + (index + 1), { acao: step.label, preferencia: pref.name });
+		Promise.resolve()
+			.then(function () {
+				return direct.executar(pref);
+			})
+			.catch(function (err) {
+				return { ok: false, texto: err && err.message ? err.message : String(err) };
+			})
+			.then(function (r) {
+				const run = readComboRun();
+				// Combo parado (ou etapa trocada) enquanto executava.
+				if (!run || run.index !== index) return;
+				logChainStep("combo: etapa direta " + (index + 1) + (r.ok ? " executada" : " não executada"), r.texto || null);
+				if (!r.ok) {
+					setComboWaiting((r.texto || "A etapa não foi executada.") + ' Corrija e clique em "Repetir etapa", ou pule com "Próxima etapa".');
+					return;
+				}
+				if (r.recarregar) {
+					pageReloading = true;
+					advanceCombo((r.texto ? r.texto + " " : "") + "Recarregando o processo…");
+					window.location.reload();
+					return;
+				}
+				advanceCombo(r.texto ? "Etapa anterior: " + r.texto + " Abrindo a próxima…" : null);
+			});
+	}
+
 	// O popup da etapa atual fechou (ver removeActionModal).
 	function onComboStepModalClosed(reason) {
 		const step = comboStep;
@@ -3694,7 +3845,8 @@
 		renderComboBar(message);
 	}
 
-	function advanceCombo() {
+	// `message` (opcional): aviso na barra no lugar do padrão.
+	function advanceCombo(message) {
 		const run = readComboRun();
 		if (!run) return;
 		run.index++;
@@ -3707,7 +3859,7 @@
 		}
 		run.phase = "pending";
 		writeComboRun(run);
-		renderComboBar("Etapa anterior concluída. Abrindo a próxima…");
+		renderComboBar(message || "Etapa anterior concluída. Abrindo a próxima…");
 		// Se a tela está sendo recarregada, a página nova continua daqui
 		// (ver maybeResumeCombo).
 		if (!pageReloading) setTimeout(runPendingComboStep, COMBO_NEXT_STEP_DELAY_MS);
@@ -3886,7 +4038,14 @@
 	function openComboEditor(existing) {
 		closePanel();
 		loadComboPreferences().then(function (all) {
-			const items = flattenPreferences(all);
+			const items = flattenPreferences(
+				all,
+				existing
+					? existing.steps.map(function (step) {
+							return step.label;
+						})
+					: []
+			);
 			if (!items.length) {
 				alert('Ainda não há preferências salvas. Crie-as primeiro com "+ Nova preferência" nas ações do painel e depois monte o combo.');
 				return;
@@ -3910,7 +4069,7 @@
 				(existing ? "Editar combo de preferências" : "Novo combo de preferências") +
 				'</span><button type="button" class="pdp-qa-modal-close">✕ Fechar</button></div>' +
 				'<div class="pdp-qa-combo-body">' +
-				'<p class="pdp-qa-combo-help">Escolha na 1ª caixa a preferência que deve ser executada primeiro. Depois use "+ Adicionar preferência" para a próxima, e assim por diante. Ao usar o combo, cada etapa abre já preenchida e pede a confirmação de sempre ("Sim, executar"; no Juntar Documento, a assinatura); executada uma, a seguinte abre sozinha.</p>' +
+				'<p class="pdp-qa-combo-help">Escolha na 1ª caixa a preferência que deve ser executada primeiro. Depois use "+ Adicionar preferência" para a próxima, e assim por diante. Ao usar o combo, cada etapa abre já preenchida e pede a confirmação de sempre ("Sim, executar"; no Juntar Documento, a assinatura; no Alterar Classe/Assuntos e no Localizador, o "▶ Sim, executar" da barra do combo); executada uma, a seguinte abre sozinha.</p>' +
 				'<label class="pdp-qa-combo-name">Nome do combo <input type="text" maxlength="80"></label>' +
 				'<div class="pdp-qa-combo-steps"></div>' +
 				'<button type="button" class="pdp-qa-combo-add">+ Adicionar preferência</button>' +
@@ -4663,7 +4822,7 @@
 	// (só o painel do botão; o da linha do processo, em
 	// preferenciasNaLinha.js, não tem como executar nenhum dos dois).
 	function loadFavItemsWith(includeCombos) {
-		return chrome.storage.local.get([PREFERENCES_KEY, JUNTAR_PREFS_KEY, FAV_ORDER_KEY, COMBOS_KEY, LOCALIZADOR_PREFS_KEY]).then(function (data) {
+		return chrome.storage.local.get(COMBO_PREFS_STORAGE_KEYS.concat([FAV_ORDER_KEY, COMBOS_KEY])).then(function (data) {
 			const items = [];
 			const actionPrefs = data[PREFERENCES_KEY] || {};
 			Object.keys(actionPrefs).forEach(function (label) {
@@ -4689,8 +4848,7 @@
 				});
 			}
 			if (includeCombos) {
-				const all = Object.assign({}, actionPrefs);
-				if (juntarPrefs.length) all[JUNTAR_LABEL] = juntarPrefs;
+				const all = comboPreferencesFrom(data);
 				const combos = Array.isArray(data[COMBOS_KEY]) ? data[COMBOS_KEY] : [];
 				combos.forEach(function (combo) {
 					items.push({
@@ -5380,9 +5538,10 @@
 		findComboPref: findPref,
 		comboPendingKey: COMBO_PENDING_KEY,
 		// Etapas que só rodam na tela do processo (navegam a aba ou usam
-		// telas próprias): "Juntar Documento" e ações personalizadas.
+		// telas próprias): "Juntar Documento", ações personalizadas e as
+		// etapas diretas (Alterar Classe/Assuntos, Localizador).
 		stepNeedsProcessScreen: function (label) {
-			return label === JUNTAR_LABEL || !!getCustomAction(label) || label === "Alvará Eletrônico";
+			return label === JUNTAR_LABEL || !!getCustomAction(label) || label === "Alvará Eletrônico" || !!DIRECT_STEPS[label];
 		},
 		// Abre/fecha o painel de um grupo cujo botão é de outro arquivo
 		// (ex.: "⚖️ Advogados", de habilitarAdvogado.js, com

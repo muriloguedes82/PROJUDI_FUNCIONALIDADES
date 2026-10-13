@@ -892,13 +892,14 @@
 		});
 	}
 
-	async function executarPreferencia(pref) {
-		if (ocupado) return;
-		ocupado = true;
-		const titulo = "★ " + pref.name;
+	// Faz a alteração da preferência e devolve { jaEstava } (nada a fazer),
+	// { ok: true } (salva) ou { ok: false, mensagem } (o Projudi recusou);
+	// erros de tela viram exceção. Não recarrega nem avisa: isso fica com
+	// quem chama (o clique na ⭐, abaixo, ou uma etapa de combo).
+	async function alterarConformePreferencia(pref, titulo) {
+		mostrarStatus(titulo + " — abrindo a tela de alteração…");
 		try {
-			mostrarStatus(titulo + " — abrindo a tela de alteração…");
-			const resultado = pref.tipo === "secundario" ? await executarSecundario(pref, titulo) : await rodarNoQuadro(await urlDaEdicao(), function (doc, n, win) {
+			return pref.tipo === "secundario" ? await executarSecundario(pref, titulo) : await rodarNoQuadro(await urlDaEdicao(), function (doc, n, win) {
 				const form = doc.getElementById(FORM_ID);
 				if (n === 0) {
 					if (!form) throw new Error("a tela de alteração do processo não abriu.");
@@ -920,10 +921,24 @@
 				if (/sucesso/i.test(texto) && !/erro|n[aã]o foi poss[ií]vel|inv[aá]lid|obrigat[oó]ri/i.test(texto)) return { ok: true };
 				return { ok: false, mensagem: mensagemDaTela(doc) };
 			});
+		} finally {
 			esconderStatus();
+		}
+	}
+
+	function textoJaEstava(pref) {
+		const oQue = pref.tipo === "classe" ? "a classe" : pref.tipo === "secundario" ? "o assunto secundário" : "o assunto principal";
+		return "o processo já está com " + oQue + ' "' + pref.descricao + '". Nada foi alterado.';
+	}
+
+	async function executarPreferencia(pref) {
+		if (ocupado) return;
+		ocupado = true;
+		const titulo = "★ " + pref.name;
+		try {
+			const resultado = await alterarConformePreferencia(pref, titulo);
 			if (resultado.jaEstava) {
-				const oQue = pref.tipo === "classe" ? "a classe" : pref.tipo === "secundario" ? "o assunto secundário" : "o assunto principal";
-				alert(titulo + ": o processo já está com " + oQue + ' "' + pref.descricao + '". Nada foi alterado.');
+				alert(titulo + ": " + textoJaEstava(pref));
 				return;
 			}
 			if (!resultado.ok) {
@@ -933,12 +948,39 @@
 			mostrarStatus(titulo + " — alteração salva. Recarregando o processo…");
 			window.location.reload();
 		} catch (error) {
-			esconderStatus();
 			alert(titulo + ": " + (error && error.message ? error.message : error));
 		} finally {
 			ocupado = false;
 		}
 	}
+
+	// Para os combos de preferências (quickActions.js): lista gravada e
+	// execução de uma preferência como etapa. `executar` resolve com
+	// { ok, texto } — ok também quando o processo já estava assim — e não
+	// recarrega a tela (o combo recarrega e segue para a próxima etapa).
+	window.__pdpAlterarClasseApi = {
+		label: LABEL,
+		preferencias: carregarPrefs,
+		disponivel: function () { return !!document.getElementById("informacoesProcessuais"); },
+		descrever: function (pref) {
+			const oQue = pref.tipo === "classe" ? "Alterar a classe para" : pref.tipo === "secundario" ? "Adicionar o assunto secundário" : "Alterar o assunto principal para";
+			return oQue + ' "' + pref.descricao + '"' + (pref.tipo === "classe" && pref.motivo ? " (motivo: " + textoMotivo(pref.motivo) + ")" : "") + " e salvar.";
+		},
+		executar: async function (pref) {
+			if (ocupado) return { ok: false, texto: "já há uma alteração de classe/assuntos em andamento." };
+			ocupado = true;
+			try {
+				const resultado = await alterarConformePreferencia(pref, "★ " + pref.name);
+				if (resultado.jaEstava) return { ok: true, texto: textoJaEstava(pref), mudou: false };
+				if (!resultado.ok) return { ok: false, texto: "o Projudi não aceitou a alteração." + (resultado.mensagem ? " " + resultado.mensagem : "") };
+				return { ok: true, texto: "alteração salva.", mudou: true };
+			} catch (error) {
+				return { ok: false, texto: error && error.message ? error.message : String(error) };
+			} finally {
+				ocupado = false;
+			}
+		},
+	};
 
 	// -------------------------------------------------------------------
 	// Painel da ⭐: preferências do tipo + "Nova preferência"
