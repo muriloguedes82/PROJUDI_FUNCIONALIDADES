@@ -425,10 +425,19 @@ mov.** fazem parte das funções acima (as duas primeiras, das
 **2. Preferências e combos** — cópia de segurança para levar tudo a outro
 computador:
 
-- **⬇ Exportar**: baixa um arquivo `.json` com as suas preferências, combos,
-  listas de tarefas, contatos do WhatsApp, destinatários e remetentes de
-  e-mail, destaques de movimentações, a ordem dos cards dos sistemas (e o que fica no **Outros**)
-  ([8.7](#cap-8-7)) e as funções desligadas em cada sistema.
+- **⬇ Exportar**: baixa um arquivo `.json` com **toda e qualquer preferência
+  que você criou**: as preferências das ações (intimações, citações,
+  mandados, alvará, advogados etc.), de **Juntar Documento**, de **Analisar
+  Decurso**, de **Pré-Análise**, de **classe**, **assunto principal** e
+  **assuntos secundários**, do **localizador** (SEEU), os **combos**, a ordem
+  dos cards em **Minhas Preferências**, as listas de tarefas (com as
+  preferências e os processos marcados), contatos do WhatsApp, destinatários
+  e remetentes de e-mail, configuração do envio por e-mail, destaques de
+  movimentações, a ordem dos cards dos sistemas (e o que fica no **Outros**)
+  ([8.7](#cap-8-7)) e as funções desligadas em cada sistema. Ao terminar, o
+  Menu mostra o resumo do que foi salvo (por exemplo, "12 preferência(s) das
+  ações; 3 preferência(s) de assunto secundário; 2 combo(s)…"). Preferências
+  de funções novas entram no arquivo automaticamente.
 - **⬆ Importar**: no outro computador (com a mesma extensão instalada), escolha
   o arquivo. O Menu mostra um **resumo do que ele contém**; depois de você
   **confirmar**, as preferências daquele computador são **substituídas** pelas
@@ -2524,6 +2533,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 | Versão | Data | Alterações no manual |
 |---|---|---|
 | 2.32.0 | 13/10/2026 | Seção 7.4: os **🔗 Combos** passam a aceitar toda preferência usada na tela do processo, incluindo as do **✏️ Alterar Classe/Assuntos** (Projudi) e as do **📍 Localizador** (SEEU). Essas etapas não abrem janela: a barra do combo mostra o que será feito e executa no **▶ Sim, executar** dela; a alteração de classe/assuntos recarrega o processo e o combo segue. Pela **⭐** das listas (9.3), combos com essas etapas abrem o processo numa nova aba (↗). |
+| 2.31.1 | 13/10/2026 | Seção 2.6: o **⬇ Exportar** passa a levar toda e qualquer preferência criada pelo usuário — inclusive as de Analisar Decurso, Pré-Análise, classe e assuntos, localizador (SEEU) e as listas de tarefas — e qualquer preferência de função nova entra automaticamente; o resumo mostrado ao exportar e ao importar lista cada tipo de preferência com a quantidade. |
 | 2.31.0 | 13/10/2026 | Mescla com a versão principal (até a 2.29.1). As funções desenvolvidas em paralelo, listadas abaixo nas linhas de 2.25.1 a 2.30.5 (sobre preferências de Pré-Análise, Mandados, Expedir Intimações/Citação, decurso em lote, Sistemas do CNJ e e-mail), passam a conviver com as da principal (2.26.0 a 2.29.1). Renumeração: as seções **Analisar e Dispensar decurso na lista** e **Analisar (Pré-Análise) dos cumprimentos com preferências** passam a **9.10** e **9.11** (a 9.9 é a do Documento do Juiz no Retorno de Conclusão), e os vídeos delas passam a **V52** e **V53** (V49 a V51 são os da principal). Nas linhas antigas abaixo, essas seções e vídeos aparecem com a numeração da época. |
 | 2.30.5 | 09/10/2026 | Corrigido (9.10): em **Demais Cumprimentos**, a janela **Seleção de Documentos** (botão Adicionar) tem outro formato (colunas Seq., Data, Evento e Movimentado por) e não mostrava a **☆ padrão** ao lado dos movimentos; agora mostra, e a preferência anexa os documentos do movimento escolhido também nessa lista. |
 | 2.30.4 | 09/10/2026 | Sem alteração de texto; preferências com texto (8.2, 9.9, 9.10): se a versão gravada trouxer variáveis do Modelo sem dados (ex.: "$parteSelecionadaDadosBasicos"), a extensão não a aplica, deixa o documento como o Projudi o gerou e avisa para gravar a preferência de novo. |
