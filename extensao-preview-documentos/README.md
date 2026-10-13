@@ -1151,7 +1151,14 @@ De onde vêm os dados:
 1. Se a tela atual já é a aba "Partes e Outros", lê direto do DOM.
 2. Senão, busca essa aba em segundo plano via `fetch()` (POST para o
    próprio formulário do processo com `selectedIcon=tabPartes`, mesma
-   técnica do "(Des)Habilitar Advogado"), sem iframe.
+   técnica do "(Des)Habilitar Advogado"), sem iframe. Esse POST só é
+   feito quando o destino é a própria tela do processo
+   (`visualizacaoProcesso.do?actionType=visualizar`, com a lista de abas):
+   diálogos e telas de ação do Projudi também usam `id="processoForm"` e
+   este script roda dentro deles; reenviar esses formulários executaria a
+   ação de novo (comunicações de ação vinculada duplicadas, 2.32.2). A
+   mesma trava vale para RG/CPF nos cumprimentos, endereço no mandado e
+   BNMP.
 
 O polo passivo é identificado pelo id das linhas da tabela
 (`rowpromovidas*`/`iconpromovidas*`) e, na falta dele, pelo título do polo.
