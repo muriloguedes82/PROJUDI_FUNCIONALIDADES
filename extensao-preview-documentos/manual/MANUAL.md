@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.31.1 |
-| **Versão da extensão** | 2.31.1 |
+| **Versão do manual** | 2.32.0 |
+| **Versão da extensão** | 2.32.0 |
 | **Data desta versão** | 13/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1063,6 +1063,14 @@ associam os localizadores na hora, sem diálogo nem ✅ **Sim, executar**
 "Intimar MP" → "Juntar certidão de decurso" → "Enviar concluso para
 sentença".
 
+**Que preferências podem entrar:** qualquer preferência que você já gravou
+para usar na tela do processo — as das Ações rápidas (inclusive **Alvará
+Eletrônico** e **⚖️ Advogados**), as do **📎 Juntar Documento**, as do
+**✏️ Alterar Classe/Assuntos** (classe, assunto principal e assunto
+secundário — só no Projudi, [8.9](#cap-8-9)) e as do **📍 Localizador** (só
+no SEEU, [8.8](#cap-8-8)). Na caixa de cada etapa elas aparecem separadas
+pelo nome da função.
+
 **Criar:**
 
 1. Clique em **🔗 Combos** → **+ Novo combo**.
@@ -1093,6 +1101,17 @@ sentença".
   assinatura (você digita o PIN) — ver [8.2](#cap-8-2).
 - Etapas de **Alvará Eletrônico** só preenchem; clique em **Salvar** do
   Projudi e depois em **⏭ Próxima etapa**.
+- Etapas de **✏️ Alterar Classe/Assuntos** e de **📍 Localizador** não
+  abrem janela: a barra do combo mostra o que será feito (ex.: "Alterar a
+  classe para ... e salvar" ou "Associar ao processo: ...") e só executa
+  quando você clica em **▶ Sim, executar** nela. A alteração de
+  classe/assuntos recarrega o processo (para o cabeçalho mostrar o novo
+  valor) e o combo segue sozinho. Se algo der errado (por exemplo, um
+  localizador que não existe na unidade), a barra mostra o aviso e oferece
+  **↻ Repetir etapa**, **⏭ Próxima etapa** ou **⏹ Parar combo**.
+- Preferências que só funcionam nas listas (Analisar Decurso, Pré-Análise
+  e listas de tarefas) não entram nos combos: elas agem sobre a linha da
+  lista, e não sobre a tela do processo.
 - O combo continua mesmo depois de a página recarregar, mas **não**
   continua se você abrir outro processo na mesma aba.
 - Editar uma preferência vale também para os combos que a usam; se ela for
@@ -1901,7 +1920,8 @@ processos marcados, **em lote**.
 - A lista **não** é recarregada ao final, para não perder a busca feita.
 - Preferências avulsas de **Juntar Documento**, **Alvará Eletrônico** e
   **Advogados** aparecem esmaecidas (use-as na tela do processo).
-- Combos com essas etapas abrem o processo numa **nova aba** e rodam lá;
+- Combos com essas etapas (ou com etapas de **✏️ Alterar Classe/Assuntos**
+  ou de **📍 Localizador**) abrem o processo numa **nova aba** e rodam lá;
   o card deles tem o sinal **↗**.
 - Os cards ficam em blocos, um por ação, como em **⭐ Minhas
   Preferências** ([7.3](#cap-7-3)), mas sem os botões ✏️ e 🗑.
@@ -2512,6 +2532,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.32.0 | 13/10/2026 | Seção 7.4: os **🔗 Combos** passam a aceitar toda preferência usada na tela do processo, incluindo as do **✏️ Alterar Classe/Assuntos** (Projudi) e as do **📍 Localizador** (SEEU). Essas etapas não abrem janela: a barra do combo mostra o que será feito e executa no **▶ Sim, executar** dela; a alteração de classe/assuntos recarrega o processo e o combo segue. Pela **⭐** das listas (9.3), combos com essas etapas abrem o processo numa nova aba (↗). |
 | 2.31.1 | 13/10/2026 | Seção 2.6: o **⬇ Exportar** passa a levar toda e qualquer preferência criada pelo usuário — inclusive as de Analisar Decurso, Pré-Análise, classe e assuntos, localizador (SEEU) e as listas de tarefas — e qualquer preferência de função nova entra automaticamente; o resumo mostrado ao exportar e ao importar lista cada tipo de preferência com a quantidade. |
 | 2.31.0 | 13/10/2026 | Mescla com a versão principal (até a 2.29.1). As funções desenvolvidas em paralelo, listadas abaixo nas linhas de 2.25.1 a 2.30.5 (sobre preferências de Pré-Análise, Mandados, Expedir Intimações/Citação, decurso em lote, Sistemas do CNJ e e-mail), passam a conviver com as da principal (2.26.0 a 2.29.1). Renumeração: as seções **Analisar e Dispensar decurso na lista** e **Analisar (Pré-Análise) dos cumprimentos com preferências** passam a **9.10** e **9.11** (a 9.9 é a do Documento do Juiz no Retorno de Conclusão), e os vídeos delas passam a **V52** e **V53** (V49 a V51 são os da principal). Nas linhas antigas abaixo, essas seções e vídeos aparecem com a numeração da época. |
 | 2.30.5 | 09/10/2026 | Corrigido (9.10): em **Demais Cumprimentos**, a janela **Seleção de Documentos** (botão Adicionar) tem outro formato (colunas Seq., Data, Evento e Movimentado por) e não mostrava a **☆ padrão** ao lado dos movimentos; agora mostra, e a preferência anexa os documentos do movimento escolhido também nessa lista. |
