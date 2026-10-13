@@ -235,6 +235,14 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					sistemas: ["projudi"]
 				},
 				{
+					id: "decursoNaLinha",
+					nome: "Analisar e Dispensar decurso na lista",
+					descricao: "Nas listas de decurso de prazo, botões \"Analisar Decurso\" e \"Dispensar\" em cada linha, abaixo do sequencial, sem abrir a intimação.",
+					js: ["src/decursoNaLinha.js"],
+					css: ["src/decursoNaLinha.css"],
+					sistemas: ["projudi"]
+				},
+				{
 					id: "previewConclusao",
 					nome: "Documento do Juiz ao passar o mouse no Retorno de Conclusão",
 					descricao: "Na lista Retorno de Conclusão, mostra o despacho/decisão/sentença (uma janela por arquivo) ao pousar o mouse sobre o \"Analisar\".",
@@ -251,7 +259,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "preferenciasNaLinha",
 					nome: "Minhas Preferências na linha (⭐)",
-					descricao: "Aplica preferências e combos direto na linha do processo, ou em lote nos processos marcados (no SEEU, as do \"📍 Localizador\").",
+					descricao: "Aplica preferências e combos direto na linha do processo, ou em lote nos processos marcados (no SEEU, as do \"📍 Localizador\"). Em Demais Cumprimentos, Mandados, Expedir Intimações e Expedir Citação, também as preferências do Analisar (Pré-Análise), que podem anexar os documentos de um movimento padrão.",
 					js: ["src/preferenciasNaLinha.js"],
 					requer: ["listaTarefas", "acoesRapidas"]
 				}
