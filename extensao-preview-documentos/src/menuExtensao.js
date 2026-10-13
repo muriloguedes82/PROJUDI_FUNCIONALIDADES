@@ -19,9 +19,12 @@
 //      (src/termosUso.js) passa a injetar em cada sistema só os arquivos das
 //      funcionalidades ativas nele - vale a partir do próximo carregamento
 //      da página (o Menu oferece "Recarregar agora");
-//   2. backup das preferências: "Exportar" baixa um arquivo .json com todas
-//      as preferências (inclusive as funcionalidades desativadas), combos,
-//      listas de tarefas, destinatários etc.; "Importar" lê esse arquivo em
+//   2. backup das preferências: "Exportar" baixa um arquivo .json com toda
+//      e qualquer preferência criada pelo usuário - das ações, de Juntar
+//      Documento, Analisar Decurso, Pré-Análise, classes e assuntos,
+//      localizador -, combos, listas de tarefas, contatos, destinatários,
+//      ordem dos cards e as funcionalidades desativadas (tudo o que está no
+//      chrome.storage, menos o que FORA_DO_BACKUP exclui); "Importar" lê esse arquivo em
 //      outro computador e substitui as preferências de lá; "Padrão" reativa
 //      todas as funcionalidades do sistema da aba aberta, sem apagar
 //      preferências;
@@ -61,9 +64,15 @@
 
 	const FORMATO_BACKUP = "projudi-seeu-extensao-backup";
 	// Chaves do chrome.storage.local que não vão para o backup (ver acima).
-	// Do storage.local só entram chaves "pdp..."; do storage.sync, todas
-	// (configuração do e-mail e preferências de destaque/ocultação).
+	// Todo o resto vai: o backup leva TODA chave do storage.local que não
+	// esteja nesta lista (e todo o storage.sync - configuração do e-mail e
+	// preferências de destaque/ocultação). Assim, qualquer preferência ou
+	// combo novo entra no Exportar sem precisar mexer aqui; só trabalho em
+	// andamento, marcas de diagnóstico e dados pessoais da instalação ficam
+	// de fora.
 	const FORA_DO_BACKUP = new Set([
+		"msalToken",
+		"pendingDownloadInfo",
 		"pdpTermosUso",
 		"pdpPerfilAdvocaciaBloqueado",
 		"pdpWhatsappPending",
@@ -80,7 +89,7 @@
 		"pdpNovaVersao",
 		"pdpNovaVersaoAdiada"
 	]);
-	const entraNoBackup = function (chave) { return /^pdp/.test(chave) && !FORA_DO_BACKUP.has(chave); };
+	const entraNoBackup = function (chave) { return typeof chave === "string" && chave !== "" && !FORA_DO_BACKUP.has(chave); };
 
 	const normalizar = function (t) {
 		return String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
@@ -326,22 +335,57 @@
 	// Backup
 	// ------------------------------------------------------------------
 
-	function contarBackup(local) {
+	// Chaves cujo conteúdo o resumo abaixo já descreve. As demais entram no
+	// backup do mesmo jeito e aparecem como "outras configurações".
+	const CHAVES_DESCRITAS = new Set([
+		"pdpActionPreferences", "pdpJuntarDocumentoPrefs", "pdpDecursoPrefs", "pdpPreAnalisePrefs",
+		"pdpAlterarClassePrefs", "pdpLocalizadorPreferencias", "pdpPreferenceCombos", "pdpPreferencesOrder",
+		"pdpTarefasListas", "pdpTarefasPreferencias", "pdpTarefasProcessos",
+		"pdpWhatsappContacts", "pdpEmailRecipients", "pdpFromAccounts", "pdpDefaultFromId",
+		"pdpSistemasCnjOrdem", "pdpSistemasCnjOutros", "pdpSistemasCnjOrdemSeeu",
+		CHAVE, CAT.chaveAntiga, CAT.chaveExtensao
+	]);
+
+	// Resumo, em linguagem do usuário, de tudo o que um backup leva: cada
+	// tipo de preferência/combo com a quantidade, e as configurações gerais.
+	function contarBackup(local, sync) {
+		sync = sync || {};
 		const tamanho = function (v) { return Array.isArray(v) ? v.length : 0; };
-		const acoes = Object.values(local.pdpActionPreferences || {}).reduce(function (s, v) { return s + tamanho(v); }, 0);
+		const objeto = function (v) { return v && typeof v === "object" && !Array.isArray(v) ? v : {}; };
+		const porAcao = objeto(local.pdpActionPreferences);
+		const acoes = Object.values(porAcao).reduce(function (s, v) { return s + tamanho(v); }, 0);
+		const qtdAcoes = Object.values(porAcao).filter(function (v) { return tamanho(v) > 0; }).length;
+		const classe = Array.isArray(local.pdpAlterarClassePrefs) ? local.pdpAlterarClassePrefs : [];
+		const deTipo = function (tipo) { return classe.filter(function (p) { return p && p.tipo === tipo; }).length; };
 		const linhas = [
-			["preferência(s) das ações rápidas", acoes],
+			["preferência(s) das ações" + (qtdAcoes > 1 ? " (em " + qtdAcoes + " ações diferentes)" : ""), acoes],
 			["preferência(s) de Juntar Documento", tamanho(local.pdpJuntarDocumentoPrefs)],
+			["preferência(s) de Analisar Decurso", tamanho(local.pdpDecursoPrefs)],
+			["preferência(s) de Pré-Análise", tamanho(local.pdpPreAnalisePrefs)],
+			["preferência(s) de classe", deTipo("classe")],
+			["preferência(s) de assunto principal", deTipo("assunto")],
+			["preferência(s) de assunto secundário", deTipo("secundario")],
+			["outra(s) preferência(s) de Alterar Classe/Assuntos", classe.length - deTipo("classe") - deTipo("assunto") - deTipo("secundario")],
+			["preferência(s) de localizador (SEEU)", tamanho(local.pdpLocalizadorPreferencias)],
 			["combo(s)", tamanho(local.pdpPreferenceCombos)],
 			["lista(s) de tarefas", tamanho(local.pdpTarefasListas)],
+			["preferência(s) das listas de tarefas", tamanho(local.pdpTarefasPreferencias)],
+			["processo(s) marcado(s) nas listas de tarefas", Object.keys(objeto(local.pdpTarefasProcessos)).length],
 			["contato(s) de WhatsApp", tamanho(local.pdpWhatsappContacts)],
 			["destinatário(s) de e-mail", tamanho(local.pdpEmailRecipients)],
 			["remetente(s) de e-mail", tamanho(local.pdpFromAccounts)]
 		].filter(function (l) { return l[1] > 0; }).map(function (l) { return l[1] + " " + l[0]; });
+		if (tamanho(local.pdpPreferencesOrder)) linhas.push("ordem dos cards em \"Minhas Preferências\"");
 		if (tamanho(local.pdpSistemasCnjOrdem) || tamanho(local.pdpSistemasCnjOutros) || tamanho(local.pdpSistemasCnjOrdemSeeu)) linhas.push("ordem dos cards dos sistemas e o que fica no \"Outros\"");
+		if (Object.values(objeto(sync.movementHighlightPrefs)).some(function (v) { return v && v.enabled; })) linhas.push("cores do destaque de movimentações");
+		if (objeto(sync.hideMovementsWithoutFilePrefs).alwaysHide) linhas.push("ocultar movimentações sem arquivo");
+		if (sync.azureClientId || sync.sendMode) linhas.push("configuração do envio por e-mail");
+		const outras = Object.keys(local).filter(function (k) { return !CHAVES_DESCRITAS.has(k); }).length;
+		if (outras) linhas.push(outras + " outra(s) configuração(ões) da extensão");
 		SISTEMAS.forEach(function (s) {
 			const fora = self.pdpDesativadasDoSistema(local, s.id).length;
 			linhas.push(fora ? fora + " funcionalidade(s) desativada(s) no " + s.nome : "todas as funcionalidades ativas no " + s.nome);
+			if (self.pdpExtensaoDesligada(local, s.id)) linhas.push("extensão desligada no " + s.nome);
 		});
 		return linhas;
 	}
@@ -356,6 +400,9 @@
 				versaoFormato: 1,
 				versaoExtensao: chrome.runtime.getManifest().version,
 				criadoEm: new Date().toISOString(),
+				// Só para quem abrir o arquivo saber o que há nele; a importação
+				// usa "local" e "sync".
+				resumo: contarBackup(dadosLocal, sync),
 				local: dadosLocal,
 				sync: sync
 			};
@@ -368,7 +415,7 @@
 			a.click();
 			a.remove();
 			setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
-			avisar("Backup exportado (" + contarBackup(dadosLocal).join("; ") + "). Guarde o arquivo e use \"Importar\" no outro computador.", "ok");
+			avisar("Backup exportado (" + contarBackup(dadosLocal, sync).join("; ") + "). Guarde o arquivo e use \"Importar\" no outro computador.", "ok");
 			return true;
 		} catch (err) {
 			avisar("Falha ao exportar: " + err.message, "erro");
@@ -404,7 +451,7 @@
 		const quando = backup.criadoEm ? new Date(backup.criadoEm).toLocaleString("pt-BR") : "data desconhecida";
 		confirmacao = {
 			titulo: "Importar \"" + nomeArquivo + "\"?",
-			texto: "Backup de " + quando + " (versão " + (backup.versaoExtensao || "?") + "): " + contarBackup(local).join("; ") +
+			texto: "Backup de " + quando + " (versão " + (backup.versaoExtensao || "?") + "): " + contarBackup(local, sync).join("; ") +
 				". As preferências atuais deste computador serão substituídas por essas.",
 			rotulo: "Substituir preferências",
 			acao: function () { importar(local, sync); }
