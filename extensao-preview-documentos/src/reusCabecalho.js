@@ -179,20 +179,31 @@
 	// URL da aba "Partes e Outros": o `setTab('...')` do item de aba nativo
 	// (mesma técnica de habilitarAdvogado.js); na falta dele, a própria
 	// `action` do formulário do processo.
+	// Só a própria tela do processo (visualizacaoProcesso.do?actionType=
+	// visualizar) pode receber o reenvio do #processoForm em segundo plano.
+	// Diálogos e telas de ação do Projudi também usam id="processoForm"
+	// (ex.: "Arquivamento de Processo", comunicação de ação vinculada da aba
+	// "Vínculos"), e este script também roda dentro deles: reenviar um desses
+	// formulários EXECUTA a ação de novo (ver monitoracaoAtiva.js).
 	function urlAbaPartes(form) {
 		const tab = Array.prototype.find.call(document.querySelectorAll("[onclick]"), function (el) {
 			const onclick = el.getAttribute("onclick") || "";
 			return /setTab\(/.test(onclick) && /['"]tabPartes['"]/.test(onclick);
 		});
 		const match = /setTab\(\s*['"]([^'"]+)['"]/.exec(tab ? tab.getAttribute("onclick") : "");
+		let url = null;
 		if (match) {
 			try {
-				return localURL(match[1], "/projudi/visualizacaoProcesso.do");
+				url = localURL(match[1], "/projudi/visualizacaoProcesso.do");
 			} catch (err) {
 				// segue para o fallback
 			}
 		}
-		return localURL(form.getAttribute("action") || location.href, "/projudi/visualizacaoProcesso.do");
+		if (!url) url = localURL(form.getAttribute("action") || location.href, "/projudi/visualizacaoProcesso.do");
+		if (url.searchParams.get("actionType") !== "visualizar" || !document.querySelector('[id^="tabItemprefix"]')) {
+			throw new Error("esta página não é a tela do processo (" + url.pathname + url.search + ")");
+		}
+		return url;
 	}
 
 	// Id do processo: campo oculto "id" do #processoForm; na falta dele, o

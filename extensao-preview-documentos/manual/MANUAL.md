@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.32.1 |
-| **Versão da extensão** | 2.32.1 |
+| **Versão do manual** | 2.32.2 |
+| **Versão da extensão** | 2.32.2 |
 | **Data desta versão** | 13/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -2535,6 +2535,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.32.2 | 13/10/2026 | Sem alteração de texto; corrigido um erro em que a extensão podia repetir, sem o usuário perceber, o envio de uma tela de ação do Projudi aberta dentro do processo (ex.: comunicação de ação vinculada, na aba **Vínculos**), gerando comunicações/juntadas duplicadas. Afetava a linha dos réus no cabeçalho do processo e a busca de RG/CPF e endereços das partes (cumprimentos, mandados e BNMP), que agora só consultam a própria tela do processo. |
 | 2.32.1 | 13/10/2026 | Sistemas do CNJ e card **Outros** (8.7): corrigido o nome do botão do topo do popup, que podia aparecer como **🗂 Nova aba** mesmo com dois monitores (e então abria o sistema no segundo monitor). Agora, com dois monitores, ele aparece como **🖥 Segundo monitor**, como descrito. Nota nova no *Bom saber*. |
 | 2.32.0 | 13/10/2026 | Seção 7.4: os **🔗 Combos** passam a aceitar toda preferência usada na tela do processo, incluindo as do **✏️ Alterar Classe/Assuntos** (Projudi) e as do **📍 Localizador** (SEEU). Essas etapas não abrem janela: a barra do combo mostra o que será feito e executa no **▶ Sim, executar** dela; a alteração de classe/assuntos recarrega o processo e o combo segue. Pela **⭐** das listas (9.3), combos com essas etapas abrem o processo numa nova aba (↗). |
 | 2.31.1 | 13/10/2026 | Seção 2.6: o **⬇ Exportar** passa a levar toda e qualquer preferência criada pelo usuário — inclusive as de Analisar Decurso, Pré-Análise, classe e assuntos, localizador (SEEU) e as listas de tarefas — e qualquer preferência de função nova entra automaticamente; o resumo mostrado ao exportar e ao importar lista cada tipo de preferência com a quantidade. |

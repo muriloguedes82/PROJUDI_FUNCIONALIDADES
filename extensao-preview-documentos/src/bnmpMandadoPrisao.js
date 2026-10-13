@@ -325,13 +325,23 @@
 		});
 	}
 
+	// Só a própria tela do processo (visualizacaoProcesso.do?actionType=
+	// visualizar) pode receber o reenvio do #processoForm em segundo plano.
+	// Diálogos e telas de ação do Projudi também usam id="processoForm"
+	// (ex.: "Arquivamento de Processo", comunicação de ação vinculada da aba
+	// "Vínculos"), e este script também roda dentro deles: reenviar um desses
+	// formulários EXECUTA a ação de novo (ver monitoracaoAtiva.js).
 	function urlAba(doc, form, base, tabId) {
 		const tab = Array.prototype.find.call(doc.querySelectorAll("[onclick]"), function (el) {
 			const onclick = el.getAttribute("onclick") || "";
 			return /setTab\(/.test(onclick) && new RegExp("['\"]" + tabId + "['\"]").test(onclick);
 		});
 		const match = /setTab\(\s*['"]([^'"]+)['"]/.exec(tab ? tab.getAttribute("onclick") : "");
-		return projudiURL(new URL(match ? match[1] : form.getAttribute("action") || base, base).href);
+		const url = projudiURL(new URL(match ? match[1] : form.getAttribute("action") || base, base).href);
+		if (url.pathname !== "/projudi/visualizacaoProcesso.do" || url.searchParams.get("actionType") !== "visualizar") {
+			throw new Error("a página buscada não é a tela do processo (" + url.pathname + url.search + ")");
+		}
+		return url;
 	}
 
 	async function lerInformacoesAdicionais(processoHref) {
