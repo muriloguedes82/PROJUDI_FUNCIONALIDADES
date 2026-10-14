@@ -44,12 +44,13 @@
   const processKey = hasProcessContext ? prefix + match[1] : globalKey;
   const settingsKey = prefix + 'posicao', extrasKey = processKey + ':extras';
   const createUrlKey = processKey + ':linkNovoLembrete';
+  const subjectKey = processKey + ':lembreteAssunto';
   const colors = { amarelo: 'Amarelo', azul: 'Azul', verde: 'Verde', vermelho: 'Vermelho' };
   const cards = new Set();
   const records = {};
   const defaultSubject = 'Anotação compartilhada - Abra ou instale a extensão Olirum';
   let extraIds = [], queue = Promise.resolve(), main;
-  let lembrete = { mode: 'loading', url: '', detail: '', subject: '', problem: '', cachedCreateUrl: '', deactivate: null };
+  let lembrete = { mode: 'loading', url: '', detail: '', subject: defaultSubject, problem: '', cachedCreateUrl: '', deactivate: null };
   function normalize(value, fallback = {}) {
     const data = value && typeof value === 'object' ? value : { ...fallback, text: typeof value === 'string' ? value : '' };
     return { text: typeof data.text === 'string' ? data.text : '', color: colors[data.color] ? data.color : 'amarelo',
@@ -86,8 +87,8 @@
     toggle.title = data.collapsed ? 'Abrir anotações' : 'Recolher anotações';
     toggle.setAttribute('aria-label', toggle.title);
     box.querySelector('small').textContent = card.key === globalKey ? 'Nota pessoal para todos os processos' :
-      (lembrete.mode === 'active' ? 'Lembrete ativo · ' + (lembrete.subject || match?.[1] || '') :
-        lembrete.mode === 'create' ? 'Novo lembrete · ' + defaultSubject : (match?.[1] || 'Nota permanente'));
+      (lembrete.mode === 'active' ? 'Lembrete ativo' :
+        lembrete.mode === 'create' ? 'Novo lembrete' : (match?.[1] || 'Nota permanente'));
     box.querySelectorAll('[data-color]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.color === data.color)));
     box.querySelector('output').textContent = 'Salvo neste navegador';
     const sync = box.querySelector('[data-sync]');
@@ -97,6 +98,13 @@
       sync.textContent = lembrete.mode === 'create' ? 'Salvar no Projudi (novo lembrete)' : 'Salvar no Projudi';
       const message = box.querySelector('[data-sync-status]');
       const deactivate = box.querySelector('[data-deactivate]');
+      const subjectInput = box.querySelector('[data-reminder-subject]');
+      const subjectVisible = card === main && card.key !== globalKey &&
+        (lembrete.mode === 'active' || lembrete.mode === 'create') && hasProcessContext && isProjudi;
+      if (subjectInput) {
+        subjectInput.closest('label').hidden = !subjectVisible;
+        if (subjectInput !== document.activeElement) subjectInput.value = lembrete.subject || defaultSubject;
+      }
       if (deactivate) {
         deactivate.hidden = card !== main || card.key === globalKey || lembrete.mode !== 'active' || !lembrete.deactivate;
         deactivate.disabled = lembrete.mode !== 'active' || !lembrete.deactivate;
@@ -104,7 +112,7 @@
       if (message && !message.dataset.edited) {
         message.textContent = lembrete.mode === 'loading' ? 'Verificando lembrete ativo…' :
           lembrete.mode === 'unavailable' ? (lembrete.problem || 'Não foi possível localizar o lembrete ativo.') :
-          lembrete.mode === 'create' ? 'Será criado com o assunto “' + defaultSubject + '”.' :
+          lembrete.mode === 'create' ? 'Será criado com o assunto escolhido.' :
           lembrete.mode === 'active' ? (lembrete.deactivate ? 'Lembrete ativo conectado.' : 'Lembrete conectado; não foi possível identificar a ação de desativar nesta página.') :
           lembrete.mode === 'personal' ? 'Nota pessoal, salva neste navegador.' : '';
       }
@@ -269,7 +277,8 @@
       throw new Error('Não foi possível abrir o lembrete ativo para edição.');
     }
     lembrete.detail = detail.html;
-    lembrete.subject = assuntoDoLembrete(doc);
+    lembrete.subject = assuntoDoLembrete(doc) || lembrete.subject || defaultSubject;
+    persist({ [subjectKey]: lembrete.subject }, main);
     lembrete.deactivate = acaoDesativarLembrete(doc, detail.url);
     records[processKey].text = conteudoDoLembrete(doc);
     lembrete.mode = 'active';
@@ -283,9 +292,11 @@
     message.dataset.edited = 'true';
     message.textContent = 'Salvando no Projudi…';
     const noteText = records[processKey].text;
+    const subjectText = main?.box.querySelector('[data-reminder-subject]')?.value ?? lembrete.subject;
     let submissionStarted = false;
     try {
       if (!noteText.trim()) throw new Error('Escreva o texto do lembrete antes de salvar no Projudi.');
+      if (!subjectText.trim()) throw new Error('Informe o assunto do lembrete antes de salvar no Projudi.');
       let editorPage;
       if (lembrete.mode === 'active') {
         const detailDoc = parsePagina(lembrete.detail);
@@ -302,7 +313,7 @@
       const subject = editorForm.querySelector('[name="assunto"]');
       const content = editorForm.querySelector('textarea[name="conteudoEditor"]');
       if (!subject || !content) throw new Error('Não encontrei os campos de assunto e texto do lembrete.');
-      if (lembrete.mode === 'create') subject.value = defaultSubject;
+      subject.value = subjectText.trim();
       content.value = noteText.split('\n').map(line => line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')).join('<br>');
       submissionStarted = true;
       const saved = await postForm(editorForm, new URL(editorForm.getAttribute('action') || editorPage.url, editorPage.url).href);
@@ -315,7 +326,8 @@
         throw new Error('O Projudi não confirmou o texto salvo. Confira o lembrete antes de tentar novamente.');
       }
       lembrete.mode = 'active'; lembrete.detail = saved.html; lembrete.url = saved.url;
-      lembrete.subject = assuntoDoLembrete(savedDoc);
+      lembrete.subject = assuntoDoLembrete(savedDoc) || subjectText.trim();
+      persist({ [subjectKey]: lembrete.subject }, main);
       lembrete.deactivate = acaoDesativarLembrete(savedDoc, saved.url);
       lembrete.cachedCreateUrl = '';
       chrome.storage.local.remove(createUrlKey);
@@ -375,12 +387,15 @@
       lembrete.mode = 'create';
       lembrete.url = refreshed.url;
       lembrete.cachedCreateUrl = refreshed.url;
-      lembrete.subject = '';
+      // A desativação encerra a nota compartilhada: limpa o rascunho local
+      // somente depois de confirmar que o Projudi já permite criar outra.
+      records[processKey].text = '';
+      persist({ [processKey]: records[processKey] }, main);
       lembrete.detail = '';
       lembrete.deactivate = null;
       chrome.storage.local.set({ [createUrlKey]: { url: refreshed.url, savedAt: Date.now() } });
       render(main);
-      message.textContent = 'Lembrete desativado no Projudi. A anotação foi mantida neste navegador.';
+      message.textContent = 'Lembrete desativado. O campo foi limpo para iniciar uma nova anotação.';
       delete message.dataset.edited;
     } catch (error) {
       if (submissionStarted) {
@@ -403,7 +418,7 @@
       (isMain ? '' : '<button type="button" data-delete title="Excluir esta nota" aria-label="Excluir esta nota">×</button>') +
       '</span></header><div class="pdp-postit-body">' + (isMain ? '<select aria-label="Tipo de anotação"><option value="processo">Deste processo</option><option value="permanente">Permanente (todos os processos)</option></select>' : '') +
       '<small></small><textarea aria-label="Anotações" placeholder="Escreva suas anotações…" spellcheck="true"></textarea><footer><output aria-live="polite"></output><div class="pdp-postit-colors" aria-label="Cor da nota"></div></footer>' +
-      (isMain ? '<div class="pdp-postit-sync"><button type="button" data-sync disabled>Salvar no Projudi</button><button type="button" data-deactivate hidden>Desativar lembrete</button><output data-sync-status aria-live="polite">Verificando lembrete ativo…</output></div>' : '') + '</div>';
+      (isMain ? '<div class="pdp-postit-sync"><label class="pdp-postit-subject" hidden>Assunto do lembrete<input type="text" data-reminder-subject maxlength="200" autocomplete="off"></label><button type="button" data-sync disabled>Salvar no Projudi</button><button type="button" data-deactivate hidden>Desativar lembrete</button><output data-sync-status aria-live="polite">Verificando lembrete ativo…</output></div>' : '') + '</div>';
     const card = { box, key, revision: 0 };
     cards.add(card); document.body.appendChild(box);
     if (isMain && !hasProcessContext) box.querySelector('[data-add]').hidden = true;
@@ -418,8 +433,9 @@
     box.querySelector('textarea').addEventListener('input', event => {
       records[card.key].text = event.target.value; save(card);
       const syncMessage = box.querySelector('[data-sync-status]');
-      if (syncMessage && card.key === processKey && lembrete.mode === 'active') {
-        syncMessage.dataset.edited = 'true'; syncMessage.textContent = 'Alterações não enviadas ao Projudi.';
+      if (syncMessage && card.key === processKey && (lembrete.mode === 'active' || lembrete.mode === 'create')) {
+        syncMessage.dataset.edited = 'true';
+        syncMessage.textContent = lembrete.mode === 'active' ? 'Alterações não enviadas ao Projudi.' : 'Texto pronto para o novo lembrete.';
       }
     });
     box.querySelector('[data-add]').addEventListener('click', () => {
@@ -453,6 +469,16 @@
       scope.value = key === globalKey ? 'permanente' : 'processo';
       box.querySelector('[data-sync]').addEventListener('click', event => salvarLembrete(event.currentTarget, box.querySelector('[data-sync-status]')));
       box.querySelector('[data-deactivate]').addEventListener('click', event => desativarLembrete(event.currentTarget, box.querySelector('[data-sync-status]')));
+      box.querySelector('[data-reminder-subject]').addEventListener('input', event => {
+        lembrete.subject = event.target.value;
+        persist({ [subjectKey]: lembrete.subject }, main);
+        const syncMessage = box.querySelector('[data-sync-status]');
+        if (lembrete.mode === 'active') {
+          syncMessage.dataset.edited = 'true'; syncMessage.textContent = 'Alterações não enviadas ao Projudi.';
+        } else if (lembrete.mode === 'create') {
+          syncMessage.dataset.edited = 'true'; syncMessage.textContent = 'Novo lembrete com o assunto escolhido.';
+        }
+      });
       scope.addEventListener('change', () => {
         card.revision++;
         card.key = scope.value === 'permanente' ? globalKey : processKey;
@@ -483,12 +509,13 @@
     render(card); return card;
   }
   window.addEventListener('resize', () => cards.forEach(clamp));
-  const storageKeys = [...new Set([processKey, globalKey, settingsKey, ...(hasProcessContext ? [extrasKey, createUrlKey] : [])])];
+  const storageKeys = [...new Set([processKey, globalKey, settingsKey, ...(hasProcessContext ? [extrasKey, createUrlKey, subjectKey] : [])])];
   chrome.storage.local.get(storageKeys).then(async data => {
     // Mantém o texto da primeira versão e usa a antiga posição como ponto inicial.
     const prefs = data[settingsKey] || {};
     records[processKey] = normalize(data[processKey], prefs);
     records[globalKey] = normalize(data[globalKey], prefs);
+    if (typeof data[subjectKey] === 'string' && data[subjectKey].trim()) lembrete.subject = data[subjectKey];
     const cachedCreate = hasProcessContext ? data[createUrlKey] : null;
     if (cachedCreate && Date.now() - cachedCreate.savedAt < 45 * 60 * 1000 && urlDeCriacaoValida(cachedCreate.url)) {
       lembrete.cachedCreateUrl = cachedCreate.url;
