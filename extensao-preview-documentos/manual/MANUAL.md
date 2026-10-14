@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.33.0 |
-| **Versão da extensão** | 2.33.0 |
+| **Versão do manual** | 2.33.1 |
+| **Versão da extensão** | 2.33.1 |
 | **Data desta versão** | 14/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -2205,7 +2205,10 @@ tela da intimação sem precisar abri-la — direto na lista de decursos.
 **Onde fica:** menu **Decurso de Prazo** (listas **Intimação**,
 **Intimação — Auxiliares da Justiça** e **Citações/Notificações**), na
 coluna **Processo / Seq.**, logo abaixo do sequencial, em cada linha
-**aguardando análise do decurso de prazo**.
+**aguardando análise do decurso de prazo**. Na lista **Intimação —
+Auxiliares da Justiça**, essas linhas são as que mostram, na coluna
+**Situação**, "Decurso de prazo em" seguido da data (é o que aparece com o
+Status **Analisar Decurso de Prazo**).
 
 **Dispensar:**
 
@@ -2536,6 +2539,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.33.1 | 14/10/2026 | Seção 9.9: corrigido — na lista **Intimação — Auxiliares da Justiça** do Decurso de Prazo os botões **Analisar Decurso** e **Dispensar** não apareciam nas linhas (lá a coluna Situação mostra "Decurso de prazo em" e a data, e não "Aguardando Análise do Decurso de Prazo"). Agora aparecem, e também o **Dispensar nos marcados** e o **Analisar decurso nos marcados** da barra **⭐ Em lote** funcionam nessa lista. Texto do "Onde fica" ajustado. Sem vídeo novo: a tela não muda. |
 | 2.33.0 | 14/10/2026 | Novo card **SEEU** (terracota), só no Projudi, na fileira dos sistemas ao lado da balança (1.3 e 8.7): abre a página de entrada do SEEU num popup sobre o processo (ou no segundo monitor/nova aba). Quem já tinha mudado a ordem dos cards encontra o SEEU dentro do **Outros**. Vídeo V39 regravado. |
 | 2.32.2 | 13/10/2026 | Sem alteração de texto; corrigido um erro em que a extensão podia repetir, sem o usuário perceber, o envio de uma tela de ação do Projudi aberta dentro do processo (ex.: comunicação de ação vinculada, na aba **Vínculos**), gerando comunicações/juntadas duplicadas. Afetava a linha dos réus no cabeçalho do processo e a busca de RG/CPF e endereços das partes (cumprimentos, mandados e BNMP), que agora só consultam a própria tela do processo. |
 | 2.32.1 | 13/10/2026 | Sistemas do CNJ e card **Outros** (8.7): corrigido o nome do botão do topo do popup, que podia aparecer como **🗂 Nova aba** mesmo com dois monitores (e então abria o sistema no segundo monitor). Agora, com dois monitores, ele aparece como **🖥 Segundo monitor**, como descrito. Nota nova no *Bom saber*. |
