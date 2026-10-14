@@ -103,7 +103,7 @@
         (lembrete.mode === 'active' || lembrete.mode === 'create') && hasProcessContext && isProjudi;
       if (subjectInput) {
         subjectInput.closest('label').hidden = !subjectVisible;
-        if (subjectInput !== document.activeElement) subjectInput.value = lembrete.subject || defaultSubject;
+        if (subjectInput !== document.activeElement) subjectInput.value = lembrete.subject;
       }
       if (deactivate) {
         deactivate.hidden = card !== main || card.key === globalKey || lembrete.mode !== 'active' || !lembrete.deactivate;
@@ -390,12 +390,13 @@
       // A desativação encerra a nota compartilhada: limpa o rascunho local
       // somente depois de confirmar que o Projudi já permite criar outra.
       records[processKey].text = '';
-      persist({ [processKey]: records[processKey] }, main);
+      lembrete.subject = '';
+      persist({ [processKey]: records[processKey], [subjectKey]: '' }, main);
       lembrete.detail = '';
       lembrete.deactivate = null;
       chrome.storage.local.set({ [createUrlKey]: { url: refreshed.url, savedAt: Date.now() } });
       render(main);
-      message.textContent = 'Lembrete desativado. O campo foi limpo para iniciar uma nova anotação.';
+      message.textContent = 'Lembrete desativado. O texto e o assunto foram limpos para iniciar uma nova anotação.';
       delete message.dataset.edited;
     } catch (error) {
       if (submissionStarted) {
@@ -515,7 +516,7 @@
     const prefs = data[settingsKey] || {};
     records[processKey] = normalize(data[processKey], prefs);
     records[globalKey] = normalize(data[globalKey], prefs);
-    if (typeof data[subjectKey] === 'string' && data[subjectKey].trim()) lembrete.subject = data[subjectKey];
+    if (typeof data[subjectKey] === 'string') lembrete.subject = data[subjectKey];
     const cachedCreate = hasProcessContext ? data[createUrlKey] : null;
     if (cachedCreate && Date.now() - cachedCreate.savedAt < 45 * 60 * 1000 && urlDeCriacaoValida(cachedCreate.url)) {
       lembrete.cachedCreateUrl = cachedCreate.url;
