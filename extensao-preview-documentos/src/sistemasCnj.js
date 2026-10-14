@@ -1,5 +1,5 @@
 // Projudi - Cards dos sistemas do CNJ (SerpJud, CNIEP, BNMP 3.0, PrevJud,
-// Sisbajud, SNGB, Sniper, Infojud, da Receita, Renajud e Sistema Uniformizado, do
+// Sisbajud, SNGB, Sniper, Infojud, da Receita, Renajud, SEEU e Sistema Uniformizado, do
 // TJPR - lista em sistemasCnjLista.js) ao lado do ícone do Menu da extensão
 // (a balança dourada, ver menuExtensao.js).
 //

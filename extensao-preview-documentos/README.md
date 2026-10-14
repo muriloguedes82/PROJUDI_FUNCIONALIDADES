@@ -2047,6 +2047,11 @@ dos demais domínios de `initiatorDomains`, que continuam na lista porque as
 navegações internas do login (de um sistema para outro dentro do iframe)
 dependem deles.
 
+O card **SEEU** (só no Projudi) usa uma segunda regra (`id` 2), com
+`requestDomains` `seeu.pje.jus.br` e `initiatorDomains` só `tjpr.jus.br`:
+assim os quadros que o próprio SEEU abre dentro dele continuam com a CSP
+original.
+
 Para usar o sistema fora do popup, o cabeçalho dele tem um só botão
 (`sistemas-cnj-open` em `background.js`): abre numa janela maximizada no
 segundo monitor sempre que `chrome.system.display` informar mais de um, e

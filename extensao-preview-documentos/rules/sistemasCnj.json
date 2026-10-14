@@ -49,5 +49,34 @@
         "sub_frame"
       ]
     }
+  },
+  {
+    "id": 2,
+    "priority": 1,
+    "action": {
+      "type": "modifyHeaders",
+      "responseHeaders": [
+        {
+          "header": "x-frame-options",
+          "operation": "remove"
+        },
+        {
+          "header": "content-security-policy",
+          "operation": "set",
+          "value": "frame-ancestors 'self' https://*.tjpr.jus.br https://seeu.pje.jus.br https://seeutreino.pje.jus.br"
+        }
+      ]
+    },
+    "condition": {
+      "requestDomains": [
+        "seeu.pje.jus.br"
+      ],
+      "initiatorDomains": [
+        "tjpr.jus.br"
+      ],
+      "resourceTypes": [
+        "sub_frame"
+      ]
+    }
   }
 ]
