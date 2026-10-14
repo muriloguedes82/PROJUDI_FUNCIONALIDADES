@@ -49,7 +49,7 @@
   const records = {};
   const defaultSubject = 'Anotação compartilhada - Abra ou instale a extensão Olirum';
   let extraIds = [], queue = Promise.resolve(), main;
-  let lembrete = { mode: 'loading', url: '', detail: '', subject: '', problem: '', cachedCreateUrl: '' };
+  let lembrete = { mode: 'loading', url: '', detail: '', subject: '', problem: '', cachedCreateUrl: '', deactivate: null };
   function normalize(value, fallback = {}) {
     const data = value && typeof value === 'object' ? value : { ...fallback, text: typeof value === 'string' ? value : '' };
     return { text: typeof data.text === 'string' ? data.text : '', color: colors[data.color] ? data.color : 'amarelo',
@@ -96,11 +96,16 @@
       sync.disabled = lembrete.mode === 'loading' || lembrete.mode === 'idle' || lembrete.mode === 'unavailable' || !records[processKey];
       sync.textContent = lembrete.mode === 'create' ? 'Salvar no Projudi (novo lembrete)' : 'Salvar no Projudi';
       const message = box.querySelector('[data-sync-status]');
+      const deactivate = box.querySelector('[data-deactivate]');
+      if (deactivate) {
+        deactivate.hidden = card !== main || card.key === globalKey || lembrete.mode !== 'active' || !lembrete.deactivate;
+        deactivate.disabled = lembrete.mode !== 'active' || !lembrete.deactivate;
+      }
       if (message && !message.dataset.edited) {
         message.textContent = lembrete.mode === 'loading' ? 'Verificando lembrete ativo…' :
           lembrete.mode === 'unavailable' ? (lembrete.problem || 'Não foi possível localizar o lembrete ativo.') :
           lembrete.mode === 'create' ? 'Será criado com o assunto “' + defaultSubject + '”.' :
-          lembrete.mode === 'active' ? 'Lembrete ativo conectado.' :
+          lembrete.mode === 'active' ? (lembrete.deactivate ? 'Lembrete ativo conectado.' : 'Lembrete conectado; não foi possível identificar a ação de desativar nesta página.') :
           lembrete.mode === 'personal' ? 'Nota pessoal, salva neste navegador.' : '';
       }
     }
@@ -155,7 +160,16 @@
   async function obterPagina(url, options) {
     const response = await fetch(url, Object.assign({ credentials: 'same-origin', cache: 'no-store' }, options || {}));
     if (!response.ok) throw new Error('O Projudi respondeu com erro (' + response.status + ').');
-    return { url: response.url || url, html: await response.text() };
+    const bytes = await response.arrayBuffer();
+    // O Projudi costuma servir HTML em Windows-1252. response.text() pode
+    // decodificar como UTF-8 e corromper ç/ã/õ nos lembretes.
+    const preview = new TextDecoder('windows-1252').decode(bytes.slice(0, 4096));
+    const charsetMatch = /charset\s*=\s*["']?([\w-]+)/i.exec(response.headers.get('content-type') || '') ||
+      /charset\s*=\s*["']?([\w-]+)/i.exec(preview);
+    let html;
+    try { html = new TextDecoder((charsetMatch && charsetMatch[1]) || 'windows-1252').decode(bytes); }
+    catch (_) { html = new TextDecoder('windows-1252').decode(bytes); }
+    return { url: response.url || url, html };
   }
   function parsePagina(htmlText) { return new DOMParser().parseFromString(htmlText, 'text/html'); }
   function textoHTML(markup) {
@@ -179,6 +193,33 @@
     const button = doc.querySelector('#alterarButton, input[name="alterarButton"]');
     const match = button && /submitPage\s*\(\s*['"]([^'"]+)/i.exec(button.getAttribute('onclick') || '');
     return match ? new URL(match[1], pageUrl).href : '';
+  }
+  function acaoDesativarLembrete(doc, pageUrl) {
+    const safeUrl = value => {
+      try {
+        const url = new URL(value, pageUrl);
+        return url.origin === location.origin && /\/projudi\/util\/lembrete\.do$/i.test(url.pathname) ? url.href : '';
+      } catch (_) { return ''; }
+    };
+    const controles = Array.from(doc.querySelectorAll('a[href], button, input[type="button"], input[type="submit"]'));
+    const controle = controles.find(el => {
+      const label = el.matches('input') ? el.value : el.textContent;
+      return /^desativar(?: lembrete)?$/i.test(normalizarTexto(label));
+    });
+    if (!controle) return null;
+    if (controle.matches('a[href]')) {
+      const url = safeUrl(controle.getAttribute('href'));
+      return url ? { url, method: 'GET' } : null;
+    }
+    const form = controle.form || doc.querySelector('form[name="lembreteForm"]');
+    const match = /submitPage\s*\(\s*(['"])(.*?)\1/i.exec(controle.getAttribute('onclick') || '');
+    const submitUrl = match && safeUrl(match[2]);
+    if (submitUrl && form) return { url: submitUrl, method: 'POST', form, control: controle };
+    if (controle.matches('input[type="submit"], button[type="submit"]') && form?.action) {
+      const url = safeUrl(form.getAttribute('action') || form.action);
+      return url ? { url, method: (form.method || 'POST').toUpperCase(), form, control: controle } : null;
+    }
+    return null;
   }
   function corpoDoFormulario(form, overrides) {
     const params = new URLSearchParams(Array.from(new FormData(form).entries()));
@@ -229,6 +270,7 @@
     }
     lembrete.detail = detail.html;
     lembrete.subject = assuntoDoLembrete(doc);
+    lembrete.deactivate = acaoDesativarLembrete(doc, detail.url);
     records[processKey].text = conteudoDoLembrete(doc);
     lembrete.mode = 'active';
     if (main && main.key === processKey) render(main);
@@ -274,6 +316,7 @@
       }
       lembrete.mode = 'active'; lembrete.detail = saved.html; lembrete.url = saved.url;
       lembrete.subject = assuntoDoLembrete(savedDoc);
+      lembrete.deactivate = acaoDesativarLembrete(savedDoc, saved.url);
       lembrete.cachedCreateUrl = '';
       chrome.storage.local.remove(createUrlKey);
       render(main);
@@ -290,6 +333,67 @@
       button.disabled = lembrete.mode === 'unavailable';
     }
   }
+  async function desativarLembrete(button, message) {
+    if (lembrete.mode !== 'active' || !lembrete.deactivate) return;
+    if (!window.confirm('Desativar o lembrete compartilhado deste processo no Projudi?')) return;
+    button.disabled = true;
+    message.dataset.edited = 'true';
+    message.textContent = 'Desativando no Projudi…';
+    let submissionStarted = false;
+    try {
+      // Atualiza os campos de segurança antes da ação para evitar usar um
+      // formulário antigo caso o post-it permaneça aberto por muito tempo.
+      const latestPage = await obterPagina(lembrete.url);
+      const latestDoc = parsePagina(latestPage.html);
+      const action = acaoDesativarLembrete(latestDoc, latestPage.url);
+      if (!action) throw new Error('Não localizei a ação nativa de desativar neste lembrete. Nenhuma alteração foi enviada.');
+      lembrete.detail = latestPage.html;
+      lembrete.deactivate = action;
+      if (action.method === 'POST') {
+        const params = corpoDoFormulario(action.form);
+        if (action.control?.name) params.set(action.control.name, action.control.value || '');
+        submissionStarted = true;
+        const response = await obterPagina(action.url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+          body: params.toString()
+        });
+        const responseDoc = parsePagina(response.html);
+        const errors = responseDoc.querySelector('#errorMessages, .errorMessages');
+        if (errors && errors.textContent.trim()) throw new Error(errors.textContent.trim());
+      } else {
+        submissionStarted = true;
+        const response = await obterPagina(action.url);
+        const responseDoc = parsePagina(response.html);
+        const errors = responseDoc.querySelector('#errorMessages, .errorMessages');
+        if (errors && errors.textContent.trim()) throw new Error(errors.textContent.trim());
+      }
+      const refreshed = await buscarLembreteNaAbaGeral();
+      if (!refreshed || refreshed.mode !== 'create') {
+        throw new Error('A ação foi enviada, mas o Projudi ainda não confirmou a desativação. Confira o lembrete antes de tentar novamente.');
+      }
+      lembrete.mode = 'create';
+      lembrete.url = refreshed.url;
+      lembrete.cachedCreateUrl = refreshed.url;
+      lembrete.subject = '';
+      lembrete.detail = '';
+      lembrete.deactivate = null;
+      chrome.storage.local.set({ [createUrlKey]: { url: refreshed.url, savedAt: Date.now() } });
+      render(main);
+      message.textContent = 'Lembrete desativado no Projudi. A anotação foi mantida neste navegador.';
+      delete message.dataset.edited;
+    } catch (error) {
+      if (submissionStarted) {
+        lembrete.mode = 'unavailable';
+        lembrete.deactivate = null;
+        lembrete.problem = 'Não foi possível confirmar a desativação. Confira o lembrete no Projudi antes de repetir.';
+        render(main);
+      }
+      message.textContent = error.message || 'Não foi possível desativar o lembrete no Projudi.';
+    } finally {
+      button.disabled = lembrete.mode !== 'active' || !lembrete.deactivate;
+    }
+  }
   function createCard(key, isMain, id) {
     const box = document.createElement('aside');
     box.className = 'pdp-postit';
@@ -299,7 +403,7 @@
       (isMain ? '' : '<button type="button" data-delete title="Excluir esta nota" aria-label="Excluir esta nota">×</button>') +
       '</span></header><div class="pdp-postit-body">' + (isMain ? '<select aria-label="Tipo de anotação"><option value="processo">Deste processo</option><option value="permanente">Permanente (todos os processos)</option></select>' : '') +
       '<small></small><textarea aria-label="Anotações" placeholder="Escreva suas anotações…" spellcheck="true"></textarea><footer><output aria-live="polite"></output><div class="pdp-postit-colors" aria-label="Cor da nota"></div></footer>' +
-      (isMain ? '<div class="pdp-postit-sync"><button type="button" data-sync disabled>Salvar no Projudi</button><output data-sync-status aria-live="polite">Verificando lembrete ativo…</output></div>' : '') + '</div>';
+      (isMain ? '<div class="pdp-postit-sync"><button type="button" data-sync disabled>Salvar no Projudi</button><button type="button" data-deactivate hidden>Desativar lembrete</button><output data-sync-status aria-live="polite">Verificando lembrete ativo…</output></div>' : '') + '</div>';
     const card = { box, key, revision: 0 };
     cards.add(card); document.body.appendChild(box);
     if (isMain && !hasProcessContext) box.querySelector('[data-add]').hidden = true;
@@ -348,6 +452,7 @@
       const scope = box.querySelector('select');
       scope.value = key === globalKey ? 'permanente' : 'processo';
       box.querySelector('[data-sync]').addEventListener('click', event => salvarLembrete(event.currentTarget, box.querySelector('[data-sync-status]')));
+      box.querySelector('[data-deactivate]').addEventListener('click', event => desativarLembrete(event.currentTarget, box.querySelector('[data-sync-status]')));
       scope.addEventListener('change', () => {
         card.revision++;
         card.key = scope.value === 'permanente' ? globalKey : processKey;
