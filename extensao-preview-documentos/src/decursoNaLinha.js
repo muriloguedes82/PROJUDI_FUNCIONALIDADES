@@ -11,7 +11,9 @@
 // "Confirma a dispensa de análise de Decurso de Prazo?").
 //
 // Este script põe esses dois botões em cada linha "Aguardando Análise do
-// Decurso de Prazo", na coluna "Processo / Seq.", logo abaixo do sequencial:
+// Decurso de Prazo" (na lista de Auxiliares da Justiça a coluna "Situação"
+// diz só "Decurso de prazo em dd/mm/aaaa hh:mm"), na coluna "Processo /
+// Seq.", logo abaixo do sequencial:
 // - Dispensar: abre a tela da intimação num iframe oculto e aciona o botão
 //   nativo pelo background (clickDecursoWithConfirmation, o mesmo do
 //   "Dispensar decursos" do quadro Pendências), que aceita só a confirmação
@@ -64,14 +66,17 @@
 		const res = [];
 		for (const row of tbody.rows) {
 			if (/^row\d+$/.test(row.id)) continue;
-			if (!/aguardando analise d[eo] decurso de prazo/.test(norm(row.textContent))) continue;
+			if (!aguardandoAnalise(row)) continue;
 			let celulaProcesso = null;
 			let detalhe = null;
 			for (const td of row.cells) {
 				for (const a of td.querySelectorAll("a[href]")) {
 					let url;
 					try { url = new URL(a.getAttribute("href"), location.href); } catch (e) { continue; }
-					if (url.origin !== location.origin || url.hash) continue;
+					// Ignora âncoras ("#"): na lista de Auxiliares da Justiça o
+					// ícone de copiar o número aponta para "intimacaoNomeados.do#"
+					// - o mesmo endereço da tela da intimação, com hash vazio.
+					if (url.origin !== location.origin || url.hash || /#/.test(a.getAttribute("href"))) continue;
 					if (!celulaProcesso && url.pathname === "/projudi/processo.do" && url.search) celulaProcesso = td;
 					if (!detalhe && DETALHES.indexOf(url.pathname) >= 0 && url.search) detalhe = url.href;
 				}
@@ -82,6 +87,17 @@
 			}
 		}
 		return res;
+	}
+
+	// Intimação e Citações: "Aguardando Análise do Decurso de Prazo" na linha.
+	// Auxiliares da Justiça: a coluna "Situação" (a última) mostra "Decurso de
+	// prazo em 14/04/2026 00:53". O botão nativo da tela da intimação é
+	// conferido antes de qualquer ação, então uma linha sem análise pendente
+	// só avisa que o botão não está disponível.
+	function aguardandoAnalise(row) {
+		if (/aguardando analise d[eo] decurso de prazo/.test(norm(row.textContent))) return true;
+		const ultima = row.cells[row.cells.length - 1];
+		return !!ultima && /^decurso de prazo em \d{2}\/\d{2}\/\d{4}/.test(norm(ultima.textContent));
 	}
 
 	function inserirBotoes() {
@@ -207,7 +223,11 @@
 		return new Promise(function (resolve, reject) {
 			const frame = criarIframe("data-pdp-loader", "decurso-na-linha");
 			const timer = setTimeout(function () { fim(new Error("a tela da intimação demorou demais para carregar.")); }, 30000);
+			let clicado = false;
+			let terminado = false;
 			function fim(erro, valor) {
+				if (terminado) return;
+				terminado = true;
 				clearTimeout(timer);
 				frame.remove();
 				if (erro) reject(erro);
@@ -222,17 +242,32 @@
 					return;
 				}
 				if (!doc || doc.URL === "about:blank") return;
+				// 2º carregamento: o clique no botão nativo (abaixo) levou o
+				// iframe à tela de análise; o endereço dela é o que se queria.
+				if (clicado) {
+					if (/\/certificar\.do$/.test(new URL(doc.URL).pathname)) fim(null, doc.URL);
+					else fim(new Error("o Projudi não abriu a tela de análise do decurso."));
+					return;
+				}
 				const botao = doc.getElementById("analisarButton");
-				const m = /location\.href\s*=\s*'([^']+)'/.exec((botao && botao.getAttribute("onclick")) || "");
-				if (!botao || botao.disabled || !m) {
+				if (!botao || botao.disabled) {
 					fim(new Error("o botão \"Analisar Decurso\" não está disponível para esta intimação."));
 					return;
 				}
-				try {
-					fim(null, new URL(m[1], doc.URL).href);
-				} catch (e) {
-					fim(new Error("endereço da análise não reconhecido."));
+				const m = /location(?:\.href\s*=|\.assign\()\s*(['"])([^'"]+)\1/.exec(botao.getAttribute("onclick") || "");
+				if (m) {
+					try {
+						fim(null, new URL(m[2], doc.URL).href);
+					} catch (e) {
+						fim(new Error("endereço da análise não reconhecido."));
+					}
+					return;
 				}
+				// Sem o endereço no onclick (o botão pode ser ligado por
+				// script): clica nele no iframe oculto e lê o endereço da tela
+				// de análise que abrir.
+				clicado = true;
+				botao.click();
 			});
 			frame.src = url;
 		});
