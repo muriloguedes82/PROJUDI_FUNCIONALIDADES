@@ -2254,6 +2254,8 @@
 				}
 				if (extra && extra.movimento) movimentoTexto = extra.movimento.texto;
 			}
+			const origemPadrao = perguntarOrigemPadrao(label, form, editingPref);
+			if (origemPadrao) extra = Object.assign({}, extra || {}, { origemPadrao: origemPadrao });
 			if (!fields.length && !(custom && typeof custom.captureExtra === "function") && !ignorados) {
 				alert('Nenhum campo preenchido ou selecionado no diálogo "' + label + '". Preencha o que a preferência deve guardar e salve de novo.');
 				return;
@@ -2265,6 +2267,7 @@
 					? 'Esta tela não tem campos para gravar: a preferência só abre "' + label + '" e pede a confirmação (que clica em "Confirmar").'
 					: "Campos que serão gravados:\n" + (fields.length ? describeFields(fields) : "")) +
 					(extra && extra.descricao ? (fields.length ? "\n" : "") + extra.descricao : "") +
+					(origemPadrao ? "\nOrigem padrão: " + origemPadrao.texto + " (a mais recente com esse nome, sempre que existir no processo)" : "") +
 					(movimentoTexto ? "\nMovimento de referência: " + movimentoTexto + " (a preferência parte do movimento mais recente com esse nome; se não houver, pergunta antes de seguir a regra geral)" : "") +
 					"\n\nSe algum estiver errado, cancele, ajuste o diálogo e salve de novo.\n\nNome para esta preferência de \"" + label + '":',
 				editingPref ? editingPref.name : ""
@@ -2340,6 +2343,7 @@
 		const fields = (pref.fields || []).filter(function (f) {
 			return !campoDoProcesso(label, f.name);
 		});
+		vigiarOrigemPadrao(label, pref, form);
 		fillFormFields(form, fields, function (missing) {
 			removeConfirmBar();
 			afterPreferenceFilled(label, pref, form, doc, editing, missing);
@@ -2377,6 +2381,22 @@
 			if (stillEmpty.length) {
 				alert("Antes de confirmar, preencha: " + missingFieldsText(stillEmpty) + ". Depois clique de novo em \"Sim, executar\".");
 				return;
+			}
+			const nomeOrigem = alvo ? origemPadraoDe(label, pref) : null;
+			const selectOrigem = nomeOrigem ? origemSelectIn(alvo) : null;
+			if (selectOrigem) {
+				const escolhida = selectOrigem.selectedIndex >= 0 ? selectOrigem.options[selectOrigem.selectedIndex] : null;
+				const bate = origemOpcaoValida(escolhida) && normalizarNomeMovimento(nomeDaOrigem(escolhida.textContent)) === normalizarNomeMovimento(nomeOrigem);
+				if (
+					!bate &&
+					!confirm(
+						'A origem padrão "' + nomeOrigem + '" não foi encontrada neste processo' +
+							(origemOpcaoValida(escolhida) ? '; está selecionada "' + escolhida.textContent.trim() + '"' : "") +
+							".\n\nOK = executar assim mesmo.\nCancelar = voltar e conferir a Origem."
+					)
+				) {
+					return;
+				}
 			}
 			const submit = alvo ? findSubmitControl(alvo) : null;
 			removeConfirmBar();
@@ -2528,6 +2548,122 @@
 	function campoDoProcesso(label, name) {
 		const campos = ACTIONS_PREF_CAMPOS_DO_PROCESSO[label];
 		return !!campos && campos.indexOf(name) !== -1;
+	}
+
+	// Origem padrão de "Comunicar ao IIPR": a Origem não entra nos campos
+	// (o valor é o id de uma movimentação daquele processo), mas a
+	// preferência pode guardar o NOME dela (`pref.origemPadrao.texto`, ex.:
+	// "Recebida", tirado de "Recebida em 21/09/2026"). Ao usar, a extensão
+	// seleciona a origem mais recente com esse nome sempre que ela aparecer
+	// na lista — que o Projudi pode só montar depois de escolhida a parte.
+	const ACTIONS_ORIGEM_PADRAO = ["Anotações Criminais", "Solicitar Antecedentes Criminais"];
+	const ORIGEM_FIELD = "codOrigem";
+	const ORIGEM_WATCH_MS = 180000;
+	const ORIGEM_POLL_MS = 500;
+	let origemWatchTimer = null;
+
+	function nomeDaOrigem(text) {
+		return (text || "").replace(/\s+em\s+\d{1,2}\/\d{1,2}\/\d{4}.*$/i, "").replace(/\s+/g, " ").trim();
+	}
+	function dataDaOrigem(text) {
+		const m = (text || "").match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+		return m ? new Date(+m[3], +m[2] - 1, +m[1]).getTime() : 0;
+	}
+	function origemOpcaoValida(opt) {
+		return !!opt && opt.value !== "" && opt.value !== "-1" && !!nomeDaOrigem(opt.textContent);
+	}
+	function origemSelectIn(form) {
+		return formFieldsNamed(form, ORIGEM_FIELD).filter(function (el) {
+			return el.tagName === "SELECT";
+		})[0] || null;
+	}
+	// Opção mais recente cujo nome (sem a data) é o da origem padrão.
+	function melhorOpcaoDeOrigem(select, nome) {
+		const alvo = normalizarNomeMovimento(nome);
+		let melhor = null;
+		Array.prototype.forEach.call(select.options, function (opt) {
+			if (!origemOpcaoValida(opt) || normalizarNomeMovimento(nomeDaOrigem(opt.textContent)) !== alvo) return;
+			if (!melhor || dataDaOrigem(opt.textContent) >= dataDaOrigem(melhor.textContent)) melhor = opt;
+		});
+		return melhor;
+	}
+	function origemPadraoDe(label, pref) {
+		if (ACTIONS_ORIGEM_PADRAO.indexOf(label) === -1) return null;
+		return pref && pref.origemPadrao && pref.origemPadrao.texto ? pref.origemPadrao.texto : null;
+	}
+
+	// Formulário do diálogo na tela agora: o mesmo, ou o da janela que
+	// recarregou (ver findDialogFormInActiveModal).
+	function formNaTela(form) {
+		return form.isConnected ? form : findDialogFormInActiveModal();
+	}
+
+	// Seleciona a origem padrão cada vez que a lista de origens muda (uma
+	// vez por lista, para não desfazer uma escolha manual do usuário).
+	function vigiarOrigemPadrao(label, pref, form) {
+		const nome = origemPadraoDe(label, pref);
+		if (!nome) return;
+		clearInterval(origemWatchTimer);
+		const popup = activeModalIframe;
+		const until = Date.now() + ORIGEM_WATCH_MS;
+		let ultimaLista = null;
+		let ultimoSelect = null;
+		const iv = setInterval(function () {
+			// Para quando o tempo acaba, o popup fecha/troca ou a janela some.
+			if (Date.now() > until || activeModalIframe !== popup || (!popup && !form.isConnected)) {
+				clearInterval(iv);
+				return;
+			}
+			const alvo = formNaTela(form);
+			if (!alvo) return;
+			const select = origemSelectIn(alvo);
+			if (!select) return;
+			const lista = Array.prototype.map.call(select.options, function (opt) {
+				return opt.value + "=" + opt.textContent;
+			}).join("|");
+			// Janela recarregada (outro select) com a mesma lista também conta.
+			if (lista === ultimaLista && select === ultimoSelect) return;
+			ultimaLista = lista;
+			ultimoSelect = select;
+			const opt = melhorOpcaoDeOrigem(select, nome);
+			if (!opt) {
+				logChainStep('origem padrão "' + nome + '" não está na lista', lista);
+				return;
+			}
+			if (select.value !== opt.value) {
+				select.value = opt.value;
+				fireFieldEvents(select);
+				logChainStep('origem padrão "' + nome + '" selecionada', opt.textContent.trim());
+			}
+		}, ORIGEM_POLL_MS);
+		origemWatchTimer = iv;
+	}
+
+	// Na hora de salvar: oferece gravar a origem escolhida como padrão. Na
+	// edição sem origem escolhida, oferece manter a que já estava gravada.
+	// Devolve { texto } ou null.
+	function perguntarOrigemPadrao(label, form, editingPref) {
+		if (ACTIONS_ORIGEM_PADRAO.indexOf(label) === -1) return null;
+		const select = origemSelectIn(form);
+		const opt = select && select.selectedIndex >= 0 ? select.options[select.selectedIndex] : null;
+		const atual = origemOpcaoValida(opt) ? nomeDaOrigem(opt.textContent) : "";
+		const anterior = origemPadraoDe(label, editingPref);
+		if (atual) {
+			if (
+				confirm(
+					'Gravar "' + atual + '" como origem padrão desta preferência?\n\n' +
+						'OK = sim: em cada processo, a extensão seleciona a origem "' + atual + '" mais recente, sempre que existir.\n' +
+						"Cancelar = não: a origem fica para você escolher a cada vez."
+				)
+			) {
+				return { texto: atual };
+			}
+			return null;
+		}
+		if (anterior && confirm('Esta preferência tem a origem padrão "' + anterior + '".\n\nOK = manter.\nCancelar = retirar.')) {
+			return { texto: anterior };
+		}
+		return null;
 	}
 
 	const ACTIONS_PREF_SEM_CAMPOS = {
