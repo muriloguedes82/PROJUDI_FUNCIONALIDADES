@@ -2215,6 +2215,7 @@
 			const ignorados = ACTIONS_PREF_SEM_CAMPOS[label] || null;
 			const fields = captureFormFields(form).filter(function (f) {
 				if (ignorados && ignorados.indexOf(f.name) !== -1) return false;
+				if (campoDoProcesso(label, f.name)) return false;
 				return !custom || !custom.prefFields || custom.prefFields.indexOf(f.name) !== -1;
 			});
 			// Ação personalizada com `captureExtra(doc)`: o que a preferência
@@ -2334,7 +2335,12 @@
 	// Preenche o diálogo com a preferência e, no fim, mostra a barra certa.
 	function fillPreference(label, pref, form, doc, editing) {
 		showFillingBar(label, pref);
-		fillFormFields(form, pref.fields, function (missing) {
+		// Preferência gravada antes de o campo passar a ser ignorado
+		// (ACTIONS_PREF_CAMPOS_DO_PROCESSO): não o preenche.
+		const fields = (pref.fields || []).filter(function (f) {
+			return !campoDoProcesso(label, f.name);
+		});
+		fillFormFields(form, fields, function (missing) {
 			removeConfirmBar();
 			afterPreferenceFilled(label, pref, form, doc, editing, missing);
 		});
@@ -2360,12 +2366,19 @@
 		confirmBar.querySelector(".pdp-qa-confirm-yes").addEventListener("click", function () {
 			// Última conferência antes de enviar: repõe o que a tela tenha
 			// esvaziado e não envia com campo gravado ainda vazio.
-			const stillEmpty = form.isConnected ? restoreEmptyFields(form, pref.fields || []) : [];
+			// A janela pode ter recarregado enquanto o usuário escolhia algo
+			// que a preferência não guarda (ex.: a "Parte do Processo" de
+			// "Comunicar ao IIPR"): procura o formulário de novo no popup.
+			const alvo = form.isConnected ? form : findDialogFormInActiveModal();
+			const campos = (pref.fields || []).filter(function (f) {
+				return !campoDoProcesso(label, f.name);
+			});
+			const stillEmpty = alvo ? restoreEmptyFields(alvo, campos) : [];
 			if (stillEmpty.length) {
 				alert("Antes de confirmar, preencha: " + missingFieldsText(stillEmpty) + ". Depois clique de novo em \"Sim, executar\".");
 				return;
 			}
-			const submit = findSubmitControl(form);
+			const submit = alvo ? findSubmitControl(alvo) : null;
 			removeConfirmBar();
 			if (!submit) {
 				alert('Os campos foram preenchidos, mas não encontrei o botão de confirmar do Projudi automaticamente. Confira e clique nele manualmente.');
@@ -2501,6 +2514,19 @@
 	// pode ser gravada sem nenhum campo — ela só abre a tela e pede o
 	// "Sim, executar", que clica no "Confirmar". Valor: nomes de campos que
 	// nunca entram na preferência.
+	// Campos que valem só para o processo em que a preferência foi gravada
+	// e por isso nunca entram nela (nem são preenchidos ao usar uma
+	// preferência antiga que os tenha): em "Comunicar ao IIPR", a "Parte do
+	// Processo" é a pessoa daquele processo — o usuário a escolhe a cada vez.
+	const ACTIONS_PREF_CAMPOS_DO_PROCESSO = {
+		"Anotações Criminais": ["codParteProcesso"],
+		"Solicitar Antecedentes Criminais": ["codParteProcesso"],
+	};
+	function campoDoProcesso(label, name) {
+		const campos = ACTIONS_PREF_CAMPOS_DO_PROCESSO[label];
+		return !!campos && campos.indexOf(name) !== -1;
+	}
+
 	const ACTIONS_PREF_SEM_CAMPOS = {
 		"Remessa Eletrônica para a Turma Recursal": ["advogadoSelecionado"],
 	};

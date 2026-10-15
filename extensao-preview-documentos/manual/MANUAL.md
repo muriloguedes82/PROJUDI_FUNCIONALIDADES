@@ -962,7 +962,10 @@ sair da aba em que você está.
   janela do Projudi aparecer exatamente como apareceria clicando lá.
   Ao criar uma preferência dessas ações, pode preencher a janela
   **Comunicar ao IIPR** normalmente (escolher a parte, a origem etc.) e
-  só então clicar em **💾 Salvar como preferência**.
+  só então clicar em **💾 Salvar como preferência**. A **Parte do
+  Processo** não é gravada na preferência, porque muda de um processo
+  para outro: ao usar a preferência, escolha a parte na janela antes de
+  clicar em **✅ Sim, executar**.
 - Em outra aba (ex.: **Partes e Outros**), o painel pede para abrir a aba
   **Movimentações** primeiro.
 - Ao terminar ações como **Ordenar Cumprimentos**, o popup se fecha e a
@@ -2567,7 +2570,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 2.34.1 | 15/10/2026 | Corrigido: ao criar uma preferência de **Anotações Criminais** (ou **Solicitar Antecedentes Criminais**), o **💾 Salvar como preferência** dizia "Não encontrei o formulário do diálogo" com a janela **Comunicar ao IIPR** aberta e preenchida. Agora a extensão encontra a janela na hora de salvar (7.1). |
+| 2.34.1 | 15/10/2026 | Corrigido: ao criar uma preferência de **Anotações Criminais** (ou **Solicitar Antecedentes Criminais**), o **💾 Salvar como preferência** dizia "Não encontrei o formulário do diálogo" com a janela **Comunicar ao IIPR** aberta e preenchida. Agora a extensão encontra a janela na hora de salvar. A **Parte do Processo** deixa de ser gravada nessas preferências (nem é preenchida pelas antigas): escolha a parte antes de clicar em **✅ Sim, executar** (7.1). |
 | 2.34.0 | 15/10/2026 | Sistemas (8.7): com **dois monitores**, o card abre o sistema **direto no outro monitor**; com um só, no popup, como antes. Nova opção no Menu (2.6), **Abrir os sistemas**: Automático (padrão), Sempre no popup ou Sempre fora do popup (2º monitor ou nova aba); a escolha vai no Exportar. Vídeos V34 e V39 regravados. |
 | 2.33.1 | 14/10/2026 | Seção 9.9: corrigido — na lista **Intimação — Auxiliares da Justiça** do Decurso de Prazo os botões **Analisar Decurso** e **Dispensar** não apareciam nas linhas (lá a coluna Situação mostra "Decurso de prazo em" e a data, e não "Aguardando Análise do Decurso de Prazo"). Agora aparecem, e também o **Dispensar nos marcados** e o **Analisar decurso nos marcados** da barra **⭐ Em lote** funcionam nessa lista. Texto do "Onde fica" ajustado. Sem vídeo novo: a tela não muda. |
 | 2.33.0 | 14/10/2026 | Novo card **SEEU** (terracota), só no Projudi, na fileira dos sistemas ao lado da balança (1.3 e 8.7): abre a página de entrada do SEEU num popup sobre o processo (ou no segundo monitor/nova aba). Quem já tinha mudado a ordem dos cards encontra o SEEU dentro do **Outros**. Vídeo V39 regravado. |
