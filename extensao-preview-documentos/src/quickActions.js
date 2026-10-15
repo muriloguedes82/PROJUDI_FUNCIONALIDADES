@@ -1449,6 +1449,53 @@
 		return findLikelyDialogFormIn(document);
 	}
 
+	// Formulário do diálogo procurado em todo o popup desta extensão,
+	// descendo pelas janelas internas (iframes) — as mais internas primeiro.
+	// Usado na hora de salvar a preferência quando o documento guardado ao
+	// abrir já não serve: em "Anotações Criminais" o popup carrega a tela de
+	// Ações, que abre "Comunicar ao IIPR" numa janela interna; essa janela
+	// pode recarregar enquanto o usuário preenche (ex.: ao escolher a parte
+	// ou a origem), e o documento guardado deixa de ser o que está na tela.
+	// `nomes` (opcional): só vale um formulário com algum desses campos —
+	// enquanto a janela interna recarrega, o da tela de Ações (por fora)
+	// não pode ser tomado por ela.
+	function findDialogFormInActiveModal(nomes) {
+		if (!activeModalIframe) return null;
+		function search(frame, depth) {
+			let doc;
+			try {
+				doc = frame.contentDocument;
+			} catch (err) {
+				return null;
+			}
+			if (!doc || depth > 4) return null;
+			const frames = doc.querySelectorAll("iframe");
+			for (let i = frames.length - 1; i >= 0; i--) {
+				if (!isVisible(frames[i])) continue;
+				const inner = search(frames[i], depth + 1);
+				if (inner) return inner;
+			}
+			return nomes && nomes.length ? findFormContainingFieldNamesIn(doc, nomes) : findLikelyDialogFormIn(doc);
+		}
+		return search(activeModalIframe, 0);
+	}
+
+	// Formulário ainda na tela. Quando a janela recarrega, o documento
+	// antigo continua existindo (e `isConnected` continua verdadeiro), mas
+	// perde a janela (`defaultView`).
+	function formVivo(form) {
+		return !!form && form.isConnected && !!form.ownerDocument.defaultView;
+	}
+	function nomesDosCampos(fields) {
+		return (fields || []).map(function (f) {
+			return f.name;
+		}).filter(Boolean);
+	}
+	// O mesmo formulário, ou o da janela que recarregou.
+	function formNaTela(form, nomes) {
+		return formVivo(form) ? form : findDialogFormInActiveModal(nomes);
+	}
+
 	function findFormContainingFieldNamesIn(root, names) {
 		const forms = root.querySelectorAll("form");
 		for (let i = forms.length - 1; i >= 0; i--) {
@@ -1715,7 +1762,9 @@
 			.join("\n");
 	}
 
-	function captureFormFields(form) {
+	// `todos`: grava também o que está como veio na tela (ver
+	// ACTIONS_CAPTURA_TODOS).
+	function captureFormFields(form, todos) {
 		const fields = [];
 		const elements = formControls(form).filter(function (el) {
 			return /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName);
@@ -1734,11 +1783,11 @@
 			// Bolinha, lista e texto: só se diferem do padrão da tela (o que
 			// já vem assim — ex.: "Urgente: Não", "Prazo: Estipular em dias"
 			// — não foi escolha do usuário).
-			if (type === "radio" && (!el.checked || el.defaultChecked)) return;
+			if (type === "radio" && (!el.checked || (el.defaultChecked && !todos))) return;
 			// (o select2 cria a opção escolhida já como "padrão" — ele fica
 			// de fora dessa regra; vazio, cai na regra abaixo)
-			if (type === "select-one" && !isSelect2(el) && isDefaultOption(el)) return;
-			if ((type === "text" || type === "textarea" || type === "number" || type === "date" || type === "email" || type === "tel") && el.value === el.defaultValue) return;
+			if (type === "select-one" && !isSelect2(el) && isDefaultOption(el) && !todos) return;
+			if ((type === "text" || type === "textarea" || type === "number" || type === "date" || type === "email" || type === "tel") && el.value === el.defaultValue && !todos) return;
 			// Caixa: só se o estado difere do padrão da tela. As caixas de
 			// cada parte (valor = código da parte) só existem no processo em
 			// que a preferência foi gravada; noutro processo são ignoradas, e
@@ -2015,9 +2064,22 @@
 			},
 		};
 
+		const nomes = nomesDosCampos(ordered);
 		function round() {
-			// Popup fechado/diálogo trocado no meio: não há o que preencher.
-			if (!form.isConnected) return;
+			// A janela recarregou no meio (ex.: "Comunicar ao IIPR" a cada
+			// escolha): segue no formulário novo. Popup fechado/diálogo
+			// trocado: não há o que preencher.
+			if (!formVivo(form)) {
+				const novo = findDialogFormInActiveModal(nomes);
+				if (novo) {
+					form = novo;
+				} else if (activeModalIframe && Date.now() - start < FILL_TIMEOUT_MS) {
+					setTimeout(round, FILL_ROUND_MS);
+					return;
+				} else {
+					return;
+				}
+			}
 			const pastGrace = Date.now() - start >= FILL_DISABLED_GRACE_MS;
 			const missing = ordered.filter(function (f) {
 				try {
@@ -2086,9 +2148,15 @@
 	const FILL_GUARD_MS = 6000;
 	function guardEmptyFields(form, fields) {
 		const until = Date.now() + FILL_GUARD_MS;
+		const nomes = nomesDosCampos(fields);
 		const iv = setInterval(function () {
-			if (!form.isConnected || Date.now() > until) {
+			if (Date.now() > until) {
 				clearInterval(iv);
+				return;
+			}
+			form = formNaTela(form, nomes);
+			if (!form) {
+				if (!activeModalIframe) clearInterval(iv);
 				return;
 			}
 			const restored = fields.filter(function (f) {
@@ -2175,15 +2243,19 @@
 		captureToolbar.querySelector(".pdp-qa-capture-cancel").addEventListener("click", removeCaptureToolbar);
 		captureToolbar.querySelector(".pdp-qa-capture-save").addEventListener("click", function () {
 			const currentDoc = typeof doc === "function" ? doc() : doc;
-			const form = findCustomForm(label, currentDoc) || findLikelyDialogFormIn(currentDoc);
+			// Documento de uma janela que já recarregou fica sem `defaultView`.
+			const docNaTela = currentDoc && currentDoc.defaultView ? currentDoc : null;
+			let form = findCustomForm(label, currentDoc) || (docNaTela && findLikelyDialogFormIn(docNaTela));
+			if (!form) form = findDialogFormInActiveModal();
 			if (!form) {
 				alert('Não encontrei o formulário do diálogo "' + label + '" para capturar. Ele ainda está aberto na tela?');
 				return;
 			}
 			const custom = getCustomAction(label);
 			const ignorados = ACTIONS_PREF_SEM_CAMPOS[label] || null;
-			const fields = captureFormFields(form).filter(function (f) {
+			const fields = captureFormFields(form, ACTIONS_CAPTURA_TODOS.indexOf(label) !== -1).filter(function (f) {
 				if (ignorados && ignorados.indexOf(f.name) !== -1) return false;
+				if (campoDoProcesso(label, f.name)) return false;
 				return !custom || !custom.prefFields || custom.prefFields.indexOf(f.name) !== -1;
 			});
 			// Ação personalizada com `captureExtra(doc)`: o que a preferência
@@ -2222,17 +2294,27 @@
 				}
 				if (extra && extra.movimento) movimentoTexto = extra.movimento.texto;
 			}
-			if (!fields.length && !(custom && typeof custom.captureExtra === "function") && !ignorados) {
+			const origemPadrao = perguntarOrigemPadrao(label, form, editingPref);
+			if (origemPadrao) extra = Object.assign({}, extra || {}, { origemPadrao: origemPadrao });
+			// "Comunicar ao IIPR": sem a Parte (de cada processo), "Solicitar
+			// Antecedentes Criminais" pode não ter nada a gravar — a
+			// preferência só abre a tela e pede a confirmação.
+			const semCamposOk = !!ignorados || ACTIONS_CAPTURA_TODOS.indexOf(label) !== -1;
+			const botaoEnviar = findSubmitControl(form);
+			const nomeBotao = botaoEnviar ? (botaoEnviar.value || botaoEnviar.textContent || "").trim() : "";
+			if (!fields.length && !(custom && typeof custom.captureExtra === "function") && !semCamposOk && !origemPadrao) {
 				alert('Nenhum campo preenchido ou selecionado no diálogo "' + label + '". Preencha o que a preferência deve guardar e salve de novo.');
 				return;
 			}
 			// Mostra o que vai ser gravado: dá para conferir na hora se algum
 			// campo (ex.: uma lista que carrega depois) ficou de fora.
 			const name = prompt(
-				(!fields.length && ignorados
-					? 'Esta tela não tem campos para gravar: a preferência só abre "' + label + '" e pede a confirmação (que clica em "Confirmar").'
+				(!fields.length && semCamposOk
+					? 'Esta tela não tem campos para gravar: a preferência só abre "' + label + '" e pede a confirmação (que clica em "' + (nomeBotao || "Confirmar") + '").' +
+						(campoDoProcesso(label, "codParteProcesso") ? " A Parte do Processo é escolhida a cada vez." : "")
 					: "Campos que serão gravados:\n" + (fields.length ? describeFields(fields) : "")) +
 					(extra && extra.descricao ? (fields.length ? "\n" : "") + extra.descricao : "") +
+					(origemPadrao ? "\nOrigem padrão: " + origemPadrao.texto + " (a mais recente com esse nome, sempre que existir no processo)" : "") +
 					(movimentoTexto ? "\nMovimento de referência: " + movimentoTexto + " (a preferência parte do movimento mais recente com esse nome; se não houver, pergunta antes de seguir a regra geral)" : "") +
 					"\n\nSe algum estiver errado, cancele, ajuste o diálogo e salve de novo.\n\nNome para esta preferência de \"" + label + '":',
 				editingPref ? editingPref.name : ""
@@ -2303,7 +2385,14 @@
 	// Preenche o diálogo com a preferência e, no fim, mostra a barra certa.
 	function fillPreference(label, pref, form, doc, editing) {
 		showFillingBar(label, pref);
-		fillFormFields(form, pref.fields, function (missing) {
+		// Preferência gravada antes de o campo passar a ser ignorado
+		// (ACTIONS_PREF_CAMPOS_DO_PROCESSO): não o preenche.
+		const fields = (pref.fields || []).filter(function (f) {
+			return !campoDoProcesso(label, f.name);
+		});
+		fillFormFields(form, fields, function (missing) {
+			// Depois do preenchimento: escolher a parte recarrega a janela.
+			vigiarCamposDoProcesso(label, pref, form);
 			removeConfirmBar();
 			afterPreferenceFilled(label, pref, form, doc, editing, missing);
 		});
@@ -2329,12 +2418,35 @@
 		confirmBar.querySelector(".pdp-qa-confirm-yes").addEventListener("click", function () {
 			// Última conferência antes de enviar: repõe o que a tela tenha
 			// esvaziado e não envia com campo gravado ainda vazio.
-			const stillEmpty = form.isConnected ? restoreEmptyFields(form, pref.fields || []) : [];
+			// A janela pode ter recarregado enquanto o usuário escolhia algo
+			// que a preferência não guarda (ex.: a "Parte do Processo" de
+			// "Comunicar ao IIPR"): procura o formulário de novo no popup.
+			const campos = (pref.fields || []).filter(function (f) {
+				return !campoDoProcesso(label, f.name);
+			});
+			const alvo = formNaTela(form, nomesDosCampos(campos).concat(origemPadraoDe(label, pref) ? [ORIGEM_FIELD] : []));
+			const stillEmpty = alvo ? restoreEmptyFields(alvo, campos) : [];
 			if (stillEmpty.length) {
 				alert("Antes de confirmar, preencha: " + missingFieldsText(stillEmpty) + ". Depois clique de novo em \"Sim, executar\".");
 				return;
 			}
-			const submit = findSubmitControl(form);
+			const nomeOrigem = alvo ? origemPadraoDe(label, pref) : null;
+			const selectOrigem = nomeOrigem ? origemSelectIn(alvo) : null;
+			if (selectOrigem) {
+				const escolhida = selectOrigem.selectedIndex >= 0 ? selectOrigem.options[selectOrigem.selectedIndex] : null;
+				const bate = origemOpcaoValida(escolhida) && normalizarNomeMovimento(nomeDaOrigem(escolhida.textContent)) === normalizarNomeMovimento(nomeOrigem);
+				if (
+					!bate &&
+					!confirm(
+						'A origem padrão "' + nomeOrigem + '" não foi encontrada neste processo' +
+							(origemOpcaoValida(escolhida) ? '; está selecionada "' + escolhida.textContent.trim() + '"' : "") +
+							".\n\nOK = executar assim mesmo.\nCancelar = voltar e conferir a Origem."
+					)
+				) {
+					return;
+				}
+			}
+			const submit = alvo ? findSubmitControl(alvo) : null;
 			removeConfirmBar();
 			if (!submit) {
 				alert('Os campos foram preenchidos, mas não encontrei o botão de confirmar do Projudi automaticamente. Confira e clique nele manualmente.');
@@ -2470,6 +2582,168 @@
 	// pode ser gravada sem nenhum campo — ela só abre a tela e pede o
 	// "Sim, executar", que clica no "Confirmar". Valor: nomes de campos que
 	// nunca entram na preferência.
+	// Campos que valem só para o processo em que a preferência foi gravada
+	// e por isso nunca entram nela (nem são preenchidos ao usar uma
+	// preferência antiga que os tenha): em "Comunicar ao IIPR", a "Parte do
+	// Processo" é a pessoa daquele processo e a "Origem" é uma movimentação
+	// dele (a "Movimentação Referente", só leitura, vem da Origem) — o
+	// usuário as escolhe a cada vez.
+	const CAMPOS_IIPR_DO_PROCESSO = ["codParteProcesso", "codOrigem", "descricaoMovimentacao"];
+	const ACTIONS_PREF_CAMPOS_DO_PROCESSO = {
+		"Anotações Criminais": CAMPOS_IIPR_DO_PROCESSO,
+		"Solicitar Antecedentes Criminais": CAMPOS_IIPR_DO_PROCESSO,
+	};
+	function campoDoProcesso(label, name) {
+		const campos = ACTIONS_PREF_CAMPOS_DO_PROCESSO[label];
+		return !!campos && campos.indexOf(name) !== -1;
+	}
+
+	// Telas que o Projudi recarrega a cada escolha ("Comunicar ao IIPR"
+	// volta com a Comunicação, a Parte e a Origem escolhidas já marcadas
+	// como "padrão" da página): a regra "só o que difere do padrão da tela"
+	// de captureFormFields deixaria tudo de fora. Nelas, grava-se o que está
+	// escolhido na tela, como está.
+	const ACTIONS_CAPTURA_TODOS = ["Anotações Criminais", "Solicitar Antecedentes Criminais"];
+
+	// Origem padrão de "Comunicar ao IIPR": a Origem não entra nos campos
+	// (o valor é o id de uma movimentação daquele processo), mas a
+	// preferência pode guardar o NOME dela (`pref.origemPadrao.texto`, ex.:
+	// "Recebida", tirado de "Recebida em 21/09/2026"). Ao usar, a extensão
+	// seleciona a origem mais recente com esse nome sempre que ela aparecer
+	// na lista — que o Projudi pode só montar depois de escolhida a parte.
+	const ACTIONS_ORIGEM_PADRAO = ["Anotações Criminais", "Solicitar Antecedentes Criminais"];
+	const ORIGEM_FIELD = "codOrigem";
+	const ORIGEM_WATCH_MS = 180000;
+	const ORIGEM_POLL_MS = 500;
+	let origemWatchTimer = null;
+
+	function nomeDaOrigem(text) {
+		return (text || "").replace(/\s+em\s+\d{1,2}\/\d{1,2}\/\d{4}.*$/i, "").replace(/\s+/g, " ").trim();
+	}
+	function dataDaOrigem(text) {
+		const m = (text || "").match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+		return m ? new Date(+m[3], +m[2] - 1, +m[1]).getTime() : 0;
+	}
+	function origemOpcaoValida(opt) {
+		return !!opt && opt.value !== "" && opt.value !== "-1" && !!nomeDaOrigem(opt.textContent);
+	}
+	function origemSelectIn(form) {
+		return formFieldsNamed(form, ORIGEM_FIELD).filter(function (el) {
+			return el.tagName === "SELECT";
+		})[0] || null;
+	}
+	// Opção mais recente cujo nome (sem a data) é o da origem padrão.
+	function melhorOpcaoDeOrigem(select, nome) {
+		const alvo = normalizarNomeMovimento(nome);
+		let melhor = null;
+		Array.prototype.forEach.call(select.options, function (opt) {
+			if (!origemOpcaoValida(opt) || normalizarNomeMovimento(nomeDaOrigem(opt.textContent)) !== alvo) return;
+			if (!melhor || dataDaOrigem(opt.textContent) >= dataDaOrigem(melhor.textContent)) melhor = opt;
+		});
+		return melhor;
+	}
+	function origemPadraoDe(label, pref) {
+		if (ACTIONS_ORIGEM_PADRAO.indexOf(label) === -1) return null;
+		return pref && pref.origemPadrao && pref.origemPadrao.texto ? pref.origemPadrao.texto : null;
+	}
+
+	// Parte única: com um só réu na lista "Parte do Processo", ele já fica
+	// escolhido (com mais de um, a escolha é do usuário).
+	const PARTE_FIELD = "codParteProcesso";
+	function parteUnicaSelecionada(select) {
+		const validas = Array.prototype.filter.call(select.options, function (opt) {
+			return opt.value !== "" && opt.value !== "-1" && !!(opt.textContent || "").trim();
+		});
+		if (validas.length !== 1 || select.value === validas[0].value) return null;
+		select.value = validas[0].value;
+		fireFieldEvents(select);
+		return validas[0];
+	}
+
+	// Ao usar uma preferência de "Comunicar ao IIPR": escolhe a parte quando
+	// ela é a única e seleciona a origem padrão cada vez que a lista de
+	// origens muda. Cada lista é tratada uma vez só, para não desfazer uma
+	// escolha manual do usuário; a janela recarregada (outra lista, mesmo
+	// com as mesmas opções) conta de novo.
+	function vigiarCamposDoProcesso(label, pref, form) {
+		if (ACTIONS_ORIGEM_PADRAO.indexOf(label) === -1) return;
+		const nome = origemPadraoDe(label, pref);
+		clearInterval(origemWatchTimer);
+		const popup = activeModalIframe;
+		const until = Date.now() + ORIGEM_WATCH_MS;
+		const vistos = new WeakMap(); // select -> última lista tratada
+		function novaLista(select) {
+			const lista = Array.prototype.map.call(select.options, function (opt) {
+				return opt.value + "=" + opt.textContent;
+			}).join("|");
+			if (vistos.get(select) === lista) return null;
+			vistos.set(select, lista);
+			return lista;
+		}
+		const iv = setInterval(function () {
+			// Para quando o tempo acaba, o popup fecha/troca ou a janela some.
+			if (Date.now() > until || activeModalIframe !== popup || (!popup && !formVivo(form))) {
+				clearInterval(iv);
+				return;
+			}
+			const alvo = formNaTela(form, [PARTE_FIELD, ORIGEM_FIELD]);
+			if (!alvo) return;
+			const parte = formFieldsNamed(alvo, PARTE_FIELD).filter(function (el) {
+				return el.tagName === "SELECT" && !el.disabled;
+			})[0];
+			if (parte && novaLista(parte) !== null) {
+				const escolhida = parteUnicaSelecionada(parte);
+				if (escolhida) {
+					logChainStep("parte única selecionada", escolhida.textContent.trim());
+					return; // a janela pode recarregar agora
+				}
+			}
+			if (!nome) return;
+			const select = origemSelectIn(alvo);
+			if (!select) return;
+			const lista = novaLista(select);
+			if (lista === null) return;
+			const opt = melhorOpcaoDeOrigem(select, nome);
+			if (!opt) {
+				logChainStep('origem padrão "' + nome + '" não está na lista', lista);
+				return;
+			}
+			if (select.value !== opt.value) {
+				select.value = opt.value;
+				fireFieldEvents(select);
+				logChainStep('origem padrão "' + nome + '" selecionada', opt.textContent.trim());
+			}
+		}, ORIGEM_POLL_MS);
+		origemWatchTimer = iv;
+	}
+
+	// Na hora de salvar: oferece gravar a origem escolhida como padrão. Na
+	// edição sem origem escolhida, oferece manter a que já estava gravada.
+	// Devolve { texto } ou null.
+	function perguntarOrigemPadrao(label, form, editingPref) {
+		if (ACTIONS_ORIGEM_PADRAO.indexOf(label) === -1) return null;
+		const select = origemSelectIn(form);
+		const opt = select && select.selectedIndex >= 0 ? select.options[select.selectedIndex] : null;
+		const atual = origemOpcaoValida(opt) ? nomeDaOrigem(opt.textContent) : "";
+		const anterior = origemPadraoDe(label, editingPref);
+		if (atual) {
+			if (
+				confirm(
+					'Gravar "' + atual + '" como origem padrão desta preferência?\n\n' +
+						'OK = sim: em cada processo, a extensão seleciona a origem "' + atual + '" mais recente, sempre que existir.\n' +
+						"Cancelar = não: a origem fica para você escolher a cada vez."
+				)
+			) {
+				return { texto: atual };
+			}
+			return null;
+		}
+		if (anterior && confirm('Esta preferência tem a origem padrão "' + anterior + '".\n\nOK = manter.\nCancelar = retirar.')) {
+			return { texto: anterior };
+		}
+		return null;
+	}
+
 	const ACTIONS_PREF_SEM_CAMPOS = {
 		"Remessa Eletrônica para a Turma Recursal": ["advogadoSelecionado"],
 	};

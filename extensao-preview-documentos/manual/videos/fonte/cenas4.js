@@ -37,7 +37,7 @@ function abrirMenu() {
 		'<div class="geral" id="mgeral"><span class="sw" id="mgsw"></span><div><div class="nm" id="mgnm">Extensão ativada no PROJUDI</div><div class="ds" id="mgds">Desligue para pausar todas as funcionalidades sem perder suas escolhas.</div></div></div>' +
 		'<div class="abas"><span class="aba sel">PROJUDI <small>(este)</small></span><span class="aba">SEEU</span></div>' +
 		'<div class="mb"><div class="mb-in"><div class="cnt" id="mcnt">Funcionalidades: 25 de 25 ativas</div>' + html + '</div><div class="aviso" id="mav" hidden></div></div>' +
-		'<div class="mf"><h4>Preferências e combos</h4><div class="btns"><span class="bt" id="m-exp">⬇ Exportar</span><span class="bt" id="m-imp">⬆ Importar</span><span class="bt" id="m-pad">↺ Padrão</span></div>' +
+		'<div class="mf"><h4>Abrir os sistemas (cards ao lado da balança)</h4><div id="m-abertura" style="border:1px solid #c7d2e2;border-radius:6px;padding:4px 6px;margin-bottom:8px;color:#13396b">Automático (padrão): 2º monitor ou popup <span style="float:right">▾</span></div><h4>Preferências e combos</h4><div class="btns"><span class="bt" id="m-exp">⬇ Exportar</span><span class="bt" id="m-imp">⬆ Importar</span><span class="bt" id="m-pad">↺ Padrão</span></div>' +
 		'<div class="nota">Use "Exportar" e, no outro computador, "Importar" o mesmo arquivo para levar tudo junto. <u>Termos de Uso</u>.</div><div class="bt manual" id="m-manual">📖 Manual do Usuário</div></div></div>');
 	const api = {
 		el: m,
@@ -108,6 +108,9 @@ CENAS.V34 = {
 		await S.cap("Ao ligar uma função, as funções de que ela precisa também são ligadas — e o Menu avisa.", { ms: 3800 });
 		await menu.rolar(0, 600);
 		menu.semAviso();
+		S.hl("#m-abertura");
+		await S.cap("Em <b>Abrir os sistemas</b> você escolhe como os cards ao lado da balança abrem: automático (2º monitor ou popup), sempre no popup, ou sempre fora dele.", { ms: 5200 });
+		S.hlOff();
 		await S.cap("Em <b>Preferências e combos</b> ficam os botões de cópia de segurança.");
 		await S.click("#m-exp");
 		menu.aviso("Backup exportado (preferências, combos, listas de tarefas, contatos…). Guarde o arquivo e use \"Importar\" no outro computador.", true);
@@ -397,21 +400,21 @@ CENAS.V39 = {
 		await arrastarCnj(sniper, $("#x-cnj-outros"));
 		$("#x-cnj-lista").append(sniper);
 		await S.cap("Tudo fica guardado como sua preferência — inclusive depois de atualizar a extensão — e vai junto no <b>⬇ Exportar</b> do Menu.", { ms: 4600, bottom: true });
-		await S.cap("Um clique sem arrastar abre o sistema. Clique, por exemplo, no <b>SerpJud</b>.", { bottom: true });
+		await S.cap("Um clique sem arrastar abre o sistema. Com <b>dois monitores</b>, ele abre direto numa janela no outro monitor.", { ms: 4400, bottom: true });
+		await S.cap("Com <b>um monitor só</b>, abre num popup sobre o processo. Clique, por exemplo, no <b>SerpJud</b>.", { ms: 4000, bottom: true });
 		await S.click("#x-cnj-serpjud");
 		await abrindo("SerpJud", 1000);
 		popup("SERP-JUD — Sistema Eletrônico dos Registros Públicos", '<div style="padding:30px;text-align:center;font-size:14px;color:#333"><div style="font-size:22px;font-weight:bold;color:#0d3560;margin-bottom:14px">SERP-JUD</div>Entre com o seu acesso do CNJ para consultar os registros públicos.<br><br><span class="pj-btn primary">Entrar</span><br><br><i style="color:#666">(tela do sistema — conteúdo ilustrativo)</i></div>', { hd: "SerpJud — CNJ", h: 520 });
-		$("#x-fechar").outerHTML = '<span><span id="x-fora" style="margin-right:16px">🖥 Segundo monitor</span><span id="x-fechar">✕ Fechar</span></span>';
+		$("#x-fechar").outerHTML = '<span><span id="x-fora" style="margin-right:16px">🗂 Nova aba</span><span id="x-fechar">✕ Fechar</span></span>';
 		await S.cap("O sistema abre num <b>popup</b> sobre a tela do processo, como os das ações rápidas. Entre com o seu acesso e trabalhe nele.", { ms: 4200, bottom: true });
 		S.hl("#x-fora");
-		await S.cap("Prefere fora do popup? Com dois monitores, <b>🖥 Segundo monitor</b> abre o sistema numa janela que ocupa o outro monitor.", { ms: 4400, bottom: true });
-		$("#x-fora").textContent = "🗂 Nova aba";
-		await S.cap("Com um monitor só, o mesmo botão aparece como <b>🗂 Nova aba</b> e abre o sistema numa aba nova, ao lado da do processo.", { ms: 4400, bottom: true });
+		await S.cap("Prefere fora do popup? <b>🗂 Nova aba</b> abre o sistema numa aba nova, ao lado da do processo.", { ms: 4400, bottom: true });
 		S.hlOff();
+		await S.cap("No Menu (balança), em <b>Abrir os sistemas</b>, dá para escolher: automático, sempre no popup ou sempre fora dele.", { ms: 4600, bottom: true });
 		await S.cap("Para voltar ao processo, clique em <b>✕ Fechar</b> (ou tecle <b>Esc</b>). Os outros cards funcionam do mesmo jeito.", { bottom: true });
 		await S.click("#x-fechar");
 		$(".x-popup").remove();
-		await S.endCard("Card do sistema ao lado da balança → popup (ou 🖥 Segundo monitor / 🗂 Nova aba) → ✕ Fechar.");
+		await S.endCard("Card do sistema → 2º monitor (se houver) ou popup → ✕ Fechar. Para mudar: Menu → Abrir os sistemas.");
 	},
 };
 

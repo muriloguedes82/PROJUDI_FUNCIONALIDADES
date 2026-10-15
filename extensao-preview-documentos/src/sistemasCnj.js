@@ -180,10 +180,31 @@
 		}
 	}
 
-	function abrir(sistema) {
+	function abrirNoPopup(sistema) {
 		const topo = topoUtil();
 		if (topo) topo.postMessage({ tipo: MENSAGEM_ABRIR, sistema: sistema.id }, location.origin);
 		else openModal(sistema);
+	}
+
+	// Como o card abre o sistema (preferência do Menu, menuExtensao.js):
+	// "auto" (padrão) - segundo monitor, se houver; senão, popup;
+	// "popup" - sempre no popup; "fora" - segundo monitor ou, sem ele, nova
+	// aba. Se a abertura fora do popup falhar, cai no popup.
+	const ABERTURA_KEY = "pdpSistemasCnjAbertura";
+	let abertura = "auto";
+	function lerAbertura(v) {
+		abertura = v === "popup" || v === "fora" ? v : "auto";
+	}
+	chrome.storage.local.get(ABERTURA_KEY).then(function (d) { lerAbertura(d[ABERTURA_KEY]); }).catch(function () {});
+	chrome.storage.onChanged.addListener(function (mudancas, area) {
+		if (area === "local" && mudancas[ABERTURA_KEY]) lerAbertura(mudancas[ABERTURA_KEY].newValue);
+	});
+
+	function abrir(sistema) {
+		if (abertura === "popup") { abrirNoPopup(sistema); return; }
+		chrome.runtime.sendMessage({ source: "projudi-preview", type: "sistemas-cnj-open", sistema: sistema.id, onde: abertura === "fora" ? "fora" : "monitor" })
+			.then(function (result) { if (!result || !result.ok) abrirNoPopup(sistema); })
+			.catch(function () { abrirNoPopup(sistema); });
 	}
 
 	// Ouve em todas as janelas: o pedido só chega à escolhida por topoUtil.
@@ -217,14 +238,21 @@
 	// ------------------------------------------------------------------
 
 	// Número único CNJ (0000000-00.0000.0.00.0000) no título da tela do
-	// processo: no Projudi "Processo <em class="attention">número</em>"; no
-	// SEEU o cabeçalho div.titulo.processo (os mesmos marcadores de
-	// hasProcessNumberMarker em quickActions.js).
+	// processo. No Projudi o título é <h3 id="barraTituloStatusProcessual">:
+	// às vezes "Processo <em class="attention">número</em>", mas aberto pela
+	// lista de Paralisados ou pelo atalho "Processo" do topo
+	// (buscaProcesso.do?actionType=pesquisaSimples) o número vem como texto
+	// puro, e o primeiro em.attention da página é outro (ex.: a data da
+	// próxima prescrição) - por isso o cabeçalho é conferido primeiro. No
+	// SEEU, o cabeçalho div.titulo.processo.
 	const NUMERO_CNJ = /\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/;
 
 	function documentoDeProcesso(doc) {
-		const titulo = doc.querySelector(NO_SEEU ? "div.titulo.processo" : "em.attention");
-		return !!(titulo && NUMERO_CNJ.test(titulo.textContent || ""));
+		const seletores = NO_SEEU ? ["div.titulo.processo"] : ["#barraTituloStatusProcessual", "em.attention"];
+		return seletores.some(function (seletor) {
+			const titulo = doc.querySelector(seletor);
+			return !!(titulo && NUMERO_CNJ.test(titulo.textContent || ""));
+		});
 	}
 
 	// Um quadro de outro endereço não pode ser lido, mas os quadros DENTRO
