@@ -1449,6 +1449,34 @@
 		return findLikelyDialogFormIn(document);
 	}
 
+	// Formulário do diálogo procurado em todo o popup desta extensão,
+	// descendo pelas janelas internas (iframes) — as mais internas primeiro.
+	// Usado na hora de salvar a preferência quando o documento guardado ao
+	// abrir já não serve: em "Anotações Criminais" o popup carrega a tela de
+	// Ações, que abre "Comunicar ao IIPR" numa janela interna; essa janela
+	// pode recarregar enquanto o usuário preenche (ex.: ao escolher a parte
+	// ou a origem), e o documento guardado deixa de ser o que está na tela.
+	function findDialogFormInActiveModal() {
+		if (!activeModalIframe) return null;
+		function search(frame, depth) {
+			let doc;
+			try {
+				doc = frame.contentDocument;
+			} catch (err) {
+				return null;
+			}
+			if (!doc || depth > 4) return null;
+			const frames = doc.querySelectorAll("iframe");
+			for (let i = frames.length - 1; i >= 0; i--) {
+				if (!isVisible(frames[i])) continue;
+				const inner = search(frames[i], depth + 1);
+				if (inner) return inner;
+			}
+			return findLikelyDialogFormIn(doc);
+		}
+		return search(activeModalIframe, 0);
+	}
+
 	function findFormContainingFieldNamesIn(root, names) {
 		const forms = root.querySelectorAll("form");
 		for (let i = forms.length - 1; i >= 0; i--) {
@@ -2175,7 +2203,10 @@
 		captureToolbar.querySelector(".pdp-qa-capture-cancel").addEventListener("click", removeCaptureToolbar);
 		captureToolbar.querySelector(".pdp-qa-capture-save").addEventListener("click", function () {
 			const currentDoc = typeof doc === "function" ? doc() : doc;
-			const form = findCustomForm(label, currentDoc) || findLikelyDialogFormIn(currentDoc);
+			// Documento de uma janela que já recarregou fica sem `defaultView`.
+			const docNaTela = currentDoc && currentDoc.defaultView ? currentDoc : null;
+			let form = findCustomForm(label, currentDoc) || (docNaTela && findLikelyDialogFormIn(docNaTela));
+			if (!form) form = findDialogFormInActiveModal();
 			if (!form) {
 				alert('Não encontrei o formulário do diálogo "' + label + '" para capturar. Ele ainda está aberto na tela?');
 				return;
@@ -2184,6 +2215,7 @@
 			const ignorados = ACTIONS_PREF_SEM_CAMPOS[label] || null;
 			const fields = captureFormFields(form).filter(function (f) {
 				if (ignorados && ignorados.indexOf(f.name) !== -1) return false;
+				if (campoDoProcesso(label, f.name)) return false;
 				return !custom || !custom.prefFields || custom.prefFields.indexOf(f.name) !== -1;
 			});
 			// Ação personalizada com `captureExtra(doc)`: o que a preferência
@@ -2222,6 +2254,8 @@
 				}
 				if (extra && extra.movimento) movimentoTexto = extra.movimento.texto;
 			}
+			const origemPadrao = perguntarOrigemPadrao(label, form, editingPref);
+			if (origemPadrao) extra = Object.assign({}, extra || {}, { origemPadrao: origemPadrao });
 			if (!fields.length && !(custom && typeof custom.captureExtra === "function") && !ignorados) {
 				alert('Nenhum campo preenchido ou selecionado no diálogo "' + label + '". Preencha o que a preferência deve guardar e salve de novo.');
 				return;
@@ -2233,6 +2267,7 @@
 					? 'Esta tela não tem campos para gravar: a preferência só abre "' + label + '" e pede a confirmação (que clica em "Confirmar").'
 					: "Campos que serão gravados:\n" + (fields.length ? describeFields(fields) : "")) +
 					(extra && extra.descricao ? (fields.length ? "\n" : "") + extra.descricao : "") +
+					(origemPadrao ? "\nOrigem padrão: " + origemPadrao.texto + " (a mais recente com esse nome, sempre que existir no processo)" : "") +
 					(movimentoTexto ? "\nMovimento de referência: " + movimentoTexto + " (a preferência parte do movimento mais recente com esse nome; se não houver, pergunta antes de seguir a regra geral)" : "") +
 					"\n\nSe algum estiver errado, cancele, ajuste o diálogo e salve de novo.\n\nNome para esta preferência de \"" + label + '":',
 				editingPref ? editingPref.name : ""
@@ -2303,7 +2338,13 @@
 	// Preenche o diálogo com a preferência e, no fim, mostra a barra certa.
 	function fillPreference(label, pref, form, doc, editing) {
 		showFillingBar(label, pref);
-		fillFormFields(form, pref.fields, function (missing) {
+		// Preferência gravada antes de o campo passar a ser ignorado
+		// (ACTIONS_PREF_CAMPOS_DO_PROCESSO): não o preenche.
+		const fields = (pref.fields || []).filter(function (f) {
+			return !campoDoProcesso(label, f.name);
+		});
+		vigiarOrigemPadrao(label, pref, form);
+		fillFormFields(form, fields, function (missing) {
 			removeConfirmBar();
 			afterPreferenceFilled(label, pref, form, doc, editing, missing);
 		});
@@ -2329,12 +2370,35 @@
 		confirmBar.querySelector(".pdp-qa-confirm-yes").addEventListener("click", function () {
 			// Última conferência antes de enviar: repõe o que a tela tenha
 			// esvaziado e não envia com campo gravado ainda vazio.
-			const stillEmpty = form.isConnected ? restoreEmptyFields(form, pref.fields || []) : [];
+			// A janela pode ter recarregado enquanto o usuário escolhia algo
+			// que a preferência não guarda (ex.: a "Parte do Processo" de
+			// "Comunicar ao IIPR"): procura o formulário de novo no popup.
+			const alvo = form.isConnected ? form : findDialogFormInActiveModal();
+			const campos = (pref.fields || []).filter(function (f) {
+				return !campoDoProcesso(label, f.name);
+			});
+			const stillEmpty = alvo ? restoreEmptyFields(alvo, campos) : [];
 			if (stillEmpty.length) {
 				alert("Antes de confirmar, preencha: " + missingFieldsText(stillEmpty) + ". Depois clique de novo em \"Sim, executar\".");
 				return;
 			}
-			const submit = findSubmitControl(form);
+			const nomeOrigem = alvo ? origemPadraoDe(label, pref) : null;
+			const selectOrigem = nomeOrigem ? origemSelectIn(alvo) : null;
+			if (selectOrigem) {
+				const escolhida = selectOrigem.selectedIndex >= 0 ? selectOrigem.options[selectOrigem.selectedIndex] : null;
+				const bate = origemOpcaoValida(escolhida) && normalizarNomeMovimento(nomeDaOrigem(escolhida.textContent)) === normalizarNomeMovimento(nomeOrigem);
+				if (
+					!bate &&
+					!confirm(
+						'A origem padrão "' + nomeOrigem + '" não foi encontrada neste processo' +
+							(origemOpcaoValida(escolhida) ? '; está selecionada "' + escolhida.textContent.trim() + '"' : "") +
+							".\n\nOK = executar assim mesmo.\nCancelar = voltar e conferir a Origem."
+					)
+				) {
+					return;
+				}
+			}
+			const submit = alvo ? findSubmitControl(alvo) : null;
 			removeConfirmBar();
 			if (!submit) {
 				alert('Os campos foram preenchidos, mas não encontrei o botão de confirmar do Projudi automaticamente. Confira e clique nele manualmente.');
@@ -2470,6 +2534,138 @@
 	// pode ser gravada sem nenhum campo — ela só abre a tela e pede o
 	// "Sim, executar", que clica no "Confirmar". Valor: nomes de campos que
 	// nunca entram na preferência.
+	// Campos que valem só para o processo em que a preferência foi gravada
+	// e por isso nunca entram nela (nem são preenchidos ao usar uma
+	// preferência antiga que os tenha): em "Comunicar ao IIPR", a "Parte do
+	// Processo" é a pessoa daquele processo e a "Origem" é uma movimentação
+	// dele (a "Movimentação Referente", só leitura, vem da Origem) — o
+	// usuário as escolhe a cada vez.
+	const CAMPOS_IIPR_DO_PROCESSO = ["codParteProcesso", "codOrigem", "descricaoMovimentacao"];
+	const ACTIONS_PREF_CAMPOS_DO_PROCESSO = {
+		"Anotações Criminais": CAMPOS_IIPR_DO_PROCESSO,
+		"Solicitar Antecedentes Criminais": CAMPOS_IIPR_DO_PROCESSO,
+	};
+	function campoDoProcesso(label, name) {
+		const campos = ACTIONS_PREF_CAMPOS_DO_PROCESSO[label];
+		return !!campos && campos.indexOf(name) !== -1;
+	}
+
+	// Origem padrão de "Comunicar ao IIPR": a Origem não entra nos campos
+	// (o valor é o id de uma movimentação daquele processo), mas a
+	// preferência pode guardar o NOME dela (`pref.origemPadrao.texto`, ex.:
+	// "Recebida", tirado de "Recebida em 21/09/2026"). Ao usar, a extensão
+	// seleciona a origem mais recente com esse nome sempre que ela aparecer
+	// na lista — que o Projudi pode só montar depois de escolhida a parte.
+	const ACTIONS_ORIGEM_PADRAO = ["Anotações Criminais", "Solicitar Antecedentes Criminais"];
+	const ORIGEM_FIELD = "codOrigem";
+	const ORIGEM_WATCH_MS = 180000;
+	const ORIGEM_POLL_MS = 500;
+	let origemWatchTimer = null;
+
+	function nomeDaOrigem(text) {
+		return (text || "").replace(/\s+em\s+\d{1,2}\/\d{1,2}\/\d{4}.*$/i, "").replace(/\s+/g, " ").trim();
+	}
+	function dataDaOrigem(text) {
+		const m = (text || "").match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+		return m ? new Date(+m[3], +m[2] - 1, +m[1]).getTime() : 0;
+	}
+	function origemOpcaoValida(opt) {
+		return !!opt && opt.value !== "" && opt.value !== "-1" && !!nomeDaOrigem(opt.textContent);
+	}
+	function origemSelectIn(form) {
+		return formFieldsNamed(form, ORIGEM_FIELD).filter(function (el) {
+			return el.tagName === "SELECT";
+		})[0] || null;
+	}
+	// Opção mais recente cujo nome (sem a data) é o da origem padrão.
+	function melhorOpcaoDeOrigem(select, nome) {
+		const alvo = normalizarNomeMovimento(nome);
+		let melhor = null;
+		Array.prototype.forEach.call(select.options, function (opt) {
+			if (!origemOpcaoValida(opt) || normalizarNomeMovimento(nomeDaOrigem(opt.textContent)) !== alvo) return;
+			if (!melhor || dataDaOrigem(opt.textContent) >= dataDaOrigem(melhor.textContent)) melhor = opt;
+		});
+		return melhor;
+	}
+	function origemPadraoDe(label, pref) {
+		if (ACTIONS_ORIGEM_PADRAO.indexOf(label) === -1) return null;
+		return pref && pref.origemPadrao && pref.origemPadrao.texto ? pref.origemPadrao.texto : null;
+	}
+
+	// Formulário do diálogo na tela agora: o mesmo, ou o da janela que
+	// recarregou (ver findDialogFormInActiveModal).
+	function formNaTela(form) {
+		return form.isConnected ? form : findDialogFormInActiveModal();
+	}
+
+	// Seleciona a origem padrão cada vez que a lista de origens muda (uma
+	// vez por lista, para não desfazer uma escolha manual do usuário).
+	function vigiarOrigemPadrao(label, pref, form) {
+		const nome = origemPadraoDe(label, pref);
+		if (!nome) return;
+		clearInterval(origemWatchTimer);
+		const popup = activeModalIframe;
+		const until = Date.now() + ORIGEM_WATCH_MS;
+		let ultimaLista = null;
+		let ultimoSelect = null;
+		const iv = setInterval(function () {
+			// Para quando o tempo acaba, o popup fecha/troca ou a janela some.
+			if (Date.now() > until || activeModalIframe !== popup || (!popup && !form.isConnected)) {
+				clearInterval(iv);
+				return;
+			}
+			const alvo = formNaTela(form);
+			if (!alvo) return;
+			const select = origemSelectIn(alvo);
+			if (!select) return;
+			const lista = Array.prototype.map.call(select.options, function (opt) {
+				return opt.value + "=" + opt.textContent;
+			}).join("|");
+			// Janela recarregada (outro select) com a mesma lista também conta.
+			if (lista === ultimaLista && select === ultimoSelect) return;
+			ultimaLista = lista;
+			ultimoSelect = select;
+			const opt = melhorOpcaoDeOrigem(select, nome);
+			if (!opt) {
+				logChainStep('origem padrão "' + nome + '" não está na lista', lista);
+				return;
+			}
+			if (select.value !== opt.value) {
+				select.value = opt.value;
+				fireFieldEvents(select);
+				logChainStep('origem padrão "' + nome + '" selecionada', opt.textContent.trim());
+			}
+		}, ORIGEM_POLL_MS);
+		origemWatchTimer = iv;
+	}
+
+	// Na hora de salvar: oferece gravar a origem escolhida como padrão. Na
+	// edição sem origem escolhida, oferece manter a que já estava gravada.
+	// Devolve { texto } ou null.
+	function perguntarOrigemPadrao(label, form, editingPref) {
+		if (ACTIONS_ORIGEM_PADRAO.indexOf(label) === -1) return null;
+		const select = origemSelectIn(form);
+		const opt = select && select.selectedIndex >= 0 ? select.options[select.selectedIndex] : null;
+		const atual = origemOpcaoValida(opt) ? nomeDaOrigem(opt.textContent) : "";
+		const anterior = origemPadraoDe(label, editingPref);
+		if (atual) {
+			if (
+				confirm(
+					'Gravar "' + atual + '" como origem padrão desta preferência?\n\n' +
+						'OK = sim: em cada processo, a extensão seleciona a origem "' + atual + '" mais recente, sempre que existir.\n' +
+						"Cancelar = não: a origem fica para você escolher a cada vez."
+				)
+			) {
+				return { texto: atual };
+			}
+			return null;
+		}
+		if (anterior && confirm('Esta preferência tem a origem padrão "' + anterior + '".\n\nOK = manter.\nCancelar = retirar.')) {
+			return { texto: anterior };
+		}
+		return null;
+	}
+
 	const ACTIONS_PREF_SEM_CAMPOS = {
 		"Remessa Eletrônica para a Turma Recursal": ["advogadoSelecionado"],
 	};
