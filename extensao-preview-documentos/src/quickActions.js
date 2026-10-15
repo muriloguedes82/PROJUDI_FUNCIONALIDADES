@@ -2390,8 +2390,9 @@
 		const fields = (pref.fields || []).filter(function (f) {
 			return !campoDoProcesso(label, f.name);
 		});
-		vigiarOrigemPadrao(label, pref, form);
 		fillFormFields(form, fields, function (missing) {
+			// Depois do preenchimento: escolher a parte recarrega a janela.
+			vigiarCamposDoProcesso(label, pref, form);
 			removeConfirmBar();
 			afterPreferenceFilled(label, pref, form, doc, editing, missing);
 		});
@@ -2646,33 +2647,62 @@
 		return pref && pref.origemPadrao && pref.origemPadrao.texto ? pref.origemPadrao.texto : null;
 	}
 
-	// Seleciona a origem padrão cada vez que a lista de origens muda (uma
-	// vez por lista, para não desfazer uma escolha manual do usuário).
-	function vigiarOrigemPadrao(label, pref, form) {
+	// Parte única: com um só réu na lista "Parte do Processo", ele já fica
+	// escolhido (com mais de um, a escolha é do usuário).
+	const PARTE_FIELD = "codParteProcesso";
+	function parteUnicaSelecionada(select) {
+		const validas = Array.prototype.filter.call(select.options, function (opt) {
+			return opt.value !== "" && opt.value !== "-1" && !!(opt.textContent || "").trim();
+		});
+		if (validas.length !== 1 || select.value === validas[0].value) return null;
+		select.value = validas[0].value;
+		fireFieldEvents(select);
+		return validas[0];
+	}
+
+	// Ao usar uma preferência de "Comunicar ao IIPR": escolhe a parte quando
+	// ela é a única e seleciona a origem padrão cada vez que a lista de
+	// origens muda. Cada lista é tratada uma vez só, para não desfazer uma
+	// escolha manual do usuário; a janela recarregada (outra lista, mesmo
+	// com as mesmas opções) conta de novo.
+	function vigiarCamposDoProcesso(label, pref, form) {
+		if (ACTIONS_ORIGEM_PADRAO.indexOf(label) === -1) return;
 		const nome = origemPadraoDe(label, pref);
-		if (!nome) return;
 		clearInterval(origemWatchTimer);
 		const popup = activeModalIframe;
 		const until = Date.now() + ORIGEM_WATCH_MS;
-		let ultimaLista = null;
-		let ultimoSelect = null;
+		const vistos = new WeakMap(); // select -> última lista tratada
+		function novaLista(select) {
+			const lista = Array.prototype.map.call(select.options, function (opt) {
+				return opt.value + "=" + opt.textContent;
+			}).join("|");
+			if (vistos.get(select) === lista) return null;
+			vistos.set(select, lista);
+			return lista;
+		}
 		const iv = setInterval(function () {
 			// Para quando o tempo acaba, o popup fecha/troca ou a janela some.
 			if (Date.now() > until || activeModalIframe !== popup || (!popup && !formVivo(form))) {
 				clearInterval(iv);
 				return;
 			}
-			const alvo = formNaTela(form, [ORIGEM_FIELD]);
+			const alvo = formNaTela(form, [PARTE_FIELD, ORIGEM_FIELD]);
 			if (!alvo) return;
+			const parte = formFieldsNamed(alvo, PARTE_FIELD).filter(function (el) {
+				return el.tagName === "SELECT" && !el.disabled;
+			})[0];
+			if (parte && novaLista(parte) !== null) {
+				const escolhida = parteUnicaSelecionada(parte);
+				if (escolhida) {
+					logChainStep("parte única selecionada", escolhida.textContent.trim());
+					return; // a janela pode recarregar agora
+				}
+			}
+			if (!nome) return;
 			const select = origemSelectIn(alvo);
 			if (!select) return;
-			const lista = Array.prototype.map.call(select.options, function (opt) {
-				return opt.value + "=" + opt.textContent;
-			}).join("|");
-			// Janela recarregada (outro select) com a mesma lista também conta.
-			if (lista === ultimaLista && select === ultimoSelect) return;
-			ultimaLista = lista;
-			ultimoSelect = select;
+			const lista = novaLista(select);
+			if (lista === null) return;
 			const opt = melhorOpcaoDeOrigem(select, nome);
 			if (!opt) {
 				logChainStep('origem padrão "' + nome + '" não está na lista', lista);

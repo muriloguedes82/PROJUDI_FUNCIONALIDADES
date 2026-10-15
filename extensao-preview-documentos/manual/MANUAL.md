@@ -964,8 +964,9 @@ sair da aba em que você está.
   **Comunicar ao IIPR** normalmente (escolher a parte, a origem etc.) e
   só então clicar em **💾 Salvar como preferência**. A **Parte do
   Processo** não é gravada, porque muda de um processo para outro: ao
-  usar a preferência, escolha a parte antes de clicar em **✅ Sim,
-  executar**.
+  usar a preferência, se o processo tiver **um só réu** na lista, a
+  extensão já o deixa escolhido; com mais de um, escolha a parte antes de
+  clicar em **✅ Sim, executar**.
 - **Origem padrão** (Anotações Criminais e Solicitar Antecedentes
   Criminais): se a **Origem** estiver escolhida na hora de salvar (ex.:
   "Recebida em 21/09/2026"), a extensão pergunta se grava **"Recebida"**
@@ -982,7 +983,8 @@ sair da aba em que você está.
   que já viesse assim. Em **Solicitar Antecedentes Criminais**, que só tem
   a Parte e a Observação, a preferência pode ficar sem nenhum campo: ela
   apenas abre a tela e pede o **✅ Sim, executar**, que clica em
-  **Salvar** — escolha a parte antes.
+  **Salvar** (com um só réu, ele já vem escolhido; com mais de um,
+  escolha a parte antes).
 - Em outra aba (ex.: **Partes e Outros**), o painel pede para abrir a aba
   **Movimentações** primeiro.
 - Ao terminar ações como **Ordenar Cumprimentos**, o popup se fecha e a
@@ -2589,7 +2591,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 2.34.3 | 15/10/2026 | Corrigido: a preferência de **Anotações Criminais** dizia "Nenhum campo preenchido ou selecionado" mesmo com a janela **Comunicar ao IIPR** preenchida, e a de **Solicitar Antecedentes Criminais** não podia ser salva (só tem a Parte, que não é gravada). Agora grava o que está escolhido na janela, a de Antecedentes pode ficar sem campos, e o preenchimento e a origem padrão continuam funcionando quando a janela recarrega a cada escolha (7.1). |
+| 2.34.3 | 15/10/2026 | Corrigido: a preferência de **Anotações Criminais** dizia "Nenhum campo preenchido ou selecionado" mesmo com a janela **Comunicar ao IIPR** preenchida, e a de **Solicitar Antecedentes Criminais** não podia ser salva (só tem a Parte, que não é gravada). Agora grava o que está escolhido na janela, a de Antecedentes pode ficar sem campos, e o preenchimento e a origem padrão continuam funcionando quando a janela recarrega a cada escolha. Ao usar essas preferências, com **um só réu** na lista "Parte do Processo" ele já vem escolhido; com mais de um, a escolha fica com o usuário (7.1). |
 | 2.34.2 | 15/10/2026 | Sistemas (8.7): corrigido — os cards dos sistemas do CNJ não apareciam quando o processo era aberto pela lista de **Paralisados** ou pelo atalho **Processo** do topo da tela (nessas telas o número do processo vem escrito de outro jeito no título). Agora aparecem como nas demais. Texto do "Onde fica" ajustado. Sem vídeo novo: a tela não muda. |
 | 2.34.1 | 15/10/2026 | Corrigido: ao criar uma preferência de **Anotações Criminais** (ou **Solicitar Antecedentes Criminais**), o **💾 Salvar como preferência** dizia "Não encontrei o formulário do diálogo" com a janela **Comunicar ao IIPR** aberta e preenchida. Agora a extensão encontra a janela na hora de salvar. A **Parte do Processo** deixa de ser gravada nessas preferências (nem é preenchida pelas antigas): escolha a parte antes de clicar em **✅ Sim, executar**. Nova **origem padrão**: ao salvar com a Origem escolhida, a extensão pergunta se grava o nome dela (ex.: "Recebida") e, a cada uso, seleciona a origem mais recente com esse nome, sempre que existir (7.1). |
 | 2.34.0 | 15/10/2026 | Sistemas (8.7): com **dois monitores**, o card abre o sistema **direto no outro monitor**; com um só, no popup, como antes. Nova opção no Menu (2.6), **Abrir os sistemas**: Automático (padrão), Sempre no popup ou Sempre fora do popup (2º monitor ou nova aba); a escolha vai no Exportar. Vídeos V34 e V39 regravados. |
