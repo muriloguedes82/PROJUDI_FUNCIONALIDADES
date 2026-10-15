@@ -3302,10 +3302,10 @@
 	// COMBO_JUNTAR_DONE_KEY no "Concluir Movimento". De volta à tela do
 	// processo, maybeResumeCombo vê a marca e segue para a próxima etapa.
 	//
-	// Etapas diretas ("Alterar Classe/Assuntos", só no Projudi, e
-	// "📍 Localizador", só no SEEU): não têm popup — a preferência é
-	// executada pelo próprio arquivo dela (alterarClasseAssuntos.js,
-	// localizadorSeeu.js). A barra do combo mostra o que será feito e só
+	// Etapas diretas ("Alterar Classe/Assuntos" e "Prioridades", só no
+	// Projudi, e "📍 Localizador", só no SEEU): não têm popup — a
+	// preferência é executada pelo próprio arquivo dela
+	// (alterarClasseAssuntos.js, alterarPrioridades.js, localizadorSeeu.js). A barra do combo mostra o que será feito e só
 	// executa no "▶ Sim, executar" dela; terminada a etapa, segue para a
 	// próxima (a alteração de classe/assuntos recarrega a tela antes, para
 	// o cabeçalho mostrar o novo valor).
@@ -3323,6 +3323,8 @@
 	const COMBO_JUNTAR_CONCLUIR_KEY = "pdpComboJuntadaConcluir"; // idem
 	const ALTERAR_CLASSE_LABEL = "Alterar Classe/Assuntos";
 	const ALTERAR_CLASSE_PREFS_KEY = "pdpAlterarClassePrefs"; // ver alterarClasseAssuntos.js
+	const PRIORIDADES_LABEL = "Prioridades";
+	const PRIORIDADES_PREFS_KEY = "pdpPrioridadesPrefs"; // ver alterarPrioridades.js
 	let comboResumeChecked = false;
 
 	function loadCombos() {
@@ -3359,13 +3361,14 @@
 		});
 	}
 
-	const COMBO_PREFS_STORAGE_KEYS = [PREFERENCES_KEY, JUNTAR_PREFS_KEY, ALTERAR_CLASSE_PREFS_KEY, LOCALIZADOR_PREFS_KEY];
+	const COMBO_PREFS_STORAGE_KEYS = [PREFERENCES_KEY, JUNTAR_PREFS_KEY, ALTERAR_CLASSE_PREFS_KEY, PRIORIDADES_PREFS_KEY, LOCALIZADOR_PREFS_KEY];
 
 	// Todas as preferências que podem entrar num combo, por rótulo da ação,
 	// a partir do chrome.storage (chaves COMBO_PREFS_STORAGE_KEYS): as das
-	// Ações rápidas e, em JUNTAR_LABEL, ALTERAR_CLASSE_LABEL e
-	// LOCALIZADOR_LABEL, as do "Juntar Documento", do "Alterar
-	// Classe/Assuntos" e do "Localizador" (estas com `name` = nome gravado
+	// Ações rápidas e, em JUNTAR_LABEL, ALTERAR_CLASSE_LABEL,
+	// PRIORIDADES_LABEL e LOCALIZADOR_LABEL, as do "Juntar Documento", do
+	// "Alterar Classe/Assuntos", das "Prioridades" e do "Localizador"
+	// (estas com `name` = nome gravado
 	// ou os localizadores, como em "Minhas Preferências").
 	function comboPreferencesFrom(data) {
 		const all = Object.assign({}, data[PREFERENCES_KEY] || {});
@@ -3373,6 +3376,8 @@
 		if (Array.isArray(juntar) && juntar.length) all[JUNTAR_LABEL] = juntar;
 		const alterar = data[ALTERAR_CLASSE_PREFS_KEY];
 		if (Array.isArray(alterar) && alterar.length) all[ALTERAR_CLASSE_LABEL] = alterar;
+		const prioridades = data[PRIORIDADES_PREFS_KEY];
+		if (Array.isArray(prioridades) && prioridades.length) all[PRIORIDADES_LABEL] = prioridades;
 		const loc = (Array.isArray(data[LOCALIZADOR_PREFS_KEY]) ? data[LOCALIZADOR_PREFS_KEY] : []).filter(function (pref) {
 			return pref && Array.isArray(pref.localizadores) && pref.localizadores.length;
 		});
@@ -4020,6 +4025,24 @@
 			},
 			executar: function (pref) {
 				return window.__pdpAlterarClasseApi.executar(pref).then(function (r) {
+					return { ok: r.ok, texto: r.texto, recarregar: !!r.mudou };
+				});
+			},
+		},
+		[PRIORIDADES_LABEL]: {
+			nesteSistema: function () {
+				return !!window.__pdpPrioridadesApi;
+			},
+			disponivel: function () {
+				return !!window.__pdpPrioridadesApi && window.__pdpPrioridadesApi.disponivel();
+			},
+			indisponivel: 'Abra a tela do processo (com a Classe Processual no cabeçalho) e clique em "Repetir etapa".',
+			outroSistema: '"Prioridades" só roda no Projudi, com essa função ligada no Menu. Pule esta etapa ou pare o combo.',
+			descrever: function (pref) {
+				return window.__pdpPrioridadesApi.descrever(pref);
+			},
+			executar: function (pref) {
+				return window.__pdpPrioridadesApi.executar(pref).then(function (r) {
 					return { ok: r.ok, texto: r.texto, recarregar: !!r.mudou };
 				});
 			},

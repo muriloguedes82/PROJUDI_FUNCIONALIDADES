@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.37.0 |
-| **Versão da extensão** | 2.37.0 |
+| **Versão do manual** | 2.38.0 |
+| **Versão da extensão** | 2.38.0 |
 | **Data desta versão** | 15/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -79,6 +79,7 @@
    - 8.8 [Localizador (só no SEEU)](#cap-8-8)
    - 8.9 [Alterar Classe/Assuntos](#cap-8-9)
    - 8.10 [Novo Valor da Causa](#cap-8-10)
+   - 8.11 [Prioridades (incluir, remover e preferências)](#cap-8-11)
 9. [Telas de análise, mesas e cumprimentos](#cap-9)
    - 9.1 [Filtro por Sequencial na Análise de Decurso de Prazo](#cap-9-1)
    - 9.2 [Listas de tarefas](#cap-9-2)
@@ -414,7 +415,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 | Grupo | Funções que podem ser ligadas/desligadas | Seção |
 |---|---|---|
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
-| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
+| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Prioridades (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica | [4](#cap-4) |
 | **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas e nas Conclusões (Projudi) · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista (Projudi) · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
@@ -1100,8 +1101,9 @@ sentença".
 para usar na tela do processo — as das Ações rápidas (inclusive **Alvará
 Eletrônico** e **⚖️ Advogados**), as do **📎 Juntar Documento**, as do
 **✏️ Alterar Classe/Assuntos** (classe, assunto principal e assunto
-secundário — só no Projudi, [8.9](#cap-8-9)) e as do **📍 Localizador** (só
-no SEEU, [8.8](#cap-8-8)). Na caixa de cada etapa elas aparecem separadas
+secundário — só no Projudi, [8.9](#cap-8-9)), as de **Prioridades** (só no
+Projudi, [8.11](#cap-8-11)) e as do **📍 Localizador** (só no SEEU,
+[8.8](#cap-8-8)). Na caixa de cada etapa elas aparecem separadas
 pelo nome da função.
 
 **Criar:**
@@ -1294,6 +1296,7 @@ do navegador.
 | Painéis das **Ações rápidas** (Partes, Remessa, Concluso…) e **📎 Juntar Documento** | Na linha do nome de cada ação, ao lado de **Abrir** |
 | **⭐ Minhas Preferências** ([7.3](#cap-7-3)) | Não tem (as preferências são criadas nos painéis das ações) |
 | **⭐** de **Alterar Classe/Assuntos** ([8.9](#cap-8-9)) | No topo, ao lado do título |
+| **⭐** da linha **Prioridade** ([8.11](#cap-8-11)) | No topo, ao lado do título |
 | **📍 Localizador** (SEEU, [8.8](#cap-8-8)) | No topo, abaixo do título |
 | **Analisar Decurso** da lista ([9.10](#cap-9-10)) | No topo, abaixo de **Abrir a análise** |
 | **⭐** da linha e **⭐ Em lote** ([9.3](#cap-9-3)) | No topo: **+ Nova · Analisar (Pré-Análise)** / **+ Nova · Analisar Decurso** |
@@ -1919,6 +1922,95 @@ em qualquer aba do processo: não é preciso abrir **Informações Gerais**.
   **Informações Gerais** para fazer à mão.
 - Se aparecer "Não encontrei o botão Alterar…", o seu perfil não tem
   permissão para alterar este processo.
+
+<a id="cap-8-11"></a>
+### 8.11 Prioridades (incluir, remover e preferências)
+
+*Só no Projudi.*
+
+▶ [**Vídeo V56** — Incluir e remover prioridades](videos/V56-incluir-e-remover-prioridades.mp4)
+
+**Para que serve:** incluir ou tirar uma **prioridade** do processo sem
+passar pelo caminho de sempre (**Informações Gerais** → **Alterar** → lupa
+da linha **Prioridade** → **Seleção de Prioridade** → **Selecionar** →
+**Salvar**). Funciona como o **✖** e a **⭐** dos assuntos secundários
+([8.9](#cap-8-9)).
+
+**Onde fica:** no cabeçalho do processo, na linha **Prioridade** (a frase
+em vermelho com as prioridades, separadas por vírgula). Ela aparece em
+qualquer aba do processo. A extensão acrescenta:
+
+- um pequeno balão **✖** depois de cada prioridade que pode ser tirada;
+- no fim da linha, os balões **➕ Incluir** e **⭐**.
+
+Se o processo ainda não tem nenhuma prioridade, a extensão mostra a linha
+**Prioridade** com "(nenhuma)", logo abaixo do **Nível de Sigilo**, já com
+**➕ Incluir** e **⭐**.
+
+**Remover uma prioridade (✖):**
+
+1. Clique no **✖** da prioridade que quer tirar.
+2. Confirme a pergunta "Remover a prioridade … deste processo?".
+3. Um aviso no alto da tela mostra o andamento ("abrindo a seleção de
+   prioridade…", "selecionando…", "salvando…"). A extensão faz, sem mostrar
+   a tela, o mesmo que você faria: abre a **Seleção de Prioridade**,
+   desmarca a prioridade, clica em **Selecionar**, confere que ela saiu e
+   só então clica em **Salvar**. No fim, a tela do processo é recarregada
+   sem ela.
+
+**Incluir prioridades (➕ Incluir):**
+
+1. Clique em **➕ Incluir**. Abre-se a tela de alteração do processo num
+   popup, já na linha **Prioridade** e com a janela **Seleção de
+   Prioridade** do Projudi aberta.
+2. Marque as prioridades que quer incluir (pode ser mais de uma) e clique
+   em **Selecionar**.
+3. A extensão clica em **Salvar** sozinha. O popup fecha e o processo é
+   recarregado, já com as prioridades novas.
+
+**Preferências (⭐):** para uma prioridade que você inclui (ou tira) com
+frequência — por exemplo, **Violência doméstica e familiar contra a
+mulher**.
+
+*Gravar uma preferência:*
+
+1. Clique na **⭐** da linha **Prioridade** e em **+ Nova preferência**.
+2. Abre-se a tela de alteração no popup, com o aviso amarelo "Gravando
+   preferência" e a **Seleção de Prioridade** aberta.
+3. Marque as prioridades que a preferência deve **incluir** e desmarque as
+   que ela deve **tirar**. Clique em **Selecionar**.
+4. Nesse momento **nada é alterado** no processo: a extensão só guarda o
+   que você marcou e desmarcou, pede um nome para a preferência e fecha o
+   popup.
+
+*Usar a preferência:* clique na **⭐** e no nome da preferência (**★ …**).
+A extensão faz o mesmo caminho do **✖** — marca/desmarca na **Seleção de
+Prioridade**, **Selecionar**, confere e **Salvar** — e recarrega o
+processo. As preferências de prioridade também podem entrar nos **🔗
+Combos** ([7.4](#cap-7-4)).
+
+**Bom saber:**
+
+- O **✖**, o **Selecionar** do **➕ Incluir** e a preferência já gravam no
+  processo. Só o **✖** pede confirmação; a preferência é executada
+  **direto** — confira o nome antes de clicar.
+- Algumas prioridades são colocadas **pelo próprio Projudi** (por exemplo,
+  **Maior que 60 anos** ou **Réu Preso**, calculadas pela idade ou pela
+  prisão). Elas não aparecem na **Seleção de Prioridade** e não podem ser
+  tiradas por lá — por isso ficam **sem ✖**. Até a extensão abrir a
+  Seleção de Prioridade pela primeira vez no seu navegador, o **✖** aparece
+  em todas; se você clicar no de uma prioridade automática, a extensão
+  avisa que ela não pode ser removida e nada é alterado.
+- Se o processo **já estiver** como a preferência manda, nada é feito e a
+  extensão avisa.
+- Se a prioridade não mudar depois do **Selecionar**, ou se o Projudi
+  recusar a alteração, **nada é salvo** e a extensão mostra a mensagem;
+  nesse caso, use **➕ Incluir** (ou o botão **Alterar** da aba
+  **Informações Gerais**) para fazer à mão.
+- Para apagar uma preferência, use **🗑** ao lado dela. As preferências
+  entram no **⬇ Exportar** do Menu da extensão ([2.6](#cap-2-6)).
+- Pode ser desligada no Menu ([2.6](#cap-2-6)): **Prioridades**, no grupo
+  *Ações rápidas e atalhos*.
 
 ---
 
@@ -2658,6 +2750,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V53](videos/V53-pre-analise-com-preferencias.mp4) | [Pré-Análise com preferências](videos/V53-pre-analise-com-preferencias.mp4) | [9.11](#cap-9-11) | 1:11 |
 | [V54](videos/V54-painel-da-estrela-com-muitas-preferencias.mp4) | [⭐ da linha com muitas preferências](videos/V54-painel-da-estrela-com-muitas-preferencias.mp4) | [9.3](#cap-9-3) | 0:40 |
 | [V55](videos/V55-paineis-com-muitas-preferencias.mp4) | [Painéis com muitas preferências](videos/V55-paineis-com-muitas-preferencias.mp4) | [7.8](#cap-7-8) | 0:42 |
+| [V56](videos/V56-incluir-e-remover-prioridades.mp4) | [Incluir e remover prioridades](videos/V56-incluir-e-remover-prioridades.mp4) | [8.11](#cap-8-11) | 0:58 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -2671,6 +2764,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.38.0 | 15/10/2026 | **Nova seção 8.11 — Prioridades:** na linha **Prioridade** do cabeçalho do processo (só no Projudi), **✖** ao lado de cada prioridade que pode ser tirada (remove e salva, depois de confirmar), **➕ Incluir** (abre a tela de alteração num popup já com a **Seleção de Prioridade**; depois do **Selecionar**, salva sozinho) e **⭐** com preferências que incluem/tiram prioridades e salvam com um clique — também nos **🔗 Combos**. Sem prioridade, a linha aparece com "(nenhuma)". Sumário, tabela da 2.6, seções 7.4 e 7.8 atualizados. Novo vídeo V56. |
 | 2.37.0 | 15/10/2026 | Seção 9.8: o processo ao passar o mouse também na lista de **Conclusões** — pousar o mouse sobre o **número do processo** (que lá não é link) abre a tela dele num painel, já na aba **Movimentações**. O **Analisar** continua mostrando o documento do Juiz (9.9). Título da seção, Sumário e tabela da 2.6 atualizados; vídeo V44 regravado. |
 | 2.36.0 | 15/10/2026 | Seção 9.8: o processo ao passar o mouse também na lista da **Análise de Juntadas** — pousar o mouse sobre o **número do processo** abre a tela dele num painel, já na aba **Movimentações**, como nas listas de Decurso de Prazo. Título da seção, Sumário e tabela da 2.6 atualizados; vídeo V44 regravado. |
 | 2.35.0 | 15/10/2026 | Painéis com muitas preferências. **Seção 9.3 (e 9.11):** o card **⭐** da linha passa a caber sempre na tela e rolar por dentro — antes, o fim dele (com a seção **📝 Analisar** e o **+ Nova preferência**) ficava fora da tela e só aparecia diminuindo o zoom; o topo do card fica parado ao rolar, com o campo **🔍 Buscar preferência** e os botões **+ Nova · Analisar (Pré-Análise)** / **+ Nova · Analisar Decurso**. **Nova seção 7.8:** o mesmo vale para **todos** os painéis com preferências — painéis das Ações rápidas, 📎 Juntar Documento, ⭐ Minhas Preferências, ⭐ de Alterar Classe/Assuntos, Analisar Decurso e 📍 Localizador (SEEU): o painel cabe na tela e rola por dentro, o topo fica parado, a busca aparece a partir de 6 preferências, e o **+ Nova preferência** fica no topo (nas ações rápidas e no Juntar Documento, na linha do nome da ação, ao lado de **Abrir**). Ajustes nas seções 7.2, 7.3, 8.2, 8.8, 8.9 e 9.10. Novos vídeos V54 e V55; vídeos V40, V43 e V49 regravados. |
