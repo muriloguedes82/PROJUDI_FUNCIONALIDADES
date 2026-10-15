@@ -683,11 +683,11 @@ function painelProcesso(n, x, y) {
 
 CENAS.V44 = {
 	arquivo: "V44-processo-ao-passar-o-mouse.mp4",
-	titulo: "Processo ao passar o mouse no Decurso de Prazo",
+	titulo: "Processo ao passar o mouse no Decurso de Prazo e nas Juntadas",
 	secao: "9.8",
 	async run() {
 		telaLista("Decurso de Prazo - Intimação", { path: "intimacaoBusca.do", col: "Data Decurso" });
-		await S.titleCard("VÍDEO V44", "Processo ao passar o mouse", "Veja a tela do processo, já na aba Movimentações, sem sair da lista de decurso de prazo.");
+		await S.titleCard("VÍDEO V44", "Processo ao passar o mouse", "Veja a tela do processo, já na aba Movimentações, sem sair da lista de decurso de prazo ou de juntadas.");
 		await S.cap("Nas listas de <b>Decurso de Prazo</b> (Intimação, Auxiliares da Justiça e Citações/Notificações), pare o mouse sobre o <b>número do processo</b>.");
 		const link = $('#lista tr[data-i="1"] a.link');
 		await S.move(link);
@@ -705,6 +705,8 @@ CENAS.V44 = {
 		await S.move({ x: 300, y: 560 });
 		p.remove();
 		await sleep(500);
+		telaLista("Análise de Juntadas");
+		await S.cap("Na lista da <b>Análise de Juntadas</b> é igual: pare o mouse sobre o <b>número do processo</b>.");
 		await S.cap("Quer o painel aberto mesmo tirando o mouse? Clique em <b>📌 Fixar</b>.");
 		await S.move($('#lista tr[data-i="3"] a.link'));
 		await sleep(500);
@@ -717,7 +719,7 @@ CENAS.V44 = {
 		await S.move({ x: 300, y: 560 });
 		await S.cap("Fixado, ele só fecha no <b>✕</b>. “Abrir em nova aba” abre o processo do jeito tradicional.", { ms: 3200 });
 		p.remove();
-		await S.endCard("Mouse parado sobre o número do processo = tela do processo na aba Movimentações. 📌 Fixar mantém aberto; Esc ou ✕ fecha.");
+		await S.endCard("Decurso de Prazo ou Juntadas: mouse parado sobre o número do processo = tela do processo na aba Movimentações. 📌 Fixar mantém aberto; Esc ou ✕ fecha.");
 	},
 };
 

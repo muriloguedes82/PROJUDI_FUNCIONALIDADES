@@ -1,9 +1,11 @@
-// Projudi - Pré-visualização do processo nas listas de decurso de prazo
+// Projudi - Pré-visualização do processo nas listas de decurso de prazo e
+// na Análise de Juntadas
 //
 // Nas telas de decurso de prazo do menu "Decurso de Prazo" — Intimação
 // (processo/intimacaoBusca.do), Intimação de Auxiliares da Justiça
 // (processo/intimacaoNomeados.do) e Citações/Notificações
-// (processo/citacao.do) — a 1ª coluna traz o número do processo como link
+// (processo/citacao.do) — e na lista da Análise de Juntadas
+// (processo/analisarJuntada.do), a coluna Processo traz o número como link
 // para a tela dele (`<a class="link" href="/projudi/processo.do?_tj=...">
 // <em class="attention">NNNNNNN-DD.AAAA...</em></a>`).
 //
@@ -24,7 +26,7 @@
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
 	if (window.__pdpPreviewProcesso) return;
 
-	const TELAS = /^\/projudi\/processo\/(intimacaoBusca|intimacaoNomeados|citacao)\.do$/;
+	const TELAS = /^\/projudi\/processo\/(intimacaoBusca|intimacaoNomeados|citacao|analisarJuntada)\.do$/;
 	if (!TELAS.test(location.pathname)) return;
 	try {
 		const fe = window.frameElement;
@@ -133,7 +135,7 @@
 		const width = Math.min(PANEL_WIDTH, vw - MARGIN * 2);
 		const height = Math.min(vh * PANEL_HEIGHT_RATIO, vh - MARGIN * 2);
 
-		// À direita do número (a 1ª coluna fica à esquerda); sem espaço,
+		// À direita do número (a coluna fica à esquerda); sem espaço,
 		// centralizado na tela.
 		let left = rect.right + MARGIN;
 		if (left + width > vw - MARGIN) left = Math.max(MARGIN, (vw - width) / 2);

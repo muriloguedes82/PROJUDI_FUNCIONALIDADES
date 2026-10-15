@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.34.3 |
-| **Versão da extensão** | 2.34.3 |
+| **Versão do manual** | 2.35.0 |
+| **Versão da extensão** | 2.35.0 |
 | **Data desta versão** | 15/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -86,7 +86,7 @@
    - 9.5 [RG e CPF das partes nos cumprimentos](#cap-9-5)
    - 9.6 [Dados processuais nas ordenações BNMP](#cap-9-6)
    - 9.7 [Endereço da parte e Mandado Regionalizado](#cap-9-7)
-   - 9.8 [Processo ao passar o mouse nas listas de Decurso de Prazo](#cap-9-8)
+   - 9.8 [Processo ao passar o mouse no Decurso de Prazo e nas Juntadas](#cap-9-8)
    - 9.9 [Documento do Juiz ao passar o mouse no Retorno de Conclusão](#cap-9-9)
    - 9.10 [Analisar e Dispensar decurso na lista](#cap-9-10)
    - 9.11 [Analisar (Pré-Análise) dos cumprimentos com preferências](#cap-9-11)
@@ -415,7 +415,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica | [4](#cap-4) |
-| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo (Projudi) · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista (Projudi) · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
+| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo e nas Juntadas (Projudi) · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista (Projudi) · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
 Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
@@ -2162,20 +2162,20 @@ parte(s)**.
   mostrado.
 
 <a id="cap-9-8"></a>
-### 9.8 Processo ao passar o mouse nas listas de Decurso de Prazo
+### 9.8 Processo ao passar o mouse no Decurso de Prazo e nas Juntadas
 
 ▶ [**Vídeo V44** — Processo ao passar o mouse](videos/V44-processo-ao-passar-o-mouse.mp4)
 
 *Só no Projudi.*
 
 **Para que serve:** conferir o processo — cabeçalho e **Movimentações** —
-sem sair da lista de decursos e sem abrir outra aba.
+sem sair da lista de decursos ou de juntadas e sem abrir outra aba.
 
-**Onde fica:** menu **Decurso de Prazo**, nas listas:
+**Onde fica:**
 
-- **Intimação**;
-- **Intimação — Auxiliares da Justiça**;
-- **Citações/Notificações**.
+- menu **Decurso de Prazo**, nas listas **Intimação**, **Intimação —
+  Auxiliares da Justiça** e **Citações/Notificações**;
+- lista da **Análise de Juntadas** (a relação de juntadas pendentes).
 
 **Passo a passo:**
 
@@ -2194,7 +2194,8 @@ sem sair da lista de decursos e sem abrir outra aba.
   fecha no **✕** (ou em **Esc**). Clique de novo para desafixar.
 - **Abrir em nova aba ↗** abre o processo do jeito tradicional. Clicar no
   número continua funcionando como sempre.
-- A lista **não muda**: nada é dispensado nem analisado ao abrir o painel.
+- A lista **não muda**: nada é dispensado, juntado nem analisado ao abrir o
+  painel.
 - Dentro do painel não aparecem a balança do Menu, os cards dos sistemas do
   CNJ nem a barra de botões da extensão — eles ficam só na tela principal.
 
@@ -2568,7 +2569,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V41](videos/V41-localizador-na-linha-seeu.mp4) | [Localizador pela ⭐ da lista (SEEU)](videos/V41-localizador-na-linha-seeu.mp4) | [9.3](#cap-9-3) | 0:31 |
 | [V42](videos/V42-alterar-classe-e-assuntos.mp4) | [Alterar Classe/Assuntos](videos/V42-alterar-classe-e-assuntos.mp4) | [8.9](#cap-8-9) | 0:44 |
 | [V43](videos/V43-preferencia-de-alteracao-de-classe.mp4) | [Preferência de alteração de classe](videos/V43-preferencia-de-alteracao-de-classe.mp4) | [8.9](#cap-8-9) | 0:43 |
-| [V44](videos/V44-processo-ao-passar-o-mouse.mp4) | [Processo ao passar o mouse no Decurso de Prazo](videos/V44-processo-ao-passar-o-mouse.mp4) | [9.8](#cap-9-8) | 0:48 |
+| [V44](videos/V44-processo-ao-passar-o-mouse.mp4) | [Processo ao passar o mouse no Decurso de Prazo e nas Juntadas](videos/V44-processo-ao-passar-o-mouse.mp4) | [9.8](#cap-9-8) | 0:55 |
 | [V45](videos/V45-preferencias-em-lote.mp4) | [Preferências em lote (⭐ Em lote)](videos/V45-preferencias-em-lote.mp4) | [9.3](#cap-9-3) | 1:01 |
 | [V46](videos/V46-remessa-turma-recursal.mp4) | [Remessa para a Turma Recursal](videos/V46-remessa-turma-recursal.mp4) | [7.1](#cap-7-1) | 0:47 |
 | [V47](videos/V47-novo-valor-da-causa.mp4) | [Novo Valor da Causa](videos/V47-novo-valor-da-causa.mp4) | [8.10](#cap-8-10) | 0:36 |
@@ -2591,6 +2592,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.35.0 | 15/10/2026 | Seção 9.8: o processo ao passar o mouse também na lista da **Análise de Juntadas** — pousar o mouse sobre o **número do processo** abre a tela dele num painel, já na aba **Movimentações**, como nas listas de Decurso de Prazo. Título da seção, Sumário e tabela da 2.6 atualizados; vídeo V44 regravado. |
 | 2.34.3 | 15/10/2026 | Corrigido: a preferência de **Anotações Criminais** dizia "Nenhum campo preenchido ou selecionado" mesmo com a janela **Comunicar ao IIPR** preenchida, e a de **Solicitar Antecedentes Criminais** não podia ser salva (só tem a Parte, que não é gravada). Agora grava o que está escolhido na janela, a de Antecedentes pode ficar sem campos, e o preenchimento e a origem padrão continuam funcionando quando a janela recarrega a cada escolha. Ao usar essas preferências, com **um só réu** na lista "Parte do Processo" ele já vem escolhido; com mais de um, a escolha fica com o usuário (7.1). |
 | 2.34.2 | 15/10/2026 | Sistemas (8.7): corrigido — os cards dos sistemas do CNJ não apareciam quando o processo era aberto pela lista de **Paralisados** ou pelo atalho **Processo** do topo da tela (nessas telas o número do processo vem escrito de outro jeito no título). Agora aparecem como nas demais. Texto do "Onde fica" ajustado. Sem vídeo novo: a tela não muda. |
 | 2.34.1 | 15/10/2026 | Corrigido: ao criar uma preferência de **Anotações Criminais** (ou **Solicitar Antecedentes Criminais**), o **💾 Salvar como preferência** dizia "Não encontrei o formulário do diálogo" com a janela **Comunicar ao IIPR** aberta e preenchida. Agora a extensão encontra a janela na hora de salvar. A **Parte do Processo** deixa de ser gravada nessas preferências (nem é preenchida pelas antigas): escolha a parte antes de clicar em **✅ Sim, executar**. Nova **origem padrão**: ao salvar com a Origem escolhida, a extensão pergunta se grava o nome dela (ex.: "Recebida") e, a cada uso, seleciona a origem mais recente com esse nome, sempre que existir (7.1). |
