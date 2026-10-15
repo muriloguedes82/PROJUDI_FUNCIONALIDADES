@@ -1364,3 +1364,74 @@ CENAS.V55 = {
 		await S.endCard("Muitas preferências? 🔍 Buscar no topo · + Nova preferência sempre à vista.");
 	},
 };
+
+// ------------------------------------------------------------------ V56
+// Linha "Prioridade" do cabeçalho: ✖, ➕ Incluir e ⭐ (alterarPrioridades.js).
+CENAS.V56 = {
+	arquivo: "V56-incluir-e-remover-prioridades.mp4",
+	titulo: "Incluir e remover prioridades",
+	secao: "8.11",
+	async run() {
+		telaProcesso({});
+		const x = id => '<a id="' + id + '" style="' + ESTILO_BALAO + ';margin-left:4px;padding:0 6px;color:#a00">✖</a>';
+		const VD = "Violência doméstica e familiar contra a mulher (conforme art. 33 da Lei 11.340/2006)";
+		$("#row-assunto").insertAdjacentHTML("afterend", '<tr id="row-prio"><td class="l" style="vertical-align:top">Prioridade:</td><td colspan="3"><em id="x-prio" style="font-weight:bold;color:#c00">' +
+			'<span>Maior que 60 anos (conforme Lei 10.741/2003)</span>, <span id="x-vd">' + VD + x("x-rem-vd") + '</span></em>' +
+			'<a id="x-incluir" style="' + ESTILO_BALAO + '">➕ Incluir</a><a id="x-prio-pref" style="' + ESTILO_BALAO + ';margin-left:4px;padding:1px 6px">⭐</a></td></tr>');
+		await S.titleCard("VÍDEO V56", "Incluir e remover prioridades", "✖ remove, ➕ Incluir acrescenta e ⭐ repete a mesma alteração com um clique — sempre já salvo no processo.");
+		S.hl("#row-prio", 3);
+		await S.cap("No cabeçalho, a linha <b>Prioridade</b> ganha um <b>✖</b> ao lado de cada prioridade que pode ser tirada, e os balões <b>➕ Incluir</b> e <b>⭐</b>.", { ms: 4200 });
+		S.hlOff();
+		await S.cap("A prioridade por idade não tem ✖: é o próprio Projudi que a coloca, e ela não aparece na Seleção de Prioridade.", { ms: 4000 });
+		await S.click("#x-rem-vd");
+		modal('<b>Remover a prioridade "' + VD + '" deste processo?</b><p style="margin:8px 0">A alteração é salva em seguida, sem abrir a tela de alteração.</p><span class="x-btn small green" id="x-ok">OK</span> <span class="x-btn small">Cancelar</span>', { w: 460, top: 200 });
+		await S.click("#x-ok");
+		closeModal();
+		let t = toast("✖ Violência doméstica… — abrindo a seleção de prioridade…", { left: 430, top: 90 });
+		await sleep(1100);
+		t.innerHTML = "✖ Violência doméstica… — selecionando…";
+		await sleep(1000);
+		t.innerHTML = "✖ Violência doméstica… — salvando…";
+		await sleep(1000);
+		t.remove();
+		$("#x-prio").innerHTML = "<span>Maior que 60 anos (conforme Lei 10.741/2003)</span>";
+		await S.cap("A extensão desmarca a prioridade na <b>Seleção de Prioridade</b>, confere e clica em <b>Salvar</b>. A tela é recarregada sem ela.", { ms: 4200 });
+		await S.click("#x-incluir");
+		await abrindo("Prioridades", 900);
+		popup("Alteração do Processo",
+			'<div style="margin:0 0 10px;padding:8px 10px;border:1px solid #d4b106;background:#fffbe6;color:#5c4400;border-radius:4px"><b>➕ Incluir prioridade.</b> Na <b>Seleção de Prioridade</b>, marque as prioridades e clique em <b>Selecionar</b>: a extensão <b>salva em seguida</b> e recarrega o processo.</div>' +
+			'<table class="pj-info" style="width:100%"><tr><td class="l" style="width:160px">Juiz:</td><td><span class="pj-select" style="min-width:300px;display:inline-block">JuizTogado (Titular)</span></td></tr>' +
+			'<tr style="background:#fff3b0"><td class="l">Prioridade:</td><td><span class="pj-select" id="x-ed-prio" style="min-width:420px;display:inline-block">&nbsp;</span> <span class="pj-btn">🔍</span></td></tr></table>' +
+			'<div class="pj-btnbar" style="justify-content:flex-start"><span class="pj-btn">Salvar</span><span class="pj-btn">Voltar</span></div>',
+			{ hd: "Prioridades — popup da extensão" });
+		const caixa = (id, n) => '<div style="padding:2px 0"><span id="' + id + '">☐</span> ' + n + "</div>";
+		modal('<b>Seleção de Prioridade</b><div style="border:1px solid #ccc;padding:6px;margin:8px 0">' + caixa("x-c-ap", "Alienação Parental (conforme art. 4º da Lei 12.318/2010)") +
+			caixa("x-c-ch", "Crime Hediondo (conforme art. 394-A do Código de Processo Penal)") + caixa("x-c-vd", VD) +
+			'</div><span class="x-btn small" id="x-dlg-sel">Selecionar</span> <span class="x-btn small">Cancelar</span>', { w: 480, top: 170 });
+		await S.cap("O popup já abre com a <b>Seleção de Prioridade</b> do Projudi. Marque as prioridades que quer incluir.");
+		await S.click("#x-c-ch");
+		$("#x-c-ch").textContent = "☑";
+		await S.cap("Clique em <b>Selecionar</b>: a extensão clica em <b>Salvar</b> sozinha.");
+		await S.click("#x-dlg-sel");
+		closeModal();
+		$("#x-ed-prio").textContent = "Crime Hediondo (conforme art. 394-A do Código de Processo Penal)";
+		await sleep(900);
+		$(".x-popup").remove();
+		$("#x-prio").innerHTML = "<span>Maior que 60 anos (conforme Lei 10.741/2003)</span>, <span>Crime Hediondo (conforme art. 394-A do Código de Processo Penal)" + x("x-rem-ch") + "</span>";
+		await S.cap("O popup fecha e o processo é recarregado, já com a prioridade nova.", { ms: 3600 });
+		await S.click("#x-prio-pref");
+		let pn = panelAt('<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #e3e8dc;padding-bottom:6px;margin-bottom:6px"><h4 style="margin:0">⭐ Preferências — Prioridades</h4><span class="x-btn small" style="font-weight:bold">+ Nova preferência</span></div>' +
+			'<div style="display:flex;gap:4px;margin-bottom:2px"><span class="x-btn small" id="x-pref" style="flex:1">★ Violência doméstica</span><span class="x-btn small">🗑</span></div>', "#x-prio-pref", { w: 340 });
+		await S.cap("Na <b>⭐</b>, <b>+ Nova preferência</b> grava uma inclusão (ou remoção) feita na Seleção de Prioridade — sem alterar o processo naquela hora.", { ms: 4600 });
+		await S.click("#x-pref");
+		pn.remove();
+		t = toast("★ Violência doméstica — selecionando…", { left: 430, top: 90 });
+		await sleep(1100);
+		t.innerHTML = "★ Violência doméstica — salvando…";
+		await sleep(1000);
+		t.remove();
+		$("#x-prio").insertAdjacentHTML("beforeend", ", <span>" + VD + x("x-rem-vd2") + "</span>");
+		await S.cap("Depois, um clique na preferência inclui a prioridade e salva, sem confirmação.", { ms: 3800 });
+		await S.endCard("✖ → confirmar → removida e salva · ➕ Incluir → marcar → Selecionar → salva · ⭐ → ★ preferência → incluída e salva.");
+	},
+};

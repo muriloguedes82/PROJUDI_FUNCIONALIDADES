@@ -117,6 +117,14 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					sistemas: ["projudi"]
 				},
 				{
+					id: "alterarPrioridades",
+					nome: "Prioridades",
+					descricao: "Na linha \"Prioridade\" do cabeçalho do processo: ✖ ao lado de cada prioridade para removê-la e salvar, \"➕ Incluir\", que abre a Seleção de Prioridade num popup e salva depois do \"Selecionar\", e ⭐ com preferências que incluem/removem prioridades e salvam com um clique.",
+					js: ["src/alterarPrioridades.js"],
+					requer: ["acoesRapidas", "habilitarAdvogado"],
+					sistemas: ["projudi"]
+				},
+				{
 					id: "alvara",
 					nome: "Alvará Eletrônico",
 					descricao: "Cadastro de alvará eletrônico pelo painel de Ações rápidas.",

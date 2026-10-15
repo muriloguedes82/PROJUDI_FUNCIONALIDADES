@@ -339,7 +339,7 @@
 	// backup do mesmo jeito e aparecem como "outras configurações".
 	const CHAVES_DESCRITAS = new Set([
 		"pdpActionPreferences", "pdpJuntarDocumentoPrefs", "pdpDecursoPrefs", "pdpPreAnalisePrefs",
-		"pdpAlterarClassePrefs", "pdpLocalizadorPreferencias", "pdpPreferenceCombos", "pdpPreferencesOrder",
+		"pdpAlterarClassePrefs", "pdpPrioridadesPrefs", "pdpPrioridadesCatalogo", "pdpLocalizadorPreferencias", "pdpPreferenceCombos", "pdpPreferencesOrder",
 		"pdpTarefasListas", "pdpTarefasPreferencias", "pdpTarefasProcessos",
 		"pdpWhatsappContacts", "pdpEmailRecipients", "pdpFromAccounts", "pdpDefaultFromId",
 		"pdpSistemasCnjOrdem", "pdpSistemasCnjOutros", "pdpSistemasCnjOrdemSeeu",
@@ -366,6 +366,7 @@
 			["preferência(s) de assunto principal", deTipo("assunto")],
 			["preferência(s) de assunto secundário", deTipo("secundario")],
 			["outra(s) preferência(s) de Alterar Classe/Assuntos", classe.length - deTipo("classe") - deTipo("assunto") - deTipo("secundario")],
+			["preferência(s) de prioridade", tamanho(local.pdpPrioridadesPrefs)],
 			["preferência(s) de localizador (SEEU)", tamanho(local.pdpLocalizadorPreferencias)],
 			["combo(s)", tamanho(local.pdpPreferenceCombos)],
 			["lista(s) de tarefas", tamanho(local.pdpTarefasListas)],

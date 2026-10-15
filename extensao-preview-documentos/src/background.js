@@ -840,6 +840,34 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   return true;
 });
 
+// Lupa da linha "Prioridade" da tela de alteração do processo
+// (alterarPrioridades.js): o link é "javascript:…", e o Chrome não deixa o
+// script da extensão executá-lo; clicado aqui, no mundo da página, segue o
+// caminho normal e abre a "Seleção de Prioridade". Só o link marcado com o
+// token, e só se for mesmo a lupa da linha "Prioridade".
+function clickPrioridadeLupa(token) {
+  const lupa = document.querySelector('[data-pdp-prioridade-lupa="' + token + '"]');
+  if (!lupa) return null;
+  lupa.removeAttribute('data-pdp-prioridade-lupa');
+  const campo = document.getElementById('descricaoTiposPrioridade');
+  if (location.pathname !== '/projudi/processoEdicao.do' || !campo || lupa.closest('tr') !== campo.closest('tr')) {
+    return {ok:false, error:'Lupa da Prioridade inesperada.'};
+  }
+  try { lupa.click(); return {ok:true}; }
+  catch (error) { return {ok:false, error:String(error.message || error)}; }
+}
+
+chrome.runtime.onMessage.addListener((message, sender, reply) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'prioridade-lupa-click') return false;
+  if (!sender.tab || !/^https?:\/\/[^/]+\.tjpr\.jus\.br\/projudi\//.test(sender.url || '') || !/^[a-f0-9-]{36}$/.test(message.token || '')) {
+    reply({ok:false, error:'Origem da operação inválida.'}); return false;
+  }
+  chrome.scripting.executeScript({target:{tabId:sender.tab.id, allFrames:true}, world:'MAIN', func:clickPrioridadeLupa, args:[message.token]})
+    .then(results => reply(results.map(entry => entry.result).find(Boolean) || {ok:false, error:'Não foi localizada a lupa da Prioridade.'}))
+    .catch(error => reply({ok:false, error:error.message}));
+  return true;
+});
+
 chrome.runtime.onMessage.addListener((message,sender,reply) => {
   if (message?.source !== 'projudi-preview' || message.type !== 'clipboard-process-open') return false;
   try {
