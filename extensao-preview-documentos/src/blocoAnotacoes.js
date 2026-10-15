@@ -9,7 +9,12 @@
     try {
       while (atual !== atual.top) {
         const frame = atual.frameElement;
-        if (!frame) return true;
+        // Ao sair do host projudi2.tjpr.jus.br para o shell
+        // projudi.tjpr.jus.br, o navegador deixa de expor o frameElement
+        // por ser uma fronteira entre origens. Isso não significa que a
+        // página atual seja um popup; encerramos a inspeção e decidimos
+        // pelos sinais do quadro de conteúdo e da ficha logo abaixo.
+        if (!frame) break;
         if (atual === window) primeiroFrame = frame;
         if (frame.hasAttribute('data-pdp-loader') || frame.hasAttribute('data-pdp-hide-button-group') ||
             classesPopup.some(nome => frame.classList.contains(nome)) || /dialog|popup/i.test(frame.id || '')) return true;
