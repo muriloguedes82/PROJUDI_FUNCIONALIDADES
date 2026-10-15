@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.33.1 |
-| **Versão da extensão** | 2.33.1 |
-| **Data desta versão** | 14/10/2026 |
+| **Versão do manual** | 2.34.0 |
+| **Versão da extensão** | 2.34.0 |
+| **Data desta versão** | 15/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -1929,6 +1929,23 @@ processos marcados, **em lote**.
   o card deles tem o sinal **↗**.
 - Os cards ficam em blocos, um por ação, como em **⭐ Minhas
   Preferências** ([7.3](#cap-7-3)), mas sem os botões ✏️ e 🗑.
+
+**Com muitas preferências:**
+
+▶ [**Vídeo V54** — ⭐ da linha com muitas preferências](videos/V54-painel-da-estrela-com-muitas-preferencias.mp4)
+
+- O card **⭐** cabe sempre na tela: quando as preferências não cabem, ele
+  rola por dentro (use a rodinha do mouse sobre ele). Não é preciso
+  diminuir o zoom do navegador.
+- O **topo** do card fica parado enquanto os cards rolam. Nele estão:
+  - o campo **🔍 Buscar preferência**: digite parte do nome (ou do nome da
+    ação, ex.: "remessa") e só os cards que o contêm continuam à vista; não
+    precisa de acento nem de maiúsculas. Apague o texto para ver todos de
+    novo;
+  - nas listas com as seções **📝 Analisar (Pré-Análise)** ([9.11](#cap-9-11))
+    ou **📝 Analisar Decurso** ([9.10](#cap-9-10)), o botão **+ Nova ·
+    Analisar (Pré-Análise)** ou **+ Nova · Analisar Decurso**, que faz o
+    mesmo que o card **+ Nova preferência** do fim da seção.
 - No **Retorno de Conclusão**, o **Sim** finaliza a conclusão pela linha
   **"Retorno de Conclusão"** do quadro Pendências do processo (a mesma do
   botão **Finalizar conclusão** da capa). Se o processo não tiver essa
@@ -2313,8 +2330,9 @@ aparecem em todas).
 
 **Criar uma preferência (+ Nova preferência):**
 
-1. No **⭐** de uma linha, clique em **+ Nova preferência** (seção
-   📝 Analisar). A Pré-Análise desse cumprimento abre num popup.
+1. No **⭐** de uma linha, clique em **+ Nova · Analisar (Pré-Análise)**,
+   no topo do card (ou em **+ Nova preferência**, na seção 📝 Analisar,
+   no fim do card). A Pré-Análise desse cumprimento abre num popup.
 2. Escolha o **Tipo do Arquivo** e o **Modelo** (em Expedir Intimações e
    Expedir Citação há o Modelo e a **Descrição**, que também fica gravada), clique em **Digitar Texto**, escreva
    ou edite o texto do Modelo e continue, como de costume.
@@ -2526,6 +2544,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V51](videos/V51-documento-da-conclusao.mp4) | [Documento do Juiz no Retorno de Conclusão](videos/V51-documento-da-conclusao.mp4) | [9.9](#cap-9-9) | 0:59 |
 | [V52](videos/V52-analisar-e-dispensar-decurso-na-lista.mp4) | [Analisar e Dispensar decurso na lista](videos/V52-analisar-e-dispensar-decurso-na-lista.mp4) | [9.10](#cap-9-10) | 1:28 |
 | [V53](videos/V53-pre-analise-com-preferencias.mp4) | [Pré-Análise com preferências](videos/V53-pre-analise-com-preferencias.mp4) | [9.11](#cap-9-11) | 1:11 |
+| [V54](videos/V54-painel-da-estrela-com-muitas-preferencias.mp4) | [⭐ da linha com muitas preferências](videos/V54-painel-da-estrela-com-muitas-preferencias.mp4) | [9.3](#cap-9-3) | 0:40 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -2539,6 +2558,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.34.0 | 15/10/2026 | Seção 9.3 (e 9.11): com muitas preferências, o card **⭐** da linha passa a caber sempre na tela e rolar por dentro — antes, o fim dele (com a seção **📝 Analisar** e o **+ Nova preferência**) ficava fora da tela e só aparecia diminuindo o zoom. O topo do card fica parado ao rolar, com o novo campo **🔍 Buscar preferência** e os botões **+ Nova · Analisar (Pré-Análise)** / **+ Nova · Analisar Decurso**. Novo vídeo V54. |
 | 2.33.1 | 14/10/2026 | Seção 9.9: corrigido — na lista **Intimação — Auxiliares da Justiça** do Decurso de Prazo os botões **Analisar Decurso** e **Dispensar** não apareciam nas linhas (lá a coluna Situação mostra "Decurso de prazo em" e a data, e não "Aguardando Análise do Decurso de Prazo"). Agora aparecem, e também o **Dispensar nos marcados** e o **Analisar decurso nos marcados** da barra **⭐ Em lote** funcionam nessa lista. Texto do "Onde fica" ajustado. Sem vídeo novo: a tela não muda. |
 | 2.33.0 | 14/10/2026 | Novo card **SEEU** (terracota), só no Projudi, na fileira dos sistemas ao lado da balança (1.3 e 8.7): abre a página de entrada do SEEU num popup sobre o processo (ou no segundo monitor/nova aba). Quem já tinha mudado a ordem dos cards encontra o SEEU dentro do **Outros**. Vídeo V39 regravado. |
 | 2.32.2 | 13/10/2026 | Sem alteração de texto; corrigido um erro em que a extensão podia repetir, sem o usuário perceber, o envio de uma tela de ação do Projudi aberta dentro do processo (ex.: comunicação de ação vinculada, na aba **Vínculos**), gerando comunicações/juntadas duplicadas. Afetava a linha dos réus no cabeçalho do processo e a busca de RG/CPF e endereços das partes (cumprimentos, mandados e BNMP), que agora só consultam a própria tela do processo. |

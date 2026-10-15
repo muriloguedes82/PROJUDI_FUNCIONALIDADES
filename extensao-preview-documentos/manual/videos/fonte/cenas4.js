@@ -1226,3 +1226,55 @@ CENAS.V53 = {
 		await S.endCard("⭐ → + Nova preferência → Salvar e Concluir → (Adicionar → ☆ padrão → Selecionar) → Assinar e Expedir ou Postergar → nome.");
 	},
 };
+
+// ------------------------------------------------------------------ V54
+// Card ⭐ da linha com muitas preferências: o topo do painel (título, campo
+// "Buscar" e "+ Nova · Analisar (Pré-Análise)") fica fixo enquanto os cards
+// rolam, e o painel nunca passa do fim da tela.
+CENAS.V54 = {
+	arquivo: "V54-painel-da-estrela-com-muitas-preferencias.mp4",
+	titulo: "⭐ da linha com muitas preferências",
+	secao: "9.3",
+	async run() {
+		telaLista("Demais Cumprimentos", { path: "cumprimentoCartorio.do", col: "Tipo de Cumprimento", rows: LISTA.map(r => Object.assign({}, r, { d: "Alvará" })) });
+		$$(".x-rowslot").forEach((s, i) => (s.innerHTML = ' <span class="x-btn small">+</span> <span class="x-btn small" data-star="' + i + '">⭐</span><span class="st" data-st="' + i + '" style="margin-left:6px;font-size:11px"></span>'));
+		await S.titleCard("VÍDEO V54", "⭐ da linha com muitas preferências", "Busca e “+ Nova preferência” sempre à vista no topo do painel.");
+		await S.cap("Com muitas preferências, o card <b>⭐</b> fica comprido. O painel agora <b>cabe sempre na tela</b> e rola por dentro.");
+		await S.click('[data-star="4"]');
+		const nomes = (pref, n) => Array.from({ length: n }, (_, i) => ({ name: pref + " " + (i + 1) }));
+		const blocos = favBlocos([
+			{ icon: "📦", title: "Realizar Remessa", cards: nomes("Remessa", 7).concat([{ name: "Remessa MP", id: "c-mp" }]) },
+			{ icon: "📤", title: "Enviar Concluso", cards: nomes("Concluso", 8) },
+			{ icon: "👥", title: "Intimar Partes", cards: nomes("Intimação", 9) },
+			{ icon: "👥", title: "Citar Partes", cards: nomes("Citação", 6) },
+			{ icon: "↕️", title: "Ordenar Cumprimentos", cards: nomes("Ordenação", 7) },
+		]);
+		const pn = panelAt(
+			'<div id="topo" style="position:sticky;top:-8px;background:#fff;margin:-8px -8px 6px;padding:8px;border-bottom:1px solid #e3e8dc;z-index:1">' +
+				'<h4>⭐ Minhas Preferências — ' + LISTA[4].n + '</h4>' +
+				'<div style="display:flex;gap:6px"><span class="x-field" id="busca" style="flex:1;min-height:0;padding:3px 6px;font-size:12px;color:#333"></span>' +
+				'<span class="x-btn small" id="nova-topo" style="font-weight:bold">+ Nova · Analisar (Pré-Análise)</span></div></div>' +
+				'<div id="blocos">' + blocos + '</div>' +
+				'<div id="sec-pre"><div style="font-size:11px;color:#5a6b4a;margin:8px 0 4px;font-weight:bold">📝 ANALISAR (PRÉ-ANÁLISE)</div>' +
+				'<span class="x-fcard"><span style="font-weight:normal">Analisar (Pré-Análise)</span> + Nova preferência</span> <span class="x-fcard">★ Alvará padrão</span></div>',
+			'[data-star="4"]', { w: 560 });
+		pn.style.left = "430px"; pn.style.top = "150px"; pn.style.maxHeight = "400px"; pn.style.overflow = "auto";
+		S.hl("#topo", 2);
+		await S.cap("No <b>topo</b>, que fica parado enquanto os cards rolam: o campo <b>Buscar</b> e o botão <b>+ Nova preferência</b> do Analisar (Pré-Análise).", { ms: 5600, bottom: true });
+		S.hlOff();
+		await tween(1600, k => { pn.scrollTop = k * 260; });
+		await S.cap("Ao rolar a lista, o topo continua à vista — não é preciso diminuir o zoom para achar o <b>+ Nova preferência</b>.", { ms: 4800, bottom: true });
+		await tween(900, k => { pn.scrollTop = 260 * (1 - k); });
+		await S.type("#busca", "mp");
+		$$("#blocos .x-fcard").forEach(c => { if (c.id !== "c-mp") c.style.display = "none"; });
+		$$("#blocos .x-fgrp").forEach(g => { if (!g.querySelector("#c-mp")) g.style.display = "none"; });
+		$$("#sec-pre .x-fcard")[1].style.display = "none";
+		await S.cap("Digite parte do nome para ver só os cards que o contêm (o nome da ação também vale). Sem acento também acha.", { ms: 4800, bottom: true });
+		await S.click("#nova-topo");
+		pn.remove();
+		popup("Pré-Análise", '<div style="font-size:12px">Tipo do Arquivo: <span class="pj-select">Alvará</span> · Modelo: <span class="pj-select">Documento em Branco</span> <span class="pj-btn">Digitar Texto</span></div>', { hd: "Analisar — gravando nova preferência", top: 120, h: 240 });
+		await S.cap("O botão do topo faz o mesmo que o card <b>+ Nova preferência</b> da seção: abre a Pré-Análise e grava o que você fizer (veja 9.11).", { ms: 5200 });
+		$(".x-popup").remove();
+		await S.endCard("⭐ na linha → Buscar ou + Nova preferência, sempre no topo do painel.");
+	},
+};

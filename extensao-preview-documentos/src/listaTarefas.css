@@ -394,6 +394,61 @@ tr.pdp-tl-oculta {
 
 .pdp-pl-painel {
 	width: 560px;
+	padding-top: 0;
+}
+
+/* Topo fixo do painel ⭐: título, busca e "+ Nova preferência" ficam à
+   vista enquanto os cards rolam por baixo. */
+.pdp-pl-topo {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	margin: 0 -10px 6px;
+	padding: 8px 10px 6px;
+	background: #fff;
+	border-bottom: 1px solid #e3e8dc;
+}
+
+.pdp-pl-barra {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+}
+
+.pdp-pl-busca {
+	flex: 1 1 160px;
+	min-width: 0;
+	box-sizing: border-box;
+	padding: 3px 6px;
+	border: 1px solid #b9c4ad;
+	border-radius: 4px;
+	font: 11.5px Arial, Helvetica, sans-serif;
+}
+
+.pdp-pl-atalhos {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+
+.pdp-pl-atalhos:empty {
+	display: none;
+}
+
+.pdp-pl-nova-topo {
+	font-weight: bold;
+}
+
+.pdp-pl-painel .pdp-pl-filtrado {
+	display: none !important;
+}
+
+.pdp-pl-sem-resultado {
+	margin-top: 6px;
+	color: #888;
+	font-style: italic;
+	font-size: 11px;
 }
 
 .pdp-pl-pergunta {
