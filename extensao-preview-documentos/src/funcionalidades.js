@@ -20,7 +20,7 @@
 // demais, os arquivos dela nunca são injetados e ela não aparece no Menu.
 //
 // Os arquivos que não aparecem aqui (hostGuard.js, uiVisibility.js,
-// clipboardProcess.js, documentSelection.js, buttonDrag.js e o próprio Menu)
+// painelPreferencias.js/.css, clipboardProcess.js, documentSelection.js, buttonDrag.js e o próprio Menu)
 // são infraestrutura e são sempre carregados.
 self.PDP_FUNCIONALIDADES = Object.freeze({
 	// { projudi: [id], seeu: [id] } em chrome.storage.local

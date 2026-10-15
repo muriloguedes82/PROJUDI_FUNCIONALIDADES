@@ -1,0 +1,75 @@
+/* Painéis de preferências (painelPreferencias.js): topo fixo com busca e
+   "+ Nova preferência", em todos os painéis que listam preferências. */
+.pdp-pp-topo {
+	position: sticky;
+	z-index: 2;
+	box-sizing: border-box;
+	background: #fff;
+	border-bottom: 1px solid #e3e8dc;
+}
+
+.pdp-pp-barra {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	margin-top: 4px;
+}
+
+.pdp-pp-topo[hidden],
+.pdp-pp-barra[hidden],
+.pdp-pp-busca[hidden],
+.pdp-pp-sem-resultado[hidden] {
+	display: none !important;
+}
+
+.pdp-pp-busca {
+	flex: 1 1 150px;
+	min-width: 0;
+	box-sizing: border-box;
+	margin: 0;
+	padding: 3px 6px;
+	border: 1px solid #b9c4ad;
+	border-radius: 4px;
+	background: #fff;
+	color: #222;
+	font: 11.5px Arial, Helvetica, sans-serif;
+}
+
+.pdp-pp-novas {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	margin-left: auto;
+}
+
+.pdp-pp-novas:empty {
+	display: none;
+}
+
+/* Botão "+ Nova preferência" no topo (todos os painéis). */
+.pdp-pp-nova {
+	padding: 3px 9px;
+	border: 1px solid #b9c4ad;
+	border-radius: 4px;
+	background: #f4f6ef;
+	color: #34422a;
+	font: bold 11.5px Arial, Helvetica, sans-serif;
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+.pdp-pp-nova:hover {
+	background: #e7ecdd;
+}
+
+.pdp-pp-painel .pdp-pp-oculto {
+	display: none !important;
+}
+
+.pdp-pp-sem-resultado {
+	margin: 6px 2px;
+	color: #888;
+	font-style: italic;
+	font: italic 11px Arial, Helvetica, sans-serif;
+}

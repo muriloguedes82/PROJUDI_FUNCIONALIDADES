@@ -2631,12 +2631,14 @@
 			closePanel();
 			iniciarJuntada(null);
 		});
-		header.appendChild(openBtn);
 		actionRow.appendChild(header);
 
 		const prefsWrap = document.createElement("div");
 		prefsWrap.className = "pdp-qa-prefs";
 		actionRow.appendChild(prefsWrap);
+
+		// "+ Nova preferência" ao lado de "Abrir" (como nas ações rápidas):
+		// abaixo das preferências, com muitas delas, ficava longe da vista.
 
 		const newBtn = document.createElement("button");
 		newBtn.type = "button";
@@ -2648,10 +2650,16 @@
 			closePanel();
 			iniciarJuntada("capture", null);
 		});
-		actionRow.appendChild(newBtn);
+		const headerBtns = document.createElement("span");
+		headerBtns.className = "pdp-qa-action-btns";
+		headerBtns.appendChild(openBtn);
+		headerBtns.appendChild(newBtn);
+		header.appendChild(headerBtns);
 
 		panel.appendChild(actionRow);
 		document.body.appendChild(panel);
+		// Busca no topo (painelPreferencias.js), quando há muitas preferências.
+		window.__pdpPainelPrefs.topo(panel, { itens: ".pdp-qa-pref-chip" });
 		button.classList.add("pdp-qa-active");
 		positionPanel();
 
@@ -2715,6 +2723,7 @@
 
 				wrap.appendChild(chip);
 			});
+			window.__pdpPainelPrefs.filtrar(panel);
 			positionPanel();
 		});
 	}
