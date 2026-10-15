@@ -180,10 +180,31 @@
 		}
 	}
 
-	function abrir(sistema) {
+	function abrirNoPopup(sistema) {
 		const topo = topoUtil();
 		if (topo) topo.postMessage({ tipo: MENSAGEM_ABRIR, sistema: sistema.id }, location.origin);
 		else openModal(sistema);
+	}
+
+	// Como o card abre o sistema (preferência do Menu, menuExtensao.js):
+	// "auto" (padrão) - segundo monitor, se houver; senão, popup;
+	// "popup" - sempre no popup; "fora" - segundo monitor ou, sem ele, nova
+	// aba. Se a abertura fora do popup falhar, cai no popup.
+	const ABERTURA_KEY = "pdpSistemasCnjAbertura";
+	let abertura = "auto";
+	function lerAbertura(v) {
+		abertura = v === "popup" || v === "fora" ? v : "auto";
+	}
+	chrome.storage.local.get(ABERTURA_KEY).then(function (d) { lerAbertura(d[ABERTURA_KEY]); }).catch(function () {});
+	chrome.storage.onChanged.addListener(function (mudancas, area) {
+		if (area === "local" && mudancas[ABERTURA_KEY]) lerAbertura(mudancas[ABERTURA_KEY].newValue);
+	});
+
+	function abrir(sistema) {
+		if (abertura === "popup") { abrirNoPopup(sistema); return; }
+		chrome.runtime.sendMessage({ source: "projudi-preview", type: "sistemas-cnj-open", sistema: sistema.id, onde: abertura === "fora" ? "fora" : "monitor" })
+			.then(function (result) { if (!result || !result.ok) abrirNoPopup(sistema); })
+			.catch(function () { abrirNoPopup(sistema); });
 	}
 
 	// Ouve em todas as janelas: o pedido só chega à escolhida por topoUtil.

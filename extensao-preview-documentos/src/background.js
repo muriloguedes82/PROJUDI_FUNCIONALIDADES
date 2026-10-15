@@ -964,14 +964,17 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
     sistema = (self.PDP_SISTEMAS_CNJ || []).find(s => s.id === message.sistema);
     // No SEEU só os marcados com `seeu: true` (sistemasCnjLista.js).
     if (!sistema || (doSeeu && sistema.seeu !== true)) throw new Error('Sistema desconhecido.');
-    if (message.onde !== 'fora') throw new Error('Opção inválida.');
+    if (message.onde !== 'fora' && message.onde !== 'monitor') throw new Error('Opção inválida.');
   } catch (error) { reply({ok:false, error:error.message}); return false; }
   const novaAba = () => chrome.tabs.create({ url: sistema.url, windowId: sender.tab.windowId, index: sender.tab.index + 1, openerTabId: sender.tab.id });
+  // 'monitor': só o segundo monitor; sem ele, responde semMonitor e a página
+  // abre o popup. 'fora': segundo monitor ou, sem ele, nova aba.
   pdpSistemaCnjSegundoMonitor(sistema.url, sender.tab.windowId)
     .catch(error => { console.warn('[Sistemas do CNJ] segundo monitor:', error); return false; })
-    .then(abriu => abriu ? 'monitor' : novaAba().then(() => 'aba'))
+    .then(abriu => abriu ? 'monitor' : message.onde === 'monitor' ? null : novaAba().then(() => 'aba'))
+    .then(onde => onde ? onde : Promise.reject(Object.assign(new Error('Sem segundo monitor.'), { semMonitor: true })))
     .then(onde => reply({ok:true, onde}))
-    .catch(error => reply({ok:false, error:error.message}));
+    .catch(error => reply({ok:false, semMonitor: !!error.semMonitor, error:error.message}));
   return true;
 });
 
