@@ -177,7 +177,14 @@
 	}
 
 	// URL da aba "Partes e Outros": o `setTab('...')` do item de aba nativo;
-	// na falta dele, a `action` do formulário do processo.
+	// na falta dele, a `action` do formulário do processo. null quando não é
+	// a tela do processo.
+	// Só a própria tela do processo (visualizacaoProcesso.do?actionType=
+	// visualizar) pode receber o reenvio do #processoForm em segundo plano.
+	// Diálogos e telas de ação do Projudi também usam id="processoForm"
+	// (ex.: "Arquivamento de Processo", comunicação de ação vinculada da aba
+	// "Vínculos"), e este script também roda dentro deles: reenviar um desses
+	// formulários EXECUTA a ação de novo (ver monitoracaoAtiva.js).
 	function urlAbaPartes(doc, form) {
 		const tab = Array.prototype.find.call(doc.querySelectorAll("[onclick]"), function (el) {
 			const onclick = el.getAttribute("onclick") || "";
@@ -185,7 +192,9 @@
 		});
 		const match = /setTab\(\s*['"]([^'"]+)['"]/.exec(tab ? tab.getAttribute("onclick") : "");
 		const base = doc.location ? doc.location.href : location.href;
-		return projudiURL(match ? match[1] : form.getAttribute("action") || base, base).href;
+		const url = projudiURL(match ? match[1] : form.getAttribute("action") || base, base);
+		if (url.pathname !== "/projudi/visualizacaoProcesso.do" || url.searchParams.get("actionType") !== "visualizar") return null;
+		return url.href;
 	}
 
 	// { id, url, body } para buscar a aba "Partes e Outros" do processo de
@@ -198,7 +207,8 @@
 			const body = serializar(form);
 			body.set("selectedIcon", "tabPartes");
 			body.set("id", id);
-			return { id: id, url: urlAbaPartes(doc, form), body: body.toString() };
+			const url = urlAbaPartes(doc, form);
+			return url ? { id: id, url: url, body: body.toString() } : null;
 		} catch (err) {
 			return null;
 		}
@@ -384,7 +394,13 @@
 		}
 		if (!ctx) ctx = sessionGet(KEY_PROCESSO);
 		if (!ctx || !ctx.url || !ctx.id) throw new Error("não encontrei a tela do processo por trás do diálogo");
-		const doc = await readPage(projudiURL(ctx.url).href, { method: "POST", body: new URLSearchParams(ctx.body) });
+		// Contexto guardado por uma versão anterior pode apontar para a
+		// action de um diálogo: confere de novo antes de reenviar.
+		const ctxUrl = projudiURL(ctx.url);
+		if (ctxUrl.pathname !== "/projudi/visualizacaoProcesso.do" || ctxUrl.searchParams.get("actionType") !== "visualizar") {
+			throw new Error("não encontrei a tela do processo por trás do diálogo");
+		}
+		const doc = await readPage(ctxUrl.href, { method: "POST", body: new URLSearchParams(ctx.body) });
 		if (idDoProcesso(doc) !== ctx.id) throw new Error('a resposta da aba "Partes e Outros" não corresponde ao processo');
 		const partes = lerPartes(doc);
 		if (!partes) throw new Error('a resposta não contém a aba "Partes e Outros"');

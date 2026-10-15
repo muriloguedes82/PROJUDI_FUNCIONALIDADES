@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.29.11 |
-| **Versão da extensão** | 2.29.11 |
-| **Data desta versão** | 10/10/2026 |
+| **Versão do manual** | 2.33.1 |
+| **Versão da extensão** | 2.33.1 |
+| **Data desta versão** | 14/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -50,7 +50,6 @@
    - 4.2 [Monitoração eletrônica ativa no cabeçalho](#cap-4-2)
    - 4.3 [Réus, indiciados e noticiados no cabeçalho](#cap-4-3)
    - 4.4 [Sequencial do processo principal (apensos)](#cap-4-4)
-   - 4.5 [Bloco de anotações](#cap-4-5)
 5. [Envio de documentos](#cap-5)
    - 5.1 [Envio por WhatsApp Web](#cap-5-1)
    - 5.2 [Envio por e-mail (Outlook)](#cap-5-2)
@@ -75,7 +74,7 @@
    - 8.4 [Editar Partes/Outros](#cap-8-4)
    - 8.5 [Colar processo](#cap-8-5)
    - 8.6 [Oráculo](#cap-8-6)
-   - 8.7 [Sistemas do CNJ e outros (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Renajud, Sistema Uniformizado, COPEL, FUPEN, SANEPAR, SESP)](#cap-8-7)
+   - 8.7 [Sistemas do CNJ e outros (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Renajud, SEEU, Sistema Uniformizado, COPEL, FUPEN, SANEPAR, SESP)](#cap-8-7)
    - 8.8 [Localizador (só no SEEU)](#cap-8-8)
    - 8.9 [Alterar Classe/Assuntos](#cap-8-9)
    - 8.10 [Novo Valor da Causa](#cap-8-10)
@@ -89,6 +88,8 @@
    - 9.7 [Endereço da parte e Mandado Regionalizado](#cap-9-7)
    - 9.8 [Processo ao passar o mouse nas listas de Decurso de Prazo](#cap-9-8)
    - 9.9 [Documento do Juiz ao passar o mouse no Retorno de Conclusão](#cap-9-9)
+   - 9.10 [Analisar e Dispensar decurso na lista](#cap-9-10)
+   - 9.11 [Analisar (Pré-Análise) dos cumprimentos com preferências](#cap-9-11)
 10. [Privacidade e convivência com outras extensões](#cap-10)
     - 10.1 [O que fica guardado no seu navegador](#cap-10-1)
     - 10.2 [Convivência com o AzFlow](#cap-10-2)
@@ -311,7 +312,7 @@ tela, "flutuando" sobre a página.
 - O **ícone da balança** (canto superior direito, abaixo de **Sair**) não faz
   parte desta barra: ele abre o **Menu da extensão** — veja [2.6](#cap-2-6).
   Os **cards coloridos com o nome** de cada sistema, logo à esquerda dela, abrem os **sistemas do CNJ**
-  (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud e Renajud, e o Sistema Uniformizado do TJPR), e o card **Outros** guarda
+  (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud e Renajud, o SEEU e o Sistema Uniformizado do TJPR), e o card **Outros** guarda
   COPEL, FUPEN, SANEPAR e SESP Intranet — veja [8.7](#cap-8-7).
 - Passe o mouse sobre qualquer botão para ver uma dica.
 - A barra acompanha a rolagem da página. Ela se alinha ao quadro
@@ -337,7 +338,7 @@ tela, "flutuando" sobre a página.
 | Campo | Para que serve |
 |---|---|
 | **Modo de envio** | Como o e-mail é preparado: **Automático** (padrão), **Sempre via Microsoft Graph** ou **Sempre via Outlook Web (sem Azure AD)** — veja [5.2](#cap-5-2) |
-| **Client ID** / **Tenant ID do Tribunal** | Dados fornecidos pelo setor de TI para o modo Microsoft Graph. Não preencha se o TI não informou. Se preencher o Client ID, o **Tenant ID do Tribunal** passa a ser obrigatório (um código como `00000000-0000-0000-0000-000000000000`): ele garante que só contas do Tribunal consigam entrar |
+| **Client ID** / **Tenant ID** | Dados fornecidos pelo setor de TI para o modo Microsoft Graph. Não preencha se o TI não informou (o Tenant ID é opcional) |
 | **Sair do Outlook nesta extensão** | Apaga o login do Outlook guardado pela extensão. Útil em computador compartilhado; no próximo envio a Microsoft pede login de novo |
 | **Termos de Uso da extensão** | Consultar os termos ou revogar o aceite |
 
@@ -414,7 +415,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Bloco de anotações | [4](#cap-4) |
-| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo (Projudi) · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
+| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo (Projudi) · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista (Projudi) · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
 Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
@@ -424,10 +425,19 @@ mov.** fazem parte das funções acima (as duas primeiras, das
 **2. Preferências e combos** — cópia de segurança para levar tudo a outro
 computador:
 
-- **⬇ Exportar**: baixa um arquivo `.json` com as suas preferências, combos,
-  listas de tarefas, contatos do WhatsApp, destinatários e remetentes de
-  e-mail, destaques de movimentações, a ordem dos cards dos sistemas (e o que fica no **Outros**)
-  ([8.7](#cap-8-7)) e as funções desligadas em cada sistema.
+- **⬇ Exportar**: baixa um arquivo `.json` com **toda e qualquer preferência
+  que você criou**: as preferências das ações (intimações, citações,
+  mandados, alvará, advogados etc.), de **Juntar Documento**, de **Analisar
+  Decurso**, de **Pré-Análise**, de **classe**, **assunto principal** e
+  **assuntos secundários**, do **localizador** (SEEU), os **combos**, a ordem
+  dos cards em **Minhas Preferências**, as listas de tarefas (com as
+  preferências e os processos marcados), contatos do WhatsApp, destinatários
+  e remetentes de e-mail, configuração do envio por e-mail, destaques de
+  movimentações, a ordem dos cards dos sistemas (e o que fica no **Outros**)
+  ([8.7](#cap-8-7)) e as funções desligadas em cada sistema. Ao terminar, o
+  Menu mostra o resumo do que foi salvo (por exemplo, "12 preferência(s) das
+  ações; 3 preferência(s) de assunto secundário; 2 combo(s)…"). Preferências
+  de funções novas entram no arquivo automaticamente.
 - **⬆ Importar**: no outro computador (com a mesma extensão instalada), escolha
   o arquivo. O Menu mostra um **resumo do que ele contém**; depois de você
   **confirmar**, as preferências daquele computador são **substituídas** pelas
@@ -691,7 +701,8 @@ encontrado" em vez de um número errado.
 
 ---
 
-<a id="cap-4-5"></a>
+<a id="cap-5"></a>
+
 ### 4.5 Bloco de anotações
 
 **Para que serve:** escrever uma nota pessoal, ou compartilhar o texto como lembrete ativo do Projudi para que os servidores com acesso ao processo também possam consultá-lo.
@@ -781,9 +792,7 @@ inferior direito. Com documentos marcados ele mostra a quantidade, ex.:
 enquanto o navegador estiver aberto: ao fechar e abrir o navegador, a
 Microsoft pede login de novo no primeiro envio. Para sair antes (por
 exemplo, em computador compartilhado), use **Sair do Outlook nesta
-extensão** na página de opções ([2.5](#cap-2-5)). Quem já usava esse modo
-precisa informar o **Tenant ID do Tribunal** nas opções (peça ao TI); até
-lá, o envio mostra uma mensagem explicando isso.
+extensão** na página de opções ([2.5](#cap-2-5)).
 
 Anexos grandes seguem o limite do Outlook da instituição
 (normalmente 25 MB por e-mail). Se o navegador pergunta onde salvar cada
@@ -1068,6 +1077,14 @@ associam os localizadores na hora, sem diálogo nem ✅ **Sim, executar**
 "Intimar MP" → "Juntar certidão de decurso" → "Enviar concluso para
 sentença".
 
+**Que preferências podem entrar:** qualquer preferência que você já gravou
+para usar na tela do processo — as das Ações rápidas (inclusive **Alvará
+Eletrônico** e **⚖️ Advogados**), as do **📎 Juntar Documento**, as do
+**✏️ Alterar Classe/Assuntos** (classe, assunto principal e assunto
+secundário — só no Projudi, [8.9](#cap-8-9)) e as do **📍 Localizador** (só
+no SEEU, [8.8](#cap-8-8)). Na caixa de cada etapa elas aparecem separadas
+pelo nome da função.
+
 **Criar:**
 
 1. Clique em **🔗 Combos** → **+ Novo combo**.
@@ -1098,6 +1115,17 @@ sentença".
   assinatura (você digita o PIN) — ver [8.2](#cap-8-2).
 - Etapas de **Alvará Eletrônico** só preenchem; clique em **Salvar** do
   Projudi e depois em **⏭ Próxima etapa**.
+- Etapas de **✏️ Alterar Classe/Assuntos** e de **📍 Localizador** não
+  abrem janela: a barra do combo mostra o que será feito (ex.: "Alterar a
+  classe para ... e salvar" ou "Associar ao processo: ...") e só executa
+  quando você clica em **▶ Sim, executar** nela. A alteração de
+  classe/assuntos recarrega o processo (para o cabeçalho mostrar o novo
+  valor) e o combo segue sozinho. Se algo der errado (por exemplo, um
+  localizador que não existe na unidade), a barra mostra o aviso e oferece
+  **↻ Repetir etapa**, **⏭ Próxima etapa** ou **⏹ Parar combo**.
+- Preferências que só funcionam nas listas (Analisar Decurso, Pré-Análise
+  e listas de tarefas) não entram nos combos: elas agem sobre a linha da
+  lista, e não sobre a tela do processo.
 - O combo continua mesmo depois de a página recarregar, mas **não**
   continua se você abrir outro processo na mesma aba.
 - Editar uma preferência vale também para os combos que a usam; se ela for
@@ -1305,12 +1333,28 @@ Movimento**.
 
 **Bom saber:**
 
-- Só o texto que **você** escreveu é gravado; cabeçalho, número dos autos,
-  data e texto do Modelo são gerados pelo Projudi em cada processo.
+- O que fica gravado é a **versão final** do documento no momento do
+  clique em **Continuar** (é ele que encerra a edição). Se você não
+  alterou nada, fica gravado o texto do Modelo como está; se alterou, a
+  versão alterada. Cabeçalho, número dos autos, data e dados das partes
+  são sempre os do processo em que a preferência é usada.
+- **Editar o texto do Modelo também vale:** se você apagar trechos, mudar
+  a formatação (negrito, itálico, sublinhado) ou alterar parágrafos do
+  texto que o Modelo gerou, a preferência grava essas edições, parágrafo
+  a parágrafo, e as refaz em cada uso — no documento novo, gerado pelo
+  mesmo Modelo. Os parágrafos que você não mexeu ficam como o Projudi os
+  gerou para o processo novo; nos que você alterou, os dados do processo
+  (número, nomes das partes, endereço, CPF, datas) são trocados pelos do
+  processo novo. Se o documento não parecer do mesmo Modelo, a extensão
+  não mexe nele e avisa, para você fazer à mão.
+- Confira sempre o documento antes de concluir: um dado que você digitou
+  à mão (fora do que o Modelo gera) não é trocado.
 - O PIN **nunca** é guardado.
 - Se um passo automático falhar, faça-o à mão: a extensão continua do
   seguinte. **Parar**, na faixa, encerra sem gravar.
 - O acompanhamento expira em 1 hora e para se você abrir outro processo.
+- As mesmas preferências servem para incluir o arquivo na **análise do
+  decurso de prazo**, direto da lista de decursos ([9.10](#cap-9-10)).
 
 <a id="cap-8-3"></a>
 ### 8.3 (Des)Habilitar Advogado
@@ -1425,7 +1469,7 @@ da parte sem ir até a ficha dela.
 botão Oráculo dela.
 
 <a id="cap-8-7"></a>
-### 8.7 Sistemas do CNJ e outros (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Renajud, Sistema Uniformizado, COPEL, FUPEN, SANEPAR, SESP)
+### 8.7 Sistemas do CNJ e outros (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Renajud, SEEU, Sistema Uniformizado, COPEL, FUPEN, SANEPAR, SESP)
 
 ▶ [**Vídeo V39** — Sistemas do CNJ](videos/V39-sistemas-do-cnj.mp4)
 
@@ -1440,7 +1484,7 @@ aberto**, e só na **tela principal** dele — na Mesa, nas listas, nas demais
 telas e dentro dos popups (Advogados, Partes, ações rápidas, janelas do
 Projudi) fica só a balança. **No SEEU** aparecem só os cards **BNMP**,
 **SESP** e **S.U.** (também só com um processo aberto), sem o card
-**Outros**.
+**Outros** — o card **SEEU** fica só no Projudi.
 
 **Ordem:** por padrão, os cards ficam em **ordem alfabética** do nome do
 sistema, da esquerda para a direita. Você pode reorganizá-los como quiser
@@ -1453,6 +1497,7 @@ sistema, da esquerda para a direita. Você pode reorganizá-los como quiser
 | **Infojud** (coral) | Infojud | Declarações e dados da Receita Federal (pelo e-CAC) |
 | **PrevJud** (pêssego) | PrevJud | Informações previdenciárias |
 | **Renajud** (orquídea) | Renajud | Restrições judiciais sobre veículos (bloqueio de transferência, licenciamento e circulação) |
+| **SEEU** (terracota) | SEEU | Sistema Eletrônico de Execução Unificado (execução penal) — abre a página de entrada do SEEU; só no Projudi |
 | **SerpJud** (verde-água) | SERP-JUD | Registros públicos (cartórios de imóveis, títulos, pessoas) |
 | **Sisbajud** (verde-claro) | Sisbajud | Ordens a bancos (bloqueio de valores, informações) |
 | **S.U.** (cinza-azulado) | Sistema Uniformizado | Sistema do TJPR de fundos, custas e guias — Projudi **e SEEU** |
@@ -1512,6 +1557,9 @@ sistemas novos entram no **Outros**.
 - O popup fica sobre o processo: a aba do processo não muda de lugar.
 - Se o login de um sistema não funcionar dentro do popup, use o botão
   **🖥 Segundo monitor** (ou **🗂 Nova aba**, com um monitor só).
+- O nome do botão segue o que o navegador enxerga: se ele mostra
+  **🖥 Segundo monitor**, abre no outro monitor; se mostra **🗂 Nova aba**,
+  abre numa aba nova.
 - Se o segundo monitor estiver desligado ou desconectado, o sistema abre
   numa nova aba.
 - Ao fechar o popup, o que estava aberto no sistema não fica guardado; ao
@@ -1823,10 +1871,12 @@ normal.
 ▶ [**Vídeo V29** — Listas de tarefas](videos/V29-listas-de-tarefas.mp4)
 
 **Onde fica:** telas **Análise de Juntadas**, **Retorno de Conclusão** e
-**Análise de Decurso de Prazo**, e nas telas de cumprimentos **Expedir
+**Análise de Decurso de Prazo** (listas de Intimação, Auxiliares da Justiça
+e Citações/Notificações), e nas telas de cumprimentos **Expedir
 Intimações**, **Expedir Citação**, **Expedir Notificação**, **Expedir
-Intimações de Auxiliares da Justiça** e **Demais Cumprimentos** (nesta,
-qualquer que seja o **Tipo de Cumprimento** escolhido na busca).
+Intimações de Auxiliares da Justiça**, **Demais Cumprimentos** (nesta,
+qualquer que seja o **Tipo de Cumprimento** escolhido na busca) e
+**Mandados** (lista de expedição de mandados).
 
 **Criar listas e preferências:** clique em **⚙ Gerenciar listas e
 preferências**:
@@ -1888,7 +1938,8 @@ processos marcados, **em lote**.
 - A lista **não** é recarregada ao final, para não perder a busca feita.
 - Preferências avulsas de **Juntar Documento**, **Alvará Eletrônico** e
   **Advogados** aparecem esmaecidas (use-as na tela do processo).
-- Combos com essas etapas abrem o processo numa **nova aba** e rodam lá;
+- Combos com essas etapas (ou com etapas de **✏️ Alterar Classe/Assuntos**
+  ou de **📍 Localizador**) abrem o processo numa **nova aba** e rodam lá;
   o card deles tem o sinal **↗**.
 - Os cards ficam em blocos, um por ação, como em **⭐ Minhas
   Preferências** ([7.3](#cap-7-3)), mas sem os botões ✏️ e 🗑.
@@ -1907,8 +1958,9 @@ processos marcados, **em lote**.
 Em todas as telas que têm a **⭐** (Análise de Juntadas, Retorno de
 Conclusão, Análise de Decurso de Prazo, telas de cumprimentos e, no SEEU,
 Análise de Juntadas e Retorno de Conclusão), cada linha tem também uma
-**caixinha de marcar**, logo abaixo do **+** da primeira coluna. Acima da
-tabela aparece a barra **⭐ Em lote**.
+**caixinha de marcar**, logo abaixo do **+** da primeira coluna (na lista
+de **Mandados**, abaixo do semáforo). Acima da tabela aparece a barra
+**⭐ Em lote**.
 
 1. Marque os processos (ou use **marcar todos**, que marca os que estão
    aparecendo na tabela). A barra mostra quantos estão marcados.
@@ -2154,6 +2206,195 @@ cada linha.
 - Passar o mouse de novo na mesma linha abre mais rápido: o documento já
   encontrado é lembrado enquanto a lista estiver aberta.
 
+<a id="cap-9-10"></a>
+### 9.10 Analisar e Dispensar decurso na lista
+
+▶ [**Vídeo V52** — Analisar e Dispensar decurso na lista](videos/V52-analisar-e-dispensar-decurso-na-lista.mp4)
+
+*Só no Projudi.*
+
+**Para que serve:** usar os botões **Analisar Decurso** e **Dispensar** da
+tela da intimação sem precisar abri-la — direto na lista de decursos.
+
+**Onde fica:** menu **Decurso de Prazo** (listas **Intimação**,
+**Intimação — Auxiliares da Justiça** e **Citações/Notificações**), na
+coluna **Processo / Seq.**, logo abaixo do sequencial, em cada linha
+**aguardando análise do decurso de prazo**. Na lista **Intimação —
+Auxiliares da Justiça**, essas linhas são as que mostram, na coluna
+**Situação**, "Decurso de prazo em" seguido da data (é o que aparece com o
+Status **Analisar Decurso de Prazo**).
+
+**Dispensar:**
+
+1. Clique em **Dispensar** na linha.
+2. A extensão abre a intimação escondida, clica no **Dispensar** do Projudi
+   e responde **OK** à pergunta "Confirma a dispensa de análise de Decurso
+   de Prazo?" — sozinha.
+3. A linha mostra **"Decurso de prazo dispensado com sucesso"** e os botões
+   saem dela. Você continua na lista.
+
+**Analisar Decurso:**
+
+1. Clique em **Analisar Decurso** na linha. Aparece um menu:
+   - **Abrir a análise** — a tela "Analisar Decurso de Prazo" abre num
+     popup, para você fazer tudo como de costume;
+   - **+ Nova preferência** — a análise abre no popup e a extensão grava o
+     que você fizer na inclusão do arquivo: clique em **Adicionar**,
+     escolha o Tipo do Arquivo e o Modelo, clique em **Digitar Texto**,
+     escreva e continue. No **Assinar Arquivos**, ela pede um **nome** e
+     salva a preferência (o assinador segue normalmente);
+   - **Preferências de Analisar Decurso** — as que você criou aqui, com
+     **✏️** (editar: abre a análise já preenchida, sem avançar sozinha, e
+     atualiza a preferência no "Assinar Arquivos") e **🗑** (remover);
+   - **Do 📎 Juntar Documento** — as preferências do Juntar Documento
+     ([8.2](#cap-8-2)) também servem aqui (Tipo do Arquivo, Modelo e
+     texto).
+2. Escolhendo uma preferência, a extensão abre a análise no popup, clica em
+   **Adicionar** e inclui o arquivo com ela. Você só **assina** no
+   assinador; depois ela clica em **Confirmar Inclusão** e em **Concluir**.
+3. Ao terminar, o popup fecha sozinho, os botões saem da linha e ela
+   mostra **"Análise do decurso concluída com ★ nome"**.
+
+As preferências do Analisar Decurso também estão no card **⭐** da linha,
+na seção **📝 Analisar Decurso** (com **+ Nova preferência**, ✏️ e 🗑).
+
+**Em lote** (vários processos de uma vez):
+
+1. Marque os processos na caixinha de cada linha (ou **marcar todos**), na
+   barra **⭐ Em lote** acima da tabela ([9.3](#cap-9-3)).
+2. Na mesma barra, clique em:
+   - **Dispensar nos marcados** — confira a janela, que mostra **a lista
+     dos processos** que serão dispensados (até 25 números; acima disso,
+     "… e mais N"), e clique em **OK** (**Cancelar** não faz nada); a
+     extensão dispensa um processo de cada vez, sozinha;
+   - **Analisar decurso nos marcados** — escolha a preferência; a análise
+     abre no popup para cada processo, um de cada vez, e você **assina
+     cada documento**. As mesmas preferências também aparecem no
+     **⭐ Executar preferência nos marcados**, na seção **📝 Analisar
+     Decurso**.
+3. Cada linha mostra o seu resultado e o processo feito é desmarcado.
+   **⏹ Parar** não começa os próximos (o atual termina). Processos que não
+   aguardam análise do decurso são pulados.
+4. **O lote para no primeiro erro.** No **Dispensar nos marcados**,
+   qualquer processo que não pôde ser dispensado interrompe o lote; no
+   **Analisar decurso nos marcados**, só um erro de verdade (por exemplo,
+   o processo não abriu) — fechar o popup apenas pula o processo. Os
+   processos seguintes não são tocados e continuam marcados, e um aviso
+   diz em qual processo houve o erro e quantos já tinham sido feitos.
+   Confira a mensagem na linha do processo antes de repetir.
+
+**Bom saber:**
+
+- A lista **não** é recarregada: atualize-a (Filtrar) quando quiser ver a
+  situação nova.
+- Se nenhum dos processos marcados aguardar análise do decurso (já
+  analisados ou dispensados), os botões do lote avisam isso ao clicar.
+- A confirmação aceita sozinha é **só** a da dispensa do decurso; qualquer
+  outra pergunta faz a extensão parar, sem dispensar.
+- Se algo não der certo, a linha avisa o motivo (ex.: o botão **Dispensar**
+  não estava disponível) e nada é feito às cegas.
+- Na análise com preferência, se o botão final aparecer com outro nome que
+  não **Concluir**, a extensão para e pede que você clique nele e feche o
+  popup — no lote, o próximo processo só começa depois disso.
+- O PIN da assinatura **nunca** é guardado.
+- O texto gravado é a **versão final** do documento no momento em que
+  você clicou em **Continuar** — com ou sem alterações no texto do Modelo.
+  Ao usar a preferência, a extensão refaz essa versão e clica em
+  **Continuar** sozinha. Preferências antigas, gravadas sem passar pelo
+  Continuar, param no "Digitar Documento" para você digitar; para
+  regravá-las, use **✏️**.
+- Um decurso (ou um lote) por vez.
+
+<a id="cap-9-11"></a>
+### 9.11 Analisar (Pré-Análise) dos cumprimentos com preferências
+
+▶ [**Vídeo V53** — Pré-Análise com preferências](videos/V53-pre-analise-com-preferencias.mp4)
+
+*Só no Projudi.*
+
+**Para que serve:** fazer o **Analisar** (Pré-Análise) de um cumprimento —
+por exemplo, um ALVARÁ ou um mandado — com um texto pronto, sem abrir o cumprimento,
+anexar os documentos de um movimento do processo (ex.: a decisão de
+**Concedida a Medida Protetiva**) e deixar a assinatura **postergada** ou
+para você **Assinar e Expedir**.
+
+**Onde fica:** listas **Demais Cumprimentos** (qualquer Tipo de
+Cumprimento), **Mandados** (expedição de mandados), **Expedir Intimações**
+e **Expedir Citação**, no card **⭐** da linha, seção **📝 Analisar
+(Pré-Análise)** — e no **⭐ Em lote**, para vários processos. Cada lista
+mostra as preferências criadas nela (as gravadas antes da versão 2.30.0
+aparecem em todas).
+
+**Criar uma preferência (+ Nova preferência):**
+
+1. No **⭐** de uma linha, clique em **+ Nova preferência** (seção
+   📝 Analisar). A Pré-Análise desse cumprimento abre num popup.
+2. Escolha o **Tipo do Arquivo** e o **Modelo** (em Expedir Intimações e
+   Expedir Citação há o Modelo e a **Descrição**, que também fica gravada), clique em **Digitar Texto**, escreva
+   ou edite o texto do Modelo e continue, como de costume.
+3. Clique em **Salvar e Concluir**.
+4. Na tela do cumprimento (a última), se precisar anexar documentos do
+   processo, clique em **Adicionar** (em **Documento(s) do Processo/Recurso**).
+   Na janela **Seleção de Documentos**, ao lado de cada movimento aparece
+   **☆ padrão**: marque o movimento cujos documentos devem ir sempre (ex.:
+   **Concedida a Medida Protetiva**) — os documentos dele são marcados — e
+   clique em **Selecionar**. Documentos que você marcar sem o ☆ vão só
+   desta vez.
+5. Clique, como sempre, em **Assinar e Expedir** ou em **Postergar
+   Assinatura**. A preferência é gravada nesse clique, com o botão que você
+   escolheu: **Postergar** fica gravado para ser clicado sozinho; **Assinar
+   e Expedir** fica para você clicar a cada uso. Em Expedir Intimações e
+   Expedir Citação, o **Prazo** (tipo e número de dias) e a caixinha
+   **Usar Anexos** dessa tela também ficam gravados.
+6. Dê um **nome** à preferência (se cancelar, o clique é desfeito e você
+   pode clicar de novo). Pronto: ela aparece no card ⭐, com **✏️**
+   (editar) e **🗑** (remover). O card mostra "+ documentos" quando a
+   preferência anexa documentos.
+
+**Usar a preferência:**
+
+1. No **⭐** da linha, clique em **★ nome** (o card mostra "postergar
+   assinatura" ou "você assina e expede").
+2. Se o processo tiver juntadas ou conclusão pendentes, a extensão pergunta
+   antes se deve dispensá-las/finalizá-la ([9.3](#cap-9-3)).
+3. A Pré-Análise abre no popup e a extensão escolhe o Tipo do Arquivo e o
+   Modelo, digita o texto, conclui o documento e clica em **Salvar e
+   Concluir**.
+4. Na tela do cumprimento, se a preferência tiver movimento padrão, ela
+   clica em **Adicionar**, procura o movimento **mais recente** com esse
+   nome e anexa os documentos dele. Se o movimento não existir no processo
+   (ou não tiver documentos), nada é anexado e ela **não** posterga
+   sozinha: destaca o botão para você conferir.
+5. Com "postergar", ela clica em **Postergar Assinatura** e o popup fecha
+   sozinho; senão, ela destaca **Assinar e Expedir** — clique nele e feche
+   o popup.
+6. A linha mostra o resultado.
+
+**Em lote:** marque os processos, clique em **⭐ Executar preferência nos
+marcados** e escolha a preferência na seção 📝 Analisar. Os cumprimentos
+são feitos um de cada vez; com "postergar", seguem sozinhos até o fim.
+
+**Bom saber:**
+
+- A lista **não** é recarregada; atualize-a (Filtrar) para ver a situação
+  nova.
+- Se um passo automático falhar (ex.: o Tipo do Arquivo não existe para
+  esse cumprimento), a faixa avisa e você faz esse passo à mão — a
+  extensão continua do seguinte.
+- Precisa das **Ações rápidas** e do **Juntar Documento** ligados no Menu
+  ([2.6](#cap-2-6)).
+- No **Digitar Documento**, você pode tanto escrever um texto quanto
+  **editar o texto do Modelo** (apagar trechos, negrito, itálico): as
+  edições são gravadas e refeitas em cada mandado, com os dados de cada
+  processo (veja [8.2](#cap-8-2)).
+- Em **Expedir Intimações** e **Expedir Citação**, anexar documentos por
+  movimento padrão ainda não está disponível (a tela final usa
+  "Selecionar Arquivos", diferente do "Adicionar" dos mandados): anexe à
+  mão, se precisar, antes de clicar em Assinar e Expedir ou Postergar.
+- Na lista de **Mandados**, se a tela final do mandado não mostrar
+  **Postergar Assinatura** nem **Assinar e Expedir**, a extensão não faz
+  nada nela: termine o mandado à mão e feche o popup.
+
 ---
 
 <a id="cap-10"></a>
@@ -2221,7 +2462,6 @@ telas abertas a partir daí voltam a funcionar.
 | Combo parou numa etapa | Use **↻ Repetir etapa**, **⏭ Próxima etapa** ou **⏹ Parar combo** ([7.4](#cap-7-4)) |
 | WhatsApp abre a conversa, mas sem anexos | Confira se o WhatsApp Web está conectado; recarregue a extensão; anexe manualmente se precisar |
 | E-mail pede Client ID / dá erro de configuração | Mude o **Modo de envio** para **Automático** ou **Outlook Web** nas opções ([2.5](#cap-2-5)), ou peça o Client ID ao TI |
-| E-mail pede o Tenant ID do Tribunal | Peça ao TI o Tenant ID e informe-o nas opções ([2.5](#cap-2-5)), ou mude o **Modo de envio** para **Outlook Web** |
 | WhatsApp: "O envio expirou" | Passaram-se mais de 15 minutos desde o clique em enviar: marque os documentos e envie de novo ([5.1](#cap-5-1)) |
 | No Outlook Web os anexos não entram sozinhos | É o esperado nesse modo: **Anexar arquivo → Navegar neste computador** e escolha os arquivos na pasta **Downloads** |
 | O campo "De" não muda para a conta escolhida | Falta a permissão "Enviar como" nessa caixa — peça ao TI ([5.3](#cap-5-3)) |
@@ -2285,7 +2525,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V36](videos/V36-dispensar-cumprimentos.mp4) | [Dispensar cumprimentos para expedir](videos/V36-dispensar-cumprimentos.mp4) | [6.4](#cap-6-4) | 0:29 |
 | [V37](videos/V37-escolher-a-movimentacao.mp4) | [Escolher a movimentação das Ações rápidas](videos/V37-escolher-a-movimentacao.mp4) | [7.7](#cap-7-7) | 1:14 |
 | [V38](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [Preferência a partir de um movimento](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [7.7](#cap-7-7) | 0:56 |
-| [V39](videos/V39-sistemas-do-cnj.mp4) | [Sistemas do CNJ](videos/V39-sistemas-do-cnj.mp4) | [8.7](#cap-8-7) | 1:14 |
+| [V39](videos/V39-sistemas-do-cnj.mp4) | [Sistemas do CNJ](videos/V39-sistemas-do-cnj.mp4) | [8.7](#cap-8-7) | 1:15 |
 | [V40](videos/V40-localizador-seeu.mp4) | [Localizador (SEEU)](videos/V40-localizador-seeu.mp4) | [8.8](#cap-8-8) | 1:02 |
 | [V41](videos/V41-localizador-na-linha-seeu.mp4) | [Localizador pela ⭐ da lista (SEEU)](videos/V41-localizador-na-linha-seeu.mp4) | [9.3](#cap-9-3) | 0:31 |
 | [V42](videos/V42-alterar-classe-e-assuntos.mp4) | [Alterar Classe/Assuntos](videos/V42-alterar-classe-e-assuntos.mp4) | [8.9](#cap-8-9) | 0:44 |
@@ -2298,6 +2538,8 @@ pode variar um pouco. Clique no título para assistir.
 | [V49](videos/V49-preferencia-de-assunto-secundario.mp4) | [Preferência de assunto secundário](videos/V49-preferencia-de-assunto-secundario.mp4) | [8.9](#cap-8-9) | 0:52 |
 | [V50](videos/V50-remover-assunto-secundario.mp4) | [Remover assunto secundário](videos/V50-remover-assunto-secundario.mp4) | [8.9](#cap-8-9) | 0:22 |
 | [V51](videos/V51-documento-da-conclusao.mp4) | [Documento do Juiz no Retorno de Conclusão](videos/V51-documento-da-conclusao.mp4) | [9.9](#cap-9-9) | 0:59 |
+| [V52](videos/V52-analisar-e-dispensar-decurso-na-lista.mp4) | [Analisar e Dispensar decurso na lista](videos/V52-analisar-e-dispensar-decurso-na-lista.mp4) | [9.10](#cap-9-10) | 1:28 |
+| [V53](videos/V53-pre-analise-com-preferencias.mp4) | [Pré-Análise com preferências](videos/V53-pre-analise-com-preferencias.mp4) | [9.11](#cap-9-11) | 1:11 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -2311,6 +2553,19 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.33.1 | 14/10/2026 | Seção 9.9: corrigido — na lista **Intimação — Auxiliares da Justiça** do Decurso de Prazo os botões **Analisar Decurso** e **Dispensar** não apareciam nas linhas (lá a coluna Situação mostra "Decurso de prazo em" e a data, e não "Aguardando Análise do Decurso de Prazo"). Agora aparecem, e também o **Dispensar nos marcados** e o **Analisar decurso nos marcados** da barra **⭐ Em lote** funcionam nessa lista. Texto do "Onde fica" ajustado. Sem vídeo novo: a tela não muda. |
+| 2.33.0 | 14/10/2026 | Novo card **SEEU** (terracota), só no Projudi, na fileira dos sistemas ao lado da balança (1.3 e 8.7): abre a página de entrada do SEEU num popup sobre o processo (ou no segundo monitor/nova aba). Quem já tinha mudado a ordem dos cards encontra o SEEU dentro do **Outros**. Vídeo V39 regravado. |
+| 2.32.2 | 13/10/2026 | Sem alteração de texto; corrigido um erro em que a extensão podia repetir, sem o usuário perceber, o envio de uma tela de ação do Projudi aberta dentro do processo (ex.: comunicação de ação vinculada, na aba **Vínculos**), gerando comunicações/juntadas duplicadas. Afetava a linha dos réus no cabeçalho do processo e a busca de RG/CPF e endereços das partes (cumprimentos, mandados e BNMP), que agora só consultam a própria tela do processo. |
+| 2.32.1 | 13/10/2026 | Sistemas do CNJ e card **Outros** (8.7): corrigido o nome do botão do topo do popup, que podia aparecer como **🗂 Nova aba** mesmo com dois monitores (e então abria o sistema no segundo monitor). Agora, com dois monitores, ele aparece como **🖥 Segundo monitor**, como descrito. Nota nova no *Bom saber*. |
+| 2.32.0 | 13/10/2026 | Seção 7.4: os **🔗 Combos** passam a aceitar toda preferência usada na tela do processo, incluindo as do **✏️ Alterar Classe/Assuntos** (Projudi) e as do **📍 Localizador** (SEEU). Essas etapas não abrem janela: a barra do combo mostra o que será feito e executa no **▶ Sim, executar** dela; a alteração de classe/assuntos recarrega o processo e o combo segue. Pela **⭐** das listas (9.3), combos com essas etapas abrem o processo numa nova aba (↗). |
+| 2.31.1 | 13/10/2026 | Seção 2.6: o **⬇ Exportar** passa a levar toda e qualquer preferência criada pelo usuário — inclusive as de Analisar Decurso, Pré-Análise, classe e assuntos, localizador (SEEU) e as listas de tarefas — e qualquer preferência de função nova entra automaticamente; o resumo mostrado ao exportar e ao importar lista cada tipo de preferência com a quantidade. |
+| 2.31.0 | 13/10/2026 | Mescla com a versão principal (até a 2.29.1). As funções desenvolvidas em paralelo, listadas abaixo nas linhas de 2.25.1 a 2.30.5 (sobre preferências de Pré-Análise, Mandados, Expedir Intimações/Citação, decurso em lote, Sistemas do CNJ e e-mail), passam a conviver com as da principal (2.26.0 a 2.29.1). Renumeração: as seções **Analisar e Dispensar decurso na lista** e **Analisar (Pré-Análise) dos cumprimentos com preferências** passam a **9.10** e **9.11** (a 9.9 é a do Documento do Juiz no Retorno de Conclusão), e os vídeos delas passam a **V52** e **V53** (V49 a V51 são os da principal). Nas linhas antigas abaixo, essas seções e vídeos aparecem com a numeração da época. |
+| 2.30.5 | 09/10/2026 | Corrigido (9.10): em **Demais Cumprimentos**, a janela **Seleção de Documentos** (botão Adicionar) tem outro formato (colunas Seq., Data, Evento e Movimentado por) e não mostrava a **☆ padrão** ao lado dos movimentos; agora mostra, e a preferência anexa os documentos do movimento escolhido também nessa lista. |
+| 2.30.4 | 09/10/2026 | Sem alteração de texto; preferências com texto (8.2, 9.9, 9.10): se a versão gravada trouxer variáveis do Modelo sem dados (ex.: "$parteSelecionadaDadosBasicos"), a extensão não a aplica, deixa o documento como o Projudi o gerou e avisa para gravar a preferência de novo. |
+| 2.30.3 | 09/10/2026 | Sem alteração de texto; Pré-Análise com preferências (9.10): se o Projudi devolver uma página de erro (ex.: "403 Forbidden") no popup, a extensão avisa que o erro é do servidor e como recomeçar. |
+| 2.30.2 | 09/10/2026 | Corrigido (9.10): em Expedir Intimações e Expedir Citação, o **Prazo** e o **Usar Anexos** da tela final não ficavam gravados na preferência; agora são gravados no clique em Assinar e Expedir/Postergar Assinatura e preenchidos em cada uso. |
+| 2.30.1 | 09/10/2026 | Corrigido (9.10): em Expedir Intimações e Expedir Citação, o campo **Descrição** da Pré-Análise não ficava gravado na preferência; agora é gravado e preenchido em cada uso. |
+| 2.30.0 | 09/10/2026 | Pré-Análise com preferências (9.10) também nas listas **Expedir Intimações** e **Expedir Citação**, na linha e em lote: grava a versão final do texto no "Continuar" (editada ou não), troca os dados de cada processo e parte, e salva no clique em **Assinar e Expedir** ou **Postergar Assinatura**. Essas telas não têm "Tipo do Arquivo" (só o Modelo). Cada lista passa a mostrar só as preferências criadas nela. Sem vídeo novo: a tela é a mesma do V50. |
 | 2.29.11 | 13/10/2026 | O assunto padrão de lembretes criados pelo post-it passa a ser **Anotação compartilhada - Abra ou instale a extensão Olirum**. |
 | 2.29.10 | 10/10/2026 | A nota por processo também é identificada na ficha inicial, que pode usar `processo.do` sem parâmetros explícitos de visualização. Listagens continuam usando apenas a nota permanente porque não têm a barra de título individual. |
 | 2.29.9 | 10/10/2026 | O post-it é ocultado nos quadros de cabeçalho e em prévias/diálogos dentro de iframes; só aparece uma vez no quadro da tela principal. |
@@ -2321,11 +2576,19 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 | 2.29.4 | 09/10/2026 | Corrigida a identificação do link “Novo Lembrete” para liberar a criação de um lembrete compartilhado quando não há um ativo. |
 | 2.29.3 | 09/10/2026 | O post-it do processo pode carregar o lembrete ativo e salvá-lo explicitamente no Projudi; se não houver um ativo, cria um com assunto padrão. Notas permanentes e adicionais continuam pessoais. |
 | 2.29.2 | 09/10/2026 | Integradas as novidades da versão 2.29.1 com o bloco de anotações por processo, cores e múltiplas notas. |
+| 2.29.1 | 07/10/2026 | Preferências com texto (8.2, 9.9, 9.10): a versão final do documento no clique em **Continuar** é sempre a gravada — também quando você não altera nada no texto do Modelo (antes aparecia o aviso "Não consegui gravar nenhum texto" e, com o marcador "INSIRA O TEXTO AQUI", a extensão parava para você digitar). Textos das seções 8.2 e 9.9 ajustados. |
+| 2.29.0 | 07/10/2026 | Preferências com texto (Juntar Documento 8.2, Analisar Decurso 9.9 e Pré-Análise 9.10): passam a gravar também as **edições do texto do Modelo** — trechos apagados, formatação (negrito, itálico, sublinhado) e parágrafos alterados —, e as refazem em cada uso no documento novo, trocando os dados do processo (número, nomes, endereço, CPF, datas) pelos do processo novo nos parágrafos alterados. Os parágrafos não alterados ficam como o Projudi os gera. Sem vídeo novo: a tela não muda. |
+| 2.28.1 | 07/10/2026 | Sem alteração de texto; corrigido: em documentos gerados por **Modelo** (ex.: mandados), ao gravar uma preferência (Juntar Documento, Analisar Decurso ou Pré-Análise) a extensão gravava o documento inteiro em vez do texto digitado, e ao usá-la avisava "Não encontrei onde inserir o texto da preferência". Agora grava só o que você digitou e o insere no mesmo lugar — inclusive quando o parágrafo de referência tem dados do processo (nome, data). Se o texto gravado parecer o documento inteiro, a extensão avisa antes de salvar. Preferências gravadas com o erro precisam ser gravadas de novo (✏️). |
+| 2.28.0 | 06/10/2026 | Pré-Análise com preferências (9.10): a gravação não pergunta mais sobre o "Postergar Assinatura" — ela termina no seu clique em **Assinar e Expedir** ou **Postergar Assinatura** (o botão escolhido fica gravado), e só então a extensão pede o nome. Nova opção **☆ padrão** na janela **Seleção de Documentos** (botão **Adicionar** de Documento(s) do Processo/Recurso): ao usar a preferência, a extensão anexa os documentos do movimento mais recente com esse nome (ex.: Concedida a Medida Protetiva). O card ⭐ mostra "+ documentos". Vídeo V50 regravado. |
+| 2.27.2 | 06/10/2026 | Sem alteração de texto; corrigido: ao usar uma preferência de Pré-Análise na lista de **Mandados** (9.10), a extensão parava na pré-visualização do documento, que ali tem os botões **Salvar** e **Voltar** (e não Concluir e Alterar). Agora ela clica em **Salvar** e segue. |
+| 2.27.1 | 06/10/2026 | Sem alteração de texto; corrigido: na Pré-Análise da lista de **Mandados** (9.10), o texto digitado no documento não era gravado na preferência (aparecia o aviso "Não consegui gravar nenhum texto nesta preferência"), porque ali a tela de digitar o documento é outra. |
+| 2.27.0 | 06/10/2026 | Lista de **Mandados** (expedição de mandados), no Projudi: ganha as listas de tarefas (9.2), a **⭐** na linha e o **⭐ Em lote** (9.3), com a mesma pergunta sobre juntadas e conclusão pendentes das demais telas de cumprimentos, e a seção **📝 Analisar (Pré-Análise)** com preferências e **Postergar Assinatura**, também em lote (9.10). Descrição da função no Menu atualizada (2.6). Sem vídeo novo: a tela da função é a mesma do V45 e do V50. |
+| 2.26.1 | 06/10/2026 | Decurso em lote (9.9): **Dispensar nos marcados** mostra a lista dos processos antes de começar, e os dois lotes do decurso **param no primeiro erro**, deixando os seguintes intactos e marcados (no Analisar, fechar o popup só pula o processo). Vídeos V49 e V50 regravados (V49 com a nova legenda; os dois com o número novo na abertura). |
+| 2.26.0 | 06/10/2026 | Nova seção **9.9** (só no Projudi): botões **Analisar Decurso** e **Dispensar** em cada linha das listas de **Decurso de Prazo**, abaixo do sequencial. O Dispensar responde OK à confirmação do Projudi sozinho e mostra "Decurso de prazo dispensado com sucesso". O Analisar Decurso abre a análise num popup, com menu para criar (**+ Nova preferência**), editar e remover preferências próprias do Analisar Decurso, ou usar as do Juntar Documento (8.2): a extensão inclui o arquivo, você assina e ela conclui e fecha o popup. Na barra **⭐ Em lote**: **Dispensar nos marcados** e **Analisar decurso nos marcados**. A lista de Citações/Notificações do Decurso de Prazo passa a ter também as listas de tarefas e a ⭐ (9.2, 9.3). Nova função na tabela da 2.6 e vídeo V49. Nova seção **9.10** (só no Projudi): no card **⭐** da lista **Demais Cumprimentos**, seção **📝 Analisar (Pré-Análise)** com **+ Nova preferência**, ✏️ e 🗑; ao criar, a extensão pergunta, na tela do cumprimento, se deve sempre clicar em **Postergar Assinatura** (Sim: grava e clica; Não: você clica em **Assinar e Expedir**); também em lote. Vídeo V50. Ao gravar uma preferência (Juntar Documento, Analisar Decurso ou Pré-Análise), o texto digitado ao lado do marcador "INSIRA O TEXTO AQUI" passa a ser gravado, e a extensão avisa antes de salvar uma preferência sem texto (9.9). As preferências do Analisar Decurso também aparecem no card ⭐ (linha e Em lote), seção **📝 Analisar Decurso**; os botões do lote do decurso avisam quando nenhum marcado aguarda análise. |
+| 2.25.1 | 06/10/2026 | Opções (2.5) e e-mail (5.2): o **Tenant ID** volta a ser **opcional** no modo Microsoft Graph (como antes da 2.23.1); quem já usava esse modo não precisa informar nada. Retirada a linha correspondente da Solução de problemas (11). O login só enquanto o navegador estiver aberto e o botão **Sair do Outlook nesta extensão** continuam. |
 | 2.29.1 | 09/10/2026 | Seção 4.4 reescrita: o processo principal é sempre o **primeiro processo da linha Apensamentos:**, também nos apensos de apensos (antes podia aparecer o Sequencial de outro processo, ou "não encontrado"); no primeiro processo da lista, e em processos sem apensos, aparece a linha **Sequencial:** do próprio processo. Vídeo V12 refeito. |
 | 2.29.0 | 08/10/2026 | Nova seção **9.9** (Projudi e SEEU): na lista **Retorno de Conclusão**, pousar o mouse sobre o **Analisar** mostra o documento que o Juiz fez (despacho, decisão ou sentença) — o da linha **Documentos** da tela **Movimentar Processo**, sem clicar duas vezes em Analisar —, uma janela por arquivo, com **📌 Fixar**, **Abrir em nova aba** e **✕**. Com mais de um arquivo, o **✕** fecha só aquela janela e clicar numa janela de trás a traz para a frente. Nova função na tabela da 2.6 e vídeo V51. |
 | 2.28.0 | 08/10/2026 | Alterar Classe/Assuntos (8.9): novas **preferências de assuntos secundários** (**⭐** na linha **Assuntos Secundários** do cabeçalho, ou **⭐ Secundários** na linha do Assunto Principal quando ainda não há assunto secundário) — para gravar, use **Adicionar**, pesquise, marque o assunto e clique em **Selecionar** (só grava a preferência); ao usar, a extensão faz o mesmo caminho na janela de seleção do Projudi, confere se o assunto entrou na lista e só então salva. Novo balão **✖** no fim de cada assunto secundário do cabeçalho, que remove aquele assunto e salva (pede confirmação). Corrigido: fora da tela do processo, os indicadores de suspensão e de monitoração e o botão do WhatsApp deixam de repetir avisos internos a cada 1,5 segundo. Novos vídeos V49 e V50. |
-| 2.27.1 | 08/10/2026 | Cores amarelo, azul, verde e vermelho e várias notas por processo; preservadas as notas anteriores. |
-| 2.27.0 | 08/10/2026 | Novo bloco de anotações móvel, por processo ou permanente, com salvamento automático. |
 | 2.26.4 | 08/10/2026 | Sem alteração de texto; associadas as linhas **Analisar** e da data pelo código do mandado na listagem. |
 | 2.26.3 | 08/10/2026 | Sem alteração de texto; a dispensa de mandados agora abre a ficha diretamente pela data da linha na listagem. |
 | 2.26.2 | 08/10/2026 | Sem alteração de texto; corrigido o reconhecimento do link **Analisar** na listagem de mandados. |

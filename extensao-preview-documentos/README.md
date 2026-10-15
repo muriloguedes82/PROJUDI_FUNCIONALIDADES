@@ -489,10 +489,8 @@ no Azure AD / Microsoft Entra ID do Tribunal:
    administrador**.
 5. Copie o **Client ID (Application ID)** gerado.
 6. Na extensão, acesse `chrome://extensions` → "Detalhes" → "Opções da
-   extensão" e informe o Client ID e o **Tenant ID do Tribunal** (GUID,
-   obrigatório). Valores genéricos como `common`, `organizations` ou
-   `consumers` são recusados, para que só contas institucionais do Tribunal
-   consigam entrar.
+   extensão" e informe o Client ID (e o Tenant ID, se a organização exigir
+   restringir a um tenant específico em vez de "common").
 
 No primeiro envio de cada sessão do navegador, abre-se a tela de login
 padrão da Microsoft para o usuário autorizar o acesso à própria caixa de
@@ -1153,7 +1151,14 @@ De onde vêm os dados:
 1. Se a tela atual já é a aba "Partes e Outros", lê direto do DOM.
 2. Senão, busca essa aba em segundo plano via `fetch()` (POST para o
    próprio formulário do processo com `selectedIcon=tabPartes`, mesma
-   técnica do "(Des)Habilitar Advogado"), sem iframe.
+   técnica do "(Des)Habilitar Advogado"), sem iframe. Esse POST só é
+   feito quando o destino é a própria tela do processo
+   (`visualizacaoProcesso.do?actionType=visualizar`, com a lista de abas):
+   diálogos e telas de ação do Projudi também usam `id="processoForm"` e
+   este script roda dentro deles; reenviar esses formulários executaria a
+   ação de novo (comunicações de ação vinculada duplicadas, 2.32.2). A
+   mesma trava vale para RG/CPF nos cumprimentos, endereço no mandado e
+   BNMP.
 
 O polo passivo é identificado pelo id das linhas da tabela
 (`rowpromovidas*`/`iconpromovidas*`) e, na falta dele, pelo título do polo.
@@ -1586,7 +1591,22 @@ Ficam só neste navegador: não são compartilhados com outros servidores.
 ## Minhas Preferências na linha do processo (⭐)
 
 Nas mesmas três telas (Análise de Juntadas, Retorno de Conclusão e Análise
-de Decurso de Prazo), cada linha de processo ganha, ao lado do **+** das
+de Decurso de Prazo) - e também nas listas de cumprimentos, inclusive
+**Demais Cumprimentos** (`cumprimentoCartorio.do`) e **Mandados**
+(`cumprimentoCartorioMandado.do`), que trazem ainda a seção "📝 Analisar
+(Pré-Análise)" com preferências próprias (em `juntarDocumento.js`: a tela
+final do cumprimento é reconhecida pelos dois formulários; a gravação
+termina no clique do usuário em "Assinar e Expedir"/"Postergar
+Assinatura", e o "☆ padrão" da janela "Seleção de Documentos" grava em
+`docMovimentos` os movimentos cujos documentos a preferência anexa, pelo
+mais recente com o mesmo nome)  Em todas as preferências com texto (Juntar
+Documento, Analisar Decurso e Pré-Análise), a gravação guarda também a
+edição do texto do Modelo (`edicao`: parágrafos mantidos, alterados e
+novos, comparados com o documento como abriu, abaixo dos "embrulhos" de
+`blocosRaiz`); no uso, `aplicarEdicao` casa os parágrafos pela posição
+(ou pelo começo do texto, se o número mudar) e troca, nos alterados, os
+dados variáveis pelas diferenças entre o parágrafo original e o do
+documento novo -, cada linha de processo ganha, ao lado do **+** das
 listas de tarefas, o botão **⭐**, que abre os cards de "Minhas
 Preferências" (as mesmas preferências das ações rápidas: Realizar
 Remessa, Enviar Concluso, Intimar Partes, Ordenar Cumprimentos...). Ao
@@ -2027,11 +2047,17 @@ dos demais domínios de `initiatorDomains`, que continuam na lista porque as
 navegações internas do login (de um sistema para outro dentro do iframe)
 dependem deles.
 
+O card **SEEU** (só no Projudi) usa uma segunda regra (`id` 2), com
+`requestDomains` `seeu.pje.jus.br` e `initiatorDomains` só `tjpr.jus.br`:
+assim os quadros que o próprio SEEU abre dentro dele continuam com a CSP
+original.
+
 Para usar o sistema fora do popup, o cabeçalho dele tem um só botão
 (`sistemas-cnj-open` em `background.js`): abre numa janela maximizada no
 segundo monitor sempre que `chrome.system.display` informar mais de um, e
 senão numa aba nova ao lado da do processo. O rótulo (🖥 Segundo monitor ou
-🗂 Nova aba) segue `screen.isExtended`.
+🗂 Nova aba) segue o mesmo `chrome.system.display` (mensagem
+`sistemas-cnj-monitores`), para não dizer "Nova aba" e abrir no monitor.
 
 Limitação: as demais diretivas de CSP desses sites (como `script-src`)
 deixam de valer quando eles abrem embutidos — `declarativeNetRequest` não

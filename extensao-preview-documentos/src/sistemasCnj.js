@@ -1,5 +1,5 @@
 // Projudi - Cards dos sistemas do CNJ (SerpJud, CNIEP, BNMP 3.0, PrevJud,
-// Sisbajud, SNGB, Sniper, Infojud, da Receita, Renajud e Sistema Uniformizado, do
+// Sisbajud, SNGB, Sniper, Infojud, da Receita, Renajud, SEEU e Sistema Uniformizado, do
 // TJPR - lista em sistemasCnjLista.js) ao lado do ícone do Menu da extensão
 // (a balança dourada, ver menuExtensao.js).
 //
@@ -38,7 +38,8 @@
 // endereço fora do popup: numa janela maximizada no segundo monitor, se
 // houver, e senão numa aba nova ao lado da do processo (ver
 // sistemas-cnj-open em background.js). O rótulo ("🖥 Segundo monitor" ou
-// "🗂 Nova aba") segue screen.isExtended, mas quem decide é o background.
+// "🗂 Nova aba") segue o número de monitores que o background enxerga
+// (sistemas-cnj-monitores), o mesmo critério usado para abrir.
 //
 // Esses sistemas costumam recusar ser exibidos dentro de outra página; a
 // regra em rules/sistemasCnj.json retira essa recusa apenas quando a janela
@@ -146,8 +147,12 @@
 			"</div>";
 		backdrop.querySelector(".pdp-sistemas-cnj-titulo").textContent = sistema.nome + " — " + orgao(sistema);
 		const fora = backdrop.querySelector(".pdp-sistemas-cnj-fora");
-		const doisMonitores = window.screen && window.screen.isExtended === true;
-		fora.textContent = doisMonitores ? "🖥 Segundo monitor" : "🗂 Nova aba";
+		const rotulo = function (dois) { fora.textContent = dois ? "🖥 Segundo monitor" : "🗂 Nova aba"; };
+		rotulo(window.screen && window.screen.isExtended === true);
+		// Quem decide é o background; o rótulo segue o que ele enxerga.
+		chrome.runtime.sendMessage({ source: "projudi-preview", type: "sistemas-cnj-monitores" })
+			.then(function (r) { if (r && r.ok) rotulo(r.dois === true); })
+			.catch(function () {});
 		fora.title = "Abrir o " + sistema.nome + " fora do popup: no segundo monitor, se houver; senão, numa nova aba";
 		fora.addEventListener("click", function () { openOutside(sistema); });
 		backdrop.querySelector(".pdp-sistemas-cnj-close").addEventListener("click", closeModal);

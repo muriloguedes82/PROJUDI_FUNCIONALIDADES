@@ -320,17 +320,8 @@ async function getAzureConfig() {
 	if (!azureClientId) {
 		throw new Error("Configure o Client ID do Azure AD nas opções da extensão antes de enviar e-mails.");
 	}
-	// Segurança: "common", "organizations" e "consumers" aceitam contas de
-	// qualquer organização (ou pessoais). Exige o Tenant ID do Tribunal para
-	// que só contas institucionais consigam entrar.
-	const tenant = String(azureTenantId || "").trim();
-	if (!TENANT_VALIDO.test(tenant)) {
-		throw new Error("Configure o Tenant ID do Tribunal (um código no formato 00000000-0000-0000-0000-000000000000) nas opções da extensão antes de enviar e-mails.");
-	}
-	return { clientId: azureClientId, tenant: tenant };
+	return { clientId: azureClientId, tenant: String(azureTenantId || "").trim() || "common" };
 }
-
-const TENANT_VALIDO = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // O token fica em chrome.storage.session: só em memória (nunca gravado em
 // disco), apagado ao fechar o navegador e inacessível aos content scripts.
@@ -809,9 +800,11 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
 // Aciona somente a dispensa de decurso previamente marcada no iframe oculto.
 function clickDecursoWithConfirmation(token) {
   if (!window.frameElement || window.frameElement.getAttribute('data-pdp-decurso') !== token) return null;
-  if (location.pathname !== '/projudi/processo/intimacao.do') return {ok:false, error:'Página de intimação inesperada.'};
-  const form = document.getElementById('intimacaoForm');
-  const button = form && form.querySelector('[data-pdp-decurso-button="' + token + '"]');
+  // Tela da intimação (Intimação, Auxiliares da Justiça ou Citação/Notificação).
+  const telas = ['/projudi/processo/intimacao.do', '/projudi/processo/intimacaoNomeados.do', '/projudi/processo/citacao.do'];
+  if (telas.indexOf(location.pathname) < 0) return {ok:false, error:'Página de intimação inesperada.'};
+  const marcado = document.querySelector('[data-pdp-decurso-button="' + token + '"]');
+  const button = marcado && marcado.form ? marcado : null;
   if (!button || button.disabled || String(button.value || button.textContent || '').trim().toLowerCase() !== 'dispensar') {
     return {ok:false, error:'Botão de dispensa do decurso indisponível.'};
   }
@@ -947,6 +940,18 @@ async function pdpSistemaCnjSegundoMonitor(url, windowId) {
   await chrome.windows.update(nova.id, { state: 'maximized' }).catch(() => {});
   return true;
 }
+
+// Rótulo do botão (sistemasCnj.js): quantos monitores o Chrome enxerga. O
+// screen.isExtended da página nem sempre informa (o site pode bloqueá-lo),
+// e então o botão dizia "Nova aba" mas abria no segundo monitor.
+chrome.runtime.onMessage.addListener((message, sender, reply) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'sistemas-cnj-monitores') return false;
+  if (!sender.tab || !chrome.system?.display) { reply({ok:true, dois:false}); return false; }
+  chrome.system.display.getInfo()
+    .then(telas => reply({ok:true, dois: telas.length >= 2}))
+    .catch(() => reply({ok:true, dois:false}));
+  return true;
+});
 
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
   if (message?.source !== 'projudi-preview' || message.type !== 'sistemas-cnj-open') return false;
