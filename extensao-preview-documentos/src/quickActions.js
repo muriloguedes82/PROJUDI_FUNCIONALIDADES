@@ -2517,10 +2517,13 @@
 	// Campos que valem só para o processo em que a preferência foi gravada
 	// e por isso nunca entram nela (nem são preenchidos ao usar uma
 	// preferência antiga que os tenha): em "Comunicar ao IIPR", a "Parte do
-	// Processo" é a pessoa daquele processo — o usuário a escolhe a cada vez.
+	// Processo" é a pessoa daquele processo e a "Origem" é uma movimentação
+	// dele (a "Movimentação Referente", só leitura, vem da Origem) — o
+	// usuário as escolhe a cada vez.
+	const CAMPOS_IIPR_DO_PROCESSO = ["codParteProcesso", "codOrigem", "descricaoMovimentacao"];
 	const ACTIONS_PREF_CAMPOS_DO_PROCESSO = {
-		"Anotações Criminais": ["codParteProcesso"],
-		"Solicitar Antecedentes Criminais": ["codParteProcesso"],
+		"Anotações Criminais": CAMPOS_IIPR_DO_PROCESSO,
+		"Solicitar Antecedentes Criminais": CAMPOS_IIPR_DO_PROCESSO,
 	};
 	function campoDoProcesso(label, name) {
 		const campos = ACTIONS_PREF_CAMPOS_DO_PROCESSO[label];
