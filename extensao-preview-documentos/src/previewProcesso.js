@@ -1,11 +1,14 @@
 // Projudi - Pré-visualização do processo nas listas de decurso de prazo, na
-// Análise de Juntadas e nas Conclusões
+// Análise de Juntadas, nas Conclusões, nos cumprimentos e no Expedir
+// Intimações/Citação
 //
 // Nas telas de decurso de prazo do menu "Decurso de Prazo" — Intimação
 // (processo/intimacaoBusca.do), Intimação de Auxiliares da Justiça
 // (processo/intimacaoNomeados.do) e Citações/Notificações
 // (processo/citacao.do) — e na lista da Análise de Juntadas
-// (processo/analisarJuntada.do), a coluna Processo traz o número como link
+// (processo/analisarJuntada.do) e nas listas de cumprimentos — Demais
+// Cumprimentos (processo/cumprimentoCartorio.do) e Mandados
+// (processo/cumprimentoCartorioMandado.do) —, a coluna Processo traz o número como link
 // para a tela dele (`<a class="link" href="/projudi/processo.do?_tj=...">
 // <em class="attention">NNNNNNN-DD.AAAA...</em></a>`).
 //
@@ -16,6 +19,16 @@
 // se não vier, o painel abre a busca por número do Projudi (preenchida por
 // clipboardProcess.js) e segue o único resultado. O "Analisar" continua com
 // a pré-visualização do documento do Juiz (previewConclusao.js).
+//
+// Nos cumprimentos só vale o link dentro da tabela da lista
+// (table.resultTable): a tela de um cumprimento (mesmo endereço, link
+// "Visualizar") também tem o link do processo, ao lado do "Identificador do
+// Cumprimento", e ali fica como sempre.
+//
+// Expedir Intimações (processo/expedirIntimacao.do) e Expedir Citação
+// (processo/expedirCitacao.do): vale o link do número e, se o número
+// estiver só como texto (<em class="attention">), o endereço vem de um link
+// do processo na mesma linha ou, sem ele, da busca por número.
 //
 // Ao pousar o mouse sobre esse número, a tela inicial do processo abre num
 // painel sobreposto (mesma ideia da pré-visualização de documentos de
@@ -34,9 +47,11 @@
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
 	if (window.__pdpPreviewProcesso) return;
 
-	const TELAS = /^\/projudi\/processo\/(intimacaoBusca|intimacaoNomeados|citacao|analisarJuntada|conclusao)\.do$/;
+	const TELAS = /^\/projudi\/processo\/(intimacaoBusca|intimacaoNomeados|citacao|analisarJuntada|conclusao|cumprimentoCartorio|cumprimentoCartorioMandado|expedirIntimacao|expedirCitacao)\.do$/;
 	if (!TELAS.test(location.pathname)) return;
 	const NA_CONCLUSAO = location.pathname === "/projudi/processo/conclusao.do";
+	const NO_EXPEDIR = /\/expedir(Intimacao|Citacao)\.do$/.test(location.pathname);
+	const NOS_CUMPRIMENTOS = /\/cumprimentoCartorio(Mandado)?\.do$/.test(location.pathname);
 	try {
 		const fe = window.frameElement;
 		if (fe && (fe.hasAttribute("data-pdp-loader") || fe.hasAttribute("data-pdp-decurso") || fe.hasAttribute("data-pdp-dispensa"))) return;
@@ -68,7 +83,7 @@
 	let fixado = false;
 	let buscaTimer = null;
 	let buscaCargas = 0;
-	// Conclusões: endereço do processo já descoberto para cada número (<em>).
+	// Número só como texto: endereço do processo já descoberto para cada <em>.
 	const urlCache = new WeakMap();
 
 	// Link do número do processo (não os demais links da linha, como a data
@@ -84,6 +99,7 @@
 		}
 		if (url.origin !== location.origin || url.pathname !== PROCESSO_PATH || !url.search) return null;
 		if (!link.closest("td")) return null;
+		if (NOS_CUMPRIMENTOS && !link.closest("table.resultTable")) return null;
 		return link;
 	}
 
@@ -102,23 +118,43 @@
 		return null;
 	}
 
-	// Conclusões: número do processo (texto, não link) numa linha da lista.
-	function findNumeroConclusao(target) {
+	// Número do processo só como texto (não link) numa linha da lista:
+	// Conclusões (linha com o "Analisar") e Expedir Intimações/Citação.
+	function findNumeroTexto(target) {
 		const em = target && target.closest ? target.closest("em.attention") : null;
 		if (!em || (panel && panel.wrap.contains(em)) || em.closest("a[href]")) return null;
 		if (!CNJ.test(em.textContent || "")) return null;
-		return analisarDaLinha(em.closest("tr")) ? em : null;
+		const row = em.closest("tr");
+		if (!row || !em.closest("td")) return null;
+		if (NA_CONCLUSAO) return analisarDaLinha(row) ? em : null;
+		return NO_EXPEDIR ? em : null;
 	}
 
 	function findAlvo(target) {
-		return NA_CONCLUSAO ? findNumeroConclusao(target) : findProcessLink(target);
+		if (NA_CONCLUSAO) return findNumeroTexto(target);
+		return findProcessLink(target) || (NO_EXPEDIR ? findNumeroTexto(target) : null);
+	}
+
+	// Link do processo em outra coluna da mesma linha.
+	function linkDaLinha(row) {
+		if (!row) return null;
+		for (const a of row.querySelectorAll("a[href]")) {
+			try {
+				const url = new URL(a.getAttribute("href"), location.href);
+				if (url.origin === location.origin && url.pathname === PROCESSO_PATH && url.search) return url.href;
+			} catch (e) { /* segue */ }
+		}
+		return null;
 	}
 
 	function urlDaBusca(alvo) {
 		return location.origin + BUSCA_PATH + "?actionType=iniciarSimples#pdp-search=" + encodeURIComponent(numeroDoProcesso(alvo));
 	}
 
-	async function urlPelaConclusao(alvo) {
+	async function urlPelaLinha(alvo) {
+		const daLinha = linkDaLinha(alvo.closest("tr"));
+		if (daLinha) return daLinha;
+		if (!NA_CONCLUSAO) return null;
 		const analisar = analisarDaLinha(alvo.closest("tr"));
 		if (!analisar) return null;
 		const resposta = await fetch(analisar, { credentials: "same-origin" });
@@ -133,13 +169,14 @@
 		return null;
 	}
 
-	// Endereço a abrir no painel: o do link ou, nas Conclusões, o descoberto
-	// pela tela do "Analisar" (ou a busca por número, se não vier).
+	// Endereço a abrir no painel: o do link ou, com o número só como texto,
+	// o de um link do processo na linha, o descoberto pela tela do
+	// "Analisar" (Conclusões) ou, se nada vier, a busca por número.
 	function urlDoAlvo(alvo) {
 		if (alvo.tagName === "A") return Promise.resolve(new URL(alvo.getAttribute("href"), location.href).href);
 		let p = urlCache.get(alvo);
 		if (!p) {
-			p = urlPelaConclusao(alvo)
+			p = urlPelaLinha(alvo)
 				.catch(function () { return null; })
 				.then(function (url) {
 					if (!url) urlCache.delete(alvo); // tenta ler de novo na próxima vez
