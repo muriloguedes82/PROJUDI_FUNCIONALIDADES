@@ -37,6 +37,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 		js: [
 			"src/hostGuard.js",
 			"src/uiVisibility.js",
+			"src/painelPreferencias.js",
 			"src/clipboardProcess.js",
 			"src/documentSelection.js",
 			"src/content.js",
@@ -80,6 +81,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/menuExtensao.js"
 		],
 		css: [
+			"src/painelPreferencias.css",
 			"src/content.css",
 			"src/email.css",
 			"src/quickActions.css",
