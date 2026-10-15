@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.38.1 |
-| **Versão da extensão** | 2.38.1 |
+| **Versão do manual** | 2.41.0 |
+| **Versão da extensão** | 2.41.0 |
 | **Data desta versão** | 15/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -88,7 +88,7 @@
    - 9.5 [RG e CPF das partes nos cumprimentos](#cap-9-5)
    - 9.6 [Dados processuais nas ordenações BNMP](#cap-9-6)
    - 9.7 [Endereço da parte e Mandado Regionalizado](#cap-9-7)
-   - 9.8 [Processo ao passar o mouse no Decurso de Prazo, nas Juntadas e nas Conclusões](#cap-9-8)
+   - 9.8 [Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados](#cap-9-8)
    - 9.9 [Documento do Juiz ao passar o mouse no Retorno de Conclusão](#cap-9-9)
    - 9.10 [Analisar e Dispensar decurso na lista](#cap-9-10)
    - 9.11 [Analisar (Pré-Análise) dos cumprimentos com preferências](#cap-9-11)
@@ -417,7 +417,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Prioridades (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica | [4](#cap-4) |
-| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas e nas Conclusões (Projudi) · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista (Projudi) · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
+| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados (Projudi) · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista (Projudi) · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
 Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
@@ -2319,22 +2319,26 @@ parte(s)**.
   mostrado.
 
 <a id="cap-9-8"></a>
-### 9.8 Processo ao passar o mouse no Decurso de Prazo, nas Juntadas e nas Conclusões
+### 9.8 Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados
 
 ▶ [**Vídeo V44** — Processo ao passar o mouse](videos/V44-processo-ao-passar-o-mouse.mp4)
 
 *Só no Projudi.*
 
 **Para que serve:** conferir o processo — cabeçalho e **Movimentações** —
-sem sair da lista de decursos, de juntadas ou de conclusões e sem abrir outra
-aba.
+sem sair da lista de decursos, de juntadas, de conclusões, de cumprimentos, do
+Expedir Intimações/Citação ou de processos paralisados e sem abrir outra aba.
 
 **Onde fica:**
 
 - menu **Decurso de Prazo**, nas listas **Intimação**, **Intimação —
   Auxiliares da Justiça** e **Citações/Notificações**;
 - lista da **Análise de Juntadas** (a relação de juntadas pendentes);
-- lista de **Conclusões** (Retorno de Conclusão).
+- lista de **Conclusões** (Retorno de Conclusão);
+- listas de cumprimentos: **Demais Cumprimentos** e **Mandados**. Na tela de
+  um cumprimento aberto (**Visualizar**), o número continua como sempre;
+- listas **Expedir Intimações** e **Expedir Citação**;
+- lista de **Processos Paralisados**.
 
 **Passo a passo:**
 
@@ -2347,11 +2351,12 @@ aba.
 4. Para fechar: tire o mouse do número e do painel, clique em **✕** ou tecle
    **Esc**.
 
-Na lista de **Conclusões**, o número do processo não é um link: mesmo
-assim, basta parar o mouse sobre ele. O painel mostra "Localizando o
+Na lista de **Conclusões** o número do processo não é um link (no Expedir
+Intimações/Citação, às vezes também não): mesmo assim, basta parar o mouse
+sobre ele. O painel mostra "Localizando o
 processo…" por um instante enquanto a extensão descobre qual é o processo e,
-em seguida, abre a tela dele. O **Analisar** da mesma linha continua
-mostrando o documento do Juiz ([9.9](#cap-9-9)).
+em seguida, abre a tela dele. Nas Conclusões, o **Analisar** da mesma linha
+continua mostrando o documento do Juiz ([9.9](#cap-9-9)).
 
 **Bom saber:**
 
@@ -2738,7 +2743,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V41](videos/V41-localizador-na-linha-seeu.mp4) | [Localizador pela ⭐ da lista (SEEU)](videos/V41-localizador-na-linha-seeu.mp4) | [9.3](#cap-9-3) | 0:31 |
 | [V42](videos/V42-alterar-classe-e-assuntos.mp4) | [Alterar Classe/Assuntos](videos/V42-alterar-classe-e-assuntos.mp4) | [8.9](#cap-8-9) | 0:44 |
 | [V43](videos/V43-preferencia-de-alteracao-de-classe.mp4) | [Preferência de alteração de classe](videos/V43-preferencia-de-alteracao-de-classe.mp4) | [8.9](#cap-8-9) | 0:43 |
-| [V44](videos/V44-processo-ao-passar-o-mouse.mp4) | [Processo ao passar o mouse no Decurso de Prazo, nas Juntadas e nas Conclusões](videos/V44-processo-ao-passar-o-mouse.mp4) | [9.8](#cap-9-8) | 1:07 |
+| [V44](videos/V44-processo-ao-passar-o-mouse.mp4) | [Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões e nos Cumprimentos, no Expedir e nos Paralisados](videos/V44-processo-ao-passar-o-mouse.mp4) | [9.8](#cap-9-8) | 1:30 |
 | [V45](videos/V45-preferencias-em-lote.mp4) | [Preferências em lote (⭐ Em lote)](videos/V45-preferencias-em-lote.mp4) | [9.3](#cap-9-3) | 1:01 |
 | [V46](videos/V46-remessa-turma-recursal.mp4) | [Remessa para a Turma Recursal](videos/V46-remessa-turma-recursal.mp4) | [7.1](#cap-7-1) | 0:47 |
 | [V47](videos/V47-novo-valor-da-causa.mp4) | [Novo Valor da Causa](videos/V47-novo-valor-da-causa.mp4) | [8.10](#cap-8-10) | 0:36 |
@@ -2764,8 +2769,10 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 2.38.1 | 15/10/2026 | Sem alteração de texto; corrigido (8.11): o **✖**, o **➕ Incluir** e as preferências de prioridade paravam em "a janela de seleção de prioridade não abriu" — o navegador bloqueava o clique da extensão na lupa da linha **Prioridade**. Agora a lupa abre normalmente. |
-| 2.38.0 | 15/10/2026 | **Nova seção 8.11 — Prioridades:** na linha **Prioridade** do cabeçalho do processo (só no Projudi), **✖** ao lado de cada prioridade que pode ser tirada (remove e salva, depois de confirmar), **➕ Incluir** (abre a tela de alteração num popup já com a **Seleção de Prioridade**; depois do **Selecionar**, salva sozinho) e **⭐** com preferências que incluem/tiram prioridades e salvam com um clique — também nos **🔗 Combos**. Sem prioridade, a linha aparece com "(nenhuma)". Sumário, tabela da 2.6, seções 7.4 e 7.8 atualizados. Novo vídeo V56. |
+| 2.41.0 | 15/10/2026 | **Nova seção 8.11 — Prioridades:** na linha **Prioridade** do cabeçalho do processo (só no Projudi), **✖** ao lado de cada prioridade que pode ser tirada (remove e salva, depois de confirmar), **➕ Incluir** (abre a tela de alteração num popup já com a **Seleção de Prioridade**; depois do **Selecionar**, salva sozinho) e **⭐** com preferências que incluem/tiram prioridades e salvam com um clique — também nos **🔗 Combos**. Sem prioridade, a linha aparece com "(nenhuma)". Sumário, tabela da 2.6, seções 7.4 e 7.8 atualizados. Novo vídeo V56. |
+| 2.40.0 | 15/10/2026 | Seção 9.8: o processo ao passar o mouse também na lista de **Processos Paralisados** — pousar o mouse sobre o **número do processo** abre a tela dele num painel, já na aba **Movimentações**. Título da seção, Sumário e tabela da 2.6 atualizados; vídeo V44 regravado. |
+| 2.39.0 | 15/10/2026 | Seção 9.8: o processo ao passar o mouse também nas listas **Expedir Intimações** e **Expedir Citação** — pousar o mouse sobre o **número do processo** abre a tela dele num painel, já na aba **Movimentações**. Título da seção, Sumário e tabela da 2.6 atualizados; vídeo V44 regravado. |
+| 2.38.0 | 15/10/2026 | Seção 9.8: o processo ao passar o mouse também nas listas de cumprimentos (**Demais Cumprimentos** e **Mandados**) — pousar o mouse sobre o **número do processo** abre a tela dele num painel, já na aba **Movimentações**. Título da seção, Sumário e tabela da 2.6 atualizados; vídeo V44 regravado. |
 | 2.37.0 | 15/10/2026 | Seção 9.8: o processo ao passar o mouse também na lista de **Conclusões** — pousar o mouse sobre o **número do processo** (que lá não é link) abre a tela dele num painel, já na aba **Movimentações**. O **Analisar** continua mostrando o documento do Juiz (9.9). Título da seção, Sumário e tabela da 2.6 atualizados; vídeo V44 regravado. |
 | 2.36.0 | 15/10/2026 | Seção 9.8: o processo ao passar o mouse também na lista da **Análise de Juntadas** — pousar o mouse sobre o **número do processo** abre a tela dele num painel, já na aba **Movimentações**, como nas listas de Decurso de Prazo. Título da seção, Sumário e tabela da 2.6 atualizados; vídeo V44 regravado. |
 | 2.35.0 | 15/10/2026 | Painéis com muitas preferências. **Seção 9.3 (e 9.11):** o card **⭐** da linha passa a caber sempre na tela e rolar por dentro — antes, o fim dele (com a seção **📝 Analisar** e o **+ Nova preferência**) ficava fora da tela e só aparecia diminuindo o zoom; o topo do card fica parado ao rolar, com o campo **🔍 Buscar preferência** e os botões **+ Nova · Analisar (Pré-Análise)** / **+ Nova · Analisar Decurso**. **Nova seção 7.8:** o mesmo vale para **todos** os painéis com preferências — painéis das Ações rápidas, 📎 Juntar Documento, ⭐ Minhas Preferências, ⭐ de Alterar Classe/Assuntos, Analisar Decurso e 📍 Localizador (SEEU): o painel cabe na tela e rola por dentro, o topo fica parado, a busca aparece a partir de 6 preferências, e o **+ Nova preferência** fica no topo (nas ações rápidas e no Juntar Documento, na linha do nome da ação, ao lado de **Abrir**). Ajustes nas seções 7.2, 7.3, 8.2, 8.8, 8.9 e 9.10. Novos vídeos V54 e V55; vídeos V40, V43 e V49 regravados. |
