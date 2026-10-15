@@ -377,6 +377,7 @@
 		].filter(function (l) { return l[1] > 0; }).map(function (l) { return l[1] + " " + l[0]; });
 		if (tamanho(local.pdpPreferencesOrder)) linhas.push("ordem dos cards em \"Minhas Preferências\"");
 		if (tamanho(local.pdpSistemasCnjOrdem) || tamanho(local.pdpSistemasCnjOutros) || tamanho(local.pdpSistemasCnjOrdemSeeu)) linhas.push("ordem dos cards dos sistemas e o que fica no \"Outros\"");
+		if (local.pdpSistemasCnjAbertura) linhas.push("como abrir os sistemas");
 		if (Object.values(objeto(sync.movementHighlightPrefs)).some(function (v) { return v && v.enabled; })) linhas.push("cores do destaque de movimentações");
 		if (objeto(sync.hideMovementsWithoutFilePrefs).alwaysHide) linhas.push("ocultar movimentações sem arquivo");
 		if (sync.azureClientId || sync.sendMode) linhas.push("configuração do envio por e-mail");
@@ -767,6 +768,8 @@ button.bt:hover { background: #e8eff8; border-color: #1f5591; }
 button.bt.primario { background: #13396b; border-color: #13396b; color: #fff; }
 button.bt.primario:hover { background: #1f5591; }
 .manual { width: 100%; margin-top: 8px; padding: 8px; }
+.abertura { margin-bottom: 10px; }
+.abertura select { width: 100%; padding: 5px 6px; border: 1px solid #c7d2e2; border-radius: 6px; background: #fff; color: #13396b; font-size: 12px; }
 .nota { margin: 6px 0 0; color: #5b6980; font-size: 11px; }
 .nota a { color: #1f5591; cursor: pointer; text-decoration: underline; }
 .confirmar { margin: 8px 12px 0; padding: 10px; border: 1px solid #c9a227; border-radius: 8px; background: #fffaf0; }
@@ -976,6 +979,7 @@ button.bt.primario:hover { background: #1f5591; }
 
 		const termos = el("a", { text: "Termos de Uso", onclick: function () { abrirPagina("termos"); } });
 		filhos.push(el("div", { class: "rodape" }, [
+			montarAbertura(),
 			el("h4", { text: "Preferências e combos" }),
 			el("div", { class: "botoes" }, [
 				el("button", { type: "button", class: "bt", text: "⬇ Exportar", title: "Baixar um arquivo com todas as preferências, combos e funcionalidades ativadas/desativadas", onclick: exportar }),
@@ -992,6 +996,49 @@ button.bt.primario:hover { background: #1f5591; }
 
 		return el("div", { class: "painel", role: "dialog", "aria-label": "Menu da extensão" }, filhos);
 	}
+
+	// Como os cards dos sistemas (sistemasCnj.js, ao lado da balança) abrem
+	// o sistema. Preferência em chrome.storage.local (entra no Exportar).
+	const CHAVE_ABERTURA = "pdpSistemasCnjAbertura";
+	const ABERTURAS = [
+		["auto", "Automático (padrão): 2º monitor ou popup"],
+		["popup", "Sempre no popup, sobre o processo"],
+		["fora", "Sempre fora do popup: 2º monitor ou nova aba"]
+	];
+	let abertura = "auto";
+	function lerAbertura(data) {
+		const v = data && data[CHAVE_ABERTURA];
+		abertura = ABERTURAS.some(function (a) { return a[0] === v; }) ? v : "auto";
+	}
+	function montarAbertura() {
+		const select = el("select", {
+			"aria-label": "Como abrir os sistemas",
+			onchange: function () {
+				abertura = select.value;
+				chrome.storage.local.set({ [CHAVE_ABERTURA]: abertura }).then(function () {
+					avisar("Pronto: os sistemas passam a abrir assim já no próximo clique.", "ok");
+				}).catch(function (err) {
+					avisar("Não foi possível gravar a preferência: " + err.message, "erro");
+				});
+			}
+		}, ABERTURAS.map(function (a) {
+			return el("option", { value: a[0], text: a[1], selected: a[0] === abertura });
+		}));
+		return el("div", { class: "abertura" }, [
+			el("h4", { text: "Abrir os sistemas (cards ao lado da balança)" }),
+			select,
+			el("p", { class: "nota", text: "Automático: com dois monitores, o sistema abre direto no outro monitor; com um só, no popup sobre o processo. \"Sempre fora\" usa nova aba quando há um monitor só." })
+		]);
+	}
+	chrome.storage.local.get(CHAVE_ABERTURA).then(function (data) {
+		lerAbertura(data);
+		if (aberto) render();
+	}).catch(function () {});
+	chrome.storage.onChanged.addListener(function (changes, area) {
+		if (area !== "local" || !changes[CHAVE_ABERTURA]) return;
+		lerAbertura({ [CHAVE_ABERTURA]: changes[CHAVE_ABERTURA].newValue });
+		if (aberto) render();
+	});
 
 	function posicionar(buscar) {
 		if (!icone) return;

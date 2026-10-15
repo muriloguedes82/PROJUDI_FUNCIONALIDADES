@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.33.1 |
-| **Versão da extensão** | 2.33.1 |
-| **Data desta versão** | 14/10/2026 |
+| **Versão do manual** | 2.34.0 |
+| **Versão da extensão** | 2.34.0 |
+| **Data desta versão** | 15/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -421,6 +421,12 @@ Preferências** e **(Des)Habilitar Advogado**.
 Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
 mov.** fazem parte das funções acima (as duas primeiras, das
 **Ações rápidas**; a última, do **Destaque de movimentações**).
+
+**Abrir os sistemas (cards ao lado da balança)** — logo acima de
+Preferências e combos, escolhe como os cards dos sistemas ([8.7](#cap-8-7))
+abrem: **Automático** (padrão: no segundo monitor, se houver; senão, no
+popup), **Sempre no popup** ou **Sempre fora do popup** (segundo monitor ou
+nova aba).
 
 **2. Preferências e combos** — cópia de segurança para levar tudo a outro
 computador:
@@ -1527,11 +1533,17 @@ sistemas novos entram no **Outros**.
 **Passo a passo:**
 
 1. Clique no card do sistema (passe o mouse para ver o nome completo).
-2. O sistema abre num **popup** sobre a tela do processo (o mesmo tipo de
-   janela usado por Remessa, Concluso e as demais ações rápidas). Entre com
-   o seu acesso e trabalhe nele.
-3. Se preferir trabalhar com o sistema fora do popup, use o botão do topo
-   dele. Ele já escolhe o melhor lugar:
+2. Onde o sistema abre depende de quantos monitores você usa (é o padrão;
+   dá para mudar — veja **Como os sistemas abrem**, abaixo):
+   - com **dois monitores**, ele abre **direto numa janela que ocupa o
+     outro monitor**;
+   - com **um monitor só**, ele abre num **popup** sobre a tela do processo
+     (o mesmo tipo de janela usado por Remessa, Concluso e as demais ações
+     rápidas).
+
+   Entre com o seu acesso e trabalhe nele.
+3. No popup, se preferir trabalhar com o sistema fora dele, use o botão do
+   topo. Ele já escolhe o melhor lugar:
    - com **dois monitores**, aparece como **🖥 Segundo monitor** e abre o
      sistema numa janela que ocupa o **outro monitor** inteiro;
    - com **um monitor só**, aparece como **🗂 Nova aba** e abre o sistema
@@ -1547,7 +1559,20 @@ sistemas novos entram no **Outros**.
   **🖥 Segundo monitor**, abre no outro monitor; se mostra **🗂 Nova aba**,
   abre numa aba nova.
 - Se o segundo monitor estiver desligado ou desconectado, o sistema abre
-  numa nova aba.
+  no popup (ou, no botão do popup, numa nova aba).
+
+**Como os sistemas abrem (sua escolha):** no Menu da extensão (ícone da
+balança, [2.6](#cap-2-6)), em **Abrir os sistemas (cards ao lado da
+balança)**, escolha uma das opções:
+
+| Opção | Com dois monitores | Com um monitor só |
+|---|---|---|
+| **Automático (padrão): 2º monitor ou popup** | direto no outro monitor | no popup |
+| **Sempre no popup, sobre o processo** | no popup | no popup |
+| **Sempre fora do popup: 2º monitor ou nova aba** | direto no outro monitor | direto numa nova aba |
+
+A escolha vale para todas as abas, já no próximo clique, continua depois
+das atualizações da extensão e vai junto no **⬇ Exportar** do Menu.
 - Ao fechar o popup, o que estava aberto no sistema não fica guardado; ao
   clicar de novo, ele abre na tela inicial.
 - O **Infojud** é da Receita Federal e abre pelo **e-CAC**: o acesso é com
@@ -2506,12 +2531,12 @@ pode variar um pouco. Clique no título para assistir.
 | [V31](videos/V31-mesa-do-analista-sem-zerados.mp4) | [Mesa do Analista sem itens zerados](videos/V31-mesa-do-analista-sem-zerados.mp4) | [9.4](#cap-9-4) | 0:28 |
 | [V32](videos/V32-rg-e-cpf-nos-cumprimentos.mp4) | [RG e CPF das partes nos cumprimentos](videos/V32-rg-e-cpf-nos-cumprimentos.mp4) | [9.5](#cap-9-5) | 0:25 |
 | [V33](videos/V33-dados-processuais-nas-ordenacoes-bnmp.mp4) | [Dados processuais nas ordenações BNMP](videos/V33-dados-processuais-nas-ordenacoes-bnmp.mp4) | [9.6](#cap-9-6) | 0:39 |
-| [V34](videos/V34-menu-da-extensao.mp4) | [Menu da extensão (ícone da balança)](videos/V34-menu-da-extensao.mp4) | [2.6](#cap-2-6) | 1:46 |
+| [V34](videos/V34-menu-da-extensao.mp4) | [Menu da extensão (ícone da balança)](videos/V34-menu-da-extensao.mp4) | [2.6](#cap-2-6) | 1:51 |
 | [V35](videos/V35-endereco-e-mandado-regionalizado.mp4) | [Endereço da parte e Mandado Regionalizado](videos/V35-endereco-e-mandado-regionalizado.mp4) | [9.7](#cap-9-7) | 0:58 |
 | [V36](videos/V36-dispensar-cumprimentos.mp4) | [Dispensar cumprimentos para expedir](videos/V36-dispensar-cumprimentos.mp4) | [6.4](#cap-6-4) | 0:29 |
 | [V37](videos/V37-escolher-a-movimentacao.mp4) | [Escolher a movimentação das Ações rápidas](videos/V37-escolher-a-movimentacao.mp4) | [7.7](#cap-7-7) | 1:14 |
 | [V38](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [Preferência a partir de um movimento](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [7.7](#cap-7-7) | 0:56 |
-| [V39](videos/V39-sistemas-do-cnj.mp4) | [Sistemas do CNJ](videos/V39-sistemas-do-cnj.mp4) | [8.7](#cap-8-7) | 1:15 |
+| [V39](videos/V39-sistemas-do-cnj.mp4) | [Sistemas do CNJ](videos/V39-sistemas-do-cnj.mp4) | [8.7](#cap-8-7) | 1:19 |
 | [V40](videos/V40-localizador-seeu.mp4) | [Localizador (SEEU)](videos/V40-localizador-seeu.mp4) | [8.8](#cap-8-8) | 1:02 |
 | [V41](videos/V41-localizador-na-linha-seeu.mp4) | [Localizador pela ⭐ da lista (SEEU)](videos/V41-localizador-na-linha-seeu.mp4) | [9.3](#cap-9-3) | 0:31 |
 | [V42](videos/V42-alterar-classe-e-assuntos.mp4) | [Alterar Classe/Assuntos](videos/V42-alterar-classe-e-assuntos.mp4) | [8.9](#cap-8-9) | 0:44 |
@@ -2539,6 +2564,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.34.0 | 15/10/2026 | Sistemas (8.7): com **dois monitores**, o card abre o sistema **direto no outro monitor**; com um só, no popup, como antes. Nova opção no Menu (2.6), **Abrir os sistemas**: Automático (padrão), Sempre no popup ou Sempre fora do popup (2º monitor ou nova aba); a escolha vai no Exportar. Vídeos V34 e V39 regravados. |
 | 2.33.1 | 14/10/2026 | Seção 9.9: corrigido — na lista **Intimação — Auxiliares da Justiça** do Decurso de Prazo os botões **Analisar Decurso** e **Dispensar** não apareciam nas linhas (lá a coluna Situação mostra "Decurso de prazo em" e a data, e não "Aguardando Análise do Decurso de Prazo"). Agora aparecem, e também o **Dispensar nos marcados** e o **Analisar decurso nos marcados** da barra **⭐ Em lote** funcionam nessa lista. Texto do "Onde fica" ajustado. Sem vídeo novo: a tela não muda. |
 | 2.33.0 | 14/10/2026 | Novo card **SEEU** (terracota), só no Projudi, na fileira dos sistemas ao lado da balança (1.3 e 8.7): abre a página de entrada do SEEU num popup sobre o processo (ou no segundo monitor/nova aba). Quem já tinha mudado a ordem dos cards encontra o SEEU dentro do **Outros**. Vídeo V39 regravado. |
 | 2.32.2 | 13/10/2026 | Sem alteração de texto; corrigido um erro em que a extensão podia repetir, sem o usuário perceber, o envio de uma tela de ação do Projudi aberta dentro do processo (ex.: comunicação de ação vinculada, na aba **Vínculos**), gerando comunicações/juntadas duplicadas. Afetava a linha dos réus no cabeçalho do processo e a busca de RG/CPF e endereços das partes (cumprimentos, mandados e BNMP), que agora só consultam a própria tela do processo. |
