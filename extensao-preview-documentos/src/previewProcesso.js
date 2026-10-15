@@ -1,5 +1,5 @@
-// Projudi - Pré-visualização do processo nas listas de decurso de prazo e
-// na Análise de Juntadas
+// Projudi - Pré-visualização do processo nas listas de decurso de prazo, na
+// Análise de Juntadas e nas Conclusões
 //
 // Nas telas de decurso de prazo do menu "Decurso de Prazo" — Intimação
 // (processo/intimacaoBusca.do), Intimação de Auxiliares da Justiça
@@ -8,6 +8,14 @@
 // (processo/analisarJuntada.do), a coluna Processo traz o número como link
 // para a tela dele (`<a class="link" href="/projudi/processo.do?_tj=...">
 // <em class="attention">NNNNNNN-DD.AAAA...</em></a>`).
+//
+// Na lista de Conclusões (processo/conclusao.do) o número é só texto
+// (`<em class="attention">` sem link). Lá o endereço do processo é lido na
+// tela do "Analisar" da mesma linha (leitura direta, sem abrir nada — a
+// mesma que previewConclusao.js já lê ao pousar o mouse no "Analisar") e,
+// se não vier, o painel abre a busca por número do Projudi (preenchida por
+// clipboardProcess.js) e segue o único resultado. O "Analisar" continua com
+// a pré-visualização do documento do Juiz (previewConclusao.js).
 //
 // Ao pousar o mouse sobre esse número, a tela inicial do processo abre num
 // painel sobreposto (mesma ideia da pré-visualização de documentos de
@@ -26,8 +34,9 @@
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
 	if (window.__pdpPreviewProcesso) return;
 
-	const TELAS = /^\/projudi\/processo\/(intimacaoBusca|intimacaoNomeados|citacao|analisarJuntada)\.do$/;
+	const TELAS = /^\/projudi\/processo\/(intimacaoBusca|intimacaoNomeados|citacao|analisarJuntada|conclusao)\.do$/;
 	if (!TELAS.test(location.pathname)) return;
+	const NA_CONCLUSAO = location.pathname === "/projudi/processo/conclusao.do";
 	try {
 		const fe = window.frameElement;
 		if (fe && (fe.hasAttribute("data-pdp-loader") || fe.hasAttribute("data-pdp-decurso") || fe.hasAttribute("data-pdp-dispensa"))) return;
@@ -35,6 +44,10 @@
 	window.__pdpPreviewProcesso = true;
 
 	const PROCESSO_PATH = "/projudi/processo.do";
+	const CONCLUSAO_PATH = "/projudi/processo/conclusao.do";
+	const BUSCA_PATH = "/projudi/processo/buscaProcesso.do";
+	// Sem resultado da busca nesse tempo, mostra o painel como estiver.
+	const BUSCA_TIMEOUT_MS = 15000;
 	const MOVIMENTACOES_TAB_ID = "tabMovimentacoesProcesso";
 	const IFRAME_CLASS = "pdp-proc-preview-iframe";
 	const OPEN_DELAY_MS = 450;
@@ -48,11 +61,15 @@
 	const CNJ = /\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/;
 
 	let panel = null;
-	let activeLink = null;
+	let activeLink = null; // link do número ou, nas Conclusões, o <em> do número
 	let openTimer = null;
 	let closeTimer = null;
 	let tabClicks = 0;
 	let fixado = false;
+	let buscaTimer = null;
+	let buscaCargas = 0;
+	// Conclusões: endereço do processo já descoberto para cada número (<em>).
+	const urlCache = new WeakMap();
 
 	// Link do número do processo (não os demais links da linha, como a data
 	// do prazo ou as partes, que apontam para outras telas).
@@ -68,6 +85,69 @@
 		if (url.origin !== location.origin || url.pathname !== PROCESSO_PATH || !url.search) return null;
 		if (!link.closest("td")) return null;
 		return link;
+	}
+
+	// Conclusões: link "Analisar" da linha (conclusao.do?_tj=..., sem o "#"
+	// do botão de copiar o número).
+	function analisarDaLinha(row) {
+		if (!row) return null;
+		for (const a of row.querySelectorAll("a.link[href]")) {
+			const href = a.getAttribute("href") || "";
+			if (href.indexOf("#") !== -1) continue;
+			try {
+				const url = new URL(href, location.href);
+				if (url.origin === location.origin && url.pathname === CONCLUSAO_PATH && url.search) return url.href;
+			} catch (e) { /* segue */ }
+		}
+		return null;
+	}
+
+	// Conclusões: número do processo (texto, não link) numa linha da lista.
+	function findNumeroConclusao(target) {
+		const em = target && target.closest ? target.closest("em.attention") : null;
+		if (!em || (panel && panel.wrap.contains(em)) || em.closest("a[href]")) return null;
+		if (!CNJ.test(em.textContent || "")) return null;
+		return analisarDaLinha(em.closest("tr")) ? em : null;
+	}
+
+	function findAlvo(target) {
+		return NA_CONCLUSAO ? findNumeroConclusao(target) : findProcessLink(target);
+	}
+
+	function urlDaBusca(alvo) {
+		return location.origin + BUSCA_PATH + "?actionType=iniciarSimples#pdp-search=" + encodeURIComponent(numeroDoProcesso(alvo));
+	}
+
+	async function urlPelaConclusao(alvo) {
+		const analisar = analisarDaLinha(alvo.closest("tr"));
+		if (!analisar) return null;
+		const resposta = await fetch(analisar, { credentials: "same-origin" });
+		if (!resposta.ok) return null;
+		const doc = new DOMParser().parseFromString(await resposta.text(), "text/html");
+		for (const a of doc.querySelectorAll("a[href]")) {
+			try {
+				const url = new URL(a.getAttribute("href"), resposta.url);
+				if (url.origin === location.origin && url.pathname === PROCESSO_PATH && url.search) return url.href;
+			} catch (e) { /* segue */ }
+		}
+		return null;
+	}
+
+	// Endereço a abrir no painel: o do link ou, nas Conclusões, o descoberto
+	// pela tela do "Analisar" (ou a busca por número, se não vier).
+	function urlDoAlvo(alvo) {
+		if (alvo.tagName === "A") return Promise.resolve(new URL(alvo.getAttribute("href"), location.href).href);
+		let p = urlCache.get(alvo);
+		if (!p) {
+			p = urlPelaConclusao(alvo)
+				.catch(function () { return null; })
+				.then(function (url) {
+					if (!url) urlCache.delete(alvo); // tenta ler de novo na próxima vez
+					return url || urlDaBusca(alvo);
+				});
+			urlCache.set(alvo, p);
+		}
+		return p;
 	}
 
 	function numeroDoProcesso(link) {
@@ -156,21 +236,30 @@
 		tabClicks = 0;
 		setFixado(false);
 
-		const href = new URL(link.getAttribute("href"), location.href).href;
+		clearTimeout(buscaTimer);
+		buscaCargas = 0;
 		p.title.textContent = "Processo " + numeroDoProcesso(link) + " — Movimentações";
-		p.openTab.href = href;
-		p.loading.textContent = "Carregando o processo…";
+		p.loading.textContent = link.tagName === "A" ? "Carregando o processo…" : "Localizando o processo…";
 		p.wrap.classList.remove("pdp-pp-loaded");
-		p.frame.src = href;
+		p.frame.src = "about:blank";
+		if (link.tagName !== "A") p.openTab.href = urlDaBusca(link);
 
 		positionPanel(link);
 		p.wrap.classList.add("pdp-pp-visible");
+
+		urlDoAlvo(link).then(function (href) {
+			if (!panel || activeLink !== link) return; // o mouse já foi para outro
+			panel.openTab.href = href;
+			panel.loading.textContent = "Carregando o processo…";
+			panel.frame.src = href;
+		});
 	}
 
 	function closeNow() {
 		clearTimeout(openTimer);
 		clearTimeout(closeTimer);
 		if (!panel) return;
+		clearTimeout(buscaTimer);
 		panel.wrap.classList.remove("pdp-pp-visible", "pdp-pp-loaded");
 		panel.frame.src = "about:blank";
 		activeLink = null;
@@ -205,7 +294,33 @@
 	}
 
 	function marcarCarregado() {
+		clearTimeout(buscaTimer);
 		if (panel) panel.wrap.classList.add("pdp-pp-loaded");
+	}
+
+	// Busca por número (Conclusões, sem endereço na tela do "Analisar"): a
+	// 1ª carga é o formulário, que clipboardProcess.js preenche e envia; no
+	// resultado, um único processo é aberto no painel; senão, mostra a busca.
+	function seguirBusca(doc) {
+		const links = new Set();
+		doc.querySelectorAll("a[href]").forEach(function (a) {
+			try {
+				const url = new URL(a.getAttribute("href"), doc.URL);
+				if (url.origin === location.origin && url.pathname === PROCESSO_PATH && url.search) links.add(url.href);
+			} catch (e) { /* segue */ }
+		});
+		if (links.size === 1) {
+			const href = links.values().next().value;
+			panel.openTab.href = href;
+			panel.frame.src = href;
+			return;
+		}
+		if (++buscaCargas > 1 || links.size > 1 || !doc.getElementById("buscaProcessoForm")) {
+			marcarCarregado();
+			return;
+		}
+		clearTimeout(buscaTimer);
+		buscaTimer = setTimeout(marcarCarregado, BUSCA_TIMEOUT_MS);
 	}
 
 	function onFrameLoad() {
@@ -217,6 +332,12 @@
 		if (!doc || !doc.body || doc.URL === "about:blank") {
 			if (doc && doc.URL === "about:blank") return;
 			marcarCarregado();
+			return;
+		}
+		let path = "";
+		try { path = new URL(doc.URL).pathname; } catch (e) { /* segue */ }
+		if (path === BUSCA_PATH) {
+			seguirBusca(doc);
 			return;
 		}
 		if (!doc.getElementById("processoForm") || estaNaAbaMovimentacoes(doc) || tabClicks >= MAX_TAB_CLICKS) {
@@ -251,7 +372,7 @@
 	document.addEventListener(
 		"mouseover",
 		function (e) {
-			const link = findProcessLink(e.target);
+			const link = findAlvo(e.target);
 			if (!link) return;
 			cancelClose();
 			clearTimeout(openTimer);
@@ -266,7 +387,7 @@
 	document.addEventListener(
 		"mouseout",
 		function (e) {
-			const link = findProcessLink(e.target);
+			const link = findAlvo(e.target);
 			if (!link) return;
 			const toEl = e.relatedTarget;
 			if (toEl && link.contains(toEl)) return;
