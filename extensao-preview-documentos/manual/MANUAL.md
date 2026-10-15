@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.38.0 |
-| **Versão da extensão** | 2.38.0 |
+| **Versão do manual** | 2.38.1 |
+| **Versão da extensão** | 2.38.1 |
 | **Data desta versão** | 15/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -2764,6 +2764,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.38.1 | 15/10/2026 | Sem alteração de texto; corrigido (8.11): o **✖**, o **➕ Incluir** e as preferências de prioridade paravam em "a janela de seleção de prioridade não abriu" — o navegador bloqueava o clique da extensão na lupa da linha **Prioridade**. Agora a lupa abre normalmente. |
 | 2.38.0 | 15/10/2026 | **Nova seção 8.11 — Prioridades:** na linha **Prioridade** do cabeçalho do processo (só no Projudi), **✖** ao lado de cada prioridade que pode ser tirada (remove e salva, depois de confirmar), **➕ Incluir** (abre a tela de alteração num popup já com a **Seleção de Prioridade**; depois do **Selecionar**, salva sozinho) e **⭐** com preferências que incluem/tiram prioridades e salvam com um clique — também nos **🔗 Combos**. Sem prioridade, a linha aparece com "(nenhuma)". Sumário, tabela da 2.6, seções 7.4 e 7.8 atualizados. Novo vídeo V56. |
 | 2.37.0 | 15/10/2026 | Seção 9.8: o processo ao passar o mouse também na lista de **Conclusões** — pousar o mouse sobre o **número do processo** (que lá não é link) abre a tela dele num painel, já na aba **Movimentações**. O **Analisar** continua mostrando o documento do Juiz (9.9). Título da seção, Sumário e tabela da 2.6 atualizados; vídeo V44 regravado. |
 | 2.36.0 | 15/10/2026 | Seção 9.8: o processo ao passar o mouse também na lista da **Análise de Juntadas** — pousar o mouse sobre o **número do processo** abre a tela dele num painel, já na aba **Movimentações**, como nas listas de Decurso de Prazo. Título da seção, Sumário e tabela da 2.6 atualizados; vídeo V44 regravado. |

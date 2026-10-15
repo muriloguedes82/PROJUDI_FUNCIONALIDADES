@@ -168,6 +168,31 @@
 		return linha ? linha.querySelector("a.searchButton, .searchButton") : null;
 	}
 
+	// Abre a lupa da Prioridade. Ela é um link "javascript:…", e o Chrome
+	// não deixa a extensão executá-lo (nem com `click()`, nem com um
+	// <script> posto na tela: "Running the JavaScript URL violates the
+	// following Content Security Policy…"), e a janela não abria. O clique
+	// é feito pelo background, no mundo da própria página
+	// (clickPrioridadeLupa em background.js), no link marcado com um token.
+	function abrirLupa(el) {
+		const token = crypto.randomUUID();
+		el.setAttribute("data-pdp-prioridade-lupa", token);
+		return new Promise(function (resolve, reject) {
+			try {
+				chrome.runtime.sendMessage({ source: "projudi-preview", type: "prioridade-lupa-click", token: token }, function (resposta) {
+					const erro = chrome.runtime.lastError;
+					if (erro || !resposta || !resposta.ok) {
+						reject(new Error("não consegui abrir a lupa da Prioridade (" + (erro ? erro.message : resposta && resposta.error ? resposta.error : "sem resposta") + ")."));
+						return;
+					}
+					resolve();
+				});
+			} catch (err) {
+				reject(err);
+			}
+		});
+	}
+
 	// Estado da prioridade na tela de alteração: a descrição e os campos com
 	// "prioridade" no nome (os ocultos que a janela de seleção preenche).
 	// Muda quando o "Selecionar" da janela é aplicado.
@@ -392,7 +417,7 @@
 		if (anterior) anterior.doc.__pdpUsada = true;
 		const botaoLupa = lupa(doc);
 		if (!botaoLupa) return null;
-		botaoLupa.click();
+		await abrirLupa(botaoLupa);
 		const jan = await esperar(function () {
 			const j = janela(doc, true);
 			return j && j.doc.querySelector('input[name="' + CAIXA_NAME + '"]') ? j : null;
@@ -421,7 +446,7 @@
 			const antes = assinatura(doc);
 
 			mostrarStatus(titulo + " — abrindo a seleção de prioridade…");
-			botaoLupa.click();
+			await abrirLupa(botaoLupa);
 			const jan = await esperar(function () {
 				const j = janela(doc);
 				return j && j.doc.getElementById("selectButton") && j.doc.querySelector('input[name="' + CAIXA_NAME + '"]') ? j : null;
@@ -664,7 +689,13 @@
 			linha.style.backgroundColor = anterior;
 		}, 1800);
 		const botao = lupa(doc);
-		if (botao) setTimeout(function () { botao.click(); }, 300);
+		if (!botao) return;
+		setTimeout(function () {
+			abrirLupa(botao).catch(function (err) {
+				console.info("[Prioridades]", err.message);
+				alert('Não consegui abrir a "Seleção de Prioridade" sozinho: clique na lupa da linha "Prioridade".');
+			});
+		}, 300);
 	}
 
 	// modo: { tipo: "incluir" } ou { tipo: "gravar", concluir(alteracao, fechar) }
