@@ -1449,6 +1449,34 @@
 		return findLikelyDialogFormIn(document);
 	}
 
+	// Formulário do diálogo procurado em todo o popup desta extensão,
+	// descendo pelas janelas internas (iframes) — as mais internas primeiro.
+	// Usado na hora de salvar a preferência quando o documento guardado ao
+	// abrir já não serve: em "Anotações Criminais" o popup carrega a tela de
+	// Ações, que abre "Comunicar ao IIPR" numa janela interna; essa janela
+	// pode recarregar enquanto o usuário preenche (ex.: ao escolher a parte
+	// ou a origem), e o documento guardado deixa de ser o que está na tela.
+	function findDialogFormInActiveModal() {
+		if (!activeModalIframe) return null;
+		function search(frame, depth) {
+			let doc;
+			try {
+				doc = frame.contentDocument;
+			} catch (err) {
+				return null;
+			}
+			if (!doc || depth > 4) return null;
+			const frames = doc.querySelectorAll("iframe");
+			for (let i = frames.length - 1; i >= 0; i--) {
+				if (!isVisible(frames[i])) continue;
+				const inner = search(frames[i], depth + 1);
+				if (inner) return inner;
+			}
+			return findLikelyDialogFormIn(doc);
+		}
+		return search(activeModalIframe, 0);
+	}
+
 	function findFormContainingFieldNamesIn(root, names) {
 		const forms = root.querySelectorAll("form");
 		for (let i = forms.length - 1; i >= 0; i--) {
@@ -2175,7 +2203,10 @@
 		captureToolbar.querySelector(".pdp-qa-capture-cancel").addEventListener("click", removeCaptureToolbar);
 		captureToolbar.querySelector(".pdp-qa-capture-save").addEventListener("click", function () {
 			const currentDoc = typeof doc === "function" ? doc() : doc;
-			const form = findCustomForm(label, currentDoc) || findLikelyDialogFormIn(currentDoc);
+			// Documento de uma janela que já recarregou fica sem `defaultView`.
+			const docNaTela = currentDoc && currentDoc.defaultView ? currentDoc : null;
+			let form = findCustomForm(label, currentDoc) || (docNaTela && findLikelyDialogFormIn(docNaTela));
+			if (!form) form = findDialogFormInActiveModal();
 			if (!form) {
 				alert('Não encontrei o formulário do diálogo "' + label + '" para capturar. Ele ainda está aberto na tela?');
 				return;
