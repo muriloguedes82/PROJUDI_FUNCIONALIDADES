@@ -1,6 +1,6 @@
 // Projudi - Pré-visualização do processo nas listas de decurso de prazo, na
-// Análise de Juntadas, nas Conclusões, nos cumprimentos e no Expedir
-// Intimações/Citação
+// Análise de Juntadas, nas Conclusões, nos cumprimentos, no Expedir
+// Intimações/Citação e nos Paralisados
 //
 // Nas telas de decurso de prazo do menu "Decurso de Prazo" — Intimação
 // (processo/intimacaoBusca.do), Intimação de Auxiliares da Justiça
@@ -8,8 +8,10 @@
 // (processo/citacao.do) — e na lista da Análise de Juntadas
 // (processo/analisarJuntada.do) e nas listas de cumprimentos — Demais
 // Cumprimentos (processo/cumprimentoCartorio.do) e Mandados
-// (processo/cumprimentoCartorioMandado.do) —, a coluna Processo traz o número como link
-// para a tela dele (`<a class="link" href="/projudi/processo.do?_tj=...">
+// (processo/cumprimentoCartorioMandado.do) — e na lista de Processos
+// Paralisados (processo/processoBuscaParalisado.do), a coluna Processo traz
+// o número como link para a tela dele
+// (`<a class="link" href="/projudi/processo.do?_tj=...">
 // <em class="attention">NNNNNNN-DD.AAAA...</em></a>`).
 //
 // Na lista de Conclusões (processo/conclusao.do) o número é só texto
@@ -47,7 +49,7 @@
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
 	if (window.__pdpPreviewProcesso) return;
 
-	const TELAS = /^\/projudi\/processo\/(intimacaoBusca|intimacaoNomeados|citacao|analisarJuntada|conclusao|cumprimentoCartorio|cumprimentoCartorioMandado|expedirIntimacao|expedirCitacao)\.do$/;
+	const TELAS = /^\/projudi\/processo\/(intimacaoBusca|intimacaoNomeados|citacao|analisarJuntada|conclusao|cumprimentoCartorio|cumprimentoCartorioMandado|expedirIntimacao|expedirCitacao|processoBuscaParalisado)\.do$/;
 	if (!TELAS.test(location.pathname)) return;
 	const NA_CONCLUSAO = location.pathname === "/projudi/processo/conclusao.do";
 	const NO_EXPEDIR = /\/expedir(Intimacao|Citacao)\.do$/.test(location.pathname);
