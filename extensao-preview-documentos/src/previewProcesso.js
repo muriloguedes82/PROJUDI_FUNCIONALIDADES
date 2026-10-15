@@ -1,11 +1,13 @@
 // Projudi - Pré-visualização do processo nas listas de decurso de prazo, na
-// Análise de Juntadas e nas Conclusões
+// Análise de Juntadas, nas Conclusões e nos cumprimentos
 //
 // Nas telas de decurso de prazo do menu "Decurso de Prazo" — Intimação
 // (processo/intimacaoBusca.do), Intimação de Auxiliares da Justiça
 // (processo/intimacaoNomeados.do) e Citações/Notificações
 // (processo/citacao.do) — e na lista da Análise de Juntadas
-// (processo/analisarJuntada.do), a coluna Processo traz o número como link
+// (processo/analisarJuntada.do) e nas listas de cumprimentos — Demais
+// Cumprimentos (processo/cumprimentoCartorio.do) e Mandados
+// (processo/cumprimentoCartorioMandado.do) —, a coluna Processo traz o número como link
 // para a tela dele (`<a class="link" href="/projudi/processo.do?_tj=...">
 // <em class="attention">NNNNNNN-DD.AAAA...</em></a>`).
 //
@@ -16,6 +18,11 @@
 // se não vier, o painel abre a busca por número do Projudi (preenchida por
 // clipboardProcess.js) e segue o único resultado. O "Analisar" continua com
 // a pré-visualização do documento do Juiz (previewConclusao.js).
+//
+// Nos cumprimentos só vale o link dentro da tabela da lista
+// (table.resultTable): a tela de um cumprimento (mesmo endereço, link
+// "Visualizar") também tem o link do processo, ao lado do "Identificador do
+// Cumprimento", e ali fica como sempre.
 //
 // Ao pousar o mouse sobre esse número, a tela inicial do processo abre num
 // painel sobreposto (mesma ideia da pré-visualização de documentos de
@@ -34,9 +41,10 @@
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
 	if (window.__pdpPreviewProcesso) return;
 
-	const TELAS = /^\/projudi\/processo\/(intimacaoBusca|intimacaoNomeados|citacao|analisarJuntada|conclusao)\.do$/;
+	const TELAS = /^\/projudi\/processo\/(intimacaoBusca|intimacaoNomeados|citacao|analisarJuntada|conclusao|cumprimentoCartorio|cumprimentoCartorioMandado)\.do$/;
 	if (!TELAS.test(location.pathname)) return;
 	const NA_CONCLUSAO = location.pathname === "/projudi/processo/conclusao.do";
+	const NOS_CUMPRIMENTOS = /\/cumprimentoCartorio(Mandado)?\.do$/.test(location.pathname);
 	try {
 		const fe = window.frameElement;
 		if (fe && (fe.hasAttribute("data-pdp-loader") || fe.hasAttribute("data-pdp-decurso") || fe.hasAttribute("data-pdp-dispensa"))) return;
@@ -84,6 +92,7 @@
 		}
 		if (url.origin !== location.origin || url.pathname !== PROCESSO_PATH || !url.search) return null;
 		if (!link.closest("td")) return null;
+		if (NOS_CUMPRIMENTOS && !link.closest("table.resultTable")) return null;
 		return link;
 	}
 
