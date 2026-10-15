@@ -228,8 +228,8 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				},
 				{
 					id: "previewProcesso",
-					nome: "Processo ao passar o mouse no Decurso de Prazo",
-					descricao: "Nas listas de decurso de prazo (Intimação, Auxiliares da Justiça e Citações/Notificações), mostra a tela do processo, na aba Movimentações, ao pousar o mouse sobre o número.",
+					nome: "Processo ao passar o mouse no Decurso de Prazo e nas Juntadas",
+					descricao: "Nas listas de decurso de prazo (Intimação, Auxiliares da Justiça e Citações/Notificações) e na lista da Análise de Juntadas, mostra a tela do processo, na aba Movimentações, ao pousar o mouse sobre o número.",
 					js: ["src/previewProcesso.js"],
 					css: ["src/previewProcesso.css"],
 					sistemas: ["projudi"]
