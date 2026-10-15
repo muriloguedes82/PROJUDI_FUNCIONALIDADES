@@ -238,14 +238,21 @@
 	// ------------------------------------------------------------------
 
 	// Número único CNJ (0000000-00.0000.0.00.0000) no título da tela do
-	// processo: no Projudi "Processo <em class="attention">número</em>"; no
-	// SEEU o cabeçalho div.titulo.processo (os mesmos marcadores de
-	// hasProcessNumberMarker em quickActions.js).
+	// processo. No Projudi o título é <h3 id="barraTituloStatusProcessual">:
+	// às vezes "Processo <em class="attention">número</em>", mas aberto pela
+	// lista de Paralisados ou pelo atalho "Processo" do topo
+	// (buscaProcesso.do?actionType=pesquisaSimples) o número vem como texto
+	// puro, e o primeiro em.attention da página é outro (ex.: a data da
+	// próxima prescrição) - por isso o cabeçalho é conferido primeiro. No
+	// SEEU, o cabeçalho div.titulo.processo.
 	const NUMERO_CNJ = /\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/;
 
 	function documentoDeProcesso(doc) {
-		const titulo = doc.querySelector(NO_SEEU ? "div.titulo.processo" : "em.attention");
-		return !!(titulo && NUMERO_CNJ.test(titulo.textContent || ""));
+		const seletores = NO_SEEU ? ["div.titulo.processo"] : ["#barraTituloStatusProcessual", "em.attention"];
+		return seletores.some(function (seletor) {
+			const titulo = doc.querySelector(seletor);
+			return !!(titulo && NUMERO_CNJ.test(titulo.textContent || ""));
+		});
 	}
 
 	// Um quadro de outro endereço não pode ser lido, mas os quadros DENTRO
