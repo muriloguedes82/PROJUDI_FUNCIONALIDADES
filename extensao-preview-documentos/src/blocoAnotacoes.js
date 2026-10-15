@@ -22,7 +22,15 @@
         return document.documentElement?.tagName === 'FRAMESET' || document.body?.tagName === 'FRAMESET';
       }
       const nome = String(primeiroFrame?.name || primeiroFrame?.id || '').toLowerCase();
-      return nome !== 'usermainframe';
+      if (nome === 'usermainframe') return false;
+      // Algumas versões/layouts do Projudi mudam o nome do quadro de
+      // conteúdo. Se este documento for claramente a ficha de um processo,
+      // ele pode receber o post-it; listagens e diálogos sem essa barra
+      // continuam excluídos. Os quadros de preview e popups já foram
+      // recusados acima.
+      const rotaProcesso = /^\/projudi\/(?:processo|visualizacaoProcesso|movimentarProcesso)\.do$/i.test(location.pathname);
+      const barra = document.getElementById('barraTituloStatusProcessual');
+      return !(rotaProcesso && barra && /\bProcesso\s+\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}\b/i.test(barra.textContent || ''));
     } catch (_) { return true; }
   }
   if (deveOcultarPostitNesteFrame()) return;

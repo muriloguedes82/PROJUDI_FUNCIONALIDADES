@@ -244,7 +244,15 @@
 	const NUMERO_CNJ = /\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/;
 
 	function documentoDeProcesso(doc) {
-		const titulo = doc.querySelector(NO_SEEU ? "div.titulo.processo" : "em.attention");
+		if (NO_SEEU) {
+			const tituloSeeu = doc.querySelector("div.titulo.processo");
+			return !!(tituloSeeu && NUMERO_CNJ.test(tituloSeeu.textContent || ""));
+		}
+		// O Projudi não usa o mesmo elemento em todas as telas: algumas fichas
+		// trazem o número em <em class="attention">; outras usam a barra de
+		// título da ficha. Ambos são cabeçalhos individuais, ao contrário dos
+		// números em linhas de listagem.
+		const titulo = doc.querySelector("em.attention, #barraTituloStatusProcessual");
 		return !!(titulo && NUMERO_CNJ.test(titulo.textContent || ""));
 	}
 
