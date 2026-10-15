@@ -682,11 +682,11 @@ function painelProcesso(n, x, y) {
 
 CENAS.V44 = {
 	arquivo: "V44-processo-ao-passar-o-mouse.mp4",
-	titulo: "Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões e nos Cumprimentos",
+	titulo: "Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões e nos Cumprimentos e no Expedir",
 	secao: "9.8",
 	async run() {
 		telaLista("Decurso de Prazo - Intimação", { path: "intimacaoBusca.do", col: "Data Decurso" });
-		await S.titleCard("VÍDEO V44", "Processo ao passar o mouse", "Veja a tela do processo, já na aba Movimentações, sem sair da lista de decurso de prazo, de juntadas, de conclusões ou de cumprimentos.");
+		await S.titleCard("VÍDEO V44", "Processo ao passar o mouse", "Veja a tela do processo, já na aba Movimentações, sem sair da lista de decurso de prazo, de juntadas, de conclusões, de cumprimentos ou do Expedir.");
 		await S.cap("Nas listas de <b>Decurso de Prazo</b> (Intimação, Auxiliares da Justiça e Citações/Notificações), pare o mouse sobre o <b>número do processo</b>.");
 		const link = $('#lista tr[data-i="1"] a.link');
 		await S.move(link);
@@ -730,7 +730,7 @@ CENAS.V44 = {
 		await S.move({ x: 300, y: 560 });
 		p.remove();
 		telaLista("Demais Cumprimentos", { path: "cumprimentoCartorio.do", col: "Tipo", rows: LISTA.map(r => Object.assign({}, r, { d: "Intimação" })) });
-		await S.cap("Nas listas de cumprimentos (<b>Demais Cumprimentos</b> e <b>Mandados</b>) é igual: pare o mouse sobre o <b>número do processo</b>.");
+		await S.cap("Nas listas de cumprimentos (<b>Demais Cumprimentos</b> e <b>Mandados</b>) e no <b>Expedir Intimações/Citação</b> é igual: pare o mouse sobre o <b>número do processo</b>.");
 		await S.move($('#lista tr[data-i="4"] a.link'));
 		await sleep(500);
 		p = painelProcesso(LISTA[4].n, 470, 180);
@@ -739,7 +739,7 @@ CENAS.V44 = {
 		await sleep(1800);
 		await S.move({ x: 300, y: 560 });
 		p.remove();
-		await S.endCard("Decurso de Prazo, Juntadas, Conclusões ou Cumprimentos: mouse parado sobre o número do processo = tela do processo na aba Movimentações. 📌 Fixar mantém aberto; Esc ou ✕ fecha.");
+		await S.endCard("Decurso de Prazo, Juntadas, Conclusões, Cumprimentos ou Expedir: mouse parado sobre o número do processo = tela do processo na aba Movimentações. 📌 Fixar mantém aberto; Esc ou ✕ fecha.");
 	},
 };
 
