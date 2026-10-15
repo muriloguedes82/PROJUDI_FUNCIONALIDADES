@@ -327,7 +327,8 @@
 				});
 				wrap.appendChild(b);
 				(extras || []).forEach(function (x) { wrap.appendChild(x); });
-				el.appendChild(wrap);
+				if (valor && valor.acao === "pref") wrap.classList.add("pdp-dec-menu-pref");
+				alvo.appendChild(wrap);
 			}
 			function icone(texto, dica, onclick) {
 				const b = document.createElement("button");
@@ -341,16 +342,25 @@
 				});
 				return b;
 			}
+			// Cada seção (título + preferências) num bloco, para a busca do
+			// topo esconder a seção inteira quando nada dela combina.
 			function secao(texto) {
+				alvo = document.createElement("div");
+				alvo.className = "pdp-dec-menu-secao";
 				const d = document.createElement("div");
 				d.className = "pdp-dec-menu-sub";
 				d.textContent = texto;
-				el.appendChild(d);
+				alvo.appendChild(d);
+				el.appendChild(alvo);
 			}
+			// Topo fixo (painelPreferencias.js): título, "Abrir a análise",
+			// "+ Nova preferência" e a busca ficam à vista ao rolar.
+			const topo = document.createElement("div");
+			let alvo = topo;
 			const titulo = document.createElement("div");
 			titulo.className = "pdp-dec-menu-titulo";
 			titulo.textContent = emLote ? "Analisar decurso nos marcados" : "Analisar Decurso";
-			el.appendChild(titulo);
+			topo.appendChild(titulo);
 			if (!emLote) {
 				linha("Abrir a análise", "Abre a tela de análise no popup, sem preencher nada", { acao: "abrir" });
 				linha("+ Nova preferência", "Abre a análise no popup e grava o que você fizer na inclusão do arquivo (Tipo do Arquivo, Modelo e texto); no \"Assinar Arquivos\", pede o nome e salva", { acao: "nova" });
@@ -381,9 +391,12 @@
 				secao("Nenhuma preferência salva. Crie uma pelo \"+ Nova preferência\" do Analisar Decurso de uma linha.");
 			}
 			document.body.appendChild(el);
-			const r = botao.getBoundingClientRect();
-			el.style.left = Math.max(8, Math.min(r.left, window.innerWidth - el.offsetWidth - 8)) + "px";
-			el.style.top = (r.bottom + 4 + el.offsetHeight > window.innerHeight ? Math.max(8, r.top - el.offsetHeight - 4) : r.bottom + 4) + "px";
+			window.__pdpPainelPrefs.topo(el, {
+				conteudo: Array.prototype.slice.call(topo.childNodes),
+				itens: ".pdp-dec-menu-pref",
+				grupos: ".pdp-dec-menu-secao"
+			});
+			window.__pdpPainelPrefs.caber(el, botao);
 		});
 	}
 	document.addEventListener("mousedown", function (ev) {

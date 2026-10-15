@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.34.0 |
-| **Versão da extensão** | 2.34.0 |
+| **Versão do manual** | 2.35.0 |
+| **Versão da extensão** | 2.35.0 |
 | **Data desta versão** | 15/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -67,6 +67,7 @@
    - 7.5 [Nova Ordenação](#cap-7-5)
    - 7.6 [Nova Remessa](#cap-7-6)
    - 7.7 [Escolher a movimentação das Ações rápidas](#cap-7-7)
+   - 7.8 [Painéis com muitas preferências (busca e + Nova preferência no topo)](#cap-7-8)
 8. [Atalhos para telas do processo](#cap-8)
    - 8.1 [Alvará Eletrônico](#cap-8-1)
    - 8.2 [Juntar Documento com preferências](#cap-8-2)
@@ -969,8 +970,8 @@ MP para ciência, 5 dias") e reaplicá-lo em outros processos.
 
 **Criar:**
 
-1. No painel da ação, clique em **+ Nova preferência** — o diálogo do
-   Projudi abre em branco.
+1. No painel da ação, clique em **+ Nova preferência** (na linha do nome
+   da ação, ao lado de **Abrir**) — o diálogo do Projudi abre em branco.
 2. Preencha como faria normalmente.
 3. Com o diálogo aberto, clique em **💾 Salvar como preferência** (barra no
    topo da tela).
@@ -1050,7 +1051,8 @@ cortado ("…"), pare o mouse sobre o card para lê-lo inteiro.
    **✅ Concluir**. A ordem é salva na hora.
 
 **Bom saber:** só os primeiros cards aparecem de início; marque **Mostrar
-todas** para ver o restante. Os cards **📍 Localizador** (só no SEEU)
+todas** para ver o restante — ou use a busca **🔍 Buscar preferência** do
+topo do painel, que fica parado ao rolar ([7.8](#cap-7-8)). Os cards **📍 Localizador** (só no SEEU)
 associam os localizadores na hora, sem diálogo nem ✅ **Sim, executar**
 — veja [8.8](#cap-8-8).
 
@@ -1245,6 +1247,49 @@ Bom saber sobre essas preferências:
 - Pode ser desligada no Menu ([2.6](#cap-2-6)): **Escolher a movimentação
   das Ações rápidas**.
 
+<a id="cap-7-8"></a>
+### 7.8 Painéis com muitas preferências (busca e + Nova preferência no topo)
+
+▶ [**Vídeo V55** — Painéis com muitas preferências](videos/V55-paineis-com-muitas-preferencias.mp4)
+
+**Para que serve:** achar rápido uma preferência e criar uma nova mesmo
+quando você já tem muitas — sem rolar a lista inteira nem diminuir o zoom
+do navegador.
+
+**Onde fica:** em todos os painéis que mostram preferências:
+
+| Painel | Onde fica o **+ Nova preferência** |
+|---|---|
+| Painéis das **Ações rápidas** (Partes, Remessa, Concluso…) e **📎 Juntar Documento** | Na linha do nome de cada ação, ao lado de **Abrir** |
+| **⭐ Minhas Preferências** ([7.3](#cap-7-3)) | Não tem (as preferências são criadas nos painéis das ações) |
+| **⭐** de **Alterar Classe/Assuntos** ([8.9](#cap-8-9)) | No topo, ao lado do título |
+| **📍 Localizador** (SEEU, [8.8](#cap-8-8)) | No topo, abaixo do título |
+| **Analisar Decurso** da lista ([9.10](#cap-9-10)) | No topo, abaixo de **Abrir a análise** |
+| **⭐** da linha e **⭐ Em lote** ([9.3](#cap-9-3)) | No topo: **+ Nova · Analisar (Pré-Análise)** / **+ Nova · Analisar Decurso** |
+
+**Como funciona:**
+
+- O painel **cabe sempre na tela**. Se as preferências não couberem, ele
+  rola por dentro (use a rodinha do mouse sobre ele).
+- O **topo** do painel (título, botões e busca) fica **parado** enquanto
+  as preferências rolam por baixo.
+- Quando o painel tem **6 ou mais** preferências, aparece no topo o campo
+  **🔍 Buscar preferência**. Digite parte do nome da preferência — ou do
+  nome da ação, ex.: "remessa" — e só as que combinam continuam à vista.
+  Não precisa de acento nem de maiúsculas. Apague o texto para ver todas de
+  novo.
+- Os blocos que ficam sem nenhuma preferência à vista somem durante a
+  busca. Se nada combinar, o painel avisa "Nenhuma preferência com …".
+
+**Bom saber:**
+
+- No **⭐ Minhas Preferências**, com a busca preenchida aparecem **todas**
+  as que combinam, mesmo as que o **Mostrar todas** esconderia. Durante o
+  **✏️ Editar posição** a busca fica desligada (para arrastar, todos os
+  cards precisam estar à vista).
+- A busca só filtra o que aparece no painel: nada é apagado nem mudado
+  nas suas preferências.
+
 ---
 
 <a id="cap-8"></a>
@@ -1296,7 +1341,7 @@ confundir com o botão nativo de mesmo nome).
 | Opção | O que faz |
 |---|---|
 | **Abrir** | Vai para a tela Juntar Documento, como o botão nativo |
-| **+ Nova preferência** | Grava o fluxo que você fizer |
+| **+ Nova preferência** | Grava o fluxo que você fizer (fica ao lado de **Abrir**) |
 | **★ nome** | Refaz o fluxo sozinha |
 | **✏️** | Refaz o fluxo com as telas preenchidas, sem clicar em nada, para você ajustar e atualizar |
 | **🗑** | Remove a preferência |
@@ -1576,7 +1621,7 @@ painel com as suas preferências:
 | Opção | O que faz |
 |---|---|
 | **nome da preferência** | Associa ao processo todos os localizadores da preferência |
-| **➕ Nova preferência** | Abre a lista de localizadores ativos da unidade para você montar uma preferência |
+| **➕ Nova preferência** | Abre a lista de localizadores ativos da unidade para você montar uma preferência (fica no topo do painel, com a busca — veja [7.8](#cap-7-8)) |
 | **✏️** | Muda o nome ou os localizadores da preferência |
 | **↑** | Sobe a preferência na lista |
 | **🗑** | Remove a preferência |
@@ -1700,6 +1745,9 @@ nova.
   trocada **e** o motivo foi marcado.
 - Para apagar uma preferência, use **🗑** ao lado dela. As preferências
   entram no **⬇ Exportar** do Menu da extensão ([2.6](#cap-2-6)).
+- O **+ Nova preferência** fica no topo do painel da ⭐, ao lado do título;
+  com muitas preferências, o painel rola por dentro e ganha a busca
+  **🔍 Buscar preferência** ([7.8](#cap-7-8)).
 - A ⭐ do **assunto principal** grava só o assunto principal. Para os
   **Assuntos Secundários**, use a ⭐ própria deles (abaixo).
 
@@ -1938,7 +1986,7 @@ processos marcados, **em lote**.
   rola por dentro (use a rodinha do mouse sobre ele). Não é preciso
   diminuir o zoom do navegador.
 - O **topo** do card fica parado enquanto os cards rolam. Nele estão:
-  - o campo **🔍 Buscar preferência**: digite parte do nome (ou do nome da
+  - o campo **🔍 Buscar preferência** (a partir de 6 preferências): digite parte do nome (ou do nome da
     ação, ex.: "remessa") e só os cards que o contêm continuam à vista; não
     precisa de acento nem de maiúsculas. Apague o texto para ver todos de
     novo;
@@ -2260,6 +2308,9 @@ Status **Analisar Decurso de Prazo**).
 
 As preferências do Analisar Decurso também estão no card **⭐** da linha,
 na seção **📝 Analisar Decurso** (com **+ Nova preferência**, ✏️ e 🗑).
+Com muitas preferências, o menu do **Analisar Decurso** rola por dentro e
+o título, **Abrir a análise**, **+ Nova preferência** e a busca **🔍
+Buscar preferência** ficam parados no topo ([7.8](#cap-7-8)).
 
 **Em lote** (vários processos de uma vez):
 
@@ -2545,6 +2596,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V52](videos/V52-analisar-e-dispensar-decurso-na-lista.mp4) | [Analisar e Dispensar decurso na lista](videos/V52-analisar-e-dispensar-decurso-na-lista.mp4) | [9.10](#cap-9-10) | 1:28 |
 | [V53](videos/V53-pre-analise-com-preferencias.mp4) | [Pré-Análise com preferências](videos/V53-pre-analise-com-preferencias.mp4) | [9.11](#cap-9-11) | 1:11 |
 | [V54](videos/V54-painel-da-estrela-com-muitas-preferencias.mp4) | [⭐ da linha com muitas preferências](videos/V54-painel-da-estrela-com-muitas-preferencias.mp4) | [9.3](#cap-9-3) | 0:40 |
+| [V55](videos/V55-paineis-com-muitas-preferencias.mp4) | [Painéis com muitas preferências](videos/V55-paineis-com-muitas-preferencias.mp4) | [7.8](#cap-7-8) | 0:42 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -2558,6 +2610,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.35.0 | 15/10/2026 | Nova seção **7.8**: o que a 2.34.0 fez no ⭐ da linha passa a valer para **todos** os painéis com preferências — painéis das Ações rápidas, 📎 Juntar Documento, ⭐ Minhas Preferências, ⭐ de Alterar Classe/Assuntos, Analisar Decurso e 📍 Localizador (SEEU): o painel cabe na tela e rola por dentro, o topo fica parado, a busca **🔍 Buscar preferência** aparece a partir de 6 preferências, e o **+ Nova preferência** fica no topo (nas ações rápidas e no Juntar Documento, na linha do nome da ação, ao lado de **Abrir**). Ajustes nas seções 7.2, 7.3, 8.2, 8.8, 8.9 e 9.10. Novo vídeo V55; vídeos V40, V43 e V49 regravados (o **+ Nova preferência** no topo). |
 | 2.34.0 | 15/10/2026 | Seção 9.3 (e 9.11): com muitas preferências, o card **⭐** da linha passa a caber sempre na tela e rolar por dentro — antes, o fim dele (com a seção **📝 Analisar** e o **+ Nova preferência**) ficava fora da tela e só aparecia diminuindo o zoom. O topo do card fica parado ao rolar, com o novo campo **🔍 Buscar preferência** e os botões **+ Nova · Analisar (Pré-Análise)** / **+ Nova · Analisar Decurso**. Novo vídeo V54. |
 | 2.33.1 | 14/10/2026 | Seção 9.9: corrigido — na lista **Intimação — Auxiliares da Justiça** do Decurso de Prazo os botões **Analisar Decurso** e **Dispensar** não apareciam nas linhas (lá a coluna Situação mostra "Decurso de prazo em" e a data, e não "Aguardando Análise do Decurso de Prazo"). Agora aparecem, e também o **Dispensar nos marcados** e o **Analisar decurso nos marcados** da barra **⭐ Em lote** funcionam nessa lista. Texto do "Onde fica" ajustado. Sem vídeo novo: a tela não muda. |
 | 2.33.0 | 14/10/2026 | Novo card **SEEU** (terracota), só no Projudi, na fileira dos sistemas ao lado da balança (1.3 e 8.7): abre a página de entrada do SEEU num popup sobre o processo (ou no segundo monitor/nova aba). Quem já tinha mudado a ordem dos cards encontra o SEEU dentro do **Outros**. Vídeo V39 regravado. |

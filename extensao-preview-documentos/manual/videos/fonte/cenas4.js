@@ -446,12 +446,11 @@ function painelLoc(html) {
 const SL_TIT = t => '<div style="font-weight:700;text-transform:uppercase;color:#475569;margin-bottom:6px">' + t + "</div>";
 const SL_BT = (id, t, prim) => '<span id="' + id + '" style="display:inline-block;padding:5px 10px;font-weight:600;border-radius:6px;border:1px solid ' + (prim ? "#2563eb;background:#2563eb;color:#fff" : "#cbd5e1;background:#fff") + '">' + t + "</span>";
 function listaPrefsLoc(prefs, status) {
-	let h = SL_TIT("Minhas preferências de localizadores");
+	let h = '<div style="border-bottom:1px solid #e3e8dc;padding-bottom:6px;margin-bottom:4px">' + SL_TIT("Minhas preferências de localizadores") + '<div style="text-align:right">' + SL_BT("sl-nova", "➕ Nova preferência", true) + "</div></div>";
 	if (!prefs.length) h += '<div style="color:#64748b;font-style:italic">Nenhuma preferência ainda. Crie uma com os localizadores que você mais usa: depois, um clique associa todos ao processo.</div>';
 	prefs.forEach((p, i) => {
 		h += '<div style="display:flex;gap:2px;margin:4px 0"><span id="sl-pref' + i + '" style="flex:1;padding:6px 8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:4px;color:#1e3a8a"><b>' + p[0] + '</b><br><small style="color:#475569">' + p[1].join(" • ") + '</small></span><span style="width:24px;text-align:center;opacity:.5">↑</span><span style="width:24px;text-align:center">✏️</span><span style="width:24px;text-align:center">🗑</span></div>';
 	});
-	h += '<div style="text-align:right;margin-top:6px">' + SL_BT("sl-nova", "➕ Nova preferência", true) + "</div>";
 	if (status) h += '<div style="margin-top:8px;padding:6px 8px;border-radius:6px;background:' + (status[1] ? "#ecfdf5;color:#065f46" : "#f1f5f9;color:#334155") + '">' + status[0] + "</div>";
 	return painelLoc(h);
 }
@@ -615,7 +614,7 @@ CENAS.V43 = {
 		await S.titleCard("VÍDEO V43", "Preferência de alteração de classe", "Grave uma vez a classe e o motivo; depois, um clique altera e salva.");
 		await S.cap("Ao lado de <b>✏️ Alterar</b> há a <b>⭐</b>. Clique na da classe.");
 		await S.click("#x-alt-classe-pref");
-		let pn = panelAt('<h4>⭐ Preferências — Alterar classe</h4><p style="color:#666;margin:0 0 8px">Nenhuma preferência gravada.</p><span class="x-btn small" id="x-nova">+ Nova preferência</span>', "#x-alt-classe-pref", { w: 300 });
+		let pn = panelAt('<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #e3e8dc;padding-bottom:6px;margin-bottom:6px"><h4 style="margin:0">⭐ Preferências — Alterar classe</h4><span class="x-btn small" id="x-nova" style="font-weight:bold">+ Nova preferência</span></div><p style="color:#666;margin:0 0 4px">Nenhuma preferência gravada.</p>', "#x-alt-classe-pref", { w: 300 });
 		pn.style.left = "330px"; pn.style.top = "180px";
 		await S.click("#x-nova");
 		pn.remove();
@@ -643,7 +642,7 @@ CENAS.V43 = {
 		$(".x-popup").remove();
 		await S.cap("Pronto. Para usar, clique na <b>⭐</b> e no nome da preferência.");
 		await S.click("#x-alt-classe-pref");
-		pn = panelAt('<h4>⭐ Preferências — Alterar classe</h4><div class="x-fcard" style="display:flex;justify-content:space-between;margin-bottom:6px"><span id="x-pref">★ Inquérito Policial (Evolução)</span><span class="i">🗑</span></div><span class="x-btn small">+ Nova preferência</span>', "#x-alt-classe-pref", { w: 320 });
+		pn = panelAt('<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #e3e8dc;padding-bottom:6px;margin-bottom:6px"><h4 style="margin:0">⭐ Preferências — Alterar classe</h4><span class="x-btn small" style="font-weight:bold">+ Nova preferência</span></div><div class="x-fcard" style="display:flex;justify-content:space-between;margin-bottom:2px"><span id="x-pref">★ Inquérito Policial (Evolução)</span><span class="i">🗑</span></div>', "#x-alt-classe-pref", { w: 320 });
 		pn.style.left = "330px"; pn.style.top = "180px";
 		await S.click("#x-pref");
 		pn.remove();
@@ -946,7 +945,7 @@ CENAS.V49 = {
 		await S.cap("Na linha do <b>Assunto Principal</b> há o balão <b>⭐ Secundários</b> (se o processo já tem assunto secundário, a ⭐ fica na linha dele).");
 		S.hlOff();
 		await S.click("#x-alt-sec-pref");
-		let pn = panelAt('<h4>⭐ Preferências — Assuntos secundários</h4><p style="color:#666;margin:0 0 8px">Nenhuma preferência gravada.</p><span class="x-btn small" id="x-nova">+ Nova preferência</span>', "#x-alt-sec-pref", { w: 320 });
+		let pn = panelAt('<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #e3e8dc;padding-bottom:6px;margin-bottom:6px"><h4 style="margin:0">⭐ Preferências — Assuntos secundários</h4><span class="x-btn small" id="x-nova" style="font-weight:bold">+ Nova preferência</span></div><p style="color:#666;margin:0 0 4px">Nenhuma preferência gravada.</p>', "#x-alt-sec-pref", { w: 320 });
 		pn.style.left = "430px"; pn.style.top = "205px";
 		await S.click("#x-nova");
 		pn.remove();
@@ -978,7 +977,7 @@ CENAS.V49 = {
 		$(".x-popup").remove();
 		await S.cap("Para usar, clique em <b>⭐ Secundários</b> e no nome da preferência.");
 		await S.click("#x-alt-sec-pref");
-		pn = panelAt('<h4>⭐ Preferências — Assuntos secundários</h4><div style="display:flex;gap:4px;margin-bottom:6px"><span class="x-btn small" id="x-pref" style="flex:1">★ Furto de coisa comum</span><span class="x-btn small">🗑</span></div><span class="x-btn small">+ Nova preferência</span>', "#x-alt-sec-pref", { w: 340 });
+		pn = panelAt('<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #e3e8dc;padding-bottom:6px;margin-bottom:6px"><h4 style="margin:0">⭐ Preferências — Assuntos secundários</h4><span class="x-btn small" style="font-weight:bold">+ Nova preferência</span></div><div style="display:flex;gap:4px;margin-bottom:2px"><span class="x-btn small" id="x-pref" style="flex:1">★ Furto de coisa comum</span><span class="x-btn small">🗑</span></div>', "#x-alt-sec-pref", { w: 340 });
 		pn.style.left = "430px"; pn.style.top = "205px";
 		await S.click("#x-pref");
 		pn.remove();
@@ -1252,7 +1251,7 @@ CENAS.V54 = {
 		const pn = panelAt(
 			'<div id="topo" style="position:sticky;top:-8px;background:#fff;margin:-8px -8px 6px;padding:8px;border-bottom:1px solid #e3e8dc;z-index:1">' +
 				'<h4>⭐ Minhas Preferências — ' + LISTA[4].n + '</h4>' +
-				'<div style="display:flex;gap:6px"><span class="x-field" id="busca" style="flex:1;min-height:0;padding:3px 6px;font-size:12px;color:#333"></span>' +
+				'<div style="display:flex;gap:6px"><span class="x-field" id="busca" style="flex:1;min-height:0;padding:3px 6px;font-size:12px;color:#333"><span style="color:#999">🔍 Buscar preferência…</span></span>' +
 				'<span class="x-btn small" id="nova-topo" style="font-weight:bold">+ Nova · Analisar (Pré-Análise)</span></div></div>' +
 				'<div id="blocos">' + blocos + '</div>' +
 				'<div id="sec-pre"><div style="font-size:11px;color:#5a6b4a;margin:8px 0 4px;font-weight:bold">📝 ANALISAR (PRÉ-ANÁLISE)</div>' +
@@ -1276,5 +1275,56 @@ CENAS.V54 = {
 		await S.cap("O botão do topo faz o mesmo que o card <b>+ Nova preferência</b> da seção: abre a Pré-Análise e grava o que você fizer (veja 9.11).", { ms: 5200 });
 		$(".x-popup").remove();
 		await S.endCard("⭐ na linha → Buscar ou + Nova preferência, sempre no topo do painel.");
+	},
+};
+
+// ------------------------------------------------------------------ V55
+// Painéis de preferências da tela do processo com muitas preferências
+// (painelPreferencias.js): "+ Nova preferência" na linha do nome da ação,
+// busca no topo e topo fixo no ⭐ Minhas Preferências.
+CENAS.V55 = {
+	arquivo: "V55-paineis-com-muitas-preferencias.mp4",
+	titulo: "Painéis com muitas preferências",
+	secao: "7.8",
+	async run() {
+		telaProcesso({ acoesAbertas: true });
+		await S.titleCard("VÍDEO V55", "Painéis com muitas preferências", "Busca e “+ Nova preferência” sempre à vista, em todos os painéis.");
+		await S.cap("Com muitas preferências, os painéis crescem. Exemplo: grupo <b>Partes</b>.");
+		await S.click('[data-g="Partes"]');
+		const muitas = (p, k) => Array.from({ length: k }, (_, i) => p + " " + (i + 1));
+		const busca = '<div style="position:sticky;top:-8px;background:#fff;margin:-8px -8px 6px;padding:8px;border-bottom:1px solid #e3e8dc;z-index:1"><span class="x-field" id="bq" style="display:block;min-height:0;padding:3px 6px;font-size:12px;color:#333"><span style="color:#999">🔍 Buscar preferência…</span></span></div>';
+		let pn = panelAt(busca + acaoPanel("Partes", [
+			{ nome: "Intimar Partes", prefs: muitas("Intimação", 6) },
+			{ nome: "Notificar Partes", prefs: muitas("Notificação", 4) },
+			{ nome: "Citar Partes", prefs: muitas("Citação", 6).concat(["Citação por edital"]) },
+		]), '[data-g="Partes"]', { w: 400 });
+		pn.style.maxHeight = "430px"; pn.style.overflow = "auto";
+		S.hl('[data-nova="Citar Partes"]', 3);
+		await S.cap("O <b>+ Nova preferência</b> fica na linha do nome de cada ação, ao lado de <b>Abrir</b> — não lá embaixo, depois de todas as preferências.", { ms: 5400, bottom: true });
+		S.hlOff();
+		await S.type("#bq", "edital");
+		$$(".x-chip", pn).forEach(c => { if (!/edital/.test(c.textContent)) c.style.display = "none"; });
+		await S.cap("Com <b>6 ou mais</b> preferências aparece a busca no topo: digite parte do nome (ou da ação) e só as que combinam ficam à vista.", { ms: 5200, bottom: true });
+		pn.remove();
+		await S.cap("No <b>⭐ Minhas Preferências</b>, o topo fica parado ao rolar: título, <b>✏️ Editar posição</b>, <b>Mostrar todas</b> e a busca.", { ms: 4800, bottom: true });
+		await S.click("#x-fav");
+		const blocos = favBlocos([
+			{ icon: "📨", title: "Intimar Partes", cards: muitas("Intimação", 6).map(n => ({ name: n })) },
+			{ icon: "📤", title: "Enviar Concluso", cards: muitas("Concluso", 5).map(n => ({ name: n })) },
+			{ icon: "📦", title: "Realizar Remessa", cards: muitas("Remessa", 4).map(n => ({ name: n })).concat([{ name: "Remessa MP", id: "c-mp" }]) },
+			{ icon: "📎", title: "Juntar Documento", cards: muitas("Certidão", 6).map(n => ({ name: n })) },
+		], { tools: true });
+		pn = panelAt('<div style="position:sticky;top:-8px;background:#fff;margin:-8px -8px 6px;padding:8px;border-bottom:1px solid #e3e8dc;z-index:1">' +
+			'<div style="display:flex;justify-content:space-between;align-items:center"><h4 style="margin:0">⭐ Minhas Preferências</h4><span class="x-btn small">✏️ Editar posição</span></div>' +
+			'<label style="display:block;margin-top:6px;font-size:12px"><input type="checkbox"> Mostrar todas (+12)</label>' +
+			'<span class="x-field" id="bq2" style="display:block;min-height:0;padding:3px 6px;font-size:12px;margin-top:4px;color:#333"><span style="color:#999">🔍 Buscar preferência…</span></span></div>' +
+			'<div id="g2">' + blocos + '</div>', "#x-fav", { w: 600 });
+		await S.type("#bq2", "mp");
+		$$("#g2 .x-fcard").forEach(c => { if (c.id !== "c-mp") c.style.display = "none"; });
+		$$("#g2 .x-fgrp").forEach(g => { if (!g.querySelector("#c-mp")) g.style.display = "none"; });
+		await S.cap("Com a busca preenchida, aparecem <b>todas</b> as que combinam — mesmo as que o <b>Mostrar todas</b> esconderia.", { ms: 4800, bottom: true });
+		pn.remove();
+		await S.cap("O mesmo vale para a ⭐ de Alterar Classe/Assuntos, o 📎 Juntar Documento, o Analisar Decurso e o 📍 Localizador (SEEU).", { ms: 5000 });
+		await S.endCard("Muitas preferências? 🔍 Buscar no topo · + Nova preferência sempre à vista.");
 	},
 };

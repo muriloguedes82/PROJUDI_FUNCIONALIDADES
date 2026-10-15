@@ -717,32 +717,26 @@
 		});
 	}
 
-	// Topo do painel, fixo ao rolar (pdp-pl-topo): título, campo "Buscar" e
-	// os atalhos "+ Nova preferência" das seções (novaNoTopo). Com muitas
+	// Topo fixo do painel (painelPreferencias.js): título, busca e os
+	// atalhos "+ Nova preferência" das seções (novaNoTopo). Com muitas
 	// preferências, as seções do fim (Analisar/Pré-Análise e Analisar
 	// Decurso) ficavam fora da vista e o "+ Nova" delas só aparecia rolando
 	// o painel ou diminuindo o zoom.
 	function novoPainel(ancora, titulo) {
 		const box = el("div", { class: "pdp-tl-popover pdp-pl-painel", id: "pdpPreferenciasLinha" });
-		const busca = el("input", {
-			type: "search",
-			class: "pdp-pl-busca",
-			placeholder: "🔍 Buscar preferência…",
-			title: "Mostra só os cards com este texto no nome (ou no nome da ação)",
-			"aria-label": "Buscar preferência"
-		});
-		busca.addEventListener("input", function () { posicionar(box, ancora); });
-		const atalhos = el("span", { class: "pdp-pl-atalhos" });
-		box.appendChild(el("div", { class: "pdp-pl-topo" }, [
-			el("div", { class: "pdp-tl-pop-cab" }, [
-				el("strong", { text: titulo }),
-				el("button", { type: "button", class: "pdp-tl-x", title: "Fechar", text: "✕", onclick: fecharPainel })
-			]),
-			el("div", { class: "pdp-pl-barra" }, [busca, atalhos])
-		]));
 		const grade = el("div", { class: "pdp-qa-fav-grid" });
 		box.appendChild(grade);
 		document.body.appendChild(box);
+		window.__pdpPainelPrefs.topo(box, {
+			conteudo: [el("div", { class: "pdp-tl-pop-cab" }, [
+				el("strong", { text: titulo }),
+				el("button", { type: "button", class: "pdp-tl-x", title: "Fechar", text: "✕", onclick: fecharPainel })
+			])],
+			itens: ".pdp-qa-fav-card:not(.pdp-pl-nova)",
+			grupos: ".pdp-qa-fav-group",
+			rotulo: ".pdp-qa-fav-group-label",
+			aoFiltrar: function (termo) { esconderSecoesVazias(box, termo); }
+		});
 		painel = { el: box, ancora: ancora };
 		posicionar(box, ancora);
 		setTimeout(function () { document.addEventListener("mousedown", foraDoPainel, true); }, 0);
@@ -751,46 +745,21 @@
 
 	// Atalho no topo do painel para o "+ Nova preferência" de uma seção.
 	function novaNoTopo(box, texto, titulo, ativar) {
-		const atalhos = box.querySelector(".pdp-pl-atalhos");
-		if (!atalhos) return;
-		atalhos.appendChild(el("button", { type: "button", class: "pdp-tl-btn pdp-pl-nova-topo", title: titulo, text: texto, onclick: ativar }));
+		const novas = box.querySelector(".pdp-pp-novas");
+		if (novas) novas.appendChild(el("button", { type: "button", class: "pdp-pp-nova", title: titulo, text: texto, onclick: ativar }));
 	}
 
-	function semAcento(texto) {
-		return String(texto || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-	}
-
-	// Campo "Buscar" do topo: esconde os cards (e os blocos e seções que
-	// ficarem vazios) sem o texto. Os "+ Nova preferência" ficam sempre.
-	function filtrar(box) {
-		const busca = box.querySelector(".pdp-pl-busca");
-		const termo = semAcento(busca ? busca.value : "").trim();
-		box.querySelectorAll(".pdp-qa-fav-card:not(.pdp-pl-nova)").forEach(function (card) {
-			const grupo = card.closest(".pdp-qa-fav-group");
-			const rotulo = grupo ? grupo.querySelector(".pdp-qa-fav-group-label") : null;
-			const texto = semAcento(card.textContent + " " + (rotulo ? rotulo.textContent : ""));
-			card.classList.toggle("pdp-pl-filtrado", !!termo && texto.indexOf(termo) === -1);
-		});
-		box.querySelectorAll(".pdp-qa-fav-group").forEach(function (grupo) {
-			grupo.classList.toggle("pdp-pl-filtrado", !!termo && !grupo.querySelector(".pdp-qa-fav-card:not(.pdp-pl-filtrado)"));
-		});
+	// Busca: uma seção (título .pdp-tl-sec + a grade que vem logo depois)
+	// sem nenhuma preferência à vista some inteira. O card "+ Nova
+	// preferência" da seção não conta.
+	function esconderSecoesVazias(box, termo) {
 		box.querySelectorAll(":scope > .pdp-tl-sec").forEach(function (sec) {
 			const grade = sec.nextElementSibling;
-			const vazia = !!termo && !!grade && grade.classList.contains("pdp-qa-fav-grid") &&
-				!grade.querySelector(".pdp-qa-fav-card:not(.pdp-pl-filtrado)");
-			sec.classList.toggle("pdp-pl-filtrado", vazia);
-			if (grade && grade.classList.contains("pdp-qa-fav-grid")) grade.classList.toggle("pdp-pl-filtrado", vazia);
+			if (!grade || !grade.classList.contains("pdp-qa-fav-grid")) return;
+			const vazia = !!termo && !grade.querySelector(".pdp-qa-fav-card:not(.pdp-pl-nova):not(.pdp-pp-oculto)");
+			sec.classList.toggle("pdp-pp-oculto", vazia);
+			grade.classList.toggle("pdp-pp-oculto", vazia);
 		});
-		let aviso = box.querySelector(".pdp-pl-sem-resultado");
-		const nenhum = !!termo && !box.querySelector(".pdp-qa-fav-card:not(.pdp-pl-nova):not(.pdp-pl-filtrado)");
-		if (nenhum && !aviso) {
-			aviso = el("div", { class: "pdp-pl-sem-resultado" });
-			box.appendChild(aviso);
-		}
-		if (aviso) {
-			aviso.hidden = !nenhum;
-			aviso.textContent = "Nenhuma preferência com \"" + (busca ? busca.value.trim() : "") + "\".";
-		}
 	}
 
 	// ⭐ de uma linha.
@@ -1421,22 +1390,12 @@
 		await percorrerLote(alvos, function (ctx) { return rodarSeeu(ctx, pref, nome); });
 	}
 
-	// Abaixo da ⭐; se não couber, acima; se não couber em nenhum dos dois,
-	// o painel sobe até caber inteiro na tela (a altura máxima é a da tela,
-	// e ele rola por dentro). Antes ficava preso abaixo da ⭐ e o fim dele -
-	// com as seções Analisar e os "+ Nova preferência" - saía da tela.
-	// Também reaplica a busca do topo aos cards que acabaram de entrar.
+	// Reaplica a busca do topo aos cards que acabaram de entrar e encaixa o
+	// painel na tela (abaixo da ⭐, acima, ou onde couber inteiro, rolando
+	// por dentro - ver painelPreferencias.js).
 	function posicionar(box, ancora) {
-		filtrar(box);
-		const r = ancora.getBoundingClientRect();
-		const largura = box.offsetWidth;
-		const altura = box.offsetHeight;
-		let top = r.bottom + 4;
-		if (top + altura > window.innerHeight - 8) {
-			top = r.top - altura - 4 >= 8 ? r.top - altura - 4 : window.innerHeight - altura - 8;
-		}
-		box.style.left = Math.max(8, Math.min(r.left, window.innerWidth - largura - 8)) + "px";
-		box.style.top = Math.max(8, top) + "px";
+		window.__pdpPainelPrefs.filtrar(box);
+		window.__pdpPainelPrefs.caber(box, ancora);
 	}
 
 	document.addEventListener("keydown", function (ev) {

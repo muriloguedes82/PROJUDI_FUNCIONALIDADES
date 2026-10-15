@@ -4583,6 +4583,14 @@
 		});
 
 		document.body.appendChild(activePanel);
+		// Busca no topo (painelPreferencias.js), quando há muitas preferências.
+		window.__pdpPainelPrefs.topo(activePanel, {
+			itens: ".pdp-qa-pref-chip",
+			texto: function (chip) {
+				const action = chip.closest(".pdp-qa-action");
+				return chip.textContent + " " + (action ? action.dataset.actionLabel : "");
+			}
+		});
 		positionPanel(group.id);
 
 		setTimeout(function () {
@@ -4626,8 +4634,6 @@
 				openActionDialog(label);
 			}
 		});
-		header.appendChild(openBtn);
-
 		actionRow.appendChild(header);
 
 		const prefsWrap = document.createElement("div");
@@ -4635,6 +4641,8 @@
 		prefsWrap.dataset.actionLabel = label;
 		actionRow.appendChild(prefsWrap);
 
+		// "+ Nova preferência" na linha do nome da ação, ao lado de "Abrir":
+		// abaixo das preferências, com muitas delas, ficava longe da vista.
 		const newPrefBtn = document.createElement("button");
 		newPrefBtn.type = "button";
 		newPrefBtn.className = "pdp-qa-pref-new";
@@ -4651,7 +4659,11 @@
 				startNewPreferenceCapture(label);
 			}
 		});
-		actionRow.appendChild(newPrefBtn);
+		const headerBtns = document.createElement("span");
+		headerBtns.className = "pdp-qa-action-btns";
+		headerBtns.appendChild(openBtn);
+		headerBtns.appendChild(newPrefBtn);
+		header.appendChild(headerBtns);
 
 		return actionRow;
 	}
@@ -4726,6 +4738,7 @@
 
 			wrap.appendChild(chip);
 		});
+		window.__pdpPainelPrefs.filtrar(activePanel);
 	}
 
 	// -------------------------------------------------------------------
@@ -4949,11 +4962,26 @@
 		footer.appendChild(showAllBox);
 		footer.appendChild(showAllText);
 		footer.hidden = true;
-		panel.appendChild(footer);
+
+		// Topo fixo ao rolar (painelPreferencias.js): título, "✏️ Editar
+		// posição", a explicação do modo de edição, "Mostrar todas" e a busca.
+		// Com a busca preenchida, todos os cards que a contêm aparecem (o
+		// limite de FAV_VISIBLE_LIMIT não vale).
+		panel.removeChild(header);
+		panel.removeChild(hint);
+		const pp = window.__pdpPainelPrefs;
+		pp.topo(panel, {
+			conteudo: [header, hint, footer],
+			itens: ".pdp-qa-fav-card",
+			grupos: ".pdp-qa-fav-group",
+			rotulo: ".pdp-qa-fav-group-label",
+			aoFiltrar: function () { if (grid.isConnected) applyVisibility(); }
+		});
 
 		function applyVisibility() {
 			const cards = grid.querySelectorAll(".pdp-qa-fav-card");
-			const showAll = state.showAll || state.editing;
+			const searching = !!pp.termo(panel);
+			const showAll = state.showAll || state.editing || searching;
 			cards.forEach(function (card, index) {
 				card.classList.toggle("pdp-qa-fav-hidden", !showAll && index >= FAV_VISIBLE_LIMIT);
 			});
@@ -4961,7 +4989,7 @@
 				box.classList.toggle("pdp-qa-fav-hidden", !box.querySelector(".pdp-qa-fav-card:not(.pdp-qa-fav-hidden)"));
 			});
 			const hiddenCount = Math.max(0, cards.length - FAV_VISIBLE_LIMIT);
-			footer.hidden = hiddenCount === 0;
+			footer.hidden = hiddenCount === 0 || searching;
 			showAllBox.checked = showAll;
 			showAllBox.disabled = state.editing;
 			showAllText.textContent = "Mostrar todas (+" + hiddenCount + ")";
@@ -4975,6 +5003,15 @@
 
 		editBtn.addEventListener("click", function () {
 			state.editing = !state.editing;
+			// Arrastar com cards escondidos pela busca embaralharia a ordem.
+			const search = panel.querySelector(".pdp-pp-busca");
+			if (search) {
+				if (state.editing && search.value) {
+					search.value = "";
+					pp.filtrar(panel);
+				}
+				search.disabled = state.editing;
+			}
 			panel.classList.toggle("pdp-qa-fav-editing", state.editing);
 			editBtn.textContent = state.editing ? "✅ Concluir" : "✏️ Editar posição";
 			hint.hidden = !state.editing;
@@ -5251,6 +5288,7 @@
 			} else {
 				buildFavGroups(grid, items, buildCard).forEach(makeGroupDraggable);
 			}
+			pp.filtrar(panel);
 			applyVisibility();
 		});
 

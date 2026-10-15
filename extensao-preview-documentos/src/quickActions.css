@@ -181,6 +181,22 @@
 	text-decoration: underline;
 }
 
+/* "+ Nova preferência" e "Abrir" lado a lado, na linha do nome da ação. */
+.pdp-qa-action-btns {
+	display: inline-flex;
+	flex-shrink: 0;
+	align-items: center;
+	gap: 4px;
+}
+
+.pdp-qa-action-header .pdp-qa-pref-new {
+	display: inline-block;
+	margin: 0;
+	font-size: 11px;
+	color: #1a5fb4;
+	white-space: nowrap;
+}
+
 /* Painel "⭐ Minhas Preferências": um bloco por ação (ícone do botão, nome
    da ação e quantidade), lado a lado, com cards retangulares de uma linha
    (★ nome ✏️ 🗑) dentro. O mesmo visual é usado no ⭐ da linha do processo
