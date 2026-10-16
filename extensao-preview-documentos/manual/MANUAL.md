@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.41.2 |
-| **Versão da extensão** | 2.41.2 |
+| **Versão do manual** | 2.41.3 |
+| **Versão da extensão** | 2.41.3 |
 | **Data desta versão** | 16/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1860,7 +1860,12 @@ processo é recarregada.
   pesquisa de novo de outras formas (sem acentos, só pela palavra mais
   longa do nome e pelo código do assunto).
 - Se mesmo assim o assunto não aparecer, ou não entrar na lista, **nada é
-  salvo** e aparece um aviso — use **✏️ Alterar** para fazer à mão.
+  salvo** e aparece um aviso — use **✏️ Alterar** para fazer à mão. Se o
+  Projudi tiver mostrado alguma mensagem ao selecionar o assunto, ela vem
+  no aviso, depois de "Aviso do Projudi:".
+- Às vezes o Projudi não reage ao primeiro **Selecionar**. A extensão
+  percebe, clica de novo e, se ainda assim não der, recomeça tudo sozinha
+  (até 3 tentativas). O aviso no alto da tela mostra "tentando de novo".
 - A preferência só **inclui** assunto secundário. Para remover, use o
   **✖** ao lado do assunto (abaixo).
 - Preferências de assunto secundário gravadas em versões de teste
@@ -2790,6 +2795,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.41.3 | 16/10/2026 | Alterar Classe/Assuntos (8.9), preferência de assunto secundário: corrigido o aviso "a tela de alteração não voltou depois de selecionar o assunto" (ex.: **Injúria**, **Violação de domicílio**), que aparecia quando o Projudi não recarregava a tela inteira depois do **Selecionar**. Agora a extensão confere se o assunto entrou na lista, recarregando a tela ou não. Se der errado, o aviso mostra também a mensagem do Projudi. *Bom saber* da 8.9 atualizado. Quando o Projudi não reage ao **Selecionar** (assunto secundário e prioridades), a extensão clica de novo e, no assunto secundário, recomeça sozinha (até 3 tentativas) — antes era preciso usar a preferência outra vez —, e passa a esperar a janela de seleção terminar de carregar antes de marcar o assunto (com assuntos como **Injúria**, que já aparecem na janela sem pesquisa, o primeiro **Selecionar** era ignorado). Para o Projudi lento (sobretudo o de testes), a extensão espera mais pela resposta antes de desistir — até 1 minuto por tela — nas preferências de classe, assuntos, prioridades e valor da causa, na inclusão de advogado e no Tipo de Documento das juntadas. |
 | 2.41.2 | 16/10/2026 | Minhas Preferências (7.3) e ⭐ na linha do processo (9.3): os nomes das preferências e dos combos não aparecem mais cortados com "…". A letra dos cards ficou um pouco menor e, quando o nome é comprido, ele continua na linha de baixo, no mesmo card. Nos cards do Analisar (Pré-Análise) e do Analisar Decurso, a descrição da ação fica numa linha em cima e o nome embaixo. Textos da 7.3 e da 9.3 atualizados. |
 | 2.41.1 | 16/10/2026 | Alterar Classe/Assuntos (8.9), preferência de assunto secundário: corrigido o aviso "o assunto … não apareceu na pesquisa da janela de seleção" para assuntos de nome longo (ex.: **14227 - Crime de Descumprimento de Medida Protetiva de Urgência**). Se a pesquisa pelo nome inteiro não traz o assunto, a extensão pesquisa de novo sem acentos, pela palavra mais longa do nome e pelo código. *Bom saber* da 8.9 atualizado. |
 | 2.41.0 | 15/10/2026 | **Nova seção 8.11 — Prioridades:** na linha **Prioridade** do cabeçalho do processo (só no Projudi), **✖** ao lado de cada prioridade que pode ser tirada (remove e salva, depois de confirmar), **➕ Incluir** (abre a tela de alteração num popup já com a **Seleção de Prioridade**; depois do **Selecionar**, salva sozinho) e **⭐** com preferências que incluem/tiram prioridades e salvam com um clique — também nos **🔗 Combos**. Sem prioridade, a linha aparece com "(nenhuma)". Sumário, tabela da 2.6, seções 7.4 e 7.8 atualizados. Novo vídeo V56. |

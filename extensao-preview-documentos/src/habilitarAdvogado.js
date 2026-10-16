@@ -257,7 +257,7 @@
 	// de habilitação, às vezes aberto sozinho ao carregar a tela).
 	const SELECAO_PATH = "/projudi/usuario/advogadoSelecao.do";
 	const ESPERA_JANELA_MS = 1500; // a tela pode abrir a seleção sozinha
-	const LIMITE_ETAPA_MS = 20000;
+	const LIMITE_ETAPA_MS = 40000; // folgado: o Projudi às vezes demora
 
 	function janelaSelecao(doc) {
 		const quadros = doc.querySelectorAll("iframe");
