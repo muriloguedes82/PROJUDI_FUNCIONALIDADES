@@ -198,8 +198,9 @@
 }
 
 /* Painel "⭐ Minhas Preferências": um bloco por ação (ícone do botão, nome
-   da ação e quantidade), lado a lado, com cards retangulares de uma linha
-   (★ nome ✏️ 🗑) dentro. O mesmo visual é usado no ⭐ da linha do processo
+   da ação e quantidade), lado a lado, com cards retangulares (★ nome ✏️ 🗑)
+   dentro. O nome aparece sempre por inteiro: em letra menor e, se ainda não
+   couber, quebrando em mais linhas (nunca cortado com "…"). O mesmo visual é usado no ⭐ da linha do processo
    (preferenciasNaLinha.js), lá sem os botões ✏️ 🗑. */
 .pdp-qa-fav-panel {
 	width: 720px;
@@ -266,8 +267,9 @@
 	display: flex;
 	align-items: center;
 	gap: 3px;
+	flex-wrap: wrap;
 	min-width: 0;
-	max-width: 240px;
+	max-width: 280px;
 	box-sizing: border-box;
 	background: #fff8e6;
 	border: 1px solid #e8cf8a;
@@ -332,13 +334,24 @@
 }
 
 .pdp-qa-fav-card-name {
+	flex: 1 1 0;
 	min-width: 0;
-	font-size: 11px;
+	font-size: 10px;
+	line-height: 1.2;
 	font-weight: bold;
 	color: #333;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
+	white-space: normal;
+	overflow-wrap: anywhere;
+}
+
+/* Linha de cima dos cards com a ação escrita (Analisar Decurso, Pré-Análise
+   no ⭐ das listas): ocupa a largura toda, para o nome ter a linha de baixo
+   inteira. */
+.pdp-qa-fav-card-action {
+	flex: 1 0 100%;
+	font-size: 9px;
+	line-height: 1.2;
+	color: #6b5a2a;
 }
 
 .pdp-qa-fav-card.pdp-qa-fav-combo {
