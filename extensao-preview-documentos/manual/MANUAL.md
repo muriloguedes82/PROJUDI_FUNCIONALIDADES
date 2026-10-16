@@ -2240,9 +2240,11 @@ Urgência, Para Assinar…) estiverem zeradas. Quando surge pendência, a linha
 reaparece sozinha.
 
 **No SEEU:** vale na **Mesa do(a) Analista Judiciário**, em todas as abas
-(Análise de Juntadas, Intimações, Outros Cumprimentos…). Ex.: na aba
-**Análise de Juntadas**, com "Comunicações aguardando retorno: 0", essa
-linha some, e "Juntadas: 101" continua à vista.
+(Pendências de Incidentes, Cumprimentos de Medidas, Intimações, Análise de
+Juntadas, Outros Cumprimentos…). Ex.: na aba **Pendências de Incidentes**,
+"Indulto: 0" some e "Término de Pena: 2" continua à vista; em **Outros
+Cumprimentos**, uma linha só some se todas as colunas (Para Conferir, Para
+Expedir, Para Assinar, Com Urgência…) estiverem zeradas.
 
 <a id="cap-9-5"></a>
 ### 9.5 RG e CPF das partes nos cumprimentos
@@ -2777,7 +2779,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 2.42.0 | 16/10/2026 | Seção 9.4: a **Mesa do Analista sem itens zerados** passa a valer também no **SEEU** (Mesa do(a) Analista Judiciário, em todas as abas): as linhas com contador zerado somem e voltam sozinhas quando surge pendência. Ajustes em 1.3 e na abertura do capítulo 9. Sem vídeo novo (a tela é a mesma do vídeo V31). |
+| 2.42.0 | 16/10/2026 | Seção 9.4: a **Mesa do Analista sem itens zerados** passa a valer também no **SEEU** (Mesa do(a) Analista Judiciário, em todas as abas: Pendências de Incidentes, Cumprimentos de Medidas, Intimações, Análise de Juntadas, Outros Cumprimentos…): as linhas com contador zerado somem e voltam sozinhas quando surge pendência. Ajustes em 1.3 e na abertura do capítulo 9. Sem vídeo novo (a tela é a mesma do vídeo V31). |
 | 2.41.0 | 15/10/2026 | **Nova seção 8.11 — Prioridades:** na linha **Prioridade** do cabeçalho do processo (só no Projudi), **✖** ao lado de cada prioridade que pode ser tirada (remove e salva, depois de confirmar), **➕ Incluir** (abre a tela de alteração num popup já com a **Seleção de Prioridade**; depois do **Selecionar**, salva sozinho) e **⭐** com preferências que incluem/tiram prioridades e salvam com um clique — também nos **🔗 Combos**. Sem prioridade, a linha aparece com "(nenhuma)". Sumário, tabela da 2.6, seções 7.4 e 7.8 atualizados. Novo vídeo V56. |
 | 2.40.0 | 15/10/2026 | Seção 9.8: o processo ao passar o mouse também na lista de **Processos Paralisados** — pousar o mouse sobre o **número do processo** abre a tela dele num painel, já na aba **Movimentações**. Título da seção, Sumário e tabela da 2.6 atualizados; vídeo V44 regravado. |
 | 2.39.0 | 15/10/2026 | Seção 9.8: o processo ao passar o mouse também nas listas **Expedir Intimações** e **Expedir Citação** — pousar o mouse sobre o **número do processo** abre a tela dele num painel, já na aba **Movimentações**. Título da seção, Sumário e tabela da 2.6 atualizados; vídeo V44 regravado. |
