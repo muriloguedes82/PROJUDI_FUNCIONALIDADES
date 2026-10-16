@@ -22,13 +22,18 @@
 // Preferências de "Juntar Documento", do "Alvará Eletrônico" e de "Advogados" continuam só
 // na tela do processo (dependem de arquivos/telas próprias).
 //
-// SEEU (listas Análise de Juntadas e Retorno de Conclusão): as ações
+// SEEU (listas Análise de Juntadas, Retorno de Conclusão e as de Decurso de
+// Prazo - Intimações e Intimação de Auxiliares da Justiça): as ações
 // rápidas não funcionam no SEEU, então o ⭐ lista as preferências do
 // "📍 Localizador" (localizadorSeeu.js). Ao escolher uma, a tela do
 // processo (link da linha, visualizacaoProcesso.do) é carregada num iframe
 // oculto e os localizadores são associados nela, pela lista do "+" do
 // próprio SEEU (window.__pdpLocalizador.associarEm); a linha mostra o
-// andamento e o resultado, sem sair da listagem.
+// andamento e o resultado, sem sair da listagem. Nas listas de decurso, o
+// ⭐ de uma linha traz também "📝 Analisar Decurso" com "Abrir a análise"
+// (decursoNaLinha.js; as preferências do Analisar Decurso dependem do Juntar
+// Documento, que ainda é só do Projudi), e a barra "Em lote" ganha o
+// "Dispensar nos marcados" (também de decursoNaLinha.js).
 //
 // EM LOTE: cada linha ganha uma caixinha de marcar, abaixo do "+" da
 // primeira coluna, e uma barra "⭐ Em lote" acima da tabela executa a mesma
@@ -97,7 +102,10 @@
 		// SEEU: sem `pergunta` de propósito (o SEEU não trava ações com
 		// pendências - ver a REGRA no início do arquivo).
 		"/seeu/processo/analisarJuntada.do": { tipo: "juntada", seeu: true },
-		"/seeu/processo/conclusao.do": { tipo: "conclusao", seeu: true }
+		"/seeu/processo/conclusao.do": { tipo: "conclusao", seeu: true },
+		"/seeu/processo/intimacaoBusca.do": { tipo: "decurso", seeu: true },
+		"/seeu/processo/intimacaoNomeados.do": { tipo: "decurso", seeu: true },
+		"/seeu/processo/citacao.do": { tipo: "decurso", seeu: true }
 	};
 	const tela = TELAS[location.pathname];
 	if (!tela) return;
@@ -773,7 +781,7 @@
 		if (tela.seeu) {
 			montarPainelSeeu(ancora, titulo, false, function (pref, nome) {
 				executarSeeu(dadosLinha(row, cnj), pref, nome);
-			});
+			}, row);
 			return;
 		}
 		montarPainel(ancora, titulo, false, function (item) {
@@ -1015,11 +1023,13 @@
 
 	// --- SEEU: preferências do 📍 Localizador --------------------------------------------
 
-	function montarPainelSeeu(ancora, titulo, emLote, escolher) {
+	// `row`: a linha do ⭐ (fora do lote), para a seção do Analisar Decurso.
+	function montarPainelSeeu(ancora, titulo, emLote, escolher, row) {
 		const loc = window.__pdpLocalizador;
 		const p = novoPainel(ancora, titulo);
 		const box = p.box;
 		const grade = p.grade;
+		if (!emLote && row) secaoDecursoSeeu(box, ancora, row);
 
 		if (!loc || !loc.associarEm) {
 			grade.replaceWith(el("div", { class: "pdp-tl-vazio", text: "Ative \"Localizador (SEEU)\" no Menu da extensão (ícone da balança) e recarregue a página." }));
@@ -1055,6 +1065,36 @@
 		}).catch(function (e) {
 			console.error(TAG, "falha ao listar as preferências de localizadores:", e);
 		});
+	}
+
+	// SEEU, listas de decurso: "📝 Analisar Decurso" com "Abrir a análise"
+	// (o mesmo do botão da linha). As preferências do Analisar Decurso
+	// dependem do Juntar Documento, que no SEEU ainda não funciona.
+	function secaoDecursoSeeu(box, ancora, row) {
+		const dec = window.__pdpDecursoNaLinha;
+		const caixa = row.querySelector(".pdp-dec-acoes");
+		if (!dec || !dec.executarNaLinha || !caixa || !caixa.querySelector(".pdp-dec-btn")) return;
+		const sec = el("div", { class: "pdp-tl-sec", text: "📝 Analisar Decurso" });
+		const grade = el("div", { class: "pdp-qa-fav-grid" });
+		grade.appendChild(cardClicavel(el("div", {
+			class: "pdp-qa-fav-card",
+			tabindex: "0",
+			role: "button",
+			title: "Abre a tela de análise do decurso deste processo no popup, sem preencher nada"
+		}, [
+			el("span", { class: "pdp-qa-fav-card-action", text: "Analisar Decurso" }),
+			el("span", { class: "pdp-qa-fav-card-name", text: "Abrir a análise" })
+		]), function () {
+			fecharPainel();
+			dec.executarNaLinha(row, { acao: "abrir" });
+		}));
+		// Fica no fim do painel, depois das preferências do Localizador.
+		setTimeout(function () {
+			if (!painel || painel.el !== box) return;
+			box.appendChild(sec);
+			box.appendChild(grade);
+			posicionar(box, ancora);
+		}, 0);
 	}
 
 	// Tela do processo do SEEU pronta: com o cabeçalho de localizadores e o

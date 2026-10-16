@@ -17,11 +17,11 @@ Não houve teste no SEEU real: o "precisa de teste" abaixo vem só da leitura do
 | Envio por e-mail (Outlook) | Completa |
 | Sistemas do CNJ | Só os cards **BNMP**, **SESP** e **S.U.** (os demais ficam só no Projudi) |
 | Localizador (SEEU) | Exclusiva do SEEU |
-| Minhas Preferências na linha (⭐) | Só nas listas **Análise de Juntadas** e **Retorno de Conclusão**, e só com preferências do 📍 Localizador (com ⭐ Em lote) |
+| Minhas Preferências na linha (⭐) | Listas **Análise de Juntadas**, **Retorno de Conclusão** e de **Decurso de Prazo** (2.45.0): preferências do 📍 Localizador (com ⭐ Em lote); nas de decurso, também Abrir a análise e Dispensar nos marcados |
 | Ações rápidas e Minhas Preferências | Parcial: ⭐ Minhas Preferências e 🔗 Combos com etapas do Localizador. Os grupos personalizados e o 📋 Colar processo ficam só no Projudi |
 | Ocultar contadores zerados | Mesa do(a) Analista Judiciário, todas as abas (liberada na 2.42.0; conferida nas telas salvas de Análise de Juntadas, Pendências de Incidentes, Cumprimentos de Medidas, Intimações e Outros Cumprimentos; grupos todos zerados somem com o título) |
 | Processo ao passar o mouse | Listas de Juntadas, Retorno de Conclusão, Mandados/Demais Cumprimentos, Decurso de Prazo, Paralisados, Suspensos, Execuções e Painel de Incidentes (liberada na 2.43.0) |
-| Analisar e Dispensar decurso na lista | Listas Intimações e Auxiliares da Justiça: Dispensar e "Abrir a análise" (liberada na 2.44.0); faltam as preferências do Analisar Decurso (dependem do Juntar Documento) e os botões em lote |
+| Analisar e Dispensar decurso na lista | Listas Intimações e Auxiliares da Justiça: Dispensar e "Abrir a análise" (liberada na 2.44.0); ⭐ e "Dispensar nos marcados" na 2.45.0; faltam as preferências do Analisar Decurso (dependem do Juntar Documento) |
 | Listas de tarefas | Nas listas do SEEU que usam a ⭐ (necessária para a ⭐ na linha) |
 | Documento do Juiz ao passar o mouse no Retorno de Conclusão | O código atende `/seeu/processo/conclusao.do` (Anexo B, v2.29.0, diz "Projudi e SEEU"), **mas a tabela da seção 1.3 do manual não cita essa função** |
 
@@ -48,7 +48,7 @@ Não houve teste no SEEU real: o "precisa de teste" abaixo vem só da leitura do
 - Endereço da parte e Mandado Regionalizado
 - Ações rápidas: grupos de ações e preferências das ações (remessa, intimação, ordenação etc.)
 - Sistemas do CNJ: SerpJud, CNIEP, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Renajud e o card Outros (COPEL, FUPEN, SANEPAR)
-- Minhas Preferências na linha (⭐) nas listas de Decurso de Prazo, cumprimentos, Expedir Intimações/Citação e Pré-Análise
+- Minhas Preferências na linha (⭐) nas listas de cumprimentos, Expedir Intimações/Citação e Pré-Análise
 
 ### 2.3 O código não bloqueia o SEEU, mas não estão declaradas como liberadas (precisam de teste no SEEU)
 
@@ -73,7 +73,7 @@ Uma função por vez, a partir de telas salvas do SEEU enviadas pelo usuário:
 
 1. Ocultar contadores zerados — **feito (2.42.0)**
 2. Processo ao passar o mouse — **feito (2.43.0)**
-3. Analisar/Dispensar decurso na lista — **feito em parte (2.44.0)**; faltam as preferências, o lote e a ⭐ nas listas de decurso
+3. Analisar/Dispensar decurso na lista — **feito em parte (2.44.0 e 2.45.0, com ⭐ e lote)**; faltam as preferências do Analisar Decurso
 4. RG e CPF nos cumprimentos e ⭐ nas listas de cumprimentos
 5. Dispensar juntadas/decursos/cumprimentos e Finalizar conclusão — o usuário pediu
    "da mesma forma que no Projudi" (confirmar, ao chegar aqui, se isso inclui as perguntas

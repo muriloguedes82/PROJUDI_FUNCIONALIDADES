@@ -562,7 +562,9 @@
 		loteEl.className = "pdp-dec-lote";
 		loteEl.innerHTML =
 			'<button type="button" class="pdp-tl-btn" data-pdp-dec-lote="dispensar" title="Dispensar a análise do decurso nos processos marcados, um de cada vez (a confirmação do ' + SISTEMA + ' é aceita sozinha)">Dispensar nos marcados</button>' +
-			'<button type="button" class="pdp-tl-btn" data-pdp-dec-lote="analisar" title="Analisar o decurso nos processos marcados com uma preferência, um de cada vez (você assina cada documento)">Analisar decurso nos marcados</button>' +
+			// No SEEU ainda não há preferências do Analisar Decurso (dependem
+			// do Juntar Documento): lá o lote só dispensa.
+			(NO_SEEU ? "" : '<button type="button" class="pdp-tl-btn" data-pdp-dec-lote="analisar" title="Analisar o decurso nos processos marcados com uma preferência, um de cada vez (você assina cada documento)">Analisar decurso nos marcados</button>') +
 			'<button type="button" class="pdp-tl-btn" data-pdp-dec-lote="parar" hidden title="Não começar os próximos processos (o atual continua)">⏹ Parar</button>' +
 			'<span class="pdp-dec-lote-status" role="status"></span>';
 		barra.appendChild(loteEl);
