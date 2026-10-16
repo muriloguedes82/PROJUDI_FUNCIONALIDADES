@@ -65,7 +65,9 @@
 //   longa, pelo código — ver termosDePesquisa) → marca o assunto →
 //   Selecionar —, espera o assunto aparecer na lista (a tela de alteração
 //   pode recarregar ou não — ver selecionarEConferir) e só então clica em
-//   "Salvar". Se o assunto não aparecer na lista, nada é salvo.
+//   "Salvar". Se o assunto não aparecer na lista, nada é salvo. Sem
+//   resposta do Projudi, clica de novo no "Selecionar" e recomeça tudo, até
+//   3 vezes (ver selecionarEConferir e executarSecundario).
 //
 // REMOVER (✖ no fim de cada assunto secundário do cabeçalho): depois de
 // confirmar, a extensão carrega a tela de alteração num quadro oculto,
@@ -104,6 +106,11 @@
 	// Limite de espera por resposta do Projudi: folgado, porque o servidor
 	// (sobretudo o de testes) às vezes passa de 30 s numa única tela.
 	const EXEC_TIMEOUT_MS = 60000;
+	// "Selecionar" sem reação do Projudi (ver selecionarEConferir) e
+	// tentativas da preferência de assunto secundário inteira.
+	const CLIQUE_PERDIDO_MS = 6000;
+	const CLIQUES_SELECIONAR = 3;
+	const TENTATIVAS_SECUNDARIO = 3;
 	// Campos de controle da página (tokens de uso único etc.): nunca entram
 	// numa preferência — repor um valor antigo invalidaria o envio.
 	const CAMPOS_IGNORADOS = /token|^_tj$|^org\.apache\.struts|^actionType$|^selectedIcon$/i;
@@ -520,7 +527,9 @@
 		return new Promise(function (resolve, reject) {
 			const limite = setTimeout(function () {
 				quadro.removeEventListener("load", aoCarregar);
-				reject(new Error(erro || "o Projudi demorou demais para responder."));
+				const falha = new Error(erro || "o Projudi demorou demais para responder.");
+				falha.repetir = true; // o Projudi não respondeu: vale tentar de novo
+				reject(falha);
 			}, ms || EXEC_TIMEOUT_MS);
 			function aoCarregar() {
 				let d = null;
@@ -750,8 +759,25 @@
 	// por isso a lista é conferida na tela atual, na tela recarregada e na
 	// que se abrir dentro da janela de seleção. Devolve o documento com o
 	// assunto na lista (é nele que se clica em "Salvar").
-	async function selecionarEConferir(quadro, docAntes, dlg, selecionar, pref) {
+	//
+	// CLIQUE PERDIDO: às vezes o Projudi não reage ao primeiro "Selecionar"
+	// (nenhuma tela carrega; na mão, a 2ª ou 3ª tentativa dá certo). Se em
+	// CLIQUE_PERDIDO_MS nada se mexer — nenhuma tela saiu nem voltou —,
+	// marca o assunto e clica de novo, até CLIQUES_SELECIONAR vezes.
+	async function selecionarEConferir(quadro, docAntes, dlg, selecionar, pref, radio) {
 		const avisos = [];
+		let mexeu = false;
+		function marcarMovimento() {
+			mexeu = true;
+		}
+		[dlg.defaultView, quadro.contentWindow].forEach(function (w) {
+			try {
+				w.addEventListener("pagehide", marcarMovimento);
+				w.addEventListener("beforeunload", marcarMovimento);
+			} catch (err) {
+				// segue
+			}
+		});
 		capturarAvisos(dlg.defaultView, avisos);
 		capturarAvisos(quadro.contentWindow, avisos);
 		function aoCarregar() {
@@ -775,6 +801,8 @@
 		}
 		try {
 			selecionar.click();
+			let cliques = 1;
+			let ultimoClique = Date.now();
 			const fim = Date.now() + EXEC_TIMEOUT_MS;
 			let semAssuntoDesde = 0;
 			while (Date.now() < fim) {
@@ -784,6 +812,20 @@
 				if (certa) {
 					await pausa(300); // scripts da tela recarregada terminarem
 					return certa;
+				}
+				if (!dlg.defaultView || quadro.contentDocument !== docAntes) mexeu = true;
+				if (!mexeu && Date.now() - ultimoClique > CLIQUE_PERDIDO_MS && !avisos.length) {
+					if (cliques >= CLIQUES_SELECIONAR) {
+						const perdido = new Error('o Projudi não reagiu ao "Selecionar" da janela de seleção. Nada foi salvo.');
+						perdido.repetir = true;
+						throw perdido;
+					}
+					console.info("[Alterar Classe/Assuntos] o Projudi não reagiu ao \"Selecionar\"; clicando de novo.");
+					if (!radio.checked) radio.click();
+					selecionar.click();
+					cliques++;
+					ultimoClique = Date.now();
+					continue;
 				}
 				// A tela de alteração voltou (é outra) sem o assunto: dá um
 				// tempo para scripts da tela e desiste.
@@ -795,7 +837,9 @@
 					}
 				}
 			}
-			throw new Error(comAvisos("a tela de alteração não voltou depois de selecionar o assunto. Nada foi salvo.", null));
+			const demorou = new Error(comAvisos("a tela de alteração não voltou depois de selecionar o assunto. Nada foi salvo.", null));
+			demorou.repetir = !avisos.length;
+			throw demorou;
 		} finally {
 			clearInterval(vigia);
 			quadro.removeEventListener("load", aoCarregar);
@@ -804,18 +848,41 @@
 
 	// Execução de uma preferência de assunto secundário (ver o início do
 	// arquivo): Adicionar → pesquisa → marca → Selecionar → confere → Salvar.
+	//
+	// Se o Projudi não responder (erro marcado com `repetir`), a extensão
+	// começa de novo, do zero, até TENTATIVAS_SECUNDARIO vezes — como o
+	// usuário faria. Numa nova tentativa, o assunto já na lista da tela de
+	// alteração pode ter entrado pela tentativa anterior sem ter sido salvo:
+	// então só se clica em "Salvar" (salvar de novo o que já está salvo não
+	// muda nada).
 	async function executarSecundario(pref, titulo) {
 		if (!pref.idAssunto) {
 			throw new Error("esta preferência foi gravada numa versão anterior da extensão e não pode ser usada. Apague-a (🗑) e grave de novo.");
 		}
+		for (let n = 0; ; n++) {
+			try {
+				return await tentativaSecundario(pref, titulo, n);
+			} catch (err) {
+				if (!err || !err.repetir || n + 1 >= TENTATIVAS_SECUNDARIO) throw err;
+				console.info("[Alterar Classe/Assuntos] tentativa " + (n + 1) + " falhou (" + err.message + "); tentando de novo.");
+				mostrarStatus(titulo + " — o Projudi não respondeu; tentando de novo (" + (n + 2) + "ª tentativa)…");
+				await pausa(1000);
+			}
+		}
+	}
+
+	async function tentativaSecundario(pref, titulo, n) {
 		const url = await urlDaEdicao();
 		const quadro = criarQuadroOculto();
 		try {
-			let carga = proximaCarga(quadro);
+			const carga = proximaCarga(quadro);
 			quadro.src = url;
 			let doc = await carga;
 			if (!doc || !doc.getElementById(FORM_ID)) throw new Error("a tela de alteração do processo não abriu.");
-			if (temSecundario(doc, pref.idAssunto)) return { jaEstava: true };
+			if (temSecundario(doc, pref.idAssunto)) {
+				if (n === 0) return { jaEstava: true };
+				return await salvarSecundario(quadro, doc, titulo);
+			}
 			const adicionar = doc.getElementById("addButton");
 			if (!adicionar) throw new Error('não encontrei o botão "Adicionar" dos Assuntos Secundários.');
 
@@ -824,7 +891,10 @@
 			const janela = await esperar(function () {
 				const j = docDaJanela(doc);
 				return j && j.doc.getElementById("descricaoPesquisa") && j.doc.getElementById("searchButton") ? j : null;
-			}, EXEC_TIMEOUT_MS, "a janela de seleção de assunto não abriu.");
+			}, EXEC_TIMEOUT_MS, "a janela de seleção de assunto não abriu.").catch(function (err) {
+				err.repetir = true;
+				throw err;
+			});
 
 			mostrarStatus(titulo + " — pesquisando o assunto…");
 			const radio = await pesquisarNaJanela(janela.quadro, pref);
@@ -837,20 +907,23 @@
 			if (!selecionar) throw new Error('não encontrei o botão "Selecionar" da janela de seleção.');
 
 			mostrarStatus(titulo + " — selecionando o assunto…");
-			doc = await selecionarEConferir(quadro, doc, dlg, selecionar, pref);
-			const salvar = doc.getElementById("saveButton");
-			if (!salvar) throw new Error('não encontrei o botão "Salvar".');
-
-			mostrarStatus(titulo + " — salvando…");
-			// A tela com o assunto pode estar dentro da janela de seleção:
-			// a resposta do "Salvar" chega no quadro dela.
-			const quadroDaTela = doc === quadro.contentDocument ? quadro : doc.defaultView.frameElement || quadro;
-			carga = proximaCarga(quadroDaTela);
-			salvar.click();
-			return respostaDoSalvar(await carga);
+			doc = await selecionarEConferir(quadro, doc, dlg, selecionar, pref, radio);
+			return await salvarSecundario(quadro, doc, titulo);
 		} finally {
 			setTimeout(function () { quadro.remove(); }, 0);
 		}
+	}
+
+	// "Salvar" da tela de alteração `doc` (no quadro oculto ou dentro da
+	// janela de seleção: a resposta chega no quadro dela).
+	async function salvarSecundario(quadro, doc, titulo) {
+		const salvar = doc.getElementById("saveButton");
+		if (!salvar) throw new Error('não encontrei o botão "Salvar".');
+		mostrarStatus(titulo + " — salvando…");
+		const quadroDaTela = doc === quadro.contentDocument ? quadro : doc.defaultView.frameElement || quadro;
+		const carga = proximaCarga(quadroDaTela);
+		salvar.click();
+		return respostaDoSalvar(await carga);
 	}
 
 	// -------------------------------------------------------------------

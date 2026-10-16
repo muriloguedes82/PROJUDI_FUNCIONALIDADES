@@ -85,6 +85,8 @@
 	// (sobretudo o de testes) às vezes passa de 30 s numa única tela.
 	const EXEC_TIMEOUT_MS = 60000;
 	const JANELA_TIMEOUT_MS = 40000;
+	const CLIQUE_PERDIDO_MS = 6000;
+	const CLIQUES_SELECIONAR = 3;
 
 	function normalize(text) {
 		return String(text || "")
@@ -500,12 +502,35 @@
 			const selecionar = jan.doc.getElementById("selectButton");
 			mostrarStatus(titulo + " — selecionando…");
 			jan.doc.__pdpUsada = true;
+			// Clique perdido: às vezes o Projudi não reage ao primeiro
+			// "Selecionar" (nenhuma tela sai nem volta). Sem reação em
+			// CLIQUE_PERDIDO_MS, clica de novo, até CLIQUES_SELECIONAR vezes
+			// (como em alterarClasseAssuntos.js).
+			let mexeu = false;
+			const docAntes = quadro.contentDocument;
+			[jan.doc.defaultView, quadro.contentWindow].forEach(function (w) {
+				try {
+					w.addEventListener("pagehide", function () { mexeu = true; });
+					w.addEventListener("beforeunload", function () { mexeu = true; });
+				} catch (err) {
+					// segue
+				}
+			});
 			selecionar.click();
+			let cliques = 1;
+			let ultimoClique = Date.now();
 			// O "Selecionar" pode atualizar a tela de alteração ou recarregá-la
 			// inteira: vale a que estiver no quadro quando a prioridade mudar.
 			try {
 				doc = await esperar(function () {
 					const d = quadro.contentDocument;
+					if (d !== docAntes || !jan.doc.defaultView) mexeu = true;
+					if (!mexeu && cliques < CLIQUES_SELECIONAR && Date.now() - ultimoClique > CLIQUE_PERDIDO_MS) {
+						console.info('[Prioridades] o Projudi não reagiu ao "Selecionar"; clicando de novo.');
+						selecionar.click();
+						cliques++;
+						ultimoClique = Date.now();
+					}
 					if (!d || !d.getElementById(FORM_ID)) return null;
 					semDialogos(quadro.contentWindow);
 					const a = assinatura(d);
