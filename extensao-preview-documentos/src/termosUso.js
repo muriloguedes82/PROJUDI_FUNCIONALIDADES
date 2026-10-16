@@ -37,6 +37,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 		js: [
 			"src/hostGuard.js",
 			"src/uiVisibility.js",
+			"src/painelPreferencias.js",
 			"src/clipboardProcess.js",
 			"src/documentSelection.js",
 			"src/content.js",
@@ -66,6 +67,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/editarPartes.js",
 			"src/alterarClasseAssuntos.js",
 			"src/alterarValorCausa.js",
+			"src/alterarPrioridades.js",
 			"src/alvaraEletronico.js",
 			"src/juntarDocumento.js",
 			"src/reusCabecalho.js",
@@ -81,6 +83,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/menuExtensao.js"
 		],
 		css: [
+			"src/painelPreferencias.css",
 			"src/content.css",
 			"src/email.css",
 			"src/quickActions.css",

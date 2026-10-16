@@ -717,19 +717,49 @@
 		});
 	}
 
+	// Topo fixo do painel (painelPreferencias.js): título, busca e os
+	// atalhos "+ Nova preferência" das seções (novaNoTopo). Com muitas
+	// preferências, as seções do fim (Analisar/Pré-Análise e Analisar
+	// Decurso) ficavam fora da vista e o "+ Nova" delas só aparecia rolando
+	// o painel ou diminuindo o zoom.
 	function novoPainel(ancora, titulo) {
 		const box = el("div", { class: "pdp-tl-popover pdp-pl-painel", id: "pdpPreferenciasLinha" });
-		box.appendChild(el("div", { class: "pdp-tl-pop-cab" }, [
-			el("strong", { text: titulo }),
-			el("button", { type: "button", class: "pdp-tl-x", title: "Fechar", text: "✕", onclick: fecharPainel })
-		]));
 		const grade = el("div", { class: "pdp-qa-fav-grid" });
 		box.appendChild(grade);
 		document.body.appendChild(box);
+		window.__pdpPainelPrefs.topo(box, {
+			conteudo: [el("div", { class: "pdp-tl-pop-cab" }, [
+				el("strong", { text: titulo }),
+				el("button", { type: "button", class: "pdp-tl-x", title: "Fechar", text: "✕", onclick: fecharPainel })
+			])],
+			itens: ".pdp-qa-fav-card:not(.pdp-pl-nova)",
+			grupos: ".pdp-qa-fav-group",
+			rotulo: ".pdp-qa-fav-group-label",
+			aoFiltrar: function (termo) { esconderSecoesVazias(box, termo); }
+		});
 		painel = { el: box, ancora: ancora };
 		posicionar(box, ancora);
 		setTimeout(function () { document.addEventListener("mousedown", foraDoPainel, true); }, 0);
 		return { box: box, grade: grade };
+	}
+
+	// Atalho no topo do painel para o "+ Nova preferência" de uma seção.
+	function novaNoTopo(box, texto, titulo, ativar) {
+		const novas = box.querySelector(".pdp-pp-novas");
+		if (novas) novas.appendChild(el("button", { type: "button", class: "pdp-pp-nova", title: titulo, text: texto, onclick: ativar }));
+	}
+
+	// Busca: uma seção (título .pdp-tl-sec + a grade que vem logo depois)
+	// sem nenhuma preferência à vista some inteira. O card "+ Nova
+	// preferência" da seção não conta.
+	function esconderSecoesVazias(box, termo) {
+		box.querySelectorAll(":scope > .pdp-tl-sec").forEach(function (sec) {
+			const grade = sec.nextElementSibling;
+			if (!grade || !grade.classList.contains("pdp-qa-fav-grid")) return;
+			const vazia = !!termo && !grade.querySelector(".pdp-qa-fav-card:not(.pdp-pl-nova):not(.pdp-pp-oculto)");
+			sec.classList.toggle("pdp-pp-oculto", vazia);
+			grade.classList.toggle("pdp-pp-oculto", vazia);
+		});
 	}
 
 	// ⭐ de uma linha.
@@ -851,18 +881,21 @@
 		const grade = el("div", { class: "pdp-qa-fav-grid" });
 		box.appendChild(grade);
 		if (!emLote) {
+			const titulo = "Abre a análise do decurso no popup e grava a inclusão do arquivo (Tipo do Arquivo, Modelo e texto); no \"Assinar Arquivos\", pede o nome e salva.";
+			const nova = function () {
+				fecharPainel();
+				escolher({ decurso: true, escolha: { acao: "nova" } });
+			};
+			novaNoTopo(box, "+ Nova · Analisar Decurso", titulo, nova);
 			grade.appendChild(cardClicavel(el("div", {
 				class: "pdp-qa-fav-card pdp-pl-nova",
 				tabindex: "0",
 				role: "button",
-				title: "Abre a análise do decurso no popup e grava a inclusão do arquivo (Tipo do Arquivo, Modelo e texto); no \"Assinar Arquivos\", pede o nome e salva."
+				title: titulo
 			}, [
 				el("span", { class: "pdp-qa-fav-card-action", text: "Analisar Decurso" }),
 				el("span", { class: "pdp-qa-fav-card-name", text: "+ Nova preferência" })
-			]), function () {
-				fecharPainel();
-				escolher({ decurso: true, escolha: { acao: "nova" } });
-			}));
+			]), nova));
 		}
 		const todas = prefs.decurso.map(function (p) { return { pref: p, juntar: false }; })
 			.concat(prefs.juntar.map(function (p) { return { pref: p, juntar: true }; }));
@@ -919,18 +952,21 @@
 			return;
 		}
 		if (!emLote) {
+			const titulo = "Abre o \"Analisar\" (Pré-Análise) deste cumprimento no popup e grava o que você fizer: Tipo do Arquivo, Modelo e texto. A preferência é salva no seu clique em \"Assinar e Expedir\" ou \"Postergar Assinatura\".";
+			const nova = function () {
+				fecharPainel();
+				escolher({ preAnalise: true, acao: "nova" });
+			};
+			novaNoTopo(box, "+ Nova · Analisar (Pré-Análise)", titulo, nova);
 			grade.appendChild(cardClicavel(el("div", {
 				class: "pdp-qa-fav-card pdp-pl-nova",
 				tabindex: "0",
 				role: "button",
-				title: "Abre o \"Analisar\" (Pré-Análise) deste cumprimento no popup e grava o que você fizer: Tipo do Arquivo, Modelo e texto. Na tela do cumprimento, a extensão pergunta se deve sempre clicar em \"Postergar Assinatura\" e salva."
+				title: titulo
 			}, [
 				el("span", { class: "pdp-qa-fav-card-action", text: "Analisar (Pré-Análise)" }),
 				el("span", { class: "pdp-qa-fav-card-name", text: "+ Nova preferência" })
-			]), function () {
-				fecharPainel();
-				escolher({ preAnalise: true, acao: "nova" });
-			}));
+			]), nova));
 		}
 		jd.listarPreAnalise().then(function (todas) {
 			if (!painel || painel.el !== box) return;
@@ -1354,14 +1390,12 @@
 		await percorrerLote(alvos, function (ctx) { return rodarSeeu(ctx, pref, nome); });
 	}
 
+	// Reaplica a busca do topo aos cards que acabaram de entrar e encaixa o
+	// painel na tela (abaixo da ⭐, acima, ou onde couber inteiro, rolando
+	// por dentro - ver painelPreferencias.js).
 	function posicionar(box, ancora) {
-		const r = ancora.getBoundingClientRect();
-		const largura = box.offsetWidth;
-		const altura = box.offsetHeight;
-		let top = r.bottom + 4;
-		if (top + altura > window.innerHeight - 8 && r.top - altura - 4 > 8) top = r.top - altura - 4;
-		box.style.left = Math.max(8, Math.min(r.left, window.innerWidth - largura - 8)) + "px";
-		box.style.top = Math.max(8, top) + "px";
+		window.__pdpPainelPrefs.filtrar(box);
+		window.__pdpPainelPrefs.caber(box, ancora);
 	}
 
 	document.addEventListener("keydown", function (ev) {

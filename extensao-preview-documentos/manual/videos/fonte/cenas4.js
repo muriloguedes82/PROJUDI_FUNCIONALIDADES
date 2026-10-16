@@ -449,12 +449,11 @@ function painelLoc(html) {
 const SL_TIT = t => '<div style="font-weight:700;text-transform:uppercase;color:#475569;margin-bottom:6px">' + t + "</div>";
 const SL_BT = (id, t, prim) => '<span id="' + id + '" style="display:inline-block;padding:5px 10px;font-weight:600;border-radius:6px;border:1px solid ' + (prim ? "#2563eb;background:#2563eb;color:#fff" : "#cbd5e1;background:#fff") + '">' + t + "</span>";
 function listaPrefsLoc(prefs, status) {
-	let h = SL_TIT("Minhas preferências de localizadores");
+	let h = '<div style="border-bottom:1px solid #e3e8dc;padding-bottom:6px;margin-bottom:4px">' + SL_TIT("Minhas preferências de localizadores") + '<div style="text-align:right">' + SL_BT("sl-nova", "➕ Nova preferência", true) + "</div></div>";
 	if (!prefs.length) h += '<div style="color:#64748b;font-style:italic">Nenhuma preferência ainda. Crie uma com os localizadores que você mais usa: depois, um clique associa todos ao processo.</div>';
 	prefs.forEach((p, i) => {
 		h += '<div style="display:flex;gap:2px;margin:4px 0"><span id="sl-pref' + i + '" style="flex:1;padding:6px 8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:4px;color:#1e3a8a"><b>' + p[0] + '</b><br><small style="color:#475569">' + p[1].join(" • ") + '</small></span><span style="width:24px;text-align:center;opacity:.5">↑</span><span style="width:24px;text-align:center">✏️</span><span style="width:24px;text-align:center">🗑</span></div>';
 	});
-	h += '<div style="text-align:right;margin-top:6px">' + SL_BT("sl-nova", "➕ Nova preferência", true) + "</div>";
 	if (status) h += '<div style="margin-top:8px;padding:6px 8px;border-radius:6px;background:' + (status[1] ? "#ecfdf5;color:#065f46" : "#f1f5f9;color:#334155") + '">' + status[0] + "</div>";
 	return painelLoc(h);
 }
@@ -618,7 +617,7 @@ CENAS.V43 = {
 		await S.titleCard("VÍDEO V43", "Preferência de alteração de classe", "Grave uma vez a classe e o motivo; depois, um clique altera e salva.");
 		await S.cap("Ao lado de <b>✏️ Alterar</b> há a <b>⭐</b>. Clique na da classe.");
 		await S.click("#x-alt-classe-pref");
-		let pn = panelAt('<h4>⭐ Preferências — Alterar classe</h4><p style="color:#666;margin:0 0 8px">Nenhuma preferência gravada.</p><span class="x-btn small" id="x-nova">+ Nova preferência</span>', "#x-alt-classe-pref", { w: 300 });
+		let pn = panelAt('<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #e3e8dc;padding-bottom:6px;margin-bottom:6px"><h4 style="margin:0">⭐ Preferências — Alterar classe</h4><span class="x-btn small" id="x-nova" style="font-weight:bold">+ Nova preferência</span></div><p style="color:#666;margin:0 0 4px">Nenhuma preferência gravada.</p>', "#x-alt-classe-pref", { w: 300 });
 		pn.style.left = "330px"; pn.style.top = "180px";
 		await S.click("#x-nova");
 		pn.remove();
@@ -646,7 +645,7 @@ CENAS.V43 = {
 		$(".x-popup").remove();
 		await S.cap("Pronto. Para usar, clique na <b>⭐</b> e no nome da preferência.");
 		await S.click("#x-alt-classe-pref");
-		pn = panelAt('<h4>⭐ Preferências — Alterar classe</h4><div class="x-fcard" style="display:flex;justify-content:space-between;margin-bottom:6px"><span id="x-pref">★ Inquérito Policial (Evolução)</span><span class="i">🗑</span></div><span class="x-btn small">+ Nova preferência</span>', "#x-alt-classe-pref", { w: 320 });
+		pn = panelAt('<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #e3e8dc;padding-bottom:6px;margin-bottom:6px"><h4 style="margin:0">⭐ Preferências — Alterar classe</h4><span class="x-btn small" style="font-weight:bold">+ Nova preferência</span></div><div class="x-fcard" style="display:flex;justify-content:space-between;margin-bottom:2px"><span id="x-pref">★ Inquérito Policial (Evolução)</span><span class="i">🗑</span></div>', "#x-alt-classe-pref", { w: 320 });
 		pn.style.left = "330px"; pn.style.top = "180px";
 		await S.click("#x-pref");
 		pn.remove();
@@ -683,11 +682,11 @@ function painelProcesso(n, x, y) {
 
 CENAS.V44 = {
 	arquivo: "V44-processo-ao-passar-o-mouse.mp4",
-	titulo: "Processo ao passar o mouse no Decurso de Prazo",
+	titulo: "Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões e nos Cumprimentos, no Expedir e nos Paralisados",
 	secao: "9.8",
 	async run() {
 		telaLista("Decurso de Prazo - Intimação", { path: "intimacaoBusca.do", col: "Data Decurso" });
-		await S.titleCard("VÍDEO V44", "Processo ao passar o mouse", "Veja a tela do processo, já na aba Movimentações, sem sair da lista de decurso de prazo.");
+		await S.titleCard("VÍDEO V44", "Processo ao passar o mouse", "Veja a tela do processo, já na aba Movimentações, sem sair da lista de decurso de prazo, de juntadas, de conclusões, de cumprimentos, do Expedir ou de paralisados.");
 		await S.cap("Nas listas de <b>Decurso de Prazo</b> (Intimação, Auxiliares da Justiça e Citações/Notificações), pare o mouse sobre o <b>número do processo</b>.");
 		const link = $('#lista tr[data-i="1"] a.link');
 		await S.move(link);
@@ -705,6 +704,8 @@ CENAS.V44 = {
 		await S.move({ x: 300, y: 560 });
 		p.remove();
 		await sleep(500);
+		telaLista("Análise de Juntadas");
+		await S.cap("Na lista da <b>Análise de Juntadas</b> é igual: pare o mouse sobre o <b>número do processo</b>.");
 		await S.cap("Quer o painel aberto mesmo tirando o mouse? Clique em <b>📌 Fixar</b>.");
 		await S.move($('#lista tr[data-i="3"] a.link'));
 		await sleep(500);
@@ -717,7 +718,38 @@ CENAS.V44 = {
 		await S.move({ x: 300, y: 560 });
 		await S.cap("Fixado, ele só fecha no <b>✕</b>. “Abrir em nova aba” abre o processo do jeito tradicional.", { ms: 3200 });
 		p.remove();
-		await S.endCard("Mouse parado sobre o número do processo = tela do processo na aba Movimentações. 📌 Fixar mantém aberto; Esc ou ✕ fecha.");
+		telaLista("Conclusões", { path: "conclusao.do", col: "Dt. Retorno" });
+		await S.cap("Nas <b>Conclusões</b> também: pare o mouse sobre o <b>número do processo</b>. O <b>Analisar</b> continua mostrando o documento do Juiz.");
+		await S.move($('#lista tr[data-i="2"] a.link'));
+		await sleep(500);
+		p = painelProcesso(LISTA[2].n, 470, 180);
+		$("#x-proc-load").textContent = "Localizando o processo…";
+		await sleep(1100);
+		$("#x-proc-load").remove();
+		await S.cap("Em seguida, a tela do processo abre no painel, já na aba <b>Movimentações</b>.", { ms: 2800 });
+		await S.move({ x: 300, y: 560 });
+		p.remove();
+		telaLista("Demais Cumprimentos", { path: "cumprimentoCartorio.do", col: "Tipo", rows: LISTA.map(r => Object.assign({}, r, { d: "Intimação" })) });
+		await S.cap("Nas listas de cumprimentos (<b>Demais Cumprimentos</b> e <b>Mandados</b>) e no <b>Expedir Intimações/Citação</b> é igual: pare o mouse sobre o <b>número do processo</b>.");
+		await S.move($('#lista tr[data-i="4"] a.link'));
+		await sleep(500);
+		p = painelProcesso(LISTA[4].n, 470, 180);
+		await sleep(900);
+		$("#x-proc-load").remove();
+		await sleep(1800);
+		await S.move({ x: 300, y: 560 });
+		p.remove();
+		telaLista("Processos Paralisados", { path: "processoBuscaParalisado.do", col: "Dias Paralisado", rows: LISTA.map((r, i) => Object.assign({}, r, { d: String(54 + i * 7) })) });
+		await S.cap("Na lista de <b>Processos Paralisados</b> também: pare o mouse sobre o <b>número do processo</b>.");
+		await S.move($('#lista tr[data-i="0"] a.link'));
+		await sleep(500);
+		p = painelProcesso(LISTA[0].n, 470, 180);
+		await sleep(900);
+		$("#x-proc-load").remove();
+		await sleep(1800);
+		await S.move({ x: 300, y: 560 });
+		p.remove();
+		await S.endCard("Decurso de Prazo, Juntadas, Conclusões, Cumprimentos, Expedir ou Paralisados: mouse parado sobre o número do processo = tela do processo na aba Movimentações. 📌 Fixar mantém aberto; Esc ou ✕ fecha.");
 	},
 };
 
@@ -949,7 +981,7 @@ CENAS.V49 = {
 		await S.cap("Na linha do <b>Assunto Principal</b> há o balão <b>⭐ Secundários</b> (se o processo já tem assunto secundário, a ⭐ fica na linha dele).");
 		S.hlOff();
 		await S.click("#x-alt-sec-pref");
-		let pn = panelAt('<h4>⭐ Preferências — Assuntos secundários</h4><p style="color:#666;margin:0 0 8px">Nenhuma preferência gravada.</p><span class="x-btn small" id="x-nova">+ Nova preferência</span>', "#x-alt-sec-pref", { w: 320 });
+		let pn = panelAt('<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #e3e8dc;padding-bottom:6px;margin-bottom:6px"><h4 style="margin:0">⭐ Preferências — Assuntos secundários</h4><span class="x-btn small" id="x-nova" style="font-weight:bold">+ Nova preferência</span></div><p style="color:#666;margin:0 0 4px">Nenhuma preferência gravada.</p>', "#x-alt-sec-pref", { w: 320 });
 		pn.style.left = "430px"; pn.style.top = "205px";
 		await S.click("#x-nova");
 		pn.remove();
@@ -981,7 +1013,7 @@ CENAS.V49 = {
 		$(".x-popup").remove();
 		await S.cap("Para usar, clique em <b>⭐ Secundários</b> e no nome da preferência.");
 		await S.click("#x-alt-sec-pref");
-		pn = panelAt('<h4>⭐ Preferências — Assuntos secundários</h4><div style="display:flex;gap:4px;margin-bottom:6px"><span class="x-btn small" id="x-pref" style="flex:1">★ Furto de coisa comum</span><span class="x-btn small">🗑</span></div><span class="x-btn small">+ Nova preferência</span>', "#x-alt-sec-pref", { w: 340 });
+		pn = panelAt('<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #e3e8dc;padding-bottom:6px;margin-bottom:6px"><h4 style="margin:0">⭐ Preferências — Assuntos secundários</h4><span class="x-btn small" style="font-weight:bold">+ Nova preferência</span></div><div style="display:flex;gap:4px;margin-bottom:2px"><span class="x-btn small" id="x-pref" style="flex:1">★ Furto de coisa comum</span><span class="x-btn small">🗑</span></div>', "#x-alt-sec-pref", { w: 340 });
 		pn.style.left = "430px"; pn.style.top = "205px";
 		await S.click("#x-pref");
 		pn.remove();
@@ -1227,5 +1259,179 @@ CENAS.V53 = {
 		st2.innerHTML = '<span style="color:#216b32">★ Mandado MPU: pré-análise concluída e assinatura postergada</span>';
 		await S.cap("Se o movimento não existir no processo, nada é anexado e a extensão para antes do fim, para você conferir. Também funciona em lote.", { ms: 5200 });
 		await S.endCard("⭐ → + Nova preferência → Salvar e Concluir → (Adicionar → ☆ padrão → Selecionar) → Assinar e Expedir ou Postergar → nome.");
+	},
+};
+
+// ------------------------------------------------------------------ V54
+// Card ⭐ da linha com muitas preferências: o topo do painel (título, campo
+// "Buscar" e "+ Nova · Analisar (Pré-Análise)") fica fixo enquanto os cards
+// rolam, e o painel nunca passa do fim da tela.
+CENAS.V54 = {
+	arquivo: "V54-painel-da-estrela-com-muitas-preferencias.mp4",
+	titulo: "⭐ da linha com muitas preferências",
+	secao: "9.3",
+	async run() {
+		telaLista("Demais Cumprimentos", { path: "cumprimentoCartorio.do", col: "Tipo de Cumprimento", rows: LISTA.map(r => Object.assign({}, r, { d: "Alvará" })) });
+		$$(".x-rowslot").forEach((s, i) => (s.innerHTML = ' <span class="x-btn small">+</span> <span class="x-btn small" data-star="' + i + '">⭐</span><span class="st" data-st="' + i + '" style="margin-left:6px;font-size:11px"></span>'));
+		await S.titleCard("VÍDEO V54", "⭐ da linha com muitas preferências", "Busca e “+ Nova preferência” sempre à vista no topo do painel.");
+		await S.cap("Com muitas preferências, o card <b>⭐</b> fica comprido. O painel agora <b>cabe sempre na tela</b> e rola por dentro.");
+		await S.click('[data-star="4"]');
+		const nomes = (pref, n) => Array.from({ length: n }, (_, i) => ({ name: pref + " " + (i + 1) }));
+		const blocos = favBlocos([
+			{ icon: "📦", title: "Realizar Remessa", cards: nomes("Remessa", 7).concat([{ name: "Remessa MP", id: "c-mp" }]) },
+			{ icon: "📤", title: "Enviar Concluso", cards: nomes("Concluso", 8) },
+			{ icon: "👥", title: "Intimar Partes", cards: nomes("Intimação", 9) },
+			{ icon: "👥", title: "Citar Partes", cards: nomes("Citação", 6) },
+			{ icon: "↕️", title: "Ordenar Cumprimentos", cards: nomes("Ordenação", 7) },
+		]);
+		const pn = panelAt(
+			'<div id="topo" style="position:sticky;top:-8px;background:#fff;margin:-8px -8px 6px;padding:8px;border-bottom:1px solid #e3e8dc;z-index:1">' +
+				'<h4>⭐ Minhas Preferências — ' + LISTA[4].n + '</h4>' +
+				'<div style="display:flex;gap:6px"><span class="x-field" id="busca" style="flex:1;min-height:0;padding:3px 6px;font-size:12px;color:#333"><span style="color:#999">🔍 Buscar preferência…</span></span>' +
+				'<span class="x-btn small" id="nova-topo" style="font-weight:bold">+ Nova · Analisar (Pré-Análise)</span></div></div>' +
+				'<div id="blocos">' + blocos + '</div>' +
+				'<div id="sec-pre"><div style="font-size:11px;color:#5a6b4a;margin:8px 0 4px;font-weight:bold">📝 ANALISAR (PRÉ-ANÁLISE)</div>' +
+				'<span class="x-fcard"><span style="font-weight:normal">Analisar (Pré-Análise)</span> + Nova preferência</span> <span class="x-fcard">★ Alvará padrão</span></div>',
+			'[data-star="4"]', { w: 560 });
+		pn.style.left = "430px"; pn.style.top = "150px"; pn.style.maxHeight = "400px"; pn.style.overflow = "auto";
+		S.hl("#topo", 2);
+		await S.cap("No <b>topo</b>, que fica parado enquanto os cards rolam: o campo <b>Buscar</b> e o botão <b>+ Nova preferência</b> do Analisar (Pré-Análise).", { ms: 5600, bottom: true });
+		S.hlOff();
+		await tween(1600, k => { pn.scrollTop = k * 260; });
+		await S.cap("Ao rolar a lista, o topo continua à vista — não é preciso diminuir o zoom para achar o <b>+ Nova preferência</b>.", { ms: 4800, bottom: true });
+		await tween(900, k => { pn.scrollTop = 260 * (1 - k); });
+		await S.type("#busca", "mp");
+		$$("#blocos .x-fcard").forEach(c => { if (c.id !== "c-mp") c.style.display = "none"; });
+		$$("#blocos .x-fgrp").forEach(g => { if (!g.querySelector("#c-mp")) g.style.display = "none"; });
+		$$("#sec-pre .x-fcard")[1].style.display = "none";
+		await S.cap("Digite parte do nome para ver só os cards que o contêm (o nome da ação também vale). Sem acento também acha.", { ms: 4800, bottom: true });
+		await S.click("#nova-topo");
+		pn.remove();
+		popup("Pré-Análise", '<div style="font-size:12px">Tipo do Arquivo: <span class="pj-select">Alvará</span> · Modelo: <span class="pj-select">Documento em Branco</span> <span class="pj-btn">Digitar Texto</span></div>', { hd: "Analisar — gravando nova preferência", top: 120, h: 240 });
+		await S.cap("O botão do topo faz o mesmo que o card <b>+ Nova preferência</b> da seção: abre a Pré-Análise e grava o que você fizer (veja 9.11).", { ms: 5200 });
+		$(".x-popup").remove();
+		await S.endCard("⭐ na linha → Buscar ou + Nova preferência, sempre no topo do painel.");
+	},
+};
+
+// ------------------------------------------------------------------ V55
+// Painéis de preferências da tela do processo com muitas preferências
+// (painelPreferencias.js): "+ Nova preferência" na linha do nome da ação,
+// busca no topo e topo fixo no ⭐ Minhas Preferências.
+CENAS.V55 = {
+	arquivo: "V55-paineis-com-muitas-preferencias.mp4",
+	titulo: "Painéis com muitas preferências",
+	secao: "7.8",
+	async run() {
+		telaProcesso({ acoesAbertas: true });
+		await S.titleCard("VÍDEO V55", "Painéis com muitas preferências", "Busca e “+ Nova preferência” sempre à vista, em todos os painéis.");
+		await S.cap("Com muitas preferências, os painéis crescem. Exemplo: grupo <b>Partes</b>.");
+		await S.click('[data-g="Partes"]');
+		const muitas = (p, k) => Array.from({ length: k }, (_, i) => p + " " + (i + 1));
+		const busca = '<div style="position:sticky;top:-8px;background:#fff;margin:-8px -8px 6px;padding:8px;border-bottom:1px solid #e3e8dc;z-index:1"><span class="x-field" id="bq" style="display:block;min-height:0;padding:3px 6px;font-size:12px;color:#333"><span style="color:#999">🔍 Buscar preferência…</span></span></div>';
+		let pn = panelAt(busca + acaoPanel("Partes", [
+			{ nome: "Intimar Partes", prefs: muitas("Intimação", 6) },
+			{ nome: "Notificar Partes", prefs: muitas("Notificação", 4) },
+			{ nome: "Citar Partes", prefs: muitas("Citação", 6).concat(["Citação por edital"]) },
+		]), '[data-g="Partes"]', { w: 400 });
+		pn.style.maxHeight = "430px"; pn.style.overflow = "auto";
+		S.hl('[data-nova="Citar Partes"]', 3);
+		await S.cap("O <b>+ Nova preferência</b> fica na linha do nome de cada ação, ao lado de <b>Abrir</b> — não lá embaixo, depois de todas as preferências.", { ms: 5400, bottom: true });
+		S.hlOff();
+		await S.type("#bq", "edital");
+		$$(".x-chip", pn).forEach(c => { if (!/edital/.test(c.textContent)) c.style.display = "none"; });
+		await S.cap("Com <b>6 ou mais</b> preferências aparece a busca no topo: digite parte do nome (ou da ação) e só as que combinam ficam à vista.", { ms: 5200, bottom: true });
+		pn.remove();
+		await S.cap("No <b>⭐ Minhas Preferências</b>, o topo fica parado ao rolar: título, <b>✏️ Editar posição</b>, <b>Mostrar todas</b> e a busca.", { ms: 4800, bottom: true });
+		await S.click("#x-fav");
+		const blocos = favBlocos([
+			{ icon: "📨", title: "Intimar Partes", cards: muitas("Intimação", 6).map(n => ({ name: n })) },
+			{ icon: "📤", title: "Enviar Concluso", cards: muitas("Concluso", 5).map(n => ({ name: n })) },
+			{ icon: "📦", title: "Realizar Remessa", cards: muitas("Remessa", 4).map(n => ({ name: n })).concat([{ name: "Remessa MP", id: "c-mp" }]) },
+			{ icon: "📎", title: "Juntar Documento", cards: muitas("Certidão", 6).map(n => ({ name: n })) },
+		], { tools: true });
+		pn = panelAt('<div style="position:sticky;top:-8px;background:#fff;margin:-8px -8px 6px;padding:8px;border-bottom:1px solid #e3e8dc;z-index:1">' +
+			'<div style="display:flex;justify-content:space-between;align-items:center"><h4 style="margin:0">⭐ Minhas Preferências</h4><span class="x-btn small">✏️ Editar posição</span></div>' +
+			'<label style="display:block;margin-top:6px;font-size:12px"><input type="checkbox"> Mostrar todas (+12)</label>' +
+			'<span class="x-field" id="bq2" style="display:block;min-height:0;padding:3px 6px;font-size:12px;margin-top:4px;color:#333"><span style="color:#999">🔍 Buscar preferência…</span></span></div>' +
+			'<div id="g2">' + blocos + '</div>', "#x-fav", { w: 600 });
+		await S.type("#bq2", "mp");
+		$$("#g2 .x-fcard").forEach(c => { if (c.id !== "c-mp") c.style.display = "none"; });
+		$$("#g2 .x-fgrp").forEach(g => { if (!g.querySelector("#c-mp")) g.style.display = "none"; });
+		await S.cap("Com a busca preenchida, aparecem <b>todas</b> as que combinam — mesmo as que o <b>Mostrar todas</b> esconderia.", { ms: 4800, bottom: true });
+		pn.remove();
+		await S.cap("O mesmo vale para a ⭐ de Alterar Classe/Assuntos, o 📎 Juntar Documento, o Analisar Decurso e o 📍 Localizador (SEEU).", { ms: 5000 });
+		await S.endCard("Muitas preferências? 🔍 Buscar no topo · + Nova preferência sempre à vista.");
+	},
+};
+
+// ------------------------------------------------------------------ V56
+// Linha "Prioridade" do cabeçalho: ✖, ➕ Incluir e ⭐ (alterarPrioridades.js).
+CENAS.V56 = {
+	arquivo: "V56-incluir-e-remover-prioridades.mp4",
+	titulo: "Incluir e remover prioridades",
+	secao: "8.11",
+	async run() {
+		telaProcesso({});
+		const x = id => '<a id="' + id + '" style="' + ESTILO_BALAO + ';margin-left:4px;padding:0 6px;color:#a00">✖</a>';
+		const VD = "Violência doméstica e familiar contra a mulher (conforme art. 33 da Lei 11.340/2006)";
+		$("#row-assunto").insertAdjacentHTML("afterend", '<tr id="row-prio"><td class="l" style="vertical-align:top">Prioridade:</td><td colspan="3"><em id="x-prio" style="font-weight:bold;color:#c00">' +
+			'<span>Maior que 60 anos (conforme Lei 10.741/2003)</span>, <span id="x-vd">' + VD + x("x-rem-vd") + '</span></em>' +
+			'<a id="x-incluir" style="' + ESTILO_BALAO + '">➕ Incluir</a><a id="x-prio-pref" style="' + ESTILO_BALAO + ';margin-left:4px;padding:1px 6px">⭐</a></td></tr>');
+		await S.titleCard("VÍDEO V56", "Incluir e remover prioridades", "✖ remove, ➕ Incluir acrescenta e ⭐ repete a mesma alteração com um clique — sempre já salvo no processo.");
+		S.hl("#row-prio", 3);
+		await S.cap("No cabeçalho, a linha <b>Prioridade</b> ganha um <b>✖</b> ao lado de cada prioridade que pode ser tirada, e os balões <b>➕ Incluir</b> e <b>⭐</b>.", { ms: 4200 });
+		S.hlOff();
+		await S.cap("A prioridade por idade não tem ✖: é o próprio Projudi que a coloca, e ela não aparece na Seleção de Prioridade.", { ms: 4000 });
+		await S.click("#x-rem-vd");
+		modal('<b>Remover a prioridade "' + VD + '" deste processo?</b><p style="margin:8px 0">A alteração é salva em seguida, sem abrir a tela de alteração.</p><span class="x-btn small green" id="x-ok">OK</span> <span class="x-btn small">Cancelar</span>', { w: 460, top: 200 });
+		await S.click("#x-ok");
+		closeModal();
+		let t = toast("✖ Violência doméstica… — abrindo a seleção de prioridade…", { left: 430, top: 90 });
+		await sleep(1100);
+		t.innerHTML = "✖ Violência doméstica… — selecionando…";
+		await sleep(1000);
+		t.innerHTML = "✖ Violência doméstica… — salvando…";
+		await sleep(1000);
+		t.remove();
+		$("#x-prio").innerHTML = "<span>Maior que 60 anos (conforme Lei 10.741/2003)</span>";
+		await S.cap("A extensão desmarca a prioridade na <b>Seleção de Prioridade</b>, confere e clica em <b>Salvar</b>. A tela é recarregada sem ela.", { ms: 4200 });
+		await S.click("#x-incluir");
+		await abrindo("Prioridades", 900);
+		popup("Alteração do Processo",
+			'<div style="margin:0 0 10px;padding:8px 10px;border:1px solid #d4b106;background:#fffbe6;color:#5c4400;border-radius:4px"><b>➕ Incluir prioridade.</b> Na <b>Seleção de Prioridade</b>, marque as prioridades e clique em <b>Selecionar</b>: a extensão <b>salva em seguida</b> e recarrega o processo.</div>' +
+			'<table class="pj-info" style="width:100%"><tr><td class="l" style="width:160px">Juiz:</td><td><span class="pj-select" style="min-width:300px;display:inline-block">JuizTogado (Titular)</span></td></tr>' +
+			'<tr style="background:#fff3b0"><td class="l">Prioridade:</td><td><span class="pj-select" id="x-ed-prio" style="min-width:420px;display:inline-block">&nbsp;</span> <span class="pj-btn">🔍</span></td></tr></table>' +
+			'<div class="pj-btnbar" style="justify-content:flex-start"><span class="pj-btn">Salvar</span><span class="pj-btn">Voltar</span></div>',
+			{ hd: "Prioridades — popup da extensão" });
+		const caixa = (id, n) => '<div style="padding:2px 0"><span id="' + id + '">☐</span> ' + n + "</div>";
+		modal('<b>Seleção de Prioridade</b><div style="border:1px solid #ccc;padding:6px;margin:8px 0">' + caixa("x-c-ap", "Alienação Parental (conforme art. 4º da Lei 12.318/2010)") +
+			caixa("x-c-ch", "Crime Hediondo (conforme art. 394-A do Código de Processo Penal)") + caixa("x-c-vd", VD) +
+			'</div><span class="x-btn small" id="x-dlg-sel">Selecionar</span> <span class="x-btn small">Cancelar</span>', { w: 480, top: 170 });
+		await S.cap("O popup já abre com a <b>Seleção de Prioridade</b> do Projudi. Marque as prioridades que quer incluir.");
+		await S.click("#x-c-ch");
+		$("#x-c-ch").textContent = "☑";
+		await S.cap("Clique em <b>Selecionar</b>: a extensão clica em <b>Salvar</b> sozinha.");
+		await S.click("#x-dlg-sel");
+		closeModal();
+		$("#x-ed-prio").textContent = "Crime Hediondo (conforme art. 394-A do Código de Processo Penal)";
+		await sleep(900);
+		$(".x-popup").remove();
+		$("#x-prio").innerHTML = "<span>Maior que 60 anos (conforme Lei 10.741/2003)</span>, <span>Crime Hediondo (conforme art. 394-A do Código de Processo Penal)" + x("x-rem-ch") + "</span>";
+		await S.cap("O popup fecha e o processo é recarregado, já com a prioridade nova.", { ms: 3600 });
+		await S.click("#x-prio-pref");
+		let pn = panelAt('<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #e3e8dc;padding-bottom:6px;margin-bottom:6px"><h4 style="margin:0">⭐ Preferências — Prioridades</h4><span class="x-btn small" style="font-weight:bold">+ Nova preferência</span></div>' +
+			'<div style="display:flex;gap:4px;margin-bottom:2px"><span class="x-btn small" id="x-pref" style="flex:1">★ Violência doméstica</span><span class="x-btn small">🗑</span></div>', "#x-prio-pref", { w: 340 });
+		await S.cap("Na <b>⭐</b>, <b>+ Nova preferência</b> grava uma inclusão (ou remoção) feita na Seleção de Prioridade — sem alterar o processo naquela hora.", { ms: 4600 });
+		await S.click("#x-pref");
+		pn.remove();
+		t = toast("★ Violência doméstica — selecionando…", { left: 430, top: 90 });
+		await sleep(1100);
+		t.innerHTML = "★ Violência doméstica — salvando…";
+		await sleep(1000);
+		t.remove();
+		$("#x-prio").insertAdjacentHTML("beforeend", ", <span>" + VD + x("x-rem-vd2") + "</span>");
+		await S.cap("Depois, um clique na preferência inclui a prioridade e salva, sem confirmação.", { ms: 3800 });
+		await S.endCard("✖ → confirmar → removida e salva · ➕ Incluir → marcar → Selecionar → salva · ⭐ → ★ preferência → incluída e salva.");
 	},
 };

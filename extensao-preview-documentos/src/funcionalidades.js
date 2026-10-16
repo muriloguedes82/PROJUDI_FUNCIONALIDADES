@@ -20,7 +20,7 @@
 // demais, os arquivos dela nunca são injetados e ela não aparece no Menu.
 //
 // Os arquivos que não aparecem aqui (hostGuard.js, uiVisibility.js,
-// clipboardProcess.js, documentSelection.js, buttonDrag.js e o próprio Menu)
+// painelPreferencias.js/.css, clipboardProcess.js, documentSelection.js, buttonDrag.js e o próprio Menu)
 // são infraestrutura e são sempre carregados.
 self.PDP_FUNCIONALIDADES = Object.freeze({
 	// { projudi: [id], seeu: [id] } em chrome.storage.local
@@ -114,6 +114,14 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					descricao: "Linha \"Valor da Causa\" no cabeçalho do processo, com o balão \"💲 Novo Valor da Causa\": informe o novo valor e a extensão altera e salva no processo, sem abrir a tela de alteração.",
 					js: ["src/alterarValorCausa.js"],
 					requer: ["habilitarAdvogado"],
+					sistemas: ["projudi"]
+				},
+				{
+					id: "alterarPrioridades",
+					nome: "Prioridades",
+					descricao: "Na linha \"Prioridade\" do cabeçalho do processo: ✖ ao lado de cada prioridade para removê-la e salvar, \"➕ Incluir\", que abre a Seleção de Prioridade num popup e salva depois do \"Selecionar\", e ⭐ com preferências que incluem/removem prioridades e salvam com um clique.",
+					js: ["src/alterarPrioridades.js"],
+					requer: ["acoesRapidas", "habilitarAdvogado"],
 					sistemas: ["projudi"]
 				},
 				{
@@ -229,8 +237,8 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				},
 				{
 					id: "previewProcesso",
-					nome: "Processo ao passar o mouse no Decurso de Prazo",
-					descricao: "Nas listas de decurso de prazo (Intimação, Auxiliares da Justiça e Citações/Notificações), mostra a tela do processo, na aba Movimentações, ao pousar o mouse sobre o número.",
+					nome: "Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões e nos Cumprimentos, no Expedir e nos Paralisados",
+					descricao: "Nas listas de decurso de prazo (Intimação, Auxiliares da Justiça e Citações/Notificações) na lista da Análise de Juntadas, na lista de Conclusões e nas listas de cumprimentos (Demais Cumprimentos e Mandados) no Expedir Intimações/Citação e na lista de Processos Paralisados, mostra a tela do processo, na aba Movimentações, ao pousar o mouse sobre o número.",
 					js: ["src/previewProcesso.js"],
 					css: ["src/previewProcesso.css"],
 					sistemas: ["projudi"]

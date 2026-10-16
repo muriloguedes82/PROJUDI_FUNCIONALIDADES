@@ -366,16 +366,23 @@
 
 	function render() {
 		if (!painel) return;
+		// A lista é refeita a cada aviso: a busca do topo é mantida.
+		const buscaAntes = painel.querySelector(".pdp-pp-busca");
+		const termo = buscaAntes ? buscaAntes.value : "";
 		painel.textContent = "";
 		painel.append(modo === "editar" ? construirEditor() : construirLista());
 		if (status) painel.append(el("div", { class: "pdp-loc-status " + status.tipo, role: "status", text: status.texto }));
+		const lista = painel.querySelector(".pdp-pp-painel");
+		if (lista) {
+			const busca = lista.querySelector(".pdp-pp-busca");
+			if (busca) busca.value = termo;
+			window.__pdpPainelPrefs.filtrar(lista);
+		}
 		posicionar();
 	}
 
 	function construirLista() {
-		const caixa = el("div", { class: "pdp-loc-corpo" }, [
-			el("div", { class: "pdp-loc-titulo", text: "Minhas preferências de localizadores" })
-		]);
+		const caixa = el("div", { class: "pdp-loc-corpo" });
 		if (!preferencias.length) {
 			caixa.append(el("div", { class: "pdp-loc-vazio", text: "Nenhuma preferência ainda. Crie uma com os localizadores que você mais usa: depois, um clique associa todos ao processo." }));
 		}
@@ -397,9 +404,14 @@
 			]));
 		});
 		caixa.append(lista);
-		caixa.append(el("div", { class: "pdp-loc-acoes" }, [
-			el("button", { type: "button", class: "pdp-loc-bt primario", disabled: ocupado, text: "➕ Nova preferência", onclick: function () { editar(null); } })
-		]));
+		// Título, busca e "➕ Nova preferência" no topo fixo
+		// (painelPreferencias.js): no fim de uma lista comprida, o "Nova"
+		// ficava fora da vista.
+		window.__pdpPainelPrefs.topo(caixa, {
+			conteudo: [el("div", { class: "pdp-loc-titulo", text: "Minhas preferências de localizadores" })],
+			novas: [el("button", { type: "button", class: "pdp-loc-bt primario", disabled: ocupado, text: "➕ Nova preferência", onclick: function () { editar(null); } })],
+			itens: ".pdp-loc-pref"
+		});
 		return caixa;
 	}
 
