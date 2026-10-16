@@ -244,10 +244,9 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "decursoNaLinha",
 					nome: "Analisar e Dispensar decurso na lista",
-					descricao: "Nas listas de decurso de prazo, botões \"Analisar Decurso\" e \"Dispensar\" em cada linha, abaixo do sequencial, sem abrir a intimação.",
+					descricao: "Nas listas de decurso de prazo, botões \"Analisar Decurso\" e \"Dispensar\" em cada linha, abaixo do sequencial, sem abrir a intimação. No SEEU, por enquanto sem as preferências do Analisar Decurso.",
 					js: ["src/decursoNaLinha.js"],
-					css: ["src/decursoNaLinha.css"],
-					sistemas: ["projudi"]
+					css: ["src/decursoNaLinha.css"]
 				},
 				{
 					id: "previewConclusao",
