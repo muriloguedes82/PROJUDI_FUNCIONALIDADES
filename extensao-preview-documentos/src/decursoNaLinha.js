@@ -39,9 +39,9 @@
 // tela da intimação tem os mesmos #analisarButton/#dispensarButton (ligados
 // por script, sem endereço no onclick: o Analisar segue pelo clique no iframe
 // oculto) e a mesma confirmação da dispensa. A tela de análise (certificar.do)
-// também é a mesma, mas as preferências dependem do Juntar Documento
-// (juntarDocumento.js), que ainda é só do Projudi: lá o menu do Analisar
-// Decurso oferece só "Abrir a análise".
+// também é a mesma; as preferências do Analisar Decurso (juntarDocumento.js)
+// são as gravadas no SEEU, e as do "📎 Juntar Documento" (só do Projudi)
+// não aparecem lá.
 // Os botões usam delegação de clique no documento: continuam funcionando nas
 // linhas copiadas pelo filtro por Sequencial (decursoPrazoSequencial.js).
 (function () {
@@ -306,7 +306,8 @@
 		if (!api) return resultado;
 		try {
 			resultado.decurso = api.listarDecurso ? await api.listarDecurso() : [];
-			resultado.juntar = api.listar ? await api.listar() : [];
+			// As do "📎 Juntar Documento" são juntadas do Projudi.
+			resultado.juntar = api.listar && !NO_SEEU ? await api.listar() : [];
 		} catch (e) {
 			console.warn(TAG, "não foi possível ler as preferências:", e);
 		}
@@ -562,9 +563,9 @@
 		loteEl.className = "pdp-dec-lote";
 		loteEl.innerHTML =
 			'<button type="button" class="pdp-tl-btn" data-pdp-dec-lote="dispensar" title="Dispensar a análise do decurso nos processos marcados, um de cada vez (a confirmação do ' + SISTEMA + ' é aceita sozinha)">Dispensar nos marcados</button>' +
-			// No SEEU ainda não há preferências do Analisar Decurso (dependem
-			// do Juntar Documento): lá o lote só dispensa.
-			(NO_SEEU ? "" : '<button type="button" class="pdp-tl-btn" data-pdp-dec-lote="analisar" title="Analisar o decurso nos processos marcados com uma preferência, um de cada vez (você assina cada documento)">Analisar decurso nos marcados</button>') +
+			// Sem o Juntar Documento (desligado no Menu) não há preferências
+			// do Analisar Decurso: o lote só dispensa.
+			(!window.__pdpJuntarDocumentoApi ? "" : '<button type="button" class="pdp-tl-btn" data-pdp-dec-lote="analisar" title="Analisar o decurso nos processos marcados com uma preferência, um de cada vez (você assina cada documento)">Analisar decurso nos marcados</button>') +
 			'<button type="button" class="pdp-tl-btn" data-pdp-dec-lote="parar" hidden title="Não começar os próximos processos (o atual continua)">⏹ Parar</button>' +
 			'<span class="pdp-dec-lote-status" role="status"></span>';
 		barra.appendChild(loteEl);

@@ -30,10 +30,11 @@
 // oculto e os localizadores são associados nela, pela lista do "+" do
 // próprio SEEU (window.__pdpLocalizador.associarEm); a linha mostra o
 // andamento e o resultado, sem sair da listagem. Nas listas de decurso, o
-// ⭐ de uma linha traz também "📝 Analisar Decurso" com "Abrir a análise"
-// (decursoNaLinha.js; as preferências do Analisar Decurso dependem do Juntar
-// Documento, que ainda é só do Projudi), e a barra "Em lote" ganha o
-// "Dispensar nos marcados" (também de decursoNaLinha.js).
+// ⭐ traz também "📝 Analisar Decurso" (decursoNaLinha.js): "Abrir a
+// análise" e as preferências do Analisar Decurso gravadas no SEEU (com "+
+// Nova", ✏️ e 🗑, como no Projudi; em lote, só as preferências), e a barra
+// "Em lote" ganha "Dispensar nos marcados" e "Analisar decurso nos
+// marcados" (também de decursoNaLinha.js).
 //
 // EM LOTE: cada linha ganha uma caixinha de marcar, abaixo do "+" da
 // primeira coluna, e uma barra "⭐ Em lote" acima da tabela executa a mesma
@@ -883,7 +884,8 @@
 	async function secaoDecurso(box, ancora, emLote, escolher, dec) {
 		const prefs = await dec.listarPreferencias();
 		if (!painel || painel.el !== box) return;
-		const vazio = box.querySelector(":scope > .pdp-tl-vazio");
+		// No SEEU o aviso é o do Localizador: fica como está.
+		const vazio = tela.seeu ? null : box.querySelector(":scope > .pdp-tl-vazio");
 		if (vazio) vazio.textContent = "Nenhuma preferência de ação salva (crie no painel de uma ação, na tela do processo).";
 		box.appendChild(el("div", { class: "pdp-tl-sec", text: "📝 Analisar Decurso" }));
 		const grade = el("div", { class: "pdp-qa-fav-grid" });
@@ -1029,7 +1031,7 @@
 		const p = novoPainel(ancora, titulo);
 		const box = p.box;
 		const grade = p.grade;
-		if (!emLote && row) secaoDecursoSeeu(box, ancora, row);
+		secaoDecursoSeeu(box, ancora, emLote, row);
 
 		if (!loc || !loc.associarEm) {
 			grade.replaceWith(el("div", { class: "pdp-tl-vazio", text: "Ative \"Localizador (SEEU)\" no Menu da extensão (ícone da balança) e recarregue a página." }));
@@ -1067,16 +1069,47 @@
 		});
 	}
 
-	// SEEU, listas de decurso: "📝 Analisar Decurso" com "Abrir a análise"
-	// (o mesmo do botão da linha). As preferências do Analisar Decurso
-	// dependem do Juntar Documento, que no SEEU ainda não funciona.
-	function secaoDecursoSeeu(box, ancora, row) {
+	// SEEU, listas de decurso: "📝 Analisar Decurso" - as preferências (a
+	// mesma seção do Projudi, secaoDecurso) e, numa linha, "Abrir a análise"
+	// (o mesmo do botão da linha). Sem o Juntar Documento, só o "Abrir".
+	function secaoDecursoSeeu(box, ancora, emLote, row) {
 		const dec = window.__pdpDecursoNaLinha;
-		const caixa = row.querySelector(".pdp-dec-acoes");
-		if (!dec || !dec.executarNaLinha || !caixa || !caixa.querySelector(".pdp-dec-btn")) return;
-		const sec = el("div", { class: "pdp-tl-sec", text: "📝 Analisar Decurso" });
-		const grade = el("div", { class: "pdp-qa-fav-grid" });
-		grade.appendChild(cardClicavel(el("div", {
+		if (!dec || !dec.executarNaLinha || !dec.disponivel()) return;
+		const caixa = row ? row.querySelector(".pdp-dec-acoes") : null;
+		if (!emLote && (!caixa || !caixa.querySelector(".pdp-dec-btn"))) return;
+		function escolherDec(item) {
+			if (!item || !item.decurso) return;
+			if (emLote) dec.executarLote(item.escolha);
+			else dec.executarNaLinha(row, item.escolha);
+		}
+		// Fica no fim do painel, depois das preferências do Localizador.
+		setTimeout(function () {
+			if (!painel || painel.el !== box) return;
+			if (window.__pdpJuntarDocumentoApi) {
+				secaoDecurso(box, ancora, emLote, escolherDec, dec).then(function () {
+					if (!emLote) abrirAnaliseCard(box, ancora, row, dec, null);
+				});
+			} else if (!emLote) {
+				abrirAnaliseCard(box, ancora, row, dec, true);
+			}
+		}, 0);
+	}
+
+	// Card "Abrir a análise" (SEEU): na seção da secaoDecurso, ou numa seção
+	// própria (`novaSecao`).
+	function abrirAnaliseCard(box, ancora, row, dec, novaSecao) {
+		if (!painel || painel.el !== box) return;
+		let grade = null;
+		if (novaSecao) {
+			box.appendChild(el("div", { class: "pdp-tl-sec", text: "📝 Analisar Decurso" }));
+			grade = el("div", { class: "pdp-qa-fav-grid" });
+			box.appendChild(grade);
+		} else {
+			const grades = box.querySelectorAll(":scope > .pdp-qa-fav-grid");
+			grade = grades[grades.length - 1];
+			if (!grade) return;
+		}
+		grade.insertBefore(cardClicavel(el("div", {
 			class: "pdp-qa-fav-card",
 			tabindex: "0",
 			role: "button",
@@ -1087,14 +1120,8 @@
 		]), function () {
 			fecharPainel();
 			dec.executarNaLinha(row, { acao: "abrir" });
-		}));
-		// Fica no fim do painel, depois das preferências do Localizador.
-		setTimeout(function () {
-			if (!painel || painel.el !== box) return;
-			box.appendChild(sec);
-			box.appendChild(grade);
-			posicionar(box, ancora);
-		}, 0);
+		}), grade.firstChild);
+		posicionar(box, ancora);
 	}
 
 	// Tela do processo do SEEU pronta: com o cabeçalho de localizadores e o

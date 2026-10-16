@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.45.0 |
-| **Versão da extensão** | 2.45.0 |
+| **Versão do manual** | 2.46.0 |
+| **Versão da extensão** | 2.46.0 |
 | **Data desta versão** | 16/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -2222,11 +2222,13 @@ da Justiça**):
   **📍 Localizador**, na tela do processo.
 - **Nas listas de decurso de prazo**, a ⭐ traz também a seção
   **📝 Analisar Decurso**, com **Abrir a análise** (a tela de análise do
-  decurso abre num popup — o mesmo do botão da linha, [9.10](#cap-9-10)), e
-  a barra **⭐ Em lote** ganha **Dispensar nos marcados**: confira a janela
-  com a lista dos processos e clique em **OK**; a dispensa é feita num
-  processo de cada vez e o resultado aparece em cada linha. Se uma dispensa
-  falhar, o lote para ali.
+  decurso abre num popup — o mesmo do botão da linha, [9.10](#cap-9-10)),
+  **+ Nova preferência** e as preferências do Analisar Decurso gravadas no
+  SEEU, e a barra **⭐ Em lote** ganha **Dispensar nos marcados** e
+  **Analisar decurso nos marcados** (com uma preferência): confira a janela
+  com a lista dos processos e clique em **OK**; cada processo é tratado de
+  uma vez e o resultado aparece em cada linha. Se uma dispensa falhar, o
+  lote para ali.
 - **Em lote:** marque os processos, clique em **⭐ Associar localizadores
   nos marcados**, escolha a preferência e confira a janela, que mostra os
   localizadores e **a lista dos processos** que vão recebê-los. Os
@@ -2452,8 +2454,7 @@ cada linha.
 
 ▶ [**Vídeo V52** — Analisar e Dispensar decurso na lista](videos/V52-analisar-e-dispensar-decurso-na-lista.mp4)
 
-*No Projudi e no SEEU* (no SEEU, por enquanto, sem as preferências do
-Analisar Decurso — veja "No SEEU", abaixo).
+*No Projudi e no SEEU* (veja "No SEEU", abaixo).
 
 **Para que serve:** usar os botões **Analisar Decurso** e **Dispensar** da
 tela da intimação sem precisar abri-la — direto na lista de decursos.
@@ -2551,14 +2552,24 @@ Buscar preferência** ficam parados no topo ([7.8](#cap-7-8)).
 - Um decurso (ou um lote) por vez.
 
 **No SEEU:** os botões aparecem nas listas **Intimações** e **Intimação de
-Auxiliares da Justiça** da Análise de Decurso de Prazo, do mesmo jeito. O
-**Dispensar** funciona como no Projudi (a extensão responde **OK** à mesma
-pergunta do SEEU). No **Analisar Decurso**, o menu tem só **Abrir a
-análise**: as preferências e o **+ Nova preferência** ainda não existem no
-SEEU. Pela **⭐** da linha também há **Abrir a análise**, e a barra
-**⭐ Em lote** tem **Dispensar nos marcados** ([9.3](#cap-9-3)); o
-"Analisar decurso nos marcados" não aparece no SEEU, porque depende das
-preferências.
+Auxiliares da Justiça** da Análise de Decurso de Prazo, e tudo funciona
+como no Projudi — **Dispensar**, **Abrir a análise**, **+ Nova
+preferência**, as preferências (com ✏️ e 🗑) e os botões em lote —, com
+três diferenças na janela **Inserir Arquivo** do SEEU:
+
+- **Tipo do Arquivo** e **Modelo** são campos de digitar: ao gravar, digite
+  o começo (ex.: "decurso") e **clique na sugestão** que aparecer embaixo
+  (ou use a lupa ao lado). A preferência guarda o que você digitou e a
+  sugestão escolhida; ao ser usada, a extensão digita de novo e clica na
+  mesma sugestão. A escolha **Todos os Modelos / Meus Modelos /
+  Institucionais** também fica gravada.
+- A assinatura é pelo botão **Assinar**, que pede o **código de
+  confirmação**: ao gravar, a preferência é salva nesse clique (a extensão
+  pede o nome); ao usar, a extensão clica em **Assinar** e espera você
+  digitar o código. Assinado, ela clica em **Confirmar Inclusão** e no
+  **Concluir** da análise.
+- As preferências gravadas no SEEU aparecem só no SEEU (e as do Projudi, só
+  no Projudi). As do **📎 Juntar Documento** não aparecem no SEEU.
 
 <a id="cap-9-11"></a>
 ### 9.11 Analisar (Pré-Análise) dos cumprimentos com preferências
@@ -2812,6 +2823,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.46.0 | 16/10/2026 | Seção 9.10: as **preferências do Analisar Decurso** também no **SEEU** — **+ Nova preferência**, ★ (com ✏️ e 🗑) no botão da linha e na ⭐, e **Analisar decurso nos marcados** no lote. Na janela Inserir Arquivo do SEEU, o Tipo do Arquivo e o Modelo são digitados e escolhidos na sugestão (a preferência grava os dois) e a assinatura é pelo **Assinar** com código de confirmação. Preferências do SEEU e do Projudi ficam separadas. Ajustes em 9.3. Sem vídeo novo (o vídeo V52 mostra o mesmo uso). |
 | 2.45.0 | 16/10/2026 | Seção 9.3: a **⭐** e o **⭐ Em lote** também nas listas de decurso de prazo do **SEEU** (**Intimações** e **Intimação de Auxiliares da Justiça**): preferências do **📍 Localizador**, seção **📝 Analisar Decurso** com **Abrir a análise** e, na barra do lote, **Dispensar nos marcados**. Ajustes em 1.3 (com uma vírgula que faltava) e 9.10. Sem vídeo novo (os vídeos V41 e V45 mostram o mesmo uso). |
 | 2.44.0 | 16/10/2026 | Seção 9.10: o **Analisar e Dispensar decurso na lista** passa a valer também no **SEEU** (listas **Intimações** e **Intimação de Auxiliares da Justiça** da Análise de Decurso de Prazo): **Dispensar** completo e **Analisar Decurso** com **Abrir a análise** no popup. As preferências do Analisar Decurso (e o **+ Nova preferência**) continuam só no Projudi por enquanto. Ajustes em 1.3, 2.6 e na abertura do capítulo 9. Sem vídeo novo (o vídeo V52 mostra o mesmo uso). |
 | 2.43.0 | 16/10/2026 | Seção 9.8: o **processo ao passar o mouse** passa a valer também no **SEEU** — listas de Análise de Juntadas, Retorno de Conclusão, Mandados (e Demais Cumprimentos), Decurso de Prazo e Processos Paralisados e, só no SEEU, as listas de **Execuções** e de **Processos Suspensos** e o **Painel de Incidentes**: pousar o mouse sobre o número do processo abre a tela dele num painel. Ajustes em 1.3, 2.6 e na abertura do capítulo 9. Sem vídeo novo (o vídeo V44 mostra o mesmo uso). |

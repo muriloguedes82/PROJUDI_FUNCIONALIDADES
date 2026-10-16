@@ -134,7 +134,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "juntarDocumento",
 					nome: "Juntar Documento",
-					descricao: "Juntada de documento digitado com preferências gravadas.",
+					descricao: "Juntada de documento digitado com preferências gravadas. No SEEU, vale para as preferências do Analisar Decurso.",
 					js: ["src/juntarDocumento.js"],
 					css: ["src/juntarDocumento.css"],
 					requer: ["acoesRapidas"]
@@ -244,7 +244,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "decursoNaLinha",
 					nome: "Analisar e Dispensar decurso na lista",
-					descricao: "Nas listas de decurso de prazo, botões \"Analisar Decurso\" e \"Dispensar\" em cada linha, abaixo do sequencial, sem abrir a intimação. No SEEU, por enquanto sem as preferências do Analisar Decurso.",
+					descricao: "Nas listas de decurso de prazo, botões \"Analisar Decurso\" e \"Dispensar\" em cada linha, abaixo do sequencial, sem abrir a intimação.",
 					js: ["src/decursoNaLinha.js"],
 					css: ["src/decursoNaLinha.css"]
 				},
