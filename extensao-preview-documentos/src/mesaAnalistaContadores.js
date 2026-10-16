@@ -14,6 +14,12 @@
 // atualiza os contadores via AJAX sem recarregar, um MutationObserver
 // reavalia as linhas sempre que o texto de um contador muda, reexibindo a
 // linha assim que algum dos seus totais voltar a ser maior que zero.
+//
+// SEEU (mesaAnalistaVepma.do, mesaAnalista.do...): não há <span
+// class="contador">; cada total é o próprio link da linha, com o número
+// sublinhado (`<a href="…/analisarJuntada.do?…"><u>101</u></a>`, ou
+// `<u><font color="red">1</font></u>` em "Com Urgência"), na célula ao lado
+// do rótulo (`td.label`). Lá o contador é esse link, e a regra é a mesma.
 (function () {
   "use strict";
   if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
@@ -25,7 +31,7 @@
   }
   window.__pdpMesaAnalistaContadores = true;
 
-  if (!/^\/projudi\/usuario\/mesaAnalista/.test(location.pathname)) {
+  if (!/^\/(projudi|seeu)\/usuario\/mesaAnalista/.test(location.pathname)) {
     console.log(TAG, "script injetado mas pathname não corresponde, nada será feito — pathname:", location.pathname, "| url:", location.href);
     return;
   }
@@ -33,6 +39,7 @@
   console.log(TAG, "ativo nesta página — url:", location.href);
 
   const HIDDEN_ATTR = "data-pdp-contador-zero";
+  const NO_SEEU = location.pathname.startsWith("/seeu/");
 
   function labelOf(row) {
     const label = row.querySelector("td.label");
@@ -60,8 +67,18 @@
     }
   }
 
+  // Contadores da página: <span class="contador"> (Projudi) ou, no SEEU, os
+  // links cujo texto é só o número, fora da célula do rótulo.
+  function contadores(root) {
+    if (!NO_SEEU) return root.querySelectorAll("span.contador");
+    const area = root.querySelector("#mesaAnalistaForm") || root;
+    return Array.from(area.querySelectorAll("td > a[href]")).filter((a) => {
+      return !a.closest("td.label") && /^\d+$/.test(a.textContent.trim());
+    });
+  }
+
   function scan(root) {
-    const spans = root.querySelectorAll("span.contador");
+    const spans = contadores(root);
     const rows = new Map();
     spans.forEach((span) => {
       const row = span.closest("tr");

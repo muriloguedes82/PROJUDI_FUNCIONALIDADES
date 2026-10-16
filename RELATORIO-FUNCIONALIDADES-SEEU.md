@@ -19,6 +19,7 @@ Não houve teste no SEEU real: o "precisa de teste" abaixo vem só da leitura do
 | Localizador (SEEU) | Exclusiva do SEEU |
 | Minhas Preferências na linha (⭐) | Só nas listas **Análise de Juntadas** e **Retorno de Conclusão**, e só com preferências do 📍 Localizador (com ⭐ Em lote) |
 | Ações rápidas e Minhas Preferências | Parcial: ⭐ Minhas Preferências e 🔗 Combos com etapas do Localizador. Os grupos personalizados e o 📋 Colar processo ficam só no Projudi |
+| Ocultar contadores zerados | Mesa do(a) Analista Judiciário, todas as abas (liberada na 2.42.0) |
 | Listas de tarefas | Nas listas do SEEU que usam a ⭐ (necessária para a ⭐ na linha) |
 | Documento do Juiz ao passar o mouse no Retorno de Conclusão | O código atende `/seeu/processo/conclusao.do` (Anexo B, v2.29.0, diz "Projudi e SEEU"), **mas a tabela da seção 1.3 do manual não cita essa função** |
 
@@ -42,7 +43,6 @@ Não houve teste no SEEU real: o "precisa de teste" abaixo vem só da leitura do
 - Réus no cabeçalho (no SEEU o cabeçalho já mostra o sentenciado, com RJI, CPF e RG; talvez não faça falta)
 - Dispensar juntadas, decursos e cumprimentos (no SEEU não há trava de pendências; ver CLAUDE.md)
 - Finalizar conclusão pendente (idem)
-- Ocultar contadores zerados (Mesa do Analista)
 - RG e CPF nos cumprimentos
 - Informações nas ordenações BNMP
 - Endereço da parte e Mandado Regionalizado
@@ -66,3 +66,16 @@ Não houve teste no SEEU real: o "precisa de teste" abaixo vem só da leitura do
   `sistemas: ["projudi"]` no catálogo (como já foi feito com as da seção 2.1) ou liberá-las de fato.
 - A seção 1.3 do manual não cita a função "Documento do Juiz ao passar o mouse no Retorno de Conclusão", que o Anexo B dá
   como disponível no SEEU.
+
+## 4. Plano de liberação (combinado com o usuário)
+
+Uma função por vez, a partir de telas salvas do SEEU enviadas pelo usuário:
+
+1. Ocultar contadores zerados — **feito (2.42.0)**
+2. Processo ao passar o mouse
+3. Analisar/Dispensar decurso na lista e ⭐ nas listas de decurso
+4. RG e CPF nos cumprimentos e ⭐ nas listas de cumprimentos
+5. Dispensar juntadas/decursos/cumprimentos e Finalizar conclusão — o usuário pediu
+   "da mesma forma que no Projudi" (confirmar, ao chegar aqui, se isso inclui as perguntas
+   antes das preferências, que hoje o CLAUDE.md proíbe no SEEU)
+6. Grupos de Ações rápidas, uma ação por vez

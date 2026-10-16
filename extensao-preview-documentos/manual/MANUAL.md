@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.41.0 |
-| **Versão da extensão** | 2.41.0 |
-| **Data desta versão** | 15/10/2026 |
+| **Versão do manual** | 2.42.0 |
+| **Versão da extensão** | 2.42.0 |
+| **Data desta versão** | 16/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -145,7 +145,7 @@ Não é preciso saber nada de informática além disso.
 | Sistema | O que funciona |
 |---|---|
 | **Projudi (TJPR)** | Todas as funções deste manual |
-| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)), os cards do BNMP, da SESP Intranet e do S.U. (Sistema Uniformizado) ao lado da balança ([8.7](#cap-8-7)) e o botão **📍 Localizador** ([8.8](#cap-8-8)), que só existe no SEEU — também pela **⭐** das listas de juntadas e de conclusões ([9.3](#cap-9-3)). Vale também para o **SEEU de treino** (ambiente de testes) |
+| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)), os cards do BNMP, da SESP Intranet e do S.U. (Sistema Uniformizado) ao lado da balança ([8.7](#cap-8-7)) a Mesa do Analista sem itens zerados ([9.4](#cap-9-4)) e o botão **📍 Localizador** ([8.8](#cap-8-8)), que só existe no SEEU — também pela **⭐** das listas de juntadas e de conclusões ([9.3](#cap-9-3)). Vale também para o **SEEU de treino** (ambiente de testes) |
 
 A extensão **não funciona** quando o usuário está logado com perfil de
 advogado(a) ou de assessor(a) de advogado — veja [10.3](#cap-10-3).
@@ -2019,7 +2019,8 @@ Combos** ([7.4](#cap-7-4)).
 
 *Só no Projudi* — exceto as listas de tarefas ([9.2](#cap-9-2)) e a **⭐**
 ([9.3](#cap-9-3)), que também aparecem nas listas **Análise de Juntadas** e
-**Retorno de Conclusão** do SEEU.
+**Retorno de Conclusão** do SEEU, e a Mesa do Analista sem itens zerados
+([9.4](#cap-9-4)), que também vale na Mesa do Analista do SEEU.
 
 <a id="cap-9-1"></a>
 ### 9.1 Filtro por Sequencial na Análise de Decurso de Prazo
@@ -2230,11 +2231,18 @@ de **Mandados**, abaixo do semáforo). Acima da tabela aparece a barra
 
 ▶ [**Vídeo V31** — Mesa do Analista](videos/V31-mesa-do-analista-sem-zerados.mp4)
 
+*No Projudi e no SEEU.*
+
 **Como funciona:** na **Mesa do Analista** e na **Mesa do Escrivão**, as
 linhas cujos contadores estão **todos em zero** ficam ocultas. Em "Outros
 Cumprimentos", uma linha só some se todas as colunas (Para Expedir, Com
 Urgência, Para Assinar…) estiverem zeradas. Quando surge pendência, a linha
 reaparece sozinha.
+
+**No SEEU:** vale na **Mesa do(a) Analista Judiciário**, em todas as abas
+(Análise de Juntadas, Intimações, Outros Cumprimentos…). Ex.: na aba
+**Análise de Juntadas**, com "Comunicações aguardando retorno: 0", essa
+linha some, e "Juntadas: 101" continua à vista.
 
 <a id="cap-9-5"></a>
 ### 9.5 RG e CPF das partes nos cumprimentos
@@ -2769,6 +2777,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.42.0 | 16/10/2026 | Seção 9.4: a **Mesa do Analista sem itens zerados** passa a valer também no **SEEU** (Mesa do(a) Analista Judiciário, em todas as abas): as linhas com contador zerado somem e voltam sozinhas quando surge pendência. Ajustes em 1.3 e na abertura do capítulo 9. Sem vídeo novo (a tela é a mesma do vídeo V31). |
 | 2.41.0 | 15/10/2026 | **Nova seção 8.11 — Prioridades:** na linha **Prioridade** do cabeçalho do processo (só no Projudi), **✖** ao lado de cada prioridade que pode ser tirada (remove e salva, depois de confirmar), **➕ Incluir** (abre a tela de alteração num popup já com a **Seleção de Prioridade**; depois do **Selecionar**, salva sozinho) e **⭐** com preferências que incluem/tiram prioridades e salvam com um clique — também nos **🔗 Combos**. Sem prioridade, a linha aparece com "(nenhuma)". Sumário, tabela da 2.6, seções 7.4 e 7.8 atualizados. Novo vídeo V56. |
 | 2.40.0 | 15/10/2026 | Seção 9.8: o processo ao passar o mouse também na lista de **Processos Paralisados** — pousar o mouse sobre o **número do processo** abre a tela dele num painel, já na aba **Movimentações**. Título da seção, Sumário e tabela da 2.6 atualizados; vídeo V44 regravado. |
 | 2.39.0 | 15/10/2026 | Seção 9.8: o processo ao passar o mouse também nas listas **Expedir Intimações** e **Expedir Citação** — pousar o mouse sobre o **número do processo** abre a tela dele num painel, já na aba **Movimentações**. Título da seção, Sumário e tabela da 2.6 atualizados; vídeo V44 regravado. |
