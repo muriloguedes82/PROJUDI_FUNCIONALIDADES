@@ -19,7 +19,7 @@ Não houve teste no SEEU real: o "precisa de teste" abaixo vem só da leitura do
 | Localizador (SEEU) | Exclusiva do SEEU |
 | Minhas Preferências na linha (⭐) | Só nas listas **Análise de Juntadas** e **Retorno de Conclusão**, e só com preferências do 📍 Localizador (com ⭐ Em lote) |
 | Ações rápidas e Minhas Preferências | Parcial: ⭐ Minhas Preferências e 🔗 Combos com etapas do Localizador. Os grupos personalizados e o 📋 Colar processo ficam só no Projudi |
-| Ocultar contadores zerados | Mesa do(a) Analista Judiciário, todas as abas (liberada na 2.42.0; conferida nas telas salvas de Análise de Juntadas, Pendências de Incidentes, Cumprimentos de Medidas e Outros Cumprimentos) |
+| Ocultar contadores zerados | Mesa do(a) Analista Judiciário, todas as abas (liberada na 2.42.0; conferida nas telas salvas de Análise de Juntadas, Pendências de Incidentes, Cumprimentos de Medidas, Intimações e Outros Cumprimentos; grupos todos zerados somem com o título) |
 | Listas de tarefas | Nas listas do SEEU que usam a ⭐ (necessária para a ⭐ na linha) |
 | Documento do Juiz ao passar o mouse no Retorno de Conclusão | O código atende `/seeu/processo/conclusao.do` (Anexo B, v2.29.0, diz "Projudi e SEEU"), **mas a tabela da seção 1.3 do manual não cita essa função** |
 

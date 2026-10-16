@@ -19,7 +19,8 @@
 // class="contador">; cada total é o próprio link da linha, com o número
 // sublinhado (`<a href="…/analisarJuntada.do?…"><u>101</u></a>`, ou
 // `<u><font color="red">1</font></u>` em "Com Urgência"), na célula ao lado
-// do rótulo (`td.label`). Lá o contador é esse link, e a regra é a mesma.
+// do rótulo (`td.label`). Lá o contador é esse link, e a regra é a mesma;
+// e um grupo (<h4> + <fieldset>) com todas as linhas ocultas some inteiro.
 (function () {
   "use strict";
   if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
@@ -96,6 +97,33 @@
       } catch (err) {
         console.error(TAG, "erro ao avaliar linha:", err, row);
       }
+    });
+    if (NO_SEEU) updateGroups(rows);
+  }
+
+  // SEEU: cada grupo da aba ("Com Urgência", "Para Conferir"...) é um <h4>
+  // seguido de um <fieldset> com as linhas. Com todas as linhas ocultas,
+  // somem também o título e a caixa, que ficariam vazios.
+  function updateGroups(rows) {
+    const groups = new Set();
+    rows.forEach((spans, row) => {
+      const fs = row.closest("fieldset");
+      if (fs) groups.add(fs);
+    });
+    groups.forEach((fs) => {
+      const all = Array.from(rows.keys()).filter((row) => row.closest("fieldset") === fs);
+      const empty = all.every((row) => row.hasAttribute(HIDDEN_ATTR));
+      const title = fs.previousElementSibling && fs.previousElementSibling.tagName === "H4" ? fs.previousElementSibling : null;
+      [fs, title].forEach((el) => {
+        if (!el) return;
+        if (empty && !el.hasAttribute(HIDDEN_ATTR)) {
+          el.style.display = "none";
+          el.setAttribute(HIDDEN_ATTR, "");
+        } else if (!empty && el.hasAttribute(HIDDEN_ATTR)) {
+          el.style.display = "";
+          el.removeAttribute(HIDDEN_ATTR);
+        }
+      });
     });
   }
 
