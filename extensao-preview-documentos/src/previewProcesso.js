@@ -329,18 +329,24 @@
 		clearTimeout(closeTimer);
 	}
 
-	// Item de aba nativo "Movimentações" (onclick com setTab(...)).
+	// Item de aba nativo "Movimentações" (onclick com setTab(...)). No SEEU, o
+	// item é <li name="tabMovimentacoesProcesso"> (aba ativa com a classe
+	// currentTab), com o link "Movimentações" dentro: o clique nele chega ao
+	// item, como o clique do usuário.
 	function findMovimentacoesTab(doc) {
 		return Array.prototype.find.call(doc.querySelectorAll("[onclick]"), function (el) {
 			const onclick = el.getAttribute("onclick") || "";
 			return /setTab\(/.test(onclick) && onclick.indexOf(MOVIMENTACOES_TAB_ID) !== -1;
-		}) || null;
+		}) || doc.querySelector('li[name="' + MOVIMENTACOES_TAB_ID + '"] a') || null;
 	}
 
 	function estaNaAbaMovimentacoes(doc) {
 		const form = doc.getElementById("processoForm");
 		const campo = form && form.elements ? form.elements.namedItem("selectedIcon") : null;
 		if (campo && campo.value) return campo.value === MOVIMENTACOES_TAB_ID;
+		// SEEU: a aba ativa é o item com a classe currentTab.
+		const ativa = doc.querySelector("#tabHorz li.currentTab[name]");
+		if (ativa) return ativa.getAttribute("name") === MOVIMENTACOES_TAB_ID;
 		// Sem o campo: considera aberta se já há linhas de movimentação.
 		return !!doc.querySelector('tr[id^="mov1Grau"]');
 	}
