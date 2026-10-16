@@ -101,7 +101,9 @@
 	const PANEL_ID = "pdp-alterar-classe-painel";
 	const MOTIVO_NAME = "retificacaoEvolucaoClasseProcessual";
 	const SECUNDARIOS_ROTULO = /^assuntos? secundarios?\b/;
-	const EXEC_TIMEOUT_MS = 30000;
+	// Limite de espera por resposta do Projudi: folgado, porque o servidor
+	// (sobretudo o de testes) às vezes passa de 30 s numa única tela.
+	const EXEC_TIMEOUT_MS = 60000;
 	// Campos de controle da página (tokens de uso único etc.): nunca entram
 	// numa preferência — repor um valor antigo invalidaria o envio.
 	const CAMPOS_IGNORADOS = /token|^_tj$|^org\.apache\.struts|^actionType$|^selectedIcon$/i;
@@ -822,7 +824,7 @@
 			const janela = await esperar(function () {
 				const j = docDaJanela(doc);
 				return j && j.doc.getElementById("descricaoPesquisa") && j.doc.getElementById("searchButton") ? j : null;
-			}, 20000, "a janela de seleção de assunto não abriu.");
+			}, EXEC_TIMEOUT_MS, "a janela de seleção de assunto não abriu.");
 
 			mostrarStatus(titulo + " — pesquisando o assunto…");
 			const radio = await pesquisarNaJanela(janela.quadro, pref);

@@ -81,8 +81,10 @@
 	const PREFS_KEY = "pdpPrioridadesPrefs";
 	const CATALOGO_KEY = "pdpPrioridadesCatalogo";
 	const RECARGA_MS = 1200;
-	const EXEC_TIMEOUT_MS = 30000;
-	const JANELA_TIMEOUT_MS = 20000;
+	// Limite de espera por resposta do Projudi: folgado, porque o servidor
+	// (sobretudo o de testes) às vezes passa de 30 s numa única tela.
+	const EXEC_TIMEOUT_MS = 60000;
+	const JANELA_TIMEOUT_MS = 40000;
 
 	function normalize(text) {
 		return String(text || "")

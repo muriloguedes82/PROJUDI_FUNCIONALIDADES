@@ -50,7 +50,9 @@
 	const PANEL_ID = "pdp-valor-causa-painel";
 	const STATUS_ID = "pdp-valor-causa-status";
 	const ROW_ATTR = "data-pdp-valor-causa";
-	const EXEC_TIMEOUT_MS = 30000;
+	// Limite de espera por resposta do Projudi: folgado, porque o servidor
+	// (sobretudo o de testes) às vezes passa de 30 s numa única tela.
+	const EXEC_TIMEOUT_MS = 60000;
 
 	function normalize(text) {
 		return String(text || "")
