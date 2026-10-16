@@ -821,7 +821,7 @@
 						throw perdido;
 					}
 					console.info("[Alterar Classe/Assuntos] o Projudi não reagiu ao \"Selecionar\"; clicando de novo.");
-					if (!radio.checked) radio.click();
+					radio.click();
 					selecionar.click();
 					cliques++;
 					ultimoClique = Date.now();
@@ -890,7 +890,9 @@
 			adicionar.click();
 			const janela = await esperar(function () {
 				const j = docDaJanela(doc);
-				return j && j.doc.getElementById("descricaoPesquisa") && j.doc.getElementById("searchButton") ? j : null;
+				// Só com a janela carregada de todo: antes disso os botões dela
+				// existem mas ainda não respondem.
+				return j && j.doc.readyState === "complete" && j.doc.getElementById("descricaoPesquisa") && j.doc.getElementById("searchButton") ? j : null;
 			}, EXEC_TIMEOUT_MS, "a janela de seleção de assunto não abriu.").catch(function (err) {
 				err.repetir = true;
 				throw err;
@@ -900,7 +902,18 @@
 			const radio = await pesquisarNaJanela(janela.quadro, pref);
 			if (!radio) throw new Error('o assunto "' + pref.descricao + '" não apareceu na pesquisa da janela de seleção. Nada foi salvo.');
 			const dlg = radio.ownerDocument;
-			if (!radio.checked) radio.click();
+			// O assunto pode já estar na lista inicial da janela (ex.:
+			// "Injúria"): sem pesquisa, chegava-se aqui com a janela ainda
+			// terminando de carregar, e o Projudi ignorava o "Selecionar".
+			await esperar(function () { return dlg.readyState === "complete"; }, EXEC_TIMEOUT_MS, "a janela de seleção de assunto não terminou de carregar.").catch(function (err) {
+				err.repetir = true;
+				throw err;
+			});
+			await pausa(500);
+			// Clique de verdade no rádio mesmo se já vier marcado (um rádio
+			// marcado continua marcado): é o clique que avisa o Projudi da
+			// escolha.
+			radio.click();
 			const continuar = dlg.getElementById("continuarCadastrando");
 			if (continuar && continuar.checked) continuar.click();
 			const selecionar = dlg.getElementById("selectButton");
