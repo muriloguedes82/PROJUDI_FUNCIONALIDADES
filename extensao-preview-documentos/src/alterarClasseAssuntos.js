@@ -63,8 +63,8 @@
 // - Executar: no quadro oculto, faz o mesmo que o usuário — Adicionar →
 //   pesquisa pela descrição (sem resultado: sem acentos, pela palavra mais
 //   longa, pelo código — ver termosDePesquisa) → marca o assunto →
-//   Selecionar —, espera a tela
-//   de alteração voltar com o assunto na lista e só então clica em
+//   Selecionar —, espera o assunto aparecer na lista (a tela de alteração
+//   pode recarregar ou não — ver selecionarEConferir) e só então clica em
 //   "Salvar". Se o assunto não aparecer na lista, nada é salvo.
 //
 // REMOVER (✖ no fim de cada assunto secundário do cabeçalho): depois de
@@ -697,6 +697,109 @@
 		return null;
 	}
 
+	// Avisos (alert) do Projudi numa janela: ficam guardados em `lista` para
+	// entrar na mensagem de erro; confirmações são aceitas, como o usuário
+	// faria.
+	function capturarAvisos(win, lista) {
+		try {
+			if (!win || win.__pdpAvisosCapturados === lista) return;
+			win.__pdpAvisosCapturados = lista;
+			win.alert = function (msg) {
+				const texto = String(msg || "").replace(/\s+/g, " ").trim();
+				if (texto && lista.indexOf(texto) === -1) lista.push(texto);
+				console.info("[Alterar Classe/Assuntos] alerta do Projudi:", msg);
+			};
+			win.confirm = function () { return true; };
+		} catch (err) {
+			// janela inacessível — segue
+		}
+	}
+
+	// Tela de alteração (já carregada) dentro de `quadro` ou de um quadro
+	// dele, ou null.
+	function telasDeAlteracao(quadro) {
+		const docs = [];
+		function olhar(d) {
+			if (!d || d.readyState !== "complete" || !d.getElementById(FORM_ID)) return;
+			docs.push(d);
+		}
+		try {
+			const d = quadro.contentDocument;
+			olhar(d);
+			if (d) {
+				Array.prototype.forEach.call(d.querySelectorAll("iframe, frame"), function (q) {
+					try {
+						olhar(q.contentDocument);
+					} catch (err) {
+						// segue
+					}
+				});
+			}
+		} catch (err) {
+			// segue
+		}
+		return docs;
+	}
+
+	// Clica em "Selecionar" e espera o assunto aparecer na lista dos
+	// assuntos secundários. O Projudi nem sempre recarrega a tela de
+	// alteração inteira depois do "Selecionar" (com assunto secundário já
+	// na lista, a tela não voltava e dava "a tela de alteração não voltou"):
+	// por isso a lista é conferida na tela atual, na tela recarregada e na
+	// que se abrir dentro da janela de seleção. Devolve o documento com o
+	// assunto na lista (é nele que se clica em "Salvar").
+	async function selecionarEConferir(quadro, docAntes, dlg, selecionar, pref) {
+		const avisos = [];
+		capturarAvisos(dlg.defaultView, avisos);
+		capturarAvisos(quadro.contentWindow, avisos);
+		function aoCarregar() {
+			capturarAvisos(quadro.contentWindow, avisos);
+		}
+		quadro.addEventListener("load", aoCarregar);
+		const vigia = setInterval(function () {
+			try {
+				Array.prototype.forEach.call(quadro.contentDocument.querySelectorAll("iframe, frame"), function (q) {
+					capturarAvisos(q.contentWindow, avisos);
+				});
+			} catch (err) {
+				// segue
+			}
+		}, 200);
+		function comAvisos(texto, doc) {
+			const extra = avisos.slice();
+			const tela = doc ? mensagemDaTela(doc) : "";
+			if (tela && extra.indexOf(tela) === -1) extra.push(tela);
+			return texto + (extra.length ? "\n\nAviso do Projudi: " + extra.join("\n") : "");
+		}
+		try {
+			selecionar.click();
+			const fim = Date.now() + EXEC_TIMEOUT_MS;
+			let semAssuntoDesde = 0;
+			while (Date.now() < fim) {
+				await pausa(250);
+				const telas = telasDeAlteracao(quadro);
+				const certa = telas.filter(function (d) { return temSecundario(d, pref.idAssunto); })[0];
+				if (certa) {
+					await pausa(300); // scripts da tela recarregada terminarem
+					return certa;
+				}
+				// A tela de alteração voltou (é outra) sem o assunto: dá um
+				// tempo para scripts da tela e desiste.
+				const nova = telas.filter(function (d) { return d !== docAntes; })[0];
+				if (nova) {
+					if (!semAssuntoDesde) semAssuntoDesde = Date.now();
+					else if (Date.now() - semAssuntoDesde > 3000) {
+						throw new Error(comAvisos('o assunto "' + pref.descricao + '" não entrou na lista de assuntos secundários. Nada foi salvo.', nova));
+					}
+				}
+			}
+			throw new Error(comAvisos("a tela de alteração não voltou depois de selecionar o assunto. Nada foi salvo.", null));
+		} finally {
+			clearInterval(vigia);
+			quadro.removeEventListener("load", aoCarregar);
+		}
+	}
+
 	// Execução de uma preferência de assunto secundário (ver o início do
 	// arquivo): Adicionar → pesquisa → marca → Selecionar → confere → Salvar.
 	async function executarSecundario(pref, titulo) {
@@ -732,18 +835,15 @@
 			if (!selecionar) throw new Error('não encontrei o botão "Selecionar" da janela de seleção.');
 
 			mostrarStatus(titulo + " — selecionando o assunto…");
-			carga = proximaCarga(quadro, EXEC_TIMEOUT_MS, "a tela de alteração não voltou depois de selecionar o assunto. Nada foi salvo.");
-			selecionar.click();
-			doc = await carga;
-			if (!doc || !doc.getElementById(FORM_ID)) throw new Error("a tela de alteração não voltou depois de selecionar o assunto. Nada foi salvo.");
-			if (!temSecundario(doc, pref.idAssunto)) {
-				throw new Error('o assunto "' + pref.descricao + '" não entrou na lista de assuntos secundários. Nada foi salvo.' + (mensagemDaTela(doc) ? "\n\n" + mensagemDaTela(doc) : ""));
-			}
+			doc = await selecionarEConferir(quadro, doc, dlg, selecionar, pref);
 			const salvar = doc.getElementById("saveButton");
 			if (!salvar) throw new Error('não encontrei o botão "Salvar".');
 
 			mostrarStatus(titulo + " — salvando…");
-			carga = proximaCarga(quadro);
+			// A tela com o assunto pode estar dentro da janela de seleção:
+			// a resposta do "Salvar" chega no quadro dela.
+			const quadroDaTela = doc === quadro.contentDocument ? quadro : doc.defaultView.frameElement || quadro;
+			carga = proximaCarga(quadroDaTela);
 			salvar.click();
 			return respostaDoSalvar(await carga);
 		} finally {
