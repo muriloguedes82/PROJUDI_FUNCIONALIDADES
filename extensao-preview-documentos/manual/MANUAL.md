@@ -416,7 +416,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 |---|---|---|
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Prioridades (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
-| **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica | [4](#cap-4) |
+| **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Bloco de anotações | [4](#cap-4) |
 | **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados (Projudi) · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista (Projudi) · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
@@ -706,6 +706,20 @@ ele às vezes indica só a origem de um desmembramento.
 **Bom saber:** a linha mostra "Buscando…" por um instante. Se a extensão
 não conseguir confirmar o número do processo principal, mostra "não
 encontrado" em vez de um número errado.
+
+---
+
+<a id="cap-5"></a>
+
+### 4.5 Bloco de anotações
+
+**Para que serve:** escrever uma nota pessoal, ou compartilhar o texto como lembrete ativo do Projudi para que os servidores com acesso ao processo também possam consultá-lo.
+
+**Onde fica:** no canto superior direito. A anotação do processo aparece nas telas da ficha e de movimentação do processo; a anotação permanente pode ser usada nas demais páginas.
+
+**Passo a passo:** escreva no post-it; o texto fica salvo neste navegador enquanto você edita. Na opção **Deste processo**, clique em **Salvar no Projudi** para atualizar o lembrete ativo mostrado na ficha do processo. Se ainda não houver lembrete ativo, a extensão cria um com o assunto **Anotação compartilhada - Abra ou instale a extensão Olirum**. O envio só acontece ao clicar nesse botão. A extensão consulta **Informações Gerais** em segundo plano para localizar o lembrete, sem trocar a aba que você está usando. Arraste pelo título **Anotações** para mudar a posição. Use **−** para recolher e **▾** para reabrir. Os quadrinhos ao lado do aviso de salvamento escolhem amarelo, azul, verde ou vermelho. Clique em **+** no título para criar uma nota pessoal adicional para o processo; cada nota tem sua própria cor e posição. Use **×** para excluir uma nota adicional (pede confirmação se houver texto). Escolha **Permanente (todos os processos)** para editar uma nota pessoal que não é enviada ao Projudi.
+
+**Bom saber:** acompanha a rolagem da página e guarda a posição neste navegador. O texto de **Deste processo**, depois de salvo no Projudi, fica no lembrete ativo e é compartilhado com quem tem acesso ao processo. A extensão não altera lembretes desativados. Cores, posição, notas adicionais e a opção permanente ficam apenas neste perfil do navegador. Nas listagens e telas de análise, mostra apenas a anotação permanente, nunca a anotação de um processo da lista. Não aparece nas janelas de diálogo bloqueadas para os botões.
 
 ---
 
@@ -2793,6 +2807,16 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 | 2.30.2 | 09/10/2026 | Corrigido (9.10): em Expedir Intimações e Expedir Citação, o **Prazo** e o **Usar Anexos** da tela final não ficavam gravados na preferência; agora são gravados no clique em Assinar e Expedir/Postergar Assinatura e preenchidos em cada uso. |
 | 2.30.1 | 09/10/2026 | Corrigido (9.10): em Expedir Intimações e Expedir Citação, o campo **Descrição** da Pré-Análise não ficava gravado na preferência; agora é gravado e preenchido em cada uso. |
 | 2.30.0 | 09/10/2026 | Pré-Análise com preferências (9.10) também nas listas **Expedir Intimações** e **Expedir Citação**, na linha e em lote: grava a versão final do texto no "Continuar" (editada ou não), troca os dados de cada processo e parte, e salva no clique em **Assinar e Expedir** ou **Postergar Assinatura**. Essas telas não têm "Tipo do Arquivo" (só o Modelo). Cada lista passa a mostrar só as preferências criadas nela. Sem vídeo novo: a tela é a mesma do V50. |
+| 2.29.11 | 13/10/2026 | O assunto padrão de lembretes criados pelo post-it passa a ser **Anotação compartilhada - Abra ou instale a extensão Olirum**. |
+| 2.29.10 | 10/10/2026 | A nota por processo também é identificada na ficha inicial, que pode usar `processo.do` sem parâmetros explícitos de visualização. Listagens continuam usando apenas a nota permanente porque não têm a barra de título individual. |
+| 2.29.9 | 10/10/2026 | O post-it é ocultado nos quadros de cabeçalho e em prévias/diálogos dentro de iframes; só aparece uma vez no quadro da tela principal. |
+| 2.29.8 | 10/10/2026 | A listagem de processos ativos não é mais confundida com uma ficha individual; o post-it nessa página mostra apenas a anotação permanente. |
+| 2.29.7 | 10/10/2026 | A anotação por processo fica restrita à ficha e à tela de movimentação do processo. Nas listagens e análises, o post-it exibe somente a anotação permanente. |
+| 2.29.6 | 09/10/2026 | O post-it consulta Informações Gerais em segundo plano para localizar o lembrete ativo ou o link de criação, mesmo quando a aba aberta é Movimentações. |
+| 2.29.5 | 09/10/2026 | O link “Novo Lembrete” identificado em Informações Gerais fica disponível no post-it ao alternar para outras abas do processo. |
+| 2.29.4 | 09/10/2026 | Corrigida a identificação do link “Novo Lembrete” para liberar a criação de um lembrete compartilhado quando não há um ativo. |
+| 2.29.3 | 09/10/2026 | O post-it do processo pode carregar o lembrete ativo e salvá-lo explicitamente no Projudi; se não houver um ativo, cria um com assunto padrão. Notas permanentes e adicionais continuam pessoais. |
+| 2.29.2 | 09/10/2026 | Integradas as novidades da versão 2.29.1 com o bloco de anotações por processo, cores e múltiplas notas. |
 | 2.29.1 | 07/10/2026 | Preferências com texto (8.2, 9.9, 9.10): a versão final do documento no clique em **Continuar** é sempre a gravada — também quando você não altera nada no texto do Modelo (antes aparecia o aviso "Não consegui gravar nenhum texto" e, com o marcador "INSIRA O TEXTO AQUI", a extensão parava para você digitar). Textos das seções 8.2 e 9.9 ajustados. |
 | 2.29.0 | 07/10/2026 | Preferências com texto (Juntar Documento 8.2, Analisar Decurso 9.9 e Pré-Análise 9.10): passam a gravar também as **edições do texto do Modelo** — trechos apagados, formatação (negrito, itálico, sublinhado) e parágrafos alterados —, e as refazem em cada uso no documento novo, trocando os dados do processo (número, nomes, endereço, CPF, datas) pelos do processo novo nos parágrafos alterados. Os parágrafos não alterados ficam como o Projudi os gera. Sem vídeo novo: a tela não muda. |
 | 2.28.1 | 07/10/2026 | Sem alteração de texto; corrigido: em documentos gerados por **Modelo** (ex.: mandados), ao gravar uma preferência (Juntar Documento, Analisar Decurso ou Pré-Análise) a extensão gravava o documento inteiro em vez do texto digitado, e ao usá-la avisava "Não encontrei onde inserir o texto da preferência". Agora grava só o que você digitou e o insere no mesmo lugar — inclusive quando o parágrafo de referência tem dados do processo (nome, data). Se o texto gravado parecer o documento inteiro, a extensão avisa antes de salvar. Preferências gravadas com o erro precisam ser gravadas de novo (✏️). |

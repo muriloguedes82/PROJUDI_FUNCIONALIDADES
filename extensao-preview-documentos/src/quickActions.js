@@ -316,6 +316,8 @@
 	function hasProcessNumberMarker() {
 		const projudiEl = document.querySelector("em.attention");
 		if (projudiEl && projudiEl.textContent.trim()) return true;
+		const projudiHeader = document.getElementById("barraTituloStatusProcessual");
+		if (projudiHeader && /\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/.test(projudiHeader.textContent || "")) return true;
 		const seeuEl = document.querySelector("div.titulo.processo");
 		if (seeuEl && /[\d.\-]{15,}/.test(seeuEl.textContent || "")) return true;
 		return false;
