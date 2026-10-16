@@ -61,7 +61,9 @@
 // - Gravar: o "Selecionar" da janela é barrado (o processo e a lista não
 //   mudam); a extensão guarda o id e a descrição do assunto marcado.
 // - Executar: no quadro oculto, faz o mesmo que o usuário — Adicionar →
-//   pesquisa pela descrição → marca o assunto → Selecionar —, espera a tela
+//   pesquisa pela descrição (sem resultado: sem acentos, pela palavra mais
+//   longa, pelo código — ver termosDePesquisa) → marca o assunto →
+//   Selecionar —, espera a tela
 //   de alteração voltar com o assunto na lista e só então clica em
 //   "Salvar". Se o assunto não aparecer na lista, nada é salvo.
 //
@@ -623,6 +625,78 @@
 		}
 	}
 
+	// Rádio do assunto da preferência na janela de seleção: pelo id gravado
+	// ou, se o valor do rádio não bater, pelo código do início do texto
+	// ("14227 - Crime de ...") ou pela descrição inteira.
+	function radioDoAssunto(d, pref) {
+		if (!d) return null;
+		const radios = Array.prototype.slice.call(d.querySelectorAll('input[name="idAssuntoSelecionado"]'));
+		const porId = radios.filter(function (r) { return r.value === String(pref.idAssunto); })[0];
+		if (porId) return porId;
+		const codigo = (/^(\d+)\s*-/.exec(String(pref.descricao || "").trim()) || [])[1];
+		const descricao = normalize(String(pref.descricao || "").replace(/^\d+\s*-\s*/, ""));
+		return radios.filter(function (r) {
+			const oculto = r.nextElementSibling && r.nextElementSibling.name === "descricaoAssuntoSelecionado" ? r.nextElementSibling.value : "";
+			const li = r.closest("li");
+			const link = li ? li.querySelector("a") : null;
+			const texto = normalize(oculto || (link && link.textContent) || (li && li.textContent) || "");
+			if (codigo && new RegExp("^" + codigo + "\\s*-").test(texto)) return true;
+			return !!descricao && texto.replace(/^\d+\s*-\s*/, "") === descricao;
+		})[0] || null;
+	}
+
+	// Termos para a pesquisa da janela de seleção, do mais preciso ao mais
+	// amplo: a descrição inteira, sem acentos, a palavra mais longa e o
+	// código. Cada termo cabe no limite de letras do campo de pesquisa
+	// (cortado no fim de uma palavra). A descrição inteira, sozinha, nem
+	// sempre é encontrada (ex.: "14227 - Crime de Descumprimento de Medida
+	// Protetiva de Urgência").
+	function termosDePesquisa(pref, limite) {
+		const semAcento = function (s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, ""); };
+		const descricao = String(pref.descricao || "").replace(/^\d+\s*-\s*/, "").replace(/\s+/g, " ").trim();
+		const palavra = descricao.split(" ").reduce(function (a, b) { return b.length > a.length ? b : a; }, "");
+		const codigo = (/^(\d+)\s*-/.exec(String(pref.descricao || "").trim()) || [])[1] || "";
+		function caber(s) {
+			if (!(limite > 0) || s.length <= limite) return s;
+			const corte = s.slice(0, limite);
+			const espaco = corte.lastIndexOf(" ");
+			return (espaco > 0 ? corte.slice(0, espaco) : corte).trim();
+		}
+		const termos = [];
+		[descricao, semAcento(descricao), palavra, semAcento(palavra), codigo].forEach(function (t) {
+			t = caber(t);
+			if (t && termos.indexOf(t) === -1) termos.push(t);
+		});
+		return termos;
+	}
+
+	// Pesquisa o assunto na janela de seleção (quadro `quadro`), tentando os
+	// termos acima até o assunto aparecer. Devolve o rádio dele ou null.
+	async function pesquisarNaJanela(quadro, pref) {
+		const jaNaTela = radioDoAssunto(quadro.contentDocument, pref);
+		if (jaNaTela) return jaNaTela;
+		const inicial = quadro.contentDocument.getElementById("descricaoPesquisa");
+		const termos = termosDePesquisa(pref, inicial ? inicial.maxLength : 0);
+		for (let i = 0; i < termos.length; i++) {
+			const d = quadro.contentDocument;
+			const campo = d && d.getElementById("descricaoPesquisa");
+			const botao = d && d.getElementById("searchButton");
+			if (!campo || !botao) break;
+			const carga = proximaCarga(quadro, EXEC_TIMEOUT_MS, "a pesquisa de assunto não respondeu.");
+			campo.value = termos[i];
+			botao.click();
+			await carga;
+			try {
+				return await esperar(function () {
+					return radioDoAssunto(quadro.contentDocument, pref);
+				}, 3000, "");
+			} catch (err) {
+				console.info('[Alterar Classe/Assuntos] pesquisa "' + termos[i] + '" não trouxe o assunto ' + pref.descricao);
+			}
+		}
+		return null;
+	}
+
 	// Execução de uma preferência de assunto secundário (ver o início do
 	// arquivo): Adicionar → pesquisa → marca → Selecionar → confere → Salvar.
 	async function executarSecundario(pref, titulo) {
@@ -648,15 +722,8 @@
 			}, 20000, "a janela de seleção de assunto não abriu.");
 
 			mostrarStatus(titulo + " — pesquisando o assunto…");
-			const pesquisa = String(pref.descricao || "").replace(/^\d+\s*-\s*/, "").trim();
-			const cargaJanela = proximaCarga(janela.quadro, EXEC_TIMEOUT_MS, "a pesquisa de assunto não respondeu.");
-			janela.doc.getElementById("descricaoPesquisa").value = pesquisa;
-			janela.doc.getElementById("searchButton").click();
-			await cargaJanela;
-			const radio = await esperar(function () {
-				const d = janela.quadro.contentDocument;
-				return d && d.querySelector('input[name="idAssuntoSelecionado"][value="' + String(pref.idAssunto).replace(/"/g, "") + '"]');
-			}, 20000, 'o assunto "' + pref.descricao + '" não apareceu na pesquisa da janela de seleção. Nada foi salvo.');
+			const radio = await pesquisarNaJanela(janela.quadro, pref);
+			if (!radio) throw new Error('o assunto "' + pref.descricao + '" não apareceu na pesquisa da janela de seleção. Nada foi salvo.');
 			const dlg = radio.ownerDocument;
 			if (!radio.checked) radio.click();
 			const continuar = dlg.getElementById("continuarCadastrando");
