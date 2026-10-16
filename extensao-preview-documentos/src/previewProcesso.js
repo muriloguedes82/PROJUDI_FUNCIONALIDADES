@@ -41,8 +41,8 @@
 // clicado dentro do painel. A lista nunca navega: o painel fecha ao tirar o
 // mouse dele (ou com "✕"/Esc); "📌 Fixar" o mantém aberto até o "✕".
 //
-// SEEU: as mesmas listas (com /seeu/ no lugar de /projudi/), mais as
-// Execuções (processo.do, que no SEEU é uma lista, não a tela do processo) e
+// SEEU: as mesmas listas (com /seeu/ no lugar de /projudi/), mais a de
+// Processos Suspensos (processo/processoBuscaSuspenso.do), as Execuções (processo.do, que no SEEU é uma lista, não a tela do processo) e
 // o Painel de Incidentes (processo/criminal/execucao/pendencia_incidente.do).
 // Em todas o número é link para a tela do processo, que no SEEU é
 // visualizacaoProcesso.do (`<a class="link" href="/seeu/visualizacaoProcesso.do?_tj=...">
@@ -60,7 +60,7 @@
 	if (window.__pdpPreviewProcesso) return;
 
 	const TELAS = /^\/projudi\/processo\/(intimacaoBusca|intimacaoNomeados|citacao|analisarJuntada|conclusao|cumprimentoCartorio|cumprimentoCartorioMandado|expedirIntimacao|expedirCitacao|processoBuscaParalisado)\.do$/;
-	const TELAS_SEEU = /^\/seeu\/(processo|processo\/(intimacaoBusca|intimacaoNomeados|citacao|analisarJuntada|conclusao|cumprimentoCartorio|cumprimentoCartorioMandado|processoBuscaParalisado)|processo\/criminal\/execucao\/pendencia_incidente)\.do$/;
+	const TELAS_SEEU = /^\/seeu\/(processo|processo\/(intimacaoBusca|intimacaoNomeados|citacao|analisarJuntada|conclusao|cumprimentoCartorio|cumprimentoCartorioMandado|processoBuscaParalisado|processoBuscaSuspenso)|processo\/criminal\/execucao\/pendencia_incidente)\.do$/;
 	const NO_SEEU = TELAS_SEEU.test(location.pathname);
 	if (!NO_SEEU && !TELAS.test(location.pathname)) return;
 	const NA_CONCLUSAO = location.pathname === "/projudi/processo/conclusao.do";
