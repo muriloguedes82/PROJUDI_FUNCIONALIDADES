@@ -20,6 +20,7 @@ Não houve teste no SEEU real: o "precisa de teste" abaixo vem só da leitura do
 | Minhas Preferências na linha (⭐) | Só nas listas **Análise de Juntadas** e **Retorno de Conclusão**, e só com preferências do 📍 Localizador (com ⭐ Em lote) |
 | Ações rápidas e Minhas Preferências | Parcial: ⭐ Minhas Preferências e 🔗 Combos com etapas do Localizador. Os grupos personalizados e o 📋 Colar processo ficam só no Projudi |
 | Ocultar contadores zerados | Mesa do(a) Analista Judiciário, todas as abas (liberada na 2.42.0; conferida nas telas salvas de Análise de Juntadas, Pendências de Incidentes, Cumprimentos de Medidas, Intimações e Outros Cumprimentos; grupos todos zerados somem com o título) |
+| Processo ao passar o mouse | Listas de Juntadas, Retorno de Conclusão, Mandados/Demais Cumprimentos, Decurso de Prazo, Paralisados, Execuções e Painel de Incidentes (liberada na 2.43.0) |
 | Listas de tarefas | Nas listas do SEEU que usam a ⭐ (necessária para a ⭐ na linha) |
 | Documento do Juiz ao passar o mouse no Retorno de Conclusão | O código atende `/seeu/processo/conclusao.do` (Anexo B, v2.29.0, diz "Projudi e SEEU"), **mas a tabela da seção 1.3 do manual não cita essa função** |
 
@@ -30,7 +31,6 @@ Não houve teste no SEEU real: o "precisa de teste" abaixo vem só da leitura do
 - Alterar Classe/Assuntos
 - Novo Valor da Causa
 - Prioridades
-- Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões e nos Cumprimentos, no Expedir e nos Paralisados
 - Analisar e Dispensar decurso na lista
 
 ### 2.2 Aparecem no Menu do SEEU, mas o código só age em telas `/projudi/`
@@ -72,7 +72,7 @@ Não houve teste no SEEU real: o "precisa de teste" abaixo vem só da leitura do
 Uma função por vez, a partir de telas salvas do SEEU enviadas pelo usuário:
 
 1. Ocultar contadores zerados — **feito (2.42.0)**
-2. Processo ao passar o mouse
+2. Processo ao passar o mouse — **feito (2.43.0)**
 3. Analisar/Dispensar decurso na lista e ⭐ nas listas de decurso
 4. RG e CPF nos cumprimentos e ⭐ nas listas de cumprimentos
 5. Dispensar juntadas/decursos/cumprimentos e Finalizar conclusão — o usuário pediu

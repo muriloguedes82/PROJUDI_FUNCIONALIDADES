@@ -237,10 +237,9 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "previewProcesso",
 					nome: "Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões e nos Cumprimentos, no Expedir e nos Paralisados",
-					descricao: "Nas listas de decurso de prazo (Intimação, Auxiliares da Justiça e Citações/Notificações) na lista da Análise de Juntadas, na lista de Conclusões e nas listas de cumprimentos (Demais Cumprimentos e Mandados) no Expedir Intimações/Citação e na lista de Processos Paralisados, mostra a tela do processo, na aba Movimentações, ao pousar o mouse sobre o número.",
+					descricao: "Nas listas de decurso de prazo (Intimação, Auxiliares da Justiça e Citações/Notificações) na lista da Análise de Juntadas, na lista de Conclusões e nas listas de cumprimentos (Demais Cumprimentos e Mandados) no Expedir Intimações/Citação e na lista de Processos Paralisados, mostra a tela do processo, na aba Movimentações, ao pousar o mouse sobre o número. No SEEU, também nas listas de Execuções e no Painel de Incidentes.",
 					js: ["src/previewProcesso.js"],
-					css: ["src/previewProcesso.css"],
-					sistemas: ["projudi"]
+					css: ["src/previewProcesso.css"]
 				},
 				{
 					id: "decursoNaLinha",

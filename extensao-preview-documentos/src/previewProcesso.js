@@ -1,6 +1,7 @@
-// Projudi - Pré-visualização do processo nas listas de decurso de prazo, na
-// Análise de Juntadas, nas Conclusões, nos cumprimentos, no Expedir
-// Intimações/Citação e nos Paralisados
+// Projudi/SEEU - Pré-visualização do processo nas listas de decurso de
+// prazo, na Análise de Juntadas, nas Conclusões, nos cumprimentos, no Expedir
+// Intimações/Citação e nos Paralisados (e, no SEEU, nas Execuções e no
+// Painel de Incidentes)
 //
 // Nas telas de decurso de prazo do menu "Decurso de Prazo" — Intimação
 // (processo/intimacaoBusca.do), Intimação de Auxiliares da Justiça
@@ -40,6 +41,15 @@
 // clicado dentro do painel. A lista nunca navega: o painel fecha ao tirar o
 // mouse dele (ou com "✕"/Esc); "📌 Fixar" o mantém aberto até o "✕".
 //
+// SEEU: as mesmas listas (com /seeu/ no lugar de /projudi/), mais as
+// Execuções (processo.do, que no SEEU é uma lista, não a tela do processo) e
+// o Painel de Incidentes (processo/criminal/execucao/pendencia_incidente.do).
+// Em todas o número é link para a tela do processo, que no SEEU é
+// visualizacaoProcesso.do (`<a class="link" href="/seeu/visualizacaoProcesso.do?_tj=...">
+// <em class="attention">NNNNNNN-DD.AAAA...</em></a>`), dentro da tabela da
+// lista (table.resultTable) — inclusive nas Conclusões, onde no SEEU o
+// número já é link. Só vale o link dentro dessa tabela.
+//
 // O quadro do painel é marcado como popup (classe pdp-proc-preview-iframe,
 // reconhecida pelo Menu e pelos cards dos Sistemas do CNJ, e o atributo
 // data-pdp-hide-button-group, de uiVisibility.js): a balança, os cards e o
@@ -50,7 +60,9 @@
 	if (window.__pdpPreviewProcesso) return;
 
 	const TELAS = /^\/projudi\/processo\/(intimacaoBusca|intimacaoNomeados|citacao|analisarJuntada|conclusao|cumprimentoCartorio|cumprimentoCartorioMandado|expedirIntimacao|expedirCitacao|processoBuscaParalisado)\.do$/;
-	if (!TELAS.test(location.pathname)) return;
+	const TELAS_SEEU = /^\/seeu\/(processo|processo\/(intimacaoBusca|intimacaoNomeados|citacao|analisarJuntada|conclusao|cumprimentoCartorio|cumprimentoCartorioMandado|processoBuscaParalisado)|processo\/criminal\/execucao\/pendencia_incidente)\.do$/;
+	const NO_SEEU = TELAS_SEEU.test(location.pathname);
+	if (!NO_SEEU && !TELAS.test(location.pathname)) return;
 	const NA_CONCLUSAO = location.pathname === "/projudi/processo/conclusao.do";
 	const NO_EXPEDIR = /\/expedir(Intimacao|Citacao)\.do$/.test(location.pathname);
 	const NOS_CUMPRIMENTOS = /\/cumprimentoCartorio(Mandado)?\.do$/.test(location.pathname);
@@ -60,7 +72,7 @@
 	} catch (e) { /* frame de outra origem */ }
 	window.__pdpPreviewProcesso = true;
 
-	const PROCESSO_PATH = "/projudi/processo.do";
+	const PROCESSO_PATH = NO_SEEU ? "/seeu/visualizacaoProcesso.do" : "/projudi/processo.do";
 	const CONCLUSAO_PATH = "/projudi/processo/conclusao.do";
 	const BUSCA_PATH = "/projudi/processo/buscaProcesso.do";
 	// Sem resultado da busca nesse tempo, mostra o painel como estiver.
@@ -101,7 +113,7 @@
 		}
 		if (url.origin !== location.origin || url.pathname !== PROCESSO_PATH || !url.search) return null;
 		if (!link.closest("td")) return null;
-		if (NOS_CUMPRIMENTOS && !link.closest("table.resultTable")) return null;
+		if ((NOS_CUMPRIMENTOS || NO_SEEU) && !link.closest("table.resultTable")) return null;
 		return link;
 	}
 
@@ -133,6 +145,7 @@
 	}
 
 	function findAlvo(target) {
+		if (NO_SEEU) return findProcessLink(target);
 		if (NA_CONCLUSAO) return findNumeroTexto(target);
 		return findProcessLink(target) || (NO_EXPEDIR ? findNumeroTexto(target) : null);
 	}

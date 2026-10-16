@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.42.0 |
-| **Versão da extensão** | 2.42.0 |
+| **Versão do manual** | 2.43.0 |
+| **Versão da extensão** | 2.43.0 |
 | **Data desta versão** | 16/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -145,7 +145,7 @@ Não é preciso saber nada de informática além disso.
 | Sistema | O que funciona |
 |---|---|
 | **Projudi (TJPR)** | Todas as funções deste manual |
-| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)), os cards do BNMP, da SESP Intranet e do S.U. (Sistema Uniformizado) ao lado da balança ([8.7](#cap-8-7)) a Mesa do Analista sem itens zerados ([9.4](#cap-9-4)) e o botão **📍 Localizador** ([8.8](#cap-8-8)), que só existe no SEEU — também pela **⭐** das listas de juntadas e de conclusões ([9.3](#cap-9-3)). Vale também para o **SEEU de treino** (ambiente de testes) |
+| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)), os cards do BNMP, da SESP Intranet e do S.U. (Sistema Uniformizado) ao lado da balança ([8.7](#cap-8-7)) a Mesa do Analista sem itens zerados ([9.4](#cap-9-4)), o processo ao passar o mouse nas listas ([9.8](#cap-9-8)) e o botão **📍 Localizador** ([8.8](#cap-8-8)), que só existe no SEEU — também pela **⭐** das listas de juntadas e de conclusões ([9.3](#cap-9-3)). Vale também para o **SEEU de treino** (ambiente de testes) |
 
 A extensão **não funciona** quando o usuário está logado com perfil de
 advogado(a) ou de assessor(a) de advogado — veja [10.3](#cap-10-3).
@@ -417,7 +417,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Prioridades (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica | [4](#cap-4) |
-| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados (Projudi) · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista (Projudi) · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
+| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista (Projudi) · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
 Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
@@ -2019,8 +2019,9 @@ Combos** ([7.4](#cap-7-4)).
 
 *Só no Projudi* — exceto as listas de tarefas ([9.2](#cap-9-2)) e a **⭐**
 ([9.3](#cap-9-3)), que também aparecem nas listas **Análise de Juntadas** e
-**Retorno de Conclusão** do SEEU, e a Mesa do Analista sem itens zerados
-([9.4](#cap-9-4)), que também vale na Mesa do Analista do SEEU.
+**Retorno de Conclusão** do SEEU, a Mesa do Analista sem itens zerados
+([9.4](#cap-9-4)), que também vale na Mesa do Analista do SEEU, e o processo
+ao passar o mouse ([9.8](#cap-9-8)), que também vale nas listas do SEEU.
 
 <a id="cap-9-1"></a>
 ### 9.1 Filtro por Sequencial na Análise de Decurso de Prazo
@@ -2336,7 +2337,7 @@ parte(s)**.
 
 ▶ [**Vídeo V44** — Processo ao passar o mouse](videos/V44-processo-ao-passar-o-mouse.mp4)
 
-*Só no Projudi.*
+*No Projudi e no SEEU.*
 
 **Para que serve:** conferir o processo — cabeçalho e **Movimentações** —
 sem sair da lista de decursos, de juntadas, de conclusões, de cumprimentos, do
@@ -2352,6 +2353,13 @@ Expedir Intimações/Citação ou de processos paralisados e sem abrir outra aba
   um cumprimento aberto (**Visualizar**), o número continua como sempre;
 - listas **Expedir Intimações** e **Expedir Citação**;
 - lista de **Processos Paralisados**.
+
+**No SEEU**, as mesmas listas — **Análise de Juntadas**, **Retorno de
+Conclusão**, **Mandados** (e Demais Cumprimentos), as listas de **Decurso de
+Prazo** (Intimações e Intimação de Auxiliares da Justiça) e **Processos
+Paralisados** — e mais duas, que só existem lá: a lista de **Execuções**
+(Execuções Ativas) e o **Painel de Incidentes**. No SEEU o número do
+processo é sempre um link, inclusive no Retorno de Conclusão.
 
 **Passo a passo:**
 
@@ -2782,6 +2790,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.43.0 | 16/10/2026 | Seção 9.8: o **processo ao passar o mouse** passa a valer também no **SEEU** — listas de Análise de Juntadas, Retorno de Conclusão, Mandados (e Demais Cumprimentos), Decurso de Prazo e Processos Paralisados e, só no SEEU, as listas de **Execuções** e o **Painel de Incidentes**: pousar o mouse sobre o número do processo abre a tela dele num painel. Ajustes em 1.3, 2.6 e na abertura do capítulo 9. Sem vídeo novo (o vídeo V44 mostra o mesmo uso). |
 | 2.42.0 | 16/10/2026 | Seção 9.4: a **Mesa do Analista sem itens zerados** passa a valer também no **SEEU** (Mesa do(a) Analista Judiciário, em todas as abas: Pendências de Incidentes, Cumprimentos de Medidas, Intimações, Análise de Juntadas, Outros Cumprimentos…): as linhas com contador zerado somem e voltam sozinhas quando surge pendência; um grupo (Com Urgência, Para Conferir, Para Expedir…) com todas as linhas zeradas some inteiro, com o título. Ajustes em 1.3 e na abertura do capítulo 9. Sem vídeo novo (a tela é a mesma do vídeo V31). |
 | 2.41.0 | 15/10/2026 | **Nova seção 8.11 — Prioridades:** na linha **Prioridade** do cabeçalho do processo (só no Projudi), **✖** ao lado de cada prioridade que pode ser tirada (remove e salva, depois de confirmar), **➕ Incluir** (abre a tela de alteração num popup já com a **Seleção de Prioridade**; depois do **Selecionar**, salva sozinho) e **⭐** com preferências que incluem/tiram prioridades e salvam com um clique — também nos **🔗 Combos**. Sem prioridade, a linha aparece com "(nenhuma)". Sumário, tabela da 2.6, seções 7.4 e 7.8 atualizados. Novo vídeo V56. |
 | 2.40.0 | 15/10/2026 | Seção 9.8: o processo ao passar o mouse também na lista de **Processos Paralisados** — pousar o mouse sobre o **número do processo** abre a tela dele num painel, já na aba **Movimentações**. Título da seção, Sumário e tabela da 2.6 atualizados; vídeo V44 regravado. |
