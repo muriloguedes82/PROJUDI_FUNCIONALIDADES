@@ -171,3 +171,8 @@ button.pdp-locl-opcao:disabled {
 	background: #fef2f2;
 	color: #991b1b;
 }
+
+button.pdp-locl-diag {
+	align-self: flex-start;
+	padding: 3px 8px;
+}

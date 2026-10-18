@@ -354,6 +354,10 @@
 		desenharEditor();
 	}
 
+	function diagnostico(e) {
+		try { return loc().diagnosticoEm(e.proc.doc); } catch (err) { return String(err && err.message); }
+	}
+
 	function fecharEditor() {
 		if (!editor) return;
 		if (editor.ocupado && !editor.carregando) return; // no meio de uma associação/remoção
@@ -409,6 +413,25 @@
 			el("button", { type: "button", class: "pdp-locl-x", title: "Fechar", text: "✕", disabled: e.ocupado && !e.carregando, onclick: fecharEditor })
 		]));
 		if (e.status) e.painel.append(el("div", { class: "pdp-locl-status " + e.status.tipo, role: "status", text: e.status.texto }));
+		// Remoção que não funcionou: a estrutura do cabeçalho do SEEU, para
+		// o usuário copiar e informar.
+		if (e.status && e.status.diagnostico) {
+			const texto = e.status.diagnostico;
+			const bt = el("button", {
+				type: "button", class: "pdp-locl-bt pdp-locl-diag", text: "📋 Copiar diagnóstico",
+				title: "Copia a estrutura dos localizadores desta tela do SEEU, para enviar a quem mantém a extensão",
+				onclick: function () {
+					const ok = function () { bt.textContent = "✅ Diagnóstico copiado"; };
+					navigator.clipboard.writeText(texto).then(ok).catch(function () {
+						const area = el("textarea", { class: "pdp-locl-filtro", rows: "6" });
+						area.value = texto;
+						bt.replaceWith(area);
+						area.select();
+					});
+				}
+			});
+			e.painel.append(bt);
+		}
 		if (e.carregando) { posicionarEditor(); return; }
 
 		e.painel.append(el("div", { class: "pdp-locl-sec", text: "No processo" }));
@@ -470,9 +493,11 @@
 				? { ok: "\"" + nome + "\" tirado do processo.", ja: "\"" + nome + "\" já não estava no processo.", incerto: "Clicado o \"×\" de \"" + nome + "\", mas não deu para confirmar. Use o ↻ para conferir." }
 				: { ok: "\"" + nome + "\" associado ao processo.", ja: "\"" + nome + "\" já estava no processo.", ausente: "\"" + nome + "\" não está na lista de localizadores ativos desta unidade.", incerto: "Escolhido \"" + nome + "\" na lista, mas não deu para confirmar. Use o ↻ para conferir." };
 			e.status = { texto: textos[r] || r, tipo: r === "ok" || r === "ja" ? "ok" : r === "ausente" ? "erro" : "info" };
+			if (acao === "remover" && r === "incerto") e.status.diagnostico = diagnostico(e);
 		} catch (err) {
 			console.warn(TAG, err);
 			e.status = { texto: (err && err.message) || "Falha ao alterar.", tipo: "erro" };
+			if (acao === "remover") e.status.diagnostico = diagnostico(e);
 		}
 		e.ocupado = false;
 		if (editor === e) desenharEditor();

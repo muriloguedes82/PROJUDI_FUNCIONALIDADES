@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.42.0 |
-| **Versão da extensão** | 2.42.0 |
+| **Versão do manual** | 2.42.1 |
+| **Versão da extensão** | 2.42.1 |
 | **Data desta versão** | 18/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -2672,9 +2672,11 @@ dois botões:
    - **Associar:** os localizadores ativos da unidade (a mesma lista do
      **+** do cabeçalho do processo), com **Pesquisar localizador...**.
 3. Clique num localizador de **Associar** para colocá-lo no processo, ou no
-   **✖** de um localizador para tirá-lo (a extensão pede confirmação). O
-   painel avisa o resultado e a linha da lista já mostra os localizadores
-   novos.
+   **✖** de um localizador para tirá-lo: a extensão pede confirmação e,
+   no processo, faz o mesmo que você faria — clica no localizador e
+   responde **SIM** na janela **Confirme** ("Deseja desassociar o
+   localizador…") do SEEU. O painel avisa o resultado e a linha da lista
+   já mostra os localizadores novos.
 4. Feche o painel no **✕**, com **Esc** ou clicando fora dele.
 
 **Bom saber:**
@@ -2694,6 +2696,10 @@ dois botões:
   Use o **↻** para tentar de novo.
 - Se o painel disser que **não deu para confirmar** a alteração, use o
   **↻** da linha para conferir os localizadores do processo.
+- Se não for possível tirar um localizador, o painel mostra
+  **📋 Copiar diagnóstico**: ele copia como os localizadores aparecem
+  naquela tela do SEEU (sem dados das partes), para você enviar a quem
+  cuida da extensão.
 - Enquanto o painel está aberto, a leitura das demais linhas espera; ela
   continua quando você o fecha.
 
@@ -2859,6 +2865,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.42.1 | 18/10/2026 | Seção 9.12: corrigido o **✖** do painel **📍 Localizadores**, que não tirava o localizador do processo. Agora a extensão faz como no SEEU: clica no localizador e responde **SIM** na janela **Confirme** ("Deseja desassociar o localizador…"). Novo botão **📋 Copiar diagnóstico** quando não é possível tirar um localizador. *Bom saber* da 9.12 atualizado. |
 | 2.42.0 | 18/10/2026 | **Nova seção 9.12** (*só no SEEU*): nas listas **Análise de Juntadas** e **Retorno de Conclusão**, a coluna do número do processo passa a mostrar a linha **📍** com os localizadores cadastrados em cada processo (lidos em segundo plano, um processo de cada vez), com **✏️** para associar um localizador da lista da unidade ou tirar (**✖**) um localizador do processo sem sair da lista, e **↻** para ler de novo. Ao associar pela **⭐** da linha, a linha **📍** é atualizada. Nova função **Localizador na lista (SEEU)** no Menu (2.6). Ajustes em 1.3, na abertura do capítulo 9 e em 8.8. Novo vídeo V57. |
 | 2.41.3 | 16/10/2026 | Alterar Classe/Assuntos (8.9), preferência de assunto secundário: corrigido o aviso "a tela de alteração não voltou depois de selecionar o assunto" (ex.: **Injúria**, **Violação de domicílio**), que aparecia quando o Projudi não recarregava a tela inteira depois do **Selecionar**. Agora a extensão confere se o assunto entrou na lista, recarregando a tela ou não. Se der errado, o aviso mostra também a mensagem do Projudi. *Bom saber* da 8.9 atualizado. Quando o Projudi não reage ao **Selecionar** (assunto secundário e prioridades), a extensão clica de novo e, no assunto secundário, recomeça sozinha (até 3 tentativas) — antes era preciso usar a preferência outra vez —, e passa a esperar a janela de seleção terminar de carregar antes de marcar o assunto (com assuntos como **Injúria**, que já aparecem na janela sem pesquisa, o primeiro **Selecionar** era ignorado). Para o Projudi lento (sobretudo o de testes), a extensão espera mais pela resposta antes de desistir — até 1 minuto por tela — nas preferências de classe, assuntos, prioridades e valor da causa, na inclusão de advogado e no Tipo de Documento das juntadas. |
 | 2.41.2 | 16/10/2026 | Minhas Preferências (7.3) e ⭐ na linha do processo (9.3): os nomes das preferências e dos combos não aparecem mais cortados com "…". A letra dos cards ficou um pouco menor e, quando o nome é comprido, ele continua na linha de baixo, no mesmo card. Nos cards do Analisar (Pré-Análise) e do Analisar Decurso, a descrição da ação fica numa linha em cima e o nome embaixo. Textos da 7.3 e da 9.3 atualizados. |

@@ -176,11 +176,10 @@
 	// "Aguardando Audiência" com "Aguardando Audiência - Já Cumprida".
 	function textosAssociados(doc) {
 		const textos = new Set();
-		const ignorar = /^(seeu-dropdown|seeu-tooltip|style|script|template)$/i;
 		const profundo = function (n) {
 			if (n.nodeType === 3) return n.nodeValue;
 			if (n.nodeType !== 1 && n.nodeType !== 11) return "";
-			if (n.nodeType === 1 && ignorar.test(n.tagName)) return "";
+			if (n.nodeType === 1 && ignorado(n)) return "";
 			let t = "";
 			if (n.nodeType === 1 && n.shadowRoot) t += " " + profundo(n.shadowRoot);
 			n.childNodes.forEach(function (f) { t += " " + profundo(f); });
@@ -220,7 +219,12 @@
 	// cabeçalho fora da lista do "+", sem o "×" de remover.
 	const RE_SIMBOLOS = /[×✕✖+]/g;
 	const RE_NAO_NOME = /^(localizador(es)?( do processo)?|nenhum localizador.*|sem localizador.*)\s*:?$/;
-	const IGNORAR_TAGS = /^(seeu-dropdown|seeu-menu|seeu-tooltip|style|script|template)$/i;
+	// Fora da leitura dos localizadores: a lista do "+", dicas e a janela
+	// "Confirme" (que repete o nome do localizador ao desassociar).
+	const IGNORAR_TAGS = /^(seeu-dropdown|seeu-menu|seeu-tooltip|seeu-dialog|seeu-modal|dialog|style|script|template)$/i;
+	function ignorado(n) {
+		return IGNORAR_TAGS.test(n.tagName) || /^(dialog|alertdialog)$/i.test(n.getAttribute("role") || "");
+	}
 
 	function nomesAssociados(doc) {
 		const r = raiz(doc);
@@ -228,7 +232,7 @@
 		const vistos = new Set();
 		const visitar = function (n) {
 			if (n.nodeType === 1) {
-				if (IGNORAR_TAGS.test(n.tagName)) return;
+				if (ignorado(n)) return;
 				let proprio = "";
 				n.childNodes.forEach(function (f) { if (f.nodeType === 3) proprio += f.nodeValue; });
 				const nome = limpar(proprio.replace(RE_SIMBOLOS, " "));
@@ -249,7 +253,7 @@
 	function textoProfundo(n) {
 		if (n.nodeType === 3) return n.nodeValue;
 		if (n.nodeType !== 1 && n.nodeType !== 11) return "";
-		if (n.nodeType === 1 && IGNORAR_TAGS.test(n.tagName)) return "";
+		if (n.nodeType === 1 && ignorado(n)) return "";
 		let t = "";
 		if (n.nodeType === 1 && n.shadowRoot) t += " " + textoProfundo(n.shadowRoot);
 		n.childNodes.forEach(function (f) { t += " " + textoProfundo(f); });
@@ -266,7 +270,7 @@
 		const achados = [];
 		const visitar = function (n) {
 			if (n.nodeType === 1) {
-				if (IGNORAR_TAGS.test(n.tagName)) return;
+				if (ignorado(n)) return;
 				if (n.matches(seletor)) achados.push(n);
 				if (n.shadowRoot) visitar(n.shadowRoot);
 			}
@@ -276,36 +280,55 @@
 		return achados;
 	}
 
-	// O "×" (ou ícone de remover) do localizador `nome` no cabeçalho. Sobe
-	// a partir do elemento com o nome só enquanto o conteúdo continua sendo
-	// apenas esse nome (o "chip" dele), para não pegar o "×" de outro.
-	const SEL_REMOVER = [
-		"seeu-icon[name*='close' i]", "seeu-icon[name*='delete' i]", "seeu-icon[name*='remove' i]",
-		"seeu-icon[name*='trash' i]", "seeu-icon[name*='minus' i]",
-		"[aria-label*='remov' i]", "[title*='remov' i]", "[aria-label*='desassoci' i]", "[title*='desassoci' i]",
-		"[aria-label*='exclu' i]", "[title*='exclu' i]"
-	].join(",");
-
-	function controleRemover(nome, doc) {
+	// Elemento do cabeçalho cujo texto próprio é o nome do localizador.
+	function elementoDoNome(nome, doc) {
 		const r = raiz(doc);
 		if (!r) return null;
 		const alvo = chaveDe(nome);
-		let atual = buscarProfundo(r, "*").find(function (n) {
+		return buscarProfundo(r, "*").find(function (n) {
 			let proprio = "";
 			n.childNodes.forEach(function (f) { if (f.nodeType === 3) proprio += f.nodeValue; });
 			return chaveDe(proprio) === alvo;
-		});
+		}) || null;
+	}
+
+	// O "×" (ou ícone/botão de remover) do localizador `nome` no cabeçalho.
+	// Sobe a partir do elemento com o nome só enquanto o conteúdo continua
+	// sendo apenas esse nome (o "chip" dele), para não pegar o "×" de outro.
+	// A estrutura do "×" no SEEU não foi confirmada: aceita ícones com nome
+	// de fechar/apagar, rótulos (label, aria-label, title) e classes/partes
+	// com "remove"/"close"/"delete", ou um "×" escrito.
+	const RE_ICONE_REMOVER = /close|delete|remove|trash|minus|cancel|(^|[:-])x(-lg|-circle|-square)?$/i;
+	const RE_ROTULO_REMOVER = /remov|desassoci|exclu|retirar|apagar|delete|close|fechar/i;
+
+	// Prioridade do elemento como botão de remover (0 = não é): ícone de
+	// fechar/apagar, rótulo, "×" escrito e, por último, classe/parte - esta
+	// só sem texto dentro (a "moldura" do chip também pode ter
+	// "removable" na classe).
+	function pesoRemover(c) {
+		if (c.matches("seeu-icon.plus-icon, [name='mdi:plus'], [name*='plus' i]")) return 0;
+		const nomeIcone = c.getAttribute("name") || c.getAttribute("icon") || "";
+		if (nomeIcone && RE_ICONE_REMOVER.test(nomeIcone)) return 4;
+		if (RE_ROTULO_REMOVER.test([c.getAttribute("label"), c.getAttribute("aria-label"), c.getAttribute("title")].join(" "))) return 3;
+		const texto = limpar(textoProfundo(c));
+		if (/^[×✕✖✗xX]$/.test(texto)) return 2;
+		if (!texto.replace(/[×✕✖✗]/g, "") && RE_ROTULO_REMOVER.test([c.getAttribute("part"), typeof c.className === "string" ? c.className : ""].join(" "))) return 1;
+		return 0;
+	}
+
+	function controleRemover(nome, doc) {
+		const r = raiz(doc);
+		const alvo = chaveDe(nome);
+		let atual = elementoDoNome(nome, doc);
 		for (let nivel = 0; atual && nivel < 6; nivel++) {
-			if (atual.nodeType === 1 && chaveDe(textoProfundo(atual)) !== alvo) break;
-			const candidatos = buscarProfundo(atual, SEL_REMOVER + ",button,[role='button'],span,i").filter(function (c) {
-				if (c.matches("seeu-icon.plus-icon, seeu-icon[name='mdi:plus']")) return false;
-				if (c.matches(SEL_REMOVER)) return true;
-				return /^[×✕✖xX]$/.test(limpar(c.textContent));
+			if (chaveDe(textoProfundo(atual)) !== alvo) break;
+			let melhor = null;
+			let peso = 0;
+			buscarProfundo(atual, "*").forEach(function (c) {
+				const p = c === atual ? 0 : pesoRemover(c);
+				if (p > peso) { peso = p; melhor = c; }
 			});
-			if (candidatos.length) {
-				const c = candidatos[0];
-				return c.closest("button,[role='button'],a") || c;
-			}
+			if (melhor) return melhor.closest("button,[role='button']") || melhor;
 			const pai = atual.parentNode;
 			if (!pai || pai === r) break;
 			atual = pai.nodeType === 11 ? pai.host : pai;
@@ -313,32 +336,130 @@
 		return null;
 	}
 
-	// Confirmação própria do SEEU (diálogo) depois do "×", se houver.
+	// Clique "completo" (alguns componentes reagem ao pointerdown/mousedown).
+	function clicar(alvo) {
+		const op = { bubbles: true, composed: true, cancelable: true, view: alvo.ownerDocument.defaultView };
+		["pointerdown", "mousedown", "pointerup", "mouseup"].forEach(function (tipo) {
+			const C = /^pointer/.test(tipo) && typeof PointerEvent === "function" ? PointerEvent : MouseEvent;
+			alvo.dispatchEvent(new C(tipo, op));
+		});
+		alvo.click();
+	}
+
+	// Como buscarProfundo, mas entra também em listas suspensas e menus.
+	function buscarProfundoTudo(raizBusca, seletor) {
+		const achados = [];
+		const visitar = function (n) {
+			if (n.nodeType === 1) {
+				if (/^(style|script|template)$/i.test(n.tagName)) return;
+				if (n.matches(seletor)) achados.push(n);
+				if (n.shadowRoot) visitar(n.shadowRoot);
+			}
+			n.childNodes.forEach(function (f) { if (f.nodeType === 1) visitar(f); });
+		};
+		visitar(raizBusca);
+		return achados;
+	}
+
+	// Janela "Confirme" do SEEU ao clicar no localizador: "Deseja
+	// desassociar o localizador X do processo N?", com "Não" e "SIM".
+	// Clica no "SIM" (visível) cuja janela fala em desassociar.
+	const clicados = new WeakSet();
 	function confirmarDialogo(doc) {
 		const d = doc || document;
-		const dialogos = buscarProfundo(d.documentElement, "dialog[open],[role='dialog'],[role='alertdialog'],seeu-dialog[open]");
-		for (const dlg of dialogos) {
-			const bt = buscarProfundo(dlg, "button,[role='button'],seeu-button").find(function (b) {
-				return /^(sim|confirmar|remover|ok|desassociar|excluir)$/.test(normalizar(b.textContent));
-			});
-			if (bt) { bt.click(); return true; }
+		const botoes = buscarProfundoTudo(d.documentElement, "button,[role='button'],seeu-button,input[type='button'],input[type='submit'],a");
+		for (const b of botoes) {
+			const texto = normalizar(b.tagName === "INPUT" ? b.value : b.textContent);
+			if (!/^(sim|confirmar|desassociar)$/.test(texto) || clicados.has(b)) continue;
+			if (!b.getClientRects().length) continue; // janela escondida
+			let janela = b;
+			let achou = false;
+			for (let i = 0; janela && i < 10 && !achou; i++) {
+				const pai = janela.parentNode;
+				janela = pai && pai.nodeType === 11 ? pai.host : pai;
+				if (janela && janela.nodeType === 1 && /desassociar|remover|excluir/.test(normalizar(textoProfundoTudo(janela)))) achou = true;
+			}
+			if (!achou) continue;
+			clicados.add(b);
+			console.info(TAG, "confirmando:", texto);
+			b.click();
+			return true;
 		}
 		return false;
 	}
 
-	// Tira o localizador `nome` do processo de `doc` pelo "×" do próprio
-	// cabeçalho. Devolve "ok", "ja" (não estava no processo) ou "incerto";
-	// sem o "×", lança um erro.
+	function textoProfundoTudo(n) {
+		if (n.nodeType === 3) return n.nodeValue;
+		if (n.nodeType !== 1 && n.nodeType !== 11) return "";
+		let t = "";
+		if (n.nodeType === 1 && n.shadowRoot) t += " " + textoProfundoTudo(n.shadowRoot);
+		n.childNodes.forEach(function (f) { t += " " + textoProfundoTudo(f); });
+		return t;
+	}
+
+	function erroRemover(nome) {
+		return new Error("O SEEU não mostrou a confirmação para desassociar \"" + nome + "\" (sem permissão para remover?). Tire pelo cabeçalho do processo e use \"📋 Copiar diagnóstico\" para informar o problema.");
+	}
+
+	// Tira o localizador `nome` do processo de `doc` como no SEEU: clique no
+	// localizador no cabeçalho e "SIM" na janela "Confirme" ("Deseja
+	// desassociar o localizador ..."). Se a janela não aparecer, tenta um
+	// "×" ao lado do nome. Devolve "ok", "ja" (não estava no processo) ou
+	// "incerto"; sem como remover, lança um erro.
 	async function remover(nome, doc) {
 		if (!jaAssociado(nome, doc)) return "ja";
-		const ctrl = controleRemover(nome, doc);
-		if (!ctrl) throw new Error("Não foi possível achar o \"×\" de remover \"" + nome + "\" (sem permissão para remover?). Remova pelo cabeçalho do processo.");
-		ctrl.click();
-		const ok = await aguardar(function () {
-			confirmarDialogo(doc);
-			return !jaAssociado(nome, doc);
-		}, 8000);
+		const alvo = elementoDoNome(nome, doc);
+		if (!alvo) throw erroRemover(nome);
+		console.info(TAG, "remover", nome, "clicando no localizador", alvo);
+		alvo.click();
+		let confirmou = await aguardar(function () { return confirmarDialogo(doc); }, 4000);
+		if (!confirmou) {
+			const ctrl = controleRemover(nome, doc);
+			if (!ctrl) throw erroRemover(nome);
+			console.info(TAG, "remover", nome, "pelo controle", ctrl);
+			clicar(ctrl);
+			confirmou = await aguardar(function () { return confirmarDialogo(doc) || !jaAssociado(nome, doc); }, 4000);
+		}
+		const ok = await aguardar(function () { return !jaAssociado(nome, doc); }, 8000);
 		return ok ? "ok" : "incerto";
+	}
+
+	// Estrutura do cabeçalho de localizadores (marcas, atributos e textos),
+	// para o usuário copiar e informar quando a remoção não funciona.
+	function diagnostico(doc) {
+		const h = header(doc);
+		if (!h) return "Cabeçalho de localizadores não encontrado.";
+		const linhas = [];
+		const ATTRS = ["id", "class", "name", "icon", "label", "aria-label", "title", "part", "role", "slot", "removable", "aria-haspopup", "aria-expanded", "href", "open"];
+		const visitar = function (n, nivel) {
+			if (linhas.length > 400) return;
+			const recuo = "  ".repeat(nivel);
+			if (n.nodeType === 3) {
+				const t = limpar(n.nodeValue);
+				if (t) linhas.push(recuo + "\"" + t.slice(0, 80) + "\"");
+				return;
+			}
+			if (n.nodeType === 11) {
+				linhas.push(recuo + "#shadow-root");
+				n.childNodes.forEach(function (f) { visitar(f, nivel + 1); });
+				return;
+			}
+			if (n.nodeType !== 1 || /^(style|script)$/i.test(n.tagName)) return;
+			const attrs = ATTRS.filter(function (a) { return n.hasAttribute(a); }).map(function (a) {
+				return a + "=\"" + String(n.getAttribute(a)).slice(0, 60) + "\"";
+			});
+			linhas.push(recuo + "<" + n.tagName.toLowerCase() + (attrs.length ? " " + attrs.join(" ") : "") + ">");
+			if (n.shadowRoot) visitar(n.shadowRoot, nivel + 1);
+			// Da lista do "+" bastam os primeiros itens.
+			const filhos = Array.from(n.childNodes);
+			const limite = /^seeu-menu$/i.test(n.tagName) ? 4 : filhos.length;
+			filhos.slice(0, limite).forEach(function (f) { visitar(f, nivel + 1); });
+			if (filhos.length > limite) linhas.push(recuo + "  …");
+		};
+		visitar(h, 0);
+		let versao = "";
+		try { versao = chrome.runtime.getManifest().version; } catch (e) { /* segue */ }
+		return "Extensão " + versao + " · " + (doc || document).URL.split("?")[0] + "\n" + linhas.join("\n");
 	}
 
 	async function associar(nome, doc) {
@@ -694,6 +815,7 @@
 		ativosEm: function (doc) { return lerLocalizadoresAtivos(doc); },
 		associarUmEm: function (doc, nome) { return associar(nome, doc); },
 		removerEm: function (doc, nome) { return remover(nome, doc); },
+		diagnosticoEm: function (doc) { return diagnostico(doc); },
 		associarEm: function (doc, localizadores, progresso) {
 			return associarTodos(localizadores, doc, progresso).then(function (res) {
 				return Object.assign({ resultado: res }, resumir(res));
