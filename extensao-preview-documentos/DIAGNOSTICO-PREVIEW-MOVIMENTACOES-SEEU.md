@@ -90,3 +90,15 @@ voltar, a causa 3 está confirmada.
 
 Qualquer correção muda a versão e exige atualizar o manual (seção 3.1,
 vídeo V03 se a tela mudar, Anexo B), conforme `CLAUDE.md`.
+
+## Resultado do teste e decisão (2.41.4)
+
+Teste no SEEU: com o AzFlow desligado, a pré-visualização funciona; com
+ele ligado, não — causa 3 confirmada. Decisão: no SEEU, com o AzFlow
+ligado, a pré-visualização desta extensão fica desligada e o AzFlow cuida
+dela (no Projudi nada muda). A versão 2.41.4 deixa essa regra mais segura:
+`isAzFlowActive` passa a ler `data-azflow-disabled` no `<html>` deste
+quadro e dos de cima (o quadro da conclusão não tinha nenhuma marca do
+AzFlow, só os de fora) e não guarda mais o resultado para sempre — ao
+desligar o AzFlow pelo botão dele, a nossa volta. As causas 1 e 2 ficam
+para depois (só aparecem com o AzFlow desligado).

@@ -330,7 +330,31 @@
 		'[class*="azflow-"], [id*="azflow-"], [data-azflow-onclick-original], [data-azflow-menucs-applied]';
 	let azFlowDetected = false;
 
+	// O AzFlow também marca o <html> das páginas com
+	// data-azflow-disabled="false" (ligado) ou "true" (desligado pelo botão
+	// dele) — confirmado no .mhtml da tela Analisar Conclusão do SEEU. Nem
+	// todo quadro recebe a marca: lá, o da conclusão (onde ficam os
+	// documentos) não tinha nenhuma marca do AzFlow, só os quadros de fora.
+	// Por isso olhamos este quadro e os de cima (mesma origem). Sem cache:
+	// se o usuário desligar o AzFlow, a nossa pré-visualização volta.
+	function azFlowSwitchState() {
+		let win = window;
+		for (let depth = 0; depth < 6 && win; depth++) {
+			try {
+				const value = win.document.documentElement.getAttribute("data-azflow-disabled");
+				if (value !== null) return value !== "true";
+			} catch (e) {
+				return null; // quadro de outra origem: para de subir
+			}
+			if (win === win.parent) break;
+			win = win.parent;
+		}
+		return null;
+	}
+
 	function isAzFlowActive() {
+		const switchState = azFlowSwitchState();
+		if (switchState !== null) return switchState;
 		if (azFlowDetected) return true;
 		if (document.querySelector(AZFLOW_MARKER_SELECTOR)) {
 			azFlowDetected = true;
