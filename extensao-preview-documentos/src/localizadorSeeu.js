@@ -200,10 +200,10 @@
 		return !!alvo && textosAssociados(doc).has(alvo);
 	}
 
-	async function lerLocalizadoresAtivos() {
-		const jaAberto = menuAberto();
-		let itens = itensMenu();
-		if (!itens.length) itens = await abrirMenu();
+	async function lerLocalizadoresAtivos(doc) {
+		const jaAberto = menuAberto(doc);
+		let itens = itensMenu(doc);
+		if (!itens.length) itens = await abrirMenu(doc);
 		const nomes = [];
 		const vistos = new Set();
 		itens.forEach(function (item) {
@@ -211,8 +211,134 @@
 			const chave = normalizar(nome);
 			if (!vistos.has(chave)) { vistos.add(chave); nomes.push(nome); }
 		});
-		if (!jaAberto) await fecharMenu();
+		if (!jaAberto) await fecharMenu(doc);
 		return nomes;
+	}
+
+	// Nomes dos localizadores associados ao processo, na ordem do
+	// cabeçalho: os textos próprios (sem o de filhos) de cada elemento do
+	// cabeçalho fora da lista do "+", sem o "×" de remover.
+	const RE_SIMBOLOS = /[×✕✖+]/g;
+	const RE_NAO_NOME = /^(localizador(es)?( do processo)?|nenhum localizador.*|sem localizador.*)\s*:?$/;
+	const IGNORAR_TAGS = /^(seeu-dropdown|seeu-menu|seeu-tooltip|style|script|template)$/i;
+
+	function nomesAssociados(doc) {
+		const r = raiz(doc);
+		const nomes = [];
+		const vistos = new Set();
+		const visitar = function (n) {
+			if (n.nodeType === 1) {
+				if (IGNORAR_TAGS.test(n.tagName)) return;
+				let proprio = "";
+				n.childNodes.forEach(function (f) { if (f.nodeType === 3) proprio += f.nodeValue; });
+				const nome = limpar(proprio.replace(RE_SIMBOLOS, " "));
+				const chave = normalizar(nome);
+				if (/[a-z0-9]/.test(chave) && !RE_NAO_NOME.test(chave) && !vistos.has(chave)) {
+					vistos.add(chave);
+					nomes.push(nome);
+				}
+				if (n.shadowRoot) visitar(n.shadowRoot);
+			}
+			n.childNodes.forEach(function (f) { if (f.nodeType === 1) visitar(f); });
+		};
+		if (r) visitar(r);
+		return nomes;
+	}
+
+	// Texto de um elemento com os shadow roots internos (sem símbolos).
+	function textoProfundo(n) {
+		if (n.nodeType === 3) return n.nodeValue;
+		if (n.nodeType !== 1 && n.nodeType !== 11) return "";
+		if (n.nodeType === 1 && IGNORAR_TAGS.test(n.tagName)) return "";
+		let t = "";
+		if (n.nodeType === 1 && n.shadowRoot) t += " " + textoProfundo(n.shadowRoot);
+		n.childNodes.forEach(function (f) { t += " " + textoProfundo(f); });
+		return t;
+	}
+
+	function chaveDe(t) {
+		return normalizar(String(t || "").replace(RE_SIMBOLOS, " ")).replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, "");
+	}
+
+	// Elementos (em profundidade, atravessando shadow roots) de `raizBusca`
+	// que casam com `seletor`.
+	function buscarProfundo(raizBusca, seletor) {
+		const achados = [];
+		const visitar = function (n) {
+			if (n.nodeType === 1) {
+				if (IGNORAR_TAGS.test(n.tagName)) return;
+				if (n.matches(seletor)) achados.push(n);
+				if (n.shadowRoot) visitar(n.shadowRoot);
+			}
+			n.childNodes.forEach(function (f) { if (f.nodeType === 1) visitar(f); });
+		};
+		visitar(raizBusca);
+		return achados;
+	}
+
+	// O "×" (ou ícone de remover) do localizador `nome` no cabeçalho. Sobe
+	// a partir do elemento com o nome só enquanto o conteúdo continua sendo
+	// apenas esse nome (o "chip" dele), para não pegar o "×" de outro.
+	const SEL_REMOVER = [
+		"seeu-icon[name*='close' i]", "seeu-icon[name*='delete' i]", "seeu-icon[name*='remove' i]",
+		"seeu-icon[name*='trash' i]", "seeu-icon[name*='minus' i]",
+		"[aria-label*='remov' i]", "[title*='remov' i]", "[aria-label*='desassoci' i]", "[title*='desassoci' i]",
+		"[aria-label*='exclu' i]", "[title*='exclu' i]"
+	].join(",");
+
+	function controleRemover(nome, doc) {
+		const r = raiz(doc);
+		if (!r) return null;
+		const alvo = chaveDe(nome);
+		let atual = buscarProfundo(r, "*").find(function (n) {
+			let proprio = "";
+			n.childNodes.forEach(function (f) { if (f.nodeType === 3) proprio += f.nodeValue; });
+			return chaveDe(proprio) === alvo;
+		});
+		for (let nivel = 0; atual && nivel < 6; nivel++) {
+			if (atual.nodeType === 1 && chaveDe(textoProfundo(atual)) !== alvo) break;
+			const candidatos = buscarProfundo(atual, SEL_REMOVER + ",button,[role='button'],span,i").filter(function (c) {
+				if (c.matches("seeu-icon.plus-icon, seeu-icon[name='mdi:plus']")) return false;
+				if (c.matches(SEL_REMOVER)) return true;
+				return /^[×✕✖xX]$/.test(limpar(c.textContent));
+			});
+			if (candidatos.length) {
+				const c = candidatos[0];
+				return c.closest("button,[role='button'],a") || c;
+			}
+			const pai = atual.parentNode;
+			if (!pai || pai === r) break;
+			atual = pai.nodeType === 11 ? pai.host : pai;
+		}
+		return null;
+	}
+
+	// Confirmação própria do SEEU (diálogo) depois do "×", se houver.
+	function confirmarDialogo(doc) {
+		const d = doc || document;
+		const dialogos = buscarProfundo(d.documentElement, "dialog[open],[role='dialog'],[role='alertdialog'],seeu-dialog[open]");
+		for (const dlg of dialogos) {
+			const bt = buscarProfundo(dlg, "button,[role='button'],seeu-button").find(function (b) {
+				return /^(sim|confirmar|remover|ok|desassociar|excluir)$/.test(normalizar(b.textContent));
+			});
+			if (bt) { bt.click(); return true; }
+		}
+		return false;
+	}
+
+	// Tira o localizador `nome` do processo de `doc` pelo "×" do próprio
+	// cabeçalho. Devolve "ok", "ja" (não estava no processo) ou "incerto";
+	// sem o "×", lança um erro.
+	async function remover(nome, doc) {
+		if (!jaAssociado(nome, doc)) return "ja";
+		const ctrl = controleRemover(nome, doc);
+		if (!ctrl) throw new Error("Não foi possível achar o \"×\" de remover \"" + nome + "\" (sem permissão para remover?). Remova pelo cabeçalho do processo.");
+		ctrl.click();
+		const ok = await aguardar(function () {
+			confirmarDialogo(doc);
+			return !jaAssociado(nome, doc);
+		}, 8000);
+		return ok ? "ok" : "incerto";
 	}
 
 	async function associar(nome, doc) {
@@ -562,6 +688,12 @@
 		preferencias: function () { return lerPreferencias().then(function (l) { return l.slice(); }); },
 		temCabecalho: function (doc) { return !!header(doc); },
 		podeAssociar: function (doc) { return !!gatilho(doc); },
+		// Para o localizador na lista (localizadorNaLista.js): o que está
+		// associado, a lista do "+", e associar/remover um localizador.
+		associadosEm: function (doc) { return nomesAssociados(doc); },
+		ativosEm: function (doc) { return lerLocalizadoresAtivos(doc); },
+		associarUmEm: function (doc, nome) { return associar(nome, doc); },
+		removerEm: function (doc, nome) { return remover(nome, doc); },
 		associarEm: function (doc, localizadores, progresso) {
 			return associarTodos(localizadores, doc, progresso).then(function (res) {
 				return Object.assign({ resultado: res }, resumir(res));

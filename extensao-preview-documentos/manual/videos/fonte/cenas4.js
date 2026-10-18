@@ -1435,3 +1435,72 @@ CENAS.V56 = {
 		await S.endCard("✖ → confirmar → removida e salva · ➕ Incluir → marcar → Selecionar → salva · ⭐ → ★ preferência → incluída e salva.");
 	},
 };
+
+// ------------------------------------------------------------------ V57
+// Localizadores na coluna do número, nas listas do SEEU, com ✏️ para
+// associar e tirar localizadores (localizadorNaLista.js).
+CENAS.V57 = {
+	arquivo: "V57-localizador-na-lista-seeu.mp4",
+	titulo: "Localizador na lista (SEEU)",
+	secao: "9.12",
+	async run() {
+		telaLista("Retorno de Conclusão", { col: "Retorno em" });
+		browser(["*SEEU - Sistema Eletrônico de Execução Unificado"], "https://seeu.pje.jus.br/seeu/processo/conclusao.do");
+		$(".pj-logo").innerHTML = "SEEU<small>Sistema Eletrônico de Execução Unificado</small>";
+		$(".pj-menu").innerHTML = "<span>Início</span><span>Processos</span><span>Intimações</span><span>Decurso de Prazo</span><span>Análise de Juntadas</span><span>Cumprimentos</span><span>Outros</span>";
+		$("#areaatuacao").textContent = "Vara de Execução de Exemplo";
+		const ITEM = "display:inline-block;margin-left:3px;padding:0 6px;font-size:11px;color:#1e3a8a;background:#eff6ff;border:1px solid #bfdbfe;border-radius:4px";
+		const BT = "display:inline-block;margin-left:3px;padding:0 4px;font-size:11px;background:#fff;border:1px solid #cbd5e1;border-radius:4px";
+		const nomes = [["ABERTO"], ["AGUARDANDO AUDIÊNCIA - JÁ CUMPRIDA", "CÁLCULO DE PENA"], [], ["ABERTO", "PRESO"], ["CÁLCULO DE PENA"], ["ABERTO"]];
+		const linha = (i, conteudo) => {
+			const d = $('[data-locl="' + i + '"]');
+			d.innerHTML = "📍" + conteudo;
+			return d;
+		};
+		const mostrar = i => linha(i, (nomes[i].length ? nomes[i].map(n => '<span style="' + ITEM + '">' + n + "</span>").join("") : ' <i style="color:#64748b">sem localizador</i>') +
+			'<span style="' + BT + '" id="x-ed-' + i + '">✏️</span><span style="' + BT + '">↻</span>');
+		$$("#lista tr[data-i]").forEach(tr => {
+			tr.children[1].insertAdjacentHTML("beforeend", '<div data-locl="' + tr.dataset.i + '" style="margin-top:3px;font-size:11px;color:#334155"></div>');
+			linha(tr.dataset.i, ' <i style="color:#64748b">aguardando…</i>');
+		});
+		await S.titleCard("VÍDEO V57", "Localizador na lista (SEEU)", "Veja e altere os localizadores de cada processo sem sair da lista de juntadas ou conclusões.");
+		for (let i = 0; i < nomes.length; i++) {
+			linha(i, ' <i style="color:#64748b">lendo…</i>');
+			await sleep(i < 2 ? 900 : 350);
+			mostrar(i);
+		}
+		S.hl('[data-locl="1"]', 3);
+		await S.cap("Na coluna do número do processo, a linha <b>📍</b> mostra os localizadores cadastrados — a extensão lê um processo de cada vez, em segundo plano.", { ms: 4600 });
+		S.hlOff();
+		await S.click("#x-ed-0");
+		const painel = '<h4 style="margin:0 0 6px">📍 Localizadores — ' + LISTA[0].n + "</h4>";
+		let pn = panelAt(painel + '<div id="x-st" style="padding:5px 7px;background:#f1f5f9;border-radius:4px">Abrindo o processo em segundo plano…</div>', "#x-ed-0", { w: 360 });
+		pn.style.left = "440px"; pn.style.top = "250px";
+		await sleep(1500);
+		const corpo = (no, st) => painel + (st ? '<div style="padding:5px 7px;background:#ecfdf5;color:#065f46;border-radius:4px;margin-bottom:6px">' + st + "</div>" : "") +
+			'<div style="font-size:11px;font-weight:bold;color:#475569">NO PROCESSO</div>' +
+			no.map((n, k) => '<div style="display:flex;justify-content:space-between;margin:3px 0"><span style="' + ITEM + '">' + n + '</span><span style="' + BT + '" id="x-rem-' + k + '">✖</span></div>').join("") +
+			'<div style="font-size:11px;font-weight:bold;color:#475569;margin-top:6px">ASSOCIAR</div><div class="pj-input" style="display:block;margin:3px 0">Pesquisar localizador...</div>' +
+			["AGUARDANDO AUDIÊNCIA - JÁ CUMPRIDA", "CÁLCULO DE PENA", "PRESO"].filter(n => !no.includes(n)).map(n => '<div class="x-btn small" style="display:block;text-align:left;margin:3px 0" id="x-add-' + n.slice(0, 3) + '">➕ ' + n + "</div>").join("");
+		pn.innerHTML = corpo(["ABERTO"]);
+		await S.cap("O <b>✏️</b> abre o painel do processo: em cima, os localizadores que ele tem; embaixo, os localizadores ativos da unidade (a lista do <b>+</b> do SEEU).", { ms: 4800 });
+		await S.click("#x-add-CÁL");
+		pn.innerHTML = corpo(["ABERTO", "CÁLCULO DE PENA"], "\"CÁLCULO DE PENA\" associado ao processo.");
+		nomes[0] = ["ABERTO", "CÁLCULO DE PENA"];
+		mostrar(0);
+		await S.cap("Clique num localizador para <b>associá-lo</b>. A linha da lista já mostra o resultado.", { ms: 3800 });
+		await S.click("#x-rem-0");
+		modal('<b>Tirar o localizador "ABERTO" do processo ' + LISTA[0].n + '?</b><p style="margin:8px 0"></p><span class="x-btn small green" id="x-ok">OK</span> <span class="x-btn small">Cancelar</span>', { w: 460, top: 200 });
+		await S.cap("O <b>✖</b> tira o localizador do processo, depois de você confirmar.");
+		await S.click("#x-ok");
+		closeModal();
+		pn.innerHTML = corpo(["CÁLCULO DE PENA"], "\"ABERTO\" tirado do processo.");
+		nomes[0] = ["CÁLCULO DE PENA"];
+		mostrar(0);
+		S.hl('[data-locl="0"]', 3);
+		await S.cap("Tudo feito no próprio SEEU, em segundo plano — você continua na lista.", { ms: 3800 });
+		S.hlOff();
+		pn.remove();
+		await S.endCard("Lista do SEEU → 📍 localizadores na coluna do número → ✏️ → ➕ associar ou ✖ tirar → a linha mostra o resultado.");
+	},
+};
