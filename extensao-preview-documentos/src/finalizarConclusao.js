@@ -2,9 +2,12 @@
 (function () {
   'use strict';
   if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
-  if (window.__pdpFinalizarConclusao || !location.pathname.startsWith('/projudi/')) return;
+  if (window.__pdpFinalizarConclusao || !/^\/(projudi|seeu)\//.test(location.pathname)) return;
   window.__pdpFinalizarConclusao = true;
-  const route = '/projudi/processo/conclusao.do';
+  // Projudi e SEEU: mesma tela "Movimentar Processo" com o botão "Finalizar
+  // Conclusão Pendente" (#extraButton); muda só o começo do endereço.
+  const SISTEMA = location.pathname.startsWith('/seeu/') ? 'SEEU' : 'Projudi';
+  const route = (SISTEMA === 'SEEU' ? '/seeu' : '/projudi') + '/processo/conclusao.do';
   const states = new Map();
   const controls = new WeakMap();
   let busy = false;
@@ -19,7 +22,7 @@
     const timer = setTimeout(() => controller.abort(), 30000);
     try {
       const response = await fetch(url, {...options, credentials:'same-origin', signal:controller.signal});
-      if (!response.ok) throw new Error('O Projudi não respondeu à operação.');
+      if (!response.ok) throw new Error('O ' + SISTEMA + ' não respondeu à operação.');
       safeURL(response.url);
       const bytes = await response.arrayBuffer();
       const head = new TextDecoder('windows-1252').decode(bytes.slice(0, 4096));
@@ -61,7 +64,7 @@
     } catch (error) {
       if (submitted) {
         states.set(url, {label:'Verifique a conclusão', uncertain:true});
-        alert('Não foi possível confirmar o resultado. Verifique a conclusão no Projudi antes de repetir a operação.');
+        alert('Não foi possível confirmar o resultado. Verifique a conclusão no ' + SISTEMA + ' antes de repetir a operação.');
       } else {
         states.delete(url);
         alert('Conclusão não enviada: ' + error.message);
@@ -122,7 +125,12 @@
   // linha conta. `doc`: a tela do processo.
   window.__pdpDispensas.conclusaoURL = function (doc) {
     for (const link of doc.querySelectorAll('#quadroPendencias a.link[href]')) {
-      const linha = link.closest('tr');
+      // No SEEU (e às vezes no Projudi) o link fica numa tabela dentro da
+      // linha: o rótulo está na linha de cima, a que tem td.labelRadio.
+      let linha = link.closest('tr');
+      while (linha && !linha.querySelector(':scope > td.labelRadio, :scope > th') && linha.parentElement && linha.parentElement.closest('#quadroPendencias tr')) {
+        linha = linha.parentElement.closest('#quadroPendencias tr');
+      }
       const rotulo = linha ? linha.querySelector('td.labelRadio, td label, th') : null;
       if (!/retorno de conclusao/.test(norm(rotulo ? rotulo.textContent : linha ? linha.textContent : ''))) continue;
       try {
@@ -184,7 +192,7 @@
     } catch (error) {
       if (submitted) {
         states.set(url, {label:'Verifique a conclusão', uncertain:true});
-        return {ok:false, uncertain:true, message:'Não foi possível confirmar a finalização da conclusão - verifique no Projudi.'};
+        return {ok:false, uncertain:true, message:'Não foi possível confirmar a finalização da conclusão - verifique no ' + SISTEMA + '.'};
       }
       states.delete(url);
       return {ok:false, message:'Conclusão não finalizada: ' + error.message};

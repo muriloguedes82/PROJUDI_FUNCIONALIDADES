@@ -3671,16 +3671,12 @@
 	// `executar()` depois das perguntas (e das dispensas pedidas), ou não
 	// chama nada se o usuário cancelar.
 	//
-	// REGRA: as perguntas (dispensar juntadas / finalizar conclusão) existem
-	// só no Projudi, que trava as ações enquanto houver juntadas ou
-	// conclusões pendentes. O SEEU não trava: lá a preferência é executada
-	// direto, sem pergunta e sem dispensa (ver também preferenciasNaLinha.js).
+	// REGRA: as perguntas (dispensar juntadas / finalizar conclusão) valem
+	// no Projudi e no SEEU, do mesmo jeito: com juntadas ou conclusão
+	// pendentes no quadro Pendências, a extensão pergunta antes de executar a
+	// preferência (ver também preferenciasNaLinha.js e o CLAUDE.md).
 	async function executarComPendencias(titulo, combo, executar) {
 		if (pendenciasEmAndamento) return;
-		if (/(^|\.)seeu(treino)?\.pje\.jus\.br$/i.test(location.hostname)) {
-			executar();
-			return;
-		}
 		const d = window.__pdpDispensas || {};
 		const juntadaUrl = d.juntadas && d.juntadaURL ? d.juntadaURL(document) : null;
 		const juntadaLink = juntadaUrl ? linkDaPendencia(juntadaUrl) : null;
@@ -5458,7 +5454,9 @@
 				if (state.editing || !mode) return;
 				closePanel();
 				if (mode === "localizador") {
-					window.__pdpLocalizador.aplicar(item.pref);
+					executarComPendencias("★ " + item.pref.name + " — 📍 Localizador", false, function () {
+						window.__pdpLocalizador.aplicar(item.pref);
+					});
 					return;
 				}
 				if (mode === "combo") {
@@ -5856,6 +5854,9 @@
 	}
 
 	window.__pdpQuickActions = {
+		// Pergunta sobre juntadas/conclusão pendentes antes de uma preferência
+		// (localizadorSeeu.js usa no painel "📍 Localizador").
+		executarComPendencias: executarComPendencias,
 		resolveDialogUrl: resolveDialogUrl,
 		// Preferências salvas (mesma lista/ordem de "Minhas Preferências").
 		loadFavItems: loadFavItems,

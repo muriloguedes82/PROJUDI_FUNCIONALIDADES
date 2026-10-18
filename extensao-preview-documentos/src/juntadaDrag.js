@@ -1,15 +1,20 @@
 // Botão ao lado da pendência: dispensa de juntadas em segundo plano.
+//
+// Projudi e SEEU: o quadro Pendências (#quadroPendencias) e a tela "Análise
+// de Juntadas" (idJuntadas/checker e o botão "Dispensar") são iguais nos
+// dois; muda só o começo do endereço (/projudi/ ou /seeu/).
 (function () {
   "use strict";
   if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
-  if (window.__pdpJuntadaDrag || !location.pathname.startsWith('/projudi/')) return;
+  if (window.__pdpJuntadaDrag || !/^\/(projudi|seeu)\//.test(location.pathname)) return;
   window.__pdpJuntadaDrag = true;
+  const ANALISE_RE = location.pathname.startsWith('/seeu/') ? /^\/seeu\/.*\/analisarJuntada\.do$/ : /^\/projudi\/.*\/analisarJuntada\.do$/;
   const normalize = text => String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
   function eligible(link) {
     if (!link || !link.matches('a.link') || !link.closest('#quadroPendencias')) return null;
     try {
       const url = new URL(link.getAttribute('href'), location.href);
-      if (url.origin !== location.origin || !/^https?:$/.test(url.protocol) || !/^\/projudi\/.*\/analisarJuntada\.do$/.test(url.pathname)) return null;
+      if (url.origin !== location.origin || !/^https?:$/.test(url.protocol) || !ANALISE_RE.test(url.pathname)) return null;
       return url.href;
     } catch (_) { return null; }
   }
@@ -202,7 +207,7 @@
       let target;
       try {
         target = new URL(url, location.href);
-        if (target.origin !== location.origin || !/^\/projudi\/.*\/analisarJuntada\.do$/.test(target.pathname)) throw new Error();
+        if (target.origin !== location.origin || !ANALISE_RE.test(target.pathname)) throw new Error();
       } catch (_) { resolve({ ok:false, message:'Endereço de análise de juntadas não reconhecido.' }); return; }
       // Na tela do processo, `anchor` é o próprio link do quadro Pendências:
       // o card de status toma o lugar do botão "Dispensar juntadas" dele.
@@ -215,7 +220,7 @@
     for (const link of doc.querySelectorAll('#quadroPendencias a.link[href]')) {
       try {
         const url = new URL(link.getAttribute('href'), doc.URL);
-        if (url.origin === location.origin && /^\/projudi\/.*\/analisarJuntada\.do$/.test(url.pathname)) return url.href;
+        if (url.origin === location.origin && ANALISE_RE.test(url.pathname)) return url.href;
       } catch (_) { /* segue */ }
     }
     return null;
@@ -226,11 +231,12 @@
 // decurso de prazo no processo atualmente aberto.
 (function () {
   'use strict';
-  if (window.__pdpDispensarDecurso || !location.pathname.startsWith('/projudi/')) return;
+  if (window.__pdpDispensarDecurso || !/^\/(projudi|seeu)\//.test(location.pathname)) return;
   window.__pdpDispensarDecurso = true;
 
-  const listRoute = '/projudi/processo/intimacaoBusca.do';
-  const detailRoute = '/projudi/processo/intimacao.do';
+  const base = location.pathname.startsWith('/seeu/') ? '/seeu' : '/projudi';
+  const listRoute = base + '/processo/intimacaoBusca.do';
+  const detailRoute = base + '/processo/intimacao.do';
   const normalize = value => String(value || '').normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
   const controls = new Map();

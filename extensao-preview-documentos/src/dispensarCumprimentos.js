@@ -1,13 +1,21 @@
 (function () {
   'use strict';
   if (!window.__pdpHostPermitido || window.__pdpDispensarCumprimentos) return;
+  if (!/^\/(projudi|seeu)\//.test(location.pathname)) return;
   window.__pdpDispensarCumprimentos = true;
+  // Projudi e SEEU: mesmas listas e telas de cumprimento; muda o começo do
+  // endereço e, no quadro Pendências do SEEU, a quantidade vem no fim do
+  // texto sem os dois-pontos ("Comunicações Tre 01", no Projudi "Ofício: 1").
+  const NO_SEEU = location.pathname.startsWith('/seeu/');
+  const SISTEMA = NO_SEEU ? 'SEEU' : 'Projudi';
+  const BASE = NO_SEEU ? '/seeu' : '/projudi';
+  const COUNT_RE = NO_SEEU ? /(?::|\s)\s*0*([1-9]\d*)\s*$/ : /:\s*0*([1-9]\d*)\s*$/;
   const buttons = new WeakMap();
   let busy = false;
   const normalize = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
-  const COMMON_PATH = '/projudi/processo/cumprimentoCartorio.do';
-  const MANDADO_PATH = '/projudi/processo/cumprimentoCartorioMandado.do';
-  const PRE_ANALISE_PATH = '/projudi/processo/preAnalise.do';
+  const COMMON_PATH = BASE + '/processo/cumprimentoCartorio.do';
+  const MANDADO_PATH = BASE + '/processo/cumprimentoCartorioMandado.do';
+  const PRE_ANALISE_PATH = BASE + '/processo/preAnalise.do';
   const ALLOWED_PATHS = new Set([COMMON_PATH, MANDADO_PATH, PRE_ANALISE_PATH]);
   function checkedUrl(value, base) {
     const u = new URL(value, base);
@@ -49,7 +57,7 @@
   }
   async function dispense(link, button) {
     if (busy) return;
-    const match = /:\s*(\d+)\s*$/.exec(link.textContent);
+    const match = COUNT_RE.exec(link.textContent);
     const count = match && Number(match[1]);
     if (!count) return;
     busy = true;
@@ -98,7 +106,7 @@
         const confirmed = mandado
           ? Boolean(success && normalize(success.textContent) && !(error && normalize(error.textContent)))
           : Boolean(success && normalize(success.textContent).includes('remocao realizada com sucesso') && !(error && normalize(error.textContent)));
-        if (!confirmed) throw new Error('O Projudi não confirmou a remoção.');
+        if (!confirmed) throw new Error('O ' + SISTEMA + ' não confirmou a remoção.');
         removed.add(id);
         done++;
       }
@@ -122,12 +130,12 @@
         const label = row.querySelector('td.labelRadio > label');
         if (label && normalize(label.textContent) === 'cumprimentos para expedir:') {
           matches = true;
-          mandado = normalize(link.textContent).startsWith('mandado:');
+          mandado = /^mandado\b/.test(normalize(link.textContent));
           break;
         }
         row = row.parentElement && row.parentElement.closest('tr');
       }
-      if (!matches || !/:\s*0*[1-9]\d*\s*$/.test(link.textContent)) return;
+      if (!matches || !COUNT_RE.test(link.textContent)) return;
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'pdp-dispensar-cumprimentos';
