@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.41.3 |
-| **Versão da extensão** | 2.41.3 |
-| **Data desta versão** | 16/10/2026 |
+| **Versão do manual** | 2.41.4 |
+| **Versão da extensão** | 2.41.4 |
+| **Data desta versão** | 18/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -2665,10 +2665,13 @@ A senha/PIN do certificado **nunca** é guardada.
 <a id="cap-10-2"></a>
 ### 10.2 Convivência com o AzFlow
 
-No **SEEU**, se o AzFlow estiver ativo, a pré-visualização desta extensão
-fica desligada para não conflitar — o AzFlow cuida disso. O envio por
-WhatsApp e e-mail continua funcionando. No Projudi, as duas convivem
-normalmente.
+No **SEEU**, se o AzFlow estiver ligado, a pré-visualização desta extensão
+(passar o mouse sobre um documento ou movimentação) fica desligada para não
+conflitar — o AzFlow cuida disso. Vale em todas as telas do SEEU, inclusive
+no quadro **Movimentações Realizadas** da tela **Analisar Conclusão**. Se o
+AzFlow for desligado (pelo botão dele ou em `chrome://extensions`), a
+pré-visualização desta extensão volta a funcionar. O envio por WhatsApp e
+e-mail continua funcionando. No Projudi, as duas convivem normalmente.
 
 <a id="cap-10-3"></a>
 ### 10.3 Bloqueio para perfis de advocacia
@@ -2795,6 +2798,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.41.4 | 18/10/2026 | Convivência com o AzFlow (10.2): no SEEU, com o AzFlow ligado, a pré-visualização desta extensão fica desligada também nas telas em que antes ainda podia abrir junto com a do AzFlow (ex.: quadro **Movimentações Realizadas** da tela **Analisar Conclusão**); ao desligar o AzFlow pelo botão dele, a pré-visualização desta extensão volta sem recarregar a página. Texto da 10.2 atualizado. |
 | 2.41.3 | 16/10/2026 | Alterar Classe/Assuntos (8.9), preferência de assunto secundário: corrigido o aviso "a tela de alteração não voltou depois de selecionar o assunto" (ex.: **Injúria**, **Violação de domicílio**), que aparecia quando o Projudi não recarregava a tela inteira depois do **Selecionar**. Agora a extensão confere se o assunto entrou na lista, recarregando a tela ou não. Se der errado, o aviso mostra também a mensagem do Projudi. *Bom saber* da 8.9 atualizado. Quando o Projudi não reage ao **Selecionar** (assunto secundário e prioridades), a extensão clica de novo e, no assunto secundário, recomeça sozinha (até 3 tentativas) — antes era preciso usar a preferência outra vez —, e passa a esperar a janela de seleção terminar de carregar antes de marcar o assunto (com assuntos como **Injúria**, que já aparecem na janela sem pesquisa, o primeiro **Selecionar** era ignorado). Para o Projudi lento (sobretudo o de testes), a extensão espera mais pela resposta antes de desistir — até 1 minuto por tela — nas preferências de classe, assuntos, prioridades e valor da causa, na inclusão de advogado e no Tipo de Documento das juntadas. |
 | 2.41.2 | 16/10/2026 | Minhas Preferências (7.3) e ⭐ na linha do processo (9.3): os nomes das preferências e dos combos não aparecem mais cortados com "…". A letra dos cards ficou um pouco menor e, quando o nome é comprido, ele continua na linha de baixo, no mesmo card. Nos cards do Analisar (Pré-Análise) e do Analisar Decurso, a descrição da ação fica numa linha em cima e o nome embaixo. Textos da 7.3 e da 9.3 atualizados. |
 | 2.41.1 | 16/10/2026 | Alterar Classe/Assuntos (8.9), preferência de assunto secundário: corrigido o aviso "o assunto … não apareceu na pesquisa da janela de seleção" para assuntos de nome longo (ex.: **14227 - Crime de Descumprimento de Medida Protetiva de Urgência**). Se a pesquisa pelo nome inteiro não traz o assunto, a extensão pesquisa de novo sem acentos, pela palavra mais longa do nome e pelo código. *Bom saber* da 8.9 atualizado. |
