@@ -22,7 +22,7 @@ Não houve teste no SEEU real: o "precisa de teste" abaixo vem só da leitura do
 | Ocultar contadores zerados | Mesa do(a) Analista Judiciário, todas as abas (liberada na 2.42.0; conferida nas telas salvas de Análise de Juntadas, Pendências de Incidentes, Cumprimentos de Medidas, Intimações e Outros Cumprimentos; grupos todos zerados somem com o título) |
 | Processo ao passar o mouse | Listas de Juntadas, Retorno de Conclusão, Mandados/Demais Cumprimentos, Decurso de Prazo, Paralisados, Suspensos, Execuções e Painel de Incidentes (liberada na 2.43.0) |
 | Analisar e Dispensar decurso na lista | Listas Intimações e Auxiliares da Justiça: Dispensar e "Abrir a análise" (liberada na 2.44.0); ⭐ e "Dispensar nos marcados" na 2.45.0; preferências do Analisar Decurso na 2.46.0 (Juntar Documento no SEEU, só para elas) |
-| RG e CPF nos cumprimentos | Listas Demais Cumprimentos e Mandados e tela do cumprimento, com os documentos do Sentenciado (2.47.0) |
+| RG e CPF nos cumprimentos | Listas Demais Cumprimentos e Mandados, tela do cumprimento e tela do Analisar (Pré-Análise), com os documentos do Sentenciado (2.47.0) |
 | Listas de tarefas | Nas listas do SEEU que usam a ⭐ (necessária para a ⭐ na linha) |
 | Documento do Juiz ao passar o mouse no Retorno de Conclusão | O código atende `/seeu/processo/conclusao.do` (Anexo B, v2.29.0, diz "Projudi e SEEU"), **mas a tabela da seção 1.3 do manual não cita essa função** |
 
@@ -48,7 +48,7 @@ Não houve teste no SEEU real: o "precisa de teste" abaixo vem só da leitura do
 - Endereço da parte e Mandado Regionalizado
 - Ações rápidas: grupos de ações e preferências das ações (remessa, intimação, ordenação etc.)
 - Sistemas do CNJ: SerpJud, CNIEP, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Renajud e o card Outros (COPEL, FUPEN, SANEPAR)
-- Minhas Preferências na linha (⭐): o "Analisar" (Pré-Análise) dos cumprimentos e as listas Expedir Intimações/Citação
+- Minhas Preferências na linha (⭐): as listas Expedir Intimações/Citação (as preferências do "Analisar" dos cumprimentos não serão levadas ao SEEU, a pedido do usuário)
 
 ### 2.3 O código não bloqueia o SEEU, mas não estão declaradas como liberadas (precisam de teste no SEEU)
 
@@ -74,7 +74,7 @@ Uma função por vez, a partir de telas salvas do SEEU enviadas pelo usuário:
 1. Ocultar contadores zerados — **feito (2.42.0)**
 2. Processo ao passar o mouse — **feito (2.43.0)**
 3. Analisar/Dispensar decurso na lista, ⭐ e lote nas listas de decurso — **feito (2.44.0 a 2.46.0)**
-4. RG e CPF nos cumprimentos e ⭐ nas listas de cumprimentos — **feito (2.47.0)**, com as preferências do Localizador; falta o "Analisar" (Pré-Análise)
+4. RG e CPF nos cumprimentos e ⭐ nas listas de cumprimentos — **feito (2.47.0)**, com as preferências do Localizador (sem as do "Analisar", a pedido do usuário)
 5. Dispensar juntadas/decursos/cumprimentos e Finalizar conclusão — o usuário pediu
    "da mesma forma que no Projudi" (confirmar, ao chegar aqui, se isso inclui as perguntas
    antes das preferências, que hoje o CLAUDE.md proíbe no SEEU)
