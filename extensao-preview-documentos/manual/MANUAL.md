@@ -416,7 +416,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 |---|---|---|
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Prioridades (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
-| **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica | [4](#cap-4) |
+| **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Bloco de anotações | [4](#cap-4) |
 | **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
@@ -706,6 +706,20 @@ ele às vezes indica só a origem de um desmembramento.
 **Bom saber:** a linha mostra "Buscando…" por um instante. Se a extensão
 não conseguir confirmar o número do processo principal, mostra "não
 encontrado" em vez de um número errado.
+
+---
+
+<a id="cap-5"></a>
+
+### 4.5 Bloco de anotações
+
+**Para que serve:** escrever uma nota pessoal, ou compartilhar o texto como lembrete ativo do Projudi para que os servidores com acesso ao processo também possam consultá-lo.
+
+**Onde fica:** no canto superior direito. A anotação do processo aparece nas telas da ficha e de movimentação do processo; a anotação permanente pode ser usada nas demais páginas.
+
+**Passo a passo:** escreva no post-it; o texto fica salvo neste navegador enquanto você edita. Na opção **Deste processo**, clique em **Salvar no Projudi** para atualizar o lembrete ativo mostrado na ficha do processo. Se ainda não houver lembrete ativo, a extensão cria um com o assunto **Anotação compartilhada - Abra ou instale a extensão Olirum**. O envio só acontece ao clicar nesse botão. A extensão consulta **Informações Gerais** em segundo plano para localizar o lembrete, sem trocar a aba que você está usando. Arraste pelo título **Anotações** para mudar a posição. Use **−** para recolher e **▾** para reabrir. Os quadrinhos ao lado do aviso de salvamento escolhem amarelo, azul, verde ou vermelho. Clique em **+** no título para criar uma nota pessoal adicional para o processo; cada nota tem sua própria cor e posição. Use **×** para excluir uma nota adicional (pede confirmação se houver texto). Escolha **Permanente (todos os processos)** para editar uma nota pessoal que não é enviada ao Projudi.
+
+**Bom saber:** acompanha a rolagem da página e guarda a posição neste navegador. O texto de **Deste processo**, depois de salvo no Projudi, fica no lembrete ativo e é compartilhado com quem tem acesso ao processo. A extensão não altera lembretes desativados. Cores, posição, notas adicionais e a opção permanente ficam apenas neste perfil do navegador. Nas listagens e telas de análise, mostra apenas a anotação permanente, nunca a anotação de um processo da lista. Não aparece nas janelas de diálogo bloqueadas para os botões.
 
 ---
 
@@ -1065,9 +1079,9 @@ cards, num só lugar.
 ação**. No alto de cada bloco aparecem o ícone do botão da ação, o nome
 dela e quantas preferências ela tem, ex.: **📤 Enviar Concluso (3)**. Os
 combos ficam no bloco **🔗 Combos**, em azul. Os blocos ficam lado a lado,
-e cada preferência é um card retangular de uma linha com **★ nome**, o
-**✏️** (editar) e o **🗑** (remover). Se o nome for comprido e aparecer
-cortado ("…"), pare o mouse sobre o card para lê-lo inteiro.
+e cada preferência é um card retangular com **★ nome**, o **✏️** (editar)
+e o **🗑** (remover). O nome aparece sempre inteiro, em letra pequena; se
+for comprido, ele continua na linha de baixo, dentro do mesmo card.
 
 **Passo a passo:**
 
@@ -1842,8 +1856,16 @@ processo é recarregada.
 
 - Se o processo **já tiver** o assunto secundário da preferência, nada é
   feito e a extensão avisa.
-- Se o assunto não aparecer na pesquisa ou não entrar na lista, **nada é
-  salvo** e aparece um aviso — use **✏️ Alterar** para fazer à mão.
+- Se o assunto não aparecer na pesquisa com o nome inteiro, a extensão
+  pesquisa de novo de outras formas (sem acentos, só pela palavra mais
+  longa do nome e pelo código do assunto).
+- Se mesmo assim o assunto não aparecer, ou não entrar na lista, **nada é
+  salvo** e aparece um aviso — use **✏️ Alterar** para fazer à mão. Se o
+  Projudi tiver mostrado alguma mensagem ao selecionar o assunto, ela vem
+  no aviso, depois de "Aviso do Projudi:".
+- Às vezes o Projudi não reage ao primeiro **Selecionar**. A extensão
+  percebe, clica de novo e, se ainda assim não der, recomeça tudo sozinha
+  (até 3 tentativas). O aviso no alto da tela mostra "tentando de novo".
 - A preferência só **inclui** assunto secundário. Para remover, use o
   **✖** ao lado do assunto (abaixo).
 - Preferências de assunto secundário gravadas em versões de teste
@@ -2124,6 +2146,10 @@ processos marcados, **em lote**.
   o card deles tem o sinal **↗**.
 - Os cards ficam em blocos, um por ação, como em **⭐ Minhas
   Preferências** ([7.3](#cap-7-3)), mas sem os botões ✏️ e 🗑.
+  O nome aparece inteiro (se for comprido, continua na linha de baixo).
+  Nos cards do **Analisar (Pré-Análise)** e do **Analisar Decurso**, o que
+  a preferência faz (ex.: "Analisar · postergar assinatura") fica numa
+  linha em cima, e o nome da preferência na linha de baixo.
 
 **Com muitas preferências:**
 
@@ -2828,6 +2854,9 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 | 2.44.0 | 16/10/2026 | Seção 9.10: o **Analisar e Dispensar decurso na lista** passa a valer também no **SEEU** (listas **Intimações** e **Intimação de Auxiliares da Justiça** da Análise de Decurso de Prazo): **Dispensar** completo e **Analisar Decurso** com **Abrir a análise** no popup. As preferências do Analisar Decurso (e o **+ Nova preferência**) continuam só no Projudi por enquanto. Ajustes em 1.3, 2.6 e na abertura do capítulo 9. Sem vídeo novo (o vídeo V52 mostra o mesmo uso). |
 | 2.43.0 | 16/10/2026 | Seção 9.8: o **processo ao passar o mouse** passa a valer também no **SEEU** — listas de Análise de Juntadas, Retorno de Conclusão, Mandados (e Demais Cumprimentos), Decurso de Prazo e Processos Paralisados e, só no SEEU, as listas de **Execuções** e de **Processos Suspensos** e o **Painel de Incidentes**: pousar o mouse sobre o número do processo abre a tela dele num painel. Ajustes em 1.3, 2.6 e na abertura do capítulo 9. Sem vídeo novo (o vídeo V44 mostra o mesmo uso). |
 | 2.42.0 | 16/10/2026 | Seção 9.4: a **Mesa do Analista sem itens zerados** passa a valer também no **SEEU** (Mesa do(a) Analista Judiciário, em todas as abas: Pendências de Incidentes, Cumprimentos de Medidas, Intimações, Análise de Juntadas, Outros Cumprimentos…): as linhas com contador zerado somem e voltam sozinhas quando surge pendência; um grupo (Com Urgência, Para Conferir, Para Expedir…) com todas as linhas zeradas some inteiro, com o título. Ajustes em 1.3 e na abertura do capítulo 9. Sem vídeo novo (a tela é a mesma do vídeo V31). |
+| 2.41.3 | 16/10/2026 | Alterar Classe/Assuntos (8.9), preferência de assunto secundário: corrigido o aviso "a tela de alteração não voltou depois de selecionar o assunto" (ex.: **Injúria**, **Violação de domicílio**), que aparecia quando o Projudi não recarregava a tela inteira depois do **Selecionar**. Agora a extensão confere se o assunto entrou na lista, recarregando a tela ou não. Se der errado, o aviso mostra também a mensagem do Projudi. *Bom saber* da 8.9 atualizado. Quando o Projudi não reage ao **Selecionar** (assunto secundário e prioridades), a extensão clica de novo e, no assunto secundário, recomeça sozinha (até 3 tentativas) — antes era preciso usar a preferência outra vez —, e passa a esperar a janela de seleção terminar de carregar antes de marcar o assunto (com assuntos como **Injúria**, que já aparecem na janela sem pesquisa, o primeiro **Selecionar** era ignorado). Para o Projudi lento (sobretudo o de testes), a extensão espera mais pela resposta antes de desistir — até 1 minuto por tela — nas preferências de classe, assuntos, prioridades e valor da causa, na inclusão de advogado e no Tipo de Documento das juntadas. |
+| 2.41.2 | 16/10/2026 | Minhas Preferências (7.3) e ⭐ na linha do processo (9.3): os nomes das preferências e dos combos não aparecem mais cortados com "…". A letra dos cards ficou um pouco menor e, quando o nome é comprido, ele continua na linha de baixo, no mesmo card. Nos cards do Analisar (Pré-Análise) e do Analisar Decurso, a descrição da ação fica numa linha em cima e o nome embaixo. Textos da 7.3 e da 9.3 atualizados. |
+| 2.41.1 | 16/10/2026 | Alterar Classe/Assuntos (8.9), preferência de assunto secundário: corrigido o aviso "o assunto … não apareceu na pesquisa da janela de seleção" para assuntos de nome longo (ex.: **14227 - Crime de Descumprimento de Medida Protetiva de Urgência**). Se a pesquisa pelo nome inteiro não traz o assunto, a extensão pesquisa de novo sem acentos, pela palavra mais longa do nome e pelo código. *Bom saber* da 8.9 atualizado. |
 | 2.41.0 | 15/10/2026 | **Nova seção 8.11 — Prioridades:** na linha **Prioridade** do cabeçalho do processo (só no Projudi), **✖** ao lado de cada prioridade que pode ser tirada (remove e salva, depois de confirmar), **➕ Incluir** (abre a tela de alteração num popup já com a **Seleção de Prioridade**; depois do **Selecionar**, salva sozinho) e **⭐** com preferências que incluem/tiram prioridades e salvam com um clique — também nos **🔗 Combos**. Sem prioridade, a linha aparece com "(nenhuma)". Sumário, tabela da 2.6, seções 7.4 e 7.8 atualizados. Novo vídeo V56. |
 | 2.40.0 | 15/10/2026 | Seção 9.8: o processo ao passar o mouse também na lista de **Processos Paralisados** — pousar o mouse sobre o **número do processo** abre a tela dele num painel, já na aba **Movimentações**. Título da seção, Sumário e tabela da 2.6 atualizados; vídeo V44 regravado. |
 | 2.39.0 | 15/10/2026 | Seção 9.8: o processo ao passar o mouse também nas listas **Expedir Intimações** e **Expedir Citação** — pousar o mouse sobre o **número do processo** abre a tela dele num painel, já na aba **Movimentações**. Título da seção, Sumário e tabela da 2.6 atualizados; vídeo V44 regravado. |
@@ -2852,6 +2881,16 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 | 2.30.2 | 09/10/2026 | Corrigido (9.10): em Expedir Intimações e Expedir Citação, o **Prazo** e o **Usar Anexos** da tela final não ficavam gravados na preferência; agora são gravados no clique em Assinar e Expedir/Postergar Assinatura e preenchidos em cada uso. |
 | 2.30.1 | 09/10/2026 | Corrigido (9.10): em Expedir Intimações e Expedir Citação, o campo **Descrição** da Pré-Análise não ficava gravado na preferência; agora é gravado e preenchido em cada uso. |
 | 2.30.0 | 09/10/2026 | Pré-Análise com preferências (9.10) também nas listas **Expedir Intimações** e **Expedir Citação**, na linha e em lote: grava a versão final do texto no "Continuar" (editada ou não), troca os dados de cada processo e parte, e salva no clique em **Assinar e Expedir** ou **Postergar Assinatura**. Essas telas não têm "Tipo do Arquivo" (só o Modelo). Cada lista passa a mostrar só as preferências criadas nela. Sem vídeo novo: a tela é a mesma do V50. |
+| 2.29.11 | 13/10/2026 | O assunto padrão de lembretes criados pelo post-it passa a ser **Anotação compartilhada - Abra ou instale a extensão Olirum**. |
+| 2.29.10 | 10/10/2026 | A nota por processo também é identificada na ficha inicial, que pode usar `processo.do` sem parâmetros explícitos de visualização. Listagens continuam usando apenas a nota permanente porque não têm a barra de título individual. |
+| 2.29.9 | 10/10/2026 | O post-it é ocultado nos quadros de cabeçalho e em prévias/diálogos dentro de iframes; só aparece uma vez no quadro da tela principal. |
+| 2.29.8 | 10/10/2026 | A listagem de processos ativos não é mais confundida com uma ficha individual; o post-it nessa página mostra apenas a anotação permanente. |
+| 2.29.7 | 10/10/2026 | A anotação por processo fica restrita à ficha e à tela de movimentação do processo. Nas listagens e análises, o post-it exibe somente a anotação permanente. |
+| 2.29.6 | 09/10/2026 | O post-it consulta Informações Gerais em segundo plano para localizar o lembrete ativo ou o link de criação, mesmo quando a aba aberta é Movimentações. |
+| 2.29.5 | 09/10/2026 | O link “Novo Lembrete” identificado em Informações Gerais fica disponível no post-it ao alternar para outras abas do processo. |
+| 2.29.4 | 09/10/2026 | Corrigida a identificação do link “Novo Lembrete” para liberar a criação de um lembrete compartilhado quando não há um ativo. |
+| 2.29.3 | 09/10/2026 | O post-it do processo pode carregar o lembrete ativo e salvá-lo explicitamente no Projudi; se não houver um ativo, cria um com assunto padrão. Notas permanentes e adicionais continuam pessoais. |
+| 2.29.2 | 09/10/2026 | Integradas as novidades da versão 2.29.1 com o bloco de anotações por processo, cores e múltiplas notas. |
 | 2.29.1 | 07/10/2026 | Preferências com texto (8.2, 9.9, 9.10): a versão final do documento no clique em **Continuar** é sempre a gravada — também quando você não altera nada no texto do Modelo (antes aparecia o aviso "Não consegui gravar nenhum texto" e, com o marcador "INSIRA O TEXTO AQUI", a extensão parava para você digitar). Textos das seções 8.2 e 9.9 ajustados. |
 | 2.29.0 | 07/10/2026 | Preferências com texto (Juntar Documento 8.2, Analisar Decurso 9.9 e Pré-Análise 9.10): passam a gravar também as **edições do texto do Modelo** — trechos apagados, formatação (negrito, itálico, sublinhado) e parágrafos alterados —, e as refazem em cada uso no documento novo, trocando os dados do processo (número, nomes, endereço, CPF, datas) pelos do processo novo nos parágrafos alterados. Os parágrafos não alterados ficam como o Projudi os gera. Sem vídeo novo: a tela não muda. |
 | 2.28.1 | 07/10/2026 | Sem alteração de texto; corrigido: em documentos gerados por **Modelo** (ex.: mandados), ao gravar uma preferência (Juntar Documento, Analisar Decurso ou Pré-Análise) a extensão gravava o documento inteiro em vez do texto digitado, e ao usá-la avisava "Não encontrei onde inserir o texto da preferência". Agora grava só o que você digitou e o insere no mesmo lugar — inclusive quando o parágrafo de referência tem dados do processo (nome, data). Se o texto gravado parecer o documento inteiro, a extensão avisa antes de salvar. Preferências gravadas com o erro precisam ser gravadas de novo (✏️). |

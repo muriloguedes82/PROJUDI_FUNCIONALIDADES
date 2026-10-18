@@ -61,9 +61,13 @@
 // - Gravar: o "Selecionar" da janela é barrado (o processo e a lista não
 //   mudam); a extensão guarda o id e a descrição do assunto marcado.
 // - Executar: no quadro oculto, faz o mesmo que o usuário — Adicionar →
-//   pesquisa pela descrição → marca o assunto → Selecionar —, espera a tela
-//   de alteração voltar com o assunto na lista e só então clica em
-//   "Salvar". Se o assunto não aparecer na lista, nada é salvo.
+//   pesquisa pela descrição (sem resultado: sem acentos, pela palavra mais
+//   longa, pelo código — ver termosDePesquisa) → marca o assunto →
+//   Selecionar —, espera o assunto aparecer na lista (a tela de alteração
+//   pode recarregar ou não — ver selecionarEConferir) e só então clica em
+//   "Salvar". Se o assunto não aparecer na lista, nada é salvo. Sem
+//   resposta do Projudi, clica de novo no "Selecionar" e recomeça tudo, até
+//   3 vezes (ver selecionarEConferir e executarSecundario).
 //
 // REMOVER (✖ no fim de cada assunto secundário do cabeçalho): depois de
 // confirmar, a extensão carrega a tela de alteração num quadro oculto,
@@ -99,7 +103,14 @@
 	const PANEL_ID = "pdp-alterar-classe-painel";
 	const MOTIVO_NAME = "retificacaoEvolucaoClasseProcessual";
 	const SECUNDARIOS_ROTULO = /^assuntos? secundarios?\b/;
-	const EXEC_TIMEOUT_MS = 30000;
+	// Limite de espera por resposta do Projudi: folgado, porque o servidor
+	// (sobretudo o de testes) às vezes passa de 30 s numa única tela.
+	const EXEC_TIMEOUT_MS = 60000;
+	// "Selecionar" sem reação do Projudi (ver selecionarEConferir) e
+	// tentativas da preferência de assunto secundário inteira.
+	const CLIQUE_PERDIDO_MS = 6000;
+	const CLIQUES_SELECIONAR = 3;
+	const TENTATIVAS_SECUNDARIO = 3;
 	// Campos de controle da página (tokens de uso único etc.): nunca entram
 	// numa preferência — repor um valor antigo invalidaria o envio.
 	const CAMPOS_IGNORADOS = /token|^_tj$|^org\.apache\.struts|^actionType$|^selectedIcon$/i;
@@ -516,7 +527,9 @@
 		return new Promise(function (resolve, reject) {
 			const limite = setTimeout(function () {
 				quadro.removeEventListener("load", aoCarregar);
-				reject(new Error(erro || "o Projudi demorou demais para responder."));
+				const falha = new Error(erro || "o Projudi demorou demais para responder.");
+				falha.repetir = true; // o Projudi não respondeu: vale tentar de novo
+				reject(falha);
 			}, ms || EXEC_TIMEOUT_MS);
 			function aoCarregar() {
 				let d = null;
@@ -623,20 +636,253 @@
 		}
 	}
 
+	// Rádio do assunto da preferência na janela de seleção: pelo id gravado
+	// ou, se o valor do rádio não bater, pelo código do início do texto
+	// ("14227 - Crime de ...") ou pela descrição inteira.
+	function radioDoAssunto(d, pref) {
+		if (!d) return null;
+		const radios = Array.prototype.slice.call(d.querySelectorAll('input[name="idAssuntoSelecionado"]'));
+		const porId = radios.filter(function (r) { return r.value === String(pref.idAssunto); })[0];
+		if (porId) return porId;
+		const codigo = (/^(\d+)\s*-/.exec(String(pref.descricao || "").trim()) || [])[1];
+		const descricao = normalize(String(pref.descricao || "").replace(/^\d+\s*-\s*/, ""));
+		return radios.filter(function (r) {
+			const oculto = r.nextElementSibling && r.nextElementSibling.name === "descricaoAssuntoSelecionado" ? r.nextElementSibling.value : "";
+			const li = r.closest("li");
+			const link = li ? li.querySelector("a") : null;
+			const texto = normalize(oculto || (link && link.textContent) || (li && li.textContent) || "");
+			if (codigo && new RegExp("^" + codigo + "\\s*-").test(texto)) return true;
+			return !!descricao && texto.replace(/^\d+\s*-\s*/, "") === descricao;
+		})[0] || null;
+	}
+
+	// Termos para a pesquisa da janela de seleção, do mais preciso ao mais
+	// amplo: a descrição inteira, sem acentos, a palavra mais longa e o
+	// código. Cada termo cabe no limite de letras do campo de pesquisa
+	// (cortado no fim de uma palavra). A descrição inteira, sozinha, nem
+	// sempre é encontrada (ex.: "14227 - Crime de Descumprimento de Medida
+	// Protetiva de Urgência").
+	function termosDePesquisa(pref, limite) {
+		const semAcento = function (s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, ""); };
+		const descricao = String(pref.descricao || "").replace(/^\d+\s*-\s*/, "").replace(/\s+/g, " ").trim();
+		const palavra = descricao.split(" ").reduce(function (a, b) { return b.length > a.length ? b : a; }, "");
+		const codigo = (/^(\d+)\s*-/.exec(String(pref.descricao || "").trim()) || [])[1] || "";
+		function caber(s) {
+			if (!(limite > 0) || s.length <= limite) return s;
+			const corte = s.slice(0, limite);
+			const espaco = corte.lastIndexOf(" ");
+			return (espaco > 0 ? corte.slice(0, espaco) : corte).trim();
+		}
+		const termos = [];
+		[descricao, semAcento(descricao), palavra, semAcento(palavra), codigo].forEach(function (t) {
+			t = caber(t);
+			if (t && termos.indexOf(t) === -1) termos.push(t);
+		});
+		return termos;
+	}
+
+	// Pesquisa o assunto na janela de seleção (quadro `quadro`), tentando os
+	// termos acima até o assunto aparecer. Devolve o rádio dele ou null.
+	async function pesquisarNaJanela(quadro, pref) {
+		const jaNaTela = radioDoAssunto(quadro.contentDocument, pref);
+		if (jaNaTela) return jaNaTela;
+		const inicial = quadro.contentDocument.getElementById("descricaoPesquisa");
+		const termos = termosDePesquisa(pref, inicial ? inicial.maxLength : 0);
+		for (let i = 0; i < termos.length; i++) {
+			const d = quadro.contentDocument;
+			const campo = d && d.getElementById("descricaoPesquisa");
+			const botao = d && d.getElementById("searchButton");
+			if (!campo || !botao) break;
+			const carga = proximaCarga(quadro, EXEC_TIMEOUT_MS, "a pesquisa de assunto não respondeu.");
+			campo.value = termos[i];
+			botao.click();
+			await carga;
+			try {
+				return await esperar(function () {
+					return radioDoAssunto(quadro.contentDocument, pref);
+				}, 3000, "");
+			} catch (err) {
+				console.info('[Alterar Classe/Assuntos] pesquisa "' + termos[i] + '" não trouxe o assunto ' + pref.descricao);
+			}
+		}
+		return null;
+	}
+
+	// Avisos (alert) do Projudi numa janela: ficam guardados em `lista` para
+	// entrar na mensagem de erro; confirmações são aceitas, como o usuário
+	// faria.
+	function capturarAvisos(win, lista) {
+		try {
+			if (!win || win.__pdpAvisosCapturados === lista) return;
+			win.__pdpAvisosCapturados = lista;
+			win.alert = function (msg) {
+				const texto = String(msg || "").replace(/\s+/g, " ").trim();
+				if (texto && lista.indexOf(texto) === -1) lista.push(texto);
+				console.info("[Alterar Classe/Assuntos] alerta do Projudi:", msg);
+			};
+			win.confirm = function () { return true; };
+		} catch (err) {
+			// janela inacessível — segue
+		}
+	}
+
+	// Tela de alteração (já carregada) dentro de `quadro` ou de um quadro
+	// dele, ou null.
+	function telasDeAlteracao(quadro) {
+		const docs = [];
+		function olhar(d) {
+			if (!d || d.readyState !== "complete" || !d.getElementById(FORM_ID)) return;
+			docs.push(d);
+		}
+		try {
+			const d = quadro.contentDocument;
+			olhar(d);
+			if (d) {
+				Array.prototype.forEach.call(d.querySelectorAll("iframe, frame"), function (q) {
+					try {
+						olhar(q.contentDocument);
+					} catch (err) {
+						// segue
+					}
+				});
+			}
+		} catch (err) {
+			// segue
+		}
+		return docs;
+	}
+
+	// Clica em "Selecionar" e espera o assunto aparecer na lista dos
+	// assuntos secundários. O Projudi nem sempre recarrega a tela de
+	// alteração inteira depois do "Selecionar" (com assunto secundário já
+	// na lista, a tela não voltava e dava "a tela de alteração não voltou"):
+	// por isso a lista é conferida na tela atual, na tela recarregada e na
+	// que se abrir dentro da janela de seleção. Devolve o documento com o
+	// assunto na lista (é nele que se clica em "Salvar").
+	//
+	// CLIQUE PERDIDO: às vezes o Projudi não reage ao primeiro "Selecionar"
+	// (nenhuma tela carrega; na mão, a 2ª ou 3ª tentativa dá certo). Se em
+	// CLIQUE_PERDIDO_MS nada se mexer — nenhuma tela saiu nem voltou —,
+	// marca o assunto e clica de novo, até CLIQUES_SELECIONAR vezes.
+	async function selecionarEConferir(quadro, docAntes, dlg, selecionar, pref, radio) {
+		const avisos = [];
+		let mexeu = false;
+		function marcarMovimento() {
+			mexeu = true;
+		}
+		[dlg.defaultView, quadro.contentWindow].forEach(function (w) {
+			try {
+				w.addEventListener("pagehide", marcarMovimento);
+				w.addEventListener("beforeunload", marcarMovimento);
+			} catch (err) {
+				// segue
+			}
+		});
+		capturarAvisos(dlg.defaultView, avisos);
+		capturarAvisos(quadro.contentWindow, avisos);
+		function aoCarregar() {
+			capturarAvisos(quadro.contentWindow, avisos);
+		}
+		quadro.addEventListener("load", aoCarregar);
+		const vigia = setInterval(function () {
+			try {
+				Array.prototype.forEach.call(quadro.contentDocument.querySelectorAll("iframe, frame"), function (q) {
+					capturarAvisos(q.contentWindow, avisos);
+				});
+			} catch (err) {
+				// segue
+			}
+		}, 200);
+		function comAvisos(texto, doc) {
+			const extra = avisos.slice();
+			const tela = doc ? mensagemDaTela(doc) : "";
+			if (tela && extra.indexOf(tela) === -1) extra.push(tela);
+			return texto + (extra.length ? "\n\nAviso do Projudi: " + extra.join("\n") : "");
+		}
+		try {
+			selecionar.click();
+			let cliques = 1;
+			let ultimoClique = Date.now();
+			const fim = Date.now() + EXEC_TIMEOUT_MS;
+			let semAssuntoDesde = 0;
+			while (Date.now() < fim) {
+				await pausa(250);
+				const telas = telasDeAlteracao(quadro);
+				const certa = telas.filter(function (d) { return temSecundario(d, pref.idAssunto); })[0];
+				if (certa) {
+					await pausa(300); // scripts da tela recarregada terminarem
+					return certa;
+				}
+				if (!dlg.defaultView || quadro.contentDocument !== docAntes) mexeu = true;
+				if (!mexeu && Date.now() - ultimoClique > CLIQUE_PERDIDO_MS && !avisos.length) {
+					if (cliques >= CLIQUES_SELECIONAR) {
+						const perdido = new Error('o Projudi não reagiu ao "Selecionar" da janela de seleção. Nada foi salvo.');
+						perdido.repetir = true;
+						throw perdido;
+					}
+					console.info("[Alterar Classe/Assuntos] o Projudi não reagiu ao \"Selecionar\"; clicando de novo.");
+					radio.click();
+					selecionar.click();
+					cliques++;
+					ultimoClique = Date.now();
+					continue;
+				}
+				// A tela de alteração voltou (é outra) sem o assunto: dá um
+				// tempo para scripts da tela e desiste.
+				const nova = telas.filter(function (d) { return d !== docAntes; })[0];
+				if (nova) {
+					if (!semAssuntoDesde) semAssuntoDesde = Date.now();
+					else if (Date.now() - semAssuntoDesde > 3000) {
+						throw new Error(comAvisos('o assunto "' + pref.descricao + '" não entrou na lista de assuntos secundários. Nada foi salvo.', nova));
+					}
+				}
+			}
+			const demorou = new Error(comAvisos("a tela de alteração não voltou depois de selecionar o assunto. Nada foi salvo.", null));
+			demorou.repetir = !avisos.length;
+			throw demorou;
+		} finally {
+			clearInterval(vigia);
+			quadro.removeEventListener("load", aoCarregar);
+		}
+	}
+
 	// Execução de uma preferência de assunto secundário (ver o início do
 	// arquivo): Adicionar → pesquisa → marca → Selecionar → confere → Salvar.
+	//
+	// Se o Projudi não responder (erro marcado com `repetir`), a extensão
+	// começa de novo, do zero, até TENTATIVAS_SECUNDARIO vezes — como o
+	// usuário faria. Numa nova tentativa, o assunto já na lista da tela de
+	// alteração pode ter entrado pela tentativa anterior sem ter sido salvo:
+	// então só se clica em "Salvar" (salvar de novo o que já está salvo não
+	// muda nada).
 	async function executarSecundario(pref, titulo) {
 		if (!pref.idAssunto) {
 			throw new Error("esta preferência foi gravada numa versão anterior da extensão e não pode ser usada. Apague-a (🗑) e grave de novo.");
 		}
+		for (let n = 0; ; n++) {
+			try {
+				return await tentativaSecundario(pref, titulo, n);
+			} catch (err) {
+				if (!err || !err.repetir || n + 1 >= TENTATIVAS_SECUNDARIO) throw err;
+				console.info("[Alterar Classe/Assuntos] tentativa " + (n + 1) + " falhou (" + err.message + "); tentando de novo.");
+				mostrarStatus(titulo + " — o Projudi não respondeu; tentando de novo (" + (n + 2) + "ª tentativa)…");
+				await pausa(1000);
+			}
+		}
+	}
+
+	async function tentativaSecundario(pref, titulo, n) {
 		const url = await urlDaEdicao();
 		const quadro = criarQuadroOculto();
 		try {
-			let carga = proximaCarga(quadro);
+			const carga = proximaCarga(quadro);
 			quadro.src = url;
 			let doc = await carga;
 			if (!doc || !doc.getElementById(FORM_ID)) throw new Error("a tela de alteração do processo não abriu.");
-			if (temSecundario(doc, pref.idAssunto)) return { jaEstava: true };
+			if (temSecundario(doc, pref.idAssunto)) {
+				if (n === 0) return { jaEstava: true };
+				return await salvarSecundario(quadro, doc, titulo);
+			}
 			const adicionar = doc.getElementById("addButton");
 			if (!adicionar) throw new Error('não encontrei o botão "Adicionar" dos Assuntos Secundários.');
 
@@ -644,44 +890,53 @@
 			adicionar.click();
 			const janela = await esperar(function () {
 				const j = docDaJanela(doc);
-				return j && j.doc.getElementById("descricaoPesquisa") && j.doc.getElementById("searchButton") ? j : null;
-			}, 20000, "a janela de seleção de assunto não abriu.");
+				// Só com a janela carregada de todo: antes disso os botões dela
+				// existem mas ainda não respondem.
+				return j && j.doc.readyState === "complete" && j.doc.getElementById("descricaoPesquisa") && j.doc.getElementById("searchButton") ? j : null;
+			}, EXEC_TIMEOUT_MS, "a janela de seleção de assunto não abriu.").catch(function (err) {
+				err.repetir = true;
+				throw err;
+			});
 
 			mostrarStatus(titulo + " — pesquisando o assunto…");
-			const pesquisa = String(pref.descricao || "").replace(/^\d+\s*-\s*/, "").trim();
-			const cargaJanela = proximaCarga(janela.quadro, EXEC_TIMEOUT_MS, "a pesquisa de assunto não respondeu.");
-			janela.doc.getElementById("descricaoPesquisa").value = pesquisa;
-			janela.doc.getElementById("searchButton").click();
-			await cargaJanela;
-			const radio = await esperar(function () {
-				const d = janela.quadro.contentDocument;
-				return d && d.querySelector('input[name="idAssuntoSelecionado"][value="' + String(pref.idAssunto).replace(/"/g, "") + '"]');
-			}, 20000, 'o assunto "' + pref.descricao + '" não apareceu na pesquisa da janela de seleção. Nada foi salvo.');
+			const radio = await pesquisarNaJanela(janela.quadro, pref);
+			if (!radio) throw new Error('o assunto "' + pref.descricao + '" não apareceu na pesquisa da janela de seleção. Nada foi salvo.');
 			const dlg = radio.ownerDocument;
-			if (!radio.checked) radio.click();
+			// O assunto pode já estar na lista inicial da janela (ex.:
+			// "Injúria"): sem pesquisa, chegava-se aqui com a janela ainda
+			// terminando de carregar, e o Projudi ignorava o "Selecionar".
+			await esperar(function () { return dlg.readyState === "complete"; }, EXEC_TIMEOUT_MS, "a janela de seleção de assunto não terminou de carregar.").catch(function (err) {
+				err.repetir = true;
+				throw err;
+			});
+			await pausa(500);
+			// Clique de verdade no rádio mesmo se já vier marcado (um rádio
+			// marcado continua marcado): é o clique que avisa o Projudi da
+			// escolha.
+			radio.click();
 			const continuar = dlg.getElementById("continuarCadastrando");
 			if (continuar && continuar.checked) continuar.click();
 			const selecionar = dlg.getElementById("selectButton");
 			if (!selecionar) throw new Error('não encontrei o botão "Selecionar" da janela de seleção.');
 
 			mostrarStatus(titulo + " — selecionando o assunto…");
-			carga = proximaCarga(quadro, EXEC_TIMEOUT_MS, "a tela de alteração não voltou depois de selecionar o assunto. Nada foi salvo.");
-			selecionar.click();
-			doc = await carga;
-			if (!doc || !doc.getElementById(FORM_ID)) throw new Error("a tela de alteração não voltou depois de selecionar o assunto. Nada foi salvo.");
-			if (!temSecundario(doc, pref.idAssunto)) {
-				throw new Error('o assunto "' + pref.descricao + '" não entrou na lista de assuntos secundários. Nada foi salvo.' + (mensagemDaTela(doc) ? "\n\n" + mensagemDaTela(doc) : ""));
-			}
-			const salvar = doc.getElementById("saveButton");
-			if (!salvar) throw new Error('não encontrei o botão "Salvar".');
-
-			mostrarStatus(titulo + " — salvando…");
-			carga = proximaCarga(quadro);
-			salvar.click();
-			return respostaDoSalvar(await carga);
+			doc = await selecionarEConferir(quadro, doc, dlg, selecionar, pref, radio);
+			return await salvarSecundario(quadro, doc, titulo);
 		} finally {
 			setTimeout(function () { quadro.remove(); }, 0);
 		}
+	}
+
+	// "Salvar" da tela de alteração `doc` (no quadro oculto ou dentro da
+	// janela de seleção: a resposta chega no quadro dela).
+	async function salvarSecundario(quadro, doc, titulo) {
+		const salvar = doc.getElementById("saveButton");
+		if (!salvar) throw new Error('não encontrei o botão "Salvar".');
+		mostrarStatus(titulo + " — salvando…");
+		const quadroDaTela = doc === quadro.contentDocument ? quadro : doc.defaultView.frameElement || quadro;
+		const carga = proximaCarga(quadroDaTela);
+		salvar.click();
+		return respostaDoSalvar(await carga);
 	}
 
 	// -------------------------------------------------------------------

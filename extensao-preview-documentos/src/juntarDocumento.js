@@ -108,7 +108,7 @@
 	const SUCCESS_RE = /dados registrados com sucesso/i;
 	// O usuário pode levar um bom tempo digitando o texto.
 	const JOB_MAX_AGE_MS = 60 * 60 * 1000;
-	const WAIT_TIMEOUT_MS = 8000;
+	const WAIT_TIMEOUT_MS = 15000; // autocompletar lento no Projudi
 	const POLL_MS = 400;
 	const PLACEHOLDER_RE = /X{5,}\s*INSIRA O TEXTO AQUI\s*X{5,}/i;
 	const LOG = "[Projudi Juntar Documento]";
