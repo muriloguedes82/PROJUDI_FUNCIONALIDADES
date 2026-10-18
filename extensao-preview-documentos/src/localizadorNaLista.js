@@ -146,7 +146,8 @@
 			item.celula.append(caixa);
 		}
 		const d = lidos[item.cnj] || null;
-		const assinatura = JSON.stringify([item.cnj, !!item.url, d && d.estado, d && d.nomes, d && d.erro]);
+		const aviso = avisos[item.cnj] || null;
+		const assinatura = JSON.stringify([item.cnj, !!item.url, d && d.estado, d && d.nomes, d && d.erro, aviso]);
 		if (caixa.dataset.assinatura === assinatura) return;
 		caixa.dataset.assinatura = assinatura;
 		caixa.textContent = "";
@@ -163,7 +164,16 @@
 		} else if (!d.nomes.length) {
 			caixa.append(el("span", { class: "pdp-locl-vazio", text: "sem localizador" }));
 		} else {
-			d.nomes.forEach(function (n) { caixa.append(el("span", { class: "pdp-locl-item", text: n })); });
+			// Como no cabeçalho do processo do SEEU: clicar no localizador
+			// tira-o do processo (depois de confirmar).
+			d.nomes.forEach(function (n) {
+				const remover = function (ev) { ev.preventDefault(); ev.stopPropagation(); removerNaLinha(item, n); };
+				caixa.append(el("span", {
+					class: "pdp-locl-item pdp-locl-removivel", role: "button", tabindex: "0", title: "Remover do processo",
+					onclick: remover,
+					onkeydown: function (ev) { if (ev.key === "Enter" || ev.key === " ") remover(ev); }
+				}, [el("span", { text: n }), el("span", { class: "pdp-locl-x", "aria-hidden": "true", text: "⊗" })]));
+			});
 		}
 		const editar = el("button", {
 			type: "button", class: "pdp-locl-bt pdp-locl-editar",
@@ -174,8 +184,70 @@
 		if (d && (d.estado === "ok" || d.estado === "erro")) {
 			caixa.append(el("button", {
 				type: "button", class: "pdp-locl-bt", title: "Ler de novo os localizadores deste processo", text: "↻",
-				onclick: function (ev) { ev.preventDefault(); ev.stopPropagation(); delete lidos[item.cnj]; renderizar(); }
+				onclick: function (ev) { ev.preventDefault(); ev.stopPropagation(); delete lidos[item.cnj]; delete avisos[item.cnj]; renderizar(); }
 			}));
+		}
+		if (aviso) {
+			caixa.append(el("span", { class: "pdp-locl-aviso " + aviso.tipo, role: "status", text: aviso.texto }, [
+				aviso.tipo === "info" ? null : el("button", {
+					type: "button", class: "pdp-locl-x-aviso", title: "Fechar aviso", text: "✕",
+					onclick: function (ev) { ev.preventDefault(); ev.stopPropagation(); delete avisos[item.cnj]; renderizar(); }
+				})
+			]));
+		}
+	}
+
+	// Aviso na linha do processo: { "<CNJ>": { texto, tipo } }.
+	const avisos = {};
+	function avisarLinha(cnj, texto, tipo) {
+		if (texto) avisos[cnj] = { texto: texto, tipo: tipo || "info" };
+		else delete avisos[cnj];
+		renderizar();
+	}
+
+	// Clique num localizador da linha: confirma e tira-o do processo, na
+	// tela do processo carregada em segundo plano (como o ✖ do painel).
+	let removendo = false;
+	async function removerNaLinha(item, nome) {
+		const l = loc();
+		if (!l || !l.removerEm) {
+			alert("Ative \"Localizador (SEEU)\" no Menu da extensão (ícone da balança) e recarregue a página.");
+			return;
+		}
+		if (editor && editor.cnj === item.cnj && editor.proc) { alterar("remover", nome); return; }
+		if (removendo || (editor && editor.ocupado && !editor.carregando)) {
+			alert("Aguarde terminar a alteração de localizador em andamento.");
+			return;
+		}
+		if (!confirm("Tirar o localizador \"" + nome + "\" do processo " + item.cnj + "?")) return;
+		if (editor) fecharEditor();
+		removendo = true;
+		pausado = true;
+		avisarLinha(item.cnj, "Tirando \"" + nome + "\"…", "info");
+		let proc = null;
+		try {
+			while (rodando) await esperar(200);
+			proc = await carregar(item.url, prontoProcesso);
+			await lerAssociados(proc.doc);
+			const r = await l.removerEm(proc.doc, nome);
+			await esperar(400);
+			lidos[item.cnj] = { estado: "ok", nomes: l.associadosEm(proc.doc), ts: Date.now() };
+			guardar();
+			const textos = {
+				ok: "✅ \"" + nome + "\" tirado do processo.",
+				ja: "\"" + nome + "\" já não estava no processo.",
+				incerto: "⚠ Não deu para confirmar se \"" + nome + "\" saiu. Use o ↻ para conferir."
+			};
+			avisarLinha(item.cnj, textos[r] || r, r === "incerto" ? "aviso" : "ok");
+			if (r !== "incerto") setTimeout(function () { if (avisos[item.cnj] && avisos[item.cnj].tipo === "ok") avisarLinha(item.cnj, null); }, 6000);
+		} catch (err) {
+			console.warn(TAG, err);
+			avisarLinha(item.cnj, "⚠ " + ((err && err.message) || "Falha ao tirar o localizador."), "erro");
+		} finally {
+			if (proc) proc.iframe.remove();
+			removendo = false;
+			pausado = !!editor;
+			renderizar();
 		}
 	}
 
@@ -312,6 +384,7 @@
 
 	async function abrirEditor(cnj, url, ancora) {
 		if (editor && editor.cnj === cnj) { fecharEditor(); return; }
+		if (removendo) { alert("Aguarde terminar a remoção de localizador em andamento."); return; }
 		fecharEditor();
 		const l = loc();
 		if (!l || !l.removerEm) {

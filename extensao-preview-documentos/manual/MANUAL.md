@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.42.1 |
-| **Versão da extensão** | 2.42.1 |
+| **Versão do manual** | 2.43.0 |
+| **Versão da extensão** | 2.43.0 |
 | **Data desta versão** | 18/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -2654,8 +2654,9 @@ Conclusão** do SEEU, na coluna do **número do processo**: abaixo do
 número aparece a linha **📍** com os localizadores do processo, seguida de
 dois botões:
 
-| Botão | O que faz |
+| Onde clicar | O que faz |
 |---|---|
+| **No próprio localizador** | Como no cabeçalho do processo do SEEU: ao pousar o mouse aparece **Remover do processo** (e o **⊗**); clicando, a extensão pergunta "Tirar o localizador … do processo …?" e, com **OK**, tira-o do processo |
 | **✏️** | Abre o painel **📍 Localizadores** do processo, para associar ou tirar localizadores |
 | **↻** | Lê de novo os localizadores do processo (por exemplo, depois de alterá-los no próprio SEEU) |
 
@@ -2678,6 +2679,13 @@ dois botões:
    localizador…") do SEEU. O painel avisa o resultado e a linha da lista
    já mostra os localizadores novos.
 4. Feche o painel no **✕**, com **Esc** ou clicando fora dele.
+
+**Tirar um localizador direto na lista:** clique no nome dele na linha
+**📍** (ao pousar o mouse, aparece **Remover do processo**) e responda
+**OK** em "Tirar o localizador … do processo …?". A extensão abre o
+processo em segundo plano, responde **SIM** na janela **Confirme** do SEEU
+e a linha mostra o resultado (**✅** ou **⚠**). O **✖** do painel do
+**✏️** continua funcionando do mesmo jeito.
 
 **Bom saber:**
 
@@ -2851,7 +2859,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V54](videos/V54-painel-da-estrela-com-muitas-preferencias.mp4) | [⭐ da linha com muitas preferências](videos/V54-painel-da-estrela-com-muitas-preferencias.mp4) | [9.3](#cap-9-3) | 0:40 |
 | [V55](videos/V55-paineis-com-muitas-preferencias.mp4) | [Painéis com muitas preferências](videos/V55-paineis-com-muitas-preferencias.mp4) | [7.8](#cap-7-8) | 0:42 |
 | [V56](videos/V56-incluir-e-remover-prioridades.mp4) | [Incluir e remover prioridades](videos/V56-incluir-e-remover-prioridades.mp4) | [8.11](#cap-8-11) | 0:58 |
-| [V57](videos/V57-localizador-na-lista-seeu.mp4) | [Localizador na lista (SEEU)](videos/V57-localizador-na-lista-seeu.mp4) | [9.12](#cap-9-12) | 0:40 |
+| [V57](videos/V57-localizador-na-lista-seeu.mp4) | [Localizador na lista (SEEU)](videos/V57-localizador-na-lista-seeu.mp4) | [9.12](#cap-9-12) | 1:00 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -2865,6 +2873,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.43.0 | 18/10/2026 | Seção 9.12: o localizador mostrado na linha **📍** das listas **Análise de Juntadas** e **Retorno de Conclusão** do SEEU passa a funcionar como no cabeçalho do processo: ao pousar o mouse aparece **Remover do processo** (com **⊗**) e, clicando nele e respondendo **OK**, a extensão tira o localizador do processo (responde **SIM** no **Confirme** do SEEU) e mostra o resultado na linha. O **✖** do painel do **✏️** continua. Vídeo V57 regravado. |
 | 2.42.1 | 18/10/2026 | Seção 9.12: corrigido o **✖** do painel **📍 Localizadores**, que não tirava o localizador do processo. Agora a extensão faz como no SEEU: clica no localizador e responde **SIM** na janela **Confirme** ("Deseja desassociar o localizador…"). Novo botão **📋 Copiar diagnóstico** quando não é possível tirar um localizador. *Bom saber* da 9.12 atualizado. |
 | 2.42.0 | 18/10/2026 | **Nova seção 9.12** (*só no SEEU*): nas listas **Análise de Juntadas** e **Retorno de Conclusão**, a coluna do número do processo passa a mostrar a linha **📍** com os localizadores cadastrados em cada processo (lidos em segundo plano, um processo de cada vez), com **✏️** para associar um localizador da lista da unidade ou tirar (**✖**) um localizador do processo sem sair da lista, e **↻** para ler de novo. Ao associar pela **⭐** da linha, a linha **📍** é atualizada. Nova função **Localizador na lista (SEEU)** no Menu (2.6). Ajustes em 1.3, na abertura do capítulo 9 e em 8.8. Novo vídeo V57. |
 | 2.41.3 | 16/10/2026 | Alterar Classe/Assuntos (8.9), preferência de assunto secundário: corrigido o aviso "a tela de alteração não voltou depois de selecionar o assunto" (ex.: **Injúria**, **Violação de domicílio**), que aparecia quando o Projudi não recarregava a tela inteira depois do **Selecionar**. Agora a extensão confere se o assunto entrou na lista, recarregando a tela ou não. Se der errado, o aviso mostra também a mensagem do Projudi. *Bom saber* da 8.9 atualizado. Quando o Projudi não reage ao **Selecionar** (assunto secundário e prioridades), a extensão clica de novo e, no assunto secundário, recomeça sozinha (até 3 tentativas) — antes era preciso usar a preferência outra vez —, e passa a esperar a janela de seleção terminar de carregar antes de marcar o assunto (com assuntos como **Injúria**, que já aparecem na janela sem pesquisa, o primeiro **Selecionar** era ignorado). Para o Projudi lento (sobretudo o de testes), a extensão espera mais pela resposta antes de desistir — até 1 minuto por tela — nas preferências de classe, assuntos, prioridades e valor da causa, na inclusão de advogado e no Tipo de Documento das juntadas. |

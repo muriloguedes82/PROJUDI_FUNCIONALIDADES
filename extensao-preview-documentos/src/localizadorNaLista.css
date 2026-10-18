@@ -176,3 +176,65 @@ button.pdp-locl-diag {
 	align-self: flex-start;
 	padding: 3px 8px;
 }
+
+/* Localizador da linha: clicar nele tira-o do processo, como no
+   cabeçalho do processo do SEEU ("Remover do processo"). */
+.pdp-locl-removivel {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+	cursor: pointer;
+}
+
+.pdp-locl-removivel:hover,
+.pdp-locl-removivel:focus-visible {
+	color: #991b1b;
+	background: #fef2f2;
+	border-color: #fca5a5;
+	outline: none;
+}
+
+.pdp-locl-x {
+	display: none;
+	font-size: 11px;
+	line-height: 1;
+}
+
+.pdp-locl-removivel:hover .pdp-locl-x,
+.pdp-locl-removivel:focus-visible .pdp-locl-x {
+	display: inline;
+}
+
+.pdp-locl-aviso {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 1px 6px;
+	border-radius: 4px;
+	background: #f1f5f9;
+	color: #334155;
+}
+
+.pdp-locl-aviso.ok {
+	background: #ecfdf5;
+	color: #065f46;
+}
+
+.pdp-locl-aviso.aviso {
+	background: #fffbeb;
+	color: #92400e;
+}
+
+.pdp-locl-aviso.erro {
+	background: #fef2f2;
+	color: #991b1b;
+}
+
+button.pdp-locl-x-aviso {
+	padding: 0 2px;
+	font: inherit;
+	background: none;
+	border: 0;
+	cursor: pointer;
+	color: inherit;
+}

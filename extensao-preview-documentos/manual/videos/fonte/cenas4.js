@@ -1457,8 +1457,8 @@ CENAS.V57 = {
 			d.innerHTML = "📍" + conteudo;
 			return d;
 		};
-		const mostrar = i => linha(i, (nomes[i].length ? nomes[i].map(n => '<span style="' + ITEM + '">' + n + "</span>").join("") : ' <i style="color:#64748b">sem localizador</i>') +
-			'<span style="' + BT + '" id="x-ed-' + i + '">✏️</span><span style="' + BT + '">↻</span>');
+		const mostrar = (i, extra = "") => linha(i, (nomes[i].length ? nomes[i].map((n, k) => '<span style="' + ITEM + '" id="x-chip-' + i + "-" + k + '">' + n + "</span>").join("") : ' <i style="color:#64748b">sem localizador</i>') +
+			'<span style="' + BT + '" id="x-ed-' + i + '">✏️</span><span style="' + BT + '">↻</span>' + extra);
 		$$("#lista tr[data-i]").forEach(tr => {
 			tr.children[1].insertAdjacentHTML("beforeend", '<div data-locl="' + tr.dataset.i + '" style="margin-top:3px;font-size:11px;color:#334155"></div>');
 			linha(tr.dataset.i, ' <i style="color:#64748b">aguardando…</i>');
@@ -1501,6 +1501,25 @@ CENAS.V57 = {
 		await S.cap("Tudo feito no próprio SEEU, em segundo plano — você continua na lista.", { ms: 3800 });
 		S.hlOff();
 		pn.remove();
-		await S.endCard("Lista do SEEU → 📍 localizadores na coluna do número → ✏️ → ➕ associar ou ✖ tirar → a linha mostra o resultado.");
+		await S.cap("Também dá para tirar direto na lista: <b>clique no localizador</b>, como no cabeçalho do processo do SEEU.", { ms: 4000 });
+		await S.click("#x-chip-3-1");
+		const chip = $("#x-chip-3-1");
+		chip.style.cssText += ";color:#991b1b;background:#fef2f2;border-color:#fca5a5";
+		chip.textContent = "PRESO ⊗";
+		const dica = toast("Remover do processo", { left: chip.getBoundingClientRect().left, top: chip.getBoundingClientRect().bottom + 6 });
+		await sleep(1400);
+		dica.remove();
+		modal('<b>Tirar o localizador "PRESO" do processo ' + LISTA[3].n + '?</b><p style="margin:8px 0"></p><span class="x-btn small green" id="x-ok2">OK</span> <span class="x-btn small">Cancelar</span>', { w: 460, top: 200 });
+		await S.cap("Confirme. A extensão abre o processo em segundo plano e responde <b>SIM</b> na janela <b>Confirme</b> do SEEU.");
+		await S.click("#x-ok2");
+		closeModal();
+		linha(3, '<span style="' + ITEM + '">ABERTO</span><span style="' + ITEM + '">PRESO</span> <span style="padding:1px 6px;border-radius:4px;background:#f1f5f9">Tirando "PRESO"…</span>');
+		await sleep(1800);
+		nomes[3] = ["ABERTO"];
+		mostrar(3, ' <span style="padding:1px 6px;border-radius:4px;background:#ecfdf5;color:#065f46">✅ "PRESO" tirado do processo.</span>');
+		S.hl('[data-locl="3"]', 3);
+		await S.cap("A linha mostra o resultado.", { ms: 3400 });
+		S.hlOff();
+		await S.endCard("Lista do SEEU → 📍 localizadores na coluna do número → clique no localizador para tirá-lo · ✏️ → ➕ associar ou ✖ tirar → a linha mostra o resultado.");
 	},
 };
