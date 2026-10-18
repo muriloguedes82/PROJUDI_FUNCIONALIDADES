@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.46.0 |
-| **Versão da extensão** | 2.46.0 |
-| **Data desta versão** | 16/10/2026 |
+| **Versão do manual** | 2.47.0 |
+| **Versão da extensão** | 2.47.0 |
+| **Data desta versão** | 18/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -145,7 +145,7 @@ Não é preciso saber nada de informática além disso.
 | Sistema | O que funciona |
 |---|---|
 | **Projudi (TJPR)** | Todas as funções deste manual |
-| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)), os cards do BNMP, da SESP Intranet e do S.U. (Sistema Uniformizado) ao lado da balança ([8.7](#cap-8-7)), a Mesa do Analista sem itens zerados ([9.4](#cap-9-4)), o processo ao passar o mouse nas listas ([9.8](#cap-9-8)), o Analisar e Dispensar decurso na lista ([9.10](#cap-9-10)) e o botão **📍 Localizador** ([8.8](#cap-8-8)), que só existe no SEEU — também pela **⭐** das listas de juntadas, de conclusões e de decurso de prazo ([9.3](#cap-9-3)). Vale também para o **SEEU de treino** (ambiente de testes) |
+| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)), os cards do BNMP, da SESP Intranet e do S.U. (Sistema Uniformizado) ao lado da balança ([8.7](#cap-8-7)), a Mesa do Analista sem itens zerados ([9.4](#cap-9-4)), o RG e CPF nos cumprimentos ([9.5](#cap-9-5)), o processo ao passar o mouse nas listas ([9.8](#cap-9-8)), o Analisar e Dispensar decurso na lista ([9.10](#cap-9-10)) e o botão **📍 Localizador** ([8.8](#cap-8-8)), que só existe no SEEU — também pela **⭐** das listas de juntadas, de conclusões, de decurso de prazo e de cumprimentos ([9.3](#cap-9-3)). Vale também para o **SEEU de treino** (ambiente de testes) |
 
 A extensão **não funciona** quando o usuário está logado com perfil de
 advogado(a) ou de assessor(a) de advogado — veja [10.3](#cap-10-3).
@@ -2039,12 +2039,14 @@ Combos** ([7.4](#cap-7-4)).
 <a id="cap-9"></a>
 ## 9. Telas de análise, mesas e cumprimentos
 
-*Só no Projudi* — exceto as listas de tarefas ([9.2](#cap-9-2)) e a **⭐**
-([9.3](#cap-9-3)), que também aparecem nas listas **Análise de Juntadas** e
-**Retorno de Conclusão** do SEEU, a Mesa do Analista sem itens zerados
-([9.4](#cap-9-4)), que também vale na Mesa do Analista do SEEU, e o processo
-ao passar o mouse ([9.8](#cap-9-8)) e o Analisar e Dispensar decurso na
-lista ([9.10](#cap-9-10)), que também valem nas listas do SEEU.
+*Só no Projudi*, exceto estas, que também valem no SEEU:
+
+- listas de tarefas ([9.2](#cap-9-2)) e **⭐** ([9.3](#cap-9-3)) — listas
+  de juntadas, de conclusões, de decurso de prazo e de cumprimentos;
+- Mesa do Analista sem itens zerados ([9.4](#cap-9-4));
+- RG e CPF nos cumprimentos ([9.5](#cap-9-5));
+- processo ao passar o mouse ([9.8](#cap-9-8));
+- Analisar e Dispensar decurso na lista ([9.10](#cap-9-10)).
 
 <a id="cap-9-1"></a>
 ### 9.1 Filtro por Sequencial na Análise de Decurso de Prazo
@@ -2223,9 +2225,9 @@ de **Mandados**, abaixo do semáforo). Acima da tabela aparece a barra
 - Se você usar o filtro da legenda das listas de tarefas, só os processos
   que estão aparecendo entram no lote.
 
-**No SEEU** (listas **Análise de Juntadas**, **Retorno de Conclusão** e,
-na Análise de Decurso de Prazo, **Intimações** e **Intimação de Auxiliares
-da Justiça**):
+**No SEEU** (listas **Análise de Juntadas**, **Retorno de Conclusão**, na
+Análise de Decurso de Prazo, **Intimações** e **Intimação de Auxiliares da
+Justiça**, e nos cumprimentos, **Demais Cumprimentos** e **Mandados**):
 
 ▶ [**Vídeo V41** — Localizador pela ⭐ da lista (SEEU)](videos/V41-localizador-na-linha-seeu.mp4)
 
@@ -2303,6 +2305,12 @@ título — e ele volta quando alguma linha volta.
 
 Formato: `NOME (Réu) — RG: ...; CPF: ...`. Enquanto busca, mostra
 "RG/CPF: carregando…"; documento ausente aparece como "não cadastrado".
+
+**No SEEU:** vale nas listas **Demais Cumprimentos** e **Mandados** e na
+tela do cumprimento (**Visualizar**). O RG e o CPF são os do
+**Sentenciado**, como aparecem no cabeçalho do processo ("RJI: …; CPF: …;
+RG: …"). Uma parte que não é o sentenciado (ex.: o Estado do Paraná)
+aparece como "parte não localizada no processo".
 
 <a id="cap-9-6"></a>
 ### 9.6 Dados processuais nas ordenações BNMP
@@ -2849,6 +2857,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.47.0 | 18/10/2026 | Seção 9.5: o **RG e CPF nos cumprimentos** também no **SEEU** (listas **Demais Cumprimentos** e **Mandados** e tela do cumprimento), com os documentos do **Sentenciado** lidos do cabeçalho do processo. Seção 9.3: a **⭐** e o **⭐ Em lote** também nas listas de cumprimentos do SEEU, com as preferências do **📍 Localizador**. Abertura do capítulo 9 reescrita em lista; ajuste em 1.3. Sem vídeo novo (os vídeos V32 e V41 mostram o mesmo uso). |
 | 2.46.0 | 16/10/2026 | Seção 9.10: as **preferências do Analisar Decurso** também no **SEEU** — **+ Nova preferência**, ★ (com ✏️ e 🗑) no botão da linha e na ⭐, e **Analisar decurso nos marcados** no lote. Na janela Inserir Arquivo do SEEU, o Tipo do Arquivo e o Modelo são digitados e escolhidos na sugestão (a preferência grava os dois) e a assinatura é pelo **Assinar** com código de confirmação. Preferências do SEEU e do Projudi ficam separadas. Ajustes em 9.3. Sem vídeo novo (o vídeo V52 mostra o mesmo uso). |
 | 2.45.0 | 16/10/2026 | Seção 9.3: a **⭐** e o **⭐ Em lote** também nas listas de decurso de prazo do **SEEU** (**Intimações** e **Intimação de Auxiliares da Justiça**): preferências do **📍 Localizador**, seção **📝 Analisar Decurso** com **Abrir a análise** e, na barra do lote, **Dispensar nos marcados**. Ajustes em 1.3 (com uma vírgula que faltava) e 9.10. Sem vídeo novo (os vídeos V41 e V45 mostram o mesmo uso). |
 | 2.44.0 | 16/10/2026 | Seção 9.10: o **Analisar e Dispensar decurso na lista** passa a valer também no **SEEU** (listas **Intimações** e **Intimação de Auxiliares da Justiça** da Análise de Decurso de Prazo): **Dispensar** completo e **Analisar Decurso** com **Abrir a análise** no popup. As preferências do Analisar Decurso (e o **+ Nova preferência**) continuam só no Projudi por enquanto. Ajustes em 1.3, 2.6 e na abertura do capítulo 9. Sem vídeo novo (o vídeo V52 mostra o mesmo uso). |

@@ -278,7 +278,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "cpfPartes",
 					nome: "RG e CPF nos cumprimentos",
-					descricao: "RG e CPF das partes nas telas de cumprimentos.",
+					descricao: "RG e CPF das partes nas telas de cumprimentos (no SEEU, os do Sentenciado, lidos do cabeçalho do processo).",
 					js: ["src/cpfPartesCumprimentos.js"],
 					css: ["src/cpfPartesCumprimentos.css"]
 				},

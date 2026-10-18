@@ -22,8 +22,9 @@
 // Preferências de "Juntar Documento", do "Alvará Eletrônico" e de "Advogados" continuam só
 // na tela do processo (dependem de arquivos/telas próprias).
 //
-// SEEU (listas Análise de Juntadas, Retorno de Conclusão e as de Decurso de
-// Prazo - Intimações e Intimação de Auxiliares da Justiça): as ações
+// SEEU (listas Análise de Juntadas, Retorno de Conclusão, as de Decurso de
+// Prazo - Intimações e Intimação de Auxiliares da Justiça - e as de
+// cumprimentos - Demais Cumprimentos e Mandados): as ações
 // rápidas não funcionam no SEEU, então o ⭐ lista as preferências do
 // "📍 Localizador" (localizadorSeeu.js). Ao escolher uma, a tela do
 // processo (link da linha, visualizacaoProcesso.do) é carregada num iframe
@@ -106,7 +107,12 @@
 		"/seeu/processo/conclusao.do": { tipo: "conclusao", seeu: true },
 		"/seeu/processo/intimacaoBusca.do": { tipo: "decurso", seeu: true },
 		"/seeu/processo/intimacaoNomeados.do": { tipo: "decurso", seeu: true },
-		"/seeu/processo/citacao.do": { tipo: "decurso", seeu: true }
+		"/seeu/processo/citacao.do": { tipo: "decurso", seeu: true },
+		// Cumprimentos (Demais Cumprimentos e Mandados): por enquanto só as
+		// preferências do Localizador (o "Analisar" - Pré-Análise - do SEEU
+		// ainda não é tratado).
+		"/seeu/processo/cumprimentoCartorio.do": { tipo: "cumprimento", seeu: true },
+		"/seeu/processo/cumprimentoCartorioMandado.do": { tipo: "cumprimento", seeu: true }
 	};
 	const tela = TELAS[location.pathname];
 	if (!tela) return;
