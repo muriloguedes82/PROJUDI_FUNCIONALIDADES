@@ -110,7 +110,16 @@
 	function findAdvogadosUrl(doc) {
 		const enableLawyerButton = doc.getElementById("enableLawyerButton");
 		const onclick = enableLawyerButton ? enableLawyerButton.getAttribute("onclick") || "" : "";
-		const hrefMatch = /document\.location\.href\s*=\s*(['"])([^'"]+)\1/.exec(onclick);
+		let hrefMatch = /document\.location\.href\s*=\s*(['"])([^'"]+)\1/.exec(onclick);
+		// SEEU: onclick="openAdvogados()" - o endereço fica no corpo dessa
+		// função, num <script> da própria página.
+		if (!hrefMatch && enableLawyerButton && /openAdvogados\s*\(/.test(onclick)) {
+			const scripts = Array.prototype.map.call(doc.querySelectorAll("script"), function (sc) { return sc.textContent || ""; }).join("\n");
+			const i = scripts.search(/function\s+openAdvogados\s*\(/);
+			const corpo = i >= 0 ? scripts.slice(i, i + 3000) : "";
+			const m = /(['"])([^'"]*advogadosParte\.do[^'"]*)\1/.exec(corpo);
+			if (m) hrefMatch = m;
+		}
 		if (!hrefMatch) return null;
 		try {
 			return localURL(hrefMatch[2], BASE + "/processo/advogadosParte.do");
@@ -195,10 +204,98 @@
 	}
 	window.__pdpLerAbaPartes = lerAbaPartes;
 
+	// SEEU, sem o endereço no texto da página: carrega a aba "Partes" num
+	// quadro oculto (navegação de verdade, com os scripts do SEEU), clica no
+	// botão "Advogados" ali e lê o endereço da tela que abrir (no próprio
+	// quadro ou numa janela interna dele).
+	function advogadosUrlPeloClique() {
+		return new Promise(function (resolve, reject) {
+			const form = document.getElementById("processoForm");
+			const id = form && form.elements.namedItem("id") ? form.elements.namedItem("id").value : null;
+			let tabUrl;
+			try {
+				tabUrl = findTabAction("tabPartes", "Partes");
+			} catch (err) {
+				reject(err);
+				return;
+			}
+			const nome = "pdpAdvogadosAba" + Date.now();
+			const quadro = document.createElement("iframe");
+			quadro.name = nome;
+			quadro.setAttribute("data-pdp-loader", "advogados");
+			quadro.style.cssText = "position:fixed;left:-15000px;top:0;width:1200px;height:850px;border:0;";
+			document.body.appendChild(quadro);
+			const inicio = Date.now();
+			let clicou = false;
+			let enviado = false;
+			function fim(erro, url) {
+				clearInterval(timer);
+				quadro.remove();
+				if (erro) reject(erro);
+				else resolve(url);
+			}
+			function caminho(win) {
+				try { return win.location.pathname; } catch (err) { return ""; }
+			}
+			const timer = setInterval(function () {
+				if (Date.now() - inicio > 30000) {
+					fim(new Error('o SEEU não abriu a tela "Advogados" ao clicar no botão da aba Partes.'));
+					return;
+				}
+				let doc;
+				try { doc = quadro.contentDocument; } catch (err) { return; }
+				if (!enviado) {
+					// Envia o #processoForm (aba "Partes") para o quadro.
+					if (!doc || doc.readyState !== "complete") return;
+					enviado = true;
+					const f = document.createElement("form");
+					f.method = "post";
+					f.action = tabUrl.href;
+					f.target = nome;
+					f.style.display = "none";
+					tabBody(form, id, "tabPartes").forEach(function (valor, chave) {
+						const campo = document.createElement("input");
+						campo.type = "hidden";
+						campo.name = chave;
+						campo.value = valor;
+						f.appendChild(campo);
+					});
+					document.body.appendChild(f);
+					f.submit();
+					f.remove();
+					return;
+				}
+				if (!doc || doc.readyState !== "complete") return;
+				if (caminho(quadro.contentWindow) === ADVOGADOS_PATH) {
+					fim(null, quadro.contentWindow.location.href);
+					return;
+				}
+				// Janela interna do SEEU aberta pelo clique.
+				const interno = Array.prototype.find.call(doc.querySelectorAll("iframe"), function (q) { return caminho(q.contentWindow) === ADVOGADOS_PATH; });
+				if (interno) {
+					fim(null, interno.contentWindow.location.href);
+					return;
+				}
+				const botao = doc.getElementById("enableLawyerButton");
+				if (botao && !clicou) {
+					clicou = true;
+					botao.click();
+				}
+			}, 300);
+		});
+	}
+
 	async function resolveAdvogadosUrl() {
 		const aba = await lerAbaPartes();
 		const url = findAdvogadosUrl(aba.doc);
-		if (!url) throw new Error('Não foi possível determinar o endereço da tela "Advogados" a partir do botão nativo.');
+		if (!url) {
+			if (NO_SEEU && aba.doc.getElementById("enableLawyerButton")) {
+				const href = await advogadosUrlPeloClique();
+				aba.checkContext();
+				return localURL(href, ADVOGADOS_PATH).href;
+			}
+			throw new Error('Não foi possível determinar o endereço da tela "Advogados" a partir do botão nativo.');
+		}
 		aba.checkContext();
 		return url.href;
 	}
