@@ -89,7 +89,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "habilitarAdvogado",
 					nome: "(Des)Habilitar Advogado",
-					descricao: "Tela de advogados do processo num popup, com preferências de listas de advogados.",
+					descricao: "Tela de advogados do processo num popup, com preferências de listas de advogados. No SEEU, a preferência grava um advogado, a Atuação, as partes e o Salvar.",
 					js: ["src/habilitarAdvogado.js"],
 					requer: ["acoesRapidas"]
 				},

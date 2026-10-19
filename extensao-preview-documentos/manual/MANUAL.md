@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.50.0 |
-| **Versão da extensão** | 2.50.0 |
+| **Versão do manual** | 2.51.0 |
+| **Versão da extensão** | 2.51.0 |
 | **Data desta versão** | 19/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1353,7 +1353,7 @@ do navegador.
 <a id="cap-8"></a>
 ## 8. Atalhos para telas do processo
 
-*Só no Projudi* (exceto o [8.8](#cap-8-8), *só no SEEU*, e os cards do BNMP, da SESP e do S.U. do [8.7](#cap-8-7), que também aparecem no SEEU). Os atalhos de 8.1
+*Só no Projudi* (exceto o [8.8](#cap-8-8), *só no SEEU*, o [8.3](#cap-8-3), que também vale no SEEU, e os cards do BNMP, da SESP e do S.U. do [8.7](#cap-8-7), que também aparecem no SEEU). Os atalhos de 8.1
 a 8.6 abrem num **popup** sobre a tela atual — a aba do processo não sai do
 lugar. Feche com **✕ Fechar**.
 
@@ -1506,6 +1506,34 @@ mesmo sem advogado cadastrado (para incluir o primeiro).
 - Para mudar a lista de uma preferência, use **✏️**: ajuste a lista
   (**Adicionar**/**Remover**) e clique em **💾 Atualizar preferência**.
 - A preferência só funciona na tela do processo (não no ⭐ das listagens).
+
+**No SEEU** o botão **⚖️ Advogados** fica ao lado do **⭐ Minhas
+Preferências**, e o caminho é o mesmo: aba **Partes** → **Advogados** →
+lista dos advogados do processo → **Adicionar** → **Habilitação de
+Advogado para Parte**. As diferenças:
+
+- A habilitação do SEEU tem **um advogado por vez**, escolhido pela lupa
+  ao lado do campo **Advogado** (**Seleção de Advogado**: OAB →
+  **Pesquisar** → linha do advogado → **Selecionar**).
+- A preferência grava também as **Partes do Processo** marcadas — pelo
+  **tipo** da parte, ex.: "(Executado)", porque o nome muda de um processo
+  para outro — e o **Salvar**.
+- **Criar:** **⚖️ Advogados** → **+ Nova preferência**; escolha o
+  advogado pela lupa, a **Atuação** e as **Partes do Processo** e clique em
+  **Salvar** da própria tela: **a habilitação não é salva** — a extensão
+  só pede o **nome** e grava a preferência (o mesmo vale para o
+  **💾 Salvar como preferência** da barra).
+- **Usar:** **⚖️ Advogados** → **★ nome**: a extensão escolhe o advogado
+  pela lupa, a Atuação e as partes do mesmo tipo e mostra a barra
+  ⚠️ **✅ Sim, executar** — é esse clique que clica em **Salvar** e
+  habilita o advogado. **Cancelar** desiste.
+- **✏️ Editar:** a tela abre preenchida; ajuste e clique em **Salvar** (ou
+  em **💾 Atualizar preferência**): a preferência é atualizada, sem salvar
+  a habilitação.
+- Se o processo não tiver parte do tipo gravado, o aviso no alto da tela
+  pede para marcar as partes à mão.
+- As preferências criadas no SEEU só aparecem no SEEU, e as do Projudi, só
+  no Projudi.
 
 <a id="cap-8-4"></a>
 ### 8.4 Editar Partes/Outros
@@ -2870,6 +2898,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.51.0 | 19/10/2026 | Seção 8.3: **(Des)Habilitar Advogado** também no **SEEU** — botão **⚖️ Advogados** ao lado do ⭐ Minhas Preferências, com **Abrir**, **+ Nova preferência** e preferências. No SEEU a preferência grava um advogado (escolhido pela lupa), a **Atuação**, as **Partes do Processo** (pelo tipo) e o **Salvar**: ao gravar, o Salvar só pede o nome, sem salvar a habilitação; ao usar, o **✅ Sim, executar** clica em Salvar. Abertura do capítulo 8 ajustada. Sem vídeo novo (o vídeo V22 mostra o mesmo painel). |
 | 2.50.0 | 19/10/2026 | Seção 7.1: duas ações rápidas novas, **só no SEEU**, no botão **Outras**: **Redistribuir** e **Comunicar ao IIPR** — abrem a tela no popup e aceitam preferências, como as demais. Sem vídeo novo. |
 | 2.49.0 | 19/10/2026 | Seção 7.1: no **SEEU**, as Ações rápidas passam a mostrar só **Enviar Concluso**, **Realizar Remessa**, **Ordenar Cumprimentos**, **Intimar Partes**, **Intimar Peritos e Auxiliares da Justiça**, **Transitar em Julgado**, **Arquivar Processo** e **Interromper Prazo** (o botão **Suspender** some lá); as preferências das demais ações ficam só no Projudi. No Projudi, nada muda. Abertura do capítulo 7 ajustada. Sem vídeo novo. |
 | 2.48.0 | 18/10/2026 | **Pendências também no SEEU.** Capítulo 6: os botões **Dispensar juntadas**, **Finalizar conclusão**, **Dispensar decursos** e **Dispensar pendências** (cumprimentos para expedir) no quadro Pendências da tela do processo do SEEU. Regra 1.4, item 5: as perguntas sobre dispensar juntadas/decursos e finalizar a conclusão antes de uma preferência passam a valer **também no SEEU** — na tela do processo, no painel 📍 Localizador e na ⭐ das listas (também em lote). Ajustes em 7.2 e 9.3. Sem vídeo novo (os vídeos V13 a V16 e V45 mostram o mesmo uso). |

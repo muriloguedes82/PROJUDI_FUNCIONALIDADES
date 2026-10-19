@@ -24,6 +24,7 @@ Não houve teste no SEEU real: o "precisa de teste" abaixo vem só da leitura do
 | Analisar e Dispensar decurso na lista | Listas Intimações e Auxiliares da Justiça: Dispensar e "Abrir a análise" (liberada na 2.44.0); ⭐ e "Dispensar nos marcados" na 2.45.0; preferências do Analisar Decurso na 2.46.0 (Juntar Documento no SEEU, só para elas) |
 | RG e CPF nos cumprimentos | Listas Demais Cumprimentos e Mandados, tela do cumprimento e tela do Analisar (Pré-Análise), com os documentos do Sentenciado (2.47.0) |
 | Dispensar juntadas, decursos e cumprimentos / Finalizar conclusão | Botões no quadro Pendências da tela do processo e perguntas antes das preferências, como no Projudi (2.48.0) |
+| (Des)Habilitar Advogado | Botão ⚖️ Advogados (ao lado do ⭐ Minhas Preferências) com preferências de um advogado, Atuação, partes (pelo tipo) e Salvar (2.51.0) |
 | Listas de tarefas | Nas listas do SEEU que usam a ⭐ (necessária para a ⭐ na linha) |
 | Documento do Juiz ao passar o mouse no Retorno de Conclusão | O código atende `/seeu/processo/conclusao.do` (Anexo B, v2.29.0, diz "Projudi e SEEU"), **mas a tabela da seção 1.3 do manual não cita essa função** |
 
@@ -37,7 +38,6 @@ Não houve teste no SEEU real: o "precisa de teste" abaixo vem só da leitura do
 
 ### 2.2 Aparecem no Menu do SEEU, mas o código só age em telas `/projudi/`
 
-- (Des)Habilitar Advogado
 - Editar Partes/Outros
 - Alvará Eletrônico
 - Juntar Documento (o botão 📎 da tela do processo; no SEEU só funciona o fluxo do Analisar Decurso, desde a 2.46.0)

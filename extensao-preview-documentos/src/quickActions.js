@@ -157,7 +157,20 @@
 		"Interromper Prazo",
 		"Redistribuir",
 		"Comunicar ao IIPR",
+		// Ação personalizada (habilitarAdvogado.js), sem botão nesta
+		// fileira: abre pelo "⚖️ Advogados" (versão 2.51.0).
+		"Advogados",
 	];
+	// Ações personalizadas que também rodam no SEEU (as demais, como o
+	// Alvará Eletrônico, só no Projudi).
+	const CUSTOM_NO_SEEU = ["Advogados"];
+	// Preferências de "Advogados": as gravadas no SEEU (`sistema: "seeu"`,
+	// um advogado, a Atuação e as partes) só aparecem lá, e as do Projudi
+	// (sem marca) só no Projudi.
+	function prefDoSistema(label, pref) {
+		if (label !== "Advogados" || !pref) return true;
+		return (pref.sistema || "projudi") === (NO_SEEU ? "seeu" : "projudi");
+	}
 	// Ações que só existem no SEEU (versão 2.50.0), no grupo "Outras":
 	// "Redistribuir" (processoDistribuicao.do, link comum - ver
 	// ACOES_POR_HREF) e "Comunicar ao IIPR" (diálogo comunicacaoIIPR.do).
@@ -1392,7 +1405,7 @@
 
 	function loadPreferencesFor(label) {
 		return loadAllPreferences().then(function (all) {
-			return all[label] || [];
+			return (all[label] || []).filter(function (pref) { return prefDoSistema(label, pref); });
 		});
 	}
 
@@ -4722,7 +4735,7 @@
 		secondLine.className = "pdp-qa-row-line";
 
 		ACTION_GROUPS.forEach(function (group) {
-			if (group.custom && !location.pathname.startsWith("/projudi/")) return;
+			if (group.custom && !location.pathname.startsWith("/projudi/") && !group.actions.some(function (a) { return CUSTOM_NO_SEEU.indexOf(a) !== -1; })) return;
 			if (group.semBotao) return;
 			const btn = document.createElement("button");
 			btn.type = "button";
@@ -5093,7 +5106,7 @@
 		const group = groupForLabel(label);
 		if (!group) return null;
 		if (group.custom) {
-			if (!location.pathname.startsWith("/projudi/")) return null;
+			if (!location.pathname.startsWith("/projudi/") && CUSTOM_NO_SEEU.indexOf(label) === -1) return null;
 			return getCustomAction(label) ? "custom" : null;
 		}
 		if (isOnAcoesScreen()) return findActionLink(label) ? "ready" : null;
@@ -5171,6 +5184,7 @@
 				// No SEEU, só as preferências das ações que existem lá.
 				if (NO_SEEU && ACOES_SEEU.indexOf(label) === -1) return;
 				(actionPrefs[label] || []).forEach(function (pref) {
+					if (!prefDoSistema(label, pref)) return;
 					items.push({ key: "a:" + pref.id, kind: "action", label: label, pref: pref });
 				});
 			});
