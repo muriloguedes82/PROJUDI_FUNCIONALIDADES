@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.53.0 |
-| **Versão da extensão** | 2.53.0 |
+| **Versão do manual** | 2.54.0 |
+| **Versão da extensão** | 2.54.0 |
 | **Data desta versão** | 19/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -350,7 +350,10 @@ Clique em **Salvar** depois de alterar.
 
 ▶ [**Vídeo V34** — Menu da extensão](videos/V34-menu-da-extensao.mp4)
 
-**Para que serve:** ligar e desligar funções da extensão, levar as suas
+▶ [**Vídeo V58** — Escolher funções e botões (busca, Desativar todas)](videos/V58-escolher-funcoes-e-botoes.mp4)
+
+**Para que serve:** deixar a extensão do jeito da sua rotina — ligar e
+desligar funções inteiras ou só os botões que você não usa —, levar as suas
 preferências para outro computador e abrir este manual.
 
 **Onde fica:** um ícone pequeno — a **balança da Justiça** em azul-marinho,
@@ -410,6 +413,42 @@ Algumas funções dependem de outras (aparece em dourado, sob o nome:
 
 Exemplo: **Editar Partes/Outros** exige **Ações rápidas e Minhas
 Preferências** e **(Des)Habilitar Advogado**.
+
+**Procurar uma função** — logo acima da lista há o campo **🔎 Procurar
+funcionalidade ou botão…**. Digite parte do nome (por exemplo, "combos" ou
+"whatsapp") e a lista mostra só as funções com esse nome, na descrição ou
+num dos seus botões. Apague o texto para ver a lista inteira de novo.
+
+**Esconder só alguns botões** — algumas funções têm vários botões. Nelas,
+logo abaixo da chave, aparece a linha **Botões: N de N à mostra**; clique
+nela para abrir a lista, e cada botão tem a sua própria chave (menor). Assim
+você esconde só o que não usa, sem desligar a função inteira:
+
+| Função | Botões que podem ser escondidos um a um |
+|---|---|
+| **Pré-visualização e WhatsApp** | 📱 Enviar por WhatsApp (a pré-visualização continua) |
+| **Expandir anexos / ocultar sem arquivo** | Expandir/Recolher movimentações · Apenas com arquivo (+) |
+| **Ações rápidas e Minhas Preferências** | Concluso · Remessa · Ordenações · Partes · Suspender (só Projudi) · Transitar · Arquivar · Outras · ⭐ Minhas Preferências · 🔗 Combos · 🖍️ Destacar mov. · 📋 Colar processo (só Projudi) |
+| **Dispensar juntadas, decursos e cumprimentos** | Dispensar juntadas · Dispensar decursos · Dispensar pendências (cumprimentos para expedir) |
+
+- Esconder ou mostrar um botão vale **na hora**, sem recarregar a página, em
+  todas as abas abertas daquele sistema.
+- Cada sistema (PROJUDI e SEEU) guarda os seus botões escondidos; o **Copiar
+  para o…** leva também essa escolha, e o **↺ Padrão** mostra todos de novo.
+- Com a função desligada, as chaves dos botões ficam bloqueadas (cinza):
+  ligue a função primeiro.
+- Acima da lista aparece também quantos botões estão escondidos ("· 2
+  botão(ões) escondido(s)").
+- Esconder um botão só tira o botão da tela: as preferências e os combos
+  continuam salvos e funcionando por outros caminhos (por exemplo, a ⭐ das
+  listas).
+
+**Desativar todas (montar a extensão do zero)** — o link **Desativar
+todas**, ao lado do total de funções ativas, desliga todas as funções do
+sistema da aba aberta (o outro sistema não muda), depois de você confirmar.
+Em seguida, ligue uma a uma só as que você usa. Nada do que você salvou
+(preferências, combos, listas, contatos) é apagado, e o **↺ Padrão** volta a
+ligar tudo.
 
 | Grupo | Funções que podem ser ligadas/desligadas | Seção |
 |---|---|---|
@@ -2973,6 +3012,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V55](videos/V55-paineis-com-muitas-preferencias.mp4) | [Painéis com muitas preferências](videos/V55-paineis-com-muitas-preferencias.mp4) | [7.8](#cap-7-8) | 0:42 |
 | [V56](videos/V56-incluir-e-remover-prioridades.mp4) | [Incluir e remover prioridades](videos/V56-incluir-e-remover-prioridades.mp4) | [8.11](#cap-8-11) | 0:58 |
 | [V57](videos/V57-localizador-na-lista-seeu.mp4) | [Localizador na lista (SEEU)](videos/V57-localizador-na-lista-seeu.mp4) | [9.12](#cap-9-12) | 1:00 |
+| [V58](videos/V58-escolher-funcoes-e-botoes.mp4) | [Escolher funções e botões (busca, Desativar todas)](videos/V58-escolher-funcoes-e-botoes.mp4) | [2.6](#cap-2-6) | 1:05 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -2986,6 +3026,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.54.0 | 19/10/2026 | Seção 2.6 (Menu da extensão): **busca** no alto da lista de funções; lista **Botões** nas funções com vários botões (Ações rápidas, Pré-visualização e WhatsApp, Expandir anexos, Dispensar juntadas/decursos/cumprimentos), para **esconder cada botão** na hora, sem recarregar e sem desligar a função; link **Desativar todas**, para montar a extensão do zero e ligar só o que usa. **Copiar para o…** e **↺ Padrão** passam a valer também para os botões escondidos, e o **⬇ Exportar** os leva junto. Novo vídeo V58. |
 | 2.53.0 | 19/10/2026 | Mescla com a versão principal (até a 2.43.5). As versões desta série sobre o SEEU, desenvolvidas em paralelo como 2.42.0 a 2.51.0, foram renumeradas para **2.44.0 a 2.53.0** (linhas abaixo). Seção 8.3: **(Des)Habilitar Advogado** também no **SEEU** — botão **⚖️ Advogados** ao lado do ⭐ Minhas Preferências, com **Abrir**, **+ Nova preferência** e preferências. No SEEU a preferência grava um advogado (escolhido pela lupa), a **Atuação**, as **Partes do Processo** (pelo tipo) e o **Salvar**: ao gravar, o Salvar só pede o nome, sem salvar a habilitação; ao usar, o **✅ Sim, executar** clica em Salvar. Abertura do capítulo 8 ajustada. Sem vídeo novo (o vídeo V22 mostra o mesmo painel). |
 | 2.52.0 | 19/10/2026 | Seção 7.1: duas ações rápidas novas, **só no SEEU**, no botão **Outras**: **Redistribuir** e **Comunicar ao IIPR** — abrem a tela no popup e aceitam preferências, como as demais. Sem vídeo novo. |
 | 2.51.0 | 19/10/2026 | Seção 7.1: no **SEEU**, as Ações rápidas passam a mostrar só **Enviar Concluso**, **Realizar Remessa**, **Ordenar Cumprimentos**, **Intimar Partes**, **Intimar Peritos e Auxiliares da Justiça**, **Transitar em Julgado**, **Arquivar Processo** e **Interromper Prazo** (o botão **Suspender** some lá); as preferências das demais ações ficam só no Projudi. No Projudi, nada muda. Abertura do capítulo 7 ajustada. Sem vídeo novo. |

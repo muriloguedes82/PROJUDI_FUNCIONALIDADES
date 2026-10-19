@@ -418,6 +418,7 @@
       if (!control?.isConnected) {
         control = document.createElement('button');
         control.type = 'button'; control.className = 'pdp-dispensar-juntadas';
+        control.dataset.pdpParte = 'decursos'; // o Menu pode escondê-lo (ver funcionalidades.js)
         control.textContent = 'Dispensar decursos';
         control.title = 'Dispensar todas as intimações deste processo que aguardam análise de decurso de prazo';
         control.addEventListener('click', event => {
