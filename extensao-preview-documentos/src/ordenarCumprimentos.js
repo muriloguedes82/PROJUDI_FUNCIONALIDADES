@@ -276,6 +276,14 @@
 		return form.querySelector('[name="' + cssEscapeAttr(f.name) + '"]');
 	}
 
+	// Campo guardado que precisa existir no diálogo novo: radio/checkbox
+	// marcado ou campo com valor. Os demais (radio desmarcado, texto vazio)
+	// não fazem falta se o elemento não aparecer.
+	function fieldNeeded(f) {
+		if (f.type === "checkbox" || f.type === "radio") return f.checked;
+		return f.value !== "";
+	}
+
 	function fieldMatches(el, f) {
 		if (f.disabled === false && el.disabled) return false;
 		// Radio desmarcado: o grupo (mesmo `name`) desmarca sozinho quando o
@@ -345,9 +353,15 @@
 			// Confere depois de a tela assentar: uma lista que chegou atrasada
 			// pode ter apagado um valor já aplicado.
 			await waitForFormQuiet(form, FIELD_QUIET_MS, FIELD_QUIET_MAX_MS);
+			// Campo que ainda não apareceu conta como pendente: alguns só
+			// surgem depois que o Projudi carrega a parte da tela do tipo
+			// escolhido - ex.: "necessitará de retorno?" do Ordenar
+			// Cumprimentos. Ignorá-lo encerrava a aplicação cedo, o envio
+			// saía sem ele e o Projudi respondia "Informe se o Cumprimento
+			// necessitará de retorno".
 			pending = fields.filter(function (f) {
 				const el = findFieldElement(form, f);
-				return el && !fieldMatches(el, f);
+				return el ? !fieldMatches(el, f) : fieldNeeded(f);
 			});
 			if (!pending.length || Date.now() >= deadline) break;
 			await new Promise(function (resolve) {

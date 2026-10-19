@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.43.3 |
-| **Versão da extensão** | 2.43.3 |
+| **Versão do manual** | 2.43.4 |
+| **Versão da extensão** | 2.43.4 |
 | **Data desta versão** | 19/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1199,6 +1199,9 @@ Cumprimentos**, **Ordenar RPV** e **Ordenar Expedição BNMP**.
   de escolher a central guardada. Opções que liberam outros campos (ex.:
   **Urgente: Sim**, que libera o **Tipo de Urgência**) também são
   refeitas como um clique seu.
+- Campos que o Projudi só mostra depois de escolher o tipo de cumprimento
+  (ex.: **necessitará de retorno?**) também são refeitos: a extensão espera
+  o campo aparecer antes de enviar.
 - **Cancelar** descarta a fila.
 - ⚠️ Confira nos autos se todos os cumprimentos foram registrados,
   especialmente em ordenações com prazo.
@@ -2880,6 +2883,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.43.4 | 19/10/2026 | Seção 7.5: corrigido o erro *"Informe se o Cumprimento necessitará de retorno"* ao enviar os itens da fila da **Nova Ordenação**. A extensão agora espera aparecerem os campos que o Projudi só mostra depois de escolher o tipo de cumprimento antes de enviar. *Bom saber* da 7.5 atualizado. |
 | 2.43.3 | 19/10/2026 | Seção 7.5: corrigido o erro *"não consegui abrir um diálogo novo de 'Ordenar Cumprimentos' em segundo plano"* ao clicar em **Ordenar** com itens na fila da **Nova Ordenação**. Quando não consegue reabrir o diálogo pelo caminho das Ações rápidas, a extensão agora reabre o mesmo diálogo que está na tela. *Bom saber* da 7.5 atualizado. |
 | 2.43.2 | 19/10/2026 | Convivência com o AzFlow (10.2): no SEEU, com o AzFlow ligado, a pré-visualização desta extensão fica desligada também nas telas em que antes ainda podia abrir junto com a do AzFlow (ex.: quadro **Movimentações Realizadas** da tela **Analisar Conclusão**); ao desligar o AzFlow pelo botão dele, a pré-visualização desta extensão volta sem recarregar a página. Texto da 10.2 atualizado. |
 | 2.43.1 | 19/10/2026 | Seção 9.12: as mensagens de remoção de localizador passam a dizer **Remover** / **Removendo** / **removido** (antes, "Tirar", "Tirando" e "tirado"). Vídeo V57 regravado. |
