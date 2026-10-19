@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.43.0 |
-| **Versão da extensão** | 2.43.0 |
-| **Data desta versão** | 18/10/2026 |
+| **Versão do manual** | 2.43.1 |
+| **Versão da extensão** | 2.43.1 |
+| **Data desta versão** | 19/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -2646,7 +2646,7 @@ são feitos um de cada vez; com "postergar", seguem sozinhos até o fim.
 ▶ [**Vídeo V57** — Localizador na lista (SEEU)](videos/V57-localizador-na-lista-seeu.mp4)
 
 **Para que serve:** ver, já na lista, os **localizadores** de cada
-processo e trocá-los (associar um novo ou tirar um que não serve mais) sem
+processo e trocá-los (associar um novo ou remover um que não serve mais) sem
 abrir o processo.
 
 **Onde fica:** nas listas **Análise de Juntadas** e **Retorno de
@@ -2656,8 +2656,8 @@ dois botões:
 
 | Onde clicar | O que faz |
 |---|---|
-| **No próprio localizador** | Como no cabeçalho do processo do SEEU: ao pousar o mouse aparece **Remover do processo** (e o **⊗**); clicando, a extensão pergunta "Tirar o localizador … do processo …?" e, com **OK**, tira-o do processo |
-| **✏️** | Abre o painel **📍 Localizadores** do processo, para associar ou tirar localizadores |
+| **No próprio localizador** | Como no cabeçalho do processo do SEEU: ao pousar o mouse aparece **Remover do processo** (e o **⊗**); clicando, a extensão pergunta "Remover o localizador … do processo …?" e, com **OK**, remove-o do processo |
+| **✏️** | Abre o painel **📍 Localizadores** do processo, para associar ou remover localizadores |
 | **↻** | Lê de novo os localizadores do processo (por exemplo, depois de alterá-los no próprio SEEU) |
 
 **Passo a passo:**
@@ -2673,16 +2673,16 @@ dois botões:
    - **Associar:** os localizadores ativos da unidade (a mesma lista do
      **+** do cabeçalho do processo), com **Pesquisar localizador...**.
 3. Clique num localizador de **Associar** para colocá-lo no processo, ou no
-   **✖** de um localizador para tirá-lo: a extensão pede confirmação e,
+   **✖** de um localizador para removê-lo: a extensão pede confirmação e,
    no processo, faz o mesmo que você faria — clica no localizador e
    responde **SIM** na janela **Confirme** ("Deseja desassociar o
    localizador…") do SEEU. O painel avisa o resultado e a linha da lista
    já mostra os localizadores novos.
 4. Feche o painel no **✕**, com **Esc** ou clicando fora dele.
 
-**Tirar um localizador direto na lista:** clique no nome dele na linha
+**Remover um localizador direto na lista:** clique no nome dele na linha
 **📍** (ao pousar o mouse, aparece **Remover do processo**) e responda
-**OK** em "Tirar o localizador … do processo …?". A extensão abre o
+**OK** em "Remover o localizador … do processo …?". A extensão abre o
 processo em segundo plano, responde **SIM** na janela **Confirme** do SEEU
 e a linha mostra o resultado (**✅** ou **⚠**). O **✖** do painel do
 **✏️** continua funcionando do mesmo jeito.
@@ -2696,7 +2696,7 @@ e a linha mostra o resultado (**✅** ou **⚠**). O **✖** do painel do
   para ler de novo antes disso.
 - Ao associar localizadores pela **⭐** da linha ([9.3](#cap-9-3)), a linha
   **📍** é atualizada sozinha.
-- Para associar ou tirar, o perfil precisa ter permissão para isso no SEEU
+- Para associar ou remover, o perfil precisa ter permissão para isso no SEEU
   (o **+** dos localizadores precisa aparecer na tela do processo). Sem
   ela, o painel só mostra os localizadores e avisa.
 - **⚠ não foi possível ler** (passe o mouse para ver o motivo) aparece
@@ -2704,7 +2704,7 @@ e a linha mostra o resultado (**✅** ou **⚠**). O **✖** do painel do
   Use o **↻** para tentar de novo.
 - Se o painel disser que **não deu para confirmar** a alteração, use o
   **↻** da linha para conferir os localizadores do processo.
-- Se não for possível tirar um localizador, o painel mostra
+- Se não for possível remover um localizador, o painel mostra
   **📋 Copiar diagnóstico**: ele copia como os localizadores aparecem
   naquela tela do SEEU (sem dados das partes), para você enviar a quem
   cuida da extensão.
@@ -2873,6 +2873,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.43.1 | 19/10/2026 | Seção 9.12: as mensagens de remoção de localizador passam a dizer **Remover** / **Removendo** / **removido** (antes, "Tirar", "Tirando" e "tirado"). Vídeo V57 regravado. |
 | 2.43.0 | 18/10/2026 | Seção 9.12: o localizador mostrado na linha **📍** das listas **Análise de Juntadas** e **Retorno de Conclusão** do SEEU passa a funcionar como no cabeçalho do processo: ao pousar o mouse aparece **Remover do processo** (com **⊗**) e, clicando nele e respondendo **OK**, a extensão tira o localizador do processo (responde **SIM** no **Confirme** do SEEU) e mostra o resultado na linha. O **✖** do painel do **✏️** continua. Vídeo V57 regravado. |
 | 2.42.1 | 18/10/2026 | Seção 9.12: corrigido o **✖** do painel **📍 Localizadores**, que não tirava o localizador do processo. Agora a extensão faz como no SEEU: clica no localizador e responde **SIM** na janela **Confirme** ("Deseja desassociar o localizador…"). Novo botão **📋 Copiar diagnóstico** quando não é possível tirar um localizador. *Bom saber* da 9.12 atualizado. |
 | 2.42.0 | 18/10/2026 | **Nova seção 9.12** (*só no SEEU*): nas listas **Análise de Juntadas** e **Retorno de Conclusão**, a coluna do número do processo passa a mostrar a linha **📍** com os localizadores cadastrados em cada processo (lidos em segundo plano, um processo de cada vez), com **✏️** para associar um localizador da lista da unidade ou tirar (**✖**) um localizador do processo sem sair da lista, e **↻** para ler de novo. Ao associar pela **⭐** da linha, a linha **📍** é atualizada. Nova função **Localizador na lista (SEEU)** no Menu (2.6). Ajustes em 1.3, na abertura do capítulo 9 e em 8.8. Novo vídeo V57. |

@@ -219,11 +219,11 @@
 			alert("Aguarde terminar a alteração de localizador em andamento.");
 			return;
 		}
-		if (!confirm("Tirar o localizador \"" + nome + "\" do processo " + item.cnj + "?")) return;
+		if (!confirm("Remover o localizador \"" + nome + "\" do processo " + item.cnj + "?")) return;
 		if (editor) fecharEditor();
 		removendo = true;
 		pausado = true;
-		avisarLinha(item.cnj, "Tirando \"" + nome + "\"…", "info");
+		avisarLinha(item.cnj, "Removendo \"" + nome + "\"…", "info");
 		let proc = null;
 		try {
 			while (rodando) await esperar(200);
@@ -234,7 +234,7 @@
 			lidos[item.cnj] = { estado: "ok", nomes: l.associadosEm(proc.doc), ts: Date.now() };
 			guardar();
 			const textos = {
-				ok: "✅ \"" + nome + "\" tirado do processo.",
+				ok: "✅ \"" + nome + "\" removido do processo.",
 				ja: "\"" + nome + "\" já não estava no processo.",
 				incerto: "⚠ Não deu para confirmar se \"" + nome + "\" saiu. Use o ↻ para conferir."
 			};
@@ -242,7 +242,7 @@
 			if (r !== "incerto") setTimeout(function () { if (avisos[item.cnj] && avisos[item.cnj].tipo === "ok") avisarLinha(item.cnj, null); }, 6000);
 		} catch (err) {
 			console.warn(TAG, err);
-			avisarLinha(item.cnj, "⚠ " + ((err && err.message) || "Falha ao tirar o localizador."), "erro");
+			avisarLinha(item.cnj, "⚠ " + ((err && err.message) || "Falha ao remover o localizador."), "erro");
 		} finally {
 			if (proc) proc.iframe.remove();
 			removendo = false;
@@ -514,7 +514,7 @@
 			noProcesso.append(el("div", { class: "pdp-locl-linha" }, [
 				el("span", { class: "pdp-locl-item", text: n }),
 				el("button", {
-					type: "button", class: "pdp-locl-bt", title: "Tirar \"" + n + "\" do processo", text: "✖", disabled: e.ocupado,
+					type: "button", class: "pdp-locl-bt", title: "Remover \"" + n + "\" do processo", text: "✖", disabled: e.ocupado,
 					onclick: function () { alterar("remover", n); }
 				})
 			]));
@@ -552,10 +552,10 @@
 	async function alterar(acao, nome) {
 		const e = editor;
 		if (!e || e.ocupado || !e.proc) return;
-		if (acao === "remover" && !confirm("Tirar o localizador \"" + nome + "\" do processo " + e.cnj + "?")) return;
+		if (acao === "remover" && !confirm("Remover o localizador \"" + nome + "\" do processo " + e.cnj + "?")) return;
 		const l = loc();
 		e.ocupado = true;
-		e.status = { texto: (acao === "remover" ? "Tirando \"" : "Associando \"") + nome + "\"…", tipo: "info" };
+		e.status = { texto: (acao === "remover" ? "Removendo \"" : "Associando \"") + nome + "\"…", tipo: "info" };
 		desenharEditor();
 		try {
 			const r = acao === "remover" ? await l.removerEm(e.proc.doc, nome) : await l.associarUmEm(e.proc.doc, nome);
@@ -563,7 +563,7 @@
 			e.associados = l.associadosEm(e.proc.doc);
 			definir(e.cnj, e.associados);
 			const textos = acao === "remover"
-				? { ok: "\"" + nome + "\" tirado do processo.", ja: "\"" + nome + "\" já não estava no processo.", incerto: "Clicado o \"×\" de \"" + nome + "\", mas não deu para confirmar. Use o ↻ para conferir." }
+				? { ok: "\"" + nome + "\" removido do processo.", ja: "\"" + nome + "\" já não estava no processo.", incerto: "Clicado o \"×\" de \"" + nome + "\", mas não deu para confirmar. Use o ↻ para conferir." }
 				: { ok: "\"" + nome + "\" associado ao processo.", ja: "\"" + nome + "\" já estava no processo.", ausente: "\"" + nome + "\" não está na lista de localizadores ativos desta unidade.", incerto: "Escolhido \"" + nome + "\" na lista, mas não deu para confirmar. Use o ↻ para conferir." };
 			e.status = { texto: textos[r] || r, tipo: r === "ok" || r === "ja" ? "ok" : r === "ausente" ? "erro" : "info" };
 			if (acao === "remover" && r === "incerto") e.status.diagnostico = diagnostico(e);
