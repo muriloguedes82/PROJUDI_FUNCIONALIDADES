@@ -606,33 +606,8 @@
 		});
 	}
 
-	async function submitItemInBackground(item, api) {
-		logEvent("flush-item-start", { label: item.label, dialogTitle: item.dialogTitle, fields: item.fields });
-
-		let resolved = null;
-		let resolveError = null;
-		for (let attempt = 1; attempt <= RESOLVE_ATTEMPTS; attempt++) {
-			try {
-				resolved = await api.resolveDialogUrl(item.dialogTitle);
-				resolveError = null;
-			} catch (err) {
-				resolved = null;
-				resolveError = err;
-			}
-			if (resolved && !resolved.failed && resolved.url) break;
-			logEvent("flush-item-resolve-failed", { label: item.label, attempt: attempt, resolved: resolved, error: resolveError ? String(resolveError) : null });
-		}
-		if (resolveError) {
-			const result = { ok: false, reason: "erro ao resolver diálogo novo: " + (resolveError && resolveError.message) };
-			logEvent("flush-item-result", { label: item.label, result: result });
-			return result;
-		}
-		if (!resolved || resolved.failed || !resolved.url) {
-			const result = { ok: false, reason: 'não consegui abrir um diálogo novo de "' + item.dialogTitle + '" em segundo plano' };
-			logEvent("flush-item-result", { label: item.label, result: result });
-			return result;
-		}
-
+	// Monta o <iframe> oculto que recebe o diálogo novo de um item.
+	function createHiddenIframe() {
 		const iframe = document.createElement("iframe");
 		iframe.style.position = "absolute";
 		iframe.style.top = "-9999px";
@@ -640,33 +615,94 @@
 		iframe.style.width = "1024px";
 		iframe.style.height = "768px";
 		document.body.appendChild(iframe);
+		return iframe;
+	}
+
+	// Carrega `url` num <iframe> oculto e confere que veio um diálogo de
+	// ordenação. Devolve { iframe, dialog } ou { reason } (o iframe já
+	// removido nesse caso).
+	async function loadFreshDialog(url) {
+		const iframe = createHiddenIframe();
+		try {
+			const loadPromise = waitForIframeEvent(iframe, { skipAboutBlank: true, timeoutMessage: "tempo esgotado carregando o diálogo novo" });
+			iframe.src = url;
+			await loadPromise;
+		} catch (err) {
+			iframe.remove();
+			return { reason: err.message };
+		}
+		let dialog;
+		try {
+			dialog = findOrdenacaoDialog(iframe.contentDocument);
+		} catch (err) {
+			dialog = null;
+		}
+		if (!dialog) {
+			iframe.remove();
+			return { reason: "o diálogo novo carregado não tinha o formulário esperado" };
+		}
+		return { iframe: iframe, dialog: dialog };
+	}
+
+	// Pede um diálogo novo pela cadeia de quickActions.js (resolveDialogUrl).
+	// Devolve a URL ou null (motivo já registrado no log).
+	async function resolveFreshDialogUrl(item, api) {
+		if (!api || typeof api.resolveDialogUrl !== "function") {
+			logEvent("flush-item-resolve-failed", { label: item.label, reason: "API de quickActions.js indisponível" });
+			return null;
+		}
+		for (let attempt = 1; attempt <= RESOLVE_ATTEMPTS; attempt++) {
+			let resolved = null;
+			let resolveError = null;
+			try {
+				resolved = await api.resolveDialogUrl(item.dialogTitle);
+			} catch (err) {
+				resolveError = err;
+			}
+			if (resolved && !resolved.failed && resolved.url) return resolved.url;
+			logEvent("flush-item-resolve-failed", { label: item.label, attempt: attempt, resolved: resolved, error: resolveError ? String(resolveError) : null });
+		}
+		return null;
+	}
+
+	// `ownDialogUrl`: endereço do diálogo que o usuário tem aberto (ver
+	// setupDialog). Se a cadeia de quickActions.js não achar um diálogo novo
+	// (ex.: diálogo aberto fora das Ações rápidas, sem a lista de
+	// movimentações no frame acima; movimentação marcada que não está mais
+	// na tela), recarregar esse mesmo endereço num <iframe> oculto também
+	// traz um diálogo novo, com token próprio - visto ao vivo ao recarregar
+	// o diálogo visível (ver "Por que nunca enviar o formulário VISÍVEL" no
+	// topo). loadFreshDialog confere que o formulário certo veio.
+	async function submitItemInBackground(item, api, ownDialogUrl) {
+		logEvent("flush-item-start", { label: item.label, dialogTitle: item.dialogTitle, fields: item.fields });
+
+		const urls = [];
+		const resolvedUrl = await resolveFreshDialogUrl(item, api);
+		if (resolvedUrl) urls.push(resolvedUrl);
+		if (ownDialogUrl && urls.indexOf(ownDialogUrl) === -1) urls.push(ownDialogUrl);
+
+		let iframe = null;
+		let freshDialog = null;
+		let loadReason = null;
+		for (let i = 0; i < urls.length && !freshDialog; i++) {
+			if (urls[i] === ownDialogUrl) logEvent("flush-item-own-url", { label: item.label, url: ownDialogUrl });
+			const loaded = await loadFreshDialog(urls[i]);
+			if (loaded.dialog) {
+				iframe = loaded.iframe;
+				freshDialog = loaded.dialog;
+			} else {
+				loadReason = loaded.reason;
+				logEvent("flush-item-load-failed", { label: item.label, url: urls[i], reason: loaded.reason });
+			}
+		}
+		if (!freshDialog) {
+			const result = { ok: false, reason: loadReason || 'não consegui abrir um diálogo novo de "' + item.dialogTitle + '" em segundo plano' };
+			logEvent("flush-item-result", { label: item.label, result: result });
+			return result;
+		}
 
 		function cleanup() {
 			if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
-		}
-
-		try {
-			const loadPromise = waitForIframeEvent(iframe, { skipAboutBlank: true, timeoutMessage: "tempo esgotado carregando o diálogo novo" });
-			iframe.src = resolved.url;
-			await loadPromise;
-		} catch (err) {
-			cleanup();
-			const result = { ok: false, reason: err.message };
-			logEvent("flush-item-result", { label: item.label, result: result });
-			return result;
-		}
-
-		let freshDialog;
-		try {
-			freshDialog = findOrdenacaoDialog(iframe.contentDocument);
-		} catch (err) {
-			freshDialog = null;
-		}
-		if (!freshDialog) {
-			cleanup();
-			const result = { ok: false, reason: "o diálogo novo carregado não tinha o formulário esperado" };
-			logEvent("flush-item-result", { label: item.label, result: result });
-			return result;
 		}
 
 		const notApplied = await applyFormFields(freshDialog.form, item.fields);
@@ -724,11 +760,11 @@
 	// pelo formulário visível. Para no primeiro item que falhar; retorna
 	// quantos itens (a partir do início da lista) foram confirmados, para
 	// o chamador saber quais remover da fila persistente.
-	async function flushAll(items, api) {
+	async function flushAll(items, api, ownDialogUrl) {
 		logEvent("flush-start", { totalItens: items.length });
 		for (let i = 0; i < items.length; i++) {
 			const item = items[i];
-			const result = await submitItemInBackground(item, api);
+			const result = await submitItemInBackground(item, api, ownDialogUrl);
 			if (!result.ok) {
 				logEvent("flush-abort", { label: item.label, reason: result.reason });
 				return { ok: false, confirmedCount: i, item: item, reason: result.reason };
@@ -757,6 +793,12 @@
 
 		dialog.title = findDialogTitle(dialog.button);
 		if (!dialog.title) return; // não é um dos diálogos de ordenação conhecidos - não injeta nada
+		// Endereço deste diálogo, guardado ao detectá-lo (antes de qualquer
+		// envio): reserva para abrir um diálogo novo do mesmo tipo (ver
+		// submitItemInBackground). Não serve se for o próprio endereço de
+		// envio do formulário (diálogo reapresentado depois de um envio):
+		// carregá-lo seria uma requisição ao "Ordenar", não um diálogo novo.
+		dialog.url = window.location.href !== dialog.form.action ? window.location.href : null;
 
 		logEvent("dialog-detected", { title: dialog.title, formAction: dialog.form.action, formMethod: dialog.form.method, formId: dialog.form.id });
 
@@ -804,15 +846,7 @@
 
 				queue.setFlushing(true);
 				(async function () {
-					const api = findQuickActionsApi();
-					if (!api || typeof api.resolveDialogUrl !== "function") {
-						const reason = 'não encontrei o recurso "Ações rápidas" (quickActions.js) necessário para reenviar em segundo plano';
-						logEvent("flush-abort", { reason: reason });
-						alert("Não consegui enviar as ordenações: " + reason + ".\n\nNada foi enviado. Recarregue a página e tente novamente.");
-						return;
-					}
-
-					const result = await flushAll(allItems, api);
+					const result = await flushAll(allItems, findQuickActionsApi(), dialog.url);
 
 					// Remove da fila persistente só os itens da FILA (não o
 					// último, que nunca chegou a entrar nela) que foram
