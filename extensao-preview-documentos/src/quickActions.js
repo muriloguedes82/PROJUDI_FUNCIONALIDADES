@@ -55,7 +55,7 @@
 	// aparecem para o usuário. Comparados com o texto do link já "limpo"
 	// (sem os marcadores "(*)"/ícones de ajuda/menu de contexto — ver
 	// normalizeLinkText()).
-	const ACTION_GROUPS = [
+	const TODOS_ACTION_GROUPS = [
 		{
 			id: "concluso",
 			title: "Concluso",
@@ -141,6 +141,24 @@
 			],
 		},
 	];
+
+	// SEEU: só as ações cujas telas foram conferidas no SEEU (pedido do
+	// usuário, versão 2.49.0); as demais ficam só no Projudi. Grupos que
+	// ficam sem ação (ex.: "Suspender") somem no SEEU. No Projudi, todas.
+	const NO_SEEU = /^\/seeu\//.test(location.pathname);
+	const ACOES_SEEU = [
+		"Enviar Concluso",
+		"Realizar Remessa",
+		"Ordenar Cumprimentos",
+		"Intimar Partes",
+		"Intimar Peritos e Auxiliares da Justiça",
+		"Transitar em Julgado",
+		"Arquivar Processo",
+		"Interromper Prazo",
+	];
+	const ACTION_GROUPS = !NO_SEEU ? TODOS_ACTION_GROUPS : TODOS_ACTION_GROUPS.map(function (g) {
+		return Object.assign({}, g, { actions: g.actions.filter(function (a) { return ACOES_SEEU.indexOf(a) !== -1; }) });
+	}).filter(function (g) { return g.actions.length > 0; });
 
 	const PROCESS_TOOLBAR_LABELS = [
 		"Peticionar",
@@ -5134,6 +5152,8 @@
 			const items = [];
 			const actionPrefs = data[PREFERENCES_KEY] || {};
 			Object.keys(actionPrefs).forEach(function (label) {
+				// No SEEU, só as preferências das ações que existem lá.
+				if (NO_SEEU && ACOES_SEEU.indexOf(label) === -1) return;
 				(actionPrefs[label] || []).forEach(function (pref) {
 					items.push({ key: "a:" + pref.id, kind: "action", label: label, pref: pref });
 				});
