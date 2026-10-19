@@ -26,7 +26,7 @@ O manual é escrito para quem só conhece o Projudi: sem termos técnicos.
 
 ## Projudi e SEEU: pendências antes de uma preferência
 
-Nos **dois sistemas** (decisão do usuário, versão 2.48.0), antes de executar
+Nos **dois sistemas** (decisão do usuário, versão 2.50.0), antes de executar
 uma preferência ou combo (tela do processo, painel 📍 Localizador e ⭐ das
 listas), a extensão pergunta se deve dispensar as juntadas/decursos ou
 finalizar a conclusão pendentes, e faz isso pelos mesmos recursos dos botões

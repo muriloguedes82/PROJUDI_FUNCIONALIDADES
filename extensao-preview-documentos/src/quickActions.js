@@ -143,7 +143,7 @@
 	];
 
 	// SEEU: só as ações cujas telas foram conferidas no SEEU (pedido do
-	// usuário, versão 2.49.0); as demais ficam só no Projudi. Grupos que
+	// usuário, versão 2.51.0); as demais ficam só no Projudi. Grupos que
 	// ficam sem ação (ex.: "Suspender") somem no SEEU. No Projudi, todas.
 	const NO_SEEU = /^\/seeu\//.test(location.pathname);
 	const ACOES_SEEU = [
@@ -158,7 +158,7 @@
 		"Redistribuir",
 		"Comunicar ao IIPR",
 		// Ação personalizada (habilitarAdvogado.js), sem botão nesta
-		// fileira: abre pelo "⚖️ Advogados" (versão 2.51.0).
+		// fileira: abre pelo "⚖️ Advogados" (versão 2.53.0).
 		"Advogados",
 	];
 	// Ações personalizadas que também rodam no SEEU (as demais, como o
@@ -171,7 +171,7 @@
 		if (label !== "Advogados" || !pref) return true;
 		return (pref.sistema || "projudi") === (NO_SEEU ? "seeu" : "projudi");
 	}
-	// Ações que só existem no SEEU (versão 2.50.0), no grupo "Outras":
+	// Ações que só existem no SEEU (versão 2.52.0), no grupo "Outras":
 	// "Redistribuir" (processoDistribuicao.do, link comum - ver
 	// ACOES_POR_HREF) e "Comunicar ao IIPR" (diálogo comunicacaoIIPR.do).
 	const ACOES_SO_SEEU = ["Redistribuir", "Comunicar ao IIPR"];

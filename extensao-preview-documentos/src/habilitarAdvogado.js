@@ -56,7 +56,7 @@
 //   Processo" mudam de um processo para outro: ficam com o usuário, que
 //   marca as partes e clica em "Salvar" (nada é salvo sem esse clique).
 //
-// SEEU (versão 2.51.0, pedido do usuário): o mesmo caminho - aba "Partes" →
+// SEEU (versão 2.53.0, pedido do usuário): o mesmo caminho - aba "Partes" →
 // botão "Advogados" (#enableLawyerButton) → lista dos advogados
 // (advogadosParte.do) → "Adicionar" → "Habilitação de Advogado para Parte".
 // Diferenças: a habilitação do SEEU tem UM advogado por vez (campos

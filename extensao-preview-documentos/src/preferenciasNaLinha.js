@@ -1225,6 +1225,8 @@
 				mostrar(ctx, [previa, rotulo, "Associando " + i + " de " + total + ": " + local + "…"], "andamento");
 			});
 			mostrar(ctx, [previa, (r.tipo === "ok" ? "✅ " : "⚠ ") + rotulo, r.texto], r.tipo === "ok" ? "ok" : r.tipo === "erro" ? "erro" : "aviso");
+			// Localizadores na coluna do número (localizadorNaLista.js).
+			if (window.__pdpLocalizadorNaLista && loc.associadosEm) window.__pdpLocalizadorNaLista.atualizar(ctx.cnj, loc.associadosEm(proc.doc));
 			if (r.tipo === "erro") ctx.erro = true;
 			return r.tipo === "ok";
 		} catch (e) {

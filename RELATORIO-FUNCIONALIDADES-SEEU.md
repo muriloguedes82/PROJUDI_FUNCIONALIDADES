@@ -17,14 +17,14 @@ Não houve teste no SEEU real: o "precisa de teste" abaixo vem só da leitura do
 | Envio por e-mail (Outlook) | Completa |
 | Sistemas do CNJ | Só os cards **BNMP**, **SESP** e **S.U.** (os demais ficam só no Projudi) |
 | Localizador (SEEU) | Exclusiva do SEEU |
-| Minhas Preferências na linha (⭐) | Listas **Análise de Juntadas**, **Retorno de Conclusão** de **Decurso de Prazo** (2.45.0) e de **cumprimentos** (2.47.0): preferências do 📍 Localizador (com ⭐ Em lote); nas de decurso, também Abrir a análise e Dispensar nos marcados |
-| Ações rápidas e Minhas Preferências | Ações Enviar Concluso, Realizar Remessa, Ordenar Cumprimentos, Intimar Partes, Intimar Peritos e Auxiliares, Transitar em Julgado, Arquivar Processo e Interromper Prazo (as demais retiradas do SEEU na 2.49.0), ⭐ Minhas Preferências e 🔗 Combos. Alvará, Advogados e 📋 Colar processo só no Projudi. Redistribuir e Comunicar ao IIPR, só no SEEU, desde a 2.50.0 |
-| Ocultar contadores zerados | Mesa do(a) Analista Judiciário, todas as abas (liberada na 2.42.0; conferida nas telas salvas de Análise de Juntadas, Pendências de Incidentes, Cumprimentos de Medidas, Intimações e Outros Cumprimentos; grupos todos zerados somem com o título) |
-| Processo ao passar o mouse | Listas de Juntadas, Retorno de Conclusão, Mandados/Demais Cumprimentos, Decurso de Prazo, Paralisados, Suspensos, Execuções e Painel de Incidentes (liberada na 2.43.0) |
-| Analisar e Dispensar decurso na lista | Listas Intimações e Auxiliares da Justiça: Dispensar e "Abrir a análise" (liberada na 2.44.0); ⭐ e "Dispensar nos marcados" na 2.45.0; preferências do Analisar Decurso na 2.46.0 (Juntar Documento no SEEU, só para elas) |
-| RG e CPF nos cumprimentos | Listas Demais Cumprimentos e Mandados, tela do cumprimento e tela do Analisar (Pré-Análise), com os documentos do Sentenciado (2.47.0) |
-| Dispensar juntadas, decursos e cumprimentos / Finalizar conclusão | Botões no quadro Pendências da tela do processo e perguntas antes das preferências, como no Projudi (2.48.0) |
-| (Des)Habilitar Advogado | Botão ⚖️ Advogados (ao lado do ⭐ Minhas Preferências) com preferências de um advogado, Atuação, partes (pelo tipo) e Salvar (2.51.0) |
+| Minhas Preferências na linha (⭐) | Listas **Análise de Juntadas**, **Retorno de Conclusão** de **Decurso de Prazo** (2.47.0) e de **cumprimentos** (2.49.0): preferências do 📍 Localizador (com ⭐ Em lote); nas de decurso, também Abrir a análise e Dispensar nos marcados |
+| Ações rápidas e Minhas Preferências | Ações Enviar Concluso, Realizar Remessa, Ordenar Cumprimentos, Intimar Partes, Intimar Peritos e Auxiliares, Transitar em Julgado, Arquivar Processo e Interromper Prazo (as demais retiradas do SEEU na 2.51.0), ⭐ Minhas Preferências e 🔗 Combos. Alvará, Advogados e 📋 Colar processo só no Projudi. Redistribuir e Comunicar ao IIPR, só no SEEU, desde a 2.52.0 |
+| Ocultar contadores zerados | Mesa do(a) Analista Judiciário, todas as abas (liberada na 2.44.0; conferida nas telas salvas de Análise de Juntadas, Pendências de Incidentes, Cumprimentos de Medidas, Intimações e Outros Cumprimentos; grupos todos zerados somem com o título) |
+| Processo ao passar o mouse | Listas de Juntadas, Retorno de Conclusão, Mandados/Demais Cumprimentos, Decurso de Prazo, Paralisados, Suspensos, Execuções e Painel de Incidentes (liberada na 2.45.0) |
+| Analisar e Dispensar decurso na lista | Listas Intimações e Auxiliares da Justiça: Dispensar e "Abrir a análise" (liberada na 2.46.0); ⭐ e "Dispensar nos marcados" na 2.47.0; preferências do Analisar Decurso na 2.48.0 (Juntar Documento no SEEU, só para elas) |
+| RG e CPF nos cumprimentos | Listas Demais Cumprimentos e Mandados, tela do cumprimento e tela do Analisar (Pré-Análise), com os documentos do Sentenciado (2.49.0) |
+| Dispensar juntadas, decursos e cumprimentos / Finalizar conclusão | Botões no quadro Pendências da tela do processo e perguntas antes das preferências, como no Projudi (2.50.0) |
+| (Des)Habilitar Advogado | Botão ⚖️ Advogados (ao lado do ⭐ Minhas Preferências) com preferências de um advogado, Atuação, partes (pelo tipo) e Salvar (2.53.0) |
 | Listas de tarefas | Nas listas do SEEU que usam a ⭐ (necessária para a ⭐ na linha) |
 | Documento do Juiz ao passar o mouse no Retorno de Conclusão | O código atende `/seeu/processo/conclusao.do` (Anexo B, v2.29.0, diz "Projudi e SEEU"), **mas a tabela da seção 1.3 do manual não cita essa função** |
 
@@ -40,7 +40,7 @@ Não houve teste no SEEU real: o "precisa de teste" abaixo vem só da leitura do
 
 - Editar Partes/Outros
 - Alvará Eletrônico
-- Juntar Documento (o botão 📎 da tela do processo; no SEEU só funciona o fluxo do Analisar Decurso, desde a 2.46.0)
+- Juntar Documento (o botão 📎 da tela do processo; no SEEU só funciona o fluxo do Analisar Decurso, desde a 2.48.0)
 - Oráculo
 - Réus no cabeçalho (no SEEU o cabeçalho já mostra o sentenciado, com RJI, CPF e RG; talvez não faça falta)
 - Informações nas ordenações BNMP
@@ -69,10 +69,10 @@ Não houve teste no SEEU real: o "precisa de teste" abaixo vem só da leitura do
 
 Uma função por vez, a partir de telas salvas do SEEU enviadas pelo usuário:
 
-1. Ocultar contadores zerados — **feito (2.42.0)**
-2. Processo ao passar o mouse — **feito (2.43.0)**
-3. Analisar/Dispensar decurso na lista, ⭐ e lote nas listas de decurso — **feito (2.44.0 a 2.46.0)**
-4. RG e CPF nos cumprimentos e ⭐ nas listas de cumprimentos — **feito (2.47.0)**, com as preferências do Localizador (sem as do "Analisar", a pedido do usuário)
-5. Dispensar juntadas/decursos/cumprimentos e Finalizar conclusão — **feito (2.48.0)**: botões
+1. Ocultar contadores zerados — **feito (2.44.0)**
+2. Processo ao passar o mouse — **feito (2.45.0)**
+3. Analisar/Dispensar decurso na lista, ⭐ e lote nas listas de decurso — **feito (2.46.0 a 2.48.0)**
+4. RG e CPF nos cumprimentos e ⭐ nas listas de cumprimentos — **feito (2.49.0)**, com as preferências do Localizador (sem as do "Analisar", a pedido do usuário)
+5. Dispensar juntadas/decursos/cumprimentos e Finalizar conclusão — **feito (2.50.0)**: botões
    e perguntas antes das preferências, como no Projudi (regra do CLAUDE.md alterada a pedido do usuário)
-6. Grupos de Ações rápidas — **feito (2.49.0)**: no SEEU ficam só as 8 ações cujas telas o usuário enviou; 2.50.0: Redistribuir e Comunicar ao IIPR, só no SEEU
+6. Grupos de Ações rápidas — **feito (2.51.0)**: no SEEU ficam só as 8 ações cujas telas o usuário enviou; 2.52.0: Redistribuir e Comunicar ao IIPR, só no SEEU
