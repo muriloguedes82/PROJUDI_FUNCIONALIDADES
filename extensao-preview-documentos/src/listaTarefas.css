@@ -471,6 +471,11 @@ tr.pdp-tl-oculta {
 .pdp-pl-lote-check {
 	margin: 0;
 	cursor: pointer;
+	/* Laranja da extensão (ver content.css), diferente das caixinhas nativas. */
+	accent-color: #d9480f;
+	outline: 2px solid #d9480f;
+	outline-offset: 1px;
+	border-radius: 2px;
 }
 
 .pdp-pl-lote {
