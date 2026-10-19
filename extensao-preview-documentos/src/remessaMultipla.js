@@ -124,8 +124,9 @@
 		const controls = doc.querySelectorAll('input[type="submit"], input[type="button"], button');
 		for (let i = 0; i < controls.length; i++) {
 			const c = controls[i];
-			if (!isVisible(c)) continue;
-			if ((c.value || normalizeText(c) || "").trim() === SUBMIT_LABEL) return c;
+			// Rótulo antes da visibilidade: isVisible() força o navegador a
+			// recalcular o layout, e quase nenhum botão tem este rótulo.
+			if ((c.value || normalizeText(c) || "").trim() === SUBMIT_LABEL && isVisible(c)) return c;
 		}
 		return null;
 	}
@@ -672,15 +673,26 @@
 		}
 	}
 
-	setInterval(reconcile, RECONCILE_INTERVAL_MS);
+	setInterval(function () {
+		if (!document.hidden) reconcile(); // só com a aba à vista
+	}, RECONCILE_INTERVAL_MS);
 	reconcile();
 
+	// Uma reconciliação por quadro de animação, por mais levas de mudanças
+	// que a tela tenha nesse intervalo (a procura do botão lê o texto de
+	// todos os botões da tela).
+	let reconcileScheduled = false;
 	const observer = new MutationObserver(function () {
-		try {
-			reconcile();
-		} catch (err) {
-			console.error(LOG_PREFIX, "erro no MutationObserver:", err);
-		}
+		if (reconcileScheduled) return;
+		reconcileScheduled = true;
+		requestAnimationFrame(function () {
+			reconcileScheduled = false;
+			try {
+				reconcile();
+			} catch (err) {
+				console.error(LOG_PREFIX, "erro no MutationObserver:", err);
+			}
+		});
 	});
 	observer.observe(document.documentElement, { childList: true, subtree: true });
 })();

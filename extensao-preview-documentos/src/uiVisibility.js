@@ -46,7 +46,9 @@
     let currentWindow = window;
     while (currentWindow !== currentWindow.parent) {
       const frame = currentWindow.frameElement;
-      if (frame && frame.hasAttribute('data-pdp-hide-button-group')) {
+      // Os quadros ocultos que a extensão usa para ler telas em segundo
+      // plano nunca aparecem: montar botões e vigias neles só gasta tempo.
+      if (frame && (frame.hasAttribute('data-pdp-hide-button-group') || frame.hasAttribute('data-pdp-loader') || frame.classList.contains('pdp-qa-fetch-iframe'))) {
         blockedByHostFrame = true;
         break;
       }

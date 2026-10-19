@@ -717,6 +717,7 @@
 	// plano), e tenta a busca em segundo plano de novo se ainda não tiver
 	// nenhum estado conhecido nem local nem restaurado.
 	setInterval(function () {
+		if (document.hidden) return; // só com a aba à vista
 		try {
 			if (!lerSeDisponivelLocalmente()) {
 				sincronizarCards();
