@@ -155,9 +155,19 @@
 		"Transitar em Julgado",
 		"Arquivar Processo",
 		"Interromper Prazo",
+		"Redistribuir",
+		"Comunicar ao IIPR",
 	];
+	// Ações que só existem no SEEU (versão 2.50.0), no grupo "Outras":
+	// "Redistribuir" (processoDistribuicao.do, link comum - ver
+	// ACOES_POR_HREF) e "Comunicar ao IIPR" (diálogo comunicacaoIIPR.do).
+	const ACOES_SO_SEEU = ["Redistribuir", "Comunicar ao IIPR"];
+	// Ações cujo link do painel Ações leva à tela por `href` (sem
+	// openDialog no onclick): o popup abre esse endereço.
+	const ACOES_POR_HREF = ["Redistribuir"];
 	const ACTION_GROUPS = !NO_SEEU ? TODOS_ACTION_GROUPS : TODOS_ACTION_GROUPS.map(function (g) {
-		return Object.assign({}, g, { actions: g.actions.filter(function (a) { return ACOES_SEEU.indexOf(a) !== -1; }) });
+		const acoes = g.id === "outras" ? g.actions.concat(ACOES_SO_SEEU) : g.actions;
+		return Object.assign({}, g, { actions: acoes.filter(function (a) { return ACOES_SEEU.indexOf(a) !== -1; }) });
 	}).filter(function (g) { return g.actions.length > 0; });
 
 	const PROCESS_TOOLBAR_LABELS = [
@@ -731,6 +741,12 @@
 	function dialogResultForLink(label, link, acoesUrl) {
 		const dialogUrl = extractUrlFromOnclick(link.getAttribute("onclick"), acoesUrl);
 		if (dialogUrl) return { url: dialogUrl, acoesUrl: acoesUrl };
+		if (ACOES_POR_HREF.indexOf(label) !== -1) {
+			try {
+				const url = new URL(link.getAttribute("href") || "", acoesUrl);
+				if (url.origin === location.origin && url.search && !/#$/.test(link.getAttribute("href") || "")) return { url: url.href, acoesUrl: acoesUrl };
+			} catch (e) { /* segue */ }
+		}
 		if (ACTIONS_NEEDING_ACOES_PARENT.indexOf(label) !== -1 || ACTIONS_ACOES_PARENT_SEM_URL.indexOf(label) !== -1) {
 			return { url: null, acoesUrl: acoesUrl };
 		}

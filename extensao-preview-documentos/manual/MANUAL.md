@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.49.0 |
-| **Versão da extensão** | 2.49.0 |
+| **Versão do manual** | 2.50.0 |
+| **Versão da extensão** | 2.50.0 |
 | **Data desta versão** | 19/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -948,9 +948,10 @@ sair da aba em que você está.
 
 **No SEEU** aparecem só estas: **Enviar Concluso**, **Realizar Remessa**,
 **Ordenar Cumprimentos**, **Intimar Partes**, **Intimar Peritos e
-Auxiliares da Justiça**, **Transitar em Julgado**, **Arquivar Processo** e
-**Interromper Prazo** (em Outras). O botão **Suspender** e o **🏦 Alvará
-Eletrônico** não aparecem lá. As preferências das ações que ficam só no
+Auxiliares da Justiça**, **Transitar em Julgado**, **Arquivar Processo** e,
+em **Outras**, **Interromper Prazo**, **Redistribuir** e **Comunicar ao
+IIPR** (estas duas só existem no SEEU). O botão **Suspender** e o **🏦
+Alvará Eletrônico** não aparecem lá. As preferências das ações que ficam só no
 Projudi (ex.: Citar Partes) continuam guardadas, mas só aparecem no
 Projudi.
 
@@ -2869,6 +2870,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.50.0 | 19/10/2026 | Seção 7.1: duas ações rápidas novas, **só no SEEU**, no botão **Outras**: **Redistribuir** e **Comunicar ao IIPR** — abrem a tela no popup e aceitam preferências, como as demais. Sem vídeo novo. |
 | 2.49.0 | 19/10/2026 | Seção 7.1: no **SEEU**, as Ações rápidas passam a mostrar só **Enviar Concluso**, **Realizar Remessa**, **Ordenar Cumprimentos**, **Intimar Partes**, **Intimar Peritos e Auxiliares da Justiça**, **Transitar em Julgado**, **Arquivar Processo** e **Interromper Prazo** (o botão **Suspender** some lá); as preferências das demais ações ficam só no Projudi. No Projudi, nada muda. Abertura do capítulo 7 ajustada. Sem vídeo novo. |
 | 2.48.0 | 18/10/2026 | **Pendências também no SEEU.** Capítulo 6: os botões **Dispensar juntadas**, **Finalizar conclusão**, **Dispensar decursos** e **Dispensar pendências** (cumprimentos para expedir) no quadro Pendências da tela do processo do SEEU. Regra 1.4, item 5: as perguntas sobre dispensar juntadas/decursos e finalizar a conclusão antes de uma preferência passam a valer **também no SEEU** — na tela do processo, no painel 📍 Localizador e na ⭐ das listas (também em lote). Ajustes em 7.2 e 9.3. Sem vídeo novo (os vídeos V13 a V16 e V45 mostram o mesmo uso). |
 | 2.47.0 | 18/10/2026 | Seção 9.5: o **RG e CPF nos cumprimentos** também no **SEEU** (listas **Demais Cumprimentos** e **Mandados**, tela do cumprimento e tela do **Analisar**), com os documentos do **Sentenciado** lidos do cabeçalho do processo. Seção 9.3: a **⭐** e o **⭐ Em lote** também nas listas de cumprimentos do SEEU, com as preferências do **📍 Localizador**. Abertura do capítulo 9 reescrita em lista; ajuste em 1.3. Sem vídeo novo (os vídeos V32 e V41 mostram o mesmo uso). |
