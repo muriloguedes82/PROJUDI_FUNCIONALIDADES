@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.43.1 |
-| **Versão da extensão** | 2.43.1 |
+| **Versão do manual** | 2.43.2 |
+| **Versão da extensão** | 2.43.2 |
 | **Data desta versão** | 19/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -2742,10 +2742,13 @@ A senha/PIN do certificado **nunca** é guardada.
 <a id="cap-10-2"></a>
 ### 10.2 Convivência com o AzFlow
 
-No **SEEU**, se o AzFlow estiver ativo, a pré-visualização desta extensão
-fica desligada para não conflitar — o AzFlow cuida disso. O envio por
-WhatsApp e e-mail continua funcionando. No Projudi, as duas convivem
-normalmente.
+No **SEEU**, se o AzFlow estiver ligado, a pré-visualização desta extensão
+(passar o mouse sobre um documento ou movimentação) fica desligada para não
+conflitar — o AzFlow cuida disso. Vale em todas as telas do SEEU, inclusive
+no quadro **Movimentações Realizadas** da tela **Analisar Conclusão**. Se o
+AzFlow for desligado (pelo botão dele ou em `chrome://extensions`), a
+pré-visualização desta extensão volta a funcionar. O envio por WhatsApp e
+e-mail continua funcionando. No Projudi, as duas convivem normalmente.
 
 <a id="cap-10-3"></a>
 ### 10.3 Bloqueio para perfis de advocacia
@@ -2873,6 +2876,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.43.2 | 19/10/2026 | Convivência com o AzFlow (10.2): no SEEU, com o AzFlow ligado, a pré-visualização desta extensão fica desligada também nas telas em que antes ainda podia abrir junto com a do AzFlow (ex.: quadro **Movimentações Realizadas** da tela **Analisar Conclusão**); ao desligar o AzFlow pelo botão dele, a pré-visualização desta extensão volta sem recarregar a página. Texto da 10.2 atualizado. |
 | 2.43.1 | 19/10/2026 | Seção 9.12: as mensagens de remoção de localizador passam a dizer **Remover** / **Removendo** / **removido** (antes, "Tirar", "Tirando" e "tirado"). Vídeo V57 regravado. |
 | 2.43.0 | 18/10/2026 | Seção 9.12: o localizador mostrado na linha **📍** das listas **Análise de Juntadas** e **Retorno de Conclusão** do SEEU passa a funcionar como no cabeçalho do processo: ao pousar o mouse aparece **Remover do processo** (com **⊗**) e, clicando nele e respondendo **OK**, a extensão tira o localizador do processo (responde **SIM** no **Confirme** do SEEU) e mostra o resultado na linha. O **✖** do painel do **✏️** continua. Vídeo V57 regravado. |
 | 2.42.1 | 18/10/2026 | Seção 9.12: corrigido o **✖** do painel **📍 Localizadores**, que não tirava o localizador do processo. Agora a extensão faz como no SEEU: clica no localizador e responde **SIM** na janela **Confirme** ("Deseja desassociar o localizador…"). Novo botão **📋 Copiar diagnóstico** quando não é possível tirar um localizador. *Bom saber* da 9.12 atualizado. |
