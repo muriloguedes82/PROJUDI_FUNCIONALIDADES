@@ -89,7 +89,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "habilitarAdvogado",
 					nome: "(Des)Habilitar Advogado",
-					descricao: "Tela de advogados do processo num popup, com preferências de listas de advogados.",
+					descricao: "Tela de advogados do processo num popup, com preferências de listas de advogados. No SEEU, a preferência grava um advogado, a Atuação, as partes e o Salvar.",
 					js: ["src/habilitarAdvogado.js"],
 					requer: ["acoesRapidas"]
 				},
@@ -134,7 +134,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "juntarDocumento",
 					nome: "Juntar Documento",
-					descricao: "Juntada de documento digitado com preferências gravadas.",
+					descricao: "Juntada de documento digitado com preferências gravadas. No SEEU, vale para as preferências do Analisar Decurso.",
 					js: ["src/juntarDocumento.js"],
 					css: ["src/juntarDocumento.css"],
 					requer: ["acoesRapidas"]
@@ -238,18 +238,16 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "previewProcesso",
 					nome: "Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões e nos Cumprimentos, no Expedir e nos Paralisados",
-					descricao: "Nas listas de decurso de prazo (Intimação, Auxiliares da Justiça e Citações/Notificações) na lista da Análise de Juntadas, na lista de Conclusões e nas listas de cumprimentos (Demais Cumprimentos e Mandados) no Expedir Intimações/Citação e na lista de Processos Paralisados, mostra a tela do processo, na aba Movimentações, ao pousar o mouse sobre o número.",
+					descricao: "Nas listas de decurso de prazo (Intimação, Auxiliares da Justiça e Citações/Notificações) na lista da Análise de Juntadas, na lista de Conclusões e nas listas de cumprimentos (Demais Cumprimentos e Mandados) no Expedir Intimações/Citação e na lista de Processos Paralisados, mostra a tela do processo, na aba Movimentações, ao pousar o mouse sobre o número. No SEEU, também nas listas de Execuções e de Processos Suspensos e no Painel de Incidentes.",
 					js: ["src/previewProcesso.js"],
-					css: ["src/previewProcesso.css"],
-					sistemas: ["projudi"]
+					css: ["src/previewProcesso.css"]
 				},
 				{
 					id: "decursoNaLinha",
 					nome: "Analisar e Dispensar decurso na lista",
 					descricao: "Nas listas de decurso de prazo, botões \"Analisar Decurso\" e \"Dispensar\" em cada linha, abaixo do sequencial, sem abrir a intimação.",
 					js: ["src/decursoNaLinha.js"],
-					css: ["src/decursoNaLinha.css"],
-					sistemas: ["projudi"]
+					css: ["src/decursoNaLinha.css"]
 				},
 				{
 					id: "previewConclusao",
@@ -268,7 +266,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "preferenciasNaLinha",
 					nome: "Minhas Preferências na linha (⭐)",
-					descricao: "Aplica preferências e combos direto na linha do processo, ou em lote nos processos marcados (no SEEU, as do \"📍 Localizador\"). Em Demais Cumprimentos, Mandados, Expedir Intimações e Expedir Citação, também as preferências do Analisar (Pré-Análise), que podem anexar os documentos de um movimento padrão.",
+					descricao: "Aplica preferências e combos direto na linha do processo, ou em lote nos processos marcados (no SEEU, as do \"📍 Localizador\" e, nas listas de decurso, o Analisar Decurso e o Dispensar nos marcados). Em Demais Cumprimentos, Mandados, Expedir Intimações e Expedir Citação, também as preferências do Analisar (Pré-Análise), que podem anexar os documentos de um movimento padrão.",
 					js: ["src/preferenciasNaLinha.js"],
 					requer: ["listaTarefas", "acoesRapidas"]
 				},
@@ -289,7 +287,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "cpfPartes",
 					nome: "RG e CPF nos cumprimentos",
-					descricao: "RG e CPF das partes nas telas de cumprimentos.",
+					descricao: "RG e CPF das partes nas telas de cumprimentos (no SEEU, os do Sentenciado, lidos do cabeçalho do processo).",
 					js: ["src/cpfPartesCumprimentos.js"],
 					css: ["src/cpfPartesCumprimentos.css"]
 				},

@@ -640,7 +640,7 @@
 				el("button", {
 					type: "button", class: "pdp-loc-aplicar", disabled: ocupado,
 					title: "Associar ao processo: " + nomes,
-					onclick: function () { aplicar(p); }
+					onclick: function () { aplicarComPendencias(p); }
 				}, [
 					el("span", { class: "pdp-loc-nome", text: p.nome || nomes }),
 					p.nome ? el("span", { class: "pdp-loc-itens", text: nomes }) : null
@@ -775,6 +775,18 @@
 		preferencias[i] = preferencias[j];
 		preferencias[j] = t;
 		gravarPreferencias().then(render);
+	}
+
+	// Como toda preferência (ver executarComPendencias em quickActions.js):
+	// com juntadas ou conclusão pendentes no quadro Pendências, pergunta
+	// antes se deve dispensá-las/finalizá-la.
+	function aplicarComPendencias(pref) {
+		const qa = window.__pdpQuickActions;
+		if (!qa || typeof qa.executarComPendencias !== "function") {
+			aplicar(pref);
+			return;
+		}
+		qa.executarComPendencias("★ " + (pref.nome || pref.localizadores.join(" • ")) + " — 📍 Localizador", false, function () { aplicar(pref); });
 	}
 
 	async function aplicar(pref) {

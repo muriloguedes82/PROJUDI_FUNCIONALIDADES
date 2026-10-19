@@ -14,6 +14,13 @@
 // atualiza os contadores via AJAX sem recarregar, um MutationObserver
 // reavalia as linhas sempre que o texto de um contador muda, reexibindo a
 // linha assim que algum dos seus totais voltar a ser maior que zero.
+//
+// SEEU (mesaAnalistaVepma.do, mesaAnalista.do...): não há <span
+// class="contador">; cada total é o próprio link da linha, com o número
+// sublinhado (`<a href="…/analisarJuntada.do?…"><u>101</u></a>`, ou
+// `<u><font color="red">1</font></u>` em "Com Urgência"), na célula ao lado
+// do rótulo (`td.label`). Lá o contador é esse link, e a regra é a mesma;
+// e um grupo (<h4> + <fieldset>) com todas as linhas ocultas some inteiro.
 (function () {
   "use strict";
   if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
@@ -25,7 +32,7 @@
   }
   window.__pdpMesaAnalistaContadores = true;
 
-  if (!/^\/projudi\/usuario\/mesaAnalista/.test(location.pathname)) {
+  if (!/^\/(projudi|seeu)\/usuario\/mesaAnalista/.test(location.pathname)) {
     console.log(TAG, "script injetado mas pathname não corresponde, nada será feito — pathname:", location.pathname, "| url:", location.href);
     return;
   }
@@ -33,6 +40,7 @@
   console.log(TAG, "ativo nesta página — url:", location.href);
 
   const HIDDEN_ATTR = "data-pdp-contador-zero";
+  const NO_SEEU = location.pathname.startsWith("/seeu/");
 
   function labelOf(row) {
     const label = row.querySelector("td.label");
@@ -60,8 +68,18 @@
     }
   }
 
+  // Contadores da página: <span class="contador"> (Projudi) ou, no SEEU, os
+  // links cujo texto é só o número, fora da célula do rótulo.
+  function contadores(root) {
+    if (!NO_SEEU) return root.querySelectorAll("span.contador");
+    const area = root.querySelector("#mesaAnalistaForm") || root;
+    return Array.from(area.querySelectorAll("td > a[href]")).filter((a) => {
+      return !a.closest("td.label") && /^\d+$/.test(a.textContent.trim());
+    });
+  }
+
   function scan(root) {
-    const spans = root.querySelectorAll("span.contador");
+    const spans = contadores(root);
     const rows = new Map();
     spans.forEach((span) => {
       const row = span.closest("tr");
@@ -79,6 +97,33 @@
       } catch (err) {
         console.error(TAG, "erro ao avaliar linha:", err, row);
       }
+    });
+    if (NO_SEEU) updateGroups(rows);
+  }
+
+  // SEEU: cada grupo da aba ("Com Urgência", "Para Conferir"...) é um <h4>
+  // seguido de um <fieldset> com as linhas. Com todas as linhas ocultas,
+  // somem também o título e a caixa, que ficariam vazios.
+  function updateGroups(rows) {
+    const groups = new Set();
+    rows.forEach((spans, row) => {
+      const fs = row.closest("fieldset");
+      if (fs) groups.add(fs);
+    });
+    groups.forEach((fs) => {
+      const all = Array.from(rows.keys()).filter((row) => row.closest("fieldset") === fs);
+      const empty = all.every((row) => row.hasAttribute(HIDDEN_ATTR));
+      const title = fs.previousElementSibling && fs.previousElementSibling.tagName === "H4" ? fs.previousElementSibling : null;
+      [fs, title].forEach((el) => {
+        if (!el) return;
+        if (empty && !el.hasAttribute(HIDDEN_ATTR)) {
+          el.style.display = "none";
+          el.setAttribute(HIDDEN_ATTR, "");
+        } else if (!empty && el.hasAttribute(HIDDEN_ATTR)) {
+          el.style.display = "";
+          el.removeAttribute(HIDDEN_ATTR);
+        }
+      });
     });
   }
 

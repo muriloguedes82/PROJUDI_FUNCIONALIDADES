@@ -55,12 +55,30 @@
 //   advogado incluído), e no fim escolhe a Atuação. As "Partes do
 //   Processo" mudam de um processo para outro: ficam com o usuário, que
 //   marca as partes e clica em "Salvar" (nada é salvo sem esse clique).
+//
+// SEEU (versão 2.53.0, pedido do usuário): o mesmo caminho - aba "Partes" →
+// botão "Advogados" (#enableLawyerButton) → lista dos advogados
+// (advogadosParte.do) → "Adicionar" → "Habilitação de Advogado para Parte".
+// Diferenças: a habilitação do SEEU tem UM advogado por vez (campos
+// nomeAdvogado/oab/complemento/uf, preenchidos pela lupa "Advogado", que
+// abre a "Seleção de Advogado" numa janela interna); e a preferência do
+// SEEU grava também as Partes do Processo marcadas (pelo tipo, ex.:
+// "Executado", porque os nomes mudam de um processo para outro) e o
+// "Salvar": ao usar, a extensão inclui o advogado, escolhe a Atuação, marca
+// as partes e mostra o "✅ Sim, executar", que clica em "Salvar". Ao gravar
+// (ou editar), o clique no "Salvar" do SEEU NÃO salva a habilitação: ele
+// abre o pedido do nome e grava a preferência (ver vigiarSalvarSeeu). As
+// preferências do SEEU ficam marcadas com `sistema: "seeu"`. O botão
+// "⚖️ Advogados" fica ao lado do "⭐ Minhas Preferências" (no SEEU não há o
+// "📋 Processo copiado").
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
 
-	if (window.__pdpHabilitarAdvogado || !location.pathname.startsWith("/projudi/")) return;
+	if (window.__pdpHabilitarAdvogado || !/^\/(projudi|seeu)\//.test(location.pathname)) return;
 	window.__pdpHabilitarAdvogado = true;
+	const NO_SEEU = location.pathname.startsWith("/seeu/");
+	const BASE = NO_SEEU ? "/seeu" : "/projudi";
 
 	function localURL(value, path) {
 		const url = new URL(value, location.href);
@@ -73,7 +91,7 @@
 		const timer = setTimeout(function () { controller.abort(); }, 25000);
 		try {
 			const response = await fetch(url, Object.assign({}, options, { credentials: "same-origin", signal: controller.signal }));
-			if (!response.ok) throw new Error("O Projudi não respondeu (" + response.status + ").");
+			if (!response.ok) throw new Error("O " + (NO_SEEU ? "SEEU" : "Projudi") + " não respondeu (" + response.status + ").");
 			localURL(response.url, new URL(url, location.href).pathname);
 			const bytes = await response.arrayBuffer();
 			const preview = new TextDecoder("windows-1252").decode(bytes.slice(0, 4096));
@@ -92,10 +110,19 @@
 	function findAdvogadosUrl(doc) {
 		const enableLawyerButton = doc.getElementById("enableLawyerButton");
 		const onclick = enableLawyerButton ? enableLawyerButton.getAttribute("onclick") || "" : "";
-		const hrefMatch = /document\.location\.href\s*=\s*(['"])([^'"]+)\1/.exec(onclick);
+		let hrefMatch = /document\.location\.href\s*=\s*(['"])([^'"]+)\1/.exec(onclick);
+		// SEEU: onclick="openAdvogados()" - o endereço fica no corpo dessa
+		// função, num <script> da própria página.
+		if (!hrefMatch && enableLawyerButton && /openAdvogados\s*\(/.test(onclick)) {
+			const scripts = Array.prototype.map.call(doc.querySelectorAll("script"), function (sc) { return sc.textContent || ""; }).join("\n");
+			const i = scripts.search(/function\s+openAdvogados\s*\(/);
+			const corpo = i >= 0 ? scripts.slice(i, i + 3000) : "";
+			const m = /(['"])([^'"]*advogadosParte\.do[^'"]*)\1/.exec(corpo);
+			if (m) hrefMatch = m;
+		}
 		if (!hrefMatch) return null;
 		try {
-			return localURL(hrefMatch[2], "/projudi/processo/advogadosParte.do");
+			return localURL(hrefMatch[2], BASE + "/processo/advogadosParte.do");
 		} catch (err) {
 			return null;
 		}
@@ -110,9 +137,17 @@
 			return /setTab\(/.test(onclick) && new RegExp("['\"]" + tabId + "['\"]").test(onclick);
 		});
 		const onclickAttr = tab ? tab.getAttribute("onclick") : "";
-		const actionMatch = /setTab\(\s*['"]([^'"]+)['"]/.exec(onclickAttr || "");
+		let actionMatch = /setTab\(\s*['"]([^'"]+)['"]/.exec(onclickAttr || "");
+		// SEEU: os itens de aba não trazem o endereço no onclick; a troca de
+		// aba é o mesmo envio do #processoForm (action
+		// visualizacaoProcesso.do?actionType=visualizar&id=...).
+		if (!actionMatch && NO_SEEU) {
+			const form = document.getElementById("processoForm");
+			const action = form && form.getAttribute("action");
+			if (action) actionMatch = [null, action];
+		}
 		if (!actionMatch) throw new Error('Não encontrei o acesso à aba "' + tabName + '" nesta tela.');
-		const url = localURL(actionMatch[1], "/projudi/visualizacaoProcesso.do");
+		const url = localURL(actionMatch[1], BASE + "/visualizacaoProcesso.do");
 		if (url.searchParams.get("actionType") !== "visualizar") throw new Error('A aba "' + tabName + '" não aponta para uma página de visualização.');
 		return url;
 	}
@@ -146,7 +181,9 @@
 		}
 
 		const selectedIconField = form.elements.namedItem("selectedIcon");
-		const jaEstaNaAba = !!selectedIconField && selectedIconField.value === tabId;
+		// SEEU: aba ativa = item com a classe currentTab.
+		const abaAtivaSeeu = NO_SEEU ? document.querySelector("#tabHorz li.currentTab[name]") : null;
+		const jaEstaNaAba = (!!selectedIconField && selectedIconField.value === tabId) || (!!abaAtivaSeeu && abaAtivaSeeu.getAttribute("name") === tabId);
 
 		let doc = document;
 		if (!jaEstaNaAba) {
@@ -163,14 +200,102 @@
 	window.__pdpLerAbaProcesso = lerAbaProcesso;
 
 	function lerAbaPartes() {
-		return lerAbaProcesso("tabPartes", "Partes e Outros");
+		return lerAbaProcesso("tabPartes", NO_SEEU ? "Partes" : "Partes e Outros");
 	}
 	window.__pdpLerAbaPartes = lerAbaPartes;
+
+	// SEEU, sem o endereço no texto da página: carrega a aba "Partes" num
+	// quadro oculto (navegação de verdade, com os scripts do SEEU), clica no
+	// botão "Advogados" ali e lê o endereço da tela que abrir (no próprio
+	// quadro ou numa janela interna dele).
+	function advogadosUrlPeloClique() {
+		return new Promise(function (resolve, reject) {
+			const form = document.getElementById("processoForm");
+			const id = form && form.elements.namedItem("id") ? form.elements.namedItem("id").value : null;
+			let tabUrl;
+			try {
+				tabUrl = findTabAction("tabPartes", "Partes");
+			} catch (err) {
+				reject(err);
+				return;
+			}
+			const nome = "pdpAdvogadosAba" + Date.now();
+			const quadro = document.createElement("iframe");
+			quadro.name = nome;
+			quadro.setAttribute("data-pdp-loader", "advogados");
+			quadro.style.cssText = "position:fixed;left:-15000px;top:0;width:1200px;height:850px;border:0;";
+			document.body.appendChild(quadro);
+			const inicio = Date.now();
+			let clicou = false;
+			let enviado = false;
+			function fim(erro, url) {
+				clearInterval(timer);
+				quadro.remove();
+				if (erro) reject(erro);
+				else resolve(url);
+			}
+			function caminho(win) {
+				try { return win.location.pathname; } catch (err) { return ""; }
+			}
+			const timer = setInterval(function () {
+				if (Date.now() - inicio > 30000) {
+					fim(new Error('o SEEU não abriu a tela "Advogados" ao clicar no botão da aba Partes.'));
+					return;
+				}
+				let doc;
+				try { doc = quadro.contentDocument; } catch (err) { return; }
+				if (!enviado) {
+					// Envia o #processoForm (aba "Partes") para o quadro.
+					if (!doc || doc.readyState !== "complete") return;
+					enviado = true;
+					const f = document.createElement("form");
+					f.method = "post";
+					f.action = tabUrl.href;
+					f.target = nome;
+					f.style.display = "none";
+					tabBody(form, id, "tabPartes").forEach(function (valor, chave) {
+						const campo = document.createElement("input");
+						campo.type = "hidden";
+						campo.name = chave;
+						campo.value = valor;
+						f.appendChild(campo);
+					});
+					document.body.appendChild(f);
+					f.submit();
+					f.remove();
+					return;
+				}
+				if (!doc || doc.readyState !== "complete") return;
+				if (caminho(quadro.contentWindow) === ADVOGADOS_PATH) {
+					fim(null, quadro.contentWindow.location.href);
+					return;
+				}
+				// Janela interna do SEEU aberta pelo clique.
+				const interno = Array.prototype.find.call(doc.querySelectorAll("iframe"), function (q) { return caminho(q.contentWindow) === ADVOGADOS_PATH; });
+				if (interno) {
+					fim(null, interno.contentWindow.location.href);
+					return;
+				}
+				const botao = doc.getElementById("enableLawyerButton");
+				if (botao && !clicou) {
+					clicou = true;
+					botao.click();
+				}
+			}, 300);
+		});
+	}
 
 	async function resolveAdvogadosUrl() {
 		const aba = await lerAbaPartes();
 		const url = findAdvogadosUrl(aba.doc);
-		if (!url) throw new Error('Não foi possível determinar o endereço da tela "Advogados" a partir do botão nativo.');
+		if (!url) {
+			if (NO_SEEU && aba.doc.getElementById("enableLawyerButton")) {
+				const href = await advogadosUrlPeloClique();
+				aba.checkContext();
+				return localURL(href, ADVOGADOS_PATH).href;
+			}
+			throw new Error('Não foi possível determinar o endereço da tela "Advogados" a partir do botão nativo.');
+		}
 		aba.checkContext();
 		return url.href;
 	}
@@ -189,15 +314,17 @@
 
 	const LABEL = "Advogados";
 	const FORM_ID = "advogadosParteForm";
-	const ADVOGADOS_PATH = "/projudi/processo/advogadosParte.do";
+	const ADVOGADOS_PATH = BASE + "/processo/advogadosParte.do";
 	const AVISO_ID = "pdp-advogados-aviso";
 
 	function limpa(text) {
 		return (text || "").replace(/\s+/g, " ").trim();
 	}
 
+	// SEEU: o tipo da "Seleção de Advogado" não aparece na habilitação
+	// (lá, idTipoAdvogado é a Atuação): o advogado é a OAB/complemento/UF.
 	function chave(adv) {
-		return [adv.oab, adv.complemento, adv.uf, adv.tipo].join("-").toUpperCase();
+		return (NO_SEEU ? [adv.oab, adv.complemento, adv.uf] : [adv.oab, adv.complemento, adv.uf, adv.tipo]).join("-").toUpperCase();
 	}
 
 	function descreverAdvogado(adv) {
@@ -208,6 +335,7 @@
 	// `advogadoSelecionado`, valor "OAB-Complemento-UF-Tipo"; a linha traz a
 	// inscrição, ex.: "12345N-PR", e o nome).
 	function lerAdvogados(form) {
+		if (NO_SEEU) return lerAdvogadoSeeu(form);
 		const lista = [];
 		form.querySelectorAll('input[type="radio"][name="advogadoSelecionado"]').forEach(function (radio) {
 			const partes = String(radio.value || "").split("-");
@@ -231,6 +359,32 @@
 		return lista;
 	}
 
+	// SEEU: o advogado escolhido pela lupa, nos campos da habilitação.
+	function lerAdvogadoSeeu(form) {
+		const campo = function (nome) {
+			const el = form.querySelector('[name="' + nome + '"]');
+			return el ? limpa(el.value).toUpperCase() : "";
+		};
+		const oab = campo("oab");
+		const uf = campo("uf");
+		if (!oab || !uf) return [];
+		let tipo = "0";
+		try {
+			tipo = new URL(form.ownerDocument.URL).searchParams.get("idTipoAdvogado") || "0";
+		} catch (err) { /* segue */ }
+		const complemento = campo("complemento");
+		return [{ oab: oab, complemento: complemento, uf: uf, tipo: tipo, inscricao: oab + complemento + "-" + uf, nome: limpa((form.querySelector('[name="nomeAdvogado"]') || {}).value) }];
+	}
+
+	// SEEU: caixinhas das Partes do Processo, "(Tipo) NOME".
+	function partesSeeu(form) {
+		return Array.prototype.map.call(form.querySelectorAll('input[type="checkbox"][name="idxParteProcessoSelecionada"]'), function (caixa) {
+			const rotulo = limpa((caixa.closest("label") || caixa.parentNode).textContent);
+			const m = /^\(([^)]+)\)\s*(.*)$/.exec(rotulo);
+			return { caixa: caixa, tipo: m ? limpa(m[1]) : "", nome: m ? m[2] : rotulo };
+		});
+	}
+
 	function atuacaoSelect(form) {
 		const select = form.querySelector("select#idTipoAdvogado") || form.querySelector('select[name="idTipoAdvogado"]');
 		return select && select.tagName === "SELECT" ? select : null;
@@ -242,10 +396,12 @@
 		return option ? { value: option.value, text: limpa(option.textContent) } : null;
 	}
 
-	function descrever(advogados, atuacao) {
+	function descrever(advogados, atuacao, partes) {
 		return (
-			"Advogados: " + advogados.map(descreverAdvogado).join("; ") +
-			(atuacao ? "\nAtuação: " + atuacao.text : "")
+			(NO_SEEU ? "Advogado: " : "Advogados: ") + advogados.map(descreverAdvogado).join("; ") +
+			(atuacao ? "\nAtuação: " + atuacao.text : "") +
+			(partes ? "\nPartes do Processo: " + (partes.length ? partes.map(function (p) { return "(" + p.tipo + ")"; }).join(", ") + " — marcadas pelo tipo, em cada processo" : "nenhuma") : "") +
+			(NO_SEEU ? "\nNo fim, \"Salvar\" (com o ✅ Sim, executar)." : "")
 		);
 	}
 
@@ -255,7 +411,7 @@
 	// "Adicionar" → OAB → "Pesquisar" → bolinha → "Selecionar". A tela de
 	// seleção abre numa janela interna do Projudi (um quadro dentro da tela
 	// de habilitação, às vezes aberto sozinho ao carregar a tela).
-	const SELECAO_PATH = "/projudi/usuario/advogadoSelecao.do";
+	const SELECAO_PATH = BASE + "/usuario/advogadoSelecao.do";
 	const ESPERA_JANELA_MS = 1500; // a tela pode abrir a seleção sozinha
 	const LIMITE_ETAPA_MS = 40000; // folgado: o Projudi às vezes demora
 
@@ -307,7 +463,9 @@
 			// A janela ainda está abrindo (se não abrir, clica de novo).
 			if (inc.abriu && Date.now() - inc.abriuEm < 4000) return "agindo";
 			if (Date.now() - ctx.docVistoEm < ESPERA_JANELA_MS) return "agindo";
-			const adicionar = doc.getElementById("addButton") ||
+			// SEEU: a lupa "Advogado" da linha do advogado abre a seleção.
+			const lupaSeeu = NO_SEEU ? doc.querySelector('#' + FORM_ID + ' a.searchButton[title="Advogado"]') || doc.querySelector('#' + FORM_ID + ' a.searchButton') : null;
+			const adicionar = lupaSeeu || doc.getElementById("addButton") ||
 				botoesDa(doc).filter(function (b) { return /^adicionar$/i.test(textoBotao(b)); })[0];
 			if (!adicionar) return "falhou";
 			inc.abriu = true;
@@ -528,6 +686,19 @@
 		}
 		const atuacaoOk = escolherAtuacao(form, ctx.pref && ctx.pref.atuacao);
 		const problemas = [];
+		// SEEU: marca as partes gravadas (pelo tipo).
+		if (NO_SEEU && ctx.pref && Array.isArray(ctx.pref.partes)) {
+			const tipos = ctx.pref.partes.map(function (p) { return limpa(p.tipo).toLowerCase(); });
+			const caixas = partesSeeu(form);
+			caixas.forEach(function (p) {
+				const marcar = tipos.indexOf(p.tipo.toLowerCase()) !== -1;
+				if (p.caixa.checked !== marcar) p.caixa.click();
+			});
+			const faltando = ctx.pref.partes.filter(function (p) {
+				return !caixas.some(function (c) { return c.tipo.toLowerCase() === limpa(p.tipo).toLowerCase(); });
+			});
+			if (faltando.length) problemas.push("Não há, neste processo, parte do tipo " + faltando.map(function (p) { return "(" + p.tipo + ")"; }).join(", ") + ": marque as Partes do Processo manualmente.");
+		}
 		if (ctx.falhas.length) {
 			problemas.push("Não consegui incluir: " + ctx.falhas.map(descreverAdvogado).join("; ") + ". Use \"Adicionar\" para incluí-los manualmente.");
 		}
@@ -535,10 +706,12 @@
 		avisar(
 			doc,
 			form,
-			'Preferência "' + ctx.pref.name + '": ' + (problemas.length ? problemas.join("\n") + "\n" : "advogados incluídos. ") +
+			'Preferência "' + ctx.pref.name + '": ' + (problemas.length ? problemas.join("\n") + "\n" : NO_SEEU ? "advogado incluído. " : "advogados incluídos. ") +
 				(ctx.mode === "edit"
-					? 'Ajuste a lista e a Atuação e clique em "💾 Atualizar preferência".'
-					: 'Marque as Partes do Processo e clique em "Salvar".'),
+					? (NO_SEEU ? 'Ajuste o advogado, a Atuação e as partes e clique em "Salvar" (ou em "💾 Atualizar preferência"): a preferência é atualizada, sem salvar a habilitação.' : 'Ajuste a lista e a Atuação e clique em "💾 Atualizar preferência".')
+					: NO_SEEU
+						? 'Confira o advogado, a Atuação e as partes e clique em "✅ Sim, executar" (ele clica em "Salvar").'
+						: 'Marque as Partes do Processo e clique em "Salvar".'),
 			problemas.length ? "erro" : null
 		);
 		return { state: "ready" };
@@ -553,6 +726,11 @@
 			throw new Error('Inclua pelo menos um advogado na seção "Advogados" (botão "Adicionar") antes de salvar a preferência.');
 		}
 		const atuacao = lerAtuacao(form);
+		if (NO_SEEU) {
+			const partes = partesSeeu(form).filter(function (p) { return p.caixa.checked; }).map(function (p) { return { tipo: p.tipo, nome: p.nome }; });
+			if (!partes.length) throw new Error('Marque pelo menos uma das Partes do Processo antes de salvar a preferência.');
+			return { sistema: "seeu", advogados: advogados, atuacao: atuacao, partes: partes, descricao: descrever(advogados, atuacao, partes) };
+		}
 		return { advogados: advogados, atuacao: atuacao, descricao: descrever(advogados, atuacao) };
 	}
 
@@ -565,10 +743,42 @@
 		// `captureExtra`; as partes do processo nunca são gravadas.
 		prefFields: [],
 		captureExtra: captureExtra,
-		// Só inclui os advogados: marcar as partes e "Salvar" ficam com o
-		// usuário (sem a barra "Sim, executar").
-		confirmAfterApply: false,
+		// Projudi: só inclui os advogados (marcar as partes e "Salvar" ficam
+		// com o usuário, sem a barra "Sim, executar"). SEEU: também as partes,
+		// e o "✅ Sim, executar" clica em "Salvar".
+		confirmAfterApply: NO_SEEU,
 	};
+
+	// SEEU, gravando ou editando a preferência (barra "💾 Salvar como
+	// preferência"/"💾 Atualizar preferência" na tela): o "Salvar" da
+	// habilitação NÃO envia o formulário - abre o pedido do nome (o mesmo
+	// botão da barra) e grava a preferência. Vigia o popup: a tela recarrega
+	// (lupa, "Selecionar") e cada página nova ganha a vigilância.
+	function vigiarSalvarSeeu() {
+		const barra = document.querySelector(".pdp-qa-capture-bar .pdp-qa-capture-save");
+		if (!barra) return;
+		const quadro = document.querySelector("iframe.pdp-qa-modal-iframe");
+		let doc = null;
+		try {
+			doc = quadro && quadro.contentDocument;
+		} catch (err) {
+			return;
+		}
+		const form = doc && telaHabilitacao(doc);
+		if (!form || form.__pdpSalvarVigiado) return;
+		form.__pdpSalvarVigiado = true;
+		function interceptar(ev) {
+			const salvar = document.querySelector(".pdp-qa-capture-bar .pdp-qa-capture-save");
+			if (!salvar) return; // gravação encerrada: o Salvar volta a ser o do SEEU
+			ev.preventDefault();
+			ev.stopImmediatePropagation();
+			salvar.click();
+		}
+		const botao = doc.getElementById("saveButton");
+		if (botao) botao.addEventListener("click", interceptar, true);
+		form.addEventListener("submit", interceptar, true);
+	}
+	if (NO_SEEU) setInterval(vigiarSalvarSeeu, 500);
 
 	// -------------------------------------------------------------------
 	// Botão flutuante, ao lado do "📋 Processo copiado" (ver quickActions.js)
@@ -577,7 +787,11 @@
 	let button;
 
 	function reconcile() {
-		const clipboardBtn = document.getElementById("pdp-clipboard-button");
+		// SEEU: sem o "📋 Processo copiado", fica ao lado do "⭐ Minhas
+		// Preferências", só na tela do processo (com o #processoForm).
+		const clipboardBtn = NO_SEEU
+			? (document.getElementById("processoForm") ? document.getElementById("pdp-fav-prefs-button") : null)
+			: document.getElementById("pdp-clipboard-button");
 		if (!clipboardBtn) {
 			if (button && button.isConnected) button.remove();
 			return;

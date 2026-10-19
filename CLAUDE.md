@@ -24,15 +24,12 @@ vídeos. Ao criar uma funcionalidade nova, inclua-a também no catálogo
 
 O manual é escrito para quem só conhece o Projudi: sem termos técnicos.
 
-## Projudi × SEEU: pendências antes de uma preferência
+## Projudi e SEEU: pendências antes de uma preferência
 
-O **Projudi** trava as ações enquanto houver juntadas ou conclusões
-pendentes; por isso, lá, antes de executar uma preferência ou combo (tela do
-processo e ⭐ das listas), a extensão pergunta se deve dispensar as
-juntadas/decursos ou finalizar a conclusão. **Mantenha isso no Projudi.**
-
-O **SEEU não tem essa trava**: lá **não** se pergunta nada sobre dispensar
-juntadas ou finalizar conclusões, e nada é dispensado/finalizado — a
-preferência é executada direto. Não acrescente essas perguntas ao SEEU
-(ver `executarComPendencias` em `src/quickActions.js` e a REGRA no início de
-`src/preferenciasNaLinha.js`).
+Nos **dois sistemas** (decisão do usuário, versão 2.50.0), antes de executar
+uma preferência ou combo (tela do processo, painel 📍 Localizador e ⭐ das
+listas), a extensão pergunta se deve dispensar as juntadas/decursos ou
+finalizar a conclusão pendentes, e faz isso pelos mesmos recursos dos botões
+do quadro Pendências (que também existem no SEEU). Mantenha o mesmo
+comportamento nos dois (ver `executarComPendencias` em `src/quickActions.js`
+e a REGRA no início de `src/preferenciasNaLinha.js`).

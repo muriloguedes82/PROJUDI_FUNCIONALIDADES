@@ -1,5 +1,5 @@
-// Projudi - "Analisar Decurso" e "Dispensar" na própria lista de decurso de
-// prazo
+// Projudi/SEEU - "Analisar Decurso" e "Dispensar" na própria lista de
+// decurso de prazo
 //
 // Nas listas do menu "Decurso de Prazo" — Intimação (processo/
 // intimacaoBusca.do), Intimação de Auxiliares da Justiça (processo/
@@ -33,6 +33,15 @@
 // - Em lote: na barra "⭐ Em lote" (preferenciasNaLinha.js), "Dispensar nos
 //   marcados" e "Analisar decurso nos marcados" (com uma preferência), um
 //   processo de cada vez.
+// SEEU: as listas Intimação (intimacaoBusca.do) e Intimação de Auxiliares
+// da Justiça (intimacaoNomeados.do) têm a mesma estrutura, com /seeu/ no
+// lugar de /projudi/; o link do número leva a visualizacaoProcesso.do. A
+// tela da intimação tem os mesmos #analisarButton/#dispensarButton (ligados
+// por script, sem endereço no onclick: o Analisar segue pelo clique no iframe
+// oculto) e a mesma confirmação da dispensa. A tela de análise (certificar.do)
+// também é a mesma; as preferências do Analisar Decurso (juntarDocumento.js)
+// são as gravadas no SEEU, e as do "📎 Juntar Documento" (só do Projudi)
+// não aparecem lá.
 // Os botões usam delegação de clique no documento: continuam funcionando nas
 // linhas copiadas pelo filtro por Sequencial (decursoPrazoSequencial.js).
 (function () {
@@ -40,7 +49,7 @@
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
 	if (window.__pdpDecursoNaLinha) return;
 
-	const LISTAS = /^\/projudi\/processo\/(intimacaoBusca|intimacaoNomeados|citacao)\.do$/;
+	const LISTAS = /^\/(projudi|seeu)\/processo\/(intimacaoBusca|intimacaoNomeados|citacao)\.do$/;
 	if (!LISTAS.test(location.pathname)) return;
 	try {
 		const fe = window.frameElement;
@@ -49,7 +58,11 @@
 	window.__pdpDecursoNaLinha = true;
 
 	const TAG = "[Projudi Decurso na linha]";
-	const DETALHES = ["/projudi/processo/intimacao.do", "/projudi/processo/intimacaoNomeados.do", "/projudi/processo/citacao.do"];
+	const NO_SEEU = location.pathname.startsWith("/seeu/");
+	const BASE = NO_SEEU ? "/seeu" : "/projudi";
+	const SISTEMA = NO_SEEU ? "SEEU" : "Projudi";
+	const DETALHES = [BASE + "/processo/intimacao.do", BASE + "/processo/intimacaoNomeados.do", BASE + "/processo/citacao.do"];
+	const PROCESSO = NO_SEEU ? "/seeu/visualizacaoProcesso.do" : "/projudi/processo.do";
 	const TIMEOUT_MS = 60000;
 	let emAndamento = false;
 
@@ -77,7 +90,7 @@
 					// ícone de copiar o número aponta para "intimacaoNomeados.do#"
 					// - o mesmo endereço da tela da intimação, com hash vazio.
 					if (url.origin !== location.origin || url.hash || /#/.test(a.getAttribute("href"))) continue;
-					if (!celulaProcesso && url.pathname === "/projudi/processo.do" && url.search) celulaProcesso = td;
+					if (!celulaProcesso && url.pathname === PROCESSO && url.search) celulaProcesso = td;
 					if (!detalhe && DETALHES.indexOf(url.pathname) >= 0 && url.search) detalhe = url.href;
 				}
 			}
@@ -108,7 +121,7 @@
 				caixa.className = "pdp-dec-acoes";
 				caixa.innerHTML =
 					'<button type="button" class="pdp-dec-btn" data-pdp-dec="analisar" title="Abrir a análise do decurso (mesmo botão &quot;Analisar Decurso&quot; da tela da intimação), sem sair da lista">Analisar Decurso</button>' +
-					'<button type="button" class="pdp-dec-btn" data-pdp-dec="dispensar" title="Dispensar a análise do decurso desta intimação, sem sair da lista (a confirmação do Projudi é aceita sozinha)">Dispensar</button>' +
+					'<button type="button" class="pdp-dec-btn" data-pdp-dec="dispensar" title="Dispensar a análise do decurso desta intimação, sem sair da lista (a confirmação do ' + SISTEMA + ' é aceita sozinha)">Dispensar</button>' +
 					'<div class="pdp-dec-status" role="status"></div>';
 				item.celula.appendChild(caixa);
 			}
@@ -206,7 +219,7 @@
 					if (etapa === "conferir") {
 						const botao = doc.getElementById("dispensarButton");
 						if (!botao || botao.disabled) terminar(true, "Decurso de prazo dispensado com sucesso");
-						else terminar(false, "o Projudi não confirmou a dispensa. Confira a intimação antes de tentar de novo.");
+						else terminar(false, "o " + SISTEMA + " não confirmou a dispensa. Confira a intimação antes de tentar de novo.");
 					}
 				} catch (e) {
 					console.error(TAG, e);
@@ -246,7 +259,7 @@
 				// iframe à tela de análise; o endereço dela é o que se queria.
 				if (clicado) {
 					if (/\/certificar\.do$/.test(new URL(doc.URL).pathname)) fim(null, doc.URL);
-					else fim(new Error("o Projudi não abriu a tela de análise do decurso."));
+					else fim(new Error("o " + SISTEMA + " não abriu a tela de análise do decurso."));
 					return;
 				}
 				const botao = doc.getElementById("analisarButton");
@@ -293,7 +306,8 @@
 		if (!api) return resultado;
 		try {
 			resultado.decurso = api.listarDecurso ? await api.listarDecurso() : [];
-			resultado.juntar = api.listar ? await api.listar() : [];
+			// As do "📎 Juntar Documento" são juntadas do Projudi.
+			resultado.juntar = api.listar && !NO_SEEU ? await api.listar() : [];
 		} catch (e) {
 			console.warn(TAG, "não foi possível ler as preferências:", e);
 		}
@@ -363,7 +377,9 @@
 			topo.appendChild(titulo);
 			if (!emLote) {
 				linha("Abrir a análise", "Abre a tela de análise no popup, sem preencher nada", { acao: "abrir" });
-				linha("+ Nova preferência", "Abre a análise no popup e grava o que você fizer na inclusão do arquivo (Tipo do Arquivo, Modelo e texto); no \"Assinar Arquivos\", pede o nome e salva", { acao: "nova" });
+				// Sem o Juntar Documento (no SEEU, ou desligado no Menu), não há
+				// como gravar a preferência.
+				if (api) linha("+ Nova preferência", "Abre a análise no popup e grava o que você fizer na inclusão do arquivo (Tipo do Arquivo, Modelo e texto); no \"Assinar Arquivos\", pede o nome e salva", { acao: "nova" });
 			}
 			if (prefs.decurso.length) {
 				secao("Preferências de Analisar Decurso:");
@@ -546,8 +562,10 @@
 		loteEl = document.createElement("span");
 		loteEl.className = "pdp-dec-lote";
 		loteEl.innerHTML =
-			'<button type="button" class="pdp-tl-btn" data-pdp-dec-lote="dispensar" title="Dispensar a análise do decurso nos processos marcados, um de cada vez (a confirmação do Projudi é aceita sozinha)">Dispensar nos marcados</button>' +
-			'<button type="button" class="pdp-tl-btn" data-pdp-dec-lote="analisar" title="Analisar o decurso nos processos marcados com uma preferência, um de cada vez (você assina cada documento)">Analisar decurso nos marcados</button>' +
+			'<button type="button" class="pdp-tl-btn" data-pdp-dec-lote="dispensar" title="Dispensar a análise do decurso nos processos marcados, um de cada vez (a confirmação do ' + SISTEMA + ' é aceita sozinha)">Dispensar nos marcados</button>' +
+			// Sem o Juntar Documento (desligado no Menu) não há preferências
+			// do Analisar Decurso: o lote só dispensa.
+			(!window.__pdpJuntarDocumentoApi ? "" : '<button type="button" class="pdp-tl-btn" data-pdp-dec-lote="analisar" title="Analisar o decurso nos processos marcados com uma preferência, um de cada vez (você assina cada documento)">Analisar decurso nos marcados</button>') +
 			'<button type="button" class="pdp-tl-btn" data-pdp-dec-lote="parar" hidden title="Não começar os próximos processos (o atual continua)">⏹ Parar</button>' +
 			'<span class="pdp-dec-lote-status" role="status"></span>';
 		barra.appendChild(loteEl);
@@ -603,7 +621,7 @@
 			if (!sel) return;
 			if (!confirm("Dispensar a análise do decurso de prazo de " + sel.alvos.length + " processo(s):\n\n" +
 				listaProcessosParaConfirmar(sel.alvos.map(function (a) { return a.cnj; })) +
-				"\n\nA confirmação do Projudi é aceita sozinha em cada um. Se algum falhar, o lote para nele." +
+				"\n\nA confirmação do " + SISTEMA + " é aceita sozinha em cada um. Se algum falhar, o lote para nele." +
 				(sel.pulados ? "\n\n" + sel.pulados + " marcado(s) não aguardam análise do decurso e serão pulados." : ""))) return;
 			await rodarLote("dispensar", null, sel);
 		} else {

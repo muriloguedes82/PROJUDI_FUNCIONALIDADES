@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.43.5 |
-| **Versão da extensão** | 2.43.5 |
+| **Versão do manual** | 2.53.0 |
+| **Versão da extensão** | 2.53.0 |
 | **Data desta versão** | 19/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -146,7 +146,7 @@ Não é preciso saber nada de informática além disso.
 | Sistema | O que funciona |
 |---|---|
 | **Projudi (TJPR)** | Todas as funções deste manual |
-| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)), os cards do BNMP, da SESP Intranet e do S.U. (Sistema Uniformizado) ao lado da balança ([8.7](#cap-8-7)) e o botão **📍 Localizador** ([8.8](#cap-8-8)), que só existe no SEEU — também pela **⭐** das listas de juntadas e de conclusões ([9.3](#cap-9-3)), que mostram ainda os localizadores de cada processo, com **✏️** para alterá-los ([9.12](#cap-9-12)). Vale também para o **SEEU de treino** (ambiente de testes) |
+| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)), os cards do BNMP, da SESP Intranet e do S.U. (Sistema Uniformizado) ao lado da balança ([8.7](#cap-8-7)), os botões do quadro Pendências ([6](#cap-6)), a Mesa do Analista sem itens zerados ([9.4](#cap-9-4)), o RG e CPF nos cumprimentos ([9.5](#cap-9-5)), o processo ao passar o mouse nas listas ([9.8](#cap-9-8)), o Analisar e Dispensar decurso na lista ([9.10](#cap-9-10)) e o botão **📍 Localizador** ([8.8](#cap-8-8)), que só existe no SEEU — também pela **⭐** das listas de juntadas, de conclusões, de decurso de prazo e de cumprimentos ([9.3](#cap-9-3)); as de juntadas e de conclusões mostram ainda os localizadores de cada processo, com **✏️** para alterá-los ([9.12](#cap-9-12)). Vale também para o **SEEU de treino** (ambiente de testes) |
 
 A extensão **não funciona** quando o usuário está logado com perfil de
 advogado(a) ou de assessor(a) de advogado — veja [10.3](#cap-10-3).
@@ -167,12 +167,10 @@ advogado(a) ou de assessor(a) de advogado — veja [10.3](#cap-10-3).
    enviados quando você clica em enviar no WhatsApp Web ou no Outlook.
 4. Documentos do processo são sensíveis: **confira sempre o destinatário**
    antes de enviar.
-5. **Pendências antes de uma preferência — Projudi × SEEU:** o **Projudi**
-   não deixa praticar ações enquanto houver juntadas ou conclusões
-   pendentes; por isso, lá, a extensão pergunta antes se deve **dispensar
+5. **Pendências antes de uma preferência — Projudi e SEEU:** com juntadas
+   ou conclusões pendentes, a extensão pergunta antes se deve **dispensar
    as juntadas**, **finalizar a conclusão** ou **dispensar os decursos**.
-   O **SEEU** não tem essa trava: lá a extensão **não pergunta** e **não
-   dispensa nem finaliza nada** — a preferência é executada direto.
+   Vale do mesmo jeito no **Projudi** e no **SEEU**.
 
 ---
 
@@ -418,7 +416,7 @@ Preferências** e **(Des)Habilitar Advogado**.
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Prioridades (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Bloco de anotações | [4](#cap-4) |
-| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados (Projudi) · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista (Projudi) · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (SEEU) | [6](#cap-6), [9](#cap-9) |
+| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (SEEU) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
 Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
@@ -840,7 +838,10 @@ não muda.
 ## 6. Quadro Pendências
 
 Botões que a extensão coloca ao lado dos links do quadro **Pendências** da
-capa do processo. *Só no Projudi.*
+capa do processo. *No Projudi e no SEEU* (no SEEU, o quadro **Pendências**
+fica na tela do processo, abaixo das Prioridades e Condições de
+Acompanhamento; a linha dos cumprimentos mostra a quantidade no fim, ex.:
+"Comunicações Tre 01").
 
 ⚠️ Estes botões **agem ao clicar**. Confira antes as pendências (a
 pré-visualização do item [3.2](#cap-3-2) ajuda).
@@ -920,7 +921,7 @@ onde parou. Uma operação por vez.
 <a id="cap-7"></a>
 ## 7. Ações rápidas e preferências
 
-*Só no Projudi.*
+*No Projudi e no SEEU* (no SEEU, só parte das ações — veja a 7.1).
 
 <a id="cap-7-1"></a>
 ### 7.1 Ações rápidas
@@ -945,6 +946,15 @@ sair da aba em que você está.
 | **Arquivar** | Arquivar Processo |
 | **🏦 Alvará Eletrônico** | Cadastrar Alvará Eletrônico ([8.1](#cap-8-1)) |
 | **Outras** | Interromper Prazo; Declínio de competência para a Segunda Instância; Apensar; Desapensar; Anotações Criminais; Solicitar Antecedentes Criminais |
+
+**No SEEU** aparecem só estas: **Enviar Concluso**, **Realizar Remessa**,
+**Ordenar Cumprimentos**, **Intimar Partes**, **Intimar Peritos e
+Auxiliares da Justiça**, **Transitar em Julgado**, **Arquivar Processo** e,
+em **Outras**, **Interromper Prazo**, **Redistribuir** e **Comunicar ao
+IIPR** (estas duas só existem no SEEU). O botão **Suspender** e o **🏦
+Alvará Eletrônico** não aparecem lá. As preferências das ações que ficam só no
+Projudi (ex.: Citar Partes) continuam guardadas, mas só aparecem no
+Projudi.
 
 **Passo a passo:**
 
@@ -1040,8 +1050,8 @@ MP para ciência, 5 dias") e reaplicá-lo em outros processos.
      finalizar conclusão** ou **Não, seguir sem isso**). Havendo as duas
      pendências, são duas perguntas: primeiro as juntadas, depois a
      conclusão. É a mesma pergunta do ⭐ nas listagens ([9.3](#cap-9-3)).
-   - Essas perguntas são **só do Projudi**: o SEEU não trava ações com
-     pendências, e lá a preferência segue direto ([1.4](#cap-1-4)).
+   - As mesmas perguntas valem no **SEEU** ([1.4](#cap-1-4)), também antes
+     das preferências do **📍 Localizador**.
 2. O diálogo abre **já preenchido** e aparece a barra: *Confirmar "Ação" com
    a preferência "..."?*
 3. ⚠️ Confira os campos e clique em ✅ **Sim, executar** — é esse clique
@@ -1351,7 +1361,7 @@ do navegador.
 <a id="cap-8"></a>
 ## 8. Atalhos para telas do processo
 
-*Só no Projudi* (exceto o [8.8](#cap-8-8), *só no SEEU*, e os cards do BNMP, da SESP e do S.U. do [8.7](#cap-8-7), que também aparecem no SEEU). Os atalhos de 8.1
+*Só no Projudi* (exceto o [8.8](#cap-8-8), *só no SEEU*, o [8.3](#cap-8-3), que também vale no SEEU, e os cards do BNMP, da SESP e do S.U. do [8.7](#cap-8-7), que também aparecem no SEEU). Os atalhos de 8.1
 a 8.6 abrem num **popup** sobre a tela atual — a aba do processo não sai do
 lugar. Feche com **✕ Fechar**.
 
@@ -1504,6 +1514,34 @@ mesmo sem advogado cadastrado (para incluir o primeiro).
 - Para mudar a lista de uma preferência, use **✏️**: ajuste a lista
   (**Adicionar**/**Remover**) e clique em **💾 Atualizar preferência**.
 - A preferência só funciona na tela do processo (não no ⭐ das listagens).
+
+**No SEEU** o botão **⚖️ Advogados** fica ao lado do **⭐ Minhas
+Preferências**, e o caminho é o mesmo: aba **Partes** → **Advogados** →
+lista dos advogados do processo → **Adicionar** → **Habilitação de
+Advogado para Parte**. As diferenças:
+
+- A habilitação do SEEU tem **um advogado por vez**, escolhido pela lupa
+  ao lado do campo **Advogado** (**Seleção de Advogado**: OAB →
+  **Pesquisar** → linha do advogado → **Selecionar**).
+- A preferência grava também as **Partes do Processo** marcadas — pelo
+  **tipo** da parte, ex.: "(Executado)", porque o nome muda de um processo
+  para outro — e o **Salvar**.
+- **Criar:** **⚖️ Advogados** → **+ Nova preferência**; escolha o
+  advogado pela lupa, a **Atuação** e as **Partes do Processo** e clique em
+  **Salvar** da própria tela: **a habilitação não é salva** — a extensão
+  só pede o **nome** e grava a preferência (o mesmo vale para o
+  **💾 Salvar como preferência** da barra).
+- **Usar:** **⚖️ Advogados** → **★ nome**: a extensão escolhe o advogado
+  pela lupa, a Atuação e as partes do mesmo tipo e mostra a barra
+  ⚠️ **✅ Sim, executar** — é esse clique que clica em **Salvar** e
+  habilita o advogado. **Cancelar** desiste.
+- **✏️ Editar:** a tela abre preenchida; ajuste e clique em **Salvar** (ou
+  em **💾 Atualizar preferência**): a preferência é atualizada, sem salvar
+  a habilitação.
+- Se o processo não tiver parte do tipo gravado, o aviso no alto da tela
+  pede para marcar as partes à mão.
+- As preferências criadas no SEEU só aparecem no SEEU, e as do Projudi, só
+  no Projudi.
 
 <a id="cap-8-4"></a>
 ### 8.4 Editar Partes/Outros
@@ -2049,10 +2087,15 @@ Combos** ([7.4](#cap-7-4)).
 <a id="cap-9"></a>
 ## 9. Telas de análise, mesas e cumprimentos
 
-*Só no Projudi* — exceto as listas de tarefas ([9.2](#cap-9-2)) e a **⭐**
-([9.3](#cap-9-3)), que também aparecem nas listas **Análise de Juntadas** e
-**Retorno de Conclusão** do SEEU, e o localizador na lista
-([9.12](#cap-9-12)), que só existe no SEEU.
+*Só no Projudi*, exceto estas, que também valem no SEEU:
+
+- listas de tarefas ([9.2](#cap-9-2)) e **⭐** ([9.3](#cap-9-3)) — listas
+  de juntadas, de conclusões, de decurso de prazo e de cumprimentos;
+- Mesa do Analista sem itens zerados ([9.4](#cap-9-4));
+- RG e CPF nos cumprimentos ([9.5](#cap-9-5));
+- processo ao passar o mouse ([9.8](#cap-9-8));
+- Analisar e Dispensar decurso na lista ([9.10](#cap-9-10));
+- localizador na lista ([9.12](#cap-9-12)), que só existe no SEEU.
 
 <a id="cap-9-1"></a>
 ### 9.1 Filtro por Sequencial na Análise de Decurso de Prazo
@@ -2231,7 +2274,9 @@ de **Mandados**, abaixo do semáforo). Acima da tabela aparece a barra
 - Se você usar o filtro da legenda das listas de tarefas, só os processos
   que estão aparecendo entram no lote.
 
-**No SEEU** (listas **Análise de Juntadas** e **Retorno de Conclusão**):
+**No SEEU** (listas **Análise de Juntadas**, **Retorno de Conclusão**, na
+Análise de Decurso de Prazo, **Intimações** e **Intimação de Auxiliares da
+Justiça**, e nos cumprimentos, **Demais Cumprimentos** e **Mandados**):
 
 ▶ [**Vídeo V41** — Localizador pela ⭐ da lista (SEEU)](videos/V41-localizador-na-linha-seeu.mp4)
 
@@ -2246,12 +2291,23 @@ de **Mandados**, abaixo do semáforo). Acima da tabela aparece a barra
    localizador que não está na lista da unidade).
 
 - Localizador que já está no processo não é associado de novo.
-- No SEEU **não há** a pergunta sobre dispensar as juntadas ou finalizar a
-  conclusão, e nada é dispensado nem finalizado: o SEEU, ao contrário do
-  Projudi, não trava as ações quando há juntadas ou conclusões pendentes
-  ([1.4](#cap-1-4)). A preferência é executada direto.
+- Antes de associar, o SEEU tem as **mesmas perguntas** do Projudi
+  ([1.4](#cap-1-4)): na Análise de Juntadas, dispensar as juntadas; no
+  Retorno de Conclusão, finalizar a conclusão; nas Intimações do Decurso de
+  Prazo, dispensar os decursos; nas demais listas (Auxiliares da Justiça e
+  cumprimentos), só pelo que estiver pendente no processo. **Em lote**, a
+  pergunta é feita uma vez e vale para todos os marcados.
 - Sem preferências de localizador, a ⭐ avisa para criá-las no botão
   **📍 Localizador**, na tela do processo.
+- **Nas listas de decurso de prazo**, a ⭐ traz também a seção
+  **📝 Analisar Decurso**, com **Abrir a análise** (a tela de análise do
+  decurso abre num popup — o mesmo do botão da linha, [9.10](#cap-9-10)),
+  **+ Nova preferência** e as preferências do Analisar Decurso gravadas no
+  SEEU, e a barra **⭐ Em lote** ganha **Dispensar nos marcados** e
+  **Analisar decurso nos marcados** (com uma preferência): confira a janela
+  com a lista dos processos e clique em **OK**; cada processo é tratado de
+  uma vez e o resultado aparece em cada linha. Se uma dispensa falhar, o
+  lote para ali.
 - **Em lote:** marque os processos, clique em **⭐ Associar localizadores
   nos marcados**, escolha a preferência e confira a janela, que mostra os
   localizadores e **a lista dos processos** que vão recebê-los. Os
@@ -2267,11 +2323,23 @@ de **Mandados**, abaixo do semáforo). Acima da tabela aparece a barra
 
 ▶ [**Vídeo V31** — Mesa do Analista](videos/V31-mesa-do-analista-sem-zerados.mp4)
 
+*No Projudi e no SEEU.*
+
 **Como funciona:** na **Mesa do Analista** e na **Mesa do Escrivão**, as
 linhas cujos contadores estão **todos em zero** ficam ocultas. Em "Outros
 Cumprimentos", uma linha só some se todas as colunas (Para Expedir, Com
 Urgência, Para Assinar…) estiverem zeradas. Quando surge pendência, a linha
 reaparece sozinha.
+
+**No SEEU:** vale na **Mesa do(a) Analista Judiciário**, em todas as abas
+(Pendências de Incidentes, Cumprimentos de Medidas, Intimações, Análise de
+Juntadas, Outros Cumprimentos…). Ex.: na aba **Pendências de Incidentes**,
+"Indulto: 0" some e "Término de Pena: 2" continua à vista; em **Outros
+Cumprimentos**, uma linha só some se todas as colunas (Para Conferir, Para
+Expedir, Para Assinar, Com Urgência…) estiverem zeradas. Quando todas as
+linhas de um grupo somem (ex.: na aba **Intimações**, "Com Urgência" com
+Citações, Notificações e Intimações em 0), some o grupo inteiro, com o
+título — e ele volta quando alguma linha volta.
 
 <a id="cap-9-5"></a>
 ### 9.5 RG e CPF das partes nos cumprimentos
@@ -2288,6 +2356,13 @@ reaparece sozinha.
 
 Formato: `NOME (Réu) — RG: ...; CPF: ...`. Enquanto busca, mostra
 "RG/CPF: carregando…"; documento ausente aparece como "não cadastrado".
+
+**No SEEU:** vale nas listas **Demais Cumprimentos** e **Mandados**, na
+tela do cumprimento (**Visualizar**) e na tela do **Analisar**
+(Pré-Análise), linha **Referente a(s) parte(s):**. O RG e o CPF são os do
+**Sentenciado**, como aparecem no cabeçalho do processo ("RJI: …; CPF: …;
+RG: …"). Uma parte que não é o sentenciado (ex.: o Estado do Paraná)
+aparece como "parte não localizada no processo".
 
 <a id="cap-9-6"></a>
 ### 9.6 Dados processuais nas ordenações BNMP
@@ -2360,7 +2435,7 @@ parte(s)**.
 
 ▶ [**Vídeo V44** — Processo ao passar o mouse](videos/V44-processo-ao-passar-o-mouse.mp4)
 
-*Só no Projudi.*
+*No Projudi e no SEEU.*
 
 **Para que serve:** conferir o processo — cabeçalho e **Movimentações** —
 sem sair da lista de decursos, de juntadas, de conclusões, de cumprimentos, do
@@ -2376,6 +2451,14 @@ Expedir Intimações/Citação ou de processos paralisados e sem abrir outra aba
   um cumprimento aberto (**Visualizar**), o número continua como sempre;
 - listas **Expedir Intimações** e **Expedir Citação**;
 - lista de **Processos Paralisados**.
+
+**No SEEU**, as mesmas listas — **Análise de Juntadas**, **Retorno de
+Conclusão**, **Mandados** (e Demais Cumprimentos), as listas de **Decurso de
+Prazo** (Intimações e Intimação de Auxiliares da Justiça) e **Processos
+Paralisados** — e mais três, que só existem lá: a lista de **Execuções**
+(Execuções Ativas), a de **Processos Suspensos** (Busca de Processos
+Suspensos) e o **Painel de Incidentes**. No SEEU o número do
+processo é sempre um link, inclusive no Retorno de Conclusão.
 
 **Passo a passo:**
 
@@ -2457,7 +2540,7 @@ cada linha.
 
 ▶ [**Vídeo V52** — Analisar e Dispensar decurso na lista](videos/V52-analisar-e-dispensar-decurso-na-lista.mp4)
 
-*Só no Projudi.*
+*No Projudi e no SEEU* (veja "No SEEU", abaixo).
 
 **Para que serve:** usar os botões **Analisar Decurso** e **Dispensar** da
 tela da intimação sem precisar abri-la — direto na lista de decursos.
@@ -2553,6 +2636,26 @@ Buscar preferência** ficam parados no topo ([7.8](#cap-7-8)).
   Continuar, param no "Digitar Documento" para você digitar; para
   regravá-las, use **✏️**.
 - Um decurso (ou um lote) por vez.
+
+**No SEEU:** os botões aparecem nas listas **Intimações** e **Intimação de
+Auxiliares da Justiça** da Análise de Decurso de Prazo, e tudo funciona
+como no Projudi — **Dispensar**, **Abrir a análise**, **+ Nova
+preferência**, as preferências (com ✏️ e 🗑) e os botões em lote —, com
+três diferenças na janela **Inserir Arquivo** do SEEU:
+
+- **Tipo do Arquivo** e **Modelo** são campos de digitar: ao gravar, digite
+  o começo (ex.: "decurso") e **clique na sugestão** que aparecer embaixo
+  (ou use a lupa ao lado). A preferência guarda o que você digitou e a
+  sugestão escolhida; ao ser usada, a extensão digita de novo e clica na
+  mesma sugestão. A escolha **Todos os Modelos / Meus Modelos /
+  Institucionais** também fica gravada.
+- A assinatura é pelo botão **Assinar**, que pede o **código de
+  confirmação**: ao gravar, a preferência é salva nesse clique (a extensão
+  pede o nome); ao usar, a extensão clica em **Assinar** e espera você
+  digitar o código. Assinado, ela clica em **Confirmar Inclusão** e no
+  **Concluir** da análise.
+- As preferências gravadas no SEEU aparecem só no SEEU (e as do Projudi, só
+  no Projudi). As do **📎 Juntar Documento** não aparecem no SEEU.
 
 <a id="cap-9-11"></a>
 ### 9.11 Analisar (Pré-Análise) dos cumprimentos com preferências
@@ -2883,6 +2986,16 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.53.0 | 19/10/2026 | Mescla com a versão principal (até a 2.43.5). As versões desta série sobre o SEEU, desenvolvidas em paralelo como 2.42.0 a 2.51.0, foram renumeradas para **2.44.0 a 2.53.0** (linhas abaixo). Seção 8.3: **(Des)Habilitar Advogado** também no **SEEU** — botão **⚖️ Advogados** ao lado do ⭐ Minhas Preferências, com **Abrir**, **+ Nova preferência** e preferências. No SEEU a preferência grava um advogado (escolhido pela lupa), a **Atuação**, as **Partes do Processo** (pelo tipo) e o **Salvar**: ao gravar, o Salvar só pede o nome, sem salvar a habilitação; ao usar, o **✅ Sim, executar** clica em Salvar. Abertura do capítulo 8 ajustada. Sem vídeo novo (o vídeo V22 mostra o mesmo painel). |
+| 2.52.0 | 19/10/2026 | Seção 7.1: duas ações rápidas novas, **só no SEEU**, no botão **Outras**: **Redistribuir** e **Comunicar ao IIPR** — abrem a tela no popup e aceitam preferências, como as demais. Sem vídeo novo. |
+| 2.51.0 | 19/10/2026 | Seção 7.1: no **SEEU**, as Ações rápidas passam a mostrar só **Enviar Concluso**, **Realizar Remessa**, **Ordenar Cumprimentos**, **Intimar Partes**, **Intimar Peritos e Auxiliares da Justiça**, **Transitar em Julgado**, **Arquivar Processo** e **Interromper Prazo** (o botão **Suspender** some lá); as preferências das demais ações ficam só no Projudi. No Projudi, nada muda. Abertura do capítulo 7 ajustada. Sem vídeo novo. |
+| 2.50.0 | 18/10/2026 | **Pendências também no SEEU.** Capítulo 6: os botões **Dispensar juntadas**, **Finalizar conclusão**, **Dispensar decursos** e **Dispensar pendências** (cumprimentos para expedir) no quadro Pendências da tela do processo do SEEU. Regra 1.4, item 5: as perguntas sobre dispensar juntadas/decursos e finalizar a conclusão antes de uma preferência passam a valer **também no SEEU** — na tela do processo, no painel 📍 Localizador e na ⭐ das listas (também em lote). Ajustes em 7.2 e 9.3. Sem vídeo novo (os vídeos V13 a V16 e V45 mostram o mesmo uso). |
+| 2.49.0 | 18/10/2026 | Seção 9.5: o **RG e CPF nos cumprimentos** também no **SEEU** (listas **Demais Cumprimentos** e **Mandados**, tela do cumprimento e tela do **Analisar**), com os documentos do **Sentenciado** lidos do cabeçalho do processo. Seção 9.3: a **⭐** e o **⭐ Em lote** também nas listas de cumprimentos do SEEU, com as preferências do **📍 Localizador**. Abertura do capítulo 9 reescrita em lista; ajuste em 1.3. Sem vídeo novo (os vídeos V32 e V41 mostram o mesmo uso). |
+| 2.48.0 | 16/10/2026 | Seção 9.10: as **preferências do Analisar Decurso** também no **SEEU** — **+ Nova preferência**, ★ (com ✏️ e 🗑) no botão da linha e na ⭐, e **Analisar decurso nos marcados** no lote. Na janela Inserir Arquivo do SEEU, o Tipo do Arquivo e o Modelo são digitados e escolhidos na sugestão (a preferência grava os dois) e a assinatura é pelo **Assinar** com código de confirmação. Preferências do SEEU e do Projudi ficam separadas. Ajustes em 9.3. Sem vídeo novo (o vídeo V52 mostra o mesmo uso). |
+| 2.47.0 | 16/10/2026 | Seção 9.3: a **⭐** e o **⭐ Em lote** também nas listas de decurso de prazo do **SEEU** (**Intimações** e **Intimação de Auxiliares da Justiça**): preferências do **📍 Localizador**, seção **📝 Analisar Decurso** com **Abrir a análise** e, na barra do lote, **Dispensar nos marcados**. Ajustes em 1.3 (com uma vírgula que faltava) e 9.10. Sem vídeo novo (os vídeos V41 e V45 mostram o mesmo uso). |
+| 2.46.0 | 16/10/2026 | Seção 9.10: o **Analisar e Dispensar decurso na lista** passa a valer também no **SEEU** (listas **Intimações** e **Intimação de Auxiliares da Justiça** da Análise de Decurso de Prazo): **Dispensar** completo e **Analisar Decurso** com **Abrir a análise** no popup. As preferências do Analisar Decurso (e o **+ Nova preferência**) continuam só no Projudi por enquanto. Ajustes em 1.3, 2.6 e na abertura do capítulo 9. Sem vídeo novo (o vídeo V52 mostra o mesmo uso). |
+| 2.45.0 | 16/10/2026 | Seção 9.8: o **processo ao passar o mouse** passa a valer também no **SEEU** — listas de Análise de Juntadas, Retorno de Conclusão, Mandados (e Demais Cumprimentos), Decurso de Prazo e Processos Paralisados e, só no SEEU, as listas de **Execuções** e de **Processos Suspensos** e o **Painel de Incidentes**: pousar o mouse sobre o número do processo abre a tela dele num painel. Ajustes em 1.3, 2.6 e na abertura do capítulo 9. Sem vídeo novo (o vídeo V44 mostra o mesmo uso). |
+| 2.44.0 | 16/10/2026 | Seção 9.4: a **Mesa do Analista sem itens zerados** passa a valer também no **SEEU** (Mesa do(a) Analista Judiciário, em todas as abas: Pendências de Incidentes, Cumprimentos de Medidas, Intimações, Análise de Juntadas, Outros Cumprimentos…): as linhas com contador zerado somem e voltam sozinhas quando surge pendência; um grupo (Com Urgência, Para Conferir, Para Expedir…) com todas as linhas zeradas some inteiro, com o título. Ajustes em 1.3 e na abertura do capítulo 9. Sem vídeo novo (a tela é a mesma do vídeo V31). |
 | 2.43.5 | 19/10/2026 | Sem alteração de texto; corrigida uma espera de até 15 segundos no envio dos itens da fila da **Nova Ordenação** (7.5) quando um item sem retorno vinha depois de um item com retorno. |
 | 2.43.4 | 19/10/2026 | Seção 7.5: corrigido o erro *"Informe se o Cumprimento necessitará de retorno"* ao enviar os itens da fila da **Nova Ordenação**. A extensão agora espera aparecerem os campos que o Projudi só mostra depois de escolher o tipo de cumprimento antes de enviar. *Bom saber* da 7.5 atualizado. |
 | 2.43.3 | 19/10/2026 | Seção 7.5: corrigido o erro *"não consegui abrir um diálogo novo de 'Ordenar Cumprimentos' em segundo plano"* ao clicar em **Ordenar** com itens na fila da **Nova Ordenação**. Quando não consegue reabrir o diálogo pelo caminho das Ações rápidas, a extensão agora reabre o mesmo diálogo que está na tela. *Bom saber* da 7.5 atualizado. |

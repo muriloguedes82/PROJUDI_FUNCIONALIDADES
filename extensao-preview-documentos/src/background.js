@@ -765,7 +765,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 // Executa somente o botão previamente marcado no iframe desta operação.
 function clickJuntadaWithConfirmation(token) {
   if (!window.frameElement || window.frameElement.getAttribute('data-pdp-dispensa') !== token) return null;
-  if (!/^\/projudi\/.*\/analisarJuntada\.do$/.test(location.pathname)) return { ok: false, error: 'Página de análise inesperada.' };
+  if (!/^\/(projudi|seeu)\/.*\/analisarJuntada\.do$/.test(location.pathname)) return { ok: false, error: 'Página de análise inesperada.' };
   const button = document.querySelector('[data-pdp-dispensa-button="' + token + '"]');
   if (!button || button.disabled) return { ok: false, error: 'Botão de dispensa indisponível.' };
   button.removeAttribute('data-pdp-dispensa-button');
@@ -788,7 +788,7 @@ function clickJuntadaWithConfirmation(token) {
 
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
   if (message?.source !== 'projudi-preview' || message.type !== 'juntada-dispense-marked') return false;
-  if (!sender.tab || !/^https?:\/\/[^/]+\.tjpr\.jus\.br\/projudi\//.test(sender.url || '') || !/^[a-f0-9-]{36}$/.test(message.token || '')) {
+  if (!sender.tab || !/^https?:\/\/([^/]+\.tjpr\.jus\.br\/projudi|seeu(treino)?\.pje\.jus\.br\/seeu)\//.test(sender.url || '') || !/^[a-f0-9-]{36}$/.test(message.token || '')) {
     reply({ ok: false, error: 'Origem da operação inválida.' }); return false;
   }
   chrome.scripting.executeScript({ target: { tabId: sender.tab.id, allFrames: true }, world: 'MAIN', func: clickJuntadaWithConfirmation, args: [message.token] })
@@ -801,7 +801,8 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
 function clickDecursoWithConfirmation(token) {
   if (!window.frameElement || window.frameElement.getAttribute('data-pdp-decurso') !== token) return null;
   // Tela da intimação (Intimação, Auxiliares da Justiça ou Citação/Notificação).
-  const telas = ['/projudi/processo/intimacao.do', '/projudi/processo/intimacaoNomeados.do', '/projudi/processo/citacao.do'];
+  const telas = ['/projudi/processo/intimacao.do', '/projudi/processo/intimacaoNomeados.do', '/projudi/processo/citacao.do',
+    '/seeu/processo/intimacao.do', '/seeu/processo/intimacaoNomeados.do', '/seeu/processo/citacao.do'];
   if (telas.indexOf(location.pathname) < 0) return {ok:false, error:'Página de intimação inesperada.'};
   const marcado = document.querySelector('[data-pdp-decurso-button="' + token + '"]');
   const button = marcado && marcado.form ? marcado : null;
@@ -831,7 +832,7 @@ function clickDecursoWithConfirmation(token) {
 
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
   if (message?.source !== 'projudi-preview' || message.type !== 'decurso-dispense-marked') return false;
-  if (!sender.tab || !/^https?:\/\/[^/]+\.tjpr\.jus\.br\/projudi\//.test(sender.url || '') || !/^[a-f0-9-]{36}$/.test(message.token || '')) {
+  if (!sender.tab || !/^https?:\/\/([^/]+\.tjpr\.jus\.br\/projudi|seeu(treino)?\.pje\.jus\.br\/seeu)\//.test(sender.url || '') || !/^[a-f0-9-]{36}$/.test(message.token || '')) {
     reply({ok:false, error:'Origem da operação inválida.'}); return false;
   }
   chrome.scripting.executeScript({target:{tabId:sender.tab.id, allFrames:true}, world:'MAIN', func:clickDecursoWithConfirmation, args:[message.token]})

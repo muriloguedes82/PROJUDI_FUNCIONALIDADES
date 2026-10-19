@@ -22,13 +22,20 @@
 // Preferências de "Juntar Documento", do "Alvará Eletrônico" e de "Advogados" continuam só
 // na tela do processo (dependem de arquivos/telas próprias).
 //
-// SEEU (listas Análise de Juntadas e Retorno de Conclusão): as ações
+// SEEU (listas Análise de Juntadas, Retorno de Conclusão, as de Decurso de
+// Prazo - Intimações e Intimação de Auxiliares da Justiça - e as de
+// cumprimentos - Demais Cumprimentos e Mandados): as ações
 // rápidas não funcionam no SEEU, então o ⭐ lista as preferências do
 // "📍 Localizador" (localizadorSeeu.js). Ao escolher uma, a tela do
 // processo (link da linha, visualizacaoProcesso.do) é carregada num iframe
 // oculto e os localizadores são associados nela, pela lista do "+" do
 // próprio SEEU (window.__pdpLocalizador.associarEm); a linha mostra o
-// andamento e o resultado, sem sair da listagem.
+// andamento e o resultado, sem sair da listagem. Nas listas de decurso, o
+// ⭐ traz também "📝 Analisar Decurso" (decursoNaLinha.js): "Abrir a
+// análise" e as preferências do Analisar Decurso gravadas no SEEU (com "+
+// Nova", ✏️ e 🗑, como no Projudi; em lote, só as preferências), e a barra
+// "Em lote" ganha "Dispensar nos marcados" e "Analisar decurso nos
+// marcados" (também de decursoNaLinha.js).
 //
 // EM LOTE: cada linha ganha uma caixinha de marcar, abaixo do "+" da
 // primeira coluna, e uma barra "⭐ Em lote" acima da tabela executa a mesma
@@ -36,14 +43,15 @@
 // Projudi: a pergunta da etapa prévia (dispensar/finalizar) é feita uma só
 // vez e vale para todos; depois o popup de cada processo abre já preenchido
 // e cada um continua exigindo o seu "✅ Sim, executar" (fechar o popup pula
-// o processo). SEEU: os localizadores são associados direto em todos.
+// o processo). SEEU: a mesma pergunta, uma vez para todos, e depois os
+// localizadores são associados direto em todos.
 // Combos que precisam da tela do processo (nova aba) não rodam em lote.
 //
-// REGRA (Projudi x SEEU): o Projudi trava as ações enquanto houver juntadas
-// ou conclusões pendentes, por isso lá a extensão pergunta antes se deve
-// dispensar as juntadas, finalizar a conclusão ou dispensar os decursos. O
-// SEEU NÃO trava: lá não há pergunta nem dispensa/finalização - a
-// preferência é executada direto. Não acrescentar essas perguntas ao SEEU.
+// REGRA (Projudi e SEEU, por decisão do usuário): nos dois sistemas a
+// extensão pergunta antes se deve dispensar as juntadas, finalizar a
+// conclusão ou dispensar os decursos (nas telas de cumprimentos, só pelo que
+// estiver pendente no quadro Pendências do processo), e faz isso pelos
+// mesmos recursos dos botões do quadro Pendências.
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
@@ -94,11 +102,17 @@
 		// Decurso de Prazo - Citações/Notificações: como as de cumprimentos
 		// (pergunta só pelas pendências que o processo tiver).
 		"/projudi/processo/citacao.do": { tipo: "cumprimento", verificaPendencias: true },
-		// SEEU: sem `pergunta` de propósito (o SEEU não trava ações com
-		// pendências - ver a REGRA no início do arquivo).
-		"/seeu/processo/analisarJuntada.do": { tipo: "juntada", seeu: true },
-		"/seeu/processo/conclusao.do": { tipo: "conclusao", seeu: true }
+		// SEEU: as mesmas perguntas (ver a REGRA no início do arquivo),
+		// antes das preferências do Localizador. Nos cumprimentos, só as do
+		// Localizador (as do "Analisar" - Pré-Análise - ficam no Projudi).
+		"/seeu/processo/intimacaoNomeados.do": { tipo: "cumprimento", seeu: true, verificaPendencias: true },
+		"/seeu/processo/citacao.do": { tipo: "cumprimento", seeu: true, verificaPendencias: true },
+		"/seeu/processo/cumprimentoCartorio.do": { tipo: "cumprimento", seeu: true, verificaPendencias: true },
+		"/seeu/processo/cumprimentoCartorioMandado.do": { tipo: "cumprimento", seeu: true, verificaPendencias: true }
 	};
+	["analisarJuntada", "conclusao", "intimacaoBusca"].forEach(function (nome) {
+		TELAS["/seeu/processo/" + nome + ".do"] = Object.assign({ seeu: true }, TELAS["/projudi/processo/" + nome + ".do"]);
+	});
 	const tela = TELAS[location.pathname];
 	if (!tela) return;
 
@@ -285,7 +299,21 @@
 		};
 	}
 
+	// SEEU: tela do processo (visualizacaoProcesso.do) com o quadro
+	// Pendências - sem ele depois de alguns segundos, o processo não tem
+	// pendências e segue assim mesmo.
+	function prontoProcessoSeeu(doc, decorrido) {
+		let path = "";
+		try { path = new URL(doc.URL).pathname; } catch (e) { /* segue */ }
+		if (path !== "/seeu/visualizacaoProcesso.do" || !doc.getElementById("processoForm")) return false;
+		return !!doc.getElementById("quadroPendencias") || decorrido > 5000;
+	}
+
 	async function carregarProcesso(ctx, precisaPendencias) {
+		if (tela.seeu) {
+			if (!ctx.processoUrl) throw new Error("link do processo não encontrado na linha");
+			return carregar(ctx.processoUrl, prontoProcessoSeeu);
+		}
 		const url = await urlDoProcesso(ctx);
 		if (url) return carregar(url, pronto(precisaPendencias));
 		const busca = location.origin + "/projudi/processo/buscaProcesso.do?actionType=iniciarSimples#pdp-search=" + encodeURIComponent(ctx.cnj);
@@ -338,7 +366,7 @@
 					el("button", { type: "button", class: "pdp-tl-x", title: "Cancelar", text: "✕", onclick: function () { responder(null); } })
 				]),
 				el("p", { text: textoPergunta }),
-				el("p", { class: "pdp-tl-vazio", text: explicacao ? explicacao : item.combo
+				el("p", { class: "pdp-tl-vazio", text: explicacao ? explicacao : item.explicacao ? item.explicacao : item.combo
 					? (item.novaAba
 						? "Respondendo Sim ou Não, o processo é aberto numa nova aba e o combo começa lá (ele tem etapa que só roda na tela do processo)."
 						: "Respondendo Sim ou Não, as etapas do combo abrem em seguida, uma a uma, já preenchidas, para você confirmar cada uma.")
@@ -773,7 +801,7 @@
 		if (tela.seeu) {
 			montarPainelSeeu(ancora, titulo, false, function (pref, nome) {
 				executarSeeu(dadosLinha(row, cnj), pref, nome);
-			});
+			}, row);
 			return;
 		}
 		montarPainel(ancora, titulo, false, function (item) {
@@ -875,7 +903,8 @@
 	async function secaoDecurso(box, ancora, emLote, escolher, dec) {
 		const prefs = await dec.listarPreferencias();
 		if (!painel || painel.el !== box) return;
-		const vazio = box.querySelector(":scope > .pdp-tl-vazio");
+		// No SEEU o aviso é o do Localizador: fica como está.
+		const vazio = tela.seeu ? null : box.querySelector(":scope > .pdp-tl-vazio");
 		if (vazio) vazio.textContent = "Nenhuma preferência de ação salva (crie no painel de uma ação, na tela do processo).";
 		box.appendChild(el("div", { class: "pdp-tl-sec", text: "📝 Analisar Decurso" }));
 		const grade = el("div", { class: "pdp-qa-fav-grid" });
@@ -1015,11 +1044,13 @@
 
 	// --- SEEU: preferências do 📍 Localizador --------------------------------------------
 
-	function montarPainelSeeu(ancora, titulo, emLote, escolher) {
+	// `row`: a linha do ⭐ (fora do lote), para a seção do Analisar Decurso.
+	function montarPainelSeeu(ancora, titulo, emLote, escolher, row) {
 		const loc = window.__pdpLocalizador;
 		const p = novoPainel(ancora, titulo);
 		const box = p.box;
 		const grade = p.grade;
+		secaoDecursoSeeu(box, ancora, emLote, row);
 
 		if (!loc || !loc.associarEm) {
 			grade.replaceWith(el("div", { class: "pdp-tl-vazio", text: "Ative \"Localizador (SEEU)\" no Menu da extensão (ícone da balança) e recarregue a página." }));
@@ -1057,6 +1088,61 @@
 		});
 	}
 
+	// SEEU, listas de decurso: "📝 Analisar Decurso" - as preferências (a
+	// mesma seção do Projudi, secaoDecurso) e, numa linha, "Abrir a análise"
+	// (o mesmo do botão da linha). Sem o Juntar Documento, só o "Abrir".
+	function secaoDecursoSeeu(box, ancora, emLote, row) {
+		const dec = window.__pdpDecursoNaLinha;
+		if (!dec || !dec.executarNaLinha || !dec.disponivel()) return;
+		const caixa = row ? row.querySelector(".pdp-dec-acoes") : null;
+		if (!emLote && (!caixa || !caixa.querySelector(".pdp-dec-btn"))) return;
+		function escolherDec(item) {
+			if (!item || !item.decurso) return;
+			if (emLote) dec.executarLote(item.escolha);
+			else dec.executarNaLinha(row, item.escolha);
+		}
+		// Fica no fim do painel, depois das preferências do Localizador.
+		setTimeout(function () {
+			if (!painel || painel.el !== box) return;
+			if (window.__pdpJuntarDocumentoApi) {
+				secaoDecurso(box, ancora, emLote, escolherDec, dec).then(function () {
+					if (!emLote) abrirAnaliseCard(box, ancora, row, dec, null);
+				});
+			} else if (!emLote) {
+				abrirAnaliseCard(box, ancora, row, dec, true);
+			}
+		}, 0);
+	}
+
+	// Card "Abrir a análise" (SEEU): na seção da secaoDecurso, ou numa seção
+	// própria (`novaSecao`).
+	function abrirAnaliseCard(box, ancora, row, dec, novaSecao) {
+		if (!painel || painel.el !== box) return;
+		let grade = null;
+		if (novaSecao) {
+			box.appendChild(el("div", { class: "pdp-tl-sec", text: "📝 Analisar Decurso" }));
+			grade = el("div", { class: "pdp-qa-fav-grid" });
+			box.appendChild(grade);
+		} else {
+			const grades = box.querySelectorAll(":scope > .pdp-qa-fav-grid");
+			grade = grades[grades.length - 1];
+			if (!grade) return;
+		}
+		grade.insertBefore(cardClicavel(el("div", {
+			class: "pdp-qa-fav-card",
+			tabindex: "0",
+			role: "button",
+			title: "Abre a tela de análise do decurso deste processo no popup, sem preencher nada"
+		}, [
+			el("span", { class: "pdp-qa-fav-card-action", text: "Analisar Decurso" }),
+			el("span", { class: "pdp-qa-fav-card-name", text: "Abrir a análise" })
+		]), function () {
+			fecharPainel();
+			dec.executarNaLinha(row, { acao: "abrir" });
+		}), grade.firstChild);
+		posicionar(box, ancora);
+	}
+
 	// Tela do processo do SEEU pronta: com o cabeçalho de localizadores e o
 	// "+" (sem o "+" depois de alguns segundos, segue para dar o erro de
 	// permissão em associarEm).
@@ -1069,36 +1155,76 @@
 		return loc.temCabecalho(doc) && decorrido > 8000;
 	}
 
+	// Item das perguntas do SEEU (preferência do Localizador).
+	function itemSeeu(nome) {
+		return {
+			pref: { name: nome },
+			label: "📍 Localizador",
+			explicacao: "Respondendo Sim ou Não, os localizadores da preferência são associados em seguida, em segundo plano.",
+			explicacaoLote: "A resposta vale para os {n} processos marcados. Depois, os localizadores são associados em cada um, um de cada vez, em segundo plano."
+		};
+	}
+
+	// Etapa prévia do SEEU (a mesma do Projudi): pergunta fixa da tela
+	// (juntadas, conclusão, decursos) já respondida em `resposta`, ou, nas
+	// telas de cumprimentos, pergunta pelo que estiver pendente no processo
+	// (em lote, vale `resposta`). Resolve com o texto do resultado, null ou
+	// false (cancelado).
+	async function previaSeeu(ctx, item, resposta, emLote) {
+		if (tela.verificaPendencias) {
+			const p = await pendenciasDoProcesso(ctx, item, emLote ? resposta : null);
+			if (p.cancelado) {
+				const s = ctx.row.querySelector(".pdp-pl-status");
+				if (s) s.remove();
+				return false;
+			}
+			return p.previa;
+		}
+		return fazerPrevia(ctx, resposta);
+	}
+
 	async function executarSeeu(ctx, pref, nome) {
 		if (emAndamento) {
 			alert("Já há uma preferência sendo executada. Aguarde terminar.");
 			return;
 		}
+		const item = itemSeeu(nome);
+		const resposta = tela.pergunta ? await perguntar(item, tela.pergunta, tela.sim) : "nao";
+		if (!resposta) return;
 		emAndamento = true;
 		try {
-			await rodarSeeu(ctx, pref, nome);
+			let previa = null;
+			try {
+				previa = await previaSeeu(ctx, item, resposta, false);
+			} catch (e) {
+				console.error(TAG, e);
+				mostrar(ctx, ["⚠ " + ((e && e.message) || "falha ao verificar as pendências do processo")], "erro");
+				return;
+			}
+			if (previa === false) return;
+			await rodarSeeu(ctx, pref, nome, previa);
 		} finally {
 			emAndamento = false;
 		}
 	}
 
 	// Associa os localizadores num processo. Resolve com true se todos
-	// foram associados.
-	async function rodarSeeu(ctx, pref, nome) {
+	// foram associados. `previa`: resultado da etapa prévia (ou null).
+	async function rodarSeeu(ctx, pref, nome, previa) {
 		const loc = window.__pdpLocalizador;
 		const rotulo = "★ " + nome;
 		let proc = null;
 		try {
 			if (!ctx.processoUrl) throw new Error("link do processo não encontrado na linha");
-			mostrar(ctx, [rotulo, "Carregando o processo…"], "andamento");
+			mostrar(ctx, [previa, rotulo, "Carregando o processo…"], "andamento");
 			proc = await carregar(ctx.processoUrl, prontoSeeu, true);
 			// A tela acabou de montar o cabeçalho: um instante para o SEEU
 			// terminar de ligar o "+" antes do primeiro clique.
 			await new Promise(function (r) { setTimeout(r, 1500); });
 			const r = await loc.associarEm(proc.doc, pref.localizadores, function (i, total, local) {
-				mostrar(ctx, [rotulo, "Associando " + i + " de " + total + ": " + local + "…"], "andamento");
+				mostrar(ctx, [previa, rotulo, "Associando " + i + " de " + total + ": " + local + "…"], "andamento");
 			});
-			mostrar(ctx, [(r.tipo === "ok" ? "✅ " : "⚠ ") + rotulo, r.texto], r.tipo === "ok" ? "ok" : r.tipo === "erro" ? "erro" : "aviso");
+			mostrar(ctx, [previa, (r.tipo === "ok" ? "✅ " : "⚠ ") + rotulo, r.texto], r.tipo === "ok" ? "ok" : r.tipo === "erro" ? "erro" : "aviso");
 			// Localizadores na coluna do número (localizadorNaLista.js).
 			if (window.__pdpLocalizadorNaLista && loc.associadosEm) window.__pdpLocalizadorNaLista.atualizar(ctx.cnj, loc.associadosEm(proc.doc));
 			if (r.tipo === "erro") ctx.erro = true;
@@ -1106,7 +1232,7 @@
 		} catch (e) {
 			console.error(TAG, e);
 			ctx.erro = true;
-			mostrar(ctx, ["⚠ " + rotulo, (e && e.message) || "falha ao carregar o processo"], "erro");
+			mostrar(ctx, [previa, "⚠ " + rotulo, (e && e.message) || "falha ao carregar o processo"], "erro");
 			return false;
 		} finally {
 			if (proc && proc.iframe) proc.iframe.remove();
@@ -1249,7 +1375,7 @@
 	// Pergunta da etapa prévia, uma vez para o lote todo (só Projudi - ver a
 	// REGRA no início do arquivo). Resolve com "sim", "nao" ou null.
 	function perguntaLote(item, n) {
-		const explicacao = "A resposta vale para os " + n + " processos marcados. Depois, " + (item.combo
+		const explicacao = item.explicacaoLote ? item.explicacaoLote.replace("{n}", n) : "A resposta vale para os " + n + " processos marcados. Depois, " + (item.combo
 			? "as etapas do combo abrem processo por processo, já preenchidas,"
 			: "a preferência abre em cada processo, um de cada vez, já preenchida,") +
 			" e cada uma só é executada quando você clicar em ✅ Sim, executar. Fechar o popup pula o processo.";
@@ -1376,8 +1502,8 @@
 		await percorrerLote(alvos, function (ctx) { return rodar(ctx, item, resposta, true); });
 	}
 
-	// SEEU: sem pergunta sobre pendências (ver a REGRA no início do
-	// arquivo) - só a confirmação de quantos processos recebem os
+	// SEEU: a pergunta da etapa prévia uma vez para todos (ver a REGRA no
+	// início do arquivo) e a confirmação de quantos processos recebem os
 	// localizadores, já que ali nada é confirmado processo a processo.
 	async function executarLoteSeeu(pref, nome) {
 		if (emAndamento) {
@@ -1386,10 +1512,27 @@
 		}
 		const alvos = marcadas();
 		if (!alvos.length) return;
+		const item = itemSeeu(nome);
+		const resposta = await perguntaLote(item, alvos.length);
+		if (!resposta) return;
+		const previaTexto = resposta !== "sim" ? "" : tela.verificaPendencias
+			? "\n\nAntes, em cada processo que tiver: dispensar juntadas pendentes e finalizar a conclusão (automático)."
+			: "\n\nAntes, em cada processo: " + tela.sim.replace(/^Sim, /, "") + " (automático).";
 		if (!confirm("Associar \"★ " + nome + "\" aos " + alvos.length + " processo(s) marcado(s)?\n\nLocalizadores:\n" + pref.localizadores.join("\n") +
-			"\n\nProcessos:\n" + listaProcessosParaConfirmar(alvos.map(function (a) { return a.cnj; })) +
+			"\n\nProcessos:\n" + listaProcessosParaConfirmar(alvos.map(function (a) { return a.cnj; })) + previaTexto +
 			"\n\nSe ocorrer um erro, o lote para no processo com erro.")) return;
-		await percorrerLote(alvos, function (ctx) { return rodarSeeu(ctx, pref, nome); });
+		await percorrerLote(alvos, async function (ctx) {
+			let previa = null;
+			try {
+				previa = await previaSeeu(ctx, item, resposta, true);
+			} catch (e) {
+				console.error(TAG, e);
+				ctx.erro = true;
+				mostrar(ctx, ["⚠ " + ((e && e.message) || "falha ao verificar as pendências do processo")], "erro");
+				return false;
+			}
+			return rodarSeeu(ctx, pref, nome, previa);
+		});
 	}
 
 	// Reaplica a busca do topo aos cards que acabaram de entrar e encaixa o

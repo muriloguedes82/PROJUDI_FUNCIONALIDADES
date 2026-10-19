@@ -55,7 +55,7 @@
 	// aparecem para o usuário. Comparados com o texto do link já "limpo"
 	// (sem os marcadores "(*)"/ícones de ajuda/menu de contexto — ver
 	// normalizeLinkText()).
-	const ACTION_GROUPS = [
+	const TODOS_ACTION_GROUPS = [
 		{
 			id: "concluso",
 			title: "Concluso",
@@ -141,6 +141,47 @@
 			],
 		},
 	];
+
+	// SEEU: só as ações cujas telas foram conferidas no SEEU (pedido do
+	// usuário, versão 2.51.0); as demais ficam só no Projudi. Grupos que
+	// ficam sem ação (ex.: "Suspender") somem no SEEU. No Projudi, todas.
+	const NO_SEEU = /^\/seeu\//.test(location.pathname);
+	const ACOES_SEEU = [
+		"Enviar Concluso",
+		"Realizar Remessa",
+		"Ordenar Cumprimentos",
+		"Intimar Partes",
+		"Intimar Peritos e Auxiliares da Justiça",
+		"Transitar em Julgado",
+		"Arquivar Processo",
+		"Interromper Prazo",
+		"Redistribuir",
+		"Comunicar ao IIPR",
+		// Ação personalizada (habilitarAdvogado.js), sem botão nesta
+		// fileira: abre pelo "⚖️ Advogados" (versão 2.53.0).
+		"Advogados",
+	];
+	// Ações personalizadas que também rodam no SEEU (as demais, como o
+	// Alvará Eletrônico, só no Projudi).
+	const CUSTOM_NO_SEEU = ["Advogados"];
+	// Preferências de "Advogados": as gravadas no SEEU (`sistema: "seeu"`,
+	// um advogado, a Atuação e as partes) só aparecem lá, e as do Projudi
+	// (sem marca) só no Projudi.
+	function prefDoSistema(label, pref) {
+		if (label !== "Advogados" || !pref) return true;
+		return (pref.sistema || "projudi") === (NO_SEEU ? "seeu" : "projudi");
+	}
+	// Ações que só existem no SEEU (versão 2.52.0), no grupo "Outras":
+	// "Redistribuir" (processoDistribuicao.do, link comum - ver
+	// ACOES_POR_HREF) e "Comunicar ao IIPR" (diálogo comunicacaoIIPR.do).
+	const ACOES_SO_SEEU = ["Redistribuir", "Comunicar ao IIPR"];
+	// Ações cujo link do painel Ações leva à tela por `href` (sem
+	// openDialog no onclick): o popup abre esse endereço.
+	const ACOES_POR_HREF = ["Redistribuir"];
+	const ACTION_GROUPS = !NO_SEEU ? TODOS_ACTION_GROUPS : TODOS_ACTION_GROUPS.map(function (g) {
+		const acoes = g.id === "outras" ? g.actions.concat(ACOES_SO_SEEU) : g.actions;
+		return Object.assign({}, g, { actions: acoes.filter(function (a) { return ACOES_SEEU.indexOf(a) !== -1; }) });
+	}).filter(function (g) { return g.actions.length > 0; });
 
 	const PROCESS_TOOLBAR_LABELS = [
 		"Peticionar",
@@ -713,6 +754,12 @@
 	function dialogResultForLink(label, link, acoesUrl) {
 		const dialogUrl = extractUrlFromOnclick(link.getAttribute("onclick"), acoesUrl);
 		if (dialogUrl) return { url: dialogUrl, acoesUrl: acoesUrl };
+		if (ACOES_POR_HREF.indexOf(label) !== -1) {
+			try {
+				const url = new URL(link.getAttribute("href") || "", acoesUrl);
+				if (url.origin === location.origin && url.search && !/#$/.test(link.getAttribute("href") || "")) return { url: url.href, acoesUrl: acoesUrl };
+			} catch (e) { /* segue */ }
+		}
 		if (ACTIONS_NEEDING_ACOES_PARENT.indexOf(label) !== -1 || ACTIONS_ACOES_PARENT_SEM_URL.indexOf(label) !== -1) {
 			return { url: null, acoesUrl: acoesUrl };
 		}
@@ -1358,7 +1405,7 @@
 
 	function loadPreferencesFor(label) {
 		return loadAllPreferences().then(function (all) {
-			return all[label] || [];
+			return (all[label] || []).filter(function (pref) { return prefDoSistema(label, pref); });
 		});
 	}
 
@@ -3671,16 +3718,12 @@
 	// `executar()` depois das perguntas (e das dispensas pedidas), ou não
 	// chama nada se o usuário cancelar.
 	//
-	// REGRA: as perguntas (dispensar juntadas / finalizar conclusão) existem
-	// só no Projudi, que trava as ações enquanto houver juntadas ou
-	// conclusões pendentes. O SEEU não trava: lá a preferência é executada
-	// direto, sem pergunta e sem dispensa (ver também preferenciasNaLinha.js).
+	// REGRA: as perguntas (dispensar juntadas / finalizar conclusão) valem
+	// no Projudi e no SEEU, do mesmo jeito: com juntadas ou conclusão
+	// pendentes no quadro Pendências, a extensão pergunta antes de executar a
+	// preferência (ver também preferenciasNaLinha.js e o CLAUDE.md).
 	async function executarComPendencias(titulo, combo, executar) {
 		if (pendenciasEmAndamento) return;
-		if (/(^|\.)seeu(treino)?\.pje\.jus\.br$/i.test(location.hostname)) {
-			executar();
-			return;
-		}
 		const d = window.__pdpDispensas || {};
 		const juntadaUrl = d.juntadas && d.juntadaURL ? d.juntadaURL(document) : null;
 		const juntadaLink = juntadaUrl ? linkDaPendencia(juntadaUrl) : null;
@@ -4692,7 +4735,7 @@
 		secondLine.className = "pdp-qa-row-line";
 
 		ACTION_GROUPS.forEach(function (group) {
-			if (group.custom && !location.pathname.startsWith("/projudi/")) return;
+			if (group.custom && !location.pathname.startsWith("/projudi/") && !group.actions.some(function (a) { return CUSTOM_NO_SEEU.indexOf(a) !== -1; })) return;
 			if (group.semBotao) return;
 			const btn = document.createElement("button");
 			btn.type = "button";
@@ -5063,7 +5106,7 @@
 		const group = groupForLabel(label);
 		if (!group) return null;
 		if (group.custom) {
-			if (!location.pathname.startsWith("/projudi/")) return null;
+			if (!location.pathname.startsWith("/projudi/") && CUSTOM_NO_SEEU.indexOf(label) === -1) return null;
 			return getCustomAction(label) ? "custom" : null;
 		}
 		if (isOnAcoesScreen()) return findActionLink(label) ? "ready" : null;
@@ -5138,7 +5181,10 @@
 			const items = [];
 			const actionPrefs = data[PREFERENCES_KEY] || {};
 			Object.keys(actionPrefs).forEach(function (label) {
+				// No SEEU, só as preferências das ações que existem lá.
+				if (NO_SEEU && ACOES_SEEU.indexOf(label) === -1) return;
 				(actionPrefs[label] || []).forEach(function (pref) {
+					if (!prefDoSistema(label, pref)) return;
 					items.push({ key: "a:" + pref.id, kind: "action", label: label, pref: pref });
 				});
 			});
@@ -5458,7 +5504,9 @@
 				if (state.editing || !mode) return;
 				closePanel();
 				if (mode === "localizador") {
-					window.__pdpLocalizador.aplicar(item.pref);
+					executarComPendencias("★ " + item.pref.name + " — 📍 Localizador", false, function () {
+						window.__pdpLocalizador.aplicar(item.pref);
+					});
 					return;
 				}
 				if (mode === "combo") {
@@ -5856,6 +5904,9 @@
 	}
 
 	window.__pdpQuickActions = {
+		// Pergunta sobre juntadas/conclusão pendentes antes de uma preferência
+		// (localizadorSeeu.js usa no painel "📍 Localizador").
+		executarComPendencias: executarComPendencias,
 		resolveDialogUrl: resolveDialogUrl,
 		// Preferências salvas (mesma lista/ordem de "Minhas Preferências").
 		loadFavItems: loadFavItems,
