@@ -189,7 +189,7 @@ function movRows(o) {
 	return MOVS.map((m, i) => {
 		const hasF = m.files.length > 0;
 		const open = hasF && o.expanded;
-		const files = open ? '<div class="pj-files">' + m.files.map(f => '<div>' + (o.checks ? '<input type="checkbox" class="x-chk">' : "") + '<a class="link doc" data-f="' + f + '">' + f + "</a></div>").join("") + "</div>" : "";
+		const files = open ? '<div class="pj-files">' + m.files.map(f => '<div>' + (o.checks ? '<input type="checkbox" class="x-chk x-ext-chk">' : "") + '<a class="link doc" data-f="' + f + '">' + f + "</a></div>").join("") + "</div>" : "";
 		return '<tr id="mov1Grau,' + m.seq + '" class="' + (i % 2 ? "alt" : "") + '" data-papel="' + m.papel + '"><td>' + m.seq + "</td><td>" + m.data + '</td><td>' + (hasF ? '<span class="pj-plus">' + (open ? "−" : "+") + "</span>" : "") + '<span class="ev">' + m.ev + "</span>" + files + '</td><td>' + m.por + '<span class="papel">' + m.papel + "</span></td></tr>";
 	}).join("");
 }

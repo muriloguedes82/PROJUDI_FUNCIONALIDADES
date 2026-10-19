@@ -6,7 +6,7 @@
 // Cada capítulo "## ..." vira um card, com índice lateral e busca por
 // palavras. Os links "#..." rolam até a seção. Os links "videos/....mp4"
 // abririam o vídeo num player sobre a página (manual/videos/), mas desde a
-// versão 2.53.1 os vídeos não vão com a extensão nem são citados no manual
+// versão 2.53.2 os vídeos não vão com a extensão nem são citados no manual
 // (ficam em videos-do-manual/, na raiz do repositório); o player fica aqui
 // para quando voltarem.
 // O conversor cobre só o Markdown usado no README (títulos, parágrafos,

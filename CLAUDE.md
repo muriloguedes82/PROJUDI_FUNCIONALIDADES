@@ -11,7 +11,7 @@ Toda mudança que altera `version` em `extensao-preview-documentos/manifest.json
 2. seção da função (e o Sumário, se a seção for nova);
 3. vídeo da função em `videos-do-manual/` quando o que aparece na tela mudou
    (cena em `videos-do-manual/fonte/cenas*.js`, gravada com
-   `node videos-do-manual/fonte/gravar.mjs Vnn`). Desde a versão 2.53.1
+   `node videos-do-manual/fonte/gravar.mjs Vnn`). Desde a versão 2.53.2
    (decisão do usuário) os vídeos **continuam sendo gravados**, mas ficam
    fora da extensão e **não são citados no manual**, para uso futuro;
 4. linha nova no Anexo B (histórico);

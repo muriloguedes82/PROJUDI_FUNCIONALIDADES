@@ -209,6 +209,17 @@ a.link[href*="/arquivo.do"]:hover,
 	cursor: pointer;
 }
 
+/* Caixinhas criadas pela extensão (arquivos, movimentação base, ⭐ Em
+   lote) em laranja, com contorno também quando desmarcadas, para não se
+   confundirem com as caixinhas nativas do Projudi/SEEU (azuis no Chrome).
+   A mesma cor está em movimentoBase.css e listaTarefas.css. */
+input.pdp-wa-checkbox {
+	accent-color: #d9480f;
+	outline: 2px solid #d9480f;
+	outline-offset: 1px;
+	border-radius: 2px;
+}
+
 /* Cores próximas às dos botões nativos do sistema (ex.: "Pedido
    Incidental", "Juntar Documento"), em vez do verde do WhatsApp, para
    combinar visualmente com o resto da tela.

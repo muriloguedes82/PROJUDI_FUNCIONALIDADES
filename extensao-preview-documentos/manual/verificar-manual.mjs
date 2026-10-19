@@ -3,7 +3,7 @@
 // Os vídeos ficam FORA da extensão, em videos-do-manual/ (raiz do
 // repositório): continuam sendo gravados a cada função nova, mas não vão
 // com a extensão nem são citados no manual (decisão do usuário, versão
-// 2.53.1). O índice deles fica em videos-do-manual/README.md.
+// 2.53.2). O índice deles fica em videos-do-manual/README.md.
 //
 // Uso (na raiz do repositório):
 //   node extensao-preview-documentos/manual/verificar-manual.mjs              -> só verifica (rodar antes de cada commit)

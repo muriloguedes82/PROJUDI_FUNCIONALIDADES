@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.53.1 |
-| **Versão da extensão** | 2.53.1 |
+| **Versão do manual** | 2.53.2 |
+| **Versão da extensão** | 2.53.2 |
 | **Data desta versão** | 19/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -695,6 +695,11 @@ os documentos pelas caixinhas que a extensão coloca ao lado de cada arquivo
 da aba **Movimentações** (abra o **+** da movimentação para vê-las). A
 seleção é a mesma para WhatsApp e e-mail.
 
+> **Caixinhas da extensão são laranja.** Todas as caixinhas de marcar que a
+> extensão coloca na página (as dos arquivos, a da movimentação nas Ações
+> rápidas e a do **⭐ Em lote** nas listas) têm **contorno laranja**, para
+> não serem confundidas com as caixinhas do próprio Projudi/SEEU.
+
 <a id="cap-5-1"></a>
 ### 5.1 Envio por WhatsApp Web
 
@@ -1181,7 +1186,8 @@ ao clicar num evento e depois em **Movimentar a Partir Desta Movimentação**.
 Assim, a remessa, a intimação ou a ordenação fica ligada ao evento certo
 (ex.: o despacho que a determinou), e é esse evento que o destinatário vê.
 
-**Onde fica:** na aba **Movimentações** do processo, uma **caixinha** na
+**Onde fica:** na aba **Movimentações** do processo, uma **caixinha**
+(com contorno laranja, como todas as da extensão) na
 primeira coluna de **todas** as movimentações, à esquerda do número
 (**Seq.**) — haja ou não arquivos (antes de **⊞ Arquivos**, quando houver).
 Nas movimentações tachadas (inválidas) a caixinha aparece bloqueada. As
@@ -2127,7 +2133,7 @@ processos marcados, **em lote**.
 Em todas as telas que têm a **⭐** (Análise de Juntadas, Retorno de
 Conclusão, Análise de Decurso de Prazo, telas de cumprimentos e, no SEEU,
 Análise de Juntadas e Retorno de Conclusão), cada linha tem também uma
-**caixinha de marcar**, logo abaixo do **+** da primeira coluna (na lista
+**caixinha de marcar** (com contorno laranja), logo abaixo do **+** da primeira coluna (na lista
 de **Mandados**, abaixo do semáforo). Acima da tabela aparece a barra
 **⭐ Em lote**.
 
@@ -2789,7 +2795,8 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 2.53.1 | 19/10/2026 | Os vídeos instrutivos saem do manual e deixam de ir junto com a extensão (que fica bem menor): retirados os links **▶ Vídeo** das seções, o Anexo A (lista dos vídeos) e as menções a eles na capa, em 1.2 e em 2.6. O conteúdo das seções não mudou. |
+| 2.53.2 | 19/10/2026 | Os vídeos instrutivos saem do manual e deixam de ir junto com a extensão (que fica bem menor): retirados os links **▶ Vídeo** das seções, o Anexo A (lista dos vídeos) e as menções a eles na capa, em 1.2 e em 2.6. O conteúdo das seções não mudou. |
+| 2.53.1 | 19/10/2026 | As caixinhas de marcar criadas pela extensão (arquivos para WhatsApp/e-mail, movimentação das Ações rápidas e **⭐ Em lote**) passam a ter **cor laranja**, para não se confundirem com as caixinhas do próprio Projudi/SEEU. Aviso no capítulo 5 e ajustes em 7.7 e 9.3. Vídeos V07, V08, V09, V37, V38 e V45 regravados. |
 | 2.53.0 | 19/10/2026 | Mescla com a versão principal (até a 2.43.5). As versões desta série sobre o SEEU, desenvolvidas em paralelo como 2.42.0 a 2.51.0, foram renumeradas para **2.44.0 a 2.53.0** (linhas abaixo). Seção 8.3: **(Des)Habilitar Advogado** também no **SEEU** — botão **⚖️ Advogados** ao lado do ⭐ Minhas Preferências, com **Abrir**, **+ Nova preferência** e preferências. No SEEU a preferência grava um advogado (escolhido pela lupa), a **Atuação**, as **Partes do Processo** (pelo tipo) e o **Salvar**: ao gravar, o Salvar só pede o nome, sem salvar a habilitação; ao usar, o **✅ Sim, executar** clica em Salvar. Abertura do capítulo 8 ajustada. Sem vídeo novo (o vídeo V22 mostra o mesmo painel). |
 | 2.52.0 | 19/10/2026 | Seção 7.1: duas ações rápidas novas, **só no SEEU**, no botão **Outras**: **Redistribuir** e **Comunicar ao IIPR** — abrem a tela no popup e aceitam preferências, como as demais. Sem vídeo novo. |
 | 2.51.0 | 19/10/2026 | Seção 7.1: no **SEEU**, as Ações rápidas passam a mostrar só **Enviar Concluso**, **Realizar Remessa**, **Ordenar Cumprimentos**, **Intimar Partes**, **Intimar Peritos e Auxiliares da Justiça**, **Transitar em Julgado**, **Arquivar Processo** e **Interromper Prazo** (o botão **Suspender** some lá); as preferências das demais ações ficam só no Projudi. No Projudi, nada muda. Abertura do capítulo 7 ajustada. Sem vídeo novo. |

@@ -12,7 +12,7 @@ O manual fica **dentro da extensão** porque o botão **📖 Manual do Usuário*
 do Menu (ícone da balança no Projudi/SEEU) abre `manual/MANUAL.md` numa aba,
 com índice e busca (`src/manual.html` e `src/manual.js`).
 
-**Vídeos:** desde a versão 2.53.1 (decisão do usuário), os vídeos **não vão
+**Vídeos:** desde a versão 2.53.2 (decisão do usuário), os vídeos **não vão
 com a extensão e não são citados no manual**. Eles continuam sendo gravados
 a cada função nova, e ficam guardados para uso futuro em
 [`videos-do-manual/`](../../videos-do-manual/README.md), na raiz do

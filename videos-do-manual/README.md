@@ -1,7 +1,7 @@
 # Vídeos do manual (guardados para uso futuro)
 
 Estes vídeos mostram, em telas **simuladas** e com dados fictícios, como usar
-cada função da extensão. Desde a versão **2.53.1** eles **não vão mais junto
+cada função da extensão. Desde a versão **2.53.2** eles **não vão mais junto
 com a extensão** e **não aparecem no Manual do Usuário** (decisão do
 usuário). Continuam sendo gravados a cada função nova ou mudança do que
 aparece na tela, para poderem voltar ao manual no futuro.
