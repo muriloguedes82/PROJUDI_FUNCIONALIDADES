@@ -1,10 +1,11 @@
 // Gera os vídeos do manual quadro a quadro, sob relógio virtual (Playwright),
-// e codifica em MP4 (H.264) com ffmpeg.
+// e codifica em MP4 (H.264) com ffmpeg. Os MP4 ficam em videos-do-manual/
+// (fora da extensão; ver videos-do-manual/README.md).
 //
 // Uso (na raiz do repositório):
-//   node manual/videos/fonte/gravar.mjs            -> todos os vídeos
-//   node manual/videos/fonte/gravar.mjs V07 V12    -> só os indicados
-//   CHECAR=1 node manual/videos/fonte/gravar.mjs   -> só roda as cenas (sem gravar) e acusa erros
+//   node videos-do-manual/fonte/gravar.mjs            -> todos os vídeos
+//   node videos-do-manual/fonte/gravar.mjs V07 V12    -> só os indicados
+//   CHECAR=1 node videos-do-manual/fonte/gravar.mjs   -> só roda as cenas (sem gravar) e acusa erros
 //
 // Requisitos: Node 18+, pacote "playwright" (global ou local) com Chromium,
 // e um ffmpeg com libx264 (variável FFMPEG, ou "ffmpeg" no PATH).

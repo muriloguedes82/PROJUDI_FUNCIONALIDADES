@@ -1,16 +1,21 @@
 // Verifica se o manual está coerente com a extensão e com os vídeos.
 //
+// Os vídeos ficam FORA da extensão, em videos-do-manual/ (raiz do
+// repositório): continuam sendo gravados a cada função nova, mas não vão
+// com a extensão nem são citados no manual (decisão do usuário, versão
+// 2.53.1). O índice deles fica em videos-do-manual/README.md.
+//
 // Uso (na raiz do repositório):
 //   node extensao-preview-documentos/manual/verificar-manual.mjs              -> só verifica (rodar antes de cada commit)
-//   node extensao-preview-documentos/manual/verificar-manual.mjs --corrigir   -> também regrava a tabela do Anexo A
+//   node extensao-preview-documentos/manual/verificar-manual.mjs --corrigir   -> também regrava o índice dos vídeos
 //
 // Regras verificadas:
 //  1. "Versão do manual" e "Versão da extensão" (capa) = version do manifest.json;
 //  2. o Anexo B (histórico) tem uma linha para essa versão;
 //  3. todo link interno (#...) aponta para uma âncora <a id="..."> existente;
-//  4. todo vídeo citado no texto existe em manual/videos/;
-//  5. toda cena de manual/videos/fonte/cenas*.js tem o seu MP4 e é citada no texto;
-//  6. a tabela do Anexo A está igual à gerada a partir das cenas (título, seção, duração).
+//  4. o manual não cita vídeos (eles não vão com a extensão);
+//  5. toda cena de videos-do-manual/fonte/cenas*.js tem o seu MP4 e aponta para uma seção existente;
+//  6. o índice de videos-do-manual/README.md está igual ao gerado a partir das cenas (título, seção, duração).
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,6 +23,8 @@ import { fileURLToPath } from "node:url";
 const aqui = path.dirname(fileURLToPath(import.meta.url));
 const ext = path.resolve(aqui, "..");
 const manualPath = path.join(aqui, "MANUAL.md");
+const videos = path.resolve(ext, "..", "videos-do-manual");
+const indicePath = path.join(videos, "README.md");
 const corrigir = process.argv.includes("--corrigir");
 const erros = [];
 
@@ -38,7 +45,7 @@ const ids = new Set([...md.matchAll(/<a id="([^"]+)"><\/a>/g)].map(m => m[1]));
 for (const [, alvo] of md.matchAll(/\]\(#([^)]+)\)/g)) if (!ids.has(alvo)) erros.push(`Link interno sem âncora: #${alvo}`);
 
 // 5 — cenas
-const fonte = path.join(aqui, "videos", "fonte");
+const fonte = path.join(videos, "fonte");
 const cenas = [];
 for (const f of fs.readdirSync(fonte).filter(n => /^cenas\d*\.js$/.test(n)).sort()) {
 	const js = fs.readFileSync(path.join(fonte, f), "utf8");
@@ -60,33 +67,32 @@ const mmss = s => Math.floor(s / 60) + ":" + String(Math.round(s % 60)).padStart
 
 const linhas = ["| Vídeo | Função | Seção do manual | Duração |", "|---|---|---|---|"];
 for (const c of cenas) {
-	const arq = path.join(aqui, "videos", c.arquivo);
+	const arq = path.join(videos, c.arquivo);
 	let dur = "—";
-	if (!fs.existsSync(arq)) erros.push(`${c.id}: vídeo não encontrado (manual/videos/${c.arquivo}). Gere com: node extensao-preview-documentos/manual/videos/fonte/gravar.mjs ${c.id}`);
+	if (!fs.existsSync(arq)) erros.push(`${c.id}: vídeo não encontrado (videos-do-manual/${c.arquivo}). Gere com: node videos-do-manual/fonte/gravar.mjs ${c.id}`);
 	else dur = mmss(duracaoMp4(arq));
 	const ancora = "cap-" + c.secao.replace(/\./g, "-");
 	if (!ids.has(ancora)) erros.push(`${c.id}: seção ${c.secao} não existe no manual.`);
-	const citado = md.split('<a id="anexo-a"></a>')[0].includes("](videos/" + c.arquivo + ")");
-	if (!citado) erros.push(`${c.id}: o vídeo não é citado em nenhuma seção do manual.`);
-	linhas.push(`| [${c.id}](videos/${c.arquivo}) | [${c.titulo}](videos/${c.arquivo}) | [${c.secao}](#${ancora}) | ${dur} |`);
+	linhas.push(`| [${c.id}](${c.arquivo}) | [${c.titulo}](${c.arquivo}) | [${c.secao}](../extensao-preview-documentos/manual/MANUAL.md#${ancora}) | ${dur} |`);
 }
 
-// 4 — vídeos citados
-for (const [, v] of md.matchAll(/\]\(videos\/([^)]+\.mp4)\)/g))
-	if (!fs.existsSync(path.join(aqui, "videos", v))) erros.push(`Vídeo citado e inexistente: videos/${v}`);
+// 4 — o manual não cita vídeos
+for (const [, v] of md.matchAll(/\]\(([^)]*\.mp4)\)/g))
+	erros.push(`O manual cita um vídeo (${v}), mas os vídeos não vão mais com a extensão: retire o link.`);
 
-// 6 — tabela do Anexo A
+// 6 — índice dos vídeos (videos-do-manual/README.md)
 const ini = "<!-- tabela-videos:inicio -->", fim = "<!-- tabela-videos:fim -->";
-const a = md.indexOf(ini), b = md.indexOf(fim);
-if (a < 0 || b < 0) erros.push("Anexo A: marcadores da tabela de vídeos não encontrados.");
+let indice = fs.existsSync(indicePath) ? fs.readFileSync(indicePath, "utf8") : "";
+const a = indice.indexOf(ini), b = indice.indexOf(fim);
+if (a < 0 || b < 0) erros.push("videos-do-manual/README.md: marcadores da tabela de vídeos não encontrados.");
 else {
 	const nova = ini + "\n" + linhas.join("\n") + "\n" + fim;
-	if (md.slice(a, b + fim.length) !== nova) {
+	if (indice.slice(a, b + fim.length) !== nova) {
 		if (corrigir) {
-			md = md.slice(0, a) + nova + md.slice(b + fim.length);
-			fs.writeFileSync(manualPath, md);
-			console.log("Anexo A: tabela de vídeos regravada.");
-		} else erros.push("Anexo A: tabela de vídeos desatualizada. Rode: node extensao-preview-documentos/manual/verificar-manual.mjs --corrigir");
+			indice = indice.slice(0, a) + nova + indice.slice(b + fim.length);
+			fs.writeFileSync(indicePath, indice);
+			console.log("videos-do-manual/README.md: tabela de vídeos regravada.");
+		} else erros.push("videos-do-manual/README.md: tabela de vídeos desatualizada. Rode: node extensao-preview-documentos/manual/verificar-manual.mjs --corrigir");
 	}
 }
 
@@ -94,4 +100,4 @@ if (erros.length) {
 	console.error("Manual com pendências (" + erros.length + "):\n - " + erros.join("\n - "));
 	process.exit(1);
 }
-console.log(`Manual OK: versão ${versao}, ${cenas.length} vídeos.`);
+console.log(`Manual OK: versão ${versao}, ${cenas.length} vídeos guardados em videos-do-manual/.`);

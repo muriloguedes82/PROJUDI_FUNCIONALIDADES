@@ -4,8 +4,11 @@
 // O conteúdo é o manual em manual/MANUAL.md, convertido aqui para HTML -
 // assim o botão do Menu sempre abre a versão que acompanha a extensão.
 // Cada capítulo "## ..." vira um card, com índice lateral e busca por
-// palavras. Os links "videos/....mp4" abrem o vídeo num player sobre a
-// página (manual/videos/); os links "#..." rolam até a seção.
+// palavras. Os links "#..." rolam até a seção. Os links "videos/....mp4"
+// abririam o vídeo num player sobre a página (manual/videos/), mas desde a
+// versão 2.53.1 os vídeos não vão com a extensão nem são citados no manual
+// (ficam em videos-do-manual/, na raiz do repositório); o player fica aqui
+// para quando voltarem.
 // O conversor cobre só o Markdown usado no README (títulos, parágrafos,
 // listas, citações, tabelas, blocos de código, negrito, itálico, código e
 // links); todo texto é escapado antes da formatação. Linhas com âncora
