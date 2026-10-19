@@ -4293,12 +4293,14 @@
 
 	// Cumprimentos com "Analisar" nas listas "para expedir" deste processo,
 	// do mais recente para o mais antigo: [{ url, rotulo, texto }].
-	async function cumprimentosParaExpedir(pref) {
+	// `origem` (opcional, { doc, url }): a tela do processo já carregada
+	// (ex.: pela ⭐ de uma lista); sem ela, a tela atual.
+	async function cumprimentosParaExpedir(pref, origem) {
 		const listas = pref.tela ? [pref.tela] : [PRE_ANALISE_MANDADOS, PRE_ANALISE_DEMAIS];
 		// A tela atual foi recarregada ao fim da etapa anterior; sem o link
 		// nela, lê o processo de novo (navegação oculta, como fetchDoc).
-		let links = linksParaExpedir(document, location.href, listas);
-		if (!links.length) {
+		let links = origem ? linksParaExpedir(origem.doc, origem.url, listas) : linksParaExpedir(document, location.href, listas);
+		if (!links.length && !origem) {
 			try {
 				const atual = await fetchDoc(location.href);
 				links = linksParaExpedir(atual.doc, atual.url, listas);
@@ -4414,65 +4416,84 @@
 		}
 	}
 
-	function abrirPreAnaliseEtapa(pref, cumprimento) {
+	// Abre a Pré-Análise de `cumprimento` ({ url, rotulo }) no popup com
+	// `pref` e acompanha até o fim. `avisar(texto, { busy })`: andamento.
+	// Resolve com "postergada" (a extensão clicou em "Postergar
+	// Assinatura"), "assinada" (o usuário clicou em "Assinar e Expedir" e
+	// fechou o popup), "sem-assinar" (concluída, mas fechada sem esse
+	// clique), "fechada" (antes do fim) ou "abandonada" (abandonPreAnaliseStep).
+	// Usada pela etapa do combo e pela ⭐ das listas (preferenciasNaLinha.js).
+	function rodarPreAnalise(pref, cumprimento, avisar, numero) {
 		const jd = window.__pdpJuntarDocumentoApi;
-		const startRun = readComboRun();
-		if (!startRun || !jd || !jd.prepararPreAnalise) return;
-		const index = startRun.index;
+		if (!jd || !jd.prepararPreAnalise) return Promise.resolve("fechada");
+		abandonPreAnaliseStep();
 		limparPreAnaliseAssinou();
-		jd.prepararPreAnalise("apply", pref, numeroProcessoAtual());
-		logChainStep("combo: abrindo a Pré-Análise", { cumprimento: cumprimento.rotulo, preferencia: pref.name });
-		const iframe = showActionModal("Analisar — ★ " + pref.name + " (" + cumprimento.rotulo + ")");
-		const estado = { iframe: iframe, timer: null, fechar: null, concluida: false, avisou: false };
-		preAnaliseStep = estado;
-		modalHooks = {
-			noReload: true,
-			onClose: function () {
-				clearInterval(estado.timer);
-				clearTimeout(estado.fechar);
-				if (preAnaliseStep !== estado) return;
-				preAnaliseStep = null;
-				const fim = jd.fimDecurso ? jd.fimDecurso() : null;
-				const assinou = preAnaliseAssinou();
-				limparPreAnaliseAssinou();
-				if (jd.hasActiveJob && jd.hasActiveJob()) jd.cancel();
-				const run = readComboRun();
-				if (!run || run.index !== index) return;
-				logChainStep("combo: popup da Pré-Análise fechado", { fim: fim, assinou: assinou });
-				if (estado.concluida || fim === "concluida") {
-					advanceCombo("Etapa anterior: pré-análise concluída e assinatura postergada. Abrindo a próxima…");
-				} else if (fim === "aguardando" && assinou) {
-					advanceCombo('Etapa anterior: pré-análise concluída e "Assinar e Expedir" clicado (confira se o cumprimento foi expedido). Abrindo a próxima…');
-				} else if (fim === "aguardando") {
-					setComboWaiting('A pré-análise foi concluída, mas o popup fechou sem o clique em "Assinar e Expedir". Se o cumprimento foi expedido, clique em "Próxima etapa"; senão, expeça-o pela lista e depois clique em "Próxima etapa".');
-				} else {
-					setComboWaiting('O popup da pré-análise foi fechado antes do fim. Confira o cumprimento: se ele foi expedido, clique em "Próxima etapa"; senão, em "Repetir etapa".');
+		jd.prepararPreAnalise("apply", pref, numero || numeroProcessoAtual());
+		logChainStep("Pré-Análise: abrindo", { cumprimento: cumprimento.rotulo, preferencia: pref.name });
+		return new Promise(function (resolve) {
+			const iframe = showActionModal("Analisar — ★ " + pref.name + " (" + cumprimento.rotulo + ")");
+			const estado = { iframe: iframe, timer: null, fechar: null, concluida: false, avisou: false, resolve: resolve };
+			preAnaliseStep = estado;
+			modalHooks = {
+				noReload: true,
+				onClose: function () {
+					clearInterval(estado.timer);
+					clearTimeout(estado.fechar);
+					if (preAnaliseStep !== estado) return;
+					preAnaliseStep = null;
+					const fim = jd.fimDecurso ? jd.fimDecurso() : null;
+					const assinou = preAnaliseAssinou();
+					limparPreAnaliseAssinou();
+					if (jd.hasActiveJob && jd.hasActiveJob()) jd.cancel();
+					logChainStep("Pré-Análise: popup fechado", { fim: fim, assinou: assinou });
+					if (estado.concluida || fim === "concluida") resolve("postergada");
+					else if (fim === "aguardando") resolve(assinou ? "assinada" : "sem-assinar");
+					else resolve("fechada");
+				},
+			};
+			iframe.src = cumprimento.url;
+			avisar("Pré-análise de " + cumprimento.rotulo + " no popup: a extensão preenche e conclui o documento. Não feche o popup até o fim.", {});
+			estado.timer = setInterval(function () {
+				if (preAnaliseStep !== estado) {
+					clearInterval(estado.timer);
+					return;
 				}
-			},
-		};
-		iframe.src = cumprimento.url;
-		renderComboBar("Pré-análise de " + cumprimento.rotulo + " no popup: a extensão preenche e conclui o documento. Não feche o popup até o fim.");
-		bringComboBarToFront();
-		estado.timer = setInterval(function () {
-			if (preAnaliseStep !== estado) {
-				clearInterval(estado.timer);
-				return;
+				vigiarAssinarExpedir(iframe);
+				const fim = jd.fimDecurso ? jd.fimDecurso() : null;
+				if (fim === "concluida" && !estado.concluida) {
+					estado.concluida = true;
+					avisar("Assinatura postergada. Fechando o popup…", { busy: true });
+					estado.fechar = setTimeout(function () {
+						if (activeModalIframe === iframe) removeActionModal("auto");
+					}, PRE_ANALISE_FECHAR_MS);
+				} else if (fim === "aguardando" && !estado.avisou) {
+					estado.avisou = true;
+					avisar('Pré-análise concluída: confira e clique em "Assinar e Expedir" no popup; depois feche-o para o combo seguir.', {});
+				}
+			}, PRE_ANALISE_POLL_MS);
+		});
+	}
+
+	function abrirPreAnaliseEtapa(pref, cumprimento) {
+		const startRun = readComboRun();
+		if (!startRun) return;
+		const index = startRun.index;
+		rodarPreAnalise(pref, cumprimento, function (texto, opcoes) {
+			renderComboBar(texto, opcoes);
+			bringComboBarToFront();
+		}).then(function (resultado) {
+			const run = readComboRun();
+			if (resultado === "abandonada" || !run || run.index !== index) return;
+			if (resultado === "postergada") {
+				advanceCombo("Etapa anterior: pré-análise concluída e assinatura postergada. Abrindo a próxima…");
+			} else if (resultado === "assinada") {
+				advanceCombo('Etapa anterior: pré-análise concluída e "Assinar e Expedir" clicado (confira se o cumprimento foi expedido). Abrindo a próxima…');
+			} else if (resultado === "sem-assinar") {
+				setComboWaiting('A pré-análise foi concluída, mas o popup fechou sem o clique em "Assinar e Expedir". Se o cumprimento foi expedido, clique em "Próxima etapa"; senão, expeça-o pela lista e depois clique em "Próxima etapa".');
+			} else {
+				setComboWaiting('O popup da pré-análise foi fechado antes do fim. Confira o cumprimento: se ele foi expedido, clique em "Próxima etapa"; senão, em "Repetir etapa".');
 			}
-			vigiarAssinarExpedir(iframe);
-			const fim = jd.fimDecurso ? jd.fimDecurso() : null;
-			if (fim === "concluida" && !estado.concluida) {
-				estado.concluida = true;
-				renderComboBar("Assinatura postergada. Fechando o popup…", { busy: true });
-				bringComboBarToFront();
-				estado.fechar = setTimeout(function () {
-					if (activeModalIframe === iframe) removeActionModal("auto");
-				}, PRE_ANALISE_FECHAR_MS);
-			} else if (fim === "aguardando" && !estado.avisou) {
-				estado.avisou = true;
-				renderComboBar('Pré-análise concluída: confira e clique em "Assinar e Expedir" no popup; depois feche-o para o combo seguir.');
-				bringComboBarToFront();
-			}
-		}, PRE_ANALISE_POLL_MS);
+		});
 	}
 
 	// Sai da Pré-Análise aberta pela etapa atual (Repetir/Próxima/Parar),
@@ -4487,6 +4508,7 @@
 		const jd = window.__pdpJuntarDocumentoApi;
 		if (jd && jd.hasActiveJob && jd.hasActiveJob()) jd.cancel();
 		if (activeModalIframe === estado.iframe) removeActionModal("manual");
+		estado.resolve("abandonada");
 	}
 
 	// O popup da etapa atual fechou (ver removeActionModal).
@@ -6274,6 +6296,17 @@
 		stepNeedsProcessScreen: function (label) {
 			return label === JUNTAR_LABEL || !!getCustomAction(label) || label === "Alvará Eletrônico" || !!DIRECT_STEPS[label] || label === PRE_ANALISE_LABEL;
 		},
+		// Das etapas acima, as que a ⭐ das listas também roda, no popup
+		// sobre a lista (preferenciasNaLinha.js): "Juntar Documento" e
+		// "Analisar (Pré-Análise)". As demais abrem o processo numa nova aba.
+		juntarLabel: JUNTAR_LABEL,
+		preAnaliseLabel: PRE_ANALISE_LABEL,
+		stepNeedsNewTab: function (label) {
+			return label !== JUNTAR_LABEL && label !== PRE_ANALISE_LABEL &&
+				(!!getCustomAction(label) || label === "Alvará Eletrônico" || !!DIRECT_STEPS[label]);
+		},
+		cumprimentosParaExpedir: cumprimentosParaExpedir,
+		rodarPreAnalise: rodarPreAnalise,
 		// Abre/fecha o painel de um grupo cujo botão é de outro arquivo
 		// (ex.: "⚖️ Advogados", de habilitarAdvogado.js, com
 		// data-panel-id="advogados").

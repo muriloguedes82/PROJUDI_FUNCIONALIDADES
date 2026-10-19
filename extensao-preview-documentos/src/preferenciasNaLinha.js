@@ -20,7 +20,10 @@
 //   3. A linha mostra o andamento e o resultado. A listagem não é
 //      recarregada.
 // Preferências de "Juntar Documento", do "Alvará Eletrônico" e de "Advogados" continuam só
-// na tela do processo (dependem de arquivos/telas próprias).
+// na tela do processo (dependem de arquivos/telas próprias) quando usadas
+// sozinhas. Num combo, as etapas de "Juntar Documento" e de "Analisar
+// (Pré-Análise)" rodam no popup sobre a lista (versão 2.55.0 - ver
+// juntarNaLista e preAnaliseNaLista).
 //
 // SEEU (listas Análise de Juntadas, Retorno de Conclusão, as de Decurso de
 // Prazo - Intimações e Intimação de Auxiliares da Justiça - e as de
@@ -45,7 +48,10 @@
 // e cada um continua exigindo o seu "✅ Sim, executar" (fechar o popup pula
 // o processo). SEEU: a mesma pergunta, uma vez para todos, e depois os
 // localizadores são associados direto em todos.
-// Combos que precisam da tela do processo (nova aba) não rodam em lote.
+// Combos que precisam da tela do processo (nova aba: Alvará, Advogados,
+// Alterar Classe...) não rodam em lote; os com "Juntar Documento" e
+// "Analisar (Pré-Análise)" rodam, um processo de cada vez (a juntada para
+// na assinatura de cada um).
 //
 // REGRA (Projudi e SEEU, por decisão do usuário): nos dois sistemas a
 // extensão pergunta antes se deve dispensar as juntadas, finalizar a
@@ -649,6 +655,79 @@
 		}
 	}
 
+	// Etapa "Juntar Documento" de um combo, na lista: a tela do processo é
+	// carregada em segundo plano (para achar o botão nativo "Juntar
+	// Documento") e a juntada roda no popup sobre a lista, pelo motor do
+	// Juntar Documento (juntarDocumento.js, prepararJuntadaNaLista) - para
+	// na assinatura (o usuário digita o PIN) e, depois do "Concluir
+	// Movimento", na tela "Dados registrados com sucesso" o popup fecha.
+	async function juntarNaLista(ctx, pref, prefixo) {
+		const qa = api();
+		const jd = window.__pdpJuntarDocumentoApi;
+		const rotulo = "★ " + pref.name;
+		if (!jd || !jd.prepararJuntadaNaLista) return { ok: false, texto: "ligue o \"Juntar Documento\" no Menu da extensão para usar esta etapa na lista" };
+		mostrar(ctx, prefixo.concat(["Carregando o processo…"]), "andamento");
+		const proc = await carregarProcesso(ctx, false);
+		const url = jd.prepararJuntadaNaLista(pref, ctx.cnj, proc.doc);
+		if (!url) return { ok: false, texto: "não encontrei o botão \"Juntar Documento\" na tela do processo" };
+		mostrar(ctx, prefixo.concat([rotulo + ": juntada no popup — assine quando o assinador pedir"]), "andamento");
+		return new Promise(function (resolve) {
+			let concluida = false;
+			let fechar = null;
+			const timer = setInterval(function () {
+				if (concluida || !jd.juntadaNaListaConcluida()) return;
+				concluida = true;
+				mostrar(ctx, prefixo.concat([rotulo + ": documento juntado. Fechando o popup…"]), "andamento");
+				fechar = setTimeout(function () { if (qa.closeActionModal) qa.closeActionModal(); }, 1500);
+			}, 500);
+			qa.openActionModal("Juntar Documento — " + rotulo, url, {
+				onClose: function () {
+					clearInterval(timer);
+					clearTimeout(fechar);
+					concluida = jd.juntadaNaListaConcluida(true) || concluida;
+					if (jd.hasActiveJob && jd.hasActiveJob()) jd.cancel();
+					if (concluida) resolve({ ok: true, texto: rotulo + ": documento juntado" });
+					else resolve({ ok: false, texto: rotulo + ": juntada não concluída (popup fechado antes do \"Concluir Movimento\")" });
+				}
+			});
+		});
+	}
+
+	// Escolha, na própria linha, entre vários cumprimentos para expedir.
+	// Resolve com o cumprimento escolhido ou null ("Pular").
+	function escolherCumprimento(ctx, prefixo, candidatos) {
+		return new Promise(function (resolve) {
+			mostrar(ctx, prefixo.concat(["Há " + candidatos.length + " cumprimentos para expedir. Qual expedir?"]), "aviso",
+				candidatos.map(function (c) {
+					return { texto: "▶ " + c.rotulo, titulo: c.texto || c.rotulo, acao: function () { resolve(c); } };
+				}).concat([{ texto: "Nenhum", titulo: "Não expedir nenhum agora", acao: function () { resolve(null); } }]));
+		});
+	}
+
+	// Etapa "Analisar (Pré-Análise)" de um combo, na lista: acha, na tela do
+	// processo carregada em segundo plano, o cumprimento em "Cumprimentos
+	// para expedir" (quadro Pendências) e faz a Pré-Análise no popup - as
+	// mesmas funções da etapa na tela do processo (quickActions.js).
+	async function preAnaliseNaLista(ctx, pref, prefixo) {
+		const qa = api();
+		const rotulo = "★ " + pref.name;
+		if (!qa.cumprimentosParaExpedir || !qa.rodarPreAnalise) return { ok: false, texto: "recarregue a página (extensão atualizada)" };
+		if (!window.__pdpJuntarDocumentoApi) return { ok: false, texto: "ligue o \"Juntar Documento\" no Menu da extensão para usar esta etapa" };
+		mostrar(ctx, prefixo.concat(["Procurando o cumprimento para expedir…"]), "andamento");
+		const proc = await carregarProcesso(ctx, true);
+		const candidatos = await qa.cumprimentosParaExpedir(pref, { doc: proc.doc, url: proc.url });
+		if (!candidatos.length) return { ok: false, texto: rotulo + ": não há cumprimento para expedir com \"Analisar\" no quadro Pendências do processo" };
+		const cumprimento = candidatos.length === 1 ? candidatos[0] : await escolherCumprimento(ctx, prefixo.concat([rotulo]), candidatos);
+		if (!cumprimento) return { ok: false, texto: rotulo + ": nenhum cumprimento escolhido" };
+		const resultado = await qa.rodarPreAnalise(pref, cumprimento, function (texto) {
+			mostrar(ctx, prefixo.concat([rotulo + ": " + texto]), "andamento");
+		}, ctx.cnj);
+		if (resultado === "postergada") return { ok: true, texto: rotulo + ": pré-análise concluída e assinatura postergada" };
+		if (resultado === "assinada") return { ok: true, texto: rotulo + ": pré-análise concluída e \"Assinar e Expedir\" clicado (confira)" };
+		if (resultado === "sem-assinar") return { ok: false, texto: rotulo + ": pré-análise concluída, mas o popup fechou sem o \"Assinar e Expedir\" (se expediu, use Próxima etapa)" };
+		return { ok: false, texto: rotulo + ": popup fechado antes do fim da pré-análise (confira o cumprimento)" };
+	}
+
 	// Pergunta na própria linha como seguir depois de uma etapa de combo não
 	// executada. Resolve com "repetir", "proxima" ou "parar".
 	function escolherNaLinha(ctx, partes) {
@@ -683,6 +762,8 @@
 			const pref = qa.findComboPref(todas, passo);
 			let r;
 			if (!pref) r = { ok: false, texto: "a preferência \"" + (passo.prefName || passo.label) + "\" não existe mais" };
+			else if (passo.label === qa.juntarLabel) r = await juntarNaLista(ctx, pref, [previa, etapa]);
+			else if (passo.label === qa.preAnaliseLabel) r = await preAnaliseNaLista(ctx, pref, [previa, etapa]);
 			else r = await abrirPreferencia(ctx, passo.label, pref, [previa, etapa]);
 			if (r.ok) {
 				feitas.push(i + 1);
@@ -863,7 +944,10 @@
 			}), function (itemCombo) {
 				const combo = itemCombo.combo;
 				const passos = combo.steps || [];
-				const novaAba = passos.some(function (p) { return qa.stepNeedsProcessScreen(p.label); });
+				// "Juntar Documento" e "Analisar (Pré-Análise)" rodam no popup
+				// sobre a lista; as outras etapas da tela do processo (Alvará,
+				// Advogados, Alterar Classe...), numa nova aba.
+				const novaAba = passos.some(function (p) { return qa.stepNeedsNewTab ? qa.stepNeedsNewTab(p.label) : qa.stepNeedsProcessScreen(p.label); });
 				// Em lote, um combo que abre uma nova aba por processo não roda.
 				const motivo = emLote && novaAba ? "Em lote, não: este combo tem etapa que só roda na tela do processo (abriria uma aba por processo)." : null;
 				const descricao = passos.map(function (p, i) {

@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.54.0 |
-| **Versão da extensão** | 2.54.0 |
+| **Versão do manual** | 2.55.0 |
+| **Versão da extensão** | 2.55.0 |
 | **Data desta versão** | 19/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1193,13 +1193,15 @@ Remessa ao CREAS → Remessa ao Distribuidor → **Ordenar Cumprimentos**
   Expedir**, a barra pede para você conferir o cumprimento antes de
   seguir.
 - Precisa do **Juntar Documento** ligado no Menu ([2.6](#cap-2-6)).
-- Na ⭐ das listas, um combo com essa etapa abre o processo numa nova aba
-  e não roda em lote.
+- Na ⭐ das listas, essa etapa roda no popup, sobre a lista, também em
+  lote ([9.3](#cap-9-3)). Com mais de um cumprimento para expedir, a
+  própria linha mostra um botão para cada um.
 
 **Bom saber:**
 
 - Etapas de **Juntar Documento** são feitas na própria aba e param na
-  assinatura (você digita o PIN) — ver [8.2](#cap-8-2).
+  assinatura (você digita o PIN) — ver [8.2](#cap-8-2). Na ⭐ das listas,
+  a juntada é feita no popup, sobre a lista ([9.3](#cap-9-3)).
 - Etapas de **Alvará Eletrônico** só preenchem; clique em **Salvar** do
   Projudi e depois em **⏭ Próxima etapa**.
 - Etapas de **✏️ Alterar Classe/Assuntos** e de **📍 Localizador** não
@@ -2206,6 +2208,8 @@ abertas.
 
 ▶ [**Vídeo V30** — ⭐ na linha do processo](videos/V30-minhas-preferencias-na-linha.mp4)
 
+▶ [**Vídeo V59** — Combo com juntada na lista](videos/V59-combo-com-juntada-na-lista.mp4)
+
 **Para que serve:** executar uma preferência ou combo num processo direto
 da tela de análise ou de cumprimentos, sem abri-lo — ou em vários
 processos marcados, **em lote**.
@@ -2234,9 +2238,17 @@ processos marcados, **em lote**.
 - A lista **não** é recarregada ao final, para não perder a busca feita.
 - Preferências avulsas de **Juntar Documento**, **Alvará Eletrônico** e
   **Advogados** aparecem esmaecidas (use-as na tela do processo).
-- Combos com essas etapas (ou com etapas de **✏️ Alterar Classe/Assuntos**
-  ou de **📍 Localizador**) abrem o processo numa **nova aba** e rodam lá;
-  o card deles tem o sinal **↗**.
+- **Combos com Juntar Documento** (e com **Analisar (Pré-Análise)**)
+  rodam na própria lista: a etapa da juntada abre no **popup**, sobre a
+  lista, segue sozinha (tipo, modelo e texto) e **para na assinatura** —
+  você digita o PIN. Depois do **Concluir Movimento**, quando aparece
+  "Dados registrados com sucesso", o popup fecha sozinho e a linha passa
+  para a etapa seguinte. Se o popup for fechado antes do Concluir
+  Movimento, a linha oferece **↻ Repetir etapa**, **⏭ Próxima etapa** ou
+  **⏹ Parar combo**.
+- Combos com etapas de **Alvará Eletrônico**, **⚖️ Advogados**, **✏️
+  Alterar Classe/Assuntos** ou **📍 Localizador** abrem o processo numa
+  **nova aba** e rodam lá; o card deles tem o sinal **↗**.
 - Os cards ficam em blocos, um por ação, como em **⭐ Minhas
   Preferências** ([7.3](#cap-7-3)), mas sem os botões ✏️ e 🗑.
   O nome aparece inteiro (se for comprido, continua na linha de baixo).
@@ -2313,6 +2325,9 @@ de **Mandados**, abaixo do semáforo). Acima da tabela aparece a barra
   continua até você confirmar ou fechar).
 - Em lote não rodam os combos que abrem o processo numa **nova aba**
   (aparecem esmaecidos): eles abririam uma aba por processo.
+- Combos com **Juntar Documento** rodam em lote: um processo de cada vez,
+  e a juntada **para na assinatura de cada processo** (você digita o PIN
+  em cada um).
 - Se você usar o filtro da legenda das listas de tarefas, só os processos
   que estão aparecendo entram no lote.
 
@@ -3019,6 +3034,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V56](videos/V56-incluir-e-remover-prioridades.mp4) | [Incluir e remover prioridades](videos/V56-incluir-e-remover-prioridades.mp4) | [8.11](#cap-8-11) | 0:58 |
 | [V57](videos/V57-localizador-na-lista-seeu.mp4) | [Localizador na lista (SEEU)](videos/V57-localizador-na-lista-seeu.mp4) | [9.12](#cap-9-12) | 1:00 |
 | [V58](videos/V58-combo-com-expedicao-de-mandado.mp4) | [Combo com expedição de mandado](videos/V58-combo-com-expedicao-de-mandado.mp4) | [7.4](#cap-7-4) | 1:04 |
+| [V59](videos/V59-combo-com-juntada-na-lista.mp4) | [Combo com juntada na lista](videos/V59-combo-com-juntada-na-lista.mp4) | [9.3](#cap-9-3) | 0:51 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -3032,6 +3048,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.55.0 | 19/10/2026 | Seção 9.3: pela **⭐** das listas (também **em lote**), os combos com etapa de **📎 Juntar Documento** e de **Analisar (Pré-Análise)** passam a rodar **na própria lista**, sem abrir nova aba: a juntada é feita no popup, para na assinatura (PIN) e, depois do "Dados registrados com sucesso", o popup fecha e a linha segue para a próxima etapa. Combos com Alvará Eletrônico, Advogados, Alterar Classe/Assuntos ou Localizador continuam abrindo nova aba. Ajustes em 7.4. Vídeo novo **V59** (Combo com juntada na lista) e vídeo V30 regravado. |
 | 2.54.0 | 19/10/2026 | Seção 7.4: os **combos** passam a aceitar as preferências do **Analisar (Pré-Análise)** criadas em **Mandados** e **Demais Cumprimentos** (só no Projudi). A etapa procura o cumprimento em **Cumprimentos para expedir**, no quadro Pendências do processo, e faz o Analisar no popup — assim o mesmo combo ordena e expede o mandado. Com mais de um cumprimento para expedir, a barra do combo pergunta qual. Seção 9.11: nota sobre os combos. Vídeo novo **V58** (Combo com expedição de mandado). |
 | 2.53.0 | 19/10/2026 | Mescla com a versão principal (até a 2.43.5). As versões desta série sobre o SEEU, desenvolvidas em paralelo como 2.42.0 a 2.51.0, foram renumeradas para **2.44.0 a 2.53.0** (linhas abaixo). Seção 8.3: **(Des)Habilitar Advogado** também no **SEEU** — botão **⚖️ Advogados** ao lado do ⭐ Minhas Preferências, com **Abrir**, **+ Nova preferência** e preferências. No SEEU a preferência grava um advogado (escolhido pela lupa), a **Atuação**, as **Partes do Processo** (pelo tipo) e o **Salvar**: ao gravar, o Salvar só pede o nome, sem salvar a habilitação; ao usar, o **✅ Sim, executar** clica em Salvar. Abertura do capítulo 8 ajustada. Sem vídeo novo (o vídeo V22 mostra o mesmo painel). |
 | 2.52.0 | 19/10/2026 | Seção 7.1: duas ações rápidas novas, **só no SEEU**, no botão **Outras**: **Redistribuir** e **Comunicar ao IIPR** — abrem a tela no popup e aceitam preferências, como as demais. Sem vídeo novo. |

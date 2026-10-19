@@ -1584,3 +1584,62 @@ CENAS.V58 = {
 		await S.endCard("Combo: … → Ordenar Cumprimentos → Analisar (Pré-Análise) · a etapa acha o mandado em “Cumprimentos para expedir” e faz o Analisar com a preferência.");
 	},
 };
+
+// ------------------------------------------------------------------ V59
+// Combo com "Juntar Documento" na ⭐ da lista: a juntada roda no popup
+// sobre a lista, para na assinatura e, no "Dados registrados com sucesso",
+// o popup fecha e a linha segue para a próxima etapa (também em lote).
+CENAS.V59 = {
+	arquivo: "V59-combo-com-juntada-na-lista.mp4",
+	titulo: "Combo com juntada na lista",
+	secao: "9.3",
+	async run() {
+		telaLista("Análise de Juntadas");
+		$$(".x-rowslot").forEach((s, i) => (s.innerHTML = ' <span class="x-btn small">+</span> <span class="x-btn small" data-star="' + i + '">⭐</span><span class="st" data-st="' + i + '" style="margin-left:6px;font-size:11px"></span>'));
+		await S.titleCard("VÍDEO V59", "Combo com juntada na lista", "Combos com Juntar Documento rodam direto na lista, sem abrir o processo.");
+		await S.cap("Na <b>⭐</b> da linha, o combo com <b>Juntar Documento</b> não tem mais o sinal ↗: ele roda aqui mesmo.");
+		await S.click('[data-star="0"]');
+		const pn = panelAt('<h4>⭐ Minhas Preferências — ' + LISTA[0].n + '</h4>' + favBlocos([
+			{ icon: "📦", title: "Realizar Remessa", cards: [{ name: "Remessa MP" }] },
+			{ icon: "🔗", title: "Combos", cards: [{ name: "Certidão + intimar parte", combo: true, id: "combo" }] },
+		]), '[data-star="0"]', { w: 440 });
+		pn.style.left = "520px"; pn.style.top = "200px";
+		await S.click("#combo");
+		pn.remove();
+		modal('<h3>🔗 Combo "Certidão + intimar parte" (2 etapas)</h3><div>Dispensar as juntadas pendentes deste processo antes de executar a preferência?</div><div style="text-align:right;margin-top:12px"><span class="pj-btn primary" id="sim">Sim, dispensar juntadas</span> <span class="pj-btn">Não, seguir sem isso</span></div>', { w: 560, top: 200 });
+		await S.click("#sim");
+		closeModal();
+		const st = $('[data-st="0"]');
+		st.textContent = "✅ Juntada(s) dispensada(s) · 🔗 Certidão + intimar parte — etapa 1 de 2 · Carregando o processo…";
+		await sleep(1200);
+		st.textContent = "🔗 etapa 1 de 2 · ★ Certidão padrão: juntada no popup — assine quando o assinador pedir";
+		popup("Juntar Documento", '<div style="font-size:12px">Tipo de Documento: <span class="pj-select" style="background:#fffbe6">Certidão</span></div>' +
+			'<div style="font-size:12px;margin-top:8px">Arquivo: <b>certidao.pdf</b> — Modelo: <span class="pj-select" style="background:#fffbe6">Certidão em branco</span></div>' +
+			'<div style="margin-top:10px"><span class="pj-input" style="min-width:420px;min-height:44px;display:inline-block;background:#fffbe6">Certifico que…</span></div>' +
+			'<div style="margin-top:12px"><span class="pj-btn primary" id="assinar">Assinar</span></div>', { hd: "Juntar Documento — ★ Certidão padrão", top: 120, h: 340 });
+		await S.cap("A etapa da juntada abre no <b>popup</b>, sobre a lista, e segue sozinha: tipo de documento, modelo e texto.", { ms: 4600 });
+		await S.cap("Ela <b>para na assinatura</b>: você digita o PIN no assinador.");
+		await S.click("#assinar");
+		$(".x-popup").remove();
+		popup("Juntar Documento", '<div style="font-size:12px">certidao.pdf — assinado ✔</div><div style="margin-top:20px"><span class="pj-btn primary" id="concluir" style="outline:3px solid #f5b400">Concluir Movimento</span></div>', { hd: "Juntar Documento — ★ Certidão padrão", top: 120, h: 260 });
+		await S.cap("Depois, a extensão clica em <b>Concluir Movimento</b>…");
+		$(".x-popup").remove();
+		popup("Juntar Documento", '<div style="color:#216b32;font-weight:600">Dados registrados com sucesso!</div>', { hd: "Juntar Documento — ★ Certidão padrão", top: 120, h: 200 });
+		st.textContent = "🔗 etapa 1 de 2 · ★ Certidão padrão: documento juntado. Fechando o popup…";
+		await S.cap("…e, com <b>“Dados registrados com sucesso”</b>, o popup fecha sozinho e a linha passa para a próxima etapa.", { ms: 4600 });
+		$(".x-popup").remove();
+		st.textContent = "🔗 etapa 2 de 2 · ★ Intimar réu: abrindo…";
+		await abrindo("Intimar Partes", 900);
+		popup("Intimar Partes", dlgIntimar({ reu: true, fin: "Ciência", prazo: "5" }), { top: 120, h: 500 });
+		bar('Confirmar “Intimar Partes” com a preferência “Intimar réu”? <span class="x-btn small green" id="exec">✅ Sim, executar</span> <span class="x-btn small">Cancelar</span>', { top: 78 });
+		await S.cap("A etapa seguinte abre como sempre, com o <b>✅ Sim, executar</b>.");
+		await S.click("#exec");
+		$(".x-bar").remove(); $(".x-popup").remove();
+		st.innerHTML = '<span style="color:#216b32">✅ Juntada(s) dispensada(s) · 🔗 Certidão + intimar parte: concluído (2 etapas)</span>';
+		S.hl(st, 3);
+		await S.cap("A linha mostra o resultado. Se o popup da juntada for fechado antes do fim, a linha oferece <b>↻ Repetir</b>, <b>⏭ Próxima</b> ou <b>⏹ Parar</b>.", { ms: 5200 });
+		S.hlOff();
+		await S.cap("Também em <b>lote</b>: um processo de cada vez, e a juntada para na assinatura de cada um.", { ms: 4400 });
+		await S.endCard("⭐ → combo com Juntar Documento → juntada no popup → PIN → Concluir Movimento → popup fecha → próxima etapa.");
+	},
+};

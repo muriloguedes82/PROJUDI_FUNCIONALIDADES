@@ -104,6 +104,11 @@
 	// à tela do processo, o combo segue para a etapa seguinte.
 	const COMBO_CONCLUIR_KEY = "pdpComboJuntadaConcluir";
 	const COMBO_DONE_KEY = "pdpComboJuntadaConcluida";
+	// Juntada de um combo iniciado na ⭐ de uma lista (preferenciasNaLinha.js):
+	// roda no popup sobre a lista; na tela "Dados registrados com sucesso",
+	// em vez de voltar para o processo, marca LISTA_DONE_KEY e quem abriu o
+	// popup o fecha.
+	const LISTA_DONE_KEY = "pdpComboJuntadaListaConcluida";
 	const COMBO_CONCLUIR_MAX_AGE_MS = 5 * 60 * 1000;
 	const SUCCESS_RE = /dados registrados com sucesso/i;
 	// O usuário pode levar um bom tempo digitando o texto.
@@ -525,6 +530,33 @@
 		start: function (pref) {
 			return iniciarJuntada("apply", pref, true);
 		},
+		// Combo da ⭐ de uma lista: prepara a juntada com `pref` a partir da
+		// tela do processo `doc` (carregada em segundo plano) e devolve o
+		// endereço do "Juntar Documento" para abrir no popup (ou null, sem o
+		// botão nativo). O fim é lido com juntadaNaListaConcluida.
+		prepararJuntadaNaLista: function (pref, numero, doc) {
+			const url = findJuntarUrl(doc);
+			if (!url) return null;
+			try {
+				sessionStorage.removeItem(LISTA_DONE_KEY);
+				sessionStorage.removeItem(COMBO_CONCLUIR_KEY);
+			} catch (err) {
+				// sem marcas antigas a limpar
+			}
+			writeJob({ mode: "apply", stage: "juntar", pref: pref, rec: {}, numero: numero || null, combo: true, lista: true, createdAt: Date.now() });
+			return url.href;
+		},
+		// true depois do "Dados registrados com sucesso" da juntada
+		// preparada por prepararJuntadaNaLista; `consumir` apaga a marca.
+		juntadaNaListaConcluida: function (consumir) {
+			try {
+				const feita = !!sessionStorage.getItem(LISTA_DONE_KEY);
+				if (consumir) sessionStorage.removeItem(LISTA_DONE_KEY);
+				return feita;
+			} catch (err) {
+				return false;
+			}
+		},
 		// Esta tela tem o botão nativo "Juntar Documento" (tela do processo).
 		available: function () {
 			return !!findJuntarUrl(document);
@@ -763,7 +795,7 @@
 					} else {
 						if (job.combo) {
 							try {
-								sessionStorage.setItem(COMBO_CONCLUIR_KEY, JSON.stringify({ at: Date.now(), numero: job.numero || null }));
+								sessionStorage.setItem(COMBO_CONCLUIR_KEY, JSON.stringify({ at: Date.now(), numero: job.numero || null, lista: !!job.lista }));
 							} catch (err) {
 								// sem sessionStorage: o combo pergunta como seguir
 							}
@@ -2591,6 +2623,18 @@
 		if (!SUCCESS_RE.test(document.body.textContent || "")) return;
 		const numero = numeroProcesso(document);
 		if (pending.numero && numero && pending.numero !== numero) return;
+		if (pending.lista) {
+			comboBackClicked = true;
+			try {
+				sessionStorage.removeItem(COMBO_CONCLUIR_KEY);
+				sessionStorage.setItem(LISTA_DONE_KEY, String(Date.now()));
+			} catch (err) {
+				return;
+			}
+			console.info(LOG, "combo da lista: juntada confirmada (\"Dados registrados com sucesso\").");
+			showStatus("Documento juntado. O combo continua na lista.", "ok");
+			return;
+		}
 		const voltar = findButton(document, "Voltar para o Processo");
 		comboBackClicked = true;
 		try {

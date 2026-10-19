@@ -97,7 +97,7 @@ CENAS.V30 = {
 			{ icon: "📦", title: "Realizar Remessa", cards: [{ name: "Remessa MP", id: "card" }] },
 			{ icon: "📤", title: "Enviar Concluso", cards: [{ name: "Concluso p/ sentença" }] },
 			{ icon: "📎", title: "Juntar Documento", cards: [{ name: "Certidão de decurso", off: true }] },
-			{ icon: "🔗", title: "Combos", cards: [{ name: "Decurso + concluso ↗", combo: true }] },
+			{ icon: "🔗", title: "Combos", cards: [{ name: "Decurso + concluso", combo: true }] },
 		]), '[data-star="0"]', { w: 440 });
 		pn.style.left = "520px"; pn.style.top = "200px";
 		await S.cap("Escolha um card. Preferências de Juntar Documento e Alvará ficam esmaecidas (só na tela do processo).");
@@ -121,7 +121,7 @@ CENAS.V30 = {
 		S.hl(st, 3);
 		await S.cap("A linha mostra o resultado. A lista <b>não é recarregada</b>, para não perder a busca feita.");
 		S.hlOff();
-		await S.cap("Combos com Juntar Documento ou Alvará abrem o processo numa <b>nova aba</b> e rodam lá.");
+		await S.cap("Combos com <b>Juntar Documento</b> rodam aqui mesmo, no popup. Combos com Alvará ou Advogados abrem o processo numa <b>nova aba</b> (↗).", { ms: 5200 });
 		await S.endCard("⭐ na linha → card → dispensar/finalizar antes? → conferir → ✅ Sim, executar.");
 	},
 };
