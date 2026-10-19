@@ -14,7 +14,7 @@ Toda mudança que altera `version` em `extensao-preview-documentos/manifest.json
    `node videos-do-manual/fonte/gravar.mjs Vnn`). Desde a versão 2.53.2
    (decisão do usuário) os vídeos **continuam sendo gravados**, mas ficam
    fora da extensão e **não são citados no manual**, para uso futuro;
-4. linha nova no Anexo B (histórico);
+4. linha nova no Anexo A (histórico);
 5. `node extensao-preview-documentos/manual/verificar-manual.mjs --corrigir` e depois
    `node extensao-preview-documentos/manual/verificar-manual.mjs` até sair "Manual OK" (não há CI
    automático: a verificação é feita à mão antes do commit).

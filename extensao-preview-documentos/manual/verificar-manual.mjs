@@ -11,7 +11,7 @@
 //
 // Regras verificadas:
 //  1. "Versão do manual" e "Versão da extensão" (capa) = version do manifest.json;
-//  2. o Anexo B (histórico) tem uma linha para essa versão;
+//  2. o Anexo A (histórico) tem uma linha para essa versão;
 //  3. todo link interno (#...) aponta para uma âncora <a id="..."> existente;
 //  4. o manual não cita vídeos (eles não vão com a extensão);
 //  5. toda cena de videos-do-manual/fonte/cenas*.js tem o seu MP4 e aponta para uma seção existente;
@@ -36,9 +36,9 @@ const vManual = /\*\*Versão do manual\*\*\s*\|\s*([^\s|]+)/.exec(md)?.[1];
 const vExt = /\*\*Versão da extensão\*\*\s*\|\s*([^\s|]+)/.exec(md)?.[1];
 if (vManual !== versao) erros.push(`Capa: "Versão do manual" é ${vManual}, mas o manifest.json está em ${versao}.`);
 if (vExt !== versao) erros.push(`Capa: "Versão da extensão" é ${vExt}, mas o manifest.json está em ${versao}.`);
-const anexoB = md.slice(md.indexOf('<a id="anexo-b"></a>'));
-if (!new RegExp("^\\|\\s*" + versao.replace(/\./g, "\\.") + "\\s*\\|", "m").test(anexoB))
-	erros.push(`Anexo B: falta a linha do histórico para a versão ${versao}.`);
+const anexoA = md.slice(md.indexOf('<a id="anexo-a"></a>'));
+if (!new RegExp("^\\|\\s*" + versao.replace(/\./g, "\\.") + "\\s*\\|", "m").test(anexoA))
+	erros.push(`Anexo A: falta a linha do histórico para a versão ${versao}.`);
 
 // 3 — âncoras
 const ids = new Set([...md.matchAll(/<a id="([^"]+)"><\/a>/g)].map(m => m[1]));

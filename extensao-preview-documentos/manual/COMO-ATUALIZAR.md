@@ -38,7 +38,7 @@ repositório, com um índice (vídeo → seção do manual).
      manual a que o vídeo corresponde);
    - grave só ela: `node videos-do-manual/fonte/gravar.mjs V34`;
    - **não** cite o vídeo no `MANUAL.md` (o verificador acusa).
-4. **Anexo B**: acrescente uma linha no topo da tabela do histórico com a
+4. **Anexo A**: acrescente uma linha no topo da tabela do histórico com a
    versão, a data e o que mudou no manual.
 5. **Índice dos vídeos** (`videos-do-manual/README.md`): não edite à mão —
    rode `node extensao-preview-documentos/manual/verificar-manual.mjs --corrigir` (atualiza títulos,
@@ -49,7 +49,7 @@ repositório, com um índice (vídeo → seção do manual).
    "Manual OK".
 
 Correção de erro que não muda nada do que o usuário vê? Ainda assim a
-versão da extensão muda: registre no Anexo B ("Sem alteração de texto;
+versão da extensão muda: registre no Anexo A ("Sem alteração de texto;
 corrigido …") e atualize a capa.
 
 ## Requisitos para gravar os vídeos

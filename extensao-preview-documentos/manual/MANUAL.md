@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.53.2 |
-| **Versão da extensão** | 2.53.2 |
+| **Versão do manual** | 2.53.3 |
+| **Versão da extensão** | 2.53.3 |
 | **Data desta versão** | 19/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -20,7 +20,7 @@
 > O número da versão do manual é **igual** ao da extensão. Se a sua
 > extensão estiver numa versão diferente (veja em `chrome://extensions`),
 > algumas telas podem não bater com o que está descrito aqui — veja o
-> [Anexo B](#anexo-b) para saber o que mudou.
+> [Anexo A](#anexo-a) para saber o que mudou.
 
 ---
 
@@ -96,7 +96,7 @@
     - 10.2 [Convivência com o AzFlow](#cap-10-2)
     - 10.3 [Bloqueio para perfis de advocacia](#cap-10-3)
 11. [Solução de problemas](#cap-11)
-- [Anexo B — Histórico de versões do manual](#anexo-b)
+- [Anexo A — Histórico de versões do manual](#anexo-a)
 
 ---
 
@@ -262,7 +262,7 @@ Importar** com o arquivo exportado ([2.6](#cap-2-6)).
 
 - **Agora não (lembrar amanhã)** (ou o **✕**) esconde o aviso por um dia;
   depois ele volta, até você atualizar.
-- **Ver o que mudou** abre o histórico do manual ([Anexo B](#anexo-b)) na
+- **Ver o que mudou** abre o histórico do manual ([Anexo A](#anexo-a)) na
   página da extensão no GitHub.
 - A versão instalada aparece no card da extensão, em `chrome://extensions`,
   e no topo do Menu. Compare com a versão na capa deste manual.
@@ -2786,8 +2786,9 @@ aconteceu, e informe o responsável pela extensão.
 
 ---
 
+<a id="anexo-a"></a>
 <a id="anexo-b"></a>
-## Anexo B — Histórico de versões do manual
+## Anexo A — Histórico de versões do manual
 
 A versão do manual acompanha a da extensão. A cada nova função ou correção
 de erro na extensão, este manual ganha uma nova linha aqui (o procedimento
@@ -2795,6 +2796,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.53.3 | 19/10/2026 | O histórico de versões do manual (antes Anexo B) passa a ser o **Anexo A**, já que o anexo dos vídeos saiu na 2.53.2. O conteúdo das seções não mudou. |
 | 2.53.2 | 19/10/2026 | Os vídeos instrutivos saem do manual e deixam de ir junto com a extensão (que fica bem menor): retirados os links **▶ Vídeo** das seções, o Anexo A (lista dos vídeos) e as menções a eles na capa, em 1.2 e em 2.6. O conteúdo das seções não mudou. |
 | 2.53.1 | 19/10/2026 | As caixinhas de marcar criadas pela extensão (arquivos para WhatsApp/e-mail, movimentação das Ações rápidas e **⭐ Em lote**) passam a ter **cor laranja**, para não se confundirem com as caixinhas do próprio Projudi/SEEU. Aviso no capítulo 5 e ajustes em 7.7 e 9.3. Vídeos V07, V08, V09, V37, V38 e V45 regravados. |
 | 2.53.0 | 19/10/2026 | Mescla com a versão principal (até a 2.43.5). As versões desta série sobre o SEEU, desenvolvidas em paralelo como 2.42.0 a 2.51.0, foram renumeradas para **2.44.0 a 2.53.0** (linhas abaixo). Seção 8.3: **(Des)Habilitar Advogado** também no **SEEU** — botão **⚖️ Advogados** ao lado do ⭐ Minhas Preferências, com **Abrir**, **+ Nova preferência** e preferências. No SEEU a preferência grava um advogado (escolhido pela lupa), a **Atuação**, as **Partes do Processo** (pelo tipo) e o **Salvar**: ao gravar, o Salvar só pede o nome, sem salvar a habilitação; ao usar, o **✅ Sim, executar** clica em Salvar. Abertura do capítulo 8 ajustada. Sem vídeo novo (o vídeo V22 mostra o mesmo painel). |
@@ -2913,4 +2915,4 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 | 2.9.94 | 29/09/2026 | Menu da extensão (seção 2.6): nova **chave geral "Extensão ativada/desativada"** no topo do Menu, uma por sistema (PROJUDI e SEEU), que pausa todas as funções sem apagar as escolhas. O vídeo V34 foi regravado e agora mostra a chave geral e as abas. |
 | 2.9.93 | 29/09/2026 | Menu da extensão (seção 2.6): duas abas, **PROJUDI** e **SEEU**, para ligar e desligar as funções de cada sistema separadamente (tudo ativo por padrão nos dois), com **Copiar para o outro sistema**; a extensão reconhece o sistema pelo endereço da página. O vídeo V34 ainda mostra o Menu sem as abas e será regravado. |
 | 2.9.92 | 29/09/2026 | O manual passa a ser aberto pelo botão **📖 Manual do Usuário** do Menu, com índice, busca e vídeos na própria página. Novos: seção 2.6 (Menu da extensão: funcionalidades liga/desliga, exportar/importar/padrão) e 9.7 (Endereço da parte e Mandado Regionalizado, versões 2.9.89–2.9.91). Vídeos V34 e V35; todos os demais foram regravados com o ícone do Menu na tela. |
-| 2.9.88 | 29/09/2026 | Primeira edição do manual: todas as funções da extensão até a versão 2.9.88, com 33 vídeos instrutivos (Anexo A). |
+| 2.9.88 | 29/09/2026 | Primeira edição do manual: todas as funções da extensão até a versão 2.9.88, com 33 vídeos instrutivos (num anexo próprio, retirado na versão 2.53.2). |

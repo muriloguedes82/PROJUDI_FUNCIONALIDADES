@@ -523,7 +523,7 @@
 	const CHAVE_NOVA_VERSAO = "pdpNovaVersao";
 	const CHAVE_ADIADA = "pdpNovaVersaoAdiada";
 	const UM_DIA = 24 * 60 * 60 * 1000;
-	const LINK_NOVIDADES = "https://github.com/muriloguedes82/PROJUDI_FUNCIONALIDADES/blob/principal/extensao-preview-documentos/manual/MANUAL.md#anexo-b";
+	const LINK_NOVIDADES = "https://github.com/muriloguedes82/PROJUDI_FUNCIONALIDADES/blob/principal/extensao-preview-documentos/manual/MANUAL.md#anexo-a";
 	const VERSAO_INSTALADA = chrome.runtime.getManifest().version;
 
 	let novaVersao = null; // versão publicada maior que a instalada, ou null
