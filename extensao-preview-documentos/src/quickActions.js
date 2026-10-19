@@ -3374,6 +3374,16 @@
 	const ALTERAR_CLASSE_PREFS_KEY = "pdpAlterarClassePrefs"; // ver alterarClasseAssuntos.js
 	const PRIORIDADES_LABEL = "Prioridades";
 	const PRIORIDADES_PREFS_KEY = "pdpPrioridadesPrefs"; // ver alterarPrioridades.js
+	// Etapa "Analisar (Pré-Análise)": a preferência do "Analisar" das listas
+	// Mandados e Demais Cumprimentos (juntarDocumento.js), aplicada ao
+	// cumprimento que o quadro Pendências mostra em "Cumprimentos para
+	// expedir" (ex.: o mandado ordenado numa etapa anterior). Só no Projudi;
+	// as de Expedir Intimações/Citação ainda não entram.
+	const PRE_ANALISE_LABEL = "Analisar (Pré-Análise)";
+	const PRE_ANALISE_PREFS_KEY = "pdpPreAnalisePrefs"; // ver juntarDocumento.js
+	const PRE_ANALISE_MANDADOS = "/projudi/processo/cumprimentoCartorioMandado.do";
+	const PRE_ANALISE_DEMAIS = "/projudi/processo/cumprimentoCartorio.do";
+	const PRE_ANALISE_PATH = "/projudi/processo/preAnalise.do";
 	let comboResumeChecked = false;
 
 	function loadCombos() {
@@ -3410,7 +3420,7 @@
 		});
 	}
 
-	const COMBO_PREFS_STORAGE_KEYS = [PREFERENCES_KEY, JUNTAR_PREFS_KEY, ALTERAR_CLASSE_PREFS_KEY, PRIORIDADES_PREFS_KEY, LOCALIZADOR_PREFS_KEY];
+	const COMBO_PREFS_STORAGE_KEYS = [PREFERENCES_KEY, JUNTAR_PREFS_KEY, ALTERAR_CLASSE_PREFS_KEY, PRIORIDADES_PREFS_KEY, LOCALIZADOR_PREFS_KEY, PRE_ANALISE_PREFS_KEY];
 
 	// Todas as preferências que podem entrar num combo, por rótulo da ação,
 	// a partir do chrome.storage (chaves COMBO_PREFS_STORAGE_KEYS): as das
@@ -3427,6 +3437,17 @@
 		if (Array.isArray(alterar) && alterar.length) all[ALTERAR_CLASSE_LABEL] = alterar;
 		const prioridades = data[PRIORIDADES_PREFS_KEY];
 		if (Array.isArray(prioridades) && prioridades.length) all[PRIORIDADES_LABEL] = prioridades;
+		// Pré-Análise: as de Mandados e Demais Cumprimentos (e as antigas,
+		// sem lista gravada); o nome mostra a lista de onde veio.
+		const preAnalise = (Array.isArray(data[PRE_ANALISE_PREFS_KEY]) ? data[PRE_ANALISE_PREFS_KEY] : []).filter(function (pref) {
+			return pref && (!pref.tela || pref.tela === PRE_ANALISE_MANDADOS || pref.tela === PRE_ANALISE_DEMAIS);
+		});
+		if (preAnalise.length) {
+			all[PRE_ANALISE_LABEL] = preAnalise.map(function (pref) {
+				const lista = pref.tela === PRE_ANALISE_MANDADOS ? "Mandados" : pref.tela === PRE_ANALISE_DEMAIS ? "Demais Cumprimentos" : "";
+				return Object.assign({}, pref, { name: pref.name + (lista ? " · " + lista : "") });
+			});
+		}
 		const loc = (Array.isArray(data[LOCALIZADOR_PREFS_KEY]) ? data[LOCALIZADOR_PREFS_KEY] : []).filter(function (pref) {
 			return pref && Array.isArray(pref.localizadores) && pref.localizadores.length;
 		});
@@ -3456,11 +3477,12 @@
 			});
 		});
 		labels.push(JUNTAR_LABEL);
+		if (!NO_SEEU || (keepLabels || []).indexOf(PRE_ANALISE_LABEL) !== -1) labels.push(PRE_ANALISE_LABEL);
 		Object.keys(DIRECT_STEPS).forEach(function (label) {
 			if (DIRECT_STEPS[label].nesteSistema() || (keepLabels || []).indexOf(label) !== -1) labels.push(label);
 		});
 		Object.keys(all).forEach(function (label) {
-			if (labels.indexOf(label) === -1 && !DIRECT_STEPS[label]) labels.push(label);
+			if (labels.indexOf(label) === -1 && !DIRECT_STEPS[label] && label !== PRE_ANALISE_LABEL) labels.push(label);
 		});
 		const items = [];
 		labels.forEach(function (label) {
@@ -3857,6 +3879,10 @@
 				startJuntarStep(pref);
 				return;
 			}
+			if (step.label === PRE_ANALISE_LABEL) {
+				startPreAnaliseStep(pref);
+				return;
+			}
 			if (DIRECT_STEPS[step.label]) {
 				offerDirectStep(step, pref);
 				return;
@@ -3943,6 +3969,12 @@
 		}
 		if (getCustomAction(step.label)) {
 			return Promise.resolve(hasProcessoForm() ? {} : goBackOr("Abra a tela do processo e clique em \"Repetir etapa\"."));
+		}
+		if (step.label === PRE_ANALISE_LABEL) {
+			if (NO_SEEU) return Promise.resolve({ fail: '"Analisar (Pré-Análise)" só roda no Projudi. Pule esta etapa ou pare o combo.' });
+			const jd = window.__pdpJuntarDocumentoApi;
+			if (!jd || !jd.prepararPreAnalise) return Promise.resolve({ fail: 'Ligue o "Juntar Documento" no Menu da extensão (ícone da balança), recarregue a página e clique em "Repetir etapa".' });
+			return Promise.resolve(hasProcessoForm() ? {} : goBackOr('Abra a tela do processo (com o quadro Pendências) e clique em "Repetir etapa".'));
 		}
 		const direct = DIRECT_STEPS[step.label];
 		if (direct) {
@@ -4166,6 +4198,297 @@
 			});
 	}
 
+	// --- Etapa "Analisar (Pré-Análise)" ----------------------------------
+	//
+	// O cumprimento a expedir não existe quando o combo começa (costuma ser
+	// ordenado numa etapa anterior). A etapa o acha pelo quadro Pendências
+	// do processo — linha "Cumprimentos para expedir:", link do tipo
+	// (ex.: "Mandado: 1"), o mesmo que dispensarCumprimentos.js usa —, abre
+	// essa lista (só deste processo) e pega o link "Analisar"
+	// (preAnalise.do) do cumprimento. Com um só, abre direto; com mais de
+	// um, a barra pergunta qual (o mais recente primeiro). A Pré-Análise
+	// abre no popup e o motor do Juntar Documento a conduz, como no ⭐ das
+	// listas (preferenciasNaLinha.js, abrirPreAnalise): Tipo do Arquivo,
+	// Modelo, texto, documentos do movimento padrão e, no fim, "Postergar
+	// Assinatura" (se a preferência mandar) ou "Assinar e Expedir" pelo
+	// usuário. O combo segue quando o popup fecha depois desse fim.
+	const PRE_ANALISE_POLL_MS = 500;
+	const PRE_ANALISE_FECHAR_MS = 2500;
+	const PRE_ANALISE_ASSINOU_KEY = "pdpComboPreAnaliseAssinou";
+	// Pré-Análise aberta pela etapa atual: { iframe, timer, fechar }.
+	let preAnaliseStep = null;
+
+	function normalizarTexto(text) {
+		return String(text || "").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
+	}
+
+	// Página do Projudi por fetch() (mesma sessão), como em
+	// dispensarCumprimentos.js - as listas de cumprimentos vêm completas.
+	function buscarPagina(url) {
+		const controle = new AbortController();
+		const limite = setTimeout(function () { controle.abort(); }, 30000);
+		return fetch(url, { credentials: "same-origin", signal: controle.signal }).finally(function () { clearTimeout(limite); }).then(function (response) {
+			if (!response.ok) throw new Error("o Projudi não respondeu (" + response.status + ")");
+			return response.arrayBuffer().then(function (bytes) {
+				const preview = new TextDecoder("windows-1252").decode(bytes.slice(0, 4096));
+				const charsetMatch = /charset\s*=\s*["']?([\w-]+)/i.exec(response.headers.get("content-type") || "") || /charset\s*=\s*["']?([\w-]+)/i.exec(preview);
+				const html = new TextDecoder((charsetMatch && charsetMatch[1]) || "windows-1252").decode(bytes);
+				return { doc: new DOMParser().parseFromString(html, "text/html"), url: response.url };
+			});
+		});
+	}
+
+	// Links "Cumprimentos para expedir:" do quadro Pendências de `doc` que
+	// levam a uma das listas de `listas` (caminhos).
+	function linksParaExpedir(doc, baseUrl, listas) {
+		const links = [];
+		doc.querySelectorAll("#quadroPendencias a.link[href]").forEach(function (link) {
+			let url;
+			try {
+				url = new URL(link.getAttribute("href"), baseUrl);
+			} catch (err) {
+				return;
+			}
+			if (url.origin !== location.origin || listas.indexOf(url.pathname) === -1) return;
+			// O rótulo fica na <tr> externa (o link está numa tabela aninhada).
+			let tr = link.closest("tr");
+			while (tr && tr.closest("#quadroPendencias")) {
+				const label = tr.querySelector("td.labelRadio > label");
+				if (label) {
+					if (normalizarTexto(label.textContent) === "cumprimentos para expedir:") links.push({ url: url.href, texto: link.textContent.replace(/\s+/g, " ").trim() });
+					return;
+				}
+				tr = tr.parentElement && tr.parentElement.closest("tr");
+			}
+		});
+		return links;
+	}
+
+	// Data/hora mais recente escrita nas linhas do cumprimento (a linha do
+	// "Analisar" e, nos mandados, a linha irmã com a mesma "chave"), em ms.
+	function dataMaisRecente(texto) {
+		let max = 0;
+		const re = /(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?/g;
+		let m;
+		while ((m = re.exec(texto))) {
+			const t = new Date(+m[3], +m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0)).getTime();
+			if (t > max) max = t;
+		}
+		return max;
+	}
+
+	function linhasDoCumprimento(row) {
+		const linhas = [row];
+		const chave = /"chave"\s*:\s*"([^"]+)"/.exec(row.innerHTML);
+		const tabela = row.closest("table");
+		if (chave && tabela) {
+			tabela.querySelectorAll("tr").forEach(function (tr) {
+				if (tr === row || linhas.indexOf(tr) !== -1 || tr.querySelector("tr")) return;
+				const outra = /"chave"\s*:\s*"([^"]+)"/.exec(tr.innerHTML);
+				if (outra && outra[1] === chave[1]) linhas.push(tr);
+			});
+		}
+		return linhas;
+	}
+
+	// Cumprimentos com "Analisar" nas listas "para expedir" deste processo,
+	// do mais recente para o mais antigo: [{ url, rotulo, texto }].
+	async function cumprimentosParaExpedir(pref) {
+		const listas = pref.tela ? [pref.tela] : [PRE_ANALISE_MANDADOS, PRE_ANALISE_DEMAIS];
+		// A tela atual foi recarregada ao fim da etapa anterior; sem o link
+		// nela, lê o processo de novo (navegação oculta, como fetchDoc).
+		let links = linksParaExpedir(document, location.href, listas);
+		if (!links.length) {
+			try {
+				const atual = await fetchDoc(location.href);
+				links = linksParaExpedir(atual.doc, atual.url, listas);
+			} catch (err) {
+				logChainStep("combo: falhou a releitura do processo para a Pré-Análise", String(err));
+			}
+		}
+		const achados = [];
+		for (const link of links) {
+			const lista = await buscarPagina(link.url);
+			lista.doc.querySelectorAll("a[href]").forEach(function (a) {
+				let url;
+				try {
+					url = new URL(a.getAttribute("href"), lista.url);
+				} catch (err) {
+					return;
+				}
+				if (url.origin !== location.origin || url.pathname !== PRE_ANALISE_PATH || !url.search || /#/.test(a.getAttribute("href"))) return;
+				if (achados.some(function (c) { return c.url === url.href; })) return;
+				const row = a.closest("tr");
+				const texto = row ? linhasDoCumprimento(row).map(function (tr) { return tr.textContent; }).join(" ").replace(/\s+/g, " ").trim() : "";
+				achados.push({ url: url.href, tipo: link.texto.replace(/:\s*\d+\s*$/, ""), texto: texto, data: dataMaisRecente(texto) });
+			});
+		}
+		achados.sort(function (a, b) { return b.data - a.data; });
+		return achados.map(function (c, i) {
+			const quando = c.data ? new Date(c.data).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
+			const recente = i === 0 && achados.length > 1 && c.data > achados[1].data;
+			return {
+				url: c.url,
+				rotulo: c.tipo + (quando ? " · " + quando : " " + (i + 1)) + (recente ? " (mais recente)" : ""),
+				texto: c.texto.slice(0, 300),
+			};
+		});
+	}
+
+	function startPreAnaliseStep(pref) {
+		const startRun = readComboRun();
+		if (!startRun) return;
+		const index = startRun.index;
+		renderComboBar('Procurando, no quadro Pendências, o cumprimento para expedir…', { busy: true });
+		cumprimentosParaExpedir(pref)
+			.then(function (candidatos) {
+				const run = readComboRun();
+				if (!run || run.index !== index) return;
+				logChainStep("combo: cumprimentos para expedir achados", { quantidade: candidatos.length });
+				if (!candidatos.length) {
+					setComboWaiting(
+						'Não encontrei cumprimento para expedir com "Analisar" (' +
+							(pref.tela === PRE_ANALISE_MANDADOS ? "Mandados" : pref.tela === PRE_ANALISE_DEMAIS ? "Demais Cumprimentos" : "Mandados ou Demais Cumprimentos") +
+							') no quadro Pendências deste processo. Confira se o cumprimento foi ordenado e clique em "Repetir etapa", ou pule com "Próxima etapa".'
+					);
+					return;
+				}
+				if (candidatos.length === 1) {
+					abrirPreAnaliseEtapa(pref, candidatos[0]);
+					return;
+				}
+				renderComboBar("Há " + candidatos.length + " cumprimentos para expedir neste processo. Qual expedir com esta preferência?", {
+					actions: candidatos.map(function (c) {
+						return {
+							caption: "▶ " + c.rotulo,
+							tip: c.texto || c.rotulo,
+							onClick: function () {
+								abrirPreAnaliseEtapa(pref, c);
+							},
+						};
+					}),
+				});
+			})
+			.catch(function (err) {
+				const run = readComboRun();
+				if (!run || run.index !== index) return;
+				setComboWaiting("Não consegui ler os cumprimentos para expedir (" + (err && err.message ? err.message : err) + '). Clique em "Repetir etapa", ou pule com "Próxima etapa".');
+			});
+	}
+
+	// Anota o clique do usuário em "Assinar e Expedir" no popup (o fim fica
+	// com ele quando a preferência não posterga a assinatura).
+	function vigiarAssinarExpedir(iframe) {
+		let doc;
+		try {
+			doc = iframe.contentDocument;
+		} catch (err) {
+			return;
+		}
+		if (!doc || doc.__pdpComboAssinar) return;
+		doc.__pdpComboAssinar = true;
+		doc.addEventListener("click", function (ev) {
+			const alvo = ev.target && ev.target.closest ? ev.target.closest('input[type="button"], input[type="submit"], button') : null;
+			if (!alvo || normalizarTexto(alvo.value || alvo.textContent).indexOf("assinar e expedir") === -1) return;
+			try {
+				sessionStorage.setItem(PRE_ANALISE_ASSINOU_KEY, String(Date.now()));
+			} catch (err) {
+				// sem sessionStorage: o combo pergunta ao fechar o popup
+			}
+		}, true);
+	}
+
+	function preAnaliseAssinou() {
+		try {
+			return !!sessionStorage.getItem(PRE_ANALISE_ASSINOU_KEY);
+		} catch (err) {
+			return false;
+		}
+	}
+
+	function limparPreAnaliseAssinou() {
+		try {
+			sessionStorage.removeItem(PRE_ANALISE_ASSINOU_KEY);
+		} catch (err) {
+			// nada a limpar
+		}
+	}
+
+	function abrirPreAnaliseEtapa(pref, cumprimento) {
+		const jd = window.__pdpJuntarDocumentoApi;
+		const startRun = readComboRun();
+		if (!startRun || !jd || !jd.prepararPreAnalise) return;
+		const index = startRun.index;
+		limparPreAnaliseAssinou();
+		jd.prepararPreAnalise("apply", pref, numeroProcessoAtual());
+		logChainStep("combo: abrindo a Pré-Análise", { cumprimento: cumprimento.rotulo, preferencia: pref.name });
+		const iframe = showActionModal("Analisar — ★ " + pref.name + " (" + cumprimento.rotulo + ")");
+		const estado = { iframe: iframe, timer: null, fechar: null, concluida: false, avisou: false };
+		preAnaliseStep = estado;
+		modalHooks = {
+			noReload: true,
+			onClose: function () {
+				clearInterval(estado.timer);
+				clearTimeout(estado.fechar);
+				if (preAnaliseStep !== estado) return;
+				preAnaliseStep = null;
+				const fim = jd.fimDecurso ? jd.fimDecurso() : null;
+				const assinou = preAnaliseAssinou();
+				limparPreAnaliseAssinou();
+				if (jd.hasActiveJob && jd.hasActiveJob()) jd.cancel();
+				const run = readComboRun();
+				if (!run || run.index !== index) return;
+				logChainStep("combo: popup da Pré-Análise fechado", { fim: fim, assinou: assinou });
+				if (estado.concluida || fim === "concluida") {
+					advanceCombo("Etapa anterior: pré-análise concluída e assinatura postergada. Abrindo a próxima…");
+				} else if (fim === "aguardando" && assinou) {
+					advanceCombo('Etapa anterior: pré-análise concluída e "Assinar e Expedir" clicado (confira se o cumprimento foi expedido). Abrindo a próxima…');
+				} else if (fim === "aguardando") {
+					setComboWaiting('A pré-análise foi concluída, mas o popup fechou sem o clique em "Assinar e Expedir". Se o cumprimento foi expedido, clique em "Próxima etapa"; senão, expeça-o pela lista e depois clique em "Próxima etapa".');
+				} else {
+					setComboWaiting('O popup da pré-análise foi fechado antes do fim. Confira o cumprimento: se ele foi expedido, clique em "Próxima etapa"; senão, em "Repetir etapa".');
+				}
+			},
+		};
+		iframe.src = cumprimento.url;
+		renderComboBar("Pré-análise de " + cumprimento.rotulo + " no popup: a extensão preenche e conclui o documento. Não feche o popup até o fim.");
+		bringComboBarToFront();
+		estado.timer = setInterval(function () {
+			if (preAnaliseStep !== estado) {
+				clearInterval(estado.timer);
+				return;
+			}
+			vigiarAssinarExpedir(iframe);
+			const fim = jd.fimDecurso ? jd.fimDecurso() : null;
+			if (fim === "concluida" && !estado.concluida) {
+				estado.concluida = true;
+				renderComboBar("Assinatura postergada. Fechando o popup…", { busy: true });
+				bringComboBarToFront();
+				estado.fechar = setTimeout(function () {
+					if (activeModalIframe === iframe) removeActionModal("auto");
+				}, PRE_ANALISE_FECHAR_MS);
+			} else if (fim === "aguardando" && !estado.avisou) {
+				estado.avisou = true;
+				renderComboBar('Pré-análise concluída: confira e clique em "Assinar e Expedir" no popup; depois feche-o para o combo seguir.');
+				bringComboBarToFront();
+			}
+		}, PRE_ANALISE_POLL_MS);
+	}
+
+	// Sai da Pré-Análise aberta pela etapa atual (Repetir/Próxima/Parar),
+	// sem tratá-la como fechada.
+	function abandonPreAnaliseStep() {
+		const estado = preAnaliseStep;
+		if (!estado) return;
+		preAnaliseStep = null;
+		clearInterval(estado.timer);
+		clearTimeout(estado.fechar);
+		limparPreAnaliseAssinou();
+		const jd = window.__pdpJuntarDocumentoApi;
+		if (jd && jd.hasActiveJob && jd.hasActiveJob()) jd.cancel();
+		if (activeModalIframe === estado.iframe) removeActionModal("manual");
+	}
+
 	// O popup da etapa atual fechou (ver removeActionModal).
 	function onComboStepModalClosed(reason) {
 		const step = comboStep;
@@ -4212,6 +4535,7 @@
 		const step = comboStep;
 		comboStep = null;
 		if (step && step.iframe && activeModalIframe === step.iframe) removeActionModal("manual");
+		abandonPreAnaliseStep();
 	}
 
 	// `offset`: 0 repete a etapa atual; 1 vai para a próxima.
@@ -4330,6 +4654,24 @@
 				return;
 			} else {
 				setComboWaiting('A juntada não chegou ao "Concluir Movimento" pelo combo. Se ela foi concluída, clique em "Próxima etapa"; senão, em "Repetir etapa".');
+				return;
+			}
+		}
+		// Pré-Análise interrompida pela troca de tela (o Projudi pode
+		// recarregar a tela por trás ao expedir): segue se o fim já foi
+		// registrado; senão, pergunta - nunca reabre sozinha.
+		if (run.phase === "running" && step && step.label === PRE_ANALISE_LABEL) {
+			const jd = window.__pdpJuntarDocumentoApi;
+			const fim = jd && jd.fimDecurso ? jd.fimDecurso() : null;
+			const assinou = preAnaliseAssinou();
+			limparPreAnaliseAssinou();
+			if (jd && jd.hasActiveJob && jd.hasActiveJob()) jd.cancel();
+			if (fim === "concluida" || (fim === "aguardando" && assinou)) {
+				run.index++;
+				run.phase = "pending";
+				writeComboRun(run);
+			} else {
+				setComboWaiting('A tela mudou durante a pré-análise. Confira o cumprimento: se ele foi expedido, clique em "Próxima etapa"; senão, em "Repetir etapa".');
 				return;
 			}
 		}
@@ -5927,9 +6269,10 @@
 		comboPendingKey: COMBO_PENDING_KEY,
 		// Etapas que só rodam na tela do processo (navegam a aba ou usam
 		// telas próprias): "Juntar Documento", ações personalizadas e as
-		// etapas diretas (Alterar Classe/Assuntos, Localizador).
+		// etapas diretas (Alterar Classe/Assuntos, Localizador) e a do
+		// "Analisar (Pré-Análise)" (lê o quadro Pendências do processo).
 		stepNeedsProcessScreen: function (label) {
-			return label === JUNTAR_LABEL || !!getCustomAction(label) || label === "Alvará Eletrônico" || !!DIRECT_STEPS[label];
+			return label === JUNTAR_LABEL || !!getCustomAction(label) || label === "Alvará Eletrônico" || !!DIRECT_STEPS[label] || label === PRE_ANALISE_LABEL;
 		},
 		// Abre/fecha o painel de um grupo cujo botão é de outro arquivo
 		// (ex.: "⚖️ Advogados", de habilitarAdvogado.js, com

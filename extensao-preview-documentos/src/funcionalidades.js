@@ -74,7 +74,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "acoesRapidas",
 					nome: "Ações rápidas e Minhas Preferências",
-					descricao: "Botões do painel \"Ações\", preferências salvas e combos.",
+					descricao: "Botões do painel \"Ações\", preferências salvas e combos (no Projudi, os combos também expedem o cumprimento ordenado, pelo Analisar - Pré-Análise).",
 					js: ["src/quickActions.js"],
 					css: ["src/quickActions.css"]
 				},

@@ -1523,3 +1523,64 @@ CENAS.V57 = {
 		await S.endCard("Lista do SEEU → 📍 localizadores na coluna do número → clique no localizador para removê-lo · ✏️ → ➕ associar ou ✖ remover → a linha mostra o resultado.");
 	},
 };
+
+// ------------------------------------------------------------------ V58
+// Combo com etapa "Analisar (Pré-Análise)": depois do "Ordenar
+// Cumprimentos", a etapa acha o mandado em "Cumprimentos para expedir" do
+// quadro Pendências e faz o Analisar com a preferência da lista Mandados.
+CENAS.V58 = {
+	arquivo: "V58-combo-com-expedicao-de-mandado.mp4",
+	titulo: "Combo com expedição de mandado",
+	secao: "7.4",
+	async run() {
+		telaProcesso({});
+		$("#pend-juntada").closest("tr").remove();
+		$("#pend-conclusao").closest("tr").remove();
+		$("#pend-decurso").closest("tr").remove();
+		await S.titleCard("VÍDEO V58", "Combo com expedição de mandado", "Ordene o mandado e expeça-o no mesmo combo, com a preferência do Analisar (Pré-Análise).");
+		await S.cap("No editor de combos, as caixas também trazem as preferências do <b>Analisar (Pré-Análise)</b> criadas em <b>Mandados</b> e <b>Demais Cumprimentos</b>.", { ms: 5200 });
+		await S.click("#x-combos");
+		let pn = panelAt('<h4>🔗 Combos</h4><div class="x-note">Nenhum combo ainda.</div><span class="x-btn small" id="novo">+ Novo combo</span>', "#x-combos", { w: 320 });
+		await S.click("#novo");
+		pn.remove();
+		const sel = n => '<div style="margin-top:8px"><div class="x-note">Caixa ' + n + '</div><span class="pj-select" style="width:100%" id="cx' + n + '">Escolha a preferência</span></div>';
+		modal('<h3>Novo combo</h3><div>Nome do combo:</div><div class="x-field" id="cnome"></div><div id="caixas">' + sel(1) + '</div><div style="margin-top:8px"><span class="x-btn small" id="maiscx">+ Adicionar preferência</span></div><div style="text-align:right;margin-top:12px"><span class="pj-btn">Cancelar</span> <span class="pj-btn primary" id="salvarc">💾 Salvar combo</span></div>', { w: 560, top: 130 });
+		await S.type("#cnome", "Mandado de intimação");
+		await selecionar("#cx1", "★ Mandado de intimação (Ordenar Cumprimentos)");
+		await S.click("#maiscx");
+		$("#caixas").insertAdjacentHTML("beforeend", sel(2));
+		await S.cap("Na caixa seguinte, escolha a preferência do grupo <b>Analisar (Pré-Análise)</b>. O nome mostra a lista onde ela foi criada.", { ms: 4800 });
+		await selecionar("#cx2", "★ Mandado MPU · Mandados (Analisar (Pré-Análise))");
+		await S.click("#salvarc");
+		closeModal();
+		await S.click("#x-combos");
+		pn = panelAt('<h4>🔗 Combos</h4><div class="x-chip" id="run" style="font-size:12px">▶ Mandado de intimação <span class="i">✏️</span> <span class="i">🗑</span></div><div style="margin-top:6px"><span class="x-btn small">+ Novo combo</span></div>', "#x-combos", { w: 320 });
+		await S.click("#run", { dx: -30 });
+		pn.remove();
+		const cb = bar('Combo “Mandado de intimação” — etapa 1 de 2: Ordenar Cumprimentos <span class="x-btn small">↻ Repetir etapa</span><span class="x-btn small">⏭ Próxima etapa</span><span class="x-btn small">⏹ Parar combo</span>', { cls: "combo", top: 572 });
+		await abrindo("Ordenar Cumprimentos", 900);
+		popup("Ordenar Cumprimentos", dlgOrdenar({ tc: "Mandado de Intimação", parte: 0, prazo: "15" }), { top: 120, h: 470 });
+		bar('Combo “Mandado de intimação” — etapa 1 de 2 · Confirmar “Ordenar Cumprimentos”? <span class="x-btn small green" id="sim">✅ Sim, executar</span> <span class="x-btn small">Cancelar</span>', { top: 78 });
+		await S.cap("A etapa 1 ordena o mandado, como sempre: confira e clique em <b>✅ Sim, executar</b>.");
+		await S.click("#sim");
+		$$(".x-bar")[1].remove(); $(".x-popup").remove();
+		$("#quadroPendencias table").insertAdjacentHTML("afterbegin", '<tr><td class="l">Cumprimentos para expedir:</td><td><a class="link" id="pend-mand">Mandado: 1</a></td></tr>');
+		cb.innerHTML = 'Combo “Mandado de intimação” — etapa 2 de 2: Analisar (Pré-Análise) · Procurando, no quadro Pendências, o cumprimento para expedir… <span class="x-btn small">⏹ Parar combo</span>';
+		S.hl("#pend-mand", 3);
+		await S.cap("Na etapa 2, a extensão acha o mandado novo em <b>Cumprimentos para expedir</b>, no quadro Pendências.", { ms: 4600 });
+		S.hlOff();
+		cb.innerHTML = 'Combo “Mandado de intimação” — etapa 2 de 2 · Pré-análise de Mandado no popup: a extensão preenche e conclui o documento. <span class="x-btn small">↻ Repetir etapa</span><span class="x-btn small">⏭ Próxima etapa</span><span class="x-btn small">⏹ Parar combo</span>';
+		popup("Pré-Análise", '<div style="font-size:12px">Tipo do Arquivo: <span class="pj-select" style="background:#fffbe6">Mandado</span> · Modelo: <span class="pj-select" style="background:#fffbe6">Documento em Branco</span></div><div style="margin-top:10px"><span class="pj-input" style="min-width:420px;min-height:50px;display:inline-block;background:#fffbe6">Intime-se a parte da medida protetiva…</span></div><div style="margin-top:12px"><span class="pj-btn primary">Salvar e Concluir</span></div>', { hd: "Analisar — ★ Mandado MPU · Mandados (Mandado)", top: 120, h: 360 });
+		await S.cap("A Pré-Análise abre no popup e segue sozinha: Tipo do Arquivo, Modelo, texto e <b>Salvar e Concluir</b>.", { ms: 4600 });
+		$(".x-popup").remove();
+		popup("Mandado", '<div style="font-size:12px"><b>Documento(s) do Processo/Recurso</b><div style="border:1px solid #ccc;padding:6px;margin:6px 0">Decisão — online.pdf (CONCEDIDA A MEDIDA PROTETIVA)</div></div>' +
+			'<div style="margin-top:30px;text-align:right"><span class="pj-btn">Assinar e Expedir</span> <span class="pj-btn" id="postergar" style="outline:3px solid #f5b400">Postergar Assinatura</span></div>', { hd: "Analisar — ★ Mandado MPU · Mandados (Mandado)", top: 120, h: 300 });
+		await S.cap("Na tela do mandado, os documentos do movimento padrão são anexados. Com “postergar”, a extensão clica em <b>Postergar Assinatura</b>; senão, você clica em <b>Assinar e Expedir</b> e fecha o popup.", { ms: 6200 });
+		$(".x-popup").remove();
+		$("#pend-mand").closest("tr").remove();
+		cb.innerHTML = "✅ Combo “Mandado de intimação” concluído (2 etapas).";
+		await S.cap("O popup fecha e o combo segue para a próxima etapa (aqui, era a última).", { ms: 3800 });
+		await S.cap("Com <b>mais de um</b> cumprimento para expedir, a barra do combo pergunta qual expedir (o mais recente primeiro).", { ms: 4800 });
+		await S.endCard("Combo: … → Ordenar Cumprimentos → Analisar (Pré-Análise) · a etapa acha o mandado em “Cumprimentos para expedir” e faz o Analisar com a preferência.");
+	},
+};

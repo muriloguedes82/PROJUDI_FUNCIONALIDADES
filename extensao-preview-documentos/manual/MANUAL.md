@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.53.0 |
-| **Versão da extensão** | 2.53.0 |
+| **Versão do manual** | 2.54.0 |
+| **Versão da extensão** | 2.54.0 |
 | **Data desta versão** | 19/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1118,6 +1118,8 @@ associam os localizadores na hora, sem diálogo nem ✅ **Sim, executar**
 
 ▶ [**Vídeo V19** — Combos](videos/V19-combos-de-preferencias.mp4)
 
+▶ [**Vídeo V58** — Combo com expedição de mandado](videos/V58-combo-com-expedicao-de-mandado.mp4)
+
 **Para que serve:** executar várias preferências **em sequência**, ex.:
 "Intimar MP" → "Juntar certidão de decurso" → "Enviar concluso para
 sentença".
@@ -1128,8 +1130,12 @@ Eletrônico** e **⚖️ Advogados**), as do **📎 Juntar Documento**, as do
 **✏️ Alterar Classe/Assuntos** (classe, assunto principal e assunto
 secundário — só no Projudi, [8.9](#cap-8-9)), as de **Prioridades** (só no
 Projudi, [8.11](#cap-8-11)) e as do **📍 Localizador** (só no SEEU,
-[8.8](#cap-8-8)). Na caixa de cada etapa elas aparecem separadas
-pelo nome da função.
+[8.8](#cap-8-8)). No Projudi, entram também as do **Analisar
+(Pré-Análise)** criadas nas listas **Mandados** e **Demais Cumprimentos**
+([9.11](#cap-9-11)) — assim o mesmo combo pode ordenar um mandado e
+expedi-lo (veja abaixo). Na caixa de cada etapa elas aparecem separadas
+pelo nome da função; as do Analisar mostram, no nome, a lista onde foram
+criadas (ex.: "Mandado MPU · Mandados").
 
 **Criar:**
 
@@ -1155,6 +1161,41 @@ pelo nome da função.
    Repetir etapa**, **⏭ Próxima etapa** (se você a fez à mão) e **⏹ Parar
    combo**.
 
+**Expedir no combo o cumprimento ordenado (só no Projudi):**
+
+Exemplo de combo: Intimar a parte → Remessa ao Ministério Público →
+Remessa ao CREAS → Remessa ao Distribuidor → **Ordenar Cumprimentos**
+(mandado) → **Analisar (Pré-Análise)** (expedir esse mandado).
+
+1. Crie antes a preferência do **Analisar (Pré-Análise)** no ⭐ de uma
+   linha da lista **Mandados** (ou **Demais Cumprimentos**), como em
+   [9.11](#cap-9-11).
+2. No combo, ponha a etapa do **Analisar (Pré-Análise)** **depois** da
+   etapa que ordena o cumprimento.
+3. Ao chegar nessa etapa, a extensão procura, no quadro **Pendências** do
+   processo, a linha **Cumprimentos para expedir** (ex.: "Mandado: 1") da
+   lista onde a preferência foi criada, e abre o **Analisar** desse
+   cumprimento no popup.
+4. A Pré-Análise segue como no ⭐ da lista: Tipo do Arquivo, Modelo,
+   texto, **Salvar e Concluir**, os documentos do movimento padrão e, no
+   fim, **Postergar Assinatura** (o popup fecha sozinho) ou **Assinar e
+   Expedir**, que você clica — depois feche o popup.
+5. O combo segue para a próxima etapa quando o popup fecha depois desse
+   fim.
+
+- Se houver **mais de um** cumprimento para expedir dessa lista, a barra
+  do combo pergunta qual expedir (o mais recente aparece primeiro, marcado
+  "mais recente").
+- Se não houver nenhum (por exemplo, a ordenação não foi feita), a barra
+  avisa e oferece **↻ Repetir etapa**, **⏭ Próxima etapa** ou **⏹ Parar
+  combo**.
+- Se o popup for fechado antes do fim, ou sem o clique em **Assinar e
+  Expedir**, a barra pede para você conferir o cumprimento antes de
+  seguir.
+- Precisa do **Juntar Documento** ligado no Menu ([2.6](#cap-2-6)).
+- Na ⭐ das listas, um combo com essa etapa abre o processo numa nova aba
+  e não roda em lote.
+
 **Bom saber:**
 
 - Etapas de **Juntar Documento** são feitas na própria aba e param na
@@ -1169,9 +1210,10 @@ pelo nome da função.
   valor) e o combo segue sozinho. Se algo der errado (por exemplo, um
   localizador que não existe na unidade), a barra mostra o aviso e oferece
   **↻ Repetir etapa**, **⏭ Próxima etapa** ou **⏹ Parar combo**.
-- Preferências que só funcionam nas listas (Analisar Decurso, Pré-Análise
-  e listas de tarefas) não entram nos combos: elas agem sobre a linha da
-  lista, e não sobre a tela do processo.
+- Preferências que só funcionam nas listas (Analisar Decurso, a
+  Pré-Análise de **Expedir Intimações** e de **Expedir Citação** e listas
+  de tarefas) não entram nos combos: elas agem sobre a linha da lista, e
+  não sobre a tela do processo.
 - O combo continua mesmo depois de a página recarregar, mas **não**
   continua se você abrir outro processo na mesma aba.
 - Editar uma preferência vale também para os combos que a usam; se ela for
@@ -2747,6 +2789,9 @@ são feitos um de cada vez; com "postergar", seguem sozinhos até o fim.
 - Na lista de **Mandados**, se a tela final do mandado não mostrar
   **Postergar Assinatura** nem **Assinar e Expedir**, a extensão não faz
   nada nela: termine o mandado à mão e feche o popup.
+- As preferências criadas em **Mandados** e em **Demais Cumprimentos**
+  também entram nos **combos** da tela do processo: o combo pode ordenar o
+  mandado e, na etapa seguinte, expedi-lo ([7.4](#cap-7-4)).
 
 <a id="cap-9-12"></a>
 ### 9.12 Localizador na lista de juntadas e de conclusões (só no SEEU)
@@ -2973,6 +3018,7 @@ pode variar um pouco. Clique no título para assistir.
 | [V55](videos/V55-paineis-com-muitas-preferencias.mp4) | [Painéis com muitas preferências](videos/V55-paineis-com-muitas-preferencias.mp4) | [7.8](#cap-7-8) | 0:42 |
 | [V56](videos/V56-incluir-e-remover-prioridades.mp4) | [Incluir e remover prioridades](videos/V56-incluir-e-remover-prioridades.mp4) | [8.11](#cap-8-11) | 0:58 |
 | [V57](videos/V57-localizador-na-lista-seeu.mp4) | [Localizador na lista (SEEU)](videos/V57-localizador-na-lista-seeu.mp4) | [9.12](#cap-9-12) | 1:00 |
+| [V58](videos/V58-combo-com-expedicao-de-mandado.mp4) | [Combo com expedição de mandado](videos/V58-combo-com-expedicao-de-mandado.mp4) | [7.4](#cap-7-4) | 1:04 |
 <!-- tabela-videos:fim -->
 
 ---
@@ -2986,6 +3032,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.54.0 | 19/10/2026 | Seção 7.4: os **combos** passam a aceitar as preferências do **Analisar (Pré-Análise)** criadas em **Mandados** e **Demais Cumprimentos** (só no Projudi). A etapa procura o cumprimento em **Cumprimentos para expedir**, no quadro Pendências do processo, e faz o Analisar no popup — assim o mesmo combo ordena e expede o mandado. Com mais de um cumprimento para expedir, a barra do combo pergunta qual. Seção 9.11: nota sobre os combos. Vídeo novo **V58** (Combo com expedição de mandado). |
 | 2.53.0 | 19/10/2026 | Mescla com a versão principal (até a 2.43.5). As versões desta série sobre o SEEU, desenvolvidas em paralelo como 2.42.0 a 2.51.0, foram renumeradas para **2.44.0 a 2.53.0** (linhas abaixo). Seção 8.3: **(Des)Habilitar Advogado** também no **SEEU** — botão **⚖️ Advogados** ao lado do ⭐ Minhas Preferências, com **Abrir**, **+ Nova preferência** e preferências. No SEEU a preferência grava um advogado (escolhido pela lupa), a **Atuação**, as **Partes do Processo** (pelo tipo) e o **Salvar**: ao gravar, o Salvar só pede o nome, sem salvar a habilitação; ao usar, o **✅ Sim, executar** clica em Salvar. Abertura do capítulo 8 ajustada. Sem vídeo novo (o vídeo V22 mostra o mesmo painel). |
 | 2.52.0 | 19/10/2026 | Seção 7.1: duas ações rápidas novas, **só no SEEU**, no botão **Outras**: **Redistribuir** e **Comunicar ao IIPR** — abrem a tela no popup e aceitam preferências, como as demais. Sem vídeo novo. |
 | 2.51.0 | 19/10/2026 | Seção 7.1: no **SEEU**, as Ações rápidas passam a mostrar só **Enviar Concluso**, **Realizar Remessa**, **Ordenar Cumprimentos**, **Intimar Partes**, **Intimar Peritos e Auxiliares da Justiça**, **Transitar em Julgado**, **Arquivar Processo** e **Interromper Prazo** (o botão **Suspender** some lá); as preferências das demais ações ficam só no Projudi. No Projudi, nada muda. Abertura do capítulo 7 ajustada. Sem vídeo novo. |
