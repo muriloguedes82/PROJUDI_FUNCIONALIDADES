@@ -10,8 +10,13 @@ request**. Não há verificação automática no GitHub: antes de commitar, rode
 
 O manual fica **dentro da extensão** porque o botão **📖 Manual do Usuário**
 do Menu (ícone da balança no Projudi/SEEU) abre `manual/MANUAL.md` numa aba,
-com índice, busca e os vídeos (`src/manual.html` e `src/manual.js`). Por isso
-a pasta `manual/videos/` é distribuída junto com a extensão.
+com índice e busca (`src/manual.html` e `src/manual.js`).
+
+**Vídeos:** desde a versão 2.53.2 (decisão do usuário), os vídeos **não vão
+com a extensão e não são citados no manual**. Eles continuam sendo gravados
+a cada função nova, e ficam guardados para uso futuro em
+[`videos-do-manual/`](../../videos-do-manual/README.md), na raiz do
+repositório, com um índice (vídeo → seção do manual).
 
 ## Passo a passo
 
@@ -28,15 +33,16 @@ a pasta `manual/videos/` é distribuída junto com a extensão.
      saber* e escreva para quem só conhece o Projudi (nada de termos
      técnicos como `fetch`, `iframe`, `sessionStorage`).
 3. **Vídeo** (quando a função é nova ou o que aparece na tela mudou):
-   - crie ou ajuste a cena em `videos/fonte/cenas1.js`, `cenas2.js` ou
-     `cenas3.js` (cada cena tem `arquivo`, `titulo` e `secao`);
-   - grave só ela: `node extensao-preview-documentos/manual/videos/fonte/gravar.mjs V34`;
-   - cite o vídeo na seção: `▶ [**Vídeo V34** — Título](videos/V34-nome.mp4)`.
+   - crie ou ajuste a cena em `videos-do-manual/fonte/cenas1.js` a
+     `cenas4.js` (cada cena tem `arquivo`, `titulo` e `secao` — a seção do
+     manual a que o vídeo corresponde);
+   - grave só ela: `node videos-do-manual/fonte/gravar.mjs V34`;
+   - **não** cite o vídeo no `MANUAL.md` (o verificador acusa).
 4. **Anexo B**: acrescente uma linha no topo da tabela do histórico com a
    versão, a data e o que mudou no manual.
-5. **Anexo A**: não edite à mão — rode
-   `node extensao-preview-documentos/manual/verificar-manual.mjs --corrigir` (atualiza títulos, seções e
-   durações dos vídeos).
+5. **Índice dos vídeos** (`videos-do-manual/README.md`): não edite à mão —
+   rode `node extensao-preview-documentos/manual/verificar-manual.mjs --corrigir` (atualiza títulos,
+   seções e durações dos vídeos).
 6. Rode `node extensao-preview-documentos/manual/gerar-pdf.mjs` para regerar `MANUAL.pdf` (precisa de
    `pip install markdown`).
 7. Rode `node extensao-preview-documentos/manual/verificar-manual.mjs` e só abra o PR com
@@ -54,13 +60,13 @@ corrigido …") e atualize a capa.
   Uma forma simples: `pip install imageio-ffmpeg` e
   `FFMPEG=$(python3 -c "import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())")`.
 
-`CHECAR=1 node extensao-preview-documentos/manual/videos/fonte/gravar.mjs` roda todas as cenas sem
+`CHECAR=1 node videos-do-manual/fonte/gravar.mjs` roda todas as cenas sem
 gravar, só para achar erros.
 
 ## Como os vídeos são feitos
 
 Os vídeos **não** são gravações do Projudi real (que exige login e dados
-reais): `videos/fonte/palco.html` desenha telas **simuladas**, com dados
+reais): `videos-do-manual/fonte/palco.html` desenha telas **simuladas**, com dados
 fictícios, e `motor.js` move um cursor, clica e mostra legendas.
 `gravar.mjs` roda cada cena sob um relógio virtual e captura quadro a quadro
 (25 quadros/s), o que deixa o resultado nítido e sempre igual. Um aviso no
