@@ -285,7 +285,12 @@
 	}
 
 	function fieldMatches(el, f) {
-		if (f.disabled === false && el.disabled) return false;
+		// Habilitado-mas-vazio não exige o campo habilitado no diálogo novo:
+		// ex.: o prazo de um item com retorno "Não" que ficou liberado na
+		// tela depois de form.reset() (que não refaz o onclick do radio) -
+		// no diálogo novo ele vem desabilitado e a espera ia até o
+		// FIELD_APPLY_TIMEOUT_MS à toa.
+		if (f.disabled === false && el.disabled) return !fieldNeeded(f);
 		// Radio desmarcado: o grupo (mesmo `name`) desmarca sozinho quando o
 		// marcado é clicado - não há o que conferir nele.
 		if (f.type === "radio" && !f.checked) return true;
