@@ -90,8 +90,7 @@ funcionalidades desativadas. Clique no ícone para abrir o **Menu**
    os seus), nem login/token do Microsoft Graph, nem trabalhos em
    andamento (envios, combos e juntadas pendentes).
 3. **📖 Manual do Usuário** - abre o manual (`manual/MANUAL.md`) numa nova
-   aba, com índice, busca e os vídeos instrutivos (`manual/videos/`) tocando
-   na própria página. Há também o link para consultar os **Termos de Uso**.
+   aba, com índice e busca. Há também o link para consultar os **Termos de Uso**.
    O manual é atualizado a cada versão da extensão - veja
    [`manual/COMO-ATUALIZAR.md`](manual/COMO-ATUALIZAR.md).
 

@@ -11,13 +11,11 @@
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
 > (canto superior direito, abaixo de **Sair**) e depois em **📖 Manual do
-> Usuário**. Ele abre numa nova aba, com índice e busca, e os links **▶
-> Vídeo** tocam na própria página. Veja [2.6](#cap-2-6).
+> Usuário**. Ele abre numa nova aba, com índice e busca. Veja
+> [2.6](#cap-2-6).
 >
 > **Como ler este manual.** Cada função tem a mesma estrutura: *Para que
-> serve*, *Onde fica*, *Passo a passo* e *Bom saber*. Sempre que houver um
-> vídeo curto mostrando a função, o link **▶ Vídeo** aparece no início da
-> seção. Todos os vídeos estão reunidos no [Anexo A](#anexo-a).
+> serve*, *Onde fica*, *Passo a passo* e *Bom saber*.
 >
 > O número da versão do manual é **igual** ao da extensão. Se a sua
 > extensão estiver numa versão diferente (veja em `chrome://extensions`),
@@ -98,7 +96,6 @@
     - 10.2 [Convivência com o AzFlow](#cap-10-2)
     - 10.3 [Bloqueio para perfis de advocacia](#cap-10-3)
 11. [Solução de problemas](#cap-11)
-- [Anexo A — Vídeos instrutivos](#anexo-a)
 - [Anexo B — Histórico de versões do manual](#anexo-b)
 
 ---
@@ -130,15 +127,10 @@ Não é preciso saber nada de informática além disso.
 | Símbolo / formato | Significado |
 |---|---|
 | **Negrito** | Nome de um botão, aba, campo ou tela, exatamente como aparece |
-| ▶ **Vídeo Vnn** | Link para o vídeo daquela função (ver [Anexo A](#anexo-a)) |
 | ⚠️ | Atenção: cuidado para não praticar um ato sem conferir |
 | *Só no Projudi* | A função não existe no SEEU |
 | *Só no SEEU* | A função não existe no Projudi |
 | ✅ **Sim, executar** | O único botão da extensão que confirma um ato processual — sempre depois de você conferir |
-
-> Os vídeos usam **telas simuladas** do Projudi, com dados fictícios, só
-> para mostrar onde clicar. Cores e posições podem variar um pouco no
-> sistema real.
 
 <a id="cap-1-3"></a>
 ### 1.3 Onde a extensão funciona
@@ -180,8 +172,6 @@ advogado(a) ou de assessor(a) de advogado — veja [10.3](#cap-10-3).
 <a id="cap-2-1"></a>
 ### 2.1 Instalação
 
-▶ [**Vídeo V01** — Instalação e Termos de Uso](videos/V01-instalacao-e-termos-de-uso.mp4)
-
 **Para que serve:** colocar a extensão no navegador.
 
 **Passo a passo:**
@@ -202,8 +192,6 @@ usa os arquivos dela.
 
 <a id="cap-2-2"></a>
 ### 2.2 Termos de Uso
-
-▶ [**Vídeo V01** — Instalação e Termos de Uso](videos/V01-instalacao-e-termos-de-uso.mp4)
 
 **Para que serve:** a extensão só é ativada depois que você lê e aceita os
 Termos de Uso. Enquanto não houver aceite, **nenhuma função aparece** no
@@ -230,8 +218,6 @@ Projudi/SEEU.
 
 <a id="cap-2-3"></a>
 ### 2.3 Atualização da extensão
-
-▶ [**Vídeo V48** — Aviso de versão nova e atualização](videos/V48-aviso-de-versao-nova.mp4)
 
 **Para que serve:** saber quando há novidades na extensão e instalar a
 versão nova sem perder as suas preferências.
@@ -285,8 +271,6 @@ Importar** com o arquivo exportado ([2.6](#cap-2-6)).
 
 <a id="cap-2-4"></a>
 ### 2.4 A barra de botões da extensão
-
-▶ [**Vídeo V02** — A barra de botões da extensão](videos/V02-barra-de-botoes-da-extensao.mp4)
 
 **Onde fica:** com um processo aberto, no **canto inferior direito** da
 tela, "flutuando" sobre a página.
@@ -347,10 +331,6 @@ Clique em **Salvar** depois de alterar.
 
 <a id="cap-2-6"></a>
 ### 2.6 Menu da extensão (ícone da balança)
-
-▶ [**Vídeo V34** — Menu da extensão](videos/V34-menu-da-extensao.mp4)
-
-▶ [**Vídeo V58** — Escolher funções e botões (busca, Desativar todas)](videos/V58-escolher-funcoes-e-botoes.mp4)
 
 **Para que serve:** deixar a extensão do jeito da sua rotina — ligar e
 desligar funções inteiras ou só os botões que você não usa —, levar as suas
@@ -497,8 +477,7 @@ combos e juntadas pendentes). Guarde o arquivo com cuidado: ele contém os
 seus contatos.
 
 **3. 📖 Manual do Usuário** — abre este manual numa nova aba, com **índice
-lateral e busca**. Os links **▶ Vídeo** tocam na própria página (feche com
-**✕ Fechar** ou **Esc**). Logo acima fica o link **Termos de Uso**.
+lateral e busca**. Logo acima fica o link **Termos de Uso**.
 
 **Bom saber:** se um botão da extensão "sumiu", confira no Menu, **na aba do
 sistema em que você está**, se a função não foi desligada (e se alguma função
@@ -514,8 +493,6 @@ até mudar em uma das abas.
 
 <a id="cap-3-1"></a>
 ### 3.1 Pré-visualização de documentos
-
-▶ [**Vídeo V03** — Pré-visualização de documentos](videos/V03-pre-visualizacao-de-documentos.mp4)
 
 **Para que serve:** ler a íntegra de um documento **sem abrir outra aba**.
 
@@ -549,8 +526,6 @@ até mudar em uma das abas.
 <a id="cap-3-2"></a>
 ### 3.2 Pré-visualização das pendências
 
-▶ [**Vídeo V04** — Pré-visualização das pendências](videos/V04-pre-visualizacao-das-pendencias.mp4)
-
 **Para que serve:** ver os documentos de juntadas e conclusões **pendentes**
 sem abrir a tela de análise. *Só no Projudi.*
 
@@ -572,8 +547,6 @@ sem abrir a tela de análise. *Só no Projudi.*
 
 <a id="cap-3-3"></a>
 ### 3.3 Expandir movimentações e ocultar as sem arquivo
-
-▶ [**Vídeo V05** — Expandir e ocultar movimentações](videos/V05-expandir-e-ocultar-movimentacoes.mp4)
 
 **Para que serve:** abrir de uma vez os anexos de todas as movimentações da
 página e esconder as movimentações que não têm documento.
@@ -597,8 +570,6 @@ processo aberto.
 
 <a id="cap-3-4"></a>
 ### 3.4 Destacar movimentações por tipo de usuário
-
-▶ [**Vídeo V06** — Destacar movimentações](videos/V06-destacar-movimentacoes.mp4)
 
 **Para que serve:** colorir automaticamente as movimentações feitas por
 **Magistrado(a)**, **Ministério Público**, **Advogado(a)**,
@@ -646,8 +617,6 @@ Projudi.*
 <a id="cap-4-1"></a>
 ### 4.1 Suspensão ativa no cabeçalho
 
-▶ [**Vídeo V10** — Suspensão e monitoração no cabeçalho](videos/V10-suspensao-e-monitoracao-no-cabecalho.mp4)
-
 **Para que serve:** saber, sem abrir a aba **Informações Adicionais**, se o
 processo tem uma suspensão **ATIVA**.
 
@@ -673,8 +642,6 @@ processo tem uma suspensão **ATIVA**.
 <a id="cap-4-2"></a>
 ### 4.2 Monitoração eletrônica ativa no cabeçalho
 
-▶ [**Vídeo V10** — Suspensão e monitoração no cabeçalho](videos/V10-suspensao-e-monitoracao-no-cabecalho.mp4)
-
 **Para que serve:** saber se há **monitoração eletrônica** em vigor e desde
 quando.
 
@@ -691,8 +658,6 @@ geram card.
 
 <a id="cap-4-3"></a>
 ### 4.3 Réus, indiciados e noticiados no cabeçalho
-
-▶ [**Vídeo V11** — Réus no cabeçalho](videos/V11-reus-no-cabecalho.mp4)
 
 **Para que serve:** ver as partes do polo passivo com RG e CPF sem abrir a
 aba **Partes e Outros**.
@@ -711,8 +676,6 @@ aba **Partes e Outros**.
 
 <a id="cap-4-4"></a>
 ### 4.4 Sequencial do processo principal (apensos)
-
-▶ [**Vídeo V12** — Sequencial do processo principal](videos/V12-sequencial-do-processo-principal.mp4)
 
 **Para que serve:** num processo **apenso**, ver o **Sequencial** do
 processo principal sem abri-lo; no processo principal, ver o próprio
@@ -769,10 +732,13 @@ os documentos pelas caixinhas que a extensão coloca ao lado de cada arquivo
 da aba **Movimentações** (abra o **+** da movimentação para vê-las). A
 seleção é a mesma para WhatsApp e e-mail.
 
+> **Caixinhas da extensão são laranja.** Todas as caixinhas de marcar que a
+> extensão coloca na página (as dos arquivos, a da movimentação nas Ações
+> rápidas e a do **⭐ Em lote** nas listas) têm **contorno laranja**, para
+> não serem confundidas com as caixinhas do próprio Projudi/SEEU.
+
 <a id="cap-5-1"></a>
 ### 5.1 Envio por WhatsApp Web
-
-▶ [**Vídeo V07** — Envio por WhatsApp](videos/V07-envio-por-whatsapp.mp4)
 
 **Antes de começar:** o WhatsApp Web precisa estar conectado (QR Code lido)
 neste navegador.
@@ -809,8 +775,6 @@ neste navegador.
 <a id="cap-5-2"></a>
 ### 5.2 Envio por e-mail (Outlook)
 
-▶ [**Vídeo V08** — Envio por e-mail](videos/V08-envio-por-email.mp4)
-
 **Onde fica:** botão **✉️ Enviar por e-mail**, sempre visível no canto
 inferior direito. Com documentos marcados ele mostra a quantidade, ex.:
 "Enviar por e-mail (2)".
@@ -846,8 +810,6 @@ download, uma janela aparecerá por arquivo.
 
 <a id="cap-5-3"></a>
 ### 5.3 Destinatários favoritos e remetentes do e-mail
-
-▶ [**Vídeo V09** — Destinatários e remetentes](videos/V09-destinatarios-e-remetentes-do-email.mp4)
 
 **Destinatários** (a lista aparece ao clicar em **✉️ Enviar por e-mail**,
 depois que houver pelo menos um salvo):
@@ -888,8 +850,6 @@ pré-visualização do item [3.2](#cap-3-2) ajuda).
 <a id="cap-6-1"></a>
 ### 6.1 Dispensar juntadas
 
-▶ [**Vídeo V13** — Dispensar juntadas](videos/V13-dispensar-juntadas.mp4)
-
 **Passo a passo:**
 
 1. Ao lado de "Há N pendência(s) de análise de juntada", clique em
@@ -903,8 +863,6 @@ botão fica desabilitado durante a operação.
 
 <a id="cap-6-2"></a>
 ### 6.2 Finalizar conclusão pendente
-
-▶ [**Vídeo V14** — Finalizar conclusão](videos/V14-finalizar-conclusao.mp4)
 
 **Passo a passo:**
 
@@ -923,8 +881,6 @@ botão fica desabilitado durante a operação.
 <a id="cap-6-3"></a>
 ### 6.3 Dispensar decursos de prazo
 
-▶ [**Vídeo V15** — Dispensar decursos](videos/V15-dispensar-decursos.mp4)
-
 **Passo a passo:**
 
 1. Ao lado do link de intimações **aguardando análise de decurso de
@@ -940,8 +896,6 @@ onde parou. Uma operação por vez.
 
 <a id="cap-6-4"></a>
 ### 6.4 Dispensar cumprimentos para expedir
-
-▶ [**Vídeo V36** — Dispensar cumprimentos para expedir](videos/V36-dispensar-cumprimentos.mp4)
 
 **Para que serve:** remover os cumprimentos pendentes de expedição de um mesmo tipo, incluindo mandados.
 
@@ -964,9 +918,6 @@ onde parou. Uma operação por vez.
 
 <a id="cap-7-1"></a>
 ### 7.1 Ações rápidas
-
-▶ [**Vídeo V16** — Ações rápidas](videos/V16-acoes-rapidas.mp4)
-▶ [**Vídeo V46** — Remessa para a Turma Recursal](videos/V46-remessa-turma-recursal.mp4)
 
 **Para que serve:** abrir as ações do painel lateral **Ações** do Projudi
 (Enviar Concluso, Realizar Remessa, Intimar Partes…) sem rolar a tela e sem
@@ -1059,8 +1010,6 @@ Projudi.
 <a id="cap-7-2"></a>
 ### 7.2 Preferências (preencher e confirmar com um clique)
 
-▶ [**Vídeo V17** — Preferências](videos/V17-preferencias.mp4)
-
 **Para que serve:** gravar o preenchimento de um diálogo (ex.: "Intimar o
 MP para ciência, 5 dias") e reaplicá-lo em outros processos.
 
@@ -1119,8 +1068,6 @@ Atualizar preferência** (nada é enviado); 🗑 remove.
 <a id="cap-7-3"></a>
 ### 7.3 Minhas Preferências
 
-▶ [**Vídeo V18** — Minhas Preferências](videos/V18-minhas-preferencias.mp4)
-
 **Para que serve:** ver **todas** as preferências salvas (das ações rápidas,
 do Juntar Documento e, no SEEU, do **📍 Localizador**) e os combos, em
 cards, num só lugar.
@@ -1154,8 +1101,6 @@ associam os localizadores na hora, sem diálogo nem ✅ **Sim, executar**
 
 <a id="cap-7-4"></a>
 ### 7.4 Combos de preferências
-
-▶ [**Vídeo V19** — Combos](videos/V19-combos-de-preferencias.mp4)
 
 **Para que serve:** executar várias preferências **em sequência**, ex.:
 "Intimar MP" → "Juntar certidão de decurso" → "Enviar concluso para
@@ -1219,8 +1164,6 @@ pelo nome da função.
 <a id="cap-7-5"></a>
 ### 7.5 Nova Ordenação
 
-▶ [**Vídeo V26** — Nova Ordenação](videos/V26-nova-ordenacao.mp4)
-
 **Para que serve:** ordenar **vários cumprimentos seguidos** (mandado,
 ofício, edital…) sem reabrir o diálogo a cada um. Vale para **Ordenar
 Cumprimentos**, **Ordenar RPV** e **Ordenar Expedição BNMP**.
@@ -1258,8 +1201,6 @@ Cumprimentos**, **Ordenar RPV** e **Ordenar Expedição BNMP**.
 <a id="cap-7-6"></a>
 ### 7.6 Nova Remessa
 
-▶ [**Vídeo V27** — Nova Remessa](videos/V27-nova-remessa.mp4)
-
 **Para que serve:** fazer mais de uma remessa seguida (ex.: Delegacia e
 Ministério Público) na mesma tela de **Realizar Remessa**.
 
@@ -1276,15 +1217,14 @@ confira nos autos).
 <a id="cap-7-7"></a>
 ### 7.7 Escolher a movimentação das Ações rápidas
 
-▶ [**Vídeo V37** — Escolher a movimentação das Ações rápidas](videos/V37-escolher-a-movimentacao.mp4)
-
 **Para que serve:** escolher **a partir de qual movimentação** as Ações
 rápidas, as preferências e os combos vão agir — o mesmo que você faz à mão
 ao clicar num evento e depois em **Movimentar a Partir Desta Movimentação**.
 Assim, a remessa, a intimação ou a ordenação fica ligada ao evento certo
 (ex.: o despacho que a determinou), e é esse evento que o destinatário vê.
 
-**Onde fica:** na aba **Movimentações** do processo, uma **caixinha** na
+**Onde fica:** na aba **Movimentações** do processo, uma **caixinha**
+(com contorno laranja, como todas as da extensão) na
 primeira coluna de **todas** as movimentações, à esquerda do número
 (**Seq.**) — haja ou não arquivos (antes de **⊞ Arquivos**, quando houver).
 Nas movimentações tachadas (inválidas) a caixinha aparece bloqueada. As
@@ -1320,8 +1260,6 @@ mudam: continuam permitindo marcar vários arquivos ([5.1](#cap-5-1)).
 **Preferência que sempre parte de um movimento** (ex.: *JULGADA PROCEDENTE
 A AÇÃO*, *CONCEDIDA A MEDIDA PROTETIVA*):
 
-▶ [**Vídeo V38** — Preferência a partir de um movimento](videos/V38-preferencia-a-partir-de-um-movimento.mp4)
-
 1. Na aba **Movimentações**, marque a caixinha do movimento.
 2. Crie a preferência como sempre (**+ Nova preferência**, preencher, **💾
    Salvar como preferência** — [7.2](#cap-7-2)). A lista do que será gravado
@@ -1353,8 +1291,6 @@ Bom saber sobre essas preferências:
 
 <a id="cap-7-8"></a>
 ### 7.8 Painéis com muitas preferências (busca e + Nova preferência no topo)
-
-▶ [**Vídeo V55** — Painéis com muitas preferências](videos/V55-paineis-com-muitas-preferencias.mp4)
 
 **Para que serve:** achar rápido uma preferência e criar uma nova mesmo
 quando você já tem muitas — sem rolar a lista inteira nem diminuir o zoom
@@ -1407,8 +1343,6 @@ lugar. Feche com **✕ Fechar**.
 <a id="cap-8-1"></a>
 ### 8.1 Alvará Eletrônico
 
-▶ [**Vídeo V20** — Alvará Eletrônico](videos/V20-alvara-eletronico.mp4)
-
 **Para que serve:** chegar ao **Cadastrar Alvará Eletrônico** sem passar
 por Informações Adicionais → Depósitos/Alvarás → Novo Alvará, e já com os
 campos repetitivos preenchidos.
@@ -1433,8 +1367,6 @@ confira e clique em **Salvar** do próprio Projudi.
 
 <a id="cap-8-2"></a>
 ### 8.2 Juntar Documento com preferências
-
-▶ [**Vídeo V21** — Juntar Documento](videos/V21-juntar-documento.mp4)
 
 **Para que serve:** juntar documentos digitados de rotina (certidões,
 informações, termos) refazendo sozinha todas as telas — você só digita o
@@ -1494,8 +1426,6 @@ Movimento**.
 
 <a id="cap-8-3"></a>
 ### 8.3 (Des)Habilitar Advogado
-
-▶ [**Vídeo V22** — (Des)Habilitar Advogado](videos/V22-des-habilitar-advogado.mp4)
 
 **Para que serve:** abrir a tela do botão nativo **Advogados** (aba Partes e
 Outros) num popup, para habilitar, desabilitar, adicionar ou remover
@@ -1585,8 +1515,6 @@ Advogado para Parte**. As diferenças:
 <a id="cap-8-4"></a>
 ### 8.4 Editar Partes/Outros
 
-▶ [**Vídeo V23** — Editar Partes/Outros](videos/V23-editar-partes-outros.mp4)
-
 **Para que serve:** abrir a tela **Partes do Processo** (botão nativo
 **Partes e Outros**, com **Adicionar** e **Voltar**) num popup.
 
@@ -1595,8 +1523,6 @@ alterações e feche com **✕ Fechar**.
 
 <a id="cap-8-5"></a>
 ### 8.5 Colar processo
-
-▶ [**Vídeo V24** — Colar processo](videos/V24-processo-copiado.mp4)
 
 **Para que serve:** abrir a busca de um processo cujo número você copiou de
 outro lugar (e-mail, planilha, documento).
@@ -1617,8 +1543,6 @@ copie só um. Na primeira vez, o navegador pode pedir permissão para ler a
 <a id="cap-8-6"></a>
 ### 8.6 Oráculo
 
-▶ [**Vídeo V25** — Oráculo](videos/V25-oraculo.mp4)
-
 **Para que serve:** abrir a consulta de **antecedentes criminais (Oráculo)**
 da parte sem ir até a ficha dela.
 
@@ -1634,8 +1558,6 @@ botão Oráculo dela.
 
 <a id="cap-8-7"></a>
 ### 8.7 Sistemas do CNJ e outros (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Renajud, SEEU, Sistema Uniformizado, COPEL, FUPEN, SANEPAR, SESP)
-
-▶ [**Vídeo V39** — Sistemas do CNJ](videos/V39-sistemas-do-cnj.mp4)
 
 **Para que serve:** abrir sistemas do CNJ e de outros órgãos usados no dia
 a dia sem sair do processo.
@@ -1762,8 +1684,6 @@ das atualizações da extensão e vai junto no **⬇ Exportar** do Menu.
 
 *Só no SEEU.*
 
-▶ [**Vídeo V40** — Localizador (SEEU)](videos/V40-localizador-seeu.mp4)
-
 **Para que serve:** associar ao processo, **com um clique**, os
 localizadores que você mais usa — um ou vários de uma vez —, sem procurar
 cada um na lista do **+** do SEEU.
@@ -1826,8 +1746,6 @@ painel com as suas preferências:
 
 *Só no Projudi.*
 
-▶ [**Vídeo V42** — Alterar Classe/Assuntos](videos/V42-alterar-classe-e-assuntos.mp4)
-
 **Para que serve:** alterar a **classe processual** ou os **assuntos** do
 processo sem sair da tela em que você está. Abre, num popup, a mesma tela
 do botão **Alterar** da aba **Informações Gerais**.
@@ -1862,8 +1780,6 @@ lado do **Assunto Principal**. Ele aparece em qualquer aba do processo.
   **Informações Gerais**.
 
 **Preferências de alteração (⭐)**
-
-▶ [**Vídeo V43** — Preferência de alteração de classe](videos/V43-preferencia-de-alteracao-de-classe.mp4)
 
 Ao lado de cada **✏️ Alterar** há um balão **⭐**. Com ele você grava uma
 alteração que se repete muito (por exemplo, classe **279 - Inquérito
@@ -1908,8 +1824,6 @@ nova.
   **Assuntos Secundários**, use a ⭐ própria deles (abaixo).
 
 **Preferências de assuntos secundários (⭐ Secundários)**
-
-▶ [**Vídeo V49** — Preferência de assunto secundário](videos/V49-preferencia-de-assunto-secundario.mp4)
 
 Funciona como a ⭐ da classe e do assunto principal, mas para **incluir**
 um assunto secundário que se repete muito — por exemplo, acrescentar
@@ -1962,8 +1876,6 @@ processo é recarregada.
 
 **Remover um assunto secundário (✖)**
 
-▶ [**Vídeo V50** — Remover assunto secundário](videos/V50-remover-assunto-secundario.mp4)
-
 No cabeçalho do processo, na linha **Assuntos Secundários**, cada assunto
 tem no fim um pequeno balão **✖**. Ele tira aquele assunto do processo sem
 você abrir a tela de alteração.
@@ -1986,8 +1898,6 @@ você abrir a tela de alteração.
 ### 8.10 Novo Valor da Causa
 
 *Só no Projudi.*
-
-▶ [**Vídeo V47** — Novo Valor da Causa](videos/V47-novo-valor-da-causa.mp4)
 
 **Para que serve:** alterar o **valor da causa** do processo só digitando
 o valor novo. Você não precisa clicar em **Alterar**, procurar o campo
@@ -2036,8 +1946,6 @@ em qualquer aba do processo: não é preciso abrir **Informações Gerais**.
 ### 8.11 Prioridades (incluir, remover e preferências)
 
 *Só no Projudi.*
-
-▶ [**Vídeo V56** — Incluir e remover prioridades](videos/V56-incluir-e-remover-prioridades.mp4)
 
 **Para que serve:** incluir ou tirar uma **prioridade** do processo sem
 passar pelo caminho de sempre (**Informações Gerais** → **Alterar** → lupa
@@ -2139,8 +2047,6 @@ Combos** ([7.4](#cap-7-4)).
 <a id="cap-9-1"></a>
 ### 9.1 Filtro por Sequencial na Análise de Decurso de Prazo
 
-▶ [**Vídeo V28** — Sequencial no Decurso de Prazo](videos/V28-sequencial-no-decurso-de-prazo.mp4)
-
 **Para que serve:** dividir a fila de decursos entre servidores pelo último
 dígito do **Seq.**, como já existe em outras telas de análise.
 
@@ -2160,8 +2066,6 @@ normal.
 
 <a id="cap-9-2"></a>
 ### 9.2 Listas de tarefas
-
-▶ [**Vídeo V29** — Listas de tarefas](videos/V29-listas-de-tarefas.mp4)
 
 **Onde fica:** telas **Análise de Juntadas**, **Retorno de Conclusão** e
 **Análise de Decurso de Prazo** (listas de Intimação, Auxiliares da Justiça
@@ -2200,8 +2104,6 @@ abertas.
 
 <a id="cap-9-3"></a>
 ### 9.3 Minhas Preferências na linha do processo (⭐)
-
-▶ [**Vídeo V30** — ⭐ na linha do processo](videos/V30-minhas-preferencias-na-linha.mp4)
 
 **Para que serve:** executar uma preferência ou combo num processo direto
 da tela de análise ou de cumprimentos, sem abri-lo — ou em vários
@@ -2243,8 +2145,6 @@ processos marcados, **em lote**.
 
 **Com muitas preferências:**
 
-▶ [**Vídeo V54** — ⭐ da linha com muitas preferências](videos/V54-painel-da-estrela-com-muitas-preferencias.mp4)
-
 - O card **⭐** cabe sempre na tela: quando as preferências não cabem, ele
   rola por dentro (use a rodinha do mouse sobre ele). Não é preciso
   diminuir o zoom do navegador.
@@ -2267,12 +2167,10 @@ processos marcados, **em lote**.
 
 **Em lote (vários processos de uma vez):**
 
-▶ [**Vídeo V45** — Preferências em lote (⭐ Em lote)](videos/V45-preferencias-em-lote.mp4)
-
 Em todas as telas que têm a **⭐** (Análise de Juntadas, Retorno de
 Conclusão, Análise de Decurso de Prazo, telas de cumprimentos e, no SEEU,
 Análise de Juntadas e Retorno de Conclusão), cada linha tem também uma
-**caixinha de marcar**, logo abaixo do **+** da primeira coluna (na lista
+**caixinha de marcar** (com contorno laranja), logo abaixo do **+** da primeira coluna (na lista
 de **Mandados**, abaixo do semáforo). Acima da tabela aparece a barra
 **⭐ Em lote**.
 
@@ -2317,8 +2215,6 @@ de **Mandados**, abaixo do semáforo). Acima da tabela aparece a barra
 Análise de Decurso de Prazo, **Intimações** e **Intimação de Auxiliares da
 Justiça**, e nos cumprimentos, **Demais Cumprimentos** e **Mandados**):
 
-▶ [**Vídeo V41** — Localizador pela ⭐ da lista (SEEU)](videos/V41-localizador-na-linha-seeu.mp4)
-
 1. Clique no **⭐** da linha. Aparecem as preferências do
    **📍 Localizador** ([8.8](#cap-8-8)) — as ações rápidas não funcionam
    no SEEU.
@@ -2360,8 +2256,6 @@ Justiça**, e nos cumprimentos, **Demais Cumprimentos** e **Mandados**):
 <a id="cap-9-4"></a>
 ### 9.4 Mesa do Analista sem itens zerados
 
-▶ [**Vídeo V31** — Mesa do Analista](videos/V31-mesa-do-analista-sem-zerados.mp4)
-
 *No Projudi e no SEEU.*
 
 **Como funciona:** na **Mesa do Analista** e na **Mesa do Escrivão**, as
@@ -2383,8 +2277,6 @@ título — e ele volta quando alguma linha volta.
 <a id="cap-9-5"></a>
 ### 9.5 RG e CPF das partes nos cumprimentos
 
-▶ [**Vídeo V32** — RG e CPF nos cumprimentos](videos/V32-rg-e-cpf-nos-cumprimentos.mp4)
-
 **Onde aparece:**
 
 - na **lista de cumprimentos** (ao clicar num contador da lista de
@@ -2405,8 +2297,6 @@ aparece como "parte não localizada no processo".
 
 <a id="cap-9-6"></a>
 ### 9.6 Dados processuais nas ordenações BNMP
-
-▶ [**Vídeo V33** — Ordenações BNMP](videos/V33-dados-processuais-nas-ordenacoes-bnmp.mp4)
 
 **Para que serve:** ter, também nas peças que **não são guias** (Mandado de
 Prisão, Alvará de Soltura, Mandado de Internação, Contramandado, Mandado de
@@ -2430,8 +2320,6 @@ página, há aviso de lista parcial.
 
 <a id="cap-9-7"></a>
 ### 9.7 Endereço da parte e Mandado Regionalizado
-
-▶ [**Vídeo V35** — Endereço e Mandado Regionalizado](videos/V35-endereco-e-mandado-regionalizado.mp4)
 
 **Para que serve:** ver o **endereço** de cada parte no próprio diálogo
 **Ordenar Cumprimentos** e deixar a extensão escolher entre **Mandado Comum**
@@ -2471,8 +2359,6 @@ parte(s)**.
 
 <a id="cap-9-8"></a>
 ### 9.8 Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados
-
-▶ [**Vídeo V44** — Processo ao passar o mouse](videos/V44-processo-ao-passar-o-mouse.mp4)
 
 *No Projudi e no SEEU.*
 
@@ -2531,8 +2417,6 @@ continua mostrando o documento do Juiz ([9.9](#cap-9-9)).
 <a id="cap-9-9"></a>
 ### 9.9 Documento do Juiz ao passar o mouse no Retorno de Conclusão
 
-▶ [**Vídeo V51** — Documento do Juiz no Retorno de Conclusão](videos/V51-documento-da-conclusao.mp4)
-
 *No Projudi e no SEEU.*
 
 **Para que serve:** ler o despacho, a decisão ou a sentença que o Juiz fez
@@ -2576,8 +2460,6 @@ cada linha.
 
 <a id="cap-9-10"></a>
 ### 9.10 Analisar e Dispensar decurso na lista
-
-▶ [**Vídeo V52** — Analisar e Dispensar decurso na lista](videos/V52-analisar-e-dispensar-decurso-na-lista.mp4)
 
 *No Projudi e no SEEU* (veja "No SEEU", abaixo).
 
@@ -2699,8 +2581,6 @@ três diferenças na janela **Inserir Arquivo** do SEEU:
 <a id="cap-9-11"></a>
 ### 9.11 Analisar (Pré-Análise) dos cumprimentos com preferências
 
-▶ [**Vídeo V53** — Pré-Análise com preferências](videos/V53-pre-analise-com-preferencias.mp4)
-
 *Só no Projudi.*
 
 **Para que serve:** fazer o **Analisar** (Pré-Análise) de um cumprimento —
@@ -2791,8 +2671,6 @@ são feitos um de cada vez; com "postergar", seguem sozinhos até o fim.
 ### 9.12 Localizador na lista de juntadas e de conclusões (só no SEEU)
 
 *Só no SEEU.*
-
-▶ [**Vídeo V57** — Localizador na lista (SEEU)](videos/V57-localizador-na-lista-seeu.mp4)
 
 **Para que serve:** ver, já na lista, os **localizadores** de cada
 processo e trocá-los (associar um novo ou remover um que não serve mais) sem
@@ -2945,78 +2823,6 @@ aconteceu, e informe o responsável pela extensão.
 
 ---
 
-<a id="anexo-a"></a>
-## Anexo A — Vídeos instrutivos
-
-Vídeos curtos (MP4, sem áudio, com legendas na tela), um por função. No Menu da extensão, clique no título para assistir na própria página. Eles
-usam **telas simuladas** com dados fictícios; a aparência real do Projudi
-pode variar um pouco. Clique no título para assistir.
-
-<!-- tabela-videos:inicio -->
-| Vídeo | Função | Seção do manual | Duração |
-|---|---|---|---|
-| [V01](videos/V01-instalacao-e-termos-de-uso.mp4) | [Instalação e Termos de Uso](videos/V01-instalacao-e-termos-de-uso.mp4) | [2.1](#cap-2-1) | 0:50 |
-| [V02](videos/V02-barra-de-botoes-da-extensao.mp4) | [A barra de botões da extensão](videos/V02-barra-de-botoes-da-extensao.mp4) | [2.4](#cap-2-4) | 0:44 |
-| [V03](videos/V03-pre-visualizacao-de-documentos.mp4) | [Pré-visualização de documentos](videos/V03-pre-visualizacao-de-documentos.mp4) | [3.1](#cap-3-1) | 0:44 |
-| [V04](videos/V04-pre-visualizacao-das-pendencias.mp4) | [Pré-visualização das pendências](videos/V04-pre-visualizacao-das-pendencias.mp4) | [3.2](#cap-3-2) | 0:30 |
-| [V05](videos/V05-expandir-e-ocultar-movimentacoes.mp4) | [Expandir movimentações e ocultar as sem arquivo](videos/V05-expandir-e-ocultar-movimentacoes.mp4) | [3.3](#cap-3-3) | 0:42 |
-| [V06](videos/V06-destacar-movimentacoes.mp4) | [Destacar movimentações por tipo de usuário](videos/V06-destacar-movimentacoes.mp4) | [3.4](#cap-3-4) | 0:38 |
-| [V07](videos/V07-envio-por-whatsapp.mp4) | [Envio por WhatsApp Web](videos/V07-envio-por-whatsapp.mp4) | [5.1](#cap-5-1) | 0:44 |
-| [V08](videos/V08-envio-por-email.mp4) | [Envio por e-mail (Outlook)](videos/V08-envio-por-email.mp4) | [5.2](#cap-5-2) | 0:46 |
-| [V09](videos/V09-destinatarios-e-remetentes-do-email.mp4) | [Destinatários favoritos e remetentes do e-mail](videos/V09-destinatarios-e-remetentes-do-email.mp4) | [5.3](#cap-5-3) | 0:46 |
-| [V10](videos/V10-suspensao-e-monitoracao-no-cabecalho.mp4) | [Suspensão e monitoração eletrônica no cabeçalho](videos/V10-suspensao-e-monitoracao-no-cabecalho.mp4) | [4.1](#cap-4-1) | 0:37 |
-| [V11](videos/V11-reus-no-cabecalho.mp4) | [Réus, indiciados e noticiados no cabeçalho](videos/V11-reus-no-cabecalho.mp4) | [4.3](#cap-4-3) | 0:27 |
-| [V12](videos/V12-sequencial-do-processo-principal.mp4) | [Sequencial do processo principal (apensos)](videos/V12-sequencial-do-processo-principal.mp4) | [4.4](#cap-4-4) | 0:34 |
-| [V13](videos/V13-dispensar-juntadas.mp4) | [Dispensar juntadas](videos/V13-dispensar-juntadas.mp4) | [6.1](#cap-6-1) | 0:31 |
-| [V14](videos/V14-finalizar-conclusao.mp4) | [Finalizar conclusão pendente](videos/V14-finalizar-conclusao.mp4) | [6.2](#cap-6-2) | 0:27 |
-| [V15](videos/V15-dispensar-decursos.mp4) | [Dispensar decursos de prazo](videos/V15-dispensar-decursos.mp4) | [6.3](#cap-6-3) | 0:31 |
-| [V16](videos/V16-acoes-rapidas.mp4) | [Ações rápidas](videos/V16-acoes-rapidas.mp4) | [7.1](#cap-7-1) | 0:44 |
-| [V17](videos/V17-preferencias.mp4) | [Preferências](videos/V17-preferencias.mp4) | [7.2](#cap-7-2) | 1:18 |
-| [V18](videos/V18-minhas-preferencias.mp4) | [Minhas Preferências](videos/V18-minhas-preferencias.mp4) | [7.3](#cap-7-3) | 0:55 |
-| [V19](videos/V19-combos-de-preferencias.mp4) | [Combos de preferências](videos/V19-combos-de-preferencias.mp4) | [7.4](#cap-7-4) | 0:58 |
-| [V20](videos/V20-alvara-eletronico.mp4) | [Alvará Eletrônico](videos/V20-alvara-eletronico.mp4) | [8.1](#cap-8-1) | 0:45 |
-| [V21](videos/V21-juntar-documento.mp4) | [Juntar Documento com preferências](videos/V21-juntar-documento.mp4) | [8.2](#cap-8-2) | 1:09 |
-| [V22](videos/V22-des-habilitar-advogado.mp4) | [(Des)Habilitar Advogado](videos/V22-des-habilitar-advogado.mp4) | [8.3](#cap-8-3) | 1:18 |
-| [V23](videos/V23-editar-partes-outros.mp4) | [Editar Partes/Outros](videos/V23-editar-partes-outros.mp4) | [8.4](#cap-8-4) | 0:22 |
-| [V24](videos/V24-processo-copiado.mp4) | [Colar processo](videos/V24-processo-copiado.mp4) | [8.5](#cap-8-5) | 0:28 |
-| [V25](videos/V25-oraculo.mp4) | [Oráculo](videos/V25-oraculo.mp4) | [8.6](#cap-8-6) | 0:25 |
-| [V26](videos/V26-nova-ordenacao.mp4) | [Nova Ordenação](videos/V26-nova-ordenacao.mp4) | [7.5](#cap-7-5) | 0:51 |
-| [V27](videos/V27-nova-remessa.mp4) | [Nova Remessa](videos/V27-nova-remessa.mp4) | [7.6](#cap-7-6) | 0:41 |
-| [V28](videos/V28-sequencial-no-decurso-de-prazo.mp4) | [Filtro por Sequencial no Decurso de Prazo](videos/V28-sequencial-no-decurso-de-prazo.mp4) | [9.1](#cap-9-1) | 0:29 |
-| [V29](videos/V29-listas-de-tarefas.mp4) | [Listas de tarefas](videos/V29-listas-de-tarefas.mp4) | [9.2](#cap-9-2) | 1:04 |
-| [V30](videos/V30-minhas-preferencias-na-linha.mp4) | [Minhas Preferências na linha do processo (⭐)](videos/V30-minhas-preferencias-na-linha.mp4) | [9.3](#cap-9-3) | 0:42 |
-| [V31](videos/V31-mesa-do-analista-sem-zerados.mp4) | [Mesa do Analista sem itens zerados](videos/V31-mesa-do-analista-sem-zerados.mp4) | [9.4](#cap-9-4) | 0:28 |
-| [V32](videos/V32-rg-e-cpf-nos-cumprimentos.mp4) | [RG e CPF das partes nos cumprimentos](videos/V32-rg-e-cpf-nos-cumprimentos.mp4) | [9.5](#cap-9-5) | 0:25 |
-| [V33](videos/V33-dados-processuais-nas-ordenacoes-bnmp.mp4) | [Dados processuais nas ordenações BNMP](videos/V33-dados-processuais-nas-ordenacoes-bnmp.mp4) | [9.6](#cap-9-6) | 0:39 |
-| [V34](videos/V34-menu-da-extensao.mp4) | [Menu da extensão (ícone da balança)](videos/V34-menu-da-extensao.mp4) | [2.6](#cap-2-6) | 1:51 |
-| [V35](videos/V35-endereco-e-mandado-regionalizado.mp4) | [Endereço da parte e Mandado Regionalizado](videos/V35-endereco-e-mandado-regionalizado.mp4) | [9.7](#cap-9-7) | 0:58 |
-| [V36](videos/V36-dispensar-cumprimentos.mp4) | [Dispensar cumprimentos para expedir](videos/V36-dispensar-cumprimentos.mp4) | [6.4](#cap-6-4) | 0:29 |
-| [V37](videos/V37-escolher-a-movimentacao.mp4) | [Escolher a movimentação das Ações rápidas](videos/V37-escolher-a-movimentacao.mp4) | [7.7](#cap-7-7) | 1:14 |
-| [V38](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [Preferência a partir de um movimento](videos/V38-preferencia-a-partir-de-um-movimento.mp4) | [7.7](#cap-7-7) | 0:56 |
-| [V39](videos/V39-sistemas-do-cnj.mp4) | [Sistemas do CNJ](videos/V39-sistemas-do-cnj.mp4) | [8.7](#cap-8-7) | 1:19 |
-| [V40](videos/V40-localizador-seeu.mp4) | [Localizador (SEEU)](videos/V40-localizador-seeu.mp4) | [8.8](#cap-8-8) | 1:02 |
-| [V41](videos/V41-localizador-na-linha-seeu.mp4) | [Localizador pela ⭐ da lista (SEEU)](videos/V41-localizador-na-linha-seeu.mp4) | [9.3](#cap-9-3) | 0:31 |
-| [V42](videos/V42-alterar-classe-e-assuntos.mp4) | [Alterar Classe/Assuntos](videos/V42-alterar-classe-e-assuntos.mp4) | [8.9](#cap-8-9) | 0:44 |
-| [V43](videos/V43-preferencia-de-alteracao-de-classe.mp4) | [Preferência de alteração de classe](videos/V43-preferencia-de-alteracao-de-classe.mp4) | [8.9](#cap-8-9) | 0:43 |
-| [V44](videos/V44-processo-ao-passar-o-mouse.mp4) | [Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões e nos Cumprimentos, no Expedir e nos Paralisados](videos/V44-processo-ao-passar-o-mouse.mp4) | [9.8](#cap-9-8) | 1:30 |
-| [V45](videos/V45-preferencias-em-lote.mp4) | [Preferências em lote (⭐ Em lote)](videos/V45-preferencias-em-lote.mp4) | [9.3](#cap-9-3) | 1:01 |
-| [V46](videos/V46-remessa-turma-recursal.mp4) | [Remessa para a Turma Recursal](videos/V46-remessa-turma-recursal.mp4) | [7.1](#cap-7-1) | 0:47 |
-| [V47](videos/V47-novo-valor-da-causa.mp4) | [Novo Valor da Causa](videos/V47-novo-valor-da-causa.mp4) | [8.10](#cap-8-10) | 0:36 |
-| [V48](videos/V48-aviso-de-versao-nova.mp4) | [Aviso de versão nova e atualização](videos/V48-aviso-de-versao-nova.mp4) | [2.3](#cap-2-3) | 0:41 |
-| [V49](videos/V49-preferencia-de-assunto-secundario.mp4) | [Preferência de assunto secundário](videos/V49-preferencia-de-assunto-secundario.mp4) | [8.9](#cap-8-9) | 0:52 |
-| [V50](videos/V50-remover-assunto-secundario.mp4) | [Remover assunto secundário](videos/V50-remover-assunto-secundario.mp4) | [8.9](#cap-8-9) | 0:22 |
-| [V51](videos/V51-documento-da-conclusao.mp4) | [Documento do Juiz no Retorno de Conclusão](videos/V51-documento-da-conclusao.mp4) | [9.9](#cap-9-9) | 0:59 |
-| [V52](videos/V52-analisar-e-dispensar-decurso-na-lista.mp4) | [Analisar e Dispensar decurso na lista](videos/V52-analisar-e-dispensar-decurso-na-lista.mp4) | [9.10](#cap-9-10) | 1:28 |
-| [V53](videos/V53-pre-analise-com-preferencias.mp4) | [Pré-Análise com preferências](videos/V53-pre-analise-com-preferencias.mp4) | [9.11](#cap-9-11) | 1:11 |
-| [V54](videos/V54-painel-da-estrela-com-muitas-preferencias.mp4) | [⭐ da linha com muitas preferências](videos/V54-painel-da-estrela-com-muitas-preferencias.mp4) | [9.3](#cap-9-3) | 0:40 |
-| [V55](videos/V55-paineis-com-muitas-preferencias.mp4) | [Painéis com muitas preferências](videos/V55-paineis-com-muitas-preferencias.mp4) | [7.8](#cap-7-8) | 0:42 |
-| [V56](videos/V56-incluir-e-remover-prioridades.mp4) | [Incluir e remover prioridades](videos/V56-incluir-e-remover-prioridades.mp4) | [8.11](#cap-8-11) | 0:58 |
-| [V57](videos/V57-localizador-na-lista-seeu.mp4) | [Localizador na lista (SEEU)](videos/V57-localizador-na-lista-seeu.mp4) | [9.12](#cap-9-12) | 1:00 |
-| [V58](videos/V58-escolher-funcoes-e-botoes.mp4) | [Escolher funções e botões (busca, Desativar todas)](videos/V58-escolher-funcoes-e-botoes.mp4) | [2.6](#cap-2-6) | 1:05 |
-<!-- tabela-videos:fim -->
-
----
-
 <a id="anexo-b"></a>
 ## Anexo B — Histórico de versões do manual
 
@@ -3026,7 +2832,9 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 2.54.0 | 19/10/2026 | Seção 2.6 (Menu da extensão): **busca** no alto da lista de funções; lista **Botões** nas funções com vários botões (Ações rápidas, Pré-visualização e WhatsApp, Expandir anexos, Dispensar juntadas/decursos/cumprimentos), para **esconder cada botão** na hora, sem recarregar e sem desligar a função; link **Desativar todas**, para montar a extensão do zero e ligar só o que usa. **Copiar para o…** e **↺ Padrão** passam a valer também para os botões escondidos, e o **⬇ Exportar** os leva junto. Novo vídeo V58. |
+| 2.54.0 | 19/10/2026 | Seção 2.6 (Menu da extensão): **busca** no alto da lista de funções; lista **Botões** nas funções com vários botões (Ações rápidas, Pré-visualização e WhatsApp, Expandir anexos, Dispensar juntadas/decursos/cumprimentos), para **esconder cada botão** na hora, sem recarregar e sem desligar a função; link **Desativar todas**, para montar a extensão do zero e ligar só o que usa. **Copiar para o…** e **↺ Padrão** passam a valer também para os botões escondidos, e o **⬇ Exportar** os leva junto. Vídeo V58 gravado e guardado em `videos-do-manual/` (não citado no manual). |
+| 2.53.2 | 19/10/2026 | Os vídeos instrutivos saem do manual e deixam de ir junto com a extensão (que fica bem menor): retirados os links **▶ Vídeo** das seções, o Anexo A (lista dos vídeos) e as menções a eles na capa, em 1.2 e em 2.6. O conteúdo das seções não mudou. |
+| 2.53.1 | 19/10/2026 | As caixinhas de marcar criadas pela extensão (arquivos para WhatsApp/e-mail, movimentação das Ações rápidas e **⭐ Em lote**) passam a ter **cor laranja**, para não se confundirem com as caixinhas do próprio Projudi/SEEU. Aviso no capítulo 5 e ajustes em 7.7 e 9.3. Vídeos V07, V08, V09, V37, V38 e V45 regravados. |
 | 2.53.0 | 19/10/2026 | Mescla com a versão principal (até a 2.43.5). As versões desta série sobre o SEEU, desenvolvidas em paralelo como 2.42.0 a 2.51.0, foram renumeradas para **2.44.0 a 2.53.0** (linhas abaixo). Seção 8.3: **(Des)Habilitar Advogado** também no **SEEU** — botão **⚖️ Advogados** ao lado do ⭐ Minhas Preferências, com **Abrir**, **+ Nova preferência** e preferências. No SEEU a preferência grava um advogado (escolhido pela lupa), a **Atuação**, as **Partes do Processo** (pelo tipo) e o **Salvar**: ao gravar, o Salvar só pede o nome, sem salvar a habilitação; ao usar, o **✅ Sim, executar** clica em Salvar. Abertura do capítulo 8 ajustada. Sem vídeo novo (o vídeo V22 mostra o mesmo painel). |
 | 2.52.0 | 19/10/2026 | Seção 7.1: duas ações rápidas novas, **só no SEEU**, no botão **Outras**: **Redistribuir** e **Comunicar ao IIPR** — abrem a tela no popup e aceitam preferências, como as demais. Sem vídeo novo. |
 | 2.51.0 | 19/10/2026 | Seção 7.1: no **SEEU**, as Ações rápidas passam a mostrar só **Enviar Concluso**, **Realizar Remessa**, **Ordenar Cumprimentos**, **Intimar Partes**, **Intimar Peritos e Auxiliares da Justiça**, **Transitar em Julgado**, **Arquivar Processo** e **Interromper Prazo** (o botão **Suspender** some lá); as preferências das demais ações ficam só no Projudi. No Projudi, nada muda. Abertura do capítulo 7 ajustada. Sem vídeo novo. |

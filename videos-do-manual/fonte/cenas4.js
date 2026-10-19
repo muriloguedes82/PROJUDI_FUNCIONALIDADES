@@ -220,7 +220,7 @@ CENAS.V36 = {
 function caixinhasMovimentacao() {
 	document.querySelectorAll("#movs tr[id]").forEach(tr => {
 		const seq = tr.id.split(",")[1];
-		tr.cells[0].insertAdjacentHTML("afterbegin", '<input type="checkbox" class="x-movbase" id="mb-' + seq + '" style="margin:0 4px 0 0;vertical-align:middle;accent-color:#1f6feb">');
+		tr.cells[0].insertAdjacentHTML("afterbegin", '<input type="checkbox" class="x-movbase x-ext-chk" id="mb-' + seq + '" style="margin:0 4px 0 0;vertical-align:middle">');
 	});
 }
 function marcarMovimentacao(seq) {
@@ -763,7 +763,7 @@ CENAS.V45 = {
 	async run() {
 		telaLista("Análise de Juntadas");
 		$$("#lista tr[data-i]").forEach((tr, i) => {
-			tr.cells[0].innerHTML = '<div style="text-align:center"><span style="display:inline-block;width:11px;height:11px;border:1px solid #777;font:bold 10px/10px Arial;text-align:center">+</span><div style="margin-top:4px"><input type="checkbox" data-lote="' + i + '"></div></div>';
+			tr.cells[0].innerHTML = '<div style="text-align:center"><span style="display:inline-block;width:11px;height:11px;border:1px solid #777;font:bold 10px/10px Arial;text-align:center">+</span><div style="margin-top:4px"><input type="checkbox" class="x-ext-chk" data-lote="' + i + '"></div></div>';
 		});
 		$$(".x-rowslot").forEach((s, i) => (s.innerHTML = ' <span class="x-btn small">+</span> <span class="x-btn small">⭐</span><span class="st" data-st="' + i + '" style="margin-left:6px;font-size:11px"></span>'));
 		$("#slot-legenda").innerHTML = '<div id="x-lote" style="display:flex;gap:8px;align-items:center;margin:6px 0;padding:5px 8px;background:#fffaf0;border:1px solid #e8cf8a;border-radius:6px;font-size:12px">' +

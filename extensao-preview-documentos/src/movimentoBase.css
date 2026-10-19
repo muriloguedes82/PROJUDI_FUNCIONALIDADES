@@ -3,7 +3,11 @@ input.pdp-movbase-chk {
 	margin: 0 4px 0 0;
 	vertical-align: middle;
 	cursor: pointer;
-	accent-color: #1f6feb;
+	/* Laranja da extensão (ver content.css), diferente das caixinhas nativas. */
+	accent-color: #d9480f;
+	outline: 2px solid #d9480f;
+	outline-offset: 1px;
+	border-radius: 2px;
 }
 
 tr.pdp-movbase-row > td {
