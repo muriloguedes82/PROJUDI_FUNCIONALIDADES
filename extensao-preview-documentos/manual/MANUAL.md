@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.53.2 |
-| **Versão da extensão** | 2.53.2 |
+| **Versão do manual** | 2.54.0 |
+| **Versão da extensão** | 2.54.0 |
 | **Data desta versão** | 19/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -332,7 +332,8 @@ Clique em **Salvar** depois de alterar.
 <a id="cap-2-6"></a>
 ### 2.6 Menu da extensão (ícone da balança)
 
-**Para que serve:** ligar e desligar funções da extensão, levar as suas
+**Para que serve:** deixar a extensão do jeito da sua rotina — ligar e
+desligar funções inteiras ou só os botões que você não usa —, levar as suas
 preferências para outro computador e abrir este manual.
 
 **Onde fica:** um ícone pequeno — a **balança da Justiça** em azul-marinho,
@@ -392,6 +393,42 @@ Algumas funções dependem de outras (aparece em dourado, sob o nome:
 
 Exemplo: **Editar Partes/Outros** exige **Ações rápidas e Minhas
 Preferências** e **(Des)Habilitar Advogado**.
+
+**Procurar uma função** — logo acima da lista há o campo **🔎 Procurar
+funcionalidade ou botão…**. Digite parte do nome (por exemplo, "combos" ou
+"whatsapp") e a lista mostra só as funções com esse nome, na descrição ou
+num dos seus botões. Apague o texto para ver a lista inteira de novo.
+
+**Esconder só alguns botões** — algumas funções têm vários botões. Nelas,
+logo abaixo da chave, aparece a linha **Botões: N de N à mostra**; clique
+nela para abrir a lista, e cada botão tem a sua própria chave (menor). Assim
+você esconde só o que não usa, sem desligar a função inteira:
+
+| Função | Botões que podem ser escondidos um a um |
+|---|---|
+| **Pré-visualização e WhatsApp** | 📱 Enviar por WhatsApp (a pré-visualização continua) |
+| **Expandir anexos / ocultar sem arquivo** | Expandir/Recolher movimentações · Apenas com arquivo (+) |
+| **Ações rápidas e Minhas Preferências** | Concluso · Remessa · Ordenações · Partes · Suspender (só Projudi) · Transitar · Arquivar · Outras · ⭐ Minhas Preferências · 🔗 Combos · 🖍️ Destacar mov. · 📋 Colar processo (só Projudi) |
+| **Dispensar juntadas, decursos e cumprimentos** | Dispensar juntadas · Dispensar decursos · Dispensar pendências (cumprimentos para expedir) |
+
+- Esconder ou mostrar um botão vale **na hora**, sem recarregar a página, em
+  todas as abas abertas daquele sistema.
+- Cada sistema (PROJUDI e SEEU) guarda os seus botões escondidos; o **Copiar
+  para o…** leva também essa escolha, e o **↺ Padrão** mostra todos de novo.
+- Com a função desligada, as chaves dos botões ficam bloqueadas (cinza):
+  ligue a função primeiro.
+- Acima da lista aparece também quantos botões estão escondidos ("· 2
+  botão(ões) escondido(s)").
+- Esconder um botão só tira o botão da tela: as preferências e os combos
+  continuam salvos e funcionando por outros caminhos (por exemplo, a ⭐ das
+  listas).
+
+**Desativar todas (montar a extensão do zero)** — o link **Desativar
+todas**, ao lado do total de funções ativas, desliga todas as funções do
+sistema da aba aberta (o outro sistema não muda), depois de você confirmar.
+Em seguida, ligue uma a uma só as que você usa. Nada do que você salvou
+(preferências, combos, listas, contatos) é apagado, e o **↺ Padrão** volta a
+ligar tudo.
 
 | Grupo | Funções que podem ser ligadas/desligadas | Seção |
 |---|---|---|
@@ -2795,6 +2832,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.54.0 | 19/10/2026 | Seção 2.6 (Menu da extensão): **busca** no alto da lista de funções; lista **Botões** nas funções com vários botões (Ações rápidas, Pré-visualização e WhatsApp, Expandir anexos, Dispensar juntadas/decursos/cumprimentos), para **esconder cada botão** na hora, sem recarregar e sem desligar a função; link **Desativar todas**, para montar a extensão do zero e ligar só o que usa. **Copiar para o…** e **↺ Padrão** passam a valer também para os botões escondidos, e o **⬇ Exportar** os leva junto. Vídeo V58 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 2.53.2 | 19/10/2026 | Os vídeos instrutivos saem do manual e deixam de ir junto com a extensão (que fica bem menor): retirados os links **▶ Vídeo** das seções, o Anexo A (lista dos vídeos) e as menções a eles na capa, em 1.2 e em 2.6. O conteúdo das seções não mudou. |
 | 2.53.1 | 19/10/2026 | As caixinhas de marcar criadas pela extensão (arquivos para WhatsApp/e-mail, movimentação das Ações rápidas e **⭐ Em lote**) passam a ter **cor laranja**, para não se confundirem com as caixinhas do próprio Projudi/SEEU. Aviso no capítulo 5 e ajustes em 7.7 e 9.3. Vídeos V07, V08, V09, V37, V38 e V45 regravados. |
 | 2.53.0 | 19/10/2026 | Mescla com a versão principal (até a 2.43.5). As versões desta série sobre o SEEU, desenvolvidas em paralelo como 2.42.0 a 2.51.0, foram renumeradas para **2.44.0 a 2.53.0** (linhas abaixo). Seção 8.3: **(Des)Habilitar Advogado** também no **SEEU** — botão **⚖️ Advogados** ao lado do ⭐ Minhas Preferências, com **Abrir**, **+ Nova preferência** e preferências. No SEEU a preferência grava um advogado (escolhido pela lupa), a **Atuação**, as **Partes do Processo** (pelo tipo) e o **Salvar**: ao gravar, o Salvar só pede o nome, sem salvar a habilitação; ao usar, o **✅ Sim, executar** clica em Salvar. Abertura do capítulo 8 ajustada. Sem vídeo novo (o vídeo V22 mostra o mesmo painel). |
