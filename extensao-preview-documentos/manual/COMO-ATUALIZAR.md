@@ -16,7 +16,8 @@ com índice e busca (`src/manual.html` e `src/manual.js`).
 com a extensão e não são citados no manual**. Eles continuam sendo gravados
 a cada função nova, e ficam guardados para uso futuro em
 [`videos-do-manual/`](../../videos-do-manual/README.md), na raiz do
-repositório, com um índice (vídeo → seção do manual).
+repositório, com um índice (vídeo → seção do manual). Essa pasta fica fora
+do .zip baixado pelo botão **2. Atualizar** (regra no `.gitattributes`).
 
 ## Passo a passo
 

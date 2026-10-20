@@ -6,6 +6,10 @@ com a extensão** e **não aparecem no Manual do Usuário** (decisão do
 usuário). Continuam sendo gravados a cada função nova ou mudança do que
 aparece na tela, para poderem voltar ao manual no futuro.
 
+Esta pasta também fica **fora do .zip** que o botão **2. Atualizar** baixa
+(regra `export-ignore` no `.gitattributes` da raiz). Se os vídeos voltarem
+para dentro da extensão, retire essa regra.
+
 - `fonte/` — as cenas (`cenas*.js`), o palco simulado e o gravador
   (`gravar.mjs`). Para gravar uma cena:
   `node videos-do-manual/fonte/gravar.mjs Vnn` (requisitos em
