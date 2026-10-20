@@ -85,4 +85,5 @@ aparece na tela, para poderem voltar ao manual no futuro.
 | [V55](V55-paineis-com-muitas-preferencias.mp4) | [Painéis com muitas preferências](V55-paineis-com-muitas-preferencias.mp4) | [7.8](../extensao-preview-documentos/manual/MANUAL.md#cap-7-8) | 0:42 |
 | [V56](V56-incluir-e-remover-prioridades.mp4) | [Incluir e remover prioridades](V56-incluir-e-remover-prioridades.mp4) | [8.11](../extensao-preview-documentos/manual/MANUAL.md#cap-8-11) | 0:58 |
 | [V57](V57-localizador-na-lista-seeu.mp4) | [Localizador na lista (SEEU)](V57-localizador-na-lista-seeu.mp4) | [9.12](../extensao-preview-documentos/manual/MANUAL.md#cap-9-12) | 1:00 |
+| [V58](V58-escolher-funcoes-e-botoes.mp4) | [Escolher funções e botões (busca, Desativar todas)](V58-escolher-funcoes-e-botoes.mp4) | [2.6](../extensao-preview-documentos/manual/MANUAL.md#cap-2-6) | 1:05 |
 <!-- tabela-videos:fim -->

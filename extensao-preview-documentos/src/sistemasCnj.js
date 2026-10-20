@@ -731,5 +731,7 @@
 	new MutationObserver(procurarMenu).observe(document.documentElement, { childList: true });
 	comProcesso = processoNaAba();
 	procurarMenu();
-	setInterval(conferirProcesso, 1000);
+	setInterval(function () {
+		if (!document.hidden) conferirProcesso(); // só com a aba à vista
+	}, 1000);
 })();

@@ -2610,8 +2610,24 @@
 		}
 	}
 
+	// Há fluxo desta extensão em andamento nesta aba? (leitura simples; a
+	// validade de cada um é conferida depois, em readJob e no combo.)
+	function temFluxoEmAndamento() {
+		try {
+			return !!(sessionStorage.getItem(JOB_KEY) || sessionStorage.getItem(COMBO_CONCLUIR_KEY));
+		} catch (err) {
+			return true;
+		}
+	}
+
 	function tick() {
 		try {
+			// Sem fluxo em andamento não há o que fazer: evita procurar as
+			// telas (todos os botões e campos) a cada 0,4 s.
+			if (!temFluxoEmAndamento()) {
+				if (statusBar && statusBar.classList.contains("pdp-jd-status-rec")) removeStatus();
+				return;
+			}
 			tickComboAfterConcluir();
 			// Telas dos cumprimentos: vêm antes das demais - a do cumprimento
 			// tem "Concluir" (barra de progresso) e "Alterar", que a fariam

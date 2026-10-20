@@ -25,7 +25,9 @@ const PDP_SCRIPTS_TRIBUNAL = [
 	{
 		id: "pdp-tribunal-inicio",
 		matches: PDP_TERMOS_MATCHES,
-		js: ["src/hostGuard.js", "src/closeShim.js"],
+		// funcionalidades.js e partesFuncionalidades.js: esconder desde o
+		// início os botões das partes desativadas no Menu.
+		js: ["src/hostGuard.js", "src/closeShim.js", "src/funcionalidades.js", "src/partesFuncionalidades.js"],
 		runAt: "document_start",
 		allFrames: true,
 		matchOriginAsFallback: true,

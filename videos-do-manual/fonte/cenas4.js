@@ -1523,3 +1523,81 @@ CENAS.V57 = {
 		await S.endCard("Lista do SEEU → 📍 localizadores na coluna do número → clique no localizador para removê-lo · ✏️ → ➕ associar ou ✖ remover → a linha mostra o resultado.");
 	},
 };
+
+// ------------------------------------------------------------------ V58
+CENAS.V58 = {
+	arquivo: "V58-escolher-funcoes-e-botoes.mp4",
+	titulo: "Escolher funções e botões (busca, Desativar todas)",
+	secao: "2.6",
+	async run() {
+		telaProcesso({ acoesAbertas: true });
+		await S.titleCard("VÍDEO V58", "Escolher funções e botões", "Esconda o que você não usa e deixe a extensão do jeito da sua rotina.");
+		await S.click("#x-menuicon");
+		const menu = abrirMenu();
+		const BOTOES = [["Concluso", '[data-g="Concluso"]'], ["Remessa", '[data-g="Remessa"]'], ["Ordenações", '[data-g="Ordenações"]'], ["Partes", '[data-g="Partes"]'],
+			["Suspender", '[data-g="Suspender"]'], ["Transitar", '[data-g="Transitar"]'], ["Arquivar", '[data-g="Arquivar"]'], ["Outras", '[data-g="Outras"]'],
+			["⭐ Minhas Preferências", "#x-fav"], ["🔗 Combos", "#x-combos"], ["🖍️ Destacar mov.", "#x-destacar"], ["📋 Colar processo", "#x-clip"]];
+		const MINI = "display:inline-block;flex:none;width:26px;height:14px;border-radius:7px;position:relative;vertical-align:middle;margin-right:7px";
+		const mini = on => '<span class="mini" style="' + MINI + ";background:" + (on ? "#1f5591" : "#aeb8c6") + '"><span style="position:absolute;top:2px;left:' + (on ? 14 : 2) + 'px;width:10px;height:10px;border-radius:50%;background:#fff"></span></span>';
+		$("#mcnt").outerHTML = '<div class="cnt" id="mcnt"><div id="mcnt-t">Funcionalidades no PROJUDI: 25 de 25 ativas</div><div style="text-align:right"><u id="m-todas" style="color:#1f5591">Desativar todas</u> &nbsp; <u style="color:#1f5591">Copiar para o SEEU</u></div></div>' +
+			'<div id="m-busca" style="border:1px solid #c3ccd9;border-radius:6px;padding:6px 8px;margin-bottom:4px;color:#25324a;min-height:15px"></div>';
+		const placeholder = () => { if (!$("#m-busca").textContent) $("#m-busca").innerHTML = '<span style="color:#98a3b5">🔎 Procurar funcionalidade ou botão…</span>'; };
+		placeholder();
+		$('[data-id="acoesRapidas"]').insertAdjacentHTML("afterend", '<div id="m-partes" style="margin:0 0 6px 44px;font-size:12px"><div id="m-psum" style="color:#1f5591">▸ Botões: 12 de 12 à mostra</div><div id="m-plista" hidden>' +
+			BOTOES.map((b, i) => '<div data-pt="' + i + '" style="display:flex;align-items:center;padding:2px 0">' + mini(true) + "<span>Botão \"" + b[0] + "\"</span></div>").join("") +
+			'<div style="color:#5b6980;font-size:11px;margin-top:2px">Esconder um botão vale na hora, sem recarregar a página.</div></div></div>');
+		S.hl("#m-busca", 3);
+		await S.cap("No alto da lista há uma <b>busca</b>: digite parte do nome para achar a função (ou o botão) depressa.", { ms: 4200 });
+		S.hlOff();
+		await S.type("#m-busca", "combos", { speed: 110 });
+		$$("#x-menu .it, #x-menu .gh").forEach(n => { n.style.display = n.dataset.id === "acoesRapidas" || n.textContent === "Ações rápidas e atalhos" ? "" : "none"; });
+		await S.cap("Fica só o que tem esse nome: <b>Ações rápidas e Minhas Preferências</b>.");
+		await S.cap("As funções com vários botões mostram a lista <b>Botões</b>, logo abaixo. Clique para abrir.");
+		await S.click("#m-psum");
+		$("#m-psum").textContent = "▾ Botões: 12 de 12 à mostra";
+		$("#m-plista").hidden = false;
+		await S.cap("Cada botão tem a sua <b>chave</b>. Assim você esconde só o que não usa, sem perder o resto da função.", { ms: 4200 });
+		const esconder = async (i) => {
+			const linha = $('[data-pt="' + i + '"]');
+			await S.click(linha.querySelector(".mini"));
+			linha.querySelector(".mini").outerHTML = mini(false);
+			linha.querySelector("span:last-child").style.color = "#98a3b5";
+			$(BOTOES[i][1]).style.display = "none";
+		};
+		S.hl('[data-g="Remessa"]', 3);
+		await S.cap("Vamos esconder o botão <b>Remessa</b> da barra de botões.");
+		S.hlOff();
+		await esconder(1);
+		$("#m-psum").textContent = "▾ Botões: 11 de 12 à mostra";
+		await S.cap("Ele <b>some da tela na hora</b> — não precisa recarregar a página.", { ms: 3600 });
+		S.hl("#x-clip", 3);
+		await S.cap("Agora o <b>📋 Colar processo</b>, que você também não usa.");
+		S.hlOff();
+		await esconder(11);
+		$("#m-psum").textContent = "▾ Botões: 10 de 12 à mostra";
+		$("#mcnt-t").textContent = "Funcionalidades no PROJUDI: 25 de 25 ativas · 2 botão(ões) escondido(s)";
+		await S.cap("Para mostrar de novo, é só ligar a chave do botão outra vez.");
+		$("#m-busca").textContent = "";
+		placeholder();
+		$("#m-plista").hidden = true;
+		$("#m-psum").textContent = "▸ Botões: 10 de 12 à mostra";
+		$$("#x-menu .it, #x-menu .gh").forEach(n => { n.style.display = ""; });
+		S.hl("#m-todas", 3);
+		await S.cap("Quer montar a extensão do zero? <b>Desativar todas</b> desliga todas as funções deste sistema…", { ms: 4200 });
+		S.hlOff();
+		await S.click("#m-todas");
+		menu.aviso("<b>Desativar todas as funcionalidades do PROJUDI?</b> Você liga, uma a uma, só as que usa. Preferências e combos salvos não são apagados. <u>Cancelar</u> · <b>Desativar todas</b>");
+		await S.cap("…depois de confirmar. Nada do que você salvou é apagado.", { ms: 3400 });
+		$$("#x-menu .it .sw").forEach(n => n.classList.add("off"));
+		$("#mcnt-t").textContent = "Funcionalidades no PROJUDI: 0 de 25 ativas";
+		$("#x-menuicon .dot").hidden = false;
+		menu.aviso("Todas as funcionalidades do PROJUDI foram desativadas. Ligue as que você usa.");
+		await S.cap("Então ligue <b>só as que você usa</b>, por exemplo a pré-visualização de documentos.");
+		await S.click('[data-id="preview"] .sw');
+		$('[data-id="preview"] .sw').classList.remove("off");
+		$("#mcnt-t").textContent = "Funcionalidades no PROJUDI: 1 de 25 ativas";
+		menu.aviso("As mudanças valem a partir do próximo carregamento da página. <b>Recarregar agora</b>");
+		await S.cap("As funções valem a partir do próximo carregamento da página (<b>Recarregar agora</b>). <b>↺ Padrão</b> volta a ativar tudo.", { ms: 4600 });
+		await S.endCard("Menu → 🔎 busca · lista Botões: esconda cada botão na hora · Desativar todas → ligue só o que usa · ↺ Padrão volta tudo.");
+	},
+};

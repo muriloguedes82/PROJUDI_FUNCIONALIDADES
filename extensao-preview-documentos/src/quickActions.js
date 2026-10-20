@@ -2231,9 +2231,8 @@
 		});
 		for (let i = 0; i < controls.length; i++) {
 			const c = controls[i];
-			if (!isVisible(c)) continue;
 			const label = (c.value || c.textContent || "").trim().toLowerCase();
-			if (SUBMIT_LABEL_CANDIDATES.indexOf(label) !== -1) return c;
+			if (SUBMIT_LABEL_CANDIDATES.indexOf(label) !== -1 && isVisible(c)) return c;
 		}
 		const submits = controls.filter(function (c) {
 			return c.type === "submit" && isVisible(c);
@@ -4783,6 +4782,8 @@
 		const highlightPrefsBtn = document.createElement("button");
 		highlightPrefsBtn.type = "button";
 		highlightPrefsBtn.className = "pdp-qa-group-btn";
+		// Parte que o Menu pode esconder (ver `partes` em funcionalidades.js).
+		highlightPrefsBtn.dataset.pdpParte = "destacar";
 		highlightPrefsBtn.innerHTML = '<span class="pdp-qa-icon">🖍️</span><span>Destacar mov.</span>';
 		highlightPrefsBtn.title = "Escolher a cor de destaque de cada tipo de usuário na aba Movimentações";
 		highlightPrefsBtn.addEventListener("click", function () {

@@ -271,7 +271,9 @@
 	// extensão para sobreviver a essas trocas.
 	const observer = new MutationObserver(scheduleHighlight);
 	observer.observe(document.documentElement, { childList: true, subtree: true });
-	setInterval(scheduleHighlight, 1000);
+	setInterval(function () {
+		if (!document.hidden) scheduleHighlight(); // só com a aba à vista
+	}, 1000);
 
 	// -------------------------------------------------------------------
 	// Popup de configuração (aberto pelo botão do painel de Ações Rápidas)

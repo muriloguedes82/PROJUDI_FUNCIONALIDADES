@@ -18,7 +18,12 @@
 //      chrome.storage.local, por sistema, e o service worker
 //      (src/termosUso.js) passa a injetar em cada sistema só os arquivos das
 //      funcionalidades ativas nele - vale a partir do próximo carregamento
-//      da página (o Menu oferece "Recarregar agora");
+//      da página (o Menu oferece "Recarregar agora"). As funcionalidades
+//      com `partes` (ex.: cada botão das Ações rápidas) mostram, abaixo da
+//      chave, a lista dessas partes, cada uma com a sua chave: esconder uma
+//      parte vale na hora (src/partesFuncionalidades.js). No topo, a busca
+//      filtra a lista pelo nome/descrição, e "Desativar todas" deixa tudo
+//      desligado para o usuário ligar só o que usa;
 //   2. backup das preferências: "Exportar" baixa um arquivo .json com toda
 //      e qualquer preferência criada pelo usuário - das ações, de Juntar
 //      Documento, Analisar Decurso, Pré-Análise, classes e assuntos,
@@ -55,6 +60,10 @@
 	const CHAVE = CAT.chave;
 	const ITENS = CAT.grupos.flatMap(function (g) { return g.itens; });
 	const POR_ID = new Map(ITENS.map(function (item) { return [item.id, item]; }));
+	// Todas as partes do catálogo, como "item.parte" (ver `partes` em funcionalidades.js).
+	const CHAVES_PARTES = new Set(ITENS.flatMap(function (item) {
+		return (item.partes || []).map(function (parte) { return item.id + "." + parte.id; });
+	}));
 	const IS_SEEU = /(^|\.)seeu(treino)?\.pje\.jus\.br$/i.test(location.hostname);
 	const SISTEMAS = CAT.sistemas;
 	const SISTEMA_ATUAL = self.pdpSistemaDoHost(location.hostname);
@@ -245,6 +254,15 @@
 	let abaAtiva = SISTEMA_ATUAL;
 	let desativadas = listas[abaAtiva];
 	let alterouNestaPagina = false;
+	// Partes escondidas por sistema ("item.parte"); `partesFora` é a da aba.
+	const partes = {};
+	SISTEMAS.forEach(function (s) { partes[s.id] = new Set(); });
+	let partesFora = partes[abaAtiva];
+	const CHAVE_PARTES = CAT.chavePartes;
+	// Listas de partes abertas (por id da funcionalidade) e texto da busca:
+	// sobrevivem aos redesenhos do painel.
+	const partesAbertas = new Set();
+	let busca = "";
 	// Chave geral: extensão desligada por sistema (só o Menu segue carregado).
 	const desligada = {};
 	SISTEMAS.forEach(function (s) { desligada[s.id] = false; });
@@ -255,6 +273,10 @@
 			listas[s.id] = new Set(self.pdpDesativadasDoSistema(dados, s.id).filter(function (id) { return POR_ID.has(id); }));
 		});
 		desativadas = listas[abaAtiva];
+		SISTEMAS.forEach(function (s) {
+			partes[s.id] = new Set(self.pdpPartesDesativadasDoSistema(dados, s.id).filter(function (chave) { return CHAVES_PARTES.has(chave); }));
+		});
+		partesFora = partes[abaAtiva];
 		SISTEMAS.forEach(function (s) { desligada[s.id] = self.pdpExtensaoDesligada(dados, s.id); });
 	}
 
@@ -273,6 +295,7 @@
 		if (id === abaAtiva) return;
 		abaAtiva = id;
 		desativadas = listas[id];
+		partesFora = partes[id];
 		aviso = null;
 		confirmacao = null;
 		render();
@@ -323,6 +346,20 @@
 		render();
 	}
 
+	function alternarParte(chave, mostrar) {
+		if (mostrar) partesFora.delete(chave); else partesFora.add(chave);
+		gravarPartes();
+		render();
+	}
+
+	function gravarPartes() {
+		const valor = {};
+		SISTEMAS.forEach(function (s) { valor[s.id] = [...partes[s.id]]; });
+		chrome.storage.local.set({ [CHAVE_PARTES]: valor }).catch(function (err) {
+			avisar("Não foi possível gravar a preferência: " + err.message, "erro");
+		});
+	}
+
 	function gravar() {
 		const valor = {};
 		SISTEMAS.forEach(function (s) { valor[s.id] = [...listas[s.id]]; });
@@ -343,7 +380,7 @@
 		"pdpTarefasListas", "pdpTarefasPreferencias", "pdpTarefasProcessos",
 		"pdpWhatsappContacts", "pdpEmailRecipients", "pdpFromAccounts", "pdpDefaultFromId",
 		"pdpSistemasCnjOrdem", "pdpSistemasCnjOutros", "pdpSistemasCnjOrdemSeeu",
-		CHAVE, CAT.chaveAntiga, CAT.chaveExtensao
+		CHAVE, CAT.chaveAntiga, CAT.chaveExtensao, CAT.chavePartes
 	]);
 
 	// Resumo, em linguagem do usuário, de tudo o que um backup leva: cada
@@ -387,6 +424,8 @@
 		SISTEMAS.forEach(function (s) {
 			const fora = self.pdpDesativadasDoSistema(local, s.id).length;
 			linhas.push(fora ? fora + " funcionalidade(s) desativada(s) no " + s.nome : "todas as funcionalidades ativas no " + s.nome);
+			const escondidas = self.pdpPartesDesativadasDoSistema(local, s.id).length;
+			if (escondidas) linhas.push(escondidas + " botão(ões) escondido(s) no " + s.nome);
 			if (self.pdpExtensaoDesligada(local, s.id)) linhas.push("extensão desligada no " + s.nome);
 		});
 		return linhas;
@@ -480,12 +519,14 @@
 	function copiarPara(destino) {
 		confirmacao = {
 			titulo: "Copiar para o " + nomeSistema(destino) + "?",
-			texto: "O " + nomeSistema(destino) + " passará a ter as mesmas funcionalidades ativas e desativadas do " + nomeSistema(abaAtiva) + " (as escolhas atuais do " + nomeSistema(destino) + " serão substituídas).",
+			texto: "O " + nomeSistema(destino) + " passará a ter as mesmas funcionalidades e botões ativos e desativados do " + nomeSistema(abaAtiva) + " (as escolhas atuais do " + nomeSistema(destino) + " serão substituídas).",
 			rotulo: "Copiar",
 			acao: function () {
 				listas[destino] = new Set(desativadas);
+				partes[destino] = new Set(partesFora);
 				if (destino === SISTEMA_ATUAL) alterouNestaPagina = true;
 				gravar();
+				gravarPartes();
 				avisar("Configuração copiada para o " + nomeSistema(destino) + ".", "ok");
 			}
 		};
@@ -495,17 +536,59 @@
 	function restaurarPadrao() {
 		confirmacao = {
 			titulo: "Restaurar o padrão do " + nomeSistema(abaAtiva) + "?",
-			texto: "Todas as funcionalidades do " + nomeSistema(abaAtiva) + " voltam a ficar ativas (o outro sistema não muda). Preferências, combos, listas e contatos salvos não são apagados.",
+			texto: "Todas as funcionalidades e botões do " + nomeSistema(abaAtiva) + " voltam a ficar ativos (o outro sistema não muda). Preferências, combos, listas e contatos salvos não são apagados.",
 			rotulo: "Reativar tudo",
 			acao: function () {
 				listas[abaAtiva] = desativadas = new Set();
+				partes[abaAtiva] = partesFora = new Set();
 				if (abaAtiva === SISTEMA_ATUAL) alterouNestaPagina = true;
 				gravar();
+				gravarPartes();
 				avisar("Todas as funcionalidades do " + nomeSistema(abaAtiva) + " foram reativadas.", "ok");
 				render();
 			}
 		};
 		render();
+	}
+
+	// Para quem quer montar a extensão do zero: desliga todas as
+	// funcionalidades da aba, e o usuário liga só as que usa.
+	function desativarTodas() {
+		confirmacao = {
+			titulo: "Desativar todas as funcionalidades do " + nomeSistema(abaAtiva) + "?",
+			texto: "Todas ficam desligadas no " + nomeSistema(abaAtiva) + " (o outro sistema não muda) e você liga, uma a uma, só as que usa. Preferências, combos, listas e contatos salvos não são apagados. \"↺ Padrão\" volta a ativar tudo.",
+			rotulo: "Desativar todas",
+			acao: function () {
+				const doSistema = function (item) { return !item.sistemas || item.sistemas.indexOf(abaAtiva) >= 0; };
+				listas[abaAtiva] = desativadas = new Set(ITENS.filter(doSistema).map(function (item) { return item.id; }));
+				if (abaAtiva === SISTEMA_ATUAL) alterouNestaPagina = true;
+				gravar();
+				avisar("Todas as funcionalidades do " + nomeSistema(abaAtiva) + " foram desativadas. Ligue as que você usa.", "info");
+				render();
+			}
+		};
+		render();
+	}
+
+	// Busca: esconde as funcionalidades (e os grupos) que não têm o texto no
+	// nome, na descrição ou no nome de uma das partes. Mexe só na lista já
+	// desenhada, para o campo de busca não perder o foco a cada letra.
+	function filtrar() {
+		if (!painel) return;
+		const termo = normalizar(busca);
+		let achadas = 0;
+		painel.querySelectorAll(".grupo").forEach(function (bloco) {
+			let visiveis = 0;
+			bloco.querySelectorAll(".func").forEach(function (func) {
+				const mostra = !termo || func.dataset.busca.indexOf(termo) >= 0;
+				func.hidden = !mostra;
+				if (mostra) visiveis++;
+			});
+			bloco.hidden = !visiveis;
+			achadas += visiveis;
+		});
+		const nada = painel.querySelector(".nada");
+		if (nada) nada.hidden = !termo || achadas > 0;
 	}
 
 	function abrirPagina(pagina) {
@@ -733,7 +816,7 @@
 .aba:focus-visible { outline: 2px solid #c9a227; outline-offset: -2px; }
 .copiar { background: none; border: 0; padding: 0; color: #1f5591; font-size: 12px; text-decoration: underline; cursor: pointer; }
 .corpo { overflow-y: auto; padding: 4px 12px 8px; }
-.resumo { display: flex; justify-content: space-between; align-items: center; margin: 6px 0 2px; color: #5b6980; font-size: 12px; }
+.resumo { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 2px 10px; margin: 6px 0 2px; color: #5b6980; font-size: 12px; }
 .grupo h3 { margin: 12px 0 4px; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #1f5591; }
 .item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 4px; border-radius: 6px; cursor: pointer; }
 .item:hover { background: #f4f6fa; }
@@ -742,6 +825,22 @@
 .item .desc { color: #5b6980; font-size: 11.5px; }
 .item .req { color: #8a6d12; font-size: 11px; }
 .item.off .nome, .item.off .desc { color: #98a3b5; }
+.resumo .links { display: flex; gap: 10px; flex: none; }
+.busca { width: 100%; box-sizing: border-box; margin: 6px 0 2px; padding: 6px 8px; border: 1px solid #c3ccd9; border-radius: 6px; font: inherit; font-size: 12.5px; }
+.busca:focus { outline: 2px solid #c9a227; outline-offset: 0; border-color: #c9a227; }
+.nada { margin: 10px 4px; color: #5b6980; font-size: 12px; }
+.partes { margin: -2px 0 4px 48px; font-size: 12px; }
+.partes summary { color: #1f5591; cursor: pointer; padding: 2px 0; }
+.partes.off summary { color: #98a3b5; }
+.partes .parte { display: flex; align-items: center; gap: 8px; padding: 3px 2px; cursor: pointer; }
+.partes .parte.off span:last-child, .partes.off .parte span:last-child { color: #98a3b5; }
+.partes.off .parte { cursor: default; }
+.partes .nota { margin: 2px 0 4px; color: #5b6980; font-size: 11px; }
+.chave.mini { width: 26px; height: 14px; margin-top: 0; }
+.chave.mini span::after { width: 10px; height: 10px; }
+.chave.mini input:checked + span::after { transform: translateX(12px); }
+.chave input:disabled { cursor: default; }
+.chave input:disabled + span { opacity: .5; }
 .chave { position: relative; flex: none; width: 34px; height: 18px; margin-top: 1px; }
 .chave input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .chave span { position: absolute; inset: 0; border-radius: 9px; background: #c3ccd9; transition: background .15s; pointer-events: none; }
@@ -866,6 +965,7 @@ button.bt.primario:hover { background: #1f5591; }
 		const novo = construirPainel();
 		if (painel) painel.replaceWith(novo); else shadow.append(novo);
 		painel = novo;
+		filtrar();
 		painel.querySelector(".corpo").scrollTop = rolagem;
 		if (foco) {
 			const alvo = painel.querySelector('input[data-id="' + foco + '"]');
@@ -881,6 +981,10 @@ button.bt.primario:hover { background: #1f5591; }
 		const doSistema = function (item) { return !item.sistemas || item.sistemas.indexOf(abaAtiva) >= 0; };
 		const itensAba = ITENS.filter(doSistema);
 		const ativas = itensAba.filter(function (item) { return !fora.has(item.id); }).length;
+		const parteDoSistema = function (parte) { return !parte.sistemas || parte.sistemas.indexOf(abaAtiva) >= 0; };
+		const escondidas = itensAba.reduce(function (n, item) {
+			return n + (item.partes || []).filter(function (parte) { return parteDoSistema(parte) && partesFora.has(item.id + "." + parte.id); }).length;
+		}, 0);
 
 		const cabIcone = el("span");
 		cabIcone.innerHTML = ICONE_SVG;
@@ -916,13 +1020,27 @@ button.bt.primario:hover { background: #1f5591; }
 		]);
 		const corpo = el("div", { class: "corpo" + (ligada ? "" : " pausado"), role: "tabpanel" }, [
 			el("div", { class: "resumo" }, [
-				el("span", { text: "Funcionalidades no " + nomeSistema(abaAtiva) + ": " + ativas + " de " + itensAba.length + " ativas" }),
-				el("button", {
-					type: "button", class: "copiar", text: "Copiar para o " + outro.nome,
-					title: "Deixa o " + outro.nome + " com as mesmas funcionalidades ativas do " + nomeSistema(abaAtiva),
-					onclick: function () { copiarPara(outro.id); }
-				})
-			])
+				el("span", { text: "Funcionalidades no " + nomeSistema(abaAtiva) + ": " + ativas + " de " + itensAba.length + " ativas" +
+					(escondidas ? " · " + escondidas + " botão(ões) escondido(s)" : "") }),
+				el("span", { class: "links" }, [
+					el("button", {
+						type: "button", class: "copiar", text: "Desativar todas",
+						title: "Desliga todas as funcionalidades do " + nomeSistema(abaAtiva) + ", para você ligar só as que usa",
+						onclick: desativarTodas
+					}),
+					el("button", {
+						type: "button", class: "copiar", text: "Copiar para o " + outro.nome,
+						title: "Deixa o " + outro.nome + " com as mesmas funcionalidades ativas do " + nomeSistema(abaAtiva),
+						onclick: function () { copiarPara(outro.id); }
+					})
+				])
+			]),
+			el("input", {
+				type: "search", class: "busca", "data-id": "busca", value: busca,
+				placeholder: "🔎 Procurar funcionalidade ou botão…", "aria-label": "Procurar funcionalidade ou botão",
+				oninput: function (ev) { busca = ev.target.value; filtrar(); }
+			}),
+			el("p", { class: "nada", hidden: true, text: "Nenhuma funcionalidade com esse nome." })
 		]);
 		CAT.grupos.forEach(function (grupo) {
 			const itensGrupo = grupo.itens.filter(doSistema);
@@ -938,14 +1056,18 @@ button.bt.primario:hover { background: #1f5591; }
 				const requer = (item.requer || []).length
 					? el("div", { class: "req", text: "Requer: " + item.requer.map(function (id) { return POR_ID.get(id).nome; }).join(", ") })
 					: null;
-				bloco.append(el("label", { class: "item" + (ligado ? "" : " off"), for: idCampo }, [
+				const partesItem = (item.partes || []).filter(parteDoSistema);
+				const func = el("div", { class: "func" }, [el("label", { class: "item" + (ligado ? "" : " off"), for: idCampo }, [
 					el("span", { class: "chave" }, [input, el("span")]),
 					el("span", { class: "txt" }, [
 						el("div", { class: "nome", text: item.nome }),
 						el("div", { class: "desc", text: item.descricao }),
 						requer
 					])
-				]));
+				])]);
+				func.dataset.busca = normalizar([item.nome, item.descricao].concat(partesItem.map(function (parte) { return parte.nome; })).join(" "));
+				if (partesItem.length) func.append(montarPartes(item, partesItem, ligado));
+				bloco.append(func);
 			});
 			corpo.append(bloco);
 		});
@@ -996,6 +1118,32 @@ button.bt.primario:hover { background: #1f5591; }
 		]));
 
 		return el("div", { class: "painel", role: "dialog", "aria-label": "Menu da extensão" }, filhos);
+	}
+
+	// Lista recolhível das partes de uma funcionalidade, cada uma com a sua
+	// chave. Com a funcionalidade desligada, as chaves ficam bloqueadas.
+	function montarPartes(item, partesItem, ligado) {
+		const visiveis = partesItem.filter(function (parte) { return !partesFora.has(item.id + "." + parte.id); }).length;
+		const lista = el("details", { class: "partes" + (ligado ? "" : " off"), open: partesAbertas.has(item.id) }, [
+			el("summary", { text: "Botões: " + visiveis + " de " + partesItem.length + " à mostra" + (ligado ? "" : " (ligue a funcionalidade para escolher)") })
+		]);
+		lista.addEventListener("toggle", function () {
+			if (lista.open) partesAbertas.add(item.id); else partesAbertas.delete(item.id);
+		});
+		partesItem.forEach(function (parte) {
+			const chave = item.id + "." + parte.id;
+			const idCampo = "pdp-menu-" + item.id + "-" + parte.id;
+			const input = el("input", {
+				type: "checkbox", id: idCampo, "data-id": chave, checked: !partesFora.has(chave), disabled: !ligado,
+				onchange: function () { alternarParte(chave, input.checked); }
+			});
+			lista.append(el("label", { class: "parte" + (partesFora.has(chave) ? " off" : ""), for: idCampo }, [
+				el("span", { class: "chave mini" }, [input, el("span")]),
+				el("span", { text: parte.nome })
+			]));
+		});
+		lista.append(el("p", { class: "nota", text: "Esconder um botão vale na hora, sem recarregar a página." }));
+		return lista;
 	}
 
 	// Como os cards dos sistemas (sistemasCnj.js, ao lado da balança) abrem
@@ -1122,14 +1270,14 @@ button.bt.primario:hover { background: #1f5591; }
 		lerNovaVersao();
 		addEventListener("scroll", agendarPosicao, true);
 		addEventListener("resize", agendarPosicao);
-		setInterval(function () { posicionar(true); }, 1500); // o cabeçalho pode mudar de tamanho sem evento
+		setInterval(function () { if (!document.hidden) posicionar(true); }, 1500); // o cabeçalho pode mudar de tamanho sem evento
 		document.addEventListener("keydown", function (ev) { if (ev.key === "Escape" && aberto) fechar(); }, true);
 		document.addEventListener("mousedown", function (ev) {
 			if (aberto && !ev.composedPath().includes(host)) fechar();
 		}, true);
 	}
 
-	chrome.storage.local.get([CHAVE, CAT.chaveAntiga, CHAVE_GERAL]).then(function (data) {
+	chrome.storage.local.get([CHAVE, CAT.chaveAntiga, CHAVE_GERAL, CHAVE_PARTES]).then(function (data) {
 		definirListas(data);
 		iniciar(0);
 	});
@@ -1148,8 +1296,8 @@ button.bt.primario:hover { background: #1f5591; }
 
 	// Mudanças feitas em outra aba (ou por uma importação) aparecem aqui também.
 	chrome.storage.onChanged.addListener(function (changes, area) {
-		if (area !== "local" || !(changes[CHAVE] || changes[CAT.chaveAntiga] || changes[CHAVE_GERAL])) return;
-		chrome.storage.local.get([CHAVE, CAT.chaveAntiga, CHAVE_GERAL]).then(function (data) {
+		if (area !== "local" || !(changes[CHAVE] || changes[CAT.chaveAntiga] || changes[CHAVE_GERAL] || changes[CHAVE_PARTES])) return;
+		chrome.storage.local.get([CHAVE, CAT.chaveAntiga, CHAVE_GERAL, CHAVE_PARTES]).then(function (data) {
 			definirListas(data);
 			render();
 		});
