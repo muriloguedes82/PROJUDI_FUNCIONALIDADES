@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.54.2 |
-| **Versão da extensão** | 2.54.2 |
+| **Versão do manual** | 2.54.3 |
+| **Versão da extensão** | 2.54.3 |
 | **Data desta versão** | 20/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -20,7 +20,7 @@
 > O número da versão do manual é **igual** ao da extensão. Se a sua
 > extensão estiver numa versão diferente (veja em `chrome://extensions`),
 > algumas telas podem não bater com o que está descrito aqui — veja o
-> [Anexo B](#anexo-b) para saber o que mudou.
+> [Anexo A](#anexo-a) para saber o que mudou.
 
 ---
 
@@ -96,7 +96,7 @@
     - 10.2 [Convivência com o AzFlow](#cap-10-2)
     - 10.3 [Bloqueio para perfis de advocacia](#cap-10-3)
 11. [Solução de problemas](#cap-11)
-- [Anexo B — Histórico de versões do manual](#anexo-b)
+- [Anexo A — Histórico de versões do manual](#anexo-a)
 
 ---
 
@@ -262,7 +262,7 @@ Importar** com o arquivo exportado ([2.6](#cap-2-6)).
 
 - **Agora não (lembrar amanhã)** (ou o **✕**) esconde o aviso por um dia;
   depois ele volta, até você atualizar.
-- **Ver o que mudou** abre o histórico do manual ([Anexo B](#anexo-b)) na
+- **Ver o que mudou** abre o histórico do manual ([Anexo A](#anexo-a)) na
   página da extensão no GitHub.
 - A versão instalada aparece no card da extensão, em `chrome://extensions`,
   e no topo do Menu. Compare com a versão na capa deste manual.
@@ -2839,8 +2839,9 @@ aconteceu, e informe o responsável pela extensão.
 
 ---
 
+<a id="anexo-a"></a>
 <a id="anexo-b"></a>
-## Anexo B — Histórico de versões do manual
+## Anexo A — Histórico de versões do manual
 
 A versão do manual acompanha a da extensão. A cada nova função ou correção
 de erro na extensão, este manual ganha uma nova linha aqui (o procedimento
@@ -2848,6 +2849,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.54.3 | 20/10/2026 | O histórico de versões do manual (antes Anexo B) passa a ser o **Anexo A**, já que o anexo dos vídeos saiu na 2.53.2. O arquivo baixado pelo botão **2. Atualizar** (2.3) fica bem menor: os vídeos guardados para uso futuro não vão mais nele. O conteúdo das seções não mudou. |
 | 2.54.2 | 20/10/2026 | Seção 2.6: dica **Computador lento** (desligar no Menu as funções que não usa — esconder só os botões não deixa a extensão mais leve —; como saber se a lentidão é da extensão ou do Projudi) e linha nova em Solução de problemas (11). **Extensão mais leve**: com a aba do Projudi/SEEU em segundo plano (atrás de outra aba), a extensão quase não usa mais o computador — antes ela continuava conferindo a tela várias vezes por segundo; ao voltar para a aba, tudo é conferido de novo. Ao trocar de aba do processo, a extensão confere a tela uma vez só, em vez de uma vez para cada pedaço que muda. As telas que a extensão abre escondidas para buscar informações (prévia de documentos, pendências, suspensões, preferências) carregam mais rápido, porque não recebem mais os botões e painéis, que ninguém vê ali. Sem vídeo novo. |
 | 2.54.1 | 20/10/2026 | Corrigido: com a extensão instalada, a tela **Crianças e Adolescentes** do **SNA** (Sistema Nacional de Adoção e Acolhimento, do CNJ), aberta normalmente numa aba do navegador, ficava em branco, com o aviso "sna.cloud.cnj.jus.br está bloqueado". A regra que deixa os sistemas do CNJ abrirem dentro do popup do Projudi/SEEU passa a não atrapalhar esses sites quando usados fora dele. Linha nova na Solução de problemas (11). Sem vídeo novo: a tela da extensão não muda. |
 | 2.54.0 | 19/10/2026 | Seção 2.6 (Menu da extensão): **busca** no alto da lista de funções; lista **Botões** nas funções com vários botões (Ações rápidas, Pré-visualização e WhatsApp, Expandir anexos, Dispensar juntadas/decursos/cumprimentos), para **esconder cada botão** na hora, sem recarregar e sem desligar a função; link **Desativar todas**, para montar a extensão do zero e ligar só o que usa. **Copiar para o…** e **↺ Padrão** passam a valer também para os botões escondidos, e o **⬇ Exportar** os leva junto. Vídeo V58 gravado e guardado em `videos-do-manual/` (não citado no manual). |
@@ -2969,4 +2971,4 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 | 2.9.94 | 29/09/2026 | Menu da extensão (seção 2.6): nova **chave geral "Extensão ativada/desativada"** no topo do Menu, uma por sistema (PROJUDI e SEEU), que pausa todas as funções sem apagar as escolhas. O vídeo V34 foi regravado e agora mostra a chave geral e as abas. |
 | 2.9.93 | 29/09/2026 | Menu da extensão (seção 2.6): duas abas, **PROJUDI** e **SEEU**, para ligar e desligar as funções de cada sistema separadamente (tudo ativo por padrão nos dois), com **Copiar para o outro sistema**; a extensão reconhece o sistema pelo endereço da página. O vídeo V34 ainda mostra o Menu sem as abas e será regravado. |
 | 2.9.92 | 29/09/2026 | O manual passa a ser aberto pelo botão **📖 Manual do Usuário** do Menu, com índice, busca e vídeos na própria página. Novos: seção 2.6 (Menu da extensão: funcionalidades liga/desliga, exportar/importar/padrão) e 9.7 (Endereço da parte e Mandado Regionalizado, versões 2.9.89–2.9.91). Vídeos V34 e V35; todos os demais foram regravados com o ícone do Menu na tela. |
-| 2.9.88 | 29/09/2026 | Primeira edição do manual: todas as funções da extensão até a versão 2.9.88, com 33 vídeos instrutivos (Anexo A). |
+| 2.9.88 | 29/09/2026 | Primeira edição do manual: todas as funções da extensão até a versão 2.9.88, com 33 vídeos instrutivos (num anexo próprio, retirado na versão 2.53.2). |

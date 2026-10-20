@@ -128,7 +128,7 @@ CENAS.V34 = {
 		browser(["Projudi - Processo " + PROC, "*Projudi/SEEU - Manual do Usuário"], "chrome-extension://…/src/manual.html");
 		document.querySelectorAll("#x-menu").forEach(n => n.remove());
 		const app = add('<div class="manual-app"><div class="topo"><div><small>Extensão Projudi/SEEU · versão ' + VERSAO_EXTENSAO + '</small><b>Manual do Usuário</b></div><div class="busca" id="mbusca" style="color:#fff">Buscar no manual…</div></div>' +
-			'<div class="idx"><b>Apresentação</b><br>1. Apresentação<br>2. Primeiros passos<br>&nbsp;&nbsp;2.6 Menu da extensão<br>3. Leitura do processo<br>4. Informações extras<br>5. Envio de documentos<br>…<br>Anexo A — Vídeos instrutivos</div>' +
+			'<div class="idx"><b>Apresentação</b><br>1. Apresentação<br>2. Primeiros passos<br>&nbsp;&nbsp;2.6 Menu da extensão<br>3. Leitura do processo<br>4. Informações extras<br>5. Envio de documentos<br>…<br>Anexo A — Histórico de versões</div>' +
 			'<div class="ct"><div class="card"><h3>3.1 Pré-visualização de documentos</h3><p><a class="link" id="lv">▶ <b>Vídeo V03</b> — Pré-visualização de documentos</a></p><p><b>Para que serve:</b> ler a íntegra de um documento sem abrir outra aba.</p></div></div></div>');
 		await S.cap("O manual tem <b>índice lateral</b> e <b>busca</b>.");
 		await S.type("#mbusca", "whatsapp", { speed: 90 });

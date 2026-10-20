@@ -1,0 +1,5 @@
+# O botão "2. Atualizar" do aviso de versão nova baixa o .zip do branch
+# principal, que o GitHub monta com "git archive": o que está marcado como
+# export-ignore fica fora desse .zip. Os vídeos do manual (dezenas de MB)
+# ficam guardados no repositório, para uso futuro, mas não vão no download.
+/videos-do-manual export-ignore
