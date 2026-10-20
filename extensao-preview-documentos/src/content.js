@@ -2000,6 +2000,16 @@
 		}
 	}
 
+	let waReconcileScheduled = false;
+	function scheduleWhatsappReconcile() {
+		if (waReconcileScheduled) return;
+		waReconcileScheduled = true;
+		requestAnimationFrame(function () {
+			waReconcileScheduled = false;
+			reconcileWhatsappUi();
+		});
+	}
+
 	function initWhatsappFeature() {
 		logWaUi("content script iniciado em", window.location.href);
 
@@ -2007,7 +2017,11 @@
 		// chamada síncrona de reconcileWhatsappUi(), para o caso de ela
 		// lançar um erro não previsto: mesmo assim, o intervalo continua
 		// rodando e tentando de novo a cada 700ms.
-		setInterval(reconcileWhatsappUi, 700);
+		// Com a aba em segundo plano não há botão a reposicionar: a
+		// conferência espera a aba voltar a ficar à vista.
+		setInterval(function () {
+			if (!document.hidden) reconcileWhatsappUi();
+		}, 700);
 		reconcileWhatsappUi();
 
 		const observer = new MutationObserver(function (mutations) {
@@ -2024,7 +2038,10 @@
 				// e-mail para este problema. Uma troca de aba pode remover
 				// nós (sem necessariamente adicionar nós novos na mesma
 				// leva de mutações) e ainda assim precisar recriar o botão.
-				reconcileWhatsappUi();
+				// Agrupado por quadro de animação: uma troca de aba gera
+				// dezenas de levas seguidas, e a reconciliação varre o
+				// documento inteiro.
+				scheduleWhatsappReconcile();
 			} catch (err) {
 				console.error(WA_UI_LOG_PREFIX, "erro no MutationObserver:", err);
 			}

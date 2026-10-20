@@ -262,5 +262,7 @@
   window.addEventListener("resize", schedule);
   window.addEventListener("scroll", schedule, { passive: true });
   window.addEventListener("pdp-buttons-layout", schedule);
-  setInterval(schedule, 700);
+  // Conferência periódica só com a aba à vista (em segundo plano não há o
+  // que posicionar; ao voltar, a próxima volta realinha).
+  setInterval(() => { if (!document.hidden) schedule(); }, 700);
 })();

@@ -1270,7 +1270,7 @@ button.bt.primario:hover { background: #1f5591; }
 		lerNovaVersao();
 		addEventListener("scroll", agendarPosicao, true);
 		addEventListener("resize", agendarPosicao);
-		setInterval(function () { posicionar(true); }, 1500); // o cabeçalho pode mudar de tamanho sem evento
+		setInterval(function () { if (!document.hidden) posicionar(true); }, 1500); // o cabeçalho pode mudar de tamanho sem evento
 		document.addEventListener("keydown", function (ev) { if (ev.key === "Escape" && aberto) fechar(); }, true);
 		document.addEventListener("mousedown", function (ev) {
 			if (aberto && !ev.composedPath().includes(host)) fechar();

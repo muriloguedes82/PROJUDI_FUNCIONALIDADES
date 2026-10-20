@@ -778,7 +778,9 @@
 		if (botao) botao.addEventListener("click", interceptar, true);
 		form.addEventListener("submit", interceptar, true);
 	}
-	if (NO_SEEU) setInterval(vigiarSalvarSeeu, 500);
+	if (NO_SEEU) setInterval(function () {
+		if (!document.hidden) vigiarSalvarSeeu(); // o clique em Salvar só ocorre com a aba à vista
+	}, 500);
 
 	// -------------------------------------------------------------------
 	// Botão flutuante, ao lado do "📋 Processo copiado" (ver quickActions.js)

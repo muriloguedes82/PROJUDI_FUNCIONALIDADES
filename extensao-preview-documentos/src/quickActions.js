@@ -2231,9 +2231,8 @@
 		});
 		for (let i = 0; i < controls.length; i++) {
 			const c = controls[i];
-			if (!isVisible(c)) continue;
 			const label = (c.value || c.textContent || "").trim().toLowerCase();
-			if (SUBMIT_LABEL_CANDIDATES.indexOf(label) !== -1) return c;
+			if (SUBMIT_LABEL_CANDIDATES.indexOf(label) !== -1 && isVisible(c)) return c;
 		}
 		const submits = controls.filter(function (c) {
 			return c.type === "submit" && isVisible(c);

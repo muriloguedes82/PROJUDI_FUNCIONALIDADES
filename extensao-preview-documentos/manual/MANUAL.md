@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.54.1 |
-| **Versão da extensão** | 2.54.1 |
+| **Versão do manual** | 2.54.2 |
+| **Versão da extensão** | 2.54.2 |
 | **Data desta versão** | 20/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -429,6 +429,20 @@ sistema da aba aberta (o outro sistema não muda), depois de você confirmar.
 Em seguida, ligue uma a uma só as que você usa. Nada do que você salvou
 (preferências, combos, listas, contatos) é apagado, e o **↺ Padrão** volta a
 ligar tudo.
+
+> **Dica: computador lento.** Se o Projudi/SEEU estiver lento num computador
+> mais fraco, ou com muitas abas abertas, **desligue no Menu as funções que
+> você não usa**. Uma função desligada deixa de ser carregada nas páginas e
+> não gasta mais nada do computador (vale a partir do próximo carregamento da
+> página; clique em **Recarregar agora**). Esconder só alguns botões (acima)
+> não deixa a extensão mais leve: a função continua carregada, só o botão
+> some da tela. As que mais trabalham são
+> **Pré-visualização e WhatsApp**, **Envio por e-mail**, **Destaque de
+> movimentações** e **Expandir anexos / ocultar sem arquivo**, porque
+> conferem a lista de movimentações sempre que ela muda. Para saber se a
+> lentidão vem da extensão ou do próprio Projudi, desligue a extensão pela
+> chave geral (item 0 acima) e abra a mesma tela: se continuar lenta, é o
+> Projudi.
 
 | Grupo | Funções que podem ser ligadas/desligadas | Seção |
 |---|---|---|
@@ -2795,6 +2809,7 @@ telas abertas a partir daí voltam a funcionar.
 |---|---|
 | Um botão da extensão sumiu | Abra o Menu (ícone da balança) e confira se a função não foi desligada — ou se alguma função de que ela depende foi ([2.6](#cap-2-6)). **↺ Padrão** religa todas |
 | Os cards dos sistemas (SerpJud, BNMP…) não aparecem ao lado da balança | Eles só aparecem com um **processo aberto**; na Mesa e nas listas fica só a balança. Com o processo aberto, aguarde 1 segundo; se continuar sem eles, confira no Menu se **Sistemas do CNJ** está ligada ([8.7](#cap-8-7)) |
+| O Projudi/SEEU fica lento com a extensão (computador mais fraco ou muitas abas abertas) | Desligue no Menu as funções que você não usa: desligadas, elas não são carregadas. Para conferir se a lentidão é da extensão, desligue-a pela chave geral e abra a mesma tela ([2.6](#cap-2-6)) |
 | Nenhum botão da extensão aparece | Confira se aceitou os Termos de Uso ([2.2](#cap-2-2)); recarregue a página (F5); confira se a extensão está ativada em `chrome://extensions`; confira se o perfil não é de advocacia ([10.3](#cap-10-3)) |
 | Atualizei a extensão e nada mudou | Clique em ↻ no card da extensão em `chrome://extensions` e depois recarregue as páginas ([2.3](#cap-2-3)) |
 | A barra de botões cobre algo da tela | Arraste **↕ Mover** ou clique em **Ocultar** ([2.4](#cap-2-4)) |
@@ -2833,6 +2848,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.54.2 | 20/10/2026 | Seção 2.6: dica **Computador lento** (desligar no Menu as funções que não usa — esconder só os botões não deixa a extensão mais leve —; como saber se a lentidão é da extensão ou do Projudi) e linha nova em Solução de problemas (11). **Extensão mais leve**: com a aba do Projudi/SEEU em segundo plano (atrás de outra aba), a extensão quase não usa mais o computador — antes ela continuava conferindo a tela várias vezes por segundo; ao voltar para a aba, tudo é conferido de novo. Ao trocar de aba do processo, a extensão confere a tela uma vez só, em vez de uma vez para cada pedaço que muda. As telas que a extensão abre escondidas para buscar informações (prévia de documentos, pendências, suspensões, preferências) carregam mais rápido, porque não recebem mais os botões e painéis, que ninguém vê ali. Sem vídeo novo. |
 | 2.54.1 | 20/10/2026 | Corrigido: com a extensão instalada, a tela **Crianças e Adolescentes** do **SNA** (Sistema Nacional de Adoção e Acolhimento, do CNJ), aberta normalmente numa aba do navegador, ficava em branco, com o aviso "sna.cloud.cnj.jus.br está bloqueado". A regra que deixa os sistemas do CNJ abrirem dentro do popup do Projudi/SEEU passa a não atrapalhar esses sites quando usados fora dele. Linha nova na Solução de problemas (11). Sem vídeo novo: a tela da extensão não muda. |
 | 2.54.0 | 19/10/2026 | Seção 2.6 (Menu da extensão): **busca** no alto da lista de funções; lista **Botões** nas funções com vários botões (Ações rápidas, Pré-visualização e WhatsApp, Expandir anexos, Dispensar juntadas/decursos/cumprimentos), para **esconder cada botão** na hora, sem recarregar e sem desligar a função; link **Desativar todas**, para montar a extensão do zero e ligar só o que usa. **Copiar para o…** e **↺ Padrão** passam a valer também para os botões escondidos, e o **⬇ Exportar** os leva junto. Vídeo V58 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 2.53.2 | 19/10/2026 | Os vídeos instrutivos saem do manual e deixam de ir junto com a extensão (que fica bem menor): retirados os links **▶ Vídeo** das seções, o Anexo A (lista dos vídeos) e as menções a eles na capa, em 1.2 e em 2.6. O conteúdo das seções não mudou. |
