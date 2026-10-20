@@ -90,8 +90,7 @@ funcionalidades desativadas. Clique no ícone para abrir o **Menu**
    os seus), nem login/token do Microsoft Graph, nem trabalhos em
    andamento (envios, combos e juntadas pendentes).
 3. **📖 Manual do Usuário** - abre o manual (`manual/MANUAL.md`) numa nova
-   aba, com índice, busca e os vídeos instrutivos (`manual/videos/`) tocando
-   na própria página. Há também o link para consultar os **Termos de Uso**.
+   aba, com índice e busca. Há também o link para consultar os **Termos de Uso**.
    O manual é atualizado a cada versão da extensão - veja
    [`manual/COMO-ATUALIZAR.md`](manual/COMO-ATUALIZAR.md).
 
@@ -2040,12 +2039,19 @@ Copel, Sanepar etc.) abram dentro do popup do Projudi/SEEU, a regra de
 `declarativeNetRequest` retira `X-Frame-Options` das respostas carregadas em
 iframe a partir dos domínios de `initiatorDomains`. A
 `Content-Security-Policy` **não é removida**: ela é **substituída** por
-`frame-ancestors 'self' https://*.tjpr.jus.br https://seeu.pje.jus.br https://seeutreino.pje.jus.br`.
-Assim o navegador só deixa esses sites serem embutidos pelo Tribunal e pelo
-SEEU, evitando *clickjacking* a partir de qualquer outra página — inclusive
-dos demais domínios de `initiatorDomains`, que continuam na lista porque as
-navegações internas do login (de um sistema para outro dentro do iframe)
-dependem deles.
+`frame-ancestors 'self' https://*.tjpr.jus.br https://seeu.pje.jus.br https://seeutreino.pje.jus.br`
+seguido dos próprios domínios de `initiatorDomains` (cada um com e sem
+`*.`). Assim o navegador só deixa esses sites serem embutidos pelo Tribunal,
+pelo SEEU e por eles mesmos, evitando *clickjacking* a partir de qualquer
+outra página. Os demais domínios de `initiatorDomains` estão na lista porque
+as navegações internas do login (de um sistema para outro dentro do iframe)
+dependem deles — e, desde a 2.54.1, também no `frame-ancestors`: como a
+regra vale para qualquer iframe aberto a partir deles (o DNR não sabe qual é
+a página de cima), sem isso ela quebrava os quadros que os próprios sites
+abrem quando usados fora do Projudi. Foi o caso do SNA: a tela **Crianças e
+Adolescentes** de `sna.cnj.jus.br` embute `sna.cloud.cnj.jus.br` (iframe
+`legado`), que ficava em `ERR_BLOCKED_BY_RESPONSE` (ver
+`DIAGNOSTICO-SNA-CNJ.md`).
 
 O card **SEEU** (só no Projudi) usa uma segunda regra (`id` 2), com
 `requestDomains` `seeu.pje.jus.br` e `initiatorDomains` só `tjpr.jus.br`:

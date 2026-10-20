@@ -19,9 +19,19 @@
 // `sistemas` (opcional): funcionalidade exclusiva desses sistemas. Nos
 // demais, os arquivos dela nunca são injetados e ela não aparece no Menu.
 //
+// `partes` (opcional): pedaços de uma funcionalidade que podem ser escondidos
+// um a um, sem desligar a funcionalidade inteira (ex.: cada botão das Ações
+// rápidas, ou o "Enviar por WhatsApp" sem tirar a pré-visualização). Cada
+// parte tem `id`, `nome`, `ocultar` (seletores CSS dos botões/elementos que
+// somem) e, se for o caso, `sistemas`. Ao contrário das funcionalidades, as
+// partes valem na hora: src/partesFuncionalidades.js (sempre carregado)
+// mantém na página um estilo que esconde os seletores das partes
+// desativadas e o refaz quando a escolha muda no Menu. A escolha fica em
+// `chavePartes`, por sistema, como "idDaFuncionalidade.idDaParte".
+//
 // Os arquivos que não aparecem aqui (hostGuard.js, uiVisibility.js,
-// painelPreferencias.js/.css, clipboardProcess.js, documentSelection.js, buttonDrag.js e o próprio Menu)
-// são infraestrutura e são sempre carregados.
+// painelPreferencias.js/.css, clipboardProcess.js, documentSelection.js, buttonDrag.js,
+// partesFuncionalidades.js e o próprio Menu) são infraestrutura e são sempre carregados.
 self.PDP_FUNCIONALIDADES = Object.freeze({
 	// { projudi: [id], seeu: [id] } em chrome.storage.local
 	chave: "pdpFuncionalidadesDesativadasPorSistema",
@@ -31,6 +41,9 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 	// { projudi: true|false, seeu: true|false } em chrome.storage.local:
 	// true = extensão desligada naquele sistema (chave geral do Menu).
 	chaveExtensao: "pdpExtensaoDesligadaPorSistema",
+	// { projudi: ["item.parte"], seeu: [...] } em chrome.storage.local:
+	// partes escondidas (ver `partes` acima).
+	chavePartes: "pdpPartesDesativadasPorSistema",
 	sistemas: [
 		{ id: "projudi", nome: "PROJUDI" },
 		{ id: "seeu", nome: "SEEU" }
@@ -44,7 +57,10 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					nome: "Pré-visualização e WhatsApp",
 					descricao: "Íntegra do documento ao passar o mouse e envio de arquivos por WhatsApp Web.",
 					js: ["src/content.js"],
-					css: ["src/content.css"]
+					css: ["src/content.css"],
+					partes: [
+						{ id: "whatsapp", nome: "Botão \"📱 Enviar por WhatsApp\"", ocultar: ["#pdp-wa-launcher"] }
+					]
 				},
 				{
 					id: "email",
@@ -64,7 +80,11 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					id: "expandir",
 					nome: "Expandir anexos / ocultar sem arquivo",
 					descricao: "Expande os anexos e oculta movimentações sem arquivo.",
-					js: ["src/expandMovements.js"]
+					js: ["src/expandMovements.js"],
+					partes: [
+						{ id: "expandir", nome: "Botão \"Expandir/Recolher\" movimentações", ocultar: ["#pdp-expand-movements"] },
+						{ id: "semArquivo", nome: "Botão \"Apenas com arquivo (+)\"", ocultar: ["#pdp-hide-no-file-movements"] }
+					]
 				}
 			]
 		},
@@ -76,7 +96,21 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					nome: "Ações rápidas e Minhas Preferências",
 					descricao: "Botões do painel \"Ações\", preferências salvas e combos.",
 					js: ["src/quickActions.js"],
-					css: ["src/quickActions.css"]
+					css: ["src/quickActions.css"],
+					partes: [
+						{ id: "concluso", nome: "Botão \"📤 Concluso\"", ocultar: ["#pdp-qa-row [data-group-id=\"concluso\"]"] },
+						{ id: "remessa", nome: "Botão \"📦 Remessa\"", ocultar: ["#pdp-qa-row [data-group-id=\"remessa\"]"] },
+						{ id: "ordenacoes", nome: "Botão \"🔀 Ordenações\"", ocultar: ["#pdp-qa-row [data-group-id=\"ordenacoes\"]"] },
+						{ id: "partes", nome: "Botão \"📨 Partes\" (intimar, notificar, citar)", ocultar: ["#pdp-qa-row [data-group-id=\"partes\"]"] },
+						{ id: "suspender", nome: "Botão \"⏸️ Suspender\"", ocultar: ["#pdp-qa-row [data-group-id=\"suspender\"]"], sistemas: ["projudi"] },
+						{ id: "transitar", nome: "Botão \"🏁 Transitar\"", ocultar: ["#pdp-qa-row [data-group-id=\"transitar\"]"] },
+						{ id: "arquivar", nome: "Botão \"🗄️ Arquivar\"", ocultar: ["#pdp-qa-row [data-group-id=\"arquivar\"]"] },
+						{ id: "outras", nome: "Botão \"⋯ Outras\"", ocultar: ["#pdp-qa-row [data-group-id=\"outras\"]"] },
+						{ id: "favoritas", nome: "Botão \"⭐ Minhas Preferências\"", ocultar: ["#pdp-fav-prefs-button"] },
+						{ id: "combos", nome: "Botão \"🔗 Combos\"", ocultar: ["#pdp-qa-row [data-panel-id=\"combos\"]"] },
+						{ id: "destacar", nome: "Botão \"🖍️ Destacar mov.\"", ocultar: ["#pdp-qa-row [data-pdp-parte=\"destacar\"]"] },
+						{ id: "colar", nome: "Botão \"📋 Colar processo\"", ocultar: ["#pdp-clipboard-button"], sistemas: ["projudi"] }
+					]
 				},
 				{
 					id: "movimentoBase",
@@ -215,7 +249,12 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					nome: "Dispensar juntadas, decursos e cumprimentos",
 					descricao: "Botões de dispensa em segundo plano no quadro Pendências.",
 					js: ["src/juntadaDrag.js", "src/dispensarCumprimentos.js"],
-					css: ["src/juntadaDrag.css"]
+					css: ["src/juntadaDrag.css"],
+					partes: [
+						{ id: "juntadas", nome: "Botão \"Dispensar juntadas\"", ocultar: [".pdp-dispensar-juntadas:not([data-pdp-parte=\"decursos\"])"] },
+						{ id: "decursos", nome: "Botão \"Dispensar decursos\"", ocultar: [".pdp-dispensar-juntadas[data-pdp-parte=\"decursos\"]"] },
+						{ id: "cumprimentos", nome: "Botão \"Dispensar pendências\" (cumprimentos para expedir)", ocultar: [".pdp-dispensar-cumprimentos"] }
+					]
 				},
 				{
 					id: "finalizarConclusao",
@@ -358,4 +397,28 @@ self.pdpDesativadasDoSistema = function (dados, sistema) {
 self.pdpExtensaoDesligada = function (dados, sistema) {
 	const porSistema = (dados || {})[self.PDP_FUNCIONALIDADES.chaveExtensao];
 	return !!(porSistema && typeof porSistema === "object" && porSistema[sistema] === true);
+};
+
+// Partes escondidas de um sistema ("item.parte"), a partir do que está em
+// chrome.storage.local (`dados` = resultado de get com `chavePartes`).
+self.pdpPartesDesativadasDoSistema = function (dados, sistema) {
+	const porSistema = (dados || {})[self.PDP_FUNCIONALIDADES.chavePartes];
+	const lista = porSistema && typeof porSistema === "object" ? porSistema[sistema] : null;
+	return Array.isArray(lista) ? lista : [];
+};
+
+// Seletores CSS a esconder para a lista de partes desativadas, no sistema.
+self.pdpSeletoresPartesOcultas = function (partesDesativadas, sistema) {
+	const fora = new Set(Array.isArray(partesDesativadas) ? partesDesativadas : []);
+	const seletores = [];
+	self.PDP_FUNCIONALIDADES.grupos.forEach(function (g) {
+		g.itens.forEach(function (item) {
+			(item.partes || []).forEach(function (parte) {
+				if (!fora.has(item.id + "." + parte.id)) return;
+				if (sistema && parte.sistemas && parte.sistemas.indexOf(sistema) < 0) return;
+				seletores.push.apply(seletores, parte.ocultar || []);
+			});
+		});
+	});
+	return seletores;
 };

@@ -12,7 +12,7 @@
         {
           "header": "content-security-policy",
           "operation": "set",
-          "value": "frame-ancestors 'self' https://*.tjpr.jus.br https://seeu.pje.jus.br https://seeutreino.pje.jus.br"
+          "value": "frame-ancestors 'self' https://*.tjpr.jus.br https://seeu.pje.jus.br https://seeutreino.pje.jus.br https://registros.org.br https://*.registros.org.br https://cnj.jus.br https://*.cnj.jus.br https://pdpj.jus.br https://*.pdpj.jus.br https://receita.fazenda.gov.br https://*.receita.fazenda.gov.br https://copel.com https://*.copel.com https://sanepar.com.br https://*.sanepar.com.br https://depen.pr.gov.br https://*.depen.pr.gov.br https://sesp.parana https://*.sesp.parana https://sso.cloud.pje.jus.br https://sso.acesso.gov.br"
         }
       ]
     },

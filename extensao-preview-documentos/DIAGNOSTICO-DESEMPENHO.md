@@ -1,6 +1,6 @@
 # Diagnóstico: extensão "pesada" e lentidão no Projudi/SEEU
 
-Versão analisada: 2.53.0. Correções aplicadas na 2.53.1.
+Versão analisada: 2.53.0. Correções aplicadas na 2.54.2 (desenvolvidas como 2.53.1, em paralelo com a 2.53.1 das caixinhas laranja).
 
 ## Sintoma
 
@@ -68,7 +68,7 @@ Descartado: as buscas em segundo plano de suspensão/monitoração **não** se
 repetem em laço quando o processo não tem a aba "Informações Adicionais"
 (medido: 2 pedidos por abertura, um de cada recurso).
 
-## O que foi corrigido (2.53.1)
+## O que foi corrigido (2.54.2)
 
 | Correção | Onde |
 |---|---|
@@ -87,7 +87,7 @@ juntadas, que podem seguir com a aba em segundo plano.
 Mediana de 5 rodadas, mesma máquina. "Extra" = com a extensão menos sem a
 extensão (processamento total da aba, em ms).
 
-| Etapa | Extra antes (2.53.0) | Extra depois (2.53.1) | Redução |
+| Etapa | Extra antes (2.53.0) | Extra depois (2.54.2) | Redução |
 |---|---:|---:|---:|
 | carregamento | 267 | 238 | 11 % |
 | 10 s parado | 185 | 134 | 27 % |

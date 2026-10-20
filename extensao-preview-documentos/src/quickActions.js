@@ -4782,6 +4782,8 @@
 		const highlightPrefsBtn = document.createElement("button");
 		highlightPrefsBtn.type = "button";
 		highlightPrefsBtn.className = "pdp-qa-group-btn";
+		// Parte que o Menu pode esconder (ver `partes` em funcionalidades.js).
+		highlightPrefsBtn.dataset.pdpParte = "destacar";
 		highlightPrefsBtn.innerHTML = '<span class="pdp-qa-icon">🖍️</span><span>Destacar mov.</span>';
 		highlightPrefsBtn.title = "Escolher a cor de destaque de cada tipo de usuário na aba Movimentações";
 		highlightPrefsBtn.addEventListener("click", function () {
