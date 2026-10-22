@@ -149,14 +149,14 @@
     const whats = peers.find(el => el.id === 'pdp-wa-launcher');
     const row = peers.find(el => el.id === 'pdp-qa-row');
     const gap = 6;
-    const horizontalPadding = 7;
+    const horizontalPadding = 6;
     const oraculo = row?.querySelector('#pdp-oraculo-button');
     const referenceButton = oraculo || row?.querySelector('.pdp-qa-group-btn');
-    const buttonHeight = Math.max(30, Math.ceil(referenceButton?.getBoundingClientRect().height || 30));
+    const buttonHeight = Math.max(22, Math.ceil(referenceButton?.getBoundingClientRect().height || 22));
     for (const el of [send, emailMenu, whats, sender, handle, toggle].filter(Boolean)) {
       el.style.boxSizing = 'border-box';
       setPx(el, 'height', buttonHeight, 'important');
-      el.style.setProperty('font-size', '12px', 'important');
+      el.style.setProperty('font-size', '11px', 'important');
       el.style.setProperty('line-height', '1', 'important');
       el.style.setProperty('white-space', 'nowrap', 'important');
       setPx(el, 'padding-left', horizontalPadding, 'important');

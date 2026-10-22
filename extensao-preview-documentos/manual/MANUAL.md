@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.54.3 |
-| **Versão da extensão** | 2.54.3 |
-| **Data desta versão** | 20/10/2026 |
+| **Versão do manual** | 2.54.4 |
+| **Versão da extensão** | 2.54.4 |
+| **Data desta versão** | 22/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -273,7 +273,8 @@ Importar** com o arquivo exportado ([2.6](#cap-2-6)).
 ### 2.4 A barra de botões da extensão
 
 **Onde fica:** com um processo aberto, no **canto inferior direito** da
-tela, "flutuando" sobre a página.
+tela, "flutuando" sobre a página. Os botões são compactos, para cobrir o
+mínimo possível dos botões do próprio Projudi.
 
 | Botão | O que faz | Seção |
 |---|---|---|
@@ -2849,6 +2850,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.54.4 | 22/10/2026 | Seção 2.4: os botões da barra de ações rápidas (**Concluso**, **Remessa**, **⭐ Minhas Preferências**, **🔗 Combos**, **Oráculo**, **📱 Enviar por WhatsApp**, **↕ Mover**, **Ocultar** etc.) ficam **menores** — letra um pouco menor e menos espaço interno —, para não cobrirem os botões do próprio Projudi (como os do quadro Pendências). A posição da barra na tela não mudou. Sem vídeo novo: as cenas simuladas não mudam. |
 | 2.54.3 | 20/10/2026 | O histórico de versões do manual (antes Anexo B) passa a ser o **Anexo A**, já que o anexo dos vídeos saiu na 2.53.2. O arquivo baixado pelo botão **2. Atualizar** (2.3) fica bem menor: os vídeos guardados para uso futuro não vão mais nele. O conteúdo das seções não mudou. |
 | 2.54.2 | 20/10/2026 | Seção 2.6: dica **Computador lento** (desligar no Menu as funções que não usa — esconder só os botões não deixa a extensão mais leve —; como saber se a lentidão é da extensão ou do Projudi) e linha nova em Solução de problemas (11). **Extensão mais leve**: com a aba do Projudi/SEEU em segundo plano (atrás de outra aba), a extensão quase não usa mais o computador — antes ela continuava conferindo a tela várias vezes por segundo; ao voltar para a aba, tudo é conferido de novo. Ao trocar de aba do processo, a extensão confere a tela uma vez só, em vez de uma vez para cada pedaço que muda. As telas que a extensão abre escondidas para buscar informações (prévia de documentos, pendências, suspensões, preferências) carregam mais rápido, porque não recebem mais os botões e painéis, que ninguém vê ali. Sem vídeo novo. |
 | 2.54.1 | 20/10/2026 | Corrigido: com a extensão instalada, a tela **Crianças e Adolescentes** do **SNA** (Sistema Nacional de Adoção e Acolhimento, do CNJ), aberta normalmente numa aba do navegador, ficava em branco, com o aviso "sna.cloud.cnj.jus.br está bloqueado". A regra que deixa os sistemas do CNJ abrirem dentro do popup do Projudi/SEEU passa a não atrapalhar esses sites quando usados fora dele. Linha nova na Solução de problemas (11). Sem vídeo novo: a tela da extensão não muda. |
