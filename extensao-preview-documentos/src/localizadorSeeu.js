@@ -583,17 +583,28 @@
 		if (ev.key === "Escape" && !ocupado) fecharPainel();
 	}
 
+	// Área útil da janela, sem as barras de rolagem: `right`/`bottom` de um
+	// elemento fixo contam a partir das bordas dela, e window.innerWidth/
+	// innerHeight incluem as barras (com a barra vertical à vista, 13-17px
+	// no Windows, o painel abria deslocado para a esquerda). Em página sem
+	// DOCTYPE (modo de compatibilidade) a medida vem do <body>.
+	function areaUtil() {
+		const el = document.compatMode === "BackCompat" && document.body ? document.body : document.documentElement;
+		return { largura: el.clientWidth || window.innerWidth, altura: el.clientHeight || window.innerHeight };
+	}
+
 	function posicionar() {
 		if (!painel || !botao) return;
 		const r = botao.getBoundingClientRect();
+		const area = areaUtil();
 		const largura = painel.offsetWidth || 320;
 		let esquerda = r.right - largura;
 		if (esquerda < 8) esquerda = 8;
-		if (esquerda + largura > window.innerWidth - 8) esquerda = Math.max(8, window.innerWidth - 8 - largura);
+		if (esquerda + largura > area.largura - 8) esquerda = Math.max(8, area.largura - 8 - largura);
 		painel.style.left = esquerda + "px";
 		// A fileira costuma ficar no rodapé da tela: abre para cima quando
 		// há mais espaço acima do botão do que abaixo.
-		const abaixo = window.innerHeight - r.bottom - 12;
+		const abaixo = area.altura - r.bottom - 12;
 		const acima = r.top - 12;
 		if (abaixo >= Math.min(painel.scrollHeight, 360) || abaixo >= acima) {
 			painel.style.top = (r.bottom + 4) + "px";
@@ -601,7 +612,7 @@
 			painel.style.maxHeight = Math.max(160, abaixo) + "px";
 		} else {
 			painel.style.top = "";
-			painel.style.bottom = (window.innerHeight - r.top + 4) + "px";
+			painel.style.bottom = (area.altura - r.top + 4) + "px";
 			painel.style.maxHeight = Math.max(160, acima) + "px";
 		}
 	}

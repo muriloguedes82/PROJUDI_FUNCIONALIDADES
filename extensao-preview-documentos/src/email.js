@@ -165,11 +165,22 @@
 		}
 	}
 
+	// Área útil da janela, sem as barras de rolagem: `right`/`bottom` de um
+	// elemento fixo contam a partir das bordas dela, e window.innerWidth/
+	// innerHeight incluem as barras (com a barra vertical à vista, 13-17px
+	// no Windows, o painel abria deslocado para a esquerda). Em página sem
+	// DOCTYPE (modo de compatibilidade) a medida vem do <body>.
+	function areaUtil() {
+		const el = document.compatMode === "BackCompat" && document.body ? document.body : document.documentElement;
+		return { largura: el.clientWidth || window.innerWidth, altura: el.clientHeight || window.innerHeight };
+	}
+
 	function positionEmailDropdown() {
 		if (!emailDropdown || !emailMenuButton) return;
 		const rect = emailMenuButton.getBoundingClientRect();
-		emailDropdown.style.right = Math.max(8, window.innerWidth - rect.right) + "px";
-		emailDropdown.style.top = Math.min(window.innerHeight - emailDropdown.offsetHeight - 8, rect.bottom + 4) + "px";
+		const area = areaUtil();
+		emailDropdown.style.right = Math.max(8, area.largura - rect.right) + "px";
+		emailDropdown.style.top = Math.min(area.altura - emailDropdown.offsetHeight - 8, rect.bottom + 4) + "px";
 	}
 
 	function closeEmailDropdown() {

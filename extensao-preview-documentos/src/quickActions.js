@@ -5646,16 +5646,17 @@
 		if (!btn) return;
 		const rect = btn.getBoundingClientRect();
 		const above = rect.top - BUTTON_SCREEN_MARGIN - 6;
-		const below = window.innerHeight - rect.bottom - BUTTON_SCREEN_MARGIN - 6;
+		const area = areaUtil();
+		const below = area.altura - rect.bottom - BUTTON_SCREEN_MARGIN - 6;
 		const openBelow = below >= Math.min(260, activePanel.scrollHeight) || below >= above;
 		activePanel.style.boxSizing = "border-box";
 		activePanel.style.maxHeight = Math.max(0, openBelow ? below : above) + "px";
 		activePanel.style.top = openBelow ? (rect.bottom + 6) + "px" : "auto";
-		activePanel.style.bottom = openBelow ? "auto" : (window.innerHeight - rect.top + 6) + "px";
+		activePanel.style.bottom = openBelow ? "auto" : (area.altura - rect.top + 6) + "px";
 
 		const width = activePanel.offsetWidth || 380;
 		let left = rect.right - width;
-		if (left + width > window.innerWidth - BUTTON_SCREEN_MARGIN) left = window.innerWidth - BUTTON_SCREEN_MARGIN - width;
+		if (left + width > area.largura - BUTTON_SCREEN_MARGIN) left = area.largura - BUTTON_SCREEN_MARGIN - width;
 		activePanel.style.left = Math.max(BUTTON_SCREEN_MARGIN, Math.round(left)) + "px";
 		activePanel.style.right = "auto";
 	}
@@ -5663,6 +5664,16 @@
 	// -------------------------------------------------------------------
 	// Posicionamento (mesma técnica dos botões irmãos de WhatsApp/e-mail)
 	// -------------------------------------------------------------------
+
+	// Área útil da janela, sem as barras de rolagem: `right`/`bottom` de um
+	// elemento fixo contam a partir das bordas dela, e window.innerWidth/
+	// innerHeight incluem as barras (com a barra vertical à vista, 13-17px
+	// no Windows, o painel abria deslocado para a esquerda). Em página sem
+	// DOCTYPE (modo de compatibilidade) a medida vem do <body>.
+	function areaUtil() {
+		const el = document.compatMode === "BackCompat" && document.body ? document.body : document.documentElement;
+		return { largura: el.clientWidth || window.innerWidth, altura: el.clientHeight || window.innerHeight };
+	}
 
 	function positionPanel(groupId) {
 		if (groupId === FAV_PANEL_ID) {
@@ -5674,17 +5685,18 @@
 		if (!btn) return;
 		const rect = btn.getBoundingClientRect();
 
+		const area = areaUtil();
 		const above = rect.top - BUTTON_SCREEN_MARGIN - 6;
-		const below = window.innerHeight - rect.bottom - BUTTON_SCREEN_MARGIN - 6;
+		const below = area.altura - rect.bottom - BUTTON_SCREEN_MARGIN - 6;
 		const openAbove = above >= below;
 		activePanel.style.boxSizing = "border-box";
 		activePanel.style.maxHeight = Math.max(0, openAbove ? above : below) + "px";
 		activePanel.style.top = openAbove ? "auto" : (rect.bottom + 6) + "px";
-		activePanel.style.bottom = openAbove ? (window.innerHeight - rect.top + 6) + "px" : "auto";
+		activePanel.style.bottom = openAbove ? (area.altura - rect.top + 6) + "px" : "auto";
 
 		const panelRect = activePanel.getBoundingClientRect();
-		let right = window.innerWidth - rect.right;
-		const overflowLeft = window.innerWidth - right - panelRect.width - BUTTON_SCREEN_MARGIN;
+		let right = area.largura - rect.right;
+		const overflowLeft = area.largura - right - panelRect.width - BUTTON_SCREEN_MARGIN;
 		if (overflowLeft < 0) right += overflowLeft;
 		activePanel.style.right = Math.max(BUTTON_SCREEN_MARGIN, Math.round(right)) + "px";
 	}

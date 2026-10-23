@@ -260,7 +260,12 @@
       setPx(ghost, 'height', buttonHeight);
       place(row, top, sendRight);
       const g = ghost.getBoundingClientRect();
-      const ghostRight = window.innerWidth - g.right;
+      // `right` de um elemento fixo conta a partir da borda da área útil,
+      // sem a barra de rolagem; window.innerWidth inclui a barra, e com ela
+      // à vista (ex.: 13-17px no Windows) o botão ficava deslocado para a
+      // esquerda e cobria o último botão da fila.
+      const areaEl = document.compatMode === 'BackCompat' && document.body ? document.body : document.documentElement;
+      const ghostRight = (areaEl.clientWidth || window.innerWidth) - g.right;
       place(whats, g.top, ghostRight);
       place(emailMenu, g.top, ghostRight);
       place(send, g.top, ghostRight + (emailMenu ? menuWidth : 0));

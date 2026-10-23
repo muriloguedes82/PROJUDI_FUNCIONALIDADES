@@ -2741,19 +2741,30 @@
 		if (e.key === "Escape") closePanel();
 	}
 
+	// Área útil da janela, sem as barras de rolagem: `right`/`bottom` de um
+	// elemento fixo contam a partir das bordas dela, e window.innerWidth/
+	// innerHeight incluem as barras (com a barra vertical à vista, 13-17px
+	// no Windows, o painel abria deslocado para a esquerda). Em página sem
+	// DOCTYPE (modo de compatibilidade) a medida vem do <body>.
+	function areaUtil() {
+		const el = document.compatMode === "BackCompat" && document.body ? document.body : document.documentElement;
+		return { largura: el.clientWidth || window.innerWidth, altura: el.clientHeight || window.innerHeight };
+	}
+
 	function positionPanel() {
 		if (!panel || !button) return;
 		const rect = button.getBoundingClientRect();
+		const area = areaUtil();
 		const margin = 12;
 		const above = rect.top - margin - 6;
-		const below = window.innerHeight - rect.bottom - margin - 6;
+		const below = area.altura - rect.bottom - margin - 6;
 		const openAbove = above >= below;
 		panel.style.maxHeight = Math.max(120, openAbove ? above : below) + "px";
 		panel.style.top = openAbove ? "auto" : rect.bottom + 6 + "px";
-		panel.style.bottom = openAbove ? window.innerHeight - rect.top + 6 + "px" : "auto";
+		panel.style.bottom = openAbove ? area.altura - rect.top + 6 + "px" : "auto";
 		const width = panel.offsetWidth || 340;
 		let left = rect.right - width;
-		if (left + width > window.innerWidth - margin) left = window.innerWidth - margin - width;
+		if (left + width > area.largura - margin) left = area.largura - margin - width;
 		panel.style.left = Math.max(margin, Math.round(left)) + "px";
 		panel.style.right = "auto";
 	}
