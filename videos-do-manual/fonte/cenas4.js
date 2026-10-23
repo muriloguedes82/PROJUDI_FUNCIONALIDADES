@@ -332,7 +332,9 @@ function cardCnj(s) {
 	el.id = "x-cnj-" + s.id;
 	el.title = s.nome + " (" + (s.orgao || "CNJ") + ")";
 	el.textContent = s.rotulo;
-	el.style.cssText = "height:24px;box-sizing:border-box;padding:0 6px;border-radius:6px;background:linear-gradient(135deg," + s.cor.claro + "," + s.cor.escuro + ");border:1px solid " + s.cor.borda + ";color:" + s.cor.texto + ";font:700 11px/1 Arial,sans-serif;white-space:nowrap;display:flex;align-items:center;box-shadow:0 1px 4px rgba(0,0,0,.25)";
+	// Como na extensão desde a 2.55.0: um pouco mais baixos que a balança
+	// (aqui 20 de 24 px), letra 10px e pouco espaço interno.
+	el.style.cssText = "height:20px;box-sizing:border-box;padding:0 4px;border-radius:5px;background:linear-gradient(135deg," + s.cor.claro + "," + s.cor.escuro + ");border:1.5px solid " + s.cor.borda + ";color:" + s.cor.texto + ";font:700 10px/1 Arial,sans-serif;white-space:nowrap;display:flex;align-items:center;box-shadow:0 1px 4px rgba(0,0,0,.25)";
 	return el;
 }
 const ALFA_CNJ = l => l.slice().sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" }));
@@ -341,12 +343,12 @@ const ALFA_CNJ = l => l.slice().sort((a, b) => a.nome.localeCompare(b.nome, "pt-
 function iconesSistemasCnj() {
 	const ic = $("#x-menuicon");
 	const fila = add('<div id="x-cnj-fila"></div>', ic.parentElement);
-	fila.style.cssText = "position:absolute;right:42px;top:50px;z-index:30;display:flex;gap:6px";
+	fila.style.cssText = "position:absolute;right:40px;top:52px;z-index:30;display:flex;gap:4px";
 	ALFA_CNJ(self.PDP_SISTEMAS_CNJ.filter(s => !s.outros)).forEach(s => fila.append(cardCnj(s)));
 	const outros = cardCnj({ id: "outros", nome: "Outros sistemas", orgao: "extensão", rotulo: "Outros ▾", cor: { claro: "#ffffff", escuro: "#e4e7eb", borda: "#8a939c", texto: "#3d4650" } });
 	fila.append(outros);
-	const painel = add('<div id="x-cnj-painel"><div style="font-weight:bold;margin-bottom:6px;color:#333">Outros sistemas</div><div id="x-cnj-lista" style="display:flex;flex-wrap:wrap;gap:6px"></div><div style="margin-top:8px;color:#777">Clique para abrir. Arraste um card daqui para cima de um card da fila para trocar os dois de lugar; arraste um card da fila para cá para guardá-lo.</div></div>', ic.parentElement);
-	painel.style.cssText = "position:absolute;right:42px;top:82px;z-index:31;width:270px;box-sizing:border-box;padding:8px 10px;background:#fff;border:1px solid #c8ced6;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.18);font:11px/1.35 Arial,sans-serif;color:#444;display:none";
+	const painel = add('<div id="x-cnj-painel"><div style="font-weight:bold;margin-bottom:6px;color:#333">Outros sistemas</div><div id="x-cnj-lista" style="display:flex;flex-wrap:wrap;gap:4px"></div><div style="margin-top:8px;color:#777">Clique para abrir. Arraste um card daqui para cima de um card da fila para trocar os dois de lugar; arraste um card da fila para cá para guardá-lo.</div></div>', ic.parentElement);
+	painel.style.cssText = "position:absolute;right:40px;top:80px;z-index:31;width:270px;box-sizing:border-box;padding:8px 10px;background:#fff;border:1px solid #c8ced6;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.18);font:11px/1.35 Arial,sans-serif;color:#444;display:none";
 	ALFA_CNJ(self.PDP_SISTEMAS_CNJ.filter(s => s.outros)).forEach(s => $("#x-cnj-lista").append(cardCnj(s)));
 	return fila;
 }
