@@ -558,10 +558,11 @@ CENAS.V41 = {
 	},
 };
 
-// Balões "✏️ Alterar" e "⭐" ao lado da classe e do assunto (alterarClasseAssuntos.js).
-const ESTILO_BALAO = "display:inline-block;margin-left:8px;padding:1px 7px;font:11px/16px Arial,sans-serif;color:#222;text-decoration:none;white-space:nowrap;background:linear-gradient(to bottom,#fafafa,#e9e9e9);border:1px solid #adadad;border-radius:10px;box-shadow:0 1px 2px rgba(0,0,0,.08)";
+// Balões "Alterar" e "⭐" ao lado da classe e do assunto (alterarClasseAssuntos.js).
+// Desde a 2.55.2: retangulares, cantos levemente curvos, compactos e sem ✏️/💲/➕.
+const ESTILO_BALAO = "display:inline-block;margin-left:6px;padding:0 5px;font:11px/15px Arial,sans-serif;color:#222;text-decoration:none;white-space:nowrap;background:linear-gradient(to bottom,#fafafa,#e9e9e9);border:1px solid #adadad;border-radius:3px;box-shadow:0 1px 2px rgba(0,0,0,.08)";
 function cardsAlterar() {
-	const par = id => ' <a id="' + id + '" style="' + ESTILO_BALAO + '">✏️ Alterar</a><a id="' + id + '-pref" style="' + ESTILO_BALAO + ';margin-left:4px;padding:1px 6px">⭐</a>';
+	const par = id => ' <a id="' + id + '" style="' + ESTILO_BALAO + '">Alterar</a><a id="' + id + '-pref" style="' + ESTILO_BALAO + ';margin-left:4px;padding:0 4px">⭐</a>';
 	$("#info tr:first-child td:nth-child(2)").insertAdjacentHTML("beforeend", par("x-alt-classe"));
 	$("#row-assunto td:nth-child(2)").insertAdjacentHTML("beforeend", par("x-alt-assunto"));
 }
@@ -576,7 +577,7 @@ CENAS.V42 = {
 		cardsAlterar();
 		await S.titleCard("VÍDEO V42", "Alterar Classe/Assuntos", "A tela do botão “Alterar” (Informações Gerais) num popup, direto do cabeçalho do processo.");
 		S.hl("#info", 4);
-		await S.cap("No cabeçalho do processo, ao lado da <b>Classe Processual</b> e do <b>Assunto Principal</b>, há o card <b>✏️ Alterar</b>.");
+		await S.cap("No cabeçalho do processo, ao lado da <b>Classe Processual</b> e do <b>Assunto Principal</b>, há o card <b>Alterar</b>.");
 		S.hlOff();
 		await S.cap("Funciona em qualquer aba — não é preciso abrir <b>Informações Gerais</b>. Clique no da classe.");
 		await S.click("#x-alt-classe");
@@ -604,7 +605,7 @@ CENAS.V42 = {
 		S.hl("#info", 4);
 		await S.cap("Ao <b>Salvar</b>, o popup fecha sozinho e a tela do processo é recarregada com a classe nova.");
 		S.hlOff();
-		await S.endCard("✏️ Alterar (classe ou assunto, no cabeçalho) → tela de alteração em popup → Salvar → a tela do processo é atualizada.");
+		await S.endCard("Alterar (classe ou assunto, no cabeçalho) → tela de alteração em popup → Salvar → a tela do processo é atualizada.");
 	},
 };
 
@@ -617,7 +618,7 @@ CENAS.V43 = {
 		telaProcesso({});
 		cardsAlterar();
 		await S.titleCard("VÍDEO V43", "Preferência de alteração de classe", "Grave uma vez a classe e o motivo; depois, um clique altera e salva.");
-		await S.cap("Ao lado de <b>✏️ Alterar</b> há a <b>⭐</b>. Clique na da classe.");
+		await S.cap("Ao lado de <b>Alterar</b> há a <b>⭐</b>. Clique na da classe.");
 		await S.click("#x-alt-classe-pref");
 		let pn = panelAt('<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #e3e8dc;padding-bottom:6px;margin-bottom:6px"><h4 style="margin:0">⭐ Preferências — Alterar classe</h4><span class="x-btn small" id="x-nova" style="font-weight:bold">+ Nova preferência</span></div><p style="color:#666;margin:0 0 4px">Nenhuma preferência gravada.</p>', "#x-alt-classe-pref", { w: 300 });
 		pn.style.left = "330px"; pn.style.top = "180px";
@@ -897,10 +898,10 @@ CENAS.V47 = {
 	async run() {
 		telaProcesso({});
 		$("#row-assunto").insertAdjacentHTML("afterend",
-			'<tr id="row-valor"><td class="l">Valor da Causa:</td><td colspan="3"><span id="x-valor">R$ 324,80</span> <a id="x-novo-valor" style="' + ESTILO_BALAO + '">💲 Novo Valor da Causa</a></td></tr>');
+			'<tr id="row-valor"><td class="l">Valor da Causa:</td><td colspan="3"><span id="x-valor">R$ 324,80</span> <a id="x-novo-valor" style="' + ESTILO_BALAO + '">Novo Valor da Causa</a></td></tr>');
 		await S.titleCard("VÍDEO V47", "Novo Valor da Causa", "Informe o novo valor: a extensão altera e salva no processo, sem abrir a tela de alteração.");
 		S.hl("#row-valor", 4);
-		await S.cap("No cabeçalho do processo, a extensão mostra a linha <b>Valor da Causa</b>, com o card <b>💲 Novo Valor da Causa</b> ao lado.");
+		await S.cap("No cabeçalho do processo, a extensão mostra a linha <b>Valor da Causa</b>, com o card <b>Novo Valor da Causa</b> ao lado.");
 		S.hlOff();
 		await S.cap("Ela aparece em qualquer aba — não é preciso abrir <b>Informações Gerais</b>.", { ms: 2600 });
 		await S.click("#x-novo-valor");
@@ -925,7 +926,7 @@ CENAS.V47 = {
 		S.hl("#row-valor", 4);
 		await S.cap("A tela do processo é recarregada já com o valor novo; o Projudi registra a alteração na aba <b>Movimentações</b>.", { ms: 3800 });
 		S.hlOff();
-		await S.endCard("Informações Gerais → 💲 Novo Valor da Causa → digite o valor → Salvar → alterado e salvo no processo.");
+		await S.endCard("Informações Gerais → Novo Valor da Causa → digite o valor → Salvar → alterado e salvo no processo.");
 	},
 };
 
@@ -977,7 +978,7 @@ CENAS.V49 = {
 	async run() {
 		telaProcesso({});
 		cardsAlterar();
-		$("#row-assunto td:nth-child(2)").insertAdjacentHTML("beforeend", '<a id="x-alt-sec-pref" style="' + ESTILO_BALAO + ';margin-left:4px;padding:1px 6px">⭐ Secundários</a>');
+		$("#row-assunto td:nth-child(2)").insertAdjacentHTML("beforeend", '<a id="x-alt-sec-pref" style="' + ESTILO_BALAO + ';margin-left:4px;padding:0 4px">⭐ Secundários</a>');
 		await S.titleCard("VÍDEO V49", "Preferência de assunto secundário", "Grave uma vez o assunto secundário; depois, um clique inclui e salva.");
 		S.hl("#x-alt-sec-pref", 3);
 		await S.cap("Na linha do <b>Assunto Principal</b> há o balão <b>⭐ Secundários</b> (se o processo já tem assunto secundário, a ⭐ fica na linha dele).");
@@ -1043,7 +1044,7 @@ CENAS.V50 = {
 		const x = id => '<a id="' + id + '" style="' + ESTILO_BALAO + ';margin-left:6px;padding:0 6px;color:#a00">✖</a>';
 		$("#row-assunto").insertAdjacentHTML("afterend", '<tr id="row-sec"><td class="l" style="vertical-align:top">Assuntos Secundários:</td><td colspan="3"><ul style="margin:0;padding-left:18px">' +
 			'<li id="x-li-1">3416 - Furto' + x("x-rem-1") + '</li><li id="x-li-2">12194 - Contra a Mulher' + x("x-rem-2") + '</li></ul>' +
-			'<a style="' + ESTILO_BALAO + '">✏️ Alterar</a><a style="' + ESTILO_BALAO + ';margin-left:4px;padding:1px 6px">⭐</a></td></tr>');
+			'<a style="' + ESTILO_BALAO + '">Alterar</a><a style="' + ESTILO_BALAO + ';margin-left:4px;padding:0 4px">⭐</a></td></tr>');
 		await S.titleCard("VÍDEO V50", "Remover assunto secundário", "Um clique no ✖ tira o assunto do processo e salva, sem abrir a tela de alteração.");
 		S.hl("#row-sec", 3);
 		await S.cap("No cabeçalho, cada assunto da linha <b>Assuntos Secundários</b> tem no fim o balão <b>✖</b>.");
@@ -1368,7 +1369,7 @@ CENAS.V55 = {
 };
 
 // ------------------------------------------------------------------ V56
-// Linha "Prioridade" do cabeçalho: ✖, ➕ Incluir e ⭐ (alterarPrioridades.js).
+// Linha "Prioridade" do cabeçalho: ✖, Incluir e ⭐ (alterarPrioridades.js).
 CENAS.V56 = {
 	arquivo: "V56-incluir-e-remover-prioridades.mp4",
 	titulo: "Incluir e remover prioridades",
@@ -1379,10 +1380,10 @@ CENAS.V56 = {
 		const VD = "Violência doméstica e familiar contra a mulher (conforme art. 33 da Lei 11.340/2006)";
 		$("#row-assunto").insertAdjacentHTML("afterend", '<tr id="row-prio"><td class="l" style="vertical-align:top">Prioridade:</td><td colspan="3"><em id="x-prio" style="font-weight:bold;color:#c00">' +
 			'<span>Maior que 60 anos (conforme Lei 10.741/2003)</span>, <span id="x-vd">' + VD + x("x-rem-vd") + '</span></em>' +
-			'<a id="x-incluir" style="' + ESTILO_BALAO + '">➕ Incluir</a><a id="x-prio-pref" style="' + ESTILO_BALAO + ';margin-left:4px;padding:1px 6px">⭐</a></td></tr>');
-		await S.titleCard("VÍDEO V56", "Incluir e remover prioridades", "✖ remove, ➕ Incluir acrescenta e ⭐ repete a mesma alteração com um clique — sempre já salvo no processo.");
+			'<a id="x-incluir" style="' + ESTILO_BALAO + '">Incluir</a><a id="x-prio-pref" style="' + ESTILO_BALAO + ';margin-left:4px;padding:0 4px">⭐</a></td></tr>');
+		await S.titleCard("VÍDEO V56", "Incluir e remover prioridades", "✖ remove, Incluir acrescenta e ⭐ repete a mesma alteração com um clique — sempre já salvo no processo.");
 		S.hl("#row-prio", 3);
-		await S.cap("No cabeçalho, a linha <b>Prioridade</b> ganha um <b>✖</b> ao lado de cada prioridade que pode ser tirada, e os balões <b>➕ Incluir</b> e <b>⭐</b>.", { ms: 4200 });
+		await S.cap("No cabeçalho, a linha <b>Prioridade</b> ganha um <b>✖</b> ao lado de cada prioridade que pode ser tirada, e os balões <b>Incluir</b> e <b>⭐</b>.", { ms: 4200 });
 		S.hlOff();
 		await S.cap("A prioridade por idade não tem ✖: é o próprio Projudi que a coloca, e ela não aparece na Seleção de Prioridade.", { ms: 4000 });
 		await S.click("#x-rem-vd");
@@ -1401,7 +1402,7 @@ CENAS.V56 = {
 		await S.click("#x-incluir");
 		await abrindo("Prioridades", 900);
 		popup("Alteração do Processo",
-			'<div style="margin:0 0 10px;padding:8px 10px;border:1px solid #d4b106;background:#fffbe6;color:#5c4400;border-radius:4px"><b>➕ Incluir prioridade.</b> Na <b>Seleção de Prioridade</b>, marque as prioridades e clique em <b>Selecionar</b>: a extensão <b>salva em seguida</b> e recarrega o processo.</div>' +
+			'<div style="margin:0 0 10px;padding:8px 10px;border:1px solid #d4b106;background:#fffbe6;color:#5c4400;border-radius:4px"><b>Incluir prioridade.</b> Na <b>Seleção de Prioridade</b>, marque as prioridades e clique em <b>Selecionar</b>: a extensão <b>salva em seguida</b> e recarrega o processo.</div>' +
 			'<table class="pj-info" style="width:100%"><tr><td class="l" style="width:160px">Juiz:</td><td><span class="pj-select" style="min-width:300px;display:inline-block">JuizTogado (Titular)</span></td></tr>' +
 			'<tr style="background:#fff3b0"><td class="l">Prioridade:</td><td><span class="pj-select" id="x-ed-prio" style="min-width:420px;display:inline-block">&nbsp;</span> <span class="pj-btn">🔍</span></td></tr></table>' +
 			'<div class="pj-btnbar" style="justify-content:flex-start"><span class="pj-btn">Salvar</span><span class="pj-btn">Voltar</span></div>',
@@ -1434,7 +1435,7 @@ CENAS.V56 = {
 		t.remove();
 		$("#x-prio").insertAdjacentHTML("beforeend", ", <span>" + VD + x("x-rem-vd2") + "</span>");
 		await S.cap("Depois, um clique na preferência inclui a prioridade e salva, sem confirmação.", { ms: 3800 });
-		await S.endCard("✖ → confirmar → removida e salva · ➕ Incluir → marcar → Selecionar → salva · ⭐ → ★ preferência → incluída e salva.");
+		await S.endCard("✖ → confirmar → removida e salva · Incluir → marcar → Selecionar → salva · ⭐ → ★ preferência → incluída e salva.");
 	},
 };
 

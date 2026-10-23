@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.55.1 |
-| **Versão da extensão** | 2.55.1 |
+| **Versão do manual** | 2.55.2 |
+| **Versão da extensão** | 2.55.2 |
 | **Data desta versão** | 23/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1794,12 +1794,12 @@ processo sem sair da tela em que você está. Abre, num popup, a mesma tela
 do botão **Alterar** da aba **Informações Gerais**.
 
 **Onde fica:** no cabeçalho do processo, logo abaixo do número, há um
-pequeno balão cinza **✏️ Alterar** ao lado da **Classe Processual** e ao
+pequeno botão cinza **Alterar** ao lado da **Classe Processual** e ao
 lado do **Assunto Principal**. Ele aparece em qualquer aba do processo.
 
 **Passo a passo:**
 
-1. Clique em **✏️ Alterar** ao lado da classe (para mudar a classe) ou do
+1. Clique em **Alterar** ao lado da classe (para mudar a classe) ou do
    assunto principal (para mudar os assuntos).
 2. Abre-se o popup com a tela de alteração do processo, já no campo
    clicado (ele pisca em amarelo por um instante).
@@ -1824,7 +1824,7 @@ lado do **Assunto Principal**. Ele aparece em qualquer aba do processo.
 
 **Preferências de alteração (⭐)**
 
-Ao lado de cada **✏️ Alterar** há um balão **⭐**. Com ele você grava uma
+Ao lado de cada **Alterar** há um botão **⭐**. Com ele você grava uma
 alteração que se repete muito (por exemplo, classe **279 - Inquérito
 Policial**, motivo **Evolução**) e depois a faz **com um clique**: a
 extensão escolhe a classe, marca o motivo e clica em **Salvar** sozinha,
@@ -1855,7 +1855,7 @@ nova.
 - Se o processo **já estiver** com a classe (ou o assunto) da
   preferência, nada é feito e a extensão avisa.
 - Se o Projudi recusar a alteração, a extensão mostra a mensagem dele e
-  nada mais é feito; use **✏️ Alterar** para fazer à mão.
+  nada mais é feito; use **Alterar** para fazer à mão.
 - Na ⭐ da classe, a extensão só grava a preferência se a classe foi
   trocada **e** o motivo foi marcado.
 - Para apagar uma preferência, use **🗑** ao lado dela. As preferências
@@ -1873,7 +1873,7 @@ um assunto secundário que se repete muito — por exemplo, acrescentar
 **3418 - Furto de coisa comum**.
 
 **Onde fica:** se o processo já tem assunto secundário, o cabeçalho mostra
-a linha **Assuntos Secundários**, e nela há **✏️ Alterar** e **⭐**. Se ainda
+a linha **Assuntos Secundários**, e nela há **Alterar** e **⭐**. Se ainda
 não tem, o balão **⭐ Secundários** fica na linha do **Assunto Principal**,
 depois da ⭐ dele.
 
@@ -1904,7 +1904,7 @@ processo é recarregada.
   pesquisa de novo de outras formas (sem acentos, só pela palavra mais
   longa do nome e pelo código do assunto).
 - Se mesmo assim o assunto não aparecer, ou não entrar na lista, **nada é
-  salvo** e aparece um aviso — use **✏️ Alterar** para fazer à mão. Se o
+  salvo** e aparece um aviso — use **Alterar** para fazer à mão. Se o
   Projudi tiver mostrado alguma mensagem ao selecionar o assunto, ela vem
   no aviso, depois de "Aviso do Projudi:".
 - Às vezes o Projudi não reage ao primeiro **Selecionar**. A extensão
@@ -1933,9 +1933,9 @@ você abrir a tela de alteração.
 *Bom saber:*
 
 - Só os assuntos **secundários** têm **✖**; o assunto principal não pode ser
-  removido, só trocado (**✏️ Alterar** ou **⭐**).
+  removido, só trocado (**Alterar** ou **⭐**).
 - Se o assunto não sair da lista, **nada é salvo** e a extensão avisa — use
-  **✏️ Alterar** para fazer à mão.
+  **Alterar** para fazer à mão.
 
 <a id="cap-8-10"></a>
 ### 8.10 Novo Valor da Causa
@@ -1950,14 +1950,14 @@ extensão faz isso sozinha, sem mostrar aquela tela.
 **Onde fica:** no cabeçalho do processo, logo abaixo do número — junto da
 **Classe Processual**, do **Assunto Principal** e do **Nível de Sigilo** —,
 a extensão acrescenta a linha **Valor da Causa**, com o valor atual e, ao
-lado dele, um pequeno balão cinza **💲 Novo Valor da Causa**. Ela aparece
+lado dele, um pequeno botão cinza **Novo Valor da Causa**. Ela aparece
 em qualquer aba do processo: não é preciso abrir **Informações Gerais**.
 
 **Passo a passo:**
 
 1. Abra o processo (em qualquer aba).
 2. Na linha **Valor da Causa** do cabeçalho, clique em
-   **💲 Novo Valor da Causa**. Abre-se um quadrinho com o
+   **Novo Valor da Causa**. Abre-se um quadrinho com o
    **valor atual** e o campo **Novo valor**.
 3. Digite o novo valor, com os centavos (por exemplo, **1.500,00**). Os
    pontos e a vírgula aparecem sozinhos enquanto você digita.
@@ -2001,11 +2001,11 @@ em vermelho com as prioridades, separadas por vírgula). Ela aparece em
 qualquer aba do processo. A extensão acrescenta:
 
 - um pequeno balão **✖** depois de cada prioridade que pode ser tirada;
-- no fim da linha, os balões **➕ Incluir** e **⭐**.
+- no fim da linha, os botões **Incluir** e **⭐**.
 
 Se o processo ainda não tem nenhuma prioridade, a extensão mostra a linha
 **Prioridade** com "(nenhuma)", logo abaixo do **Nível de Sigilo**, já com
-**➕ Incluir** e **⭐**.
+**Incluir** e **⭐**.
 
 **Remover uma prioridade (✖):**
 
@@ -2018,9 +2018,9 @@ Se o processo ainda não tem nenhuma prioridade, a extensão mostra a linha
    só então clica em **Salvar**. No fim, a tela do processo é recarregada
    sem ela.
 
-**Incluir prioridades (➕ Incluir):**
+**Incluir prioridades (Incluir):**
 
-1. Clique em **➕ Incluir**. Abre-se a tela de alteração do processo num
+1. Clique em **Incluir**. Abre-se a tela de alteração do processo num
    popup, já na linha **Prioridade** e com a janela **Seleção de
    Prioridade** do Projudi aberta.
 2. Marque as prioridades que quer incluir (pode ser mais de uma) e clique
@@ -2051,7 +2051,7 @@ Combos** ([7.4](#cap-7-4)).
 
 **Bom saber:**
 
-- O **✖**, o **Selecionar** do **➕ Incluir** e a preferência já gravam no
+- O **✖**, o **Selecionar** do **Incluir** e a preferência já gravam no
   processo. Só o **✖** pede confirmação; a preferência é executada
   **direto** — confira o nome antes de clicar.
 - Algumas prioridades são colocadas **pelo próprio Projudi** (por exemplo,
@@ -2065,7 +2065,7 @@ Combos** ([7.4](#cap-7-4)).
   extensão avisa.
 - Se a prioridade não mudar depois do **Selecionar**, ou se o Projudi
   recusar a alteração, **nada é salvo** e a extensão mostra a mensagem;
-  nesse caso, use **➕ Incluir** (ou o botão **Alterar** da aba
+  nesse caso, use **Incluir** (ou o botão **Alterar** da aba
   **Informações Gerais**) para fazer à mão.
 - Para apagar uma preferência, use **🗑** ao lado dela. As preferências
   entram no **⬇ Exportar** do Menu da extensão ([2.6](#cap-2-6)).
@@ -2845,7 +2845,7 @@ telas abertas a partir daí voltam a funcionar.
 | O painel de ações diz para abrir a aba Movimentações | Abra a aba **Movimentações** do processo e tente de novo ([7.1](#cap-7-1)) |
 | "A movimentação … marcada não leva à ação" | Marque outro evento na aba Movimentações (um despacho/decisão costuma funcionar) ou desmarque a caixinha ([7.7](#cap-7-7)) |
 | "Não localizei o movimento … na aba Movimentações" | O processo não tem movimento com o nome gravado na preferência 📌: **✅ Prosseguir** segue a regra geral, **Cancelar** não executa ([7.7](#cap-7-7)) |
-| "Não encontrei o botão Alterar…" no ✏️ Alterar do cabeçalho ou no 💲 Novo Valor da Causa | Seu perfil não pode alterar este processo; confira na aba **Informações Gerais** se o botão **Alterar** aparece ([8.9](#cap-8-9), [8.10](#cap-8-10)) |
+| "Não encontrei o botão Alterar…" no Alterar do cabeçalho ou no Novo Valor da Causa | Seu perfil não pode alterar este processo; confira na aba **Informações Gerais** se o botão **Alterar** aparece ([8.9](#cap-8-9), [8.10](#cap-8-10)) |
 | Preferência abre com "⚠ Não consegui preencher" | A opção gravada não existe neste processo; preencha o campo à mão, ou edite/recrie a preferência ([7.2](#cap-7-2)) |
 | Preferência de Intimar Partes não marca as caixas certas | Grave-a de novo (preferências anteriores à versão 2.9.84) |
 | Importei o arquivo de backup e nada mudou | Recarregue (F5) as páginas do Projudi/SEEU abertas ([2.6](#cap-2-6)) |
@@ -2878,6 +2878,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.55.2 | 23/10/2026 | Seções 8.9, 8.10 e 8.11: os botões do cabeçalho do processo (**Alterar** da classe e dos assuntos, **⭐**, **⭐ Secundários**, **Novo Valor da Causa**, **Incluir** e **✖** das prioridades) ficam **retangulares, com cantos levemente curvos** (como os botões das Ações Rápidas), um pouco **menores**, e sem os símbolos ✏️, 💲 e ➕ (as ⭐ e o ✖ continuam). Textos dessas seções e da Solução de problemas (11) ajustados. Vídeos V41, V42, V43, V47, V49, V50 e V56 regravados e guardados em `videos-do-manual/` (não citados no manual). |
 | 2.55.1 | 23/10/2026 | Corrigido: com só o **Enviar por WhatsApp** (ou só o **Enviar por e-mail**) à vista e a página com barra de rolagem, o botão de envio ficava um pouco à esquerda do lugar dele e cobria o último botão da segunda linha (ex.: **Oráculo**). Pelo mesmo motivo, os painéis que abrem a partir da barra (grupos de ação, **⭐ Minhas Preferências**, **🔗 Combos**, **Advogados**, **Juntar Documento**, **Localizador** do SEEU e o **▼** do e-mail) abriam um pouco à esquerda do botão; agora ficam alinhados a ele. Sem alteração de texto nas seções. |
 | 2.55.0 | 23/10/2026 | Seção 2.4: barra em **duas linhas** — a de cima começa sempre com **⭐ Minhas Preferências** e a de baixo com **Combos** —; **mudar a ordem dos botões** arrastando-os com o mouse, inclusive de uma linha para a outra; a ordem fica salva (separada no Projudi e no SEEU, e vai junto no ⬇ Exportar), e **↺ Ordem original** (Menu → Ações rápidas → Botões) volta ao padrão. Os botões da barra (**Concluso**, **Remessa**, **⭐ Minhas Preferências**, **Combos**, **Oráculo**, **Enviar por WhatsApp**, **↕ Mover**, **Ocultar** etc.) ficam **menores** — mais baixos, mais estreitos e com letra um pouco menor — e **sem os símbolos** antes do nome (só a ⭐ de Minhas Preferências e o 🔗 de Combos continuam), para não cobrirem os botões do próprio Projudi (como os do quadro Pendências); **Combos** fica em azul e **⭐ Minhas Preferências** em dourado claro. Ao esconder um botão ou desligar uma função no Menu, os demais se reorganizam e ocupam o espaço vazio (inclusive o lugar do **Enviar por WhatsApp** ou do **Enviar por e-mail**, quando só um dos dois está à vista), sem que um botão fique por cima de outro (e voltam ao arranjo anterior quando o botão é mostrado de novo). A posição da barra na tela não mudou. Os nomes dos botões no Menu (2.6) também ficam sem os símbolos. As **preferências** aparecem só com o nome, sem o **★** antes (nos painéis das ações, no Juntar Documento, em Alterar Classe/Assuntos, em Prioridades, no Analisar Decurso, na ⭐ das listas e em **⭐ Minhas Preferências**, onde os grupos também ficam sem símbolo); só os **combos** mantêm os seus (**🔗**, **▶**). O texto do **Enviar por e-mail** (e o **▼**) fica centralizado no botão. Seção 8.7: os **cards dos sistemas do CNJ** (ao lado da balança) ficam menores — mais baixos, mais estreitos, com letra um pouco menor e menos espaço entre eles —, centralizados na altura da balança. Seção 7.1: as ações **Suspender ou Sobrestar Processo**, **Transitar em Julgado** e **Arquivar Processo** passam para dentro do botão **Outras** (os botões **Suspender**, **Transitar** e **Arquivar** saem da barra e da lista Botões do Menu; as preferências salvas continuam valendo). Os dois botões "Partes" passam a se chamar **Int. Partes** (intimar, notificar, citar — 7.1) e **Editar Partes** (tela Partes do Processo — 8.4). Vídeo V59 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 2.54.3 | 20/10/2026 | O histórico de versões do manual (antes Anexo B) passa a ser o **Anexo A**, já que o anexo dos vídeos saiu na 2.53.2. O arquivo baixado pelo botão **2. Atualizar** (2.3) fica bem menor: os vídeos guardados para uso futuro não vão mais nele. O conteúdo das seções não mudou. |

@@ -602,7 +602,7 @@
 				return;
 			}
 			if (!resultado.ok) {
-				alert(titulo + ": o Projudi não aceitou a alteração." + (resultado.mensagem ? "\n\n" + resultado.mensagem : "") + '\n\nUse "➕ Incluir" (ou o botão "Alterar" da aba Informações Gerais) para ver a tela e fazer a alteração à mão.');
+				alert(titulo + ": o Projudi não aceitou a alteração." + (resultado.mensagem ? "\n\n" + resultado.mensagem : "") + '\n\nUse "Incluir" (ou o botão "Alterar" da aba Informações Gerais) para ver a tela e fazer a alteração à mão.');
 				return;
 			}
 			mostrarStatus(titulo + " — prioridade removida. Recarregando o processo…");
@@ -648,7 +648,7 @@
 				return;
 			}
 			if (!resultado.ok) {
-				alert(titulo + ": o Projudi não aceitou a alteração." + (resultado.mensagem ? "\n\n" + resultado.mensagem : "") + '\n\nUse "➕ Incluir" para ver a tela e fazer a alteração à mão.');
+				alert(titulo + ": o Projudi não aceitou a alteração." + (resultado.mensagem ? "\n\n" + resultado.mensagem : "") + '\n\nUse "Incluir" para ver a tela e fazer a alteração à mão.');
 				return;
 			}
 			mostrarStatus(titulo + " — alteração salva. Recarregando o processo…");
@@ -864,7 +864,7 @@
 					);
 				}
 			} else {
-				avisar(doc, "<b>➕ Incluir prioridade.</b> Na <b>Seleção de Prioridade</b>, marque as prioridades e clique em <b>Selecionar</b>: a extensão <b>salva em seguida</b> e recarrega o processo.");
+				avisar(doc, "<b>Incluir prioridade.</b> Na <b>Seleção de Prioridade</b>, marque as prioridades e clique em <b>Selecionar</b>: a extensão <b>salva em seguida</b> e recarrega o processo.");
 			}
 			if (primeiraTela) {
 				primeiraTela = false;
@@ -1030,14 +1030,16 @@
 		const style = document.createElement("style");
 		style.id = LINK_CLASS + "-estilo";
 		style.textContent =
-			"a." + LINK_CLASS + "{display:inline-block;margin-left:8px;padding:1px 7px;" +
-			"font:normal 11px/16px Arial,Helvetica,sans-serif;color:#222 !important;text-decoration:none !important;" +
+			// Retangular com cantos levemente curvos, como os botões das Ações
+			// Rápidas (.pdp-qa-group-btn), e compacto (versão 2.55.2).
+			"a." + LINK_CLASS + "{display:inline-block;margin-left:6px;padding:0 5px;" +
+			"font:normal 11px/15px Arial,Helvetica,sans-serif;color:#222 !important;text-decoration:none !important;" +
 			"white-space:nowrap;vertical-align:middle;cursor:pointer;" +
-			"background:linear-gradient(to bottom,#fafafa,#e9e9e9);border:1px solid #adadad;border-radius:10px;" +
+			"background:linear-gradient(to bottom,#fafafa,#e9e9e9);border:1px solid #adadad;border-radius:3px;" +
 			"box-shadow:0 1px 2px rgba(0,0,0,0.08);}" +
 			"a." + LINK_CLASS + ":hover{background:linear-gradient(to bottom,#ffffff,#dcdcdc);border-color:#888;}" +
-			"a." + PREF_BTN_CLASS + "{margin-left:4px;padding:1px 6px;}" +
-			"a." + LINK_CLASS + "." + REMOVER_CLASS + "{margin-left:4px;padding:0 6px;color:#a00 !important;}" +
+			"a." + PREF_BTN_CLASS + "{margin-left:4px;padding:0 4px;}" +
+			"a." + LINK_CLASS + "." + REMOVER_CLASS + "{margin-left:4px;padding:0 4px;color:#a00 !important;}" +
 			"#" + PANEL_ID + "{position:fixed;z-index:2147483640;min-width:260px;max-width:420px;padding:8px;background:#fff;border:1px solid #adadad;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.18);font:12px Arial,Helvetica,sans-serif;color:#222}" +
 			"#" + PANEL_ID + " .pdp-prio-titulo{font-weight:bold;margin:0}" +
 			"#" + PANEL_ID + " .pdp-prio-vazio{color:#666;margin:0 0 8px;line-height:1.4}" +
@@ -1096,7 +1098,7 @@
 
 	function botoesDaLinha(celula) {
 		if (celula.querySelector("[" + ITEM_ATTR + "-incluir]")) return;
-		const incluir = criarLink("➕ Incluir", "Incluir prioridades: abre a tela de alteração num popup, já na Seleção de Prioridade; depois do \"Selecionar\", a extensão salva sozinha", async function () {
+		const incluir = criarLink("Incluir", "Incluir prioridades: abre a tela de alteração num popup, já na Seleção de Prioridade; depois do \"Selecionar\", a extensão salva sozinha", async function () {
 			if (ocupado) return;
 			ocupado = true;
 			try {

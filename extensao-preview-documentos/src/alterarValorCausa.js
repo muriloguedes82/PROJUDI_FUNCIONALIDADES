@@ -394,10 +394,12 @@
 		const style = document.createElement("style");
 		style.id = LINK_CLASS + "-estilo";
 		style.textContent =
-			"a." + LINK_CLASS + "{display:inline-block;margin-left:8px;padding:1px 7px;" +
-			"font:normal 11px/16px Arial,Helvetica,sans-serif;color:#222 !important;text-decoration:none !important;" +
+			// Retangular com cantos levemente curvos, como os botões das Ações
+			// Rápidas (.pdp-qa-group-btn), e compacto (versão 2.55.2).
+			"a." + LINK_CLASS + "{display:inline-block;margin-left:6px;padding:0 5px;" +
+			"font:normal 11px/15px Arial,Helvetica,sans-serif;color:#222 !important;text-decoration:none !important;" +
 			"white-space:nowrap;vertical-align:middle;cursor:pointer;" +
-			"background:linear-gradient(to bottom,#fafafa,#e9e9e9);border:1px solid #adadad;border-radius:10px;" +
+			"background:linear-gradient(to bottom,#fafafa,#e9e9e9);border:1px solid #adadad;border-radius:3px;" +
 			"box-shadow:0 1px 2px rgba(0,0,0,0.08);}" +
 			"a." + LINK_CLASS + ":hover{background:linear-gradient(to bottom,#ffffff,#dcdcdc);border-color:#888;}" +
 			"#" + PANEL_ID + "{position:absolute;z-index:2147483640;min-width:280px;max-width:360px;padding:10px;background:#fff;border:1px solid #adadad;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,.18);font:12px Arial,Helvetica,sans-serif;color:#222;text-align:left}" +
@@ -417,7 +419,7 @@
 		const a = document.createElement("a");
 		a.href = "#";
 		a.className = LINK_CLASS;
-		a.textContent = "💲 " + TITULO;
+		a.textContent = TITULO;
 		a.title = "Informar o novo valor da causa: a extensão altera o valor e salva no processo, sem abrir a tela de alteração";
 		a.addEventListener("click", function (event) {
 			event.preventDefault();
