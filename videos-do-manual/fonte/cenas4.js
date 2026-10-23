@@ -1610,9 +1610,9 @@ CENAS.V59 = {
 	async run() {
 		telaProcesso({ acoesAbertas: true });
 		// A barra real mostra os botões só com o nome (sem símbolos, exceto a
-		// ⭐), Suspender/Transitar/Arquivar ficam dentro do Outras, e as duas
+		// ⭐ e do 🔗 Combos), Suspender/Transitar/Arquivar ficam dentro do Outras, e as duas
 		// linhas começam com ⭐ Minhas Preferências e Combos.
-		$$("#x-group .x-btn").forEach(b => { if (b.id !== "x-fav") b.textContent = b.textContent.replace(/^[^\wÀ-ú▸▾↕]+\s*/u, ""); });
+		$$("#x-group .x-btn").forEach(b => { if (b.id !== "x-fav" && b.id !== "x-combos") b.textContent = b.textContent.replace(/^[^\wÀ-ú▸▾↕]+\s*/u, ""); });
 		$$('[data-g="Suspender"], [data-g="Transitar"], [data-g="Arquivar"]').forEach(b => b.remove());
 		const linha1 = $("#x-line-grupos"), linha2 = $("#x-toggle").parentElement;
 		linha1.appendChild($("#x-toggle"));
