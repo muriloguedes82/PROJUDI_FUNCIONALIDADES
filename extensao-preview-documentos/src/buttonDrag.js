@@ -228,10 +228,37 @@
     place(toggle, firstTop, 12);
     place(handle, secondTop, 12);
     place(sender, secondTop, 12);
-    place(whats, firstTop, sendRight);
-    place(emailMenu, secondTop, sendRight);
-    place(send, secondTop, sendRight + menuWidth);
-    place(row, top, sendRight + cachedDeliveryWidth + 10);
+    // Só um dos botões de envio à vista (o outro desligado ou escondido no
+    // Menu): em vez de deixar vazio o lugar do outro, a fila de Ações
+    // Rápidas vai até a coluna do Ocultar/Mover, e o botão de envio ocupa o
+    // fim dela - o lugar de um "fantasma" do mesmo tamanho, o último item
+    // da fila (ver quickActions.css). A altura e a ancoragem não mudam.
+    const lone = row && (whats ? !send : !!send) ? (whats || send) : null;
+    let ghost = row ? row.querySelector(':scope > .pdp-qa-ghost') : null;
+    if (lone) {
+      if (!ghost) {
+        ghost = document.createElement('span');
+        ghost.className = 'pdp-qa-ghost';
+        ghost.setAttribute('aria-hidden', 'true');
+        // No começo do HTML (a posição na tela vem do `order`): oraculo.js
+        // procura a última .pdp-qa-row-line com :last-child.
+        row.insertBefore(ghost, row.firstChild);
+      }
+      setPx(ghost, 'width', cachedDeliveryWidth);
+      setPx(ghost, 'height', buttonHeight);
+      place(row, top, sendRight);
+      const g = ghost.getBoundingClientRect();
+      const ghostRight = window.innerWidth - g.right;
+      place(whats, g.top, ghostRight);
+      place(emailMenu, g.top, ghostRight);
+      place(send, g.top, ghostRight + (emailMenu ? menuWidth : 0));
+    } else {
+      if (ghost) ghost.remove();
+      place(whats, firstTop, sendRight);
+      place(emailMenu, secondTop, sendRight);
+      place(send, secondTop, sendRight + menuWidth);
+      place(row, top, sendRight + cachedDeliveryWidth + 10);
+    }
     if (row && row.hasAttribute('data-pdp-layout-pending')) {
       row.removeAttribute('data-pdp-layout-pending');
       row.style.removeProperty('visibility');

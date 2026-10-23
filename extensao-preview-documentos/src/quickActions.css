@@ -24,6 +24,15 @@
 	display: contents;
 }
 
+/* Lugar reservado, no fim da fila, para o botão de envio que ficou
+   sozinho (WhatsApp ou e-mail) - ver layoutColumns em buttonDrag.js. */
+.pdp-qa-ghost {
+	order: 2147483647;
+	flex: none;
+	visibility: hidden;
+	pointer-events: none;
+}
+
 .pdp-qa-group-btn {
 	display: inline-flex;
 	align-items: center;
