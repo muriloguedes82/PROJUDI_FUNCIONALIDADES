@@ -264,7 +264,8 @@
       // sem a barra de rolagem; window.innerWidth inclui a barra, e com ela
       // à vista (ex.: 13-17px no Windows) o botão ficava deslocado para a
       // esquerda e cobria o último botão da fila.
-      const ghostRight = document.documentElement.clientWidth - g.right;
+      const areaEl = document.compatMode === 'BackCompat' && document.body ? document.body : document.documentElement;
+      const ghostRight = (areaEl.clientWidth || window.innerWidth) - g.right;
       place(whats, g.top, ghostRight);
       place(emailMenu, g.top, ghostRight);
       place(send, g.top, ghostRight + (emailMenu ? menuWidth : 0));
