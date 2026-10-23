@@ -7,7 +7,13 @@
 	flex-wrap: wrap;
 	justify-content: flex-end;
 	align-items: center;
-	gap: 6px 4px;
+	/* Sem espaço entre linhas no flex: a quebra fixa de linha
+	   (ordemBotoesAcoes.js) seria uma linha vazia e dobraria o espaço. O
+	   espaço vem da margem dos botões (3px em cima e embaixo), e a margem
+	   negativa da fila a compensa, para os botões ficarem onde
+	   buttonDrag.js os põe. */
+	gap: 0 4px;
+	margin: -3px 0;
 	position: fixed;
 	bottom: 12px;
 	right: 14px;
@@ -26,7 +32,14 @@
 
 /* Lugar reservado, no fim da fila, para o botão de envio que ficou
    sozinho (WhatsApp ou e-mail) - ver layoutColumns em buttonDrag.js. */
+#pdp-qa-row > .pdp-qa-group-btn,
+#pdp-qa-row > .pdp-qa-row-line > .pdp-qa-group-btn {
+	margin-top: 3px;
+	margin-bottom: 3px;
+}
+
 .pdp-qa-ghost {
+	margin: 3px 0;
 	order: 2147483647;
 	flex: none;
 	visibility: hidden;

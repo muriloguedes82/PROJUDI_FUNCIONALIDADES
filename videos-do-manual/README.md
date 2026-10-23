@@ -90,5 +90,5 @@ para dentro da extensão, retire essa regra.
 | [V56](V56-incluir-e-remover-prioridades.mp4) | [Incluir e remover prioridades](V56-incluir-e-remover-prioridades.mp4) | [8.11](../extensao-preview-documentos/manual/MANUAL.md#cap-8-11) | 0:58 |
 | [V57](V57-localizador-na-lista-seeu.mp4) | [Localizador na lista (SEEU)](V57-localizador-na-lista-seeu.mp4) | [9.12](../extensao-preview-documentos/manual/MANUAL.md#cap-9-12) | 1:00 |
 | [V58](V58-escolher-funcoes-e-botoes.mp4) | [Escolher funções e botões (busca, Desativar todas)](V58-escolher-funcoes-e-botoes.mp4) | [2.6](../extensao-preview-documentos/manual/MANUAL.md#cap-2-6) | 1:05 |
-| [V59](V59-mudar-a-ordem-dos-botoes.mp4) | [Mudar a ordem dos botões da barra](V59-mudar-a-ordem-dos-botoes.mp4) | [2.4](../extensao-preview-documentos/manual/MANUAL.md#cap-2-4) | 0:30 |
+| [V59](V59-mudar-a-ordem-dos-botoes.mp4) | [Mudar a ordem dos botões da barra](V59-mudar-a-ordem-dos-botoes.mp4) | [2.4](../extensao-preview-documentos/manual/MANUAL.md#cap-2-4) | 0:39 |
 <!-- tabela-videos:fim -->

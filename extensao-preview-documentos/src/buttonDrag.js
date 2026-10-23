@@ -201,8 +201,13 @@
     // .pdp-qa-row-line não formam caixas, ver quickActions.css): a
     // "primeira linha" é a de cima da fila, e a "segunda" é todo o resto
     // (uma ou mais linhas, conforme quantos botões estão à vista).
+    // Altura medida pelos próprios botões (a fila tem margens e uma quebra
+    // de linha invisível, ver quickActions.css/ordemBotoesAcoes.js).
+    const rects = row ? [...row.querySelectorAll('.pdp-qa-group-btn, .pdp-qa-ghost')]
+      .filter(el => el.getClientRects().length).map(el => el.getBoundingClientRect()) : [];
+    const contentHeight = rects.length ? Math.max(...rects.map(r => r.bottom)) - Math.min(...rects.map(r => r.top)) : 0;
     const firstHeight = buttonHeight;
-    const secondHeight = Math.max(buttonHeight, (row?.offsetHeight || 0) - buttonHeight - gap);
+    const secondHeight = Math.max(buttonHeight, contentHeight - buttonHeight - gap);
     groupHeight = firstHeight + gap + secondHeight;
     const reference = document.getElementById('pdp-expand-movements') ||
       document.getElementById('quadroPendencias') ||

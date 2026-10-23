@@ -86,12 +86,6 @@
 			actions: ["Intimar Partes", "Notificar Partes", "Citar Partes", "Intimar Peritos e Auxiliares da Justiça"],
 		},
 		{
-			id: "transitar",
-			title: "Transitar",
-			icon: "🏁",
-			actions: ["Transitar em Julgado"],
-		},
-		{
 			// Não é um link do painel Ações: o caminho até a tela final
 			// (aba "Informações Adicionais" → Depósitos/Alvarás Eletrônicos
 			// → "Novo Alvará") é ensinado por alvaraEletronico.js — ver
@@ -129,11 +123,12 @@
 				// processos criminais). Ver ACTIONS_NEEDING_ACOES_PARENT.
 				"Anotações Criminais",
 				"Solicitar Antecedentes Criminais",
-				// Antes com botão próprio ("Suspender" e "Arquivar"); desde a
-				// 2.55.0 (pedido do usuário) ficam aqui, para a barra ficar
-				// mais curta. As preferências são guardadas pelo nome da
-				// ação, então as já salvas continuam valendo.
+				// Antes com botão próprio ("Suspender", "Transitar" e
+				// "Arquivar"); desde a 2.55.0 (pedido do usuário) ficam aqui,
+				// para a barra ficar mais curta. As preferências são guardadas
+				// pelo nome da ação, então as já salvas continuam valendo.
 				"Suspender ou Sobrestar Processo",
+				"Transitar em Julgado",
 				"Arquivar Processo",
 			],
 		},

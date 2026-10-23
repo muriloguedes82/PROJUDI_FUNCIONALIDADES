@@ -20,6 +20,15 @@
 // Botão escondido ou de função desligada guarda o seu lugar na lista e
 // volta para ele quando reaparece.
 //
+// Duas linhas (pedido do usuário): a fila tem um item invisível
+// (.pdp-qa-quebra, chave QUEBRA) que obriga os botões seguintes a irem para
+// a linha de baixo. Por padrão ele fica depois do "▾ Ações" (#pdp-qa-options):
+// em cima os grupos de ação, embaixo Advogados, Editar Partes etc. Arrastar
+// um botão para a outra linha o põe antes ou depois da quebra, e a posição
+// dela entra na ordem salva. "⭐ Minhas Preferências" abre sempre a linha de
+// cima e "Combos" a de baixo (FIXOS): não são arrastados, e os demais não
+// passam à frente deles.
+//
 // Um clique sem arrastar continua acionando o botão normalmente.
 (function () {
 	"use strict";
@@ -30,6 +39,10 @@
 	const NO_SEEU = /(^|\.)seeu(treino)?\.pje\.jus\.br$/i.test(location.hostname);
 	const ORDEM_KEY = NO_SEEU ? "pdpAcoesRapidasOrdemSeeu" : "pdpAcoesRapidasOrdem";
 	const LIMIAR_ARRASTO = 5; // px de movimento antes de virar arrasto
+	const QUEBRA = "quebra";
+	const ANTES_DA_QUEBRA = "#pdp-qa-options"; // posição padrão: depois do "▾ Ações"
+	const FIXO_LINHA1 = "#pdp-fav-prefs-button";
+	const FIXO_LINHA2 = "p:combos";
 
 	let row = null;
 	let salva = []; // ordem gravada (chaves)
@@ -40,7 +53,8 @@
 	const estilo = document.createElement("style");
 	estilo.textContent =
 		"#pdp-qa-row .pdp-qa-group-btn.pdp-qa-arrastando { opacity: .55; outline: 2px dashed #6c93d6; outline-offset: 1px; cursor: grabbing; }" +
-		"html.pdp-qa-arrastando-barra, html.pdp-qa-arrastando-barra * { cursor: grabbing !important; user-select: none !important; }";
+		"html.pdp-qa-arrastando-barra, html.pdp-qa-arrastando-barra * { cursor: grabbing !important; user-select: none !important; }" +
+		"#pdp-qa-row > .pdp-qa-quebra { flex: 0 0 100%; height: 0; margin: 0; padding: 0; }";
 	(document.head || document.documentElement).appendChild(estilo);
 
 	function chaveDe(botao) {
@@ -70,12 +84,37 @@
 			}
 			anterior = chave;
 		});
-		return lista;
+		if (lista.indexOf(QUEBRA) < 0) {
+			const acoes = lista.indexOf(ANTES_DA_QUEBRA);
+			lista.splice(acoes < 0 ? lista.length : acoes + 1, 0, QUEBRA);
+		}
+		// ⭐ no começo da linha de cima; Combos no começo da de baixo.
+		const semFixos = lista.filter(function (c) { return c !== FIXO_LINHA1 && c !== FIXO_LINHA2; });
+		semFixos.splice(semFixos.indexOf(QUEBRA) + 1, 0, FIXO_LINHA2);
+		semFixos.unshift(FIXO_LINHA1);
+		return semFixos;
+	}
+
+	// O item da quebra mora direto em #pdp-qa-row, no começo (a posição na
+	// tela vem do `order`; oraculo.js procura a última .pdp-qa-row-line com
+	// :last-child).
+	function garantirQuebra() {
+		let quebra = row.querySelector(":scope > .pdp-qa-quebra");
+		if (!quebra) {
+			quebra = document.createElement("span");
+			quebra.className = "pdp-qa-quebra";
+			quebra.setAttribute("aria-hidden", "true");
+			row.insertBefore(quebra, row.firstChild);
+		}
+		return quebra;
 	}
 
 	function aplicar(lista) {
 		if (!row) return;
 		const completa = ordemCompleta(lista || salva);
+		const quebra = garantirQuebra();
+		const posQuebra = String(completa.indexOf(QUEBRA));
+		if (quebra.style.order !== posQuebra) quebra.style.order = posQuebra;
 		botoes().forEach(function (b, i) {
 			const chave = chaveDe(b);
 			// Sem chave: fica no fim, na ordem do HTML.
@@ -103,7 +142,7 @@
 		// sendo só um clique.
 		if (ev.target.closest("input, select, textarea, label")) return;
 		const chave = chaveDe(botao);
-		if (!chave) return;
+		if (!chave || chave === FIXO_LINHA1 || chave === FIXO_LINHA2) return;
 		arrasto = { botao: botao, chave: chave, id: ev.pointerId, inicioX: ev.clientX, inicioY: ev.clientY, ativo: false, ordemTemp: null };
 	}
 
