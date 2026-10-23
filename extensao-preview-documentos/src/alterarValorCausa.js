@@ -11,7 +11,7 @@
 // do Assunto, do Nível de Sigilo...), com o valor lido da aba "Informações
 // Gerais" (`__pdpLerAbaProcesso` em habilitarAdvogado.js: o próprio DOM, se
 // já é essa aba; senão, buscada em segundo plano), e põe ao lado dele um
-// card (balão cinza) "💲 Novo Valor da Causa". O card abre um quadrinho com
+// botão cinza "Novo Valor da Causa". O card abre um quadrinho com
 // o valor atual e um campo para o novo valor; nada de tela nova. Ao clicar
 // em "Salvar" no quadrinho, a extensão:
 // - carrega a tela de alteração num quadro oculto (a URL é a do `onclick`
@@ -319,7 +319,7 @@
 
 		const titulo = document.createElement("div");
 		titulo.className = "pdp-vc-titulo";
-		titulo.textContent = "💲 " + TITULO;
+		titulo.textContent = TITULO;
 		painel.appendChild(titulo);
 
 		const atual = document.createElement("div");
