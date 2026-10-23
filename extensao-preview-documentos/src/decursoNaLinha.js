@@ -394,13 +394,13 @@
 							});
 						})
 					];
-					linha("★ " + pref.name, "Clica em \"Adicionar\" e inclui o arquivo com esta preferência até a assinatura" + (emLote ? ", em cada processo marcado" : ""), { acao: "pref", pref: pref }, extras);
+					linha(pref.name, "Clica em \"Adicionar\" e inclui o arquivo com esta preferência até a assinatura" + (emLote ? ", em cada processo marcado" : ""), { acao: "pref", pref: pref }, extras);
 				});
 			}
 			if (prefs.juntar.length) {
-				secao("Do 📎 Juntar Documento:");
+				secao("Do Juntar Documento:");
 				prefs.juntar.forEach(function (pref) {
-					linha("★ " + pref.name, "Usa o Tipo do Arquivo, o Modelo e o texto desta preferência do Juntar Documento", { acao: "pref", pref: pref });
+					linha(pref.name, "Usa o Tipo do Arquivo, o Modelo e o texto desta preferência do Juntar Documento", { acao: "pref", pref: pref });
 				});
 			}
 			if (emLote && !prefs.decurso.length && !prefs.juntar.length) {

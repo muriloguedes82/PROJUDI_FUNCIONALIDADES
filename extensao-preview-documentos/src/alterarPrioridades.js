@@ -973,7 +973,7 @@
 			const usar = document.createElement("button");
 			usar.type = "button";
 			usar.className = "pdp-prio-usar";
-			usar.textContent = "★ " + pref.name;
+			usar.textContent = pref.name;
 			usar.title = descreverPref(pref).replace(/\.$/, "") + " agora — sem confirmação";
 			usar.addEventListener("click", function () {
 				fecharPainel();

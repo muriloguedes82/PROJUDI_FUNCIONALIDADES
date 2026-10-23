@@ -4785,7 +4785,7 @@
 		combosBtn.type = "button";
 		combosBtn.className = "pdp-qa-group-btn";
 		combosBtn.dataset.panelId = "combos";
-		combosBtn.innerHTML = '<span>Combos</span>';
+		combosBtn.innerHTML = '<span class="pdp-qa-icon">🔗</span><span>Combos</span>';
 		combosBtn.title = "Combos de preferências: executar várias preferências salvas em sequência, na ordem escolhida";
 		combosBtn.addEventListener("click", toggleCombosPanel);
 		secondLine.appendChild(combosBtn);
@@ -5013,7 +5013,7 @@
 			const applyBtn = document.createElement("button");
 			applyBtn.type = "button";
 			applyBtn.className = "pdp-qa-pref-btn";
-			applyBtn.textContent = "★ " + pref.name + (pref.movimento && pref.movimento.texto ? " 📌" : "");
+			applyBtn.textContent = pref.name + (pref.movimento && pref.movimento.texto ? " 📌" : "");
 			applyBtn.title =
 				(mode === "custom"
 					? 'Abre "' + label + '" já preenchido com esta preferência'
@@ -5112,10 +5112,10 @@
 	// Bloco de "Minhas Preferências" de um item: { key, icon, title }.
 	function favGroupOf(item) {
 		if (item.kind === "combo") return { key: "combo", icon: "🔗", title: "Combos" };
-		if (item.kind === "localizador") return { key: "localizador", icon: "📍", title: "Localizador" };
-		if (item.kind === "juntar") return { key: "a:" + JUNTAR_LABEL, icon: "📎", title: JUNTAR_LABEL };
-		const group = groupForLabel(item.label);
-		return { key: "a:" + item.label, icon: group ? group.icon : "★", title: item.label };
+		if (item.kind === "localizador") return { key: "localizador", icon: "", title: "Localizador" };
+		if (item.kind === "juntar") return { key: "a:" + JUNTAR_LABEL, icon: "", title: JUNTAR_LABEL };
+		// Só o bloco dos combos tem símbolo (pedido do usuário, 2.55.0).
+		return { key: "a:" + item.label, icon: "", title: item.label };
 	}
 
 	// Agrupa os itens (já na ordem salva) em blocos, na ordem do primeiro
@@ -5142,7 +5142,7 @@
 			title.textContent = g.info.title;
 			const count = document.createElement("span");
 			count.className = "pdp-qa-fav-group-count";
-			label.appendChild(icon);
+			if (g.info.icon) label.appendChild(icon);
 			label.appendChild(title);
 			label.appendChild(count);
 			box.appendChild(label);
@@ -5391,7 +5391,7 @@
 
 			const nameEl = document.createElement("span");
 			nameEl.className = "pdp-qa-fav-card-name";
-			nameEl.textContent = (isCombo ? "▶ " : "★ ") + item.pref.name;
+			nameEl.textContent = (isCombo ? "▶ " : "") + item.pref.name;
 			if (!isCombo && item.pref.movimento && item.pref.movimento.texto) {
 				nameEl.textContent += " 📌";
 				nameEl.title = 'Parte do movimento "' + item.pref.movimento.texto + '" (o mais recente com esse nome)';

@@ -2838,7 +2838,7 @@
 				const applyBtn = document.createElement("button");
 				applyBtn.type = "button";
 				applyBtn.className = "pdp-qa-pref-btn";
-				applyBtn.textContent = "★ " + pref.name;
+				applyBtn.textContent = pref.name;
 				applyBtn.title = 'Juntar com esta preferência, até "Concluir Movimento" (assinador):\n' + describePref(pref);
 				applyBtn.addEventListener("click", function () {
 					closePanel();

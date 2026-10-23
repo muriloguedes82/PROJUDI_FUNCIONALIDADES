@@ -274,7 +274,7 @@ Importar** com o arquivo exportado ([2.6](#cap-2-6)).
 
 **Onde fica:** com um processo aberto, no **canto inferior direito** da
 tela, "flutuando" sobre a página. Os botões são compactos e só com o nome
-(sem símbolos, exceto a ⭐ de **Minhas Preferências**), para cobrir o mínimo
+(sem símbolos, exceto a ⭐ de **Minhas Preferências** e o 🔗 de **Combos**), para cobrir o mínimo
 possível dos botões do próprio Projudi. Neste manual, alguns botões ainda
 aparecem com um símbolo antes do nome (como 📎 Juntar Documento) apenas para
 facilitar a leitura. Se você esconder um botão ou desligar uma função no
@@ -297,7 +297,7 @@ processo** para a linha de cima). Só o **⭐ Minhas Preferências** e o
 processos, separada no Projudi e no SEEU, e vai junto no **⬇ Exportar** do
 Menu. Um clique sem arrastar continua abrindo o botão normalmente. Para
 voltar à ordem original: Menu (balança) → **Ações rápidas e Minhas
-Preferências** → lista **Botões** → **↺ Ordem original**. O botão **Combos**
+Preferências** → lista **Botões** → **↺ Ordem original**. O botão **🔗 Combos**
 fica em azul e o **⭐ Minhas Preferências** em dourado claro, para serem
 achados mais depressa.
 
@@ -311,7 +311,7 @@ achados mais depressa.
 | **Editar Partes** | Tela Partes do Processo em popup (Editar Partes/Outros) | [8.4](#cap-8-4) |
 | **Juntar Documento** | Juntada com preferências gravadas | [8.2](#cap-8-2) |
 | **Destacar mov.** | Cores por tipo de usuário | [3.4](#cap-3-4) |
-| **Combos** | Várias preferências em sequência | [7.4](#cap-7-4) |
+| **🔗 Combos** | Várias preferências em sequência | [7.4](#cap-7-4) |
 | **Oráculo** | Consulta de antecedentes da parte | [8.6](#cap-8-6) |
 | **Enviar por WhatsApp** | Envia documentos marcados | [5.1](#cap-5-1) |
 | **Enviar por e-mail** e **▼** | Envia documentos marcados pelo Outlook; ▼ = Alterar Remetente | [5.2](#cap-5-2) |
@@ -1069,7 +1069,7 @@ MP para ciência, 5 dias") e reaplicá-lo em outros processos.
 
 **Usar:**
 
-1. No painel da ação, clique no chip **★ nome-da-preferência**.
+1. No painel da ação, clique no chip **nome-da-preferência**.
    - Se o quadro **Pendências** do processo tiver **juntadas a analisar**,
      aparece antes a pergunta *Dispensar as juntadas pendentes deste
      processo antes de executar a preferência?*: **✅ Sim, dispensar
@@ -1118,7 +1118,7 @@ cards, num só lugar.
 ação**. No alto de cada bloco aparecem o ícone do botão da ação, o nome
 dela e quantas preferências ela tem, ex.: **📤 Enviar Concluso (3)**. Os
 combos ficam no bloco **🔗 Combos**, em azul. Os blocos ficam lado a lado,
-e cada preferência é um card retangular com **★ nome**, o **✏️** (editar)
+e cada preferência é um card retangular com **nome da preferência**, o **✏️** (editar)
 e o **🗑** (remover). O nome aparece sempre inteiro, em letra pequena; se
 for comprido, ele continua na linha de baixo, dentro do mesmo card.
 
@@ -1279,7 +1279,7 @@ mudam: continuam permitindo marcar vários arquivos ([5.1](#cap-5-1)).
    fica contornada em azul e as demais caixinhas ficam **esmaecidas** e não
    podem ser marcadas. Para escolher outra, desmarque primeiro a atual.
 2. Use as Ações rápidas como sempre: **Ir e abrir**, uma preferência
-   (**★ nome**), um card de **⭐ Minhas Preferências** ou um **🔗 Combo**.
+   (**nome da preferência**), um card de **⭐ Minhas Preferências** ou um **🔗 Combo**.
 3. O aviso passa a dizer *Abrindo "Ação" a partir da movimentação N
    "EVENTO"…*.
 4. Confira o diálogo e confirme (✅ **Sim, executar**) como de costume.
@@ -1397,7 +1397,7 @@ campos repetitivos preenchidos.
 - **+ Nova preferência**: escolha a modalidade, preencha os campos fixos no
   formulário completo e clique em **💾 Salvar como preferência**. Crie uma
   preferência para cada modalidade que usa.
-- **★ preferência**: a modalidade é escolhida sozinha e você já vê o
+- **nome da preferência**: a modalidade é escolhida sozinha e você já vê o
   formulário preenchido.
 
 **Campos gravados:** Magistrado, Urgente, Natureza do Alvará, Representação
@@ -1421,7 +1421,7 @@ confundir com o botão nativo de mesmo nome).
 |---|---|
 | **Abrir** | Vai para a tela Juntar Documento, como o botão nativo |
 | **+ Nova preferência** | Grava o fluxo que você fizer (fica ao lado de **Abrir**) |
-| **★ nome** | Refaz o fluxo sozinha |
+| **nome da preferência** | Refaz o fluxo sozinha |
 | **✏️** | Refaz o fluxo com as telas preenchidas, sem clicar em nada, para você ajustar e atualizar |
 | **🗑** | Remove a preferência |
 
@@ -1436,7 +1436,7 @@ fazer em cada tela.
 5. De volta ao **Inserir Arquivo**: **Assinar Arquivos** — a extensão pede o
    **nome** da preferência e salva. O assinador segue normalmente.
 
-**Usar (★ nome):** a extensão faz Tipo de Documento → Adicionar → Tipo do
+**Usar (nome da preferência):** a extensão faz Tipo de Documento → Adicionar → Tipo do
 Arquivo/Modelo → texto → Continuar → Concluir → **Assinar Arquivos**. Você
 digita o PIN; depois ela clica em **Confirmar Inclusão** e **Concluir
 Movimento**.
@@ -1482,7 +1482,7 @@ painel com:
 |---|---|
 | **Abrir** | Abre no popup a tela do botão nativo **Advogados** (a lista de advogados do processo), como antes |
 | **+ Nova preferência** | Abre direto a tela **Habilitação de Advogado/Sociedade para Parte**, para você montar a lista e salvá-la |
-| **★ nome** | Abre a tela já com os advogados da preferência na seção **Advogados** |
+| **nome da preferência** | Abre a tela já com os advogados da preferência na seção **Advogados** |
 | **✏️** | Abre a tela com a preferência, para você ajustar a lista e atualizá-la |
 | **🗑** | Remove a preferência |
 
@@ -1503,7 +1503,7 @@ mesmo sem advogado cadastrado (para incluir o primeiro).
 
 **Passo a passo — usar a preferência:**
 
-1. Clique em **⚖️ Advogados** → **★ nome-da-preferência** (ou use o card
+1. Clique em **⚖️ Advogados** → **nome-da-preferência** (ou use o card
    em **⭐ Minhas Preferências**, ou ponha a preferência num **🔗 Combo**).
 2. A tela **Habilitação de Advogado/Sociedade para Parte** abre e a extensão inclui sozinha, um de cada vez, cada advogado
    da preferência na seção **Advogados**, fazendo por você o mesmo caminho
@@ -1542,7 +1542,7 @@ Advogado para Parte**. As diferenças:
   **Salvar** da própria tela: **a habilitação não é salva** — a extensão
   só pede o **nome** e grava a preferência (o mesmo vale para o
   **💾 Salvar como preferência** da barra).
-- **Usar:** **⚖️ Advogados** → **★ nome**: a extensão escolhe o advogado
+- **Usar:** **⚖️ Advogados** → **nome da preferência**: a extensão escolhe o advogado
   pela lupa, a Atuação e as partes do mesmo tipo e mostra a barra
   ⚠️ **✅ Sim, executar** — é esse clique que clica em **Salvar** e
   habilita o advogado. **Cancelar** desiste.
@@ -1843,7 +1843,7 @@ sem pedir confirmação.
    e fecha o popup.
 
 *Usar a preferência:* clique na **⭐** e no nome da preferência
-(**★ …**). Um aviso no alto da tela mostra o andamento ("preenchendo…",
+(**…**). Um aviso no alto da tela mostra o andamento ("preenchendo…",
 "salvando…"); no fim, a tela do processo é recarregada já com a classe
 nova.
 
@@ -1889,7 +1889,7 @@ depois da ⭐ dele.
    e fecha o popup.
 
 *Usar a preferência:* clique na **⭐** dos assuntos secundários e no nome da
-preferência (**★ …**). A extensão faz, sozinha e sem mostrar a tela, o
+preferência (**…**). A extensão faz, sozinha e sem mostrar a tela, o
 mesmo que você faria: **Adicionar**, pesquisa o assunto, marca, clica em
 **Selecionar**, confere se ele entrou na lista e só então clica em
 **Salvar**. Um aviso no alto da tela mostra o andamento; no fim, a tela do
@@ -2042,7 +2042,7 @@ mulher**.
    que você marcou e desmarcou, pede um nome para a preferência e fecha o
    popup.
 
-*Usar a preferência:* clique na **⭐** e no nome da preferência (**★ …**).
+*Usar a preferência:* clique na **⭐** e no nome da preferência (**…**).
 A extensão faz o mesmo caminho do **✖** — marca/desmarca na **Seleção de
 Prioridade**, **Selecionar**, confere e **Salvar** — e recarrega o
 processo. As preferências de prioridade também podem entrar nos **🔗
@@ -2667,7 +2667,7 @@ aparecem em todas).
 
 **Usar a preferência:**
 
-1. No **⭐** da linha, clique em **★ nome** (o card mostra "postergar
+1. No **⭐** da linha, clique em **nome da preferência** (o card mostra "postergar
    assinatura" ou "você assina e expede").
 2. Se o processo tiver juntadas ou conclusão pendentes, a extensão pergunta
    antes se deve dispensá-las/finalizá-la ([9.3](#cap-9-3)).
@@ -2877,7 +2877,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 2.55.0 | 23/10/2026 | Seção 2.4: barra em **duas linhas** — a de cima começa sempre com **⭐ Minhas Preferências** e a de baixo com **Combos** —; **mudar a ordem dos botões** arrastando-os com o mouse, inclusive de uma linha para a outra; a ordem fica salva (separada no Projudi e no SEEU, e vai junto no ⬇ Exportar), e **↺ Ordem original** (Menu → Ações rápidas → Botões) volta ao padrão. Os botões da barra (**Concluso**, **Remessa**, **⭐ Minhas Preferências**, **Combos**, **Oráculo**, **Enviar por WhatsApp**, **↕ Mover**, **Ocultar** etc.) ficam **menores** — mais baixos, mais estreitos e com letra um pouco menor — e **sem os símbolos** antes do nome (só a ⭐ de Minhas Preferências continua), para não cobrirem os botões do próprio Projudi (como os do quadro Pendências); **Combos** fica em azul e **⭐ Minhas Preferências** em dourado claro. Ao esconder um botão ou desligar uma função no Menu, os demais se reorganizam e ocupam o espaço vazio (inclusive o lugar do **Enviar por WhatsApp** ou do **Enviar por e-mail**, quando só um dos dois está à vista) (e voltam ao arranjo anterior quando o botão é mostrado de novo). A posição da barra na tela não mudou. Os nomes dos botões no Menu (2.6) também ficam sem os símbolos. Seção 7.1: as ações **Suspender ou Sobrestar Processo**, **Transitar em Julgado** e **Arquivar Processo** passam para dentro do botão **Outras** (os botões **Suspender**, **Transitar** e **Arquivar** saem da barra e da lista Botões do Menu; as preferências salvas continuam valendo). Os dois botões "Partes" passam a se chamar **Int. Partes** (intimar, notificar, citar — 7.1) e **Editar Partes** (tela Partes do Processo — 8.4). Vídeo V59 gravado e guardado em `videos-do-manual/` (não citado no manual). |
+| 2.55.0 | 23/10/2026 | Seção 2.4: barra em **duas linhas** — a de cima começa sempre com **⭐ Minhas Preferências** e a de baixo com **Combos** —; **mudar a ordem dos botões** arrastando-os com o mouse, inclusive de uma linha para a outra; a ordem fica salva (separada no Projudi e no SEEU, e vai junto no ⬇ Exportar), e **↺ Ordem original** (Menu → Ações rápidas → Botões) volta ao padrão. Os botões da barra (**Concluso**, **Remessa**, **⭐ Minhas Preferências**, **Combos**, **Oráculo**, **Enviar por WhatsApp**, **↕ Mover**, **Ocultar** etc.) ficam **menores** — mais baixos, mais estreitos e com letra um pouco menor — e **sem os símbolos** antes do nome (só a ⭐ de Minhas Preferências e o 🔗 de Combos continuam), para não cobrirem os botões do próprio Projudi (como os do quadro Pendências); **Combos** fica em azul e **⭐ Minhas Preferências** em dourado claro. Ao esconder um botão ou desligar uma função no Menu, os demais se reorganizam e ocupam o espaço vazio (inclusive o lugar do **Enviar por WhatsApp** ou do **Enviar por e-mail**, quando só um dos dois está à vista) (e voltam ao arranjo anterior quando o botão é mostrado de novo). A posição da barra na tela não mudou. Os nomes dos botões no Menu (2.6) também ficam sem os símbolos. As **preferências** aparecem só com o nome, sem o **★** antes (nos painéis das ações, no Juntar Documento, em Alterar Classe/Assuntos, em Prioridades, no Analisar Decurso, na ⭐ das listas e em **⭐ Minhas Preferências**, onde os grupos também ficam sem símbolo); só os **combos** mantêm os seus (**🔗**, **▶**). Seção 7.1: as ações **Suspender ou Sobrestar Processo**, **Transitar em Julgado** e **Arquivar Processo** passam para dentro do botão **Outras** (os botões **Suspender**, **Transitar** e **Arquivar** saem da barra e da lista Botões do Menu; as preferências salvas continuam valendo). Os dois botões "Partes" passam a se chamar **Int. Partes** (intimar, notificar, citar — 7.1) e **Editar Partes** (tela Partes do Processo — 8.4). Vídeo V59 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 2.54.3 | 20/10/2026 | O histórico de versões do manual (antes Anexo B) passa a ser o **Anexo A**, já que o anexo dos vídeos saiu na 2.53.2. O arquivo baixado pelo botão **2. Atualizar** (2.3) fica bem menor: os vídeos guardados para uso futuro não vão mais nele. O conteúdo das seções não mudou. |
 | 2.54.2 | 20/10/2026 | Seção 2.6: dica **Computador lento** (desligar no Menu as funções que não usa — esconder só os botões não deixa a extensão mais leve —; como saber se a lentidão é da extensão ou do Projudi) e linha nova em Solução de problemas (11). **Extensão mais leve**: com a aba do Projudi/SEEU em segundo plano (atrás de outra aba), a extensão quase não usa mais o computador — antes ela continuava conferindo a tela várias vezes por segundo; ao voltar para a aba, tudo é conferido de novo. Ao trocar de aba do processo, a extensão confere a tela uma vez só, em vez de uma vez para cada pedaço que muda. As telas que a extensão abre escondidas para buscar informações (prévia de documentos, pendências, suspensões, preferências) carregam mais rápido, porque não recebem mais os botões e painéis, que ninguém vê ali. Sem vídeo novo. |
 | 2.54.1 | 20/10/2026 | Corrigido: com a extensão instalada, a tela **Crianças e Adolescentes** do **SNA** (Sistema Nacional de Adoção e Acolhimento, do CNJ), aberta normalmente numa aba do navegador, ficava em branco, com o aviso "sna.cloud.cnj.jus.br está bloqueado". A regra que deixa os sistemas do CNJ abrirem dentro do popup do Projudi/SEEU passa a não atrapalhar esses sites quando usados fora dele. Linha nova na Solução de problemas (11). Sem vídeo novo: a tela da extensão não muda. |

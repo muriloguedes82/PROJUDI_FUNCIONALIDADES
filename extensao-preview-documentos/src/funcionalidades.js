@@ -104,7 +104,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 						{ id: "partes", nome: "Botão \"Int. Partes\" (intimar, notificar, citar)", ocultar: ["#pdp-qa-row [data-group-id=\"partes\"]"] },
 						{ id: "outras", nome: "Botão \"Outras\" (inclui Suspender, Transitar e Arquivar)", ocultar: ["#pdp-qa-row [data-group-id=\"outras\"]"] },
 						{ id: "favoritas", nome: "Botão \"⭐ Minhas Preferências\"", ocultar: ["#pdp-fav-prefs-button"] },
-						{ id: "combos", nome: "Botão \"Combos\"", ocultar: ["#pdp-qa-row [data-panel-id=\"combos\"]"] },
+						{ id: "combos", nome: "Botão \"🔗 Combos\"", ocultar: ["#pdp-qa-row [data-panel-id=\"combos\"]"] },
 						{ id: "destacar", nome: "Botão \"Destacar mov.\"", ocultar: ["#pdp-qa-row [data-pdp-parte=\"destacar\"]"] },
 						{ id: "colar", nome: "Botão \"Colar processo\"", ocultar: ["#pdp-clipboard-button"], sistemas: ["projudi"] }
 					]
