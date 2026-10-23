@@ -79,6 +79,9 @@
 		{
 			id: "partes",
 			title: "Partes",
+			// Nome no botão da barra: distingue do "Editar Partes"
+			// (editarPartes.js), que abre a tela Partes do Processo.
+			botao: "Int. Partes",
 			icon: "📨",
 			actions: ["Intimar Partes", "Notificar Partes", "Citar Partes", "Intimar Peritos e Auxiliares da Justiça"],
 		},
@@ -4740,7 +4743,7 @@
 			btn.type = "button";
 			btn.className = "pdp-qa-group-btn";
 			btn.dataset.groupId = group.id;
-			btn.innerHTML = "<span>" + group.title + "</span>";
+			btn.innerHTML = "<span>" + (group.botao || group.title) + "</span>";
 			btn.title = "Ações de " + group.title;
 			btn.addEventListener("click", function () {
 				togglePanel(group);

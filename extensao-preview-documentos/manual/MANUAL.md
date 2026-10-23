@@ -297,12 +297,12 @@ achados mais depressa.
 
 | Botão | O que faz | Seção |
 |---|---|---|
-| **▸ Ações** / **▾ Ações** | Mostra ou recolhe os grupos de ações rápidas (**Concluso**, **Remessa**, **Ordenações**, **Partes**, **Suspender**, **Transitar**, **Arquivar**, **Alvará Eletrônico**, **Outras**) | [7.1](#cap-7-1) |
+| **▸ Ações** / **▾ Ações** | Mostra ou recolhe os grupos de ações rápidas (**Concluso**, **Remessa**, **Ordenações**, **Int. Partes**, **Suspender**, **Transitar**, **Arquivar**, **Alvará Eletrônico**, **Outras**) | [7.1](#cap-7-1) |
 | **⭐ Minhas Preferências** | Todas as preferências salvas, em cards | [7.3](#cap-7-3) |
 | **Localizador** | *Só no SEEU:* preferências de localizadores, associadas ao processo com um clique | [8.8](#cap-8-8) |
 | **Colar processo** | Pesquisa o número de processo que você copiou | [8.5](#cap-8-5) |
 | **Advogados** | Tela de Advogados em popup ((Des)Habilitar Advogado), com preferências de advogados | [8.3](#cap-8-3) |
-| **Partes** (na linha de baixo) | Tela Partes do Processo em popup (Editar Partes/Outros) | [8.4](#cap-8-4) |
+| **Editar Partes** | Tela Partes do Processo em popup (Editar Partes/Outros) | [8.4](#cap-8-4) |
 | **Juntar Documento** | Juntada com preferências gravadas | [8.2](#cap-8-2) |
 | **Destacar mov.** | Cores por tipo de usuário | [3.4](#cap-3-4) |
 | **Combos** | Várias preferências em sequência | [7.4](#cap-7-4) |
@@ -332,7 +332,7 @@ achados mais depressa.
   **Informações Financeiras**, **Depósitos/Alvarás Eletrônicos**, **Agenda de
   Audiências**) ela fica oculta — a pré-visualização continua funcionando.
   Ela também não aparece dentro dos popups do **🏦 Alvará Eletrônico**, do
-  **👥 Partes** e da ficha de um réu aberta pelo cabeçalho.
+  **Editar Partes** e da ficha de um réu aberta pelo cabeçalho.
 
 <a id="cap-2-5"></a>
 ### 2.5 Página de opções
@@ -964,7 +964,7 @@ sair da aba em que você está.
 | **Concluso** | Enviar Concluso |
 | **Remessa** | Realizar Remessa; Remessa Eletrônica para o Tribunal de Justiça; Remessa Eletrônica para a Turma Recursal (Juizados Especiais) |
 | **Ordenações** | Ordenar Cumprimentos; Ordenar RPV; Ordenar Expedição BNMP |
-| **Partes** | Intimar Partes; Notificar Partes; Citar Partes; Intimar Peritos e Auxiliares da Justiça |
+| **Int. Partes** | Intimar Partes; Notificar Partes; Citar Partes; Intimar Peritos e Auxiliares da Justiça |
 | **Suspender** | Suspender ou Sobrestar Processo |
 | **Transitar** | Transitar em Julgado |
 | **Arquivar** | Arquivar Processo |
@@ -1552,7 +1552,7 @@ Advogado para Parte**. As diferenças:
 **Para que serve:** abrir a tela **Partes do Processo** (botão nativo
 **Partes e Outros**, com **Adicionar** e **Voltar**) num popup.
 
-**Passo a passo:** clique em **👥 Partes**, faça as
+**Passo a passo:** clique em **Editar Partes**, faça as
 alterações e feche com **✕ Fechar**.
 
 <a id="cap-8-5"></a>
@@ -2869,7 +2869,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 2.55.0 | 23/10/2026 | Seção 2.4: **mudar a ordem dos botões** da barra arrastando-os com o mouse; a ordem fica salva (separada no Projudi e no SEEU, e vai junto no ⬇ Exportar), e **↺ Ordem original** (Menu → Ações rápidas → Botões) volta ao padrão. Os botões da barra (**Concluso**, **Remessa**, **⭐ Minhas Preferências**, **Combos**, **Oráculo**, **Enviar por WhatsApp**, **↕ Mover**, **Ocultar** etc.) ficam **menores** — mais baixos, mais estreitos e com letra um pouco menor — e **sem os símbolos** antes do nome (só a ⭐ de Minhas Preferências continua), para não cobrirem os botões do próprio Projudi (como os do quadro Pendências); **Combos** fica em azul e **⭐ Minhas Preferências** em dourado claro. Ao esconder um botão ou desligar uma função no Menu, os demais se reorganizam e ocupam o espaço vazio (inclusive o lugar do **Enviar por WhatsApp** ou do **Enviar por e-mail**, quando só um dos dois está à vista) (e voltam ao arranjo anterior quando o botão é mostrado de novo). A posição da barra na tela não mudou. Os nomes dos botões no Menu (2.6) também ficam sem os símbolos. Vídeo V59 gravado e guardado em `videos-do-manual/` (não citado no manual). |
+| 2.55.0 | 23/10/2026 | Seção 2.4: **mudar a ordem dos botões** da barra arrastando-os com o mouse; a ordem fica salva (separada no Projudi e no SEEU, e vai junto no ⬇ Exportar), e **↺ Ordem original** (Menu → Ações rápidas → Botões) volta ao padrão. Os botões da barra (**Concluso**, **Remessa**, **⭐ Minhas Preferências**, **Combos**, **Oráculo**, **Enviar por WhatsApp**, **↕ Mover**, **Ocultar** etc.) ficam **menores** — mais baixos, mais estreitos e com letra um pouco menor — e **sem os símbolos** antes do nome (só a ⭐ de Minhas Preferências continua), para não cobrirem os botões do próprio Projudi (como os do quadro Pendências); **Combos** fica em azul e **⭐ Minhas Preferências** em dourado claro. Ao esconder um botão ou desligar uma função no Menu, os demais se reorganizam e ocupam o espaço vazio (inclusive o lugar do **Enviar por WhatsApp** ou do **Enviar por e-mail**, quando só um dos dois está à vista) (e voltam ao arranjo anterior quando o botão é mostrado de novo). A posição da barra na tela não mudou. Os nomes dos botões no Menu (2.6) também ficam sem os símbolos. Os dois botões "Partes" passam a se chamar **Int. Partes** (intimar, notificar, citar — 7.1) e **Editar Partes** (tela Partes do Processo — 8.4). Vídeo V59 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 2.54.3 | 20/10/2026 | O histórico de versões do manual (antes Anexo B) passa a ser o **Anexo A**, já que o anexo dos vídeos saiu na 2.53.2. O arquivo baixado pelo botão **2. Atualizar** (2.3) fica bem menor: os vídeos guardados para uso futuro não vão mais nele. O conteúdo das seções não mudou. |
 | 2.54.2 | 20/10/2026 | Seção 2.6: dica **Computador lento** (desligar no Menu as funções que não usa — esconder só os botões não deixa a extensão mais leve —; como saber se a lentidão é da extensão ou do Projudi) e linha nova em Solução de problemas (11). **Extensão mais leve**: com a aba do Projudi/SEEU em segundo plano (atrás de outra aba), a extensão quase não usa mais o computador — antes ela continuava conferindo a tela várias vezes por segundo; ao voltar para a aba, tudo é conferido de novo. Ao trocar de aba do processo, a extensão confere a tela uma vez só, em vez de uma vez para cada pedaço que muda. As telas que a extensão abre escondidas para buscar informações (prévia de documentos, pendências, suspensões, preferências) carregam mais rápido, porque não recebem mais os botões e painéis, que ninguém vê ali. Sem vídeo novo. |
 | 2.54.1 | 20/10/2026 | Corrigido: com a extensão instalada, a tela **Crianças e Adolescentes** do **SNA** (Sistema Nacional de Adoção e Acolhimento, do CNJ), aberta normalmente numa aba do navegador, ficava em branco, com o aviso "sna.cloud.cnj.jus.br está bloqueado". A regra que deixa os sistemas do CNJ abrirem dentro do popup do Projudi/SEEU passa a não atrapalhar esses sites quando usados fora dele. Linha nova na Solução de problemas (11). Sem vídeo novo: a tela da extensão não muda. |
