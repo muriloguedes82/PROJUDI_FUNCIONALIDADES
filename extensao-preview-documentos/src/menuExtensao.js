@@ -97,7 +97,8 @@
 		"pdpNovaOrdenacaoFeito",
 		"pdpNovaVersao",
 		"pdpNovaVersaoAdiada",
-		"pdpRegistroDesempenho"
+		"pdpRegistroDesempenho",
+		"pdpRegistroErros"
 	]);
 	const entraNoBackup = function (chave) { return typeof chave === "string" && chave !== "" && !FORA_DO_BACKUP.has(chave); };
 
@@ -469,12 +470,15 @@
 	// Registro de travamentos e lentidão (ver src/registroDesempenho.js):
 	// baixa as anotações num .json, com um resumo de quem mais ocupou a tela.
 	const CHAVE_REGISTRO = "pdpRegistroDesempenho";
+	const CHAVE_ERROS = "pdpRegistroErros";
 	async function baixarRegistro() {
 		try {
 			const local = await chrome.storage.local.get(null);
 			const registros = local[CHAVE_REGISTRO] || [];
-			if (!registros.length) {
-				avisar("Nenhum travamento ou lentidão registrado até agora.", "info");
+			// Erros e avisos da extensão, os mais repetidos primeiro.
+			const erros = (local[CHAVE_ERROS] || []).slice().sort(function (a, b) { return b.vezes - a.vezes; });
+			if (!registros.length && !erros.length) {
+				avisar("Nenhum travamento, lentidão ou erro registrado até agora.", "info");
 				return;
 			}
 			const contar = function (tipo) { return registros.filter(function (r) { return r.tipo === tipo; }).length; };
@@ -502,14 +506,17 @@
 					travamentos: contar("travamento"),
 					lentidoes: contar("lentidao"),
 					carregamentosLentos: contar("carregamento"),
-					primeiro: registros[0].em,
-					ultimo: registros[registros.length - 1].em,
+					erros: erros.filter(function (e) { return e.tipo !== "aviso"; }).length,
+					avisos: erros.filter(function (e) { return e.tipo === "aviso"; }).length,
+					primeiro: registros.length ? registros[0].em : null,
+					ultimo: registros.length ? registros[registros.length - 1].em : null,
 					msPorArquivoNosTravamentos: Object.keys(porArquivo)
 						.map(function (k) { return { arquivo: k, ms: porArquivo[k] }; })
 						.sort(function (a, b) { return b.ms - a.ms; })
 						.slice(0, 20)
 				},
-				registros: registros
+				registros: registros,
+				erros: erros
 			};
 			const blob = new Blob([JSON.stringify(arquivo, null, 2)], { type: "application/json" });
 			const url = URL.createObjectURL(blob);
@@ -520,7 +527,7 @@
 			a.click();
 			a.remove();
 			setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
-			avisar("Registro baixado: " + arquivo.resumo.travamentos + " travamento(s), " + arquivo.resumo.lentidoes + " período(s) de lentidão e " + arquivo.resumo.carregamentosLentos + " carregamento(s) lento(s). Envie o arquivo ao responsável pela extensão.", "ok");
+			avisar("Registro baixado: " + arquivo.resumo.travamentos + " travamento(s), " + arquivo.resumo.lentidoes + " período(s) de lentidão, " + arquivo.resumo.carregamentosLentos + " carregamento(s) lento(s), " + arquivo.resumo.erros + " erro(s) e " + arquivo.resumo.avisos + " aviso(s) diferentes. Envie o arquivo ao responsável pela extensão.", "ok");
 		} catch (err) {
 			avisar("Falha ao baixar o registro: " + err.message, "erro");
 		}
@@ -528,11 +535,11 @@
 
 	function limparRegistro() {
 		confirmacao = {
-			titulo: "Limpar o registro de travamentos?",
-			texto: "As anotações feitas até agora serão apagadas. Suas preferências e funções não mudam.",
+			titulo: "Limpar o registro de travamentos e erros?",
+			texto: "As anotações de travamentos, lentidão e erros feitas até agora serão apagadas. Suas preferências e funções não mudam.",
 			rotulo: "Limpar",
 			acao: function () {
-				chrome.storage.local.remove(CHAVE_REGISTRO)
+				chrome.storage.local.remove([CHAVE_REGISTRO, CHAVE_ERROS])
 					.then(function () { avisar("Registro de travamentos limpo.", "ok"); })
 					.catch(function (err) { avisar("Falha ao limpar: " + err.message, "erro"); });
 			}
@@ -1190,12 +1197,12 @@ button.bt.primario:hover { background: #1f5591; }
 				termos,
 				"."
 			]),
-			el("h4", { text: "Travamentos e lentidão" }),
+			el("h4", { text: "Travamentos, lentidão e erros" }),
 			el("div", { class: "botoes" }, [
-				el("button", { type: "button", class: "bt", text: "⬇ Baixar registro", title: "Baixar um arquivo com os travamentos e lentidões anotados nas telas do Projudi/SEEU, para análise", onclick: baixarRegistro }),
+				el("button", { type: "button", class: "bt", text: "⬇ Baixar registro", title: "Baixar um arquivo com os travamentos, lentidões e erros anotados nas telas do Projudi/SEEU, para análise", onclick: baixarRegistro }),
 				el("button", { type: "button", class: "bt", text: "🗑 Limpar registro", title: "Apagar as anotações feitas até agora", onclick: limparRegistro })
 			]),
-			el("p", { class: "nota", text: "A extensão anota sozinha quando a tela trava ou fica lenta (sem guardar números de processo nem nomes). Se isso acontecer, baixe o registro e envie ao responsável pela extensão." }),
+			el("p", { class: "nota", text: "A extensão anota sozinha quando a tela trava, fica lenta ou dá erro (sem guardar números de processo nem nomes). Se isso acontecer, baixe o registro e envie ao responsável pela extensão." }),
 			el("button", { type: "button", class: "bt manual", text: "📖 Manual do Usuário", onclick: function () { abrirPagina("manual"); } })
 		]));
 

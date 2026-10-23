@@ -98,6 +98,12 @@
 			const inicio = performance.now();
 			try {
 				return fn.apply(this, arguments);
+			} catch (err) {
+				// Erro não tratado num vigia/temporizador/evento da extensão:
+				// anota e deixa seguir como antes (o Chrome continua mostrando).
+				if (arquivo === null) arquivo = arquivoDaPilha(pilha);
+				registrarErro("erro", [err], arquivo + " (" + tipo + ")");
+				throw err;
 			} finally {
 				const ms = performance.now() - inicio;
 				if (ms >= MIN_EXECUCAO_MS) {
@@ -134,6 +140,94 @@
 	EventTarget.prototype.removeEventListener = function (tipo, fn, opcoes) {
 		return remover.call(this, tipo, daPagina(this) ? (fn && embrulhadas.get(fn)) || fn : fn, opcoes);
 	};
+
+	// -------------------------------------------------------------------
+	// Erros e avisos da extensão
+	// -------------------------------------------------------------------
+	// Os mesmos que aparecem em chrome://extensions → Erros (que não tem como
+	// baixar tudo de uma vez): erros não tratados nos vigias, temporizadores e
+	// eventos (acima), promessas rejeitadas sem tratamento e o que os scripts
+	// da extensão escrevem com console.error/console.warn. Só os textos (e
+	// mensagens de erro), já limpos: sem "?..." de endereços, número de
+	// processo, CPF ou outros números longos. Objetos não entram. O service
+	// worker junta as repetições numa linha só, com a contagem.
+	const MAX_ERROS_POR_MINUTO = 60;
+	let errosNoMinuto = 0;
+	let minutoDosErros = 0;
+
+	function limparTexto(t) {
+		return String(t)
+			.replace(/(https?:\/\/[^\s?#"')]+)[?#][^\s"')]*/g, "$1?…")
+			.replace(/\d{7}-?\d{2}\.?\d{4}\.?\d\.?\d{2}\.?\d{4}/g, "[processo]")
+			.replace(/\d{3}\.?\d{3}\.?\d{3}-?\d{2}/g, "[cpf]")
+			.replace(/\d{6,}/g, "[número]")
+			.slice(0, 400);
+	}
+
+	// Linhas da pilha que são desta extensão: "src/content.js:123".
+	function locaisDaPilha(err) {
+		return String((err && err.stack) || "").split("\n")
+			.filter(function (l) { return l.indexOf(BASE_EXTENSAO) !== -1 && l.indexOf("registroDesempenho.js") === -1; })
+			.slice(0, 4)
+			.map(function (l) {
+				const resto = l.slice(l.indexOf(BASE_EXTENSAO) + BASE_EXTENSAO.length);
+				const m = /^([^:?#)]+)[^:]*:(\d+)/.exec(resto);
+				return m ? m[1] + ":" + m[2] : resto.split(/[?#)]/)[0];
+			});
+	}
+
+	function registrarErro(tipo, partes, local) {
+		const minuto = Math.floor(Date.now() / 60000);
+		if (minuto !== minutoDosErros) {
+			minutoDosErros = minuto;
+			errosNoMinuto = 0;
+		}
+		if (++errosNoMinuto > MAX_ERROS_POR_MINUTO) return;
+		let pilha = [];
+		const texto = Array.prototype.map.call(partes, function (p) {
+			if (p instanceof Error || (p && typeof p === "object" && typeof p.message === "string" && p.stack)) {
+				if (!pilha.length) pilha = locaisDaPilha(p);
+				return (p.name || "Error") + ": " + p.message;
+			}
+			if (typeof p === "string" || typeof p === "number" || typeof p === "boolean") return String(p);
+			return p === null || p === undefined ? String(p) : "[objeto]";
+		}).join(" ");
+		if (!pilha.length) pilha = locaisDaPilha(new Error());
+		try {
+			chrome.runtime.sendMessage({
+				source: "projudi-preview",
+				type: "registro-erro",
+				erro: {
+					tipo: tipo,
+					mensagem: limparTexto(texto),
+					local: local || pilha[0] || "?",
+					pilha: pilha,
+					sistema: SISTEMA,
+					tela: location.pathname,
+					quadro: QUADRO
+				}
+			}).catch(function () {});
+		} catch (err) {
+			// extensão recarregada
+		}
+	}
+
+	const consoleErro = console.error;
+	const consoleAviso = console.warn;
+	console.error = function () {
+		registrarErro("erro", arguments);
+		return consoleErro.apply(console, arguments);
+	};
+	console.warn = function () {
+		registrarErro("aviso", arguments);
+		return consoleAviso.apply(console, arguments);
+	};
+	window.addEventListener("unhandledrejection", function (ev) {
+		const r = ev.reason;
+		// Só as da extensão (com a extensão na pilha) - as do Projudi não.
+		if (!(r && r.stack && String(r.stack).indexOf(BASE_EXTENSAO) !== -1)) return;
+		registrarErro("erro sem tratamento", [r]);
+	});
 
 	// Tempo da extensão entre dois horários absolutos, somando este quadro e
 	// os quadros internos da mesma origem.

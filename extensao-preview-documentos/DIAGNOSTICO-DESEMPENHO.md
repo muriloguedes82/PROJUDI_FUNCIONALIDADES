@@ -163,3 +163,16 @@ parado e em segundo plano, dentro da variação entre rodadas.
 Exemplo, na tela simulada com 2000 movimentações: travamento de 342 ms, dos
 quais 245 ms da extensão (`email.js` reposicionando os botões, 159 ms;
 `content.js` marcando os documentos, 60 ms).
+
+### Erros e avisos da extensão no mesmo arquivo
+
+O registro guarda também (`pdpRegistroErros`, até 300 linhas diferentes) os
+erros e avisos que aparecem em `chrome://extensions` → **Erros**, que não tem
+como exportar: erros não tratados nos vigias, temporizadores e eventos da
+extensão, promessas rejeitadas com a extensão na pilha, `console.error` e
+`console.warn` dos scripts da extensão (só no mundo isolado deles: os do
+Projudi ficam de fora) e os do service worker. Cada linha traz a mensagem,
+o arquivo e a linha (`src/content.js:123`), as telas, quantas vezes ocorreu
+e a primeira e a última vez. Antes de anotar, as mensagens perdem o "?..."
+dos endereços, números de processo, CPF e outros números longos; objetos
+passados ao console não entram (podem conter nomes).

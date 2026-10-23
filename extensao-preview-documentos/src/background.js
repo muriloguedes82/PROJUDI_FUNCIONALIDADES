@@ -1146,3 +1146,66 @@ chrome.runtime.onMessage.addListener((message, sender) => {
   }).catch(error => console.warn('[Registro de desempenho] não foi possível gravar:', error));
   return false;
 });
+
+// Erros e avisos da extensão (das páginas, via src/registroDesempenho.js, e
+// deste service worker): repetições viram uma linha só, com a contagem e a
+// primeira/última vez. Guarda as ERROS_MAX linhas usadas mais recentemente.
+const ERROS_CHAVE = 'pdpRegistroErros';
+const ERROS_MAX = 300;
+function registrarErroExtensao(erro) {
+  const versao = chrome.runtime.getManifest().version;
+  const agora = new Date().toISOString();
+  const assinatura = [erro.tipo, erro.mensagem, erro.local, versao].join('|');
+  registroFila = registroFila.then(async () => {
+    const lista = (await chrome.storage.local.get(ERROS_CHAVE))[ERROS_CHAVE] || [];
+    const igual = lista.find(e => e.assinatura === assinatura);
+    if (igual) {
+      igual.vezes++;
+      igual.ultimaVez = agora;
+      if (erro.tela && !igual.telas.includes(erro.tela) && igual.telas.length < 10) igual.telas.push(erro.tela);
+    } else {
+      lista.push({
+        assinatura, versao, tipo: erro.tipo, mensagem: erro.mensagem, local: erro.local, pilha: erro.pilha || [],
+        sistema: erro.sistema || '', quadro: erro.quadro || '', telas: erro.tela ? [erro.tela] : [],
+        vezes: 1, primeiraVez: agora, ultimaVez: agora
+      });
+    }
+    lista.sort((a, b) => a.ultimaVez < b.ultimaVez ? -1 : a.ultimaVez > b.ultimaVez ? 1 : 0);
+    await chrome.storage.local.set({ [ERROS_CHAVE]: lista.slice(-ERROS_MAX) });
+  }).catch(() => {});
+}
+chrome.runtime.onMessage.addListener((message, sender) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'registro-erro' || !message.erro || !sender.tab) return false;
+  registrarErroExtensao(message.erro);
+  return false;
+});
+// Os do próprio service worker (WhatsApp, e-mail, downloads, sistemas do CNJ...).
+(function () {
+  const limpar = t => String(t)
+    .replace(/(https?:\/\/[^\s?#"')]+)[?#][^\s"')]*/g, '$1?…')
+    .replace(/\d{7}-?\d{2}\.?\d{4}\.?\d\.?\d{2}\.?\d{4}/g, '[processo]')
+    .replace(/\d{3}\.?\d{3}\.?\d{3}-?\d{2}/g, '[cpf]')
+    .replace(/\d{6,}/g, '[número]')
+    .slice(0, 400);
+  const texto = partes => Array.prototype.map.call(partes, p => p instanceof Error ? p.name + ': ' + p.message
+    : (typeof p === 'object' && p !== null ? '[objeto]' : String(p))).join(' ');
+  // "src/arquivo.js:linha" de quem chamou (ou de onde o erro nasceu).
+  const local = partes => {
+    const err = Array.prototype.find.call(partes, p => p instanceof Error);
+    const linhas = String((err || new Error()).stack || '').split('\n').slice(err ? 1 : 3);
+    const m = linhas.map(l => /\/(src\/[^:)]+):(\d+)/.exec(l)).find(Boolean);
+    return m ? m[1] + ':' + m[2] : 'src/background.js';
+  };
+  const erroOriginal = console.error;
+  const avisoOriginal = console.warn;
+  console.error = function (...partes) {
+    registrarErroExtensao({ tipo: 'erro', mensagem: limpar(texto(partes)), local: local(partes), quadro: 'service worker' });
+    return erroOriginal.apply(console, partes);
+  };
+  console.warn = function (...partes) {
+    registrarErroExtensao({ tipo: 'aviso', mensagem: limpar(texto(partes)), local: local(partes), quadro: 'service worker' });
+    return avisoOriginal.apply(console, partes);
+  };
+  self.addEventListener('error', ev => registrarErroExtensao({ tipo: 'erro', mensagem: limpar(ev.message || ''), local: ev.filename ? ev.filename.split('/').slice(-2).join('/') + ':' + ev.lineno : 'src/background.js', quadro: 'service worker' }));
+  self.addEventListener('unhandledrejection', ev => registrarErroExtensao({ tipo: 'erro sem tratamento', mensagem: limpar(texto([ev.reason])), local: local([ev.reason]), quadro: 'service worker' }));
+})();
