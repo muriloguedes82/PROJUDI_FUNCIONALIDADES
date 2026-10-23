@@ -149,7 +149,7 @@
     const whats = peers.find(el => el.id === 'pdp-wa-launcher');
     const row = peers.find(el => el.id === 'pdp-qa-row');
     const gap = 6;
-    const horizontalPadding = 6;
+    const horizontalPadding = 4;
     const oraculo = row?.querySelector('#pdp-oraculo-button');
     const referenceButton = oraculo || row?.querySelector('.pdp-qa-group-btn');
     const buttonHeight = Math.max(22, Math.ceil(referenceButton?.getBoundingClientRect().height || 22));
