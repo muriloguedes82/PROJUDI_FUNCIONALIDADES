@@ -837,7 +837,7 @@
 					role: "button",
 					title: "★ " + item.pref.name + "\n" + (motivo || ("Executar \"" + item.label + "\" com esta preferência " + onde + (item.pref.descricao ? "\n" + item.pref.descricao : "")))
 				}, [
-					el("span", { class: "pdp-qa-fav-card-name", text: "★ " + item.pref.name })
+					el("span", { class: "pdp-qa-fav-card-name", text: item.pref.name })
 				]);
 				return cardClicavel(card, function () {
 					if (motivo) return;
@@ -935,7 +935,7 @@
 			const pref = x.pref;
 			const filhos = [
 				el("span", { class: "pdp-qa-fav-card-action", text: x.juntar ? "Analisar Decurso · do Juntar Documento" : "Analisar Decurso" }),
-				el("span", { class: "pdp-qa-fav-card-name", text: "★ " + pref.name })
+				el("span", { class: "pdp-qa-fav-card-name", text: pref.name })
 			];
 			if (!emLote && !x.juntar) {
 				filhos.push(el("span", { class: "pdp-pl-card-icones" }, [
@@ -1010,7 +1010,7 @@
 				const movs = Array.isArray(pref.docMovimentos) ? pref.docMovimentos : [];
 				const filhos = [
 					el("span", { class: "pdp-qa-fav-card-action", text: "Analisar · " + (movs.length ? "+ documentos · " : "") + fim }),
-					el("span", { class: "pdp-qa-fav-card-name", text: "★ " + pref.name })
+					el("span", { class: "pdp-qa-fav-card-name", text: pref.name })
 				];
 				if (!emLote) {
 					filhos.push(el("span", { class: "pdp-pl-card-icones" }, [
@@ -1075,7 +1075,7 @@
 					role: "button",
 					title: "★ " + nome + "\n" + (emLote ? "Associar aos processos marcados, em segundo plano:\n" : "Associar a este processo, em segundo plano:\n") + pref.localizadores.join("\n")
 				}, [
-					el("span", { class: "pdp-qa-fav-card-name", text: "★ " + nome })
+					el("span", { class: "pdp-qa-fav-card-name", text: nome })
 				]);
 				return cardClicavel(card, function () {
 					fecharPainel();

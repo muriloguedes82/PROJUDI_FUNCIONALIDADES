@@ -149,14 +149,14 @@
     const whats = peers.find(el => el.id === 'pdp-wa-launcher');
     const row = peers.find(el => el.id === 'pdp-qa-row');
     const gap = 6;
-    const horizontalPadding = 7;
+    const horizontalPadding = 4;
     const oraculo = row?.querySelector('#pdp-oraculo-button');
     const referenceButton = oraculo || row?.querySelector('.pdp-qa-group-btn');
-    const buttonHeight = Math.max(30, Math.ceil(referenceButton?.getBoundingClientRect().height || 30));
+    const buttonHeight = Math.max(20, Math.ceil(referenceButton?.getBoundingClientRect().height || 20));
     for (const el of [send, emailMenu, whats, sender, handle, toggle].filter(Boolean)) {
       el.style.boxSizing = 'border-box';
       setPx(el, 'height', buttonHeight, 'important');
-      el.style.setProperty('font-size', '12px', 'important');
+      el.style.setProperty('font-size', '11px', 'important');
       el.style.setProperty('line-height', '1', 'important');
       el.style.setProperty('white-space', 'nowrap', 'important');
       setPx(el, 'padding-left', horizontalPadding, 'important');
@@ -197,10 +197,17 @@
     if (whats && cachedDeliveryWidth) setPx(whats, 'width', cachedDeliveryWidth, 'important');
     if (send && cachedDeliveryWidth) setPx(send, 'width', cachedEmailMainWidth, 'important');
     const controlWidth = cachedControlWidth;
-    const lines = row ? [...row.querySelectorAll('.pdp-qa-row-line')] : [];
-    lines.forEach(line => { line.style.minHeight = buttonHeight + 'px'; line.style.alignItems = 'center'; });
-    const firstHeight = Math.max(buttonHeight, lines[0]?.offsetHeight || 0);
-    const secondHeight = Math.max(buttonHeight, lines[1]?.offsetHeight || 0);
+    // Os botões da fila de Ações Rápidas correm numa fila só (as
+    // .pdp-qa-row-line não formam caixas, ver quickActions.css): a
+    // "primeira linha" é a de cima da fila, e a "segunda" é todo o resto
+    // (uma ou mais linhas, conforme quantos botões estão à vista).
+    // Altura medida pelos próprios botões (a fila tem margens e uma quebra
+    // de linha invisível, ver quickActions.css/ordemBotoesAcoes.js).
+    const rects = row ? [...row.querySelectorAll('.pdp-qa-group-btn, .pdp-qa-ghost')]
+      .filter(el => el.getClientRects().length).map(el => el.getBoundingClientRect()) : [];
+    const contentHeight = rects.length ? Math.max(...rects.map(r => r.bottom)) - Math.min(...rects.map(r => r.top)) : 0;
+    const firstHeight = buttonHeight;
+    const secondHeight = Math.max(buttonHeight, contentHeight - buttonHeight - gap);
     groupHeight = firstHeight + gap + secondHeight;
     const reference = document.getElementById('pdp-expand-movements') ||
       document.getElementById('quadroPendencias') ||
@@ -226,16 +233,68 @@
     place(toggle, firstTop, 12);
     place(handle, secondTop, 12);
     place(sender, secondTop, 12);
-    place(whats, firstTop, sendRight);
-    place(emailMenu, secondTop, sendRight);
-    place(send, secondTop, sendRight + menuWidth);
-    place(row, top, sendRight + cachedDeliveryWidth + 10);
+    // Só um dos botões de envio à vista (o outro desligado ou escondido no
+    // Menu): em vez de deixar vazio o lugar do outro, a fila de Ações
+    // Rápidas vai até a coluna do Ocultar/Mover, e o botão de envio ocupa o
+    // fim dela - o lugar de um "fantasma" do mesmo tamanho, o último item
+    // da fila (ver quickActions.css). A altura e a ancoragem não mudam.
+    // Largura real dos botões de envio na tela (a guardada em cache pode
+    // ter ficado para trás, ex.: medida antes de a página terminar de
+    // aplicar os estilos): vale a maior das duas, para nunca reservar menos
+    // espaço do que o botão ocupa.
+    const deliveryWidth = Math.max(cachedDeliveryWidth,
+      Math.ceil(whats?.getBoundingClientRect().width || 0),
+      Math.ceil(send?.getBoundingClientRect().width || 0) + (send && emailMenu ? menuWidth : 0));
+    const lone = row && (whats ? !send : !!send) ? (whats || send) : null;
+    let ghost = row ? row.querySelector(':scope > .pdp-qa-ghost') : null;
+    if (lone) {
+      if (!ghost) {
+        ghost = document.createElement('span');
+        ghost.className = 'pdp-qa-ghost';
+        ghost.setAttribute('aria-hidden', 'true');
+        // No começo do HTML (a posição na tela vem do `order`): oraculo.js
+        // procura a última .pdp-qa-row-line com :last-child.
+        row.insertBefore(ghost, row.firstChild);
+      }
+      setPx(ghost, 'width', deliveryWidth);
+      setPx(ghost, 'height', buttonHeight);
+      place(row, top, sendRight);
+      const g = ghost.getBoundingClientRect();
+      const ghostRight = window.innerWidth - g.right;
+      place(whats, g.top, ghostRight);
+      place(emailMenu, g.top, ghostRight);
+      place(send, g.top, ghostRight + (emailMenu ? menuWidth : 0));
+    } else {
+      if (ghost) ghost.remove();
+      place(whats, firstTop, sendRight);
+      place(emailMenu, secondTop, sendRight);
+      place(send, secondTop, sendRight + menuWidth);
+      place(row, top, sendRight + deliveryWidth + 10);
+    }
     if (row && row.hasAttribute('data-pdp-layout-pending')) {
       row.removeAttribute('data-pdp-layout-pending');
       row.style.removeProperty('visibility');
     }
+    checkOverlap(row, [whats, send, emailMenu, sender, toggle, handle]);
     window.dispatchEvent(new Event('pdp-buttons-moved'));
   }
+  // Conferência final: se algum botão da fila de Ações Rápidas ficou por
+  // cima de um botão solto (WhatsApp, e-mail, Ocultar, Mover), as larguras
+  // guardadas estão desatualizadas - mede tudo de novo no próximo ciclo.
+  // No máximo uma nova medição a cada 2s, para nunca entrar em ciclo.
+  let lastOverlapFix = 0;
+  function checkOverlap(row, loose) {
+    if (!row) return;
+    const others = loose.filter(el => el && el.getClientRects().length).map(el => el.getBoundingClientRect());
+    if (!others.length) return;
+    const own = [...row.querySelectorAll('.pdp-qa-group-btn')].filter(el => el.getClientRects().length).map(el => el.getBoundingClientRect());
+    const hit = own.some(a => others.some(b => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1));
+    if (!hit || Date.now() - lastOverlapFix < 2000) return;
+    lastOverlapFix = Date.now();
+    widthsSignature = null;
+    schedule();
+  }
+
   function findAnnotationsPanel() {
     const titles = document.querySelectorAll('legend, h1, h2, h3, h4, caption');
     for (const title of titles) {
@@ -262,6 +321,12 @@
   window.addEventListener("resize", schedule);
   window.addEventListener("scroll", schedule, { passive: true });
   window.addEventListener("pdp-buttons-layout", schedule);
+  // Botão escondido ou mostrado de novo pelo Menu (vale na hora): realinha
+  // já, sem esperar a próxima conferência.
+  const partesKey = self.PDP_FUNCIONALIDADES?.chavePartes;
+  if (partesKey) chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "local" && changes[partesKey]) requestAnimationFrame(schedule);
+  });
   // Conferência periódica só com a aba à vista (em segundo plano não há o
   // que posicionar; ao voltar, a próxima volta realinha).
   setInterval(() => { if (!document.hidden) schedule(); }, 700);

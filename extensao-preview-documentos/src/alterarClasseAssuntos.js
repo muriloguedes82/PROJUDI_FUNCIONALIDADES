@@ -1279,7 +1279,7 @@
 			const usar = document.createElement("button");
 			usar.type = "button";
 			usar.className = "pdp-acp-usar";
-			usar.textContent = "★ " + pref.name;
+			usar.textContent = pref.name;
 			usar.title = (pref.tipo === "secundario" ? "Adicionar agora o assunto secundário \"" + pref.descricao + "\"" : "Alterar agora para \"" + pref.descricao + "\"") + (pref.motivo ? " (motivo: " + textoMotivo(pref.motivo) + ")" : "") + " e salvar — sem confirmação";
 			usar.addEventListener("click", function () {
 				fecharPainel();

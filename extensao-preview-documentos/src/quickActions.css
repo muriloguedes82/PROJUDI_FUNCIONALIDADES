@@ -4,9 +4,16 @@
 
 .pdp-qa-row {
 	display: flex;
-	flex-direction: column;
-	align-items: flex-end;
-	gap: 6px;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	align-items: center;
+	/* Sem espaço entre linhas no flex: a quebra fixa de linha
+	   (ordemBotoesAcoes.js) seria uma linha vazia e dobraria o espaço. O
+	   espaço vem da margem dos botões (3px em cima e embaixo), e a margem
+	   negativa da fila a compensa, para os botões ficarem onde
+	   buttonDrag.js os põe. */
+	gap: 0 4px;
+	margin: -3px 0;
 	position: fixed;
 	bottom: 12px;
 	right: 14px;
@@ -14,25 +21,43 @@
 	max-width: 70vw;
 }
 
+/* As duas linhas (grupos de ação / demais botões) continuam no HTML, para
+   os outros scripts acharem onde pôr seus botões, mas não formam caixas
+   próprias: todos os botões correm numa fila só, que quebra em quantas
+   linhas precisar. Assim, quando um botão some (escondido no Menu ou com a
+   funcionalidade desligada), os seguintes sobem e ocupam o espaço. */
 .pdp-qa-row-line {
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: flex-end;
-	gap: 6px;
+	display: contents;
+}
+
+/* Lugar reservado, no fim da fila, para o botão de envio que ficou
+   sozinho (WhatsApp ou e-mail) - ver layoutColumns em buttonDrag.js. */
+#pdp-qa-row > .pdp-qa-group-btn,
+#pdp-qa-row > .pdp-qa-row-line > .pdp-qa-group-btn {
+	margin-top: 3px;
+	margin-bottom: 3px;
+}
+
+.pdp-qa-ghost {
+	margin: 3px 0;
+	order: 2147483647;
+	flex: none;
+	visibility: hidden;
+	pointer-events: none;
 }
 
 .pdp-qa-group-btn {
 	display: inline-flex;
 	align-items: center;
-	gap: 5px;
+	gap: 4px;
 	font-family: Arial, Helvetica, sans-serif;
-	font-size: 12px;
+	font-size: 11px;
 	font-weight: normal;
 	color: #222;
 	background: linear-gradient(to bottom, #fafafa, #e9e9e9);
 	border: 1px solid #adadad;
 	border-radius: 3px;
-	padding: 7px 10px;
+	padding: 3px 4px;
 	cursor: pointer;
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 	white-space: nowrap;
@@ -46,6 +71,34 @@
 .pdp-qa-group-btn.pdp-qa-active {
 	background: linear-gradient(to bottom, #dfeaff, #c3d9fb);
 	border-color: #6c93d6;
+}
+
+/* Cores próprias: "Combos" no mesmo azul dos cards de combo dentro de
+   Minhas Preferências (.pdp-qa-fav-combo), e "Minhas Preferências" em
+   dourado claro, no tom dos cards de preferência. Aberto (painel à
+   vista), cada um fica um pouco mais escuro. */
+#pdp-qa-row .pdp-qa-group-btn[data-panel-id="combos"] {
+	background: linear-gradient(to bottom, #f3f8fe, #e3eefb);
+	border-color: #b9d0f0;
+	color: #1a5fb4;
+}
+
+#pdp-qa-row .pdp-qa-group-btn[data-panel-id="combos"]:hover,
+#pdp-qa-row .pdp-qa-group-btn[data-panel-id="combos"].pdp-qa-active {
+	background: linear-gradient(to bottom, #e3eefb, #cfe0f8);
+	border-color: #8fb1e3;
+}
+
+#pdp-qa-row #pdp-fav-prefs-button {
+	background: linear-gradient(to bottom, #fffaeb, #fbedc4);
+	border-color: #e2c77c;
+	color: #6b4e00;
+}
+
+#pdp-qa-row #pdp-fav-prefs-button:hover,
+#pdp-qa-row #pdp-fav-prefs-button.pdp-qa-active {
+	background: linear-gradient(to bottom, #fcf0cc, #f5e0a0);
+	border-color: #cfac52;
 }
 
 .pdp-qa-group-btn.pdp-qa-btn-disabled {
@@ -63,7 +116,7 @@
 }
 
 .pdp-qa-icon {
-	font-size: 14px;
+	font-size: 12px;
 	line-height: 1;
 }
 

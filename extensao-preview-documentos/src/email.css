@@ -41,13 +41,22 @@
 	display: none;
 }
 
+/* A altura vem de buttonDrag.js (a mesma dos botões da barra, bem baixa):
+   o texto fica centralizado nas duas direções, sem o espaço de cima e de
+   baixo, que o empurrava para baixo. */
 #pdp-email-button.pdp-email-visible {
-	display: inline-block;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding-top: 0;
+	padding-bottom: 0;
 }
 
 #pdp-email-menu-button {
-	padding-left: 0;
-	padding-right: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
 }
 
 #pdp-email-button:hover,

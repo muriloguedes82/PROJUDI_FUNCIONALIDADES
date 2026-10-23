@@ -59,7 +59,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					js: ["src/content.js"],
 					css: ["src/content.css"],
 					partes: [
-						{ id: "whatsapp", nome: "Botão \"📱 Enviar por WhatsApp\"", ocultar: ["#pdp-wa-launcher"] }
+						{ id: "whatsapp", nome: "Botão \"Enviar por WhatsApp\"", ocultar: ["#pdp-wa-launcher"] }
 					]
 				},
 				{
@@ -94,22 +94,19 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "acoesRapidas",
 					nome: "Ações rápidas e Minhas Preferências",
-					descricao: "Botões do painel \"Ações\", preferências salvas e combos.",
-					js: ["src/quickActions.js"],
+					descricao: "Botões do painel \"Ações\", preferências salvas e combos. A ordem dos botões da barra pode ser mudada arrastando (fica salva).",
+					js: ["src/quickActions.js", "src/ordemBotoesAcoes.js"],
 					css: ["src/quickActions.css"],
 					partes: [
-						{ id: "concluso", nome: "Botão \"📤 Concluso\"", ocultar: ["#pdp-qa-row [data-group-id=\"concluso\"]"] },
-						{ id: "remessa", nome: "Botão \"📦 Remessa\"", ocultar: ["#pdp-qa-row [data-group-id=\"remessa\"]"] },
-						{ id: "ordenacoes", nome: "Botão \"🔀 Ordenações\"", ocultar: ["#pdp-qa-row [data-group-id=\"ordenacoes\"]"] },
-						{ id: "partes", nome: "Botão \"📨 Partes\" (intimar, notificar, citar)", ocultar: ["#pdp-qa-row [data-group-id=\"partes\"]"] },
-						{ id: "suspender", nome: "Botão \"⏸️ Suspender\"", ocultar: ["#pdp-qa-row [data-group-id=\"suspender\"]"], sistemas: ["projudi"] },
-						{ id: "transitar", nome: "Botão \"🏁 Transitar\"", ocultar: ["#pdp-qa-row [data-group-id=\"transitar\"]"] },
-						{ id: "arquivar", nome: "Botão \"🗄️ Arquivar\"", ocultar: ["#pdp-qa-row [data-group-id=\"arquivar\"]"] },
-						{ id: "outras", nome: "Botão \"⋯ Outras\"", ocultar: ["#pdp-qa-row [data-group-id=\"outras\"]"] },
+						{ id: "concluso", nome: "Botão \"Concluso\"", ocultar: ["#pdp-qa-row [data-group-id=\"concluso\"]"] },
+						{ id: "remessa", nome: "Botão \"Remessa\"", ocultar: ["#pdp-qa-row [data-group-id=\"remessa\"]"] },
+						{ id: "ordenacoes", nome: "Botão \"Ordenações\"", ocultar: ["#pdp-qa-row [data-group-id=\"ordenacoes\"]"] },
+						{ id: "partes", nome: "Botão \"Int. Partes\" (intimar, notificar, citar)", ocultar: ["#pdp-qa-row [data-group-id=\"partes\"]"] },
+						{ id: "outras", nome: "Botão \"Outras\" (inclui Suspender, Transitar e Arquivar)", ocultar: ["#pdp-qa-row [data-group-id=\"outras\"]"] },
 						{ id: "favoritas", nome: "Botão \"⭐ Minhas Preferências\"", ocultar: ["#pdp-fav-prefs-button"] },
 						{ id: "combos", nome: "Botão \"🔗 Combos\"", ocultar: ["#pdp-qa-row [data-panel-id=\"combos\"]"] },
-						{ id: "destacar", nome: "Botão \"🖍️ Destacar mov.\"", ocultar: ["#pdp-qa-row [data-pdp-parte=\"destacar\"]"] },
-						{ id: "colar", nome: "Botão \"📋 Colar processo\"", ocultar: ["#pdp-clipboard-button"], sistemas: ["projudi"] }
+						{ id: "destacar", nome: "Botão \"Destacar mov.\"", ocultar: ["#pdp-qa-row [data-pdp-parte=\"destacar\"]"] },
+						{ id: "colar", nome: "Botão \"Colar processo\"", ocultar: ["#pdp-clipboard-button"], sistemas: ["projudi"] }
 					]
 				},
 				{

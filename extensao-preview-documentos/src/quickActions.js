@@ -79,26 +79,11 @@
 		{
 			id: "partes",
 			title: "Partes",
+			// Nome no botão da barra: distingue do "Editar Partes"
+			// (editarPartes.js), que abre a tela Partes do Processo.
+			botao: "Int. Partes",
 			icon: "📨",
 			actions: ["Intimar Partes", "Notificar Partes", "Citar Partes", "Intimar Peritos e Auxiliares da Justiça"],
-		},
-		{
-			id: "suspender",
-			title: "Suspender",
-			icon: "⏸️",
-			actions: ["Suspender ou Sobrestar Processo"],
-		},
-		{
-			id: "transitar",
-			title: "Transitar",
-			icon: "🏁",
-			actions: ["Transitar em Julgado"],
-		},
-		{
-			id: "arquivar",
-			title: "Arquivar",
-			icon: "🗄️",
-			actions: ["Arquivar Processo"],
 		},
 		{
 			// Não é um link do painel Ações: o caminho até a tela final
@@ -138,13 +123,20 @@
 				// processos criminais). Ver ACTIONS_NEEDING_ACOES_PARENT.
 				"Anotações Criminais",
 				"Solicitar Antecedentes Criminais",
+				// Antes com botão próprio ("Suspender", "Transitar" e
+				// "Arquivar"); desde a 2.55.0 (pedido do usuário) ficam aqui,
+				// para a barra ficar mais curta. As preferências são guardadas
+				// pelo nome da ação, então as já salvas continuam valendo.
+				"Suspender ou Sobrestar Processo",
+				"Transitar em Julgado",
+				"Arquivar Processo",
 			],
 		},
 	];
 
 	// SEEU: só as ações cujas telas foram conferidas no SEEU (pedido do
 	// usuário, versão 2.51.0); as demais ficam só no Projudi. Grupos que
-	// ficam sem ação (ex.: "Suspender") somem no SEEU. No Projudi, todas.
+	// ficam sem ação somem no SEEU. No Projudi, todas.
 	const NO_SEEU = /^\/seeu\//.test(location.pathname);
 	const ACOES_SEEU = [
 		"Enviar Concluso",
@@ -4740,9 +4732,7 @@
 			btn.type = "button";
 			btn.className = "pdp-qa-group-btn";
 			btn.dataset.groupId = group.id;
-			btn.innerHTML =
-				'<span class="pdp-qa-icon">' + group.icon +
-				"</span><span>" + group.title + "</span>";
+			btn.innerHTML = "<span>" + (group.botao || group.title) + "</span>";
 			btn.title = "Ações de " + group.title;
 			btn.addEventListener("click", function () {
 				togglePanel(group);
@@ -4762,7 +4752,7 @@
 			clipboardBtn.type = "button";
 			clipboardBtn.id = "pdp-clipboard-button";
 			clipboardBtn.className = "pdp-qa-group-btn";
-			clipboardBtn.textContent = "📋 Colar processo";
+			clipboardBtn.textContent = "Colar processo";
 			clipboardBtn.title = "Pesquisar em nova aba o número de processo da área de transferência";
 			clipboardBtn.addEventListener("click", function () { window.__pdpClipboardProcess(); });
 			secondLine.appendChild(clipboardBtn);
@@ -4784,7 +4774,7 @@
 		highlightPrefsBtn.className = "pdp-qa-group-btn";
 		// Parte que o Menu pode esconder (ver `partes` em funcionalidades.js).
 		highlightPrefsBtn.dataset.pdpParte = "destacar";
-		highlightPrefsBtn.innerHTML = '<span class="pdp-qa-icon">🖍️</span><span>Destacar mov.</span>';
+		highlightPrefsBtn.innerHTML = '<span>Destacar mov.</span>';
 		highlightPrefsBtn.title = "Escolher a cor de destaque de cada tipo de usuário na aba Movimentações";
 		highlightPrefsBtn.addEventListener("click", function () {
 			if (window.__pdpOpenMovementHighlightConfig) window.__pdpOpenMovementHighlightConfig();
@@ -5023,7 +5013,7 @@
 			const applyBtn = document.createElement("button");
 			applyBtn.type = "button";
 			applyBtn.className = "pdp-qa-pref-btn";
-			applyBtn.textContent = "★ " + pref.name + (pref.movimento && pref.movimento.texto ? " 📌" : "");
+			applyBtn.textContent = pref.name + (pref.movimento && pref.movimento.texto ? " 📌" : "");
 			applyBtn.title =
 				(mode === "custom"
 					? 'Abre "' + label + '" já preenchido com esta preferência'
@@ -5122,10 +5112,10 @@
 	// Bloco de "Minhas Preferências" de um item: { key, icon, title }.
 	function favGroupOf(item) {
 		if (item.kind === "combo") return { key: "combo", icon: "🔗", title: "Combos" };
-		if (item.kind === "localizador") return { key: "localizador", icon: "📍", title: "Localizador" };
-		if (item.kind === "juntar") return { key: "a:" + JUNTAR_LABEL, icon: "📎", title: JUNTAR_LABEL };
-		const group = groupForLabel(item.label);
-		return { key: "a:" + item.label, icon: group ? group.icon : "★", title: item.label };
+		if (item.kind === "localizador") return { key: "localizador", icon: "", title: "Localizador" };
+		if (item.kind === "juntar") return { key: "a:" + JUNTAR_LABEL, icon: "", title: JUNTAR_LABEL };
+		// Só o bloco dos combos tem símbolo (pedido do usuário, 2.55.0).
+		return { key: "a:" + item.label, icon: "", title: item.label };
 	}
 
 	// Agrupa os itens (já na ordem salva) em blocos, na ordem do primeiro
@@ -5152,7 +5142,7 @@
 			title.textContent = g.info.title;
 			const count = document.createElement("span");
 			count.className = "pdp-qa-fav-group-count";
-			label.appendChild(icon);
+			if (g.info.icon) label.appendChild(icon);
 			label.appendChild(title);
 			label.appendChild(count);
 			box.appendChild(label);
@@ -5401,7 +5391,7 @@
 
 			const nameEl = document.createElement("span");
 			nameEl.className = "pdp-qa-fav-card-name";
-			nameEl.textContent = (isCombo ? "▶ " : "★ ") + item.pref.name;
+			nameEl.textContent = (isCombo ? "▶ " : "") + item.pref.name;
 			if (!isCombo && item.pref.movimento && item.pref.movimento.texto) {
 				nameEl.textContent += " 📌";
 				nameEl.title = 'Parte do movimento "' + item.pref.movimento.texto + '" (o mais recente com esse nome)';

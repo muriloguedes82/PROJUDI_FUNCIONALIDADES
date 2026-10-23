@@ -3,7 +3,7 @@
 // TJPR - lista em sistemasCnjLista.js) ao lado do ícone do Menu da extensão
 // (a balança dourada, ver menuExtensao.js).
 //
-// Cada card tem a altura da balança e o nome oficial do sistema escrito
+// Cada card é um pouco mais baixo que a balança (centralizado nela) e tem o nome oficial do sistema escrito
 // (`rotulo`), na cor pastel dele; a largura acompanha o nome. Ficam
 // enfileirados à esquerda da balança e a acompanham (rolagem,
 // redimensionamento): menuExtensao.js publica a posição da balança no
@@ -58,8 +58,12 @@
 		: self.PDP_SISTEMAS_CNJ;
 	const MODAL_ID = "pdp-sistemas-cnj-modal";
 	const MENSAGEM_ABRIR = "pdp-sistemas-cnj-abrir";
-	const TAM = 22; // mesmo tamanho da balança (menuExtensao.js)
-	const ESPACO = 6;
+	const TAM = 22; // tamanho da balança (menuExtensao.js)
+	// Cards um pouco menores que a balança (pedido do usuário, 2.55.0), e
+	// centralizados na altura dela.
+	const ALT = 18;
+	const DESLOCA = (TAM - ALT) / 2;
+	const ESPACO = 4;
 	const ORDEM_KEY = NO_SEEU ? "pdpSistemasCnjOrdemSeeu" : "pdpSistemasCnjOrdem";
 	const OUTROS_KEY = "pdpSistemasCnjOutros"; // só no Projudi
 	const COM_OUTROS = !NO_SEEU;
@@ -70,9 +74,9 @@
 	const CSS = `
 :host { all: initial; }
 .icone {
-	position: fixed; z-index: 2147483000; min-width: ${TAM}px; height: ${TAM}px; padding: 0 6px; margin: 0;
-	box-sizing: border-box; white-space: nowrap; font: 700 11px/1 Arial, Helvetica, sans-serif; letter-spacing: -.1px;
-	border-radius: 6px; border: 1.5px solid var(--borda); background: linear-gradient(135deg, var(--claro), var(--escuro));
+	position: fixed; z-index: 2147483000; min-width: ${ALT}px; height: ${ALT}px; padding: 0 4px; margin: 0;
+	box-sizing: border-box; white-space: nowrap; font: 700 10px/1 Arial, Helvetica, sans-serif; letter-spacing: -.1px;
+	border-radius: 5px; border: 1.5px solid var(--borda); background: linear-gradient(135deg, var(--claro), var(--escuro));
 	color: var(--texto); cursor: pointer; display: flex; align-items: center; justify-content: center;
 	box-shadow: 0 1px 4px rgba(0,0,0,.25); transition: transform .15s, box-shadow .15s, filter .15s;
 }
@@ -372,7 +376,7 @@
 			const w = el.offsetWidth;
 			if (w) larguras[id] = w;
 		}
-		return larguras[id] || TAM;
+		return larguras[id] || ALT;
 	}
 
 	// Posição (left) de cada card de `lista` (e do "Outros", colado à
@@ -485,11 +489,11 @@
 		lista.forEach(function (id) {
 			const icone = icones[id];
 			if (arrasto && arrasto.ativo && arrasto.id === id) return;
-			icone.style.top = top + "px";
+			icone.style.top = (top + DESLOCA) + "px";
 			icone.style.left = lefts[id] + "px";
 		});
 		if (botaoOutros) {
-			botaoOutros.style.top = top + "px";
+			botaoOutros.style.top = (top + DESLOCA) + "px";
 			botaoOutros.style.left = lefts.__outros + "px";
 			posicionarPainel(lefts.__outros);
 		}
@@ -598,7 +602,7 @@
 		const icone = icones[arrasto.id];
 		const left = arrasto.leftInicial + dx;
 		icone.style.left = left + "px";
-		icone.style.top = (base.top + (COM_OUTROS ? dy : 0)) + "px";
+		icone.style.top = (base.top + DESLOCA + (COM_OUTROS ? dy : 0)) + "px";
 		const temp = ordem.filter(function (id) { return id !== arrasto.id; });
 		// Sobre o card "Outros" (ou o painel aberto): soltar guarda o card lá.
 		arrasto.noOutros = COM_OUTROS && (dentro(botaoOutros, ev.clientX, ev.clientY) || dentro(painel, ev.clientX, ev.clientY));

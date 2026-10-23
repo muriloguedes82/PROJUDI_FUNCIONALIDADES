@@ -1601,3 +1601,44 @@ CENAS.V58 = {
 		await S.endCard("Menu → 🔎 busca · lista Botões: esconda cada botão na hora · Desativar todas → ligue só o que usa · ↺ Padrão volta tudo.");
 	},
 };
+
+// ------------------------------------------------------------------ V59
+CENAS.V59 = {
+	arquivo: "V59-mudar-a-ordem-dos-botoes.mp4",
+	titulo: "Mudar a ordem dos botões da barra",
+	secao: "2.4",
+	async run() {
+		telaProcesso({ acoesAbertas: true });
+		// A barra real mostra os botões só com o nome (sem símbolos, exceto a
+		// ⭐ e do 🔗 Combos), Suspender/Transitar/Arquivar ficam dentro do Outras, e as duas
+		// linhas começam com ⭐ Minhas Preferências e Combos.
+		$$("#x-group .x-btn").forEach(b => { if (b.id !== "x-fav" && b.id !== "x-combos") b.textContent = b.textContent.replace(/^[^\wÀ-ú▸▾↕]+\s*/u, ""); });
+		$$('[data-g="Suspender"], [data-g="Transitar"], [data-g="Arquivar"]').forEach(b => b.remove());
+		const linha1 = $("#x-line-grupos"), linha2 = $("#x-toggle").parentElement;
+		linha1.appendChild($("#x-toggle"));
+		linha1.insertBefore($("#x-fav"), linha1.firstChild);
+		linha2.insertBefore($("#x-combos"), linha2.firstChild);
+		$("#x-partes").textContent = "Editar Partes";
+		$('[data-g="Partes"]').textContent = "Int. Partes";
+		Object.assign($("#x-combos").style, { background: "linear-gradient(#f3f8fe,#e3eefb)", borderColor: "#b9d0f0", color: "#1a5fb4" });
+		Object.assign($("#x-fav").style, { background: "linear-gradient(#fffaeb,#fbedc4)", borderColor: "#e2c77c", color: "#6b4e00" });
+		await S.titleCard("VÍDEO V59", "Mudar a ordem dos botões", "Arraste os botões da barra para deixar os que você mais usa onde preferir.");
+		S.hl("#x-fav", 2);
+		await S.cap("A barra tem duas linhas: a de cima começa sempre com <b>⭐ Minhas Preferências</b>…", { ms: 3600 });
+		S.hl("#x-combos", 2);
+		await S.cap("…e a de baixo, sempre com <b>Combos</b>.", { ms: 3000 });
+		S.hlOff();
+		S.hl("#x-clip", 3);
+		await S.cap("Para mudar um botão de lugar, <b>arraste-o</b> com o mouse — até para a outra linha. Por exemplo, o <b>Colar processo</b> para perto do <b>Outras</b>.", { ms: 4800 });
+		S.hlOff();
+		const clip = $("#x-clip"), outras = $('[data-g="Outras"]');
+		await arrastarCnj(clip, outras);
+		outras.after(clip);
+		await S.cap("Os outros botões <b>se ajeitam</b> sozinhos. A nova ordem fica <b>salva</b> e vale em todos os processos.", { ms: 4400 });
+		await S.cap("Um clique sem arrastar continua abrindo o botão normalmente.");
+		await S.click("#x-menuicon");
+		abrirMenu();
+		await S.cap("Para voltar à ordem original: Menu (balança) → <b>Ações rápidas</b> → lista <b>Botões</b> → <b>↺ Ordem original</b>.", { ms: 4600 });
+		await S.endCard("⭐ abre a linha de cima e Combos a de baixo · arraste os demais botões para mudar a ordem (fica salva) · Menu → Ações rápidas → Botões → ↺ Ordem original.");
+	},
+};
