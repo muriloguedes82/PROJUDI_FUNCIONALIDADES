@@ -238,6 +238,13 @@
     // Rápidas vai até a coluna do Ocultar/Mover, e o botão de envio ocupa o
     // fim dela - o lugar de um "fantasma" do mesmo tamanho, o último item
     // da fila (ver quickActions.css). A altura e a ancoragem não mudam.
+    // Largura real dos botões de envio na tela (a guardada em cache pode
+    // ter ficado para trás, ex.: medida antes de a página terminar de
+    // aplicar os estilos): vale a maior das duas, para nunca reservar menos
+    // espaço do que o botão ocupa.
+    const deliveryWidth = Math.max(cachedDeliveryWidth,
+      Math.ceil(whats?.getBoundingClientRect().width || 0),
+      Math.ceil(send?.getBoundingClientRect().width || 0) + (send && emailMenu ? menuWidth : 0));
     const lone = row && (whats ? !send : !!send) ? (whats || send) : null;
     let ghost = row ? row.querySelector(':scope > .pdp-qa-ghost') : null;
     if (lone) {
@@ -249,7 +256,7 @@
         // procura a última .pdp-qa-row-line com :last-child.
         row.insertBefore(ghost, row.firstChild);
       }
-      setPx(ghost, 'width', cachedDeliveryWidth);
+      setPx(ghost, 'width', deliveryWidth);
       setPx(ghost, 'height', buttonHeight);
       place(row, top, sendRight);
       const g = ghost.getBoundingClientRect();
@@ -262,14 +269,32 @@
       place(whats, firstTop, sendRight);
       place(emailMenu, secondTop, sendRight);
       place(send, secondTop, sendRight + menuWidth);
-      place(row, top, sendRight + cachedDeliveryWidth + 10);
+      place(row, top, sendRight + deliveryWidth + 10);
     }
     if (row && row.hasAttribute('data-pdp-layout-pending')) {
       row.removeAttribute('data-pdp-layout-pending');
       row.style.removeProperty('visibility');
     }
+    checkOverlap(row, [whats, send, emailMenu, sender, toggle, handle]);
     window.dispatchEvent(new Event('pdp-buttons-moved'));
   }
+  // Conferência final: se algum botão da fila de Ações Rápidas ficou por
+  // cima de um botão solto (WhatsApp, e-mail, Ocultar, Mover), as larguras
+  // guardadas estão desatualizadas - mede tudo de novo no próximo ciclo.
+  // No máximo uma nova medição a cada 2s, para nunca entrar em ciclo.
+  let lastOverlapFix = 0;
+  function checkOverlap(row, loose) {
+    if (!row) return;
+    const others = loose.filter(el => el && el.getClientRects().length).map(el => el.getBoundingClientRect());
+    if (!others.length) return;
+    const own = [...row.querySelectorAll('.pdp-qa-group-btn')].filter(el => el.getClientRects().length).map(el => el.getBoundingClientRect());
+    const hit = own.some(a => others.some(b => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1));
+    if (!hit || Date.now() - lastOverlapFix < 2000) return;
+    lastOverlapFix = Date.now();
+    widthsSignature = null;
+    schedule();
+  }
+
   function findAnnotationsPanel() {
     const titles = document.querySelectorAll('legend, h1, h2, h3, h4, caption');
     for (const title of titles) {
