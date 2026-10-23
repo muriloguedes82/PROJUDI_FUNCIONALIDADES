@@ -45,6 +45,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/content.js",
 			"src/email.js",
 			"src/quickActions.js",
+			"src/ordemBotoesAcoes.js",
 			"src/blocoAnotacoes.js",
 			"src/movimentoBase.js",
 			"src/remessaMultipla.js",

@@ -94,8 +94,8 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "acoesRapidas",
 					nome: "Ações rápidas e Minhas Preferências",
-					descricao: "Botões do painel \"Ações\", preferências salvas e combos.",
-					js: ["src/quickActions.js"],
+					descricao: "Botões do painel \"Ações\", preferências salvas e combos. A ordem dos botões da barra pode ser mudada arrastando (fica salva).",
+					js: ["src/quickActions.js", "src/ordemBotoesAcoes.js"],
 					css: ["src/quickActions.css"],
 					partes: [
 						{ id: "concluso", nome: "Botão \"Concluso\"", ocultar: ["#pdp-qa-row [data-group-id=\"concluso\"]"] },

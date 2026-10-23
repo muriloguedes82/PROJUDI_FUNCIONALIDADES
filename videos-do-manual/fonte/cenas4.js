@@ -1601,3 +1601,30 @@ CENAS.V58 = {
 		await S.endCard("Menu → 🔎 busca · lista Botões: esconda cada botão na hora · Desativar todas → ligue só o que usa · ↺ Padrão volta tudo.");
 	},
 };
+
+// ------------------------------------------------------------------ V59
+CENAS.V59 = {
+	arquivo: "V59-mudar-a-ordem-dos-botoes.mp4",
+	titulo: "Mudar a ordem dos botões da barra",
+	secao: "2.4",
+	async run() {
+		telaProcesso({ acoesAbertas: true });
+		// A barra real mostra os botões só com o nome (sem símbolos, exceto a ⭐).
+		$$("#x-group .x-btn").forEach(b => { if (b.id !== "x-fav") b.textContent = b.textContent.replace(/^[^\wÀ-ú▸▾↕]+\s*/u, ""); });
+		Object.assign($("#x-combos").style, { background: "linear-gradient(#f3f8fe,#e3eefb)", borderColor: "#b9d0f0", color: "#1a5fb4" });
+		Object.assign($("#x-fav").style, { background: "linear-gradient(#fffaeb,#fbedc4)", borderColor: "#e2c77c", color: "#6b4e00" });
+		await S.titleCard("VÍDEO V59", "Mudar a ordem dos botões", "Arraste os botões da barra para deixar os que você mais usa onde preferir.");
+		S.hl("#x-combos", 3);
+		await S.cap("Para mudar um botão de lugar, <b>arraste-o</b> com o mouse para a posição que quiser — por exemplo, o <b>Combos</b> para o começo da barra.", { ms: 4600 });
+		S.hlOff();
+		const combos = $("#x-combos"), concluso = $('[data-g="Concluso"]');
+		await arrastarCnj(combos, concluso);
+		concluso.parentElement.insertBefore(combos, concluso);
+		await S.cap("Os outros botões <b>se ajeitam</b> sozinhos. A nova ordem fica <b>salva</b> e vale em todos os processos.", { ms: 4400 });
+		await S.cap("Um clique sem arrastar continua abrindo o botão normalmente.");
+		await S.click("#x-menuicon");
+		abrirMenu();
+		await S.cap("Para voltar à ordem original: Menu (balança) → <b>Ações rápidas</b> → lista <b>Botões</b> → <b>↺ Ordem original</b>.", { ms: 4600 });
+		await S.endCard("Arraste um botão da barra para mudar a ordem (fica salva) · Menu → Ações rápidas → Botões → ↺ Ordem original.");
+	},
+};

@@ -379,7 +379,7 @@
 		"pdpAlterarClassePrefs", "pdpPrioridadesPrefs", "pdpPrioridadesCatalogo", "pdpLocalizadorPreferencias", "pdpPreferenceCombos", "pdpPreferencesOrder",
 		"pdpTarefasListas", "pdpTarefasPreferencias", "pdpTarefasProcessos",
 		"pdpWhatsappContacts", "pdpEmailRecipients", "pdpFromAccounts", "pdpDefaultFromId",
-		"pdpSistemasCnjOrdem", "pdpSistemasCnjOutros", "pdpSistemasCnjOrdemSeeu",
+		"pdpSistemasCnjOrdem", "pdpSistemasCnjOutros", "pdpSistemasCnjOrdemSeeu", "pdpAcoesRapidasOrdem", "pdpAcoesRapidasOrdemSeeu",
 		CHAVE, CAT.chaveAntiga, CAT.chaveExtensao, CAT.chavePartes
 	]);
 
@@ -415,6 +415,7 @@
 		].filter(function (l) { return l[1] > 0; }).map(function (l) { return l[1] + " " + l[0]; });
 		if (tamanho(local.pdpPreferencesOrder)) linhas.push("ordem dos cards em \"Minhas Preferências\"");
 		if (tamanho(local.pdpSistemasCnjOrdem) || tamanho(local.pdpSistemasCnjOutros) || tamanho(local.pdpSistemasCnjOrdemSeeu)) linhas.push("ordem dos cards dos sistemas e o que fica no \"Outros\"");
+		if (tamanho(local.pdpAcoesRapidasOrdem) || tamanho(local.pdpAcoesRapidasOrdemSeeu)) linhas.push("ordem dos botões da barra de ações rápidas");
 		if (local.pdpSistemasCnjAbertura) linhas.push("como abrir os sistemas");
 		if (Object.values(objeto(sync.movementHighlightPrefs)).some(function (v) { return v && v.enabled; })) linhas.push("cores do destaque de movimentações");
 		if (objeto(sync.hideMovementsWithoutFilePrefs).alwaysHide) linhas.push("ocultar movimentações sem arquivo");
@@ -1143,6 +1144,22 @@ button.bt.primario:hover { background: #1f5591; }
 			]));
 		});
 		lista.append(el("p", { class: "nota", text: "Esconder um botão vale na hora, sem recarregar a página." }));
+		// Ordem dos botões da barra, escolhida arrastando (ordemBotoesAcoes.js).
+		if (item.id === "acoesRapidas") {
+			const chaveOrdem = abaAtiva === "seeu" ? "pdpAcoesRapidasOrdemSeeu" : "pdpAcoesRapidasOrdem";
+			lista.append(el("p", { class: "nota" }, [
+				el("span", { text: "Para mudar a ordem, arraste o botão na barra. " }),
+				el("button", {
+					type: "button", class: "bt", text: "↺ Ordem original", disabled: !ligado,
+					title: "Voltar os botões da barra à ordem original no " + nomeSistema(abaAtiva),
+					onclick: function () {
+						chrome.storage.local.remove(chaveOrdem).then(function () {
+							avisar("Os botões da barra voltaram à ordem original no " + nomeSistema(abaAtiva) + ".", "info");
+						}).catch(function (err) { avisar("Não foi possível restaurar a ordem: " + err.message, "erro"); });
+					}
+				})
+			]));
+		}
 		return lista;
 	}
 

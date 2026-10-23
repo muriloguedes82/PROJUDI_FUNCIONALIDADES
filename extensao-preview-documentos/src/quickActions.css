@@ -51,6 +51,34 @@
 	border-color: #6c93d6;
 }
 
+/* Cores próprias: "Combos" no mesmo azul dos cards de combo dentro de
+   Minhas Preferências (.pdp-qa-fav-combo), e "Minhas Preferências" em
+   dourado claro, no tom dos cards de preferência. Aberto (painel à
+   vista), cada um fica um pouco mais escuro. */
+#pdp-qa-row .pdp-qa-group-btn[data-panel-id="combos"] {
+	background: linear-gradient(to bottom, #f3f8fe, #e3eefb);
+	border-color: #b9d0f0;
+	color: #1a5fb4;
+}
+
+#pdp-qa-row .pdp-qa-group-btn[data-panel-id="combos"]:hover,
+#pdp-qa-row .pdp-qa-group-btn[data-panel-id="combos"].pdp-qa-active {
+	background: linear-gradient(to bottom, #e3eefb, #cfe0f8);
+	border-color: #8fb1e3;
+}
+
+#pdp-qa-row #pdp-fav-prefs-button {
+	background: linear-gradient(to bottom, #fffaeb, #fbedc4);
+	border-color: #e2c77c;
+	color: #6b4e00;
+}
+
+#pdp-qa-row #pdp-fav-prefs-button:hover,
+#pdp-qa-row #pdp-fav-prefs-button.pdp-qa-active {
+	background: linear-gradient(to bottom, #fcf0cc, #f5e0a0);
+	border-color: #cfac52;
+}
+
 .pdp-qa-group-btn.pdp-qa-btn-disabled {
 	opacity: 0.5;
 	cursor: default;

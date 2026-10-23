@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.54.4 | 23/10/2026 | Seção 2.4: os botões da barra de ações rápidas (**Concluso**, **Remessa**, **⭐ Minhas Preferências**, **Combos**, **Oráculo**, **Enviar por WhatsApp**, **↕ Mover**, **Ocultar** etc.) ficam **menores** — mais baixos, mais estreitos e com letra um pouco menor — e **sem os símbolos** antes do nome (só a ⭐ de Minhas Preferências continua), para não cobrirem os botões do próprio Projudi (como os do quadro Pendências). A barra costuma caber em duas linhas. A posição da barra na tela não mudou. Os nomes dos botões no Menu da extensão (2.6) também ficam sem os símbolos. Ao esconder um botão ou desligar uma função no Menu, os demais botões da barra se reorganizam e ocupam o espaço vazio (e voltam ao arranjo anterior quando o botão é mostrado de novo). Sem vídeo novo: as cenas simuladas não mudam. |
-| **Versão da extensão** | 2.54.4 | 23/10/2026 | Seção 2.4: os botões da barra de ações rápidas (**Concluso**, **Remessa**, **⭐ Minhas Preferências**, **Combos**, **Oráculo**, **Enviar por WhatsApp**, **↕ Mover**, **Ocultar** etc.) ficam **menores** — mais baixos, mais estreitos e com letra um pouco menor — e **sem os símbolos** antes do nome (só a ⭐ de Minhas Preferências continua), para não cobrirem os botões do próprio Projudi (como os do quadro Pendências). A barra costuma caber em duas linhas. A posição da barra na tela não mudou. Os nomes dos botões no Menu da extensão (2.6) também ficam sem os símbolos. Sem vídeo novo: as cenas simuladas não mudam. |
+| **Versão do manual** | 2.55.0 |
+| **Versão da extensão** | 2.55.0 |
 | **Data desta versão** | 23/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -282,6 +282,16 @@ Menu ([2.6](#cap-2-6)), os botões seguintes **se reorganizam** e ocupam o
 espaço que ficou vazio; ao mostrar o botão de novo, ele volta ao seu lugar.
 Esconder ou mostrar um botão vale na hora; ligar ou desligar uma função
 vale ao recarregar a página.
+
+**Mudar a ordem dos botões:** arraste um botão da barra com o mouse até o
+lugar que preferir (por exemplo, o **Combos** para o começo). Os outros
+botões se ajeitam sozinhos, e a nova ordem fica **salva**: vale em todos os
+processos, separada no Projudi e no SEEU, e vai junto no **⬇ Exportar** do
+Menu. Um clique sem arrastar continua abrindo o botão normalmente. Para
+voltar à ordem original: Menu (balança) → **Ações rápidas e Minhas
+Preferências** → lista **Botões** → **↺ Ordem original**. O botão **Combos**
+fica em azul e o **⭐ Minhas Preferências** em dourado claro, para serem
+achados mais depressa.
 
 | Botão | O que faz | Seção |
 |---|---|---|
@@ -2857,7 +2867,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 2.54.4 | 23/10/2026 | Seção 2.4: os botões da barra de ações rápidas (**Concluso**, **Remessa**, **⭐ Minhas Preferências**, **Combos**, **Oráculo**, **Enviar por WhatsApp**, **↕ Mover**, **Ocultar** etc.) ficam **menores** — mais baixos, mais estreitos e com letra um pouco menor — e **sem os símbolos** antes do nome (só a ⭐ de Minhas Preferências continua), para não cobrirem os botões do próprio Projudi (como os do quadro Pendências). A barra costuma caber em duas linhas. A posição da barra na tela não mudou. Os nomes dos botões no Menu da extensão (2.6) também ficam sem os símbolos. Sem vídeo novo: as cenas simuladas não mudam. | 22/10/2026 | Seção 2.4: os botões da barra de ações rápidas (**Concluso**, **Remessa**, **⭐ Minhas Preferências**, **🔗 Combos**, **Oráculo**, **📱 Enviar por WhatsApp**, **↕ Mover**, **Ocultar** etc.) ficam **menores** — letra um pouco menor e menos espaço interno, inclusive nas laterais (mais estreitos) —, para não cobrirem os botões do próprio Projudi (como os do quadro Pendências). A posição da barra na tela não mudou. Sem vídeo novo: as cenas simuladas não mudam. |
+| 2.55.0 | 23/10/2026 | Seção 2.4: **mudar a ordem dos botões** da barra arrastando-os com o mouse; a ordem fica salva (separada no Projudi e no SEEU, e vai junto no ⬇ Exportar), e **↺ Ordem original** (Menu → Ações rápidas → Botões) volta ao padrão. Os botões da barra (**Concluso**, **Remessa**, **⭐ Minhas Preferências**, **Combos**, **Oráculo**, **Enviar por WhatsApp**, **↕ Mover**, **Ocultar** etc.) ficam **menores** — mais baixos, mais estreitos e com letra um pouco menor — e **sem os símbolos** antes do nome (só a ⭐ de Minhas Preferências continua), para não cobrirem os botões do próprio Projudi (como os do quadro Pendências); **Combos** fica em azul e **⭐ Minhas Preferências** em dourado claro. Ao esconder um botão ou desligar uma função no Menu, os demais se reorganizam e ocupam o espaço vazio (e voltam ao arranjo anterior quando o botão é mostrado de novo). A posição da barra na tela não mudou. Os nomes dos botões no Menu (2.6) também ficam sem os símbolos. Vídeo V59 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 2.54.3 | 20/10/2026 | O histórico de versões do manual (antes Anexo B) passa a ser o **Anexo A**, já que o anexo dos vídeos saiu na 2.53.2. O arquivo baixado pelo botão **2. Atualizar** (2.3) fica bem menor: os vídeos guardados para uso futuro não vão mais nele. O conteúdo das seções não mudou. |
 | 2.54.2 | 20/10/2026 | Seção 2.6: dica **Computador lento** (desligar no Menu as funções que não usa — esconder só os botões não deixa a extensão mais leve —; como saber se a lentidão é da extensão ou do Projudi) e linha nova em Solução de problemas (11). **Extensão mais leve**: com a aba do Projudi/SEEU em segundo plano (atrás de outra aba), a extensão quase não usa mais o computador — antes ela continuava conferindo a tela várias vezes por segundo; ao voltar para a aba, tudo é conferido de novo. Ao trocar de aba do processo, a extensão confere a tela uma vez só, em vez de uma vez para cada pedaço que muda. As telas que a extensão abre escondidas para buscar informações (prévia de documentos, pendências, suspensões, preferências) carregam mais rápido, porque não recebem mais os botões e painéis, que ninguém vê ali. Sem vídeo novo. |
 | 2.54.1 | 20/10/2026 | Corrigido: com a extensão instalada, a tela **Crianças e Adolescentes** do **SNA** (Sistema Nacional de Adoção e Acolhimento, do CNJ), aberta normalmente numa aba do navegador, ficava em branco, com o aviso "sna.cloud.cnj.jus.br está bloqueado". A regra que deixa os sistemas do CNJ abrirem dentro do popup do Projudi/SEEU passa a não atrapalhar esses sites quando usados fora dele. Linha nova na Solução de problemas (11). Sem vídeo novo: a tela da extensão não muda. |
