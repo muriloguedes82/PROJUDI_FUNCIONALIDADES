@@ -86,22 +86,10 @@
 			actions: ["Intimar Partes", "Notificar Partes", "Citar Partes", "Intimar Peritos e Auxiliares da Justiça"],
 		},
 		{
-			id: "suspender",
-			title: "Suspender",
-			icon: "⏸️",
-			actions: ["Suspender ou Sobrestar Processo"],
-		},
-		{
 			id: "transitar",
 			title: "Transitar",
 			icon: "🏁",
 			actions: ["Transitar em Julgado"],
-		},
-		{
-			id: "arquivar",
-			title: "Arquivar",
-			icon: "🗄️",
-			actions: ["Arquivar Processo"],
 		},
 		{
 			// Não é um link do painel Ações: o caminho até a tela final
@@ -141,13 +129,19 @@
 				// processos criminais). Ver ACTIONS_NEEDING_ACOES_PARENT.
 				"Anotações Criminais",
 				"Solicitar Antecedentes Criminais",
+				// Antes com botão próprio ("Suspender" e "Arquivar"); desde a
+				// 2.55.0 (pedido do usuário) ficam aqui, para a barra ficar
+				// mais curta. As preferências são guardadas pelo nome da
+				// ação, então as já salvas continuam valendo.
+				"Suspender ou Sobrestar Processo",
+				"Arquivar Processo",
 			],
 		},
 	];
 
 	// SEEU: só as ações cujas telas foram conferidas no SEEU (pedido do
 	// usuário, versão 2.51.0); as demais ficam só no Projudi. Grupos que
-	// ficam sem ação (ex.: "Suspender") somem no SEEU. No Projudi, todas.
+	// ficam sem ação somem no SEEU. No Projudi, todas.
 	const NO_SEEU = /^\/seeu\//.test(location.pathname);
 	const ACOES_SEEU = [
 		"Enviar Concluso",
