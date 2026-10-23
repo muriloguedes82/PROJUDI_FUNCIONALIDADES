@@ -890,7 +890,7 @@ CENAS.V46 = {
 };
 
 // ------------------------------------------------------------------ V47
-// Linha "Valor da Causa" + balão "💲 Novo Valor da Causa" no cabeçalho do processo (alterarValorCausa.js).
+// Linha "Valor da Causa" + botão "Novo Valor da Causa" no cabeçalho do processo (alterarValorCausa.js).
 CENAS.V47 = {
 	arquivo: "V47-novo-valor-da-causa.mp4",
 	titulo: "Novo Valor da Causa",
@@ -905,7 +905,7 @@ CENAS.V47 = {
 		S.hlOff();
 		await S.cap("Ela aparece em qualquer aba — não é preciso abrir <b>Informações Gerais</b>.", { ms: 2600 });
 		await S.click("#x-novo-valor");
-		const pn = panelAt('<h4>💲 Novo Valor da Causa</h4><p style="color:#555;margin:0 0 8px">Valor atual: R$ 324,80</p>' +
+		const pn = panelAt('<h4>Novo Valor da Causa</h4><p style="color:#555;margin:0 0 8px">Valor atual: R$ 324,80</p>' +
 			'<div><b>Novo valor: R$</b> <span class="pj-input" id="x-nv" style="min-width:120px;display:inline-block;text-align:right"></span></div>' +
 			'<p style="color:#666;margin:6px 0 8px">Digite o valor com os centavos (ex.: 1.500,00). Ao salvar, o Projudi registra a alteração nas Movimentações.</p>' +
 			'<div style="display:flex;gap:6px;justify-content:flex-end"><span class="x-btn small" id="x-nv-salvar"><b>Salvar</b></span><span class="x-btn small">Cancelar</span></div>', "#x-novo-valor", { w: 340 });
