@@ -1832,7 +1832,6 @@
 		launcher.id = "pdp-wa-launcher";
 		launcher.className = "pdp-wa-launcher";
 		launcher.innerHTML =
-			'<span class="pdp-wa-icon">\u{1F4F1}</span>' +
 			'<span class="pdp-wa-label">Enviar por WhatsApp</span>' +
 			'<span class="pdp-wa-count" hidden>0</span>';
 		document.body.appendChild(launcher);

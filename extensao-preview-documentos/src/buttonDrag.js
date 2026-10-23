@@ -152,7 +152,7 @@
     const horizontalPadding = 4;
     const oraculo = row?.querySelector('#pdp-oraculo-button');
     const referenceButton = oraculo || row?.querySelector('.pdp-qa-group-btn');
-    const buttonHeight = Math.max(22, Math.ceil(referenceButton?.getBoundingClientRect().height || 22));
+    const buttonHeight = Math.max(20, Math.ceil(referenceButton?.getBoundingClientRect().height || 20));
     for (const el of [send, emailMenu, whats, sender, handle, toggle].filter(Boolean)) {
       el.style.boxSizing = 'border-box';
       setPx(el, 'height', buttonHeight, 'important');

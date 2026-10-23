@@ -805,7 +805,7 @@
 			button.className = "pdp-qa-group-btn";
 			// Painel do grupo "advogados" das Ações rápidas (quickActions.js).
 			button.dataset.panelId = "advogados";
-			button.textContent = "⚖️ Advogados";
+			button.textContent = "Advogados";
 			button.title = 'Tela "Advogados" num popup (habilitar, desabilitar, adicionar ou remover advogados) e preferências com listas de advogados';
 			button.addEventListener("click", function () {
 				const api = window.__pdpQuickActions;

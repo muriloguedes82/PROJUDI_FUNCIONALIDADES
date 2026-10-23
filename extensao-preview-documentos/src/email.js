@@ -122,7 +122,7 @@
 			sendButton.type = "button";
 			sendButton.id = "pdp-email-button";
 			sendButton.className = "pdp-email-visible";
-			sendButton.textContent = selected.size > 0 ? "✉️ Enviar por e-mail (" + selected.size + ")" : "✉️ Enviar por e-mail";
+			sendButton.textContent = selected.size > 0 ? "Enviar por e-mail (" + selected.size + ")" : "Enviar por e-mail";
 			sendButton.addEventListener("click", onSendClick);
 			document.body.appendChild(sendButton);
 		}
@@ -245,7 +245,7 @@
 		ensureButtons();
 		if (!sendButton) return;
 		const count = selected.size;
-		sendButton.textContent = count > 0 ? "✉️ Enviar por e-mail (" + count + ")" : "✉️ Enviar por e-mail";
+		sendButton.textContent = count > 0 ? "Enviar por e-mail (" + count + ")" : "Enviar por e-mail";
 		sendButton.classList.add("pdp-email-visible");
 		repositionButtons();
 	}

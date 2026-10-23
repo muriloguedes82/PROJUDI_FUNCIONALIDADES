@@ -531,7 +531,7 @@
 				type: "button", id: "pdp-localizador-button", class: "pdp-qa-group-btn", [ATTR_BOTAO]: true,
 				title: "Preferências de localizadores: associe ao processo com um clique",
 				onclick: function (ev) { ev.preventDefault(); ev.stopPropagation(); alternarPainel(); }
-			}, [el("span", { class: "pdp-qa-icon", text: "📍" }), el("span", { text: "Localizador" })]);
+			}, [el("span", { text: "Localizador" })]);
 		}
 		if (botao.previousElementSibling !== fav || botao.parentElement !== fav.parentElement) fav.after(botao);
 	}

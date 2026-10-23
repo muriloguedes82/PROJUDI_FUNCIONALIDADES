@@ -4740,9 +4740,7 @@
 			btn.type = "button";
 			btn.className = "pdp-qa-group-btn";
 			btn.dataset.groupId = group.id;
-			btn.innerHTML =
-				'<span class="pdp-qa-icon">' + group.icon +
-				"</span><span>" + group.title + "</span>";
+			btn.innerHTML = "<span>" + group.title + "</span>";
 			btn.title = "Ações de " + group.title;
 			btn.addEventListener("click", function () {
 				togglePanel(group);
@@ -4762,7 +4760,7 @@
 			clipboardBtn.type = "button";
 			clipboardBtn.id = "pdp-clipboard-button";
 			clipboardBtn.className = "pdp-qa-group-btn";
-			clipboardBtn.textContent = "📋 Colar processo";
+			clipboardBtn.textContent = "Colar processo";
 			clipboardBtn.title = "Pesquisar em nova aba o número de processo da área de transferência";
 			clipboardBtn.addEventListener("click", function () { window.__pdpClipboardProcess(); });
 			secondLine.appendChild(clipboardBtn);
@@ -4784,7 +4782,7 @@
 		highlightPrefsBtn.className = "pdp-qa-group-btn";
 		// Parte que o Menu pode esconder (ver `partes` em funcionalidades.js).
 		highlightPrefsBtn.dataset.pdpParte = "destacar";
-		highlightPrefsBtn.innerHTML = '<span class="pdp-qa-icon">🖍️</span><span>Destacar mov.</span>';
+		highlightPrefsBtn.innerHTML = '<span>Destacar mov.</span>';
 		highlightPrefsBtn.title = "Escolher a cor de destaque de cada tipo de usuário na aba Movimentações";
 		highlightPrefsBtn.addEventListener("click", function () {
 			if (window.__pdpOpenMovementHighlightConfig) window.__pdpOpenMovementHighlightConfig();
@@ -4795,7 +4793,7 @@
 		combosBtn.type = "button";
 		combosBtn.className = "pdp-qa-group-btn";
 		combosBtn.dataset.panelId = "combos";
-		combosBtn.innerHTML = '<span class="pdp-qa-icon">🔗</span><span>Combos</span>';
+		combosBtn.innerHTML = '<span>Combos</span>';
 		combosBtn.title = "Combos de preferências: executar várias preferências salvas em sequência, na ordem escolhida";
 		combosBtn.addEventListener("click", toggleCombosPanel);
 		secondLine.appendChild(combosBtn);

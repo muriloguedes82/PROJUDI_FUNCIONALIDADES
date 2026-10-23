@@ -2688,7 +2688,7 @@
 			button.type = "button";
 			button.id = "pdp-juntar-documento-button";
 			button.className = "pdp-qa-group-btn";
-			button.textContent = "📎 Juntar Documento";
+			button.textContent = "Juntar Documento";
 			button.title = 'Juntar um documento digitado: grave o fluxo completo uma vez ("+ Nova preferência") e depois repita-o com um clique, até o "Concluir Movimento"';
 			button.addEventListener("click", function (e) {
 				e.stopPropagation();
