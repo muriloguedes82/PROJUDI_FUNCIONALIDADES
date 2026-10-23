@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.55.1 |
-| **Versão da extensão** | 2.55.1 |
+| **Versão do manual** | 2.56.0 |
+| **Versão da extensão** | 2.56.0 |
 | **Data desta versão** | 23/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -516,7 +516,28 @@ seus), nem login do Microsoft Graph, nem trabalhos em andamento (envios,
 combos e juntadas pendentes). Guarde o arquivo com cuidado: ele contém os
 seus contatos.
 
-**3. 📖 Manual do Usuário** — abre este manual numa nova aba, com **índice
+**3. Travamentos e lentidão** — a extensão anota sozinha, em cada tela do
+Projudi/SEEU, os momentos em que a tela **travou** (ficou 0,2 segundo ou mais
+sem responder a clique e digitação), ficou **lenta** por vários segundos
+seguidos ou **demorou para abrir**. Em cada anotação ela guarda quanto tempo
+foi da própria extensão (e de qual parte dela), quanto foi do Projudi/SEEU e,
+nas telas que demoram para abrir, quanto foi espera pelo servidor do
+Tribunal.
+
+- **⬇ Baixar registro**: baixa um arquivo (`extensao-projudi-seeu-travamentos-
+  data.json`) com as anotações. Se o Projudi/SEEU travar ou ficar lento,
+  baixe o arquivo e envie ao responsável pela extensão: é com ele que dá para
+  descobrir a causa.
+- **🗑 Limpar registro**: apaga as anotações feitas até agora (pede
+  confirmação). Suas preferências e funções não mudam.
+
+O registro **não** guarda números de processo, nomes de partes nem o texto
+das telas: só o nome da tela (ex.: "processo.do"), os tempos e os nomes das
+partes da extensão envolvidas. Ficam guardadas as 500 anotações mais
+recentes, só neste computador, e elas **não** entram no **⬇ Exportar** das
+preferências. O registro funciona sempre, mesmo com funções desligadas.
+
+**4. 📖 Manual do Usuário** — abre este manual numa nova aba, com **índice
 lateral e busca**. Logo acima fica o link **Termos de Uso**.
 
 **Bom saber:** se um botão da extensão "sumiu", confira no Menu, **na aba do
@@ -2839,6 +2860,7 @@ telas abertas a partir daí voltam a funcionar.
 | Um botão da extensão sumiu | Abra o Menu (ícone da balança) e confira se a função não foi desligada — ou se alguma função de que ela depende foi ([2.6](#cap-2-6)). **↺ Padrão** religa todas |
 | Os cards dos sistemas (SerpJud, BNMP…) não aparecem ao lado da balança | Eles só aparecem com um **processo aberto**; na Mesa e nas listas fica só a balança. Com o processo aberto, aguarde 1 segundo; se continuar sem eles, confira no Menu se **Sistemas do CNJ** está ligada ([8.7](#cap-8-7)) |
 | O Projudi/SEEU fica lento com a extensão (computador mais fraco ou muitas abas abertas) | Desligue no Menu as funções que você não usa: desligadas, elas não são carregadas. Para conferir se a lentidão é da extensão, desligue-a pela chave geral e abra a mesma tela ([2.6](#cap-2-6)) |
+| A tela trava ou fica lenta | No Menu, em **Travamentos e lentidão**, clique em **⬇ Baixar registro** e envie o arquivo ao responsável pela extensão, dizendo em que tela e em que horário aconteceu ([2.6](#cap-2-6)) |
 | Nenhum botão da extensão aparece | Confira se aceitou os Termos de Uso ([2.2](#cap-2-2)); recarregue a página (F5); confira se a extensão está ativada em `chrome://extensions`; confira se o perfil não é de advocacia ([10.3](#cap-10-3)) |
 | Atualizei a extensão e nada mudou | Clique em ↻ no card da extensão em `chrome://extensions` e depois recarregue as páginas ([2.3](#cap-2-3)) |
 | A barra de botões cobre algo da tela | Arraste **↕ Mover** ou clique em **Ocultar** ([2.4](#cap-2-4)) |
@@ -2878,6 +2900,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.56.0 | 23/10/2026 | Seção 2.6 (Menu da extensão): novo item **3. Travamentos e lentidão** — a extensão anota sozinha quando a tela trava, fica lenta ou demora para abrir (quanto foi da extensão, do Projudi/SEEU e do servidor), sem guardar números de processo nem nomes; **⬇ Baixar registro** gera o arquivo para enviar ao responsável e **🗑 Limpar registro** apaga as anotações. O **Manual do Usuário** passa a ser o item 4. Linha nova em Solução de problemas (11). Vídeo V34 regravado (fora do manual). |
 | 2.55.1 | 23/10/2026 | Corrigido: com só o **Enviar por WhatsApp** (ou só o **Enviar por e-mail**) à vista e a página com barra de rolagem, o botão de envio ficava um pouco à esquerda do lugar dele e cobria o último botão da segunda linha (ex.: **Oráculo**). Pelo mesmo motivo, os painéis que abrem a partir da barra (grupos de ação, **⭐ Minhas Preferências**, **🔗 Combos**, **Advogados**, **Juntar Documento**, **Localizador** do SEEU e o **▼** do e-mail) abriam um pouco à esquerda do botão; agora ficam alinhados a ele. Sem alteração de texto nas seções. |
 | 2.55.0 | 23/10/2026 | Seção 2.4: barra em **duas linhas** — a de cima começa sempre com **⭐ Minhas Preferências** e a de baixo com **Combos** —; **mudar a ordem dos botões** arrastando-os com o mouse, inclusive de uma linha para a outra; a ordem fica salva (separada no Projudi e no SEEU, e vai junto no ⬇ Exportar), e **↺ Ordem original** (Menu → Ações rápidas → Botões) volta ao padrão. Os botões da barra (**Concluso**, **Remessa**, **⭐ Minhas Preferências**, **Combos**, **Oráculo**, **Enviar por WhatsApp**, **↕ Mover**, **Ocultar** etc.) ficam **menores** — mais baixos, mais estreitos e com letra um pouco menor — e **sem os símbolos** antes do nome (só a ⭐ de Minhas Preferências e o 🔗 de Combos continuam), para não cobrirem os botões do próprio Projudi (como os do quadro Pendências); **Combos** fica em azul e **⭐ Minhas Preferências** em dourado claro. Ao esconder um botão ou desligar uma função no Menu, os demais se reorganizam e ocupam o espaço vazio (inclusive o lugar do **Enviar por WhatsApp** ou do **Enviar por e-mail**, quando só um dos dois está à vista), sem que um botão fique por cima de outro (e voltam ao arranjo anterior quando o botão é mostrado de novo). A posição da barra na tela não mudou. Os nomes dos botões no Menu (2.6) também ficam sem os símbolos. As **preferências** aparecem só com o nome, sem o **★** antes (nos painéis das ações, no Juntar Documento, em Alterar Classe/Assuntos, em Prioridades, no Analisar Decurso, na ⭐ das listas e em **⭐ Minhas Preferências**, onde os grupos também ficam sem símbolo); só os **combos** mantêm os seus (**🔗**, **▶**). O texto do **Enviar por e-mail** (e o **▼**) fica centralizado no botão. Seção 8.7: os **cards dos sistemas do CNJ** (ao lado da balança) ficam menores — mais baixos, mais estreitos, com letra um pouco menor e menos espaço entre eles —, centralizados na altura da balança. Seção 7.1: as ações **Suspender ou Sobrestar Processo**, **Transitar em Julgado** e **Arquivar Processo** passam para dentro do botão **Outras** (os botões **Suspender**, **Transitar** e **Arquivar** saem da barra e da lista Botões do Menu; as preferências salvas continuam valendo). Os dois botões "Partes" passam a se chamar **Int. Partes** (intimar, notificar, citar — 7.1) e **Editar Partes** (tela Partes do Processo — 8.4). Vídeo V59 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 2.54.3 | 20/10/2026 | O histórico de versões do manual (antes Anexo B) passa a ser o **Anexo A**, já que o anexo dos vídeos saiu na 2.53.2. O arquivo baixado pelo botão **2. Atualizar** (2.3) fica bem menor: os vídeos guardados para uso futuro não vão mais nele. O conteúdo das seções não mudou. |

@@ -31,7 +31,8 @@
 //
 // Os arquivos que não aparecem aqui (hostGuard.js, uiVisibility.js,
 // painelPreferencias.js/.css, clipboardProcess.js, documentSelection.js, buttonDrag.js,
-// partesFuncionalidades.js e o próprio Menu) são infraestrutura e são sempre carregados.
+// partesFuncionalidades.js, registroDesempenho.js e o próprio Menu) são
+// infraestrutura e são sempre carregados.
 self.PDP_FUNCIONALIDADES = Object.freeze({
 	// { projudi: [id], seeu: [id] } em chrome.storage.local
 	chave: "pdpFuncionalidadesDesativadasPorSistema",

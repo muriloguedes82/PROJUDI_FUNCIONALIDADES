@@ -134,3 +134,32 @@ compare uma aba do Projudi parada, à vista e em segundo plano, com a
 extensão ligada e desligada. Para detalhar, DevTools → **Performance** →
 gravar uma troca de aba do processo e ver o tempo gasto em
 `chrome-extension://…` no "Bottom-Up".
+
+## Registro de travamentos e lentidão (2.56.0)
+
+A simulação não reproduz tudo o que acontece no Projudi real (telas,
+processos e computadores de cada usuário). Por isso a extensão passou a
+anotar sozinha, em uso real, os travamentos e a lentidão
+(`src/registroDesempenho.js`); o Menu baixa o registro em .json (**Travamentos
+e lentidão → ⬇ Baixar registro**).
+
+- **travamento**: quadro de tela de 200 ms ou mais (API *long animation
+  frame*), com o tempo de scripts do Projudi/SEEU e de outras extensões e,
+  em `extensao`, quanto foi desta extensão por arquivo e tipo de chamada
+  (vigia de mudanças, temporizador, antes de desenhar, evento da página);
+- **lentidao**: 10 s em que os quadros longos somaram 3 s ou mais;
+- **carregamento**: tela que levou 4 s ou mais para abrir, com a espera pelo
+  servidor (`servidorMs`) separada da montagem da tela (`montagemMs`);
+- em todos: tela (sem "?..."), quadros internos com a quantidade de
+  elementos, memória usada e se a aba estava à vista.
+
+O Chrome não informa quais scripts de extensão rodaram num quadro longo; por
+isso o registro cronometra os vigias, temporizadores e eventos da página
+registrados pelos scripts da extensão (só no mundo isolado deles; o código
+do Projudi não é tocado). Custo medido (mediana de 3 rodadas, 400
+movimentações): +0,03 s de processamento ao abrir a tela; nas trocas de aba,
+parado e em segundo plano, dentro da variação entre rodadas.
+
+Exemplo, na tela simulada com 2000 movimentações: travamento de 342 ms, dos
+quais 245 ms da extensão (`email.js` reposicionando os botões, 159 ms;
+`content.js` marcando os documentos, 60 ms).

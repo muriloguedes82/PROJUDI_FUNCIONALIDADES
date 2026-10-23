@@ -38,6 +38,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 		matches: PDP_TERMOS_MATCHES,
 		js: [
 			"src/hostGuard.js",
+			"src/registroDesempenho.js",
 			"src/uiVisibility.js",
 			"src/painelPreferencias.js",
 			"src/clipboardProcess.js",

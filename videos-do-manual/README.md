@@ -65,7 +65,7 @@ para dentro da extensão, retire essa regra.
 | [V31](V31-mesa-do-analista-sem-zerados.mp4) | [Mesa do Analista sem itens zerados](V31-mesa-do-analista-sem-zerados.mp4) | [9.4](../extensao-preview-documentos/manual/MANUAL.md#cap-9-4) | 0:28 |
 | [V32](V32-rg-e-cpf-nos-cumprimentos.mp4) | [RG e CPF das partes nos cumprimentos](V32-rg-e-cpf-nos-cumprimentos.mp4) | [9.5](../extensao-preview-documentos/manual/MANUAL.md#cap-9-5) | 0:25 |
 | [V33](V33-dados-processuais-nas-ordenacoes-bnmp.mp4) | [Dados processuais nas ordenações BNMP](V33-dados-processuais-nas-ordenacoes-bnmp.mp4) | [9.6](../extensao-preview-documentos/manual/MANUAL.md#cap-9-6) | 0:39 |
-| [V34](V34-menu-da-extensao.mp4) | [Menu da extensão (ícone da balança)](V34-menu-da-extensao.mp4) | [2.6](../extensao-preview-documentos/manual/MANUAL.md#cap-2-6) | 1:51 |
+| [V34](V34-menu-da-extensao.mp4) | [Menu da extensão (ícone da balança)](V34-menu-da-extensao.mp4) | [2.6](../extensao-preview-documentos/manual/MANUAL.md#cap-2-6) | 2:03 |
 | [V35](V35-endereco-e-mandado-regionalizado.mp4) | [Endereço da parte e Mandado Regionalizado](V35-endereco-e-mandado-regionalizado.mp4) | [9.7](../extensao-preview-documentos/manual/MANUAL.md#cap-9-7) | 0:58 |
 | [V36](V36-dispensar-cumprimentos.mp4) | [Dispensar cumprimentos para expedir](V36-dispensar-cumprimentos.mp4) | [6.4](../extensao-preview-documentos/manual/MANUAL.md#cap-6-4) | 0:29 |
 | [V37](V37-escolher-a-movimentacao.mp4) | [Escolher a movimentação das Ações rápidas](V37-escolher-a-movimentacao.mp4) | [7.7](../extensao-preview-documentos/manual/MANUAL.md#cap-7-7) | 1:14 |

@@ -1129,3 +1129,20 @@ chrome.runtime.onMessage.addListener((message, _sender, reply) => {
   reply({ ok: false, error: 'Ação desconhecida.' });
   return false;
 });
+
+// Registro de travamentos e lentidão (src/registroDesempenho.js): as
+// anotações de todos os quadros chegam aqui e são gravadas em fila, uma de
+// cada vez, para nenhuma se perder. Guarda só as REGISTRO_MAX mais recentes.
+const REGISTRO_CHAVE = 'pdpRegistroDesempenho';
+const REGISTRO_MAX = 500;
+let registroFila = Promise.resolve();
+chrome.runtime.onMessage.addListener((message, sender) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'registro-desempenho' || !message.registro) return false;
+  if (!sender.tab) return false;
+  registroFila = registroFila.then(async () => {
+    const lista = (await chrome.storage.local.get(REGISTRO_CHAVE))[REGISTRO_CHAVE] || [];
+    lista.push(message.registro);
+    await chrome.storage.local.set({ [REGISTRO_CHAVE]: lista.slice(-REGISTRO_MAX) });
+  }).catch(error => console.warn('[Registro de desempenho] não foi possível gravar:', error));
+  return false;
+});

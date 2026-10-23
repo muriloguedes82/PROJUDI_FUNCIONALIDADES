@@ -38,7 +38,7 @@ function abrirMenu() {
 		'<div class="abas"><span class="aba sel">PROJUDI <small>(este)</small></span><span class="aba">SEEU</span></div>' +
 		'<div class="mb"><div class="mb-in"><div class="cnt" id="mcnt">Funcionalidades: 25 de 25 ativas</div>' + html + '</div><div class="aviso" id="mav" hidden></div></div>' +
 		'<div class="mf"><h4>Abrir os sistemas (cards ao lado da balança)</h4><div id="m-abertura" style="border:1px solid #c7d2e2;border-radius:6px;padding:4px 6px;margin-bottom:8px;color:#13396b">Automático (padrão): 2º monitor ou popup <span style="float:right">▾</span></div><h4>Preferências e combos</h4><div class="btns"><span class="bt" id="m-exp">⬇ Exportar</span><span class="bt" id="m-imp">⬆ Importar</span><span class="bt" id="m-pad">↺ Padrão</span></div>' +
-		'<div class="nota">Use "Exportar" e, no outro computador, "Importar" o mesmo arquivo para levar tudo junto. <u>Termos de Uso</u>.</div><div class="bt manual" id="m-manual">📖 Manual do Usuário</div></div></div>');
+		'<div class="nota">Use "Exportar" e, no outro computador, "Importar" o mesmo arquivo para levar tudo junto. <u>Termos de Uso</u>.</div><h4>Travamentos e lentidão</h4><div class="btns"><span class="bt" id="m-trav">⬇ Baixar registro</span><span class="bt" id="m-limp">🗑 Limpar registro</span></div><div class="nota">A extensão anota sozinha quando a tela trava ou fica lenta (sem guardar números de processo nem nomes). Se isso acontecer, baixe o registro e envie ao responsável pela extensão.</div><div class="bt manual" id="m-manual">📖 Manual do Usuário</div></div></div>');
 	const api = {
 		el: m,
 		async geral(ligar) {
@@ -123,6 +123,14 @@ CENAS.V34 = {
 		itens_reativar();
 		menu.aviso("Todas as funcionalidades foram reativadas.", true);
 		await S.cap("<b>↺ Padrão</b> religa todas as funções, sem apagar nenhuma preferência.");
+		menu.semAviso();
+		S.hl("#m-trav");
+		await S.cap("Em <b>Travamentos e lentidão</b>: a extensão anota sozinha quando a tela trava ou fica lenta, sem guardar números de processo nem nomes.", { ms: 5000 });
+		await S.click("#m-trav");
+		S.hlOff();
+		menu.aviso("Registro baixado: 3 travamento(s), 1 período(s) de lentidão e 2 carregamento(s) lento(s). Envie o arquivo ao responsável pela extensão.", true);
+		await S.cap("<b>⬇ Baixar registro</b> gera um arquivo para enviar ao responsável pela extensão. <b>🗑 Limpar registro</b> apaga as anotações.", { ms: 5000 });
+		menu.semAviso();
 		await S.cap("Por fim, <b>📖 Manual do Usuário</b> abre este manual numa nova aba.");
 		await S.click("#m-manual");
 		browser(["Projudi - Processo " + PROC, "*Projudi/SEEU - Manual do Usuário"], "chrome-extension://…/src/manual.html");
@@ -136,7 +144,7 @@ CENAS.V34 = {
 		await S.click("#lv");
 		add('<div class="vid-fundo"><div class="vid-caixa"><div class="vid-cab"><span>Vídeo V03 — Pré-visualização de documentos</span><span>✕ Fechar</span></div><div class="vid-tela">▶</div></div></div>');
 		await sleep(2500);
-		await S.endCard("Ícone da balança → chave geral · Funcionalidades (liga/desliga) · Exportar/Importar/Padrão · 📖 Manual do Usuário.");
+		await S.endCard("Ícone da balança → chave geral · Funcionalidades (liga/desliga) · Exportar/Importar/Padrão · Travamentos e lentidão · 📖 Manual do Usuário.");
 
 		function itens_reativar() { $$("#x-menu .sw").forEach(n => n.classList.remove("off")); $("#mcnt").textContent = "Funcionalidades: 25 de 25 ativas"; $("#x-menuicon .dot").hidden = true; }
 	},
