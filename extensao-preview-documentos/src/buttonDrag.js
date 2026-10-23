@@ -197,10 +197,12 @@
     if (whats && cachedDeliveryWidth) setPx(whats, 'width', cachedDeliveryWidth, 'important');
     if (send && cachedDeliveryWidth) setPx(send, 'width', cachedEmailMainWidth, 'important');
     const controlWidth = cachedControlWidth;
-    const lines = row ? [...row.querySelectorAll('.pdp-qa-row-line')] : [];
-    lines.forEach(line => { line.style.minHeight = buttonHeight + 'px'; line.style.alignItems = 'center'; });
-    const firstHeight = Math.max(buttonHeight, lines[0]?.offsetHeight || 0);
-    const secondHeight = Math.max(buttonHeight, lines[1]?.offsetHeight || 0);
+    // Os botões da fila de Ações Rápidas correm numa fila só (as
+    // .pdp-qa-row-line não formam caixas, ver quickActions.css): a
+    // "primeira linha" é a de cima da fila, e a "segunda" é todo o resto
+    // (uma ou mais linhas, conforme quantos botões estão à vista).
+    const firstHeight = buttonHeight;
+    const secondHeight = Math.max(buttonHeight, (row?.offsetHeight || 0) - buttonHeight - gap);
     groupHeight = firstHeight + gap + secondHeight;
     const reference = document.getElementById('pdp-expand-movements') ||
       document.getElementById('quadroPendencias') ||
@@ -262,6 +264,12 @@
   window.addEventListener("resize", schedule);
   window.addEventListener("scroll", schedule, { passive: true });
   window.addEventListener("pdp-buttons-layout", schedule);
+  // Botão escondido ou mostrado de novo pelo Menu (vale na hora): realinha
+  // já, sem esperar a próxima conferência.
+  const partesKey = self.PDP_FUNCIONALIDADES?.chavePartes;
+  if (partesKey) chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "local" && changes[partesKey]) requestAnimationFrame(schedule);
+  });
   // Conferência periódica só com a aba à vista (em segundo plano não há o
   // que posicionar; ao voltar, a próxima volta realinha).
   setInterval(() => { if (!document.hidden) schedule(); }, 700);

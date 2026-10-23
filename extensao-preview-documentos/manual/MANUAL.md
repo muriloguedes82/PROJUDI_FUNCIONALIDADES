@@ -4,7 +4,7 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.54.4 | 23/10/2026 | Seção 2.4: os botões da barra de ações rápidas (**Concluso**, **Remessa**, **⭐ Minhas Preferências**, **Combos**, **Oráculo**, **Enviar por WhatsApp**, **↕ Mover**, **Ocultar** etc.) ficam **menores** — mais baixos, mais estreitos e com letra um pouco menor — e **sem os símbolos** antes do nome (só a ⭐ de Minhas Preferências continua), para não cobrirem os botões do próprio Projudi (como os do quadro Pendências). A barra costuma caber em duas linhas. A posição da barra na tela não mudou. Os nomes dos botões no Menu da extensão (2.6) também ficam sem os símbolos. Sem vídeo novo: as cenas simuladas não mudam. |
+| **Versão do manual** | 2.54.4 | 23/10/2026 | Seção 2.4: os botões da barra de ações rápidas (**Concluso**, **Remessa**, **⭐ Minhas Preferências**, **Combos**, **Oráculo**, **Enviar por WhatsApp**, **↕ Mover**, **Ocultar** etc.) ficam **menores** — mais baixos, mais estreitos e com letra um pouco menor — e **sem os símbolos** antes do nome (só a ⭐ de Minhas Preferências continua), para não cobrirem os botões do próprio Projudi (como os do quadro Pendências). A barra costuma caber em duas linhas. A posição da barra na tela não mudou. Os nomes dos botões no Menu da extensão (2.6) também ficam sem os símbolos. Ao esconder um botão ou desligar uma função no Menu, os demais botões da barra se reorganizam e ocupam o espaço vazio (e voltam ao arranjo anterior quando o botão é mostrado de novo). Sem vídeo novo: as cenas simuladas não mudam. |
 | **Versão da extensão** | 2.54.4 | 23/10/2026 | Seção 2.4: os botões da barra de ações rápidas (**Concluso**, **Remessa**, **⭐ Minhas Preferências**, **Combos**, **Oráculo**, **Enviar por WhatsApp**, **↕ Mover**, **Ocultar** etc.) ficam **menores** — mais baixos, mais estreitos e com letra um pouco menor — e **sem os símbolos** antes do nome (só a ⭐ de Minhas Preferências continua), para não cobrirem os botões do próprio Projudi (como os do quadro Pendências). A barra costuma caber em duas linhas. A posição da barra na tela não mudou. Os nomes dos botões no Menu da extensão (2.6) também ficam sem os símbolos. Sem vídeo novo: as cenas simuladas não mudam. |
 | **Data desta versão** | 23/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
@@ -277,7 +277,11 @@ tela, "flutuando" sobre a página. Os botões são compactos e só com o nome
 (sem símbolos, exceto a ⭐ de **Minhas Preferências**), para cobrir o mínimo
 possível dos botões do próprio Projudi. Neste manual, alguns botões ainda
 aparecem com um símbolo antes do nome (como 📎 Juntar Documento) apenas para
-facilitar a leitura.
+facilitar a leitura. Se você esconder um botão ou desligar uma função no
+Menu ([2.6](#cap-2-6)), os botões seguintes **se reorganizam** e ocupam o
+espaço que ficou vazio; ao mostrar o botão de novo, ele volta ao seu lugar.
+Esconder ou mostrar um botão vale na hora; ligar ou desligar uma função
+vale ao recarregar a página.
 
 | Botão | O que faz | Seção |
 |---|---|---|

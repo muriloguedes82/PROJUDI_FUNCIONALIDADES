@@ -4,9 +4,10 @@
 
 .pdp-qa-row {
 	display: flex;
-	flex-direction: column;
-	align-items: flex-end;
-	gap: 6px;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	align-items: center;
+	gap: 6px 4px;
 	position: fixed;
 	bottom: 12px;
 	right: 14px;
@@ -14,11 +15,13 @@
 	max-width: 70vw;
 }
 
+/* As duas linhas (grupos de ação / demais botões) continuam no HTML, para
+   os outros scripts acharem onde pôr seus botões, mas não formam caixas
+   próprias: todos os botões correm numa fila só, que quebra em quantas
+   linhas precisar. Assim, quando um botão some (escondido no Menu ou com a
+   funcionalidade desligada), os seguintes sobem e ocupam o espaço. */
 .pdp-qa-row-line {
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: flex-end;
-	gap: 4px;
+	display: contents;
 }
 
 .pdp-qa-group-btn {
