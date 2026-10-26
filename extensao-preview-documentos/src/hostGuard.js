@@ -313,3 +313,81 @@
 	if (document.readyState === "complete") agendar();
 	else window.addEventListener("load", agendar, { once: true });
 })();
+
+// Vigia contra laço sem fim dos MutationObservers da extensão.
+//
+// Um observador que muda a página dentro do próprio retorno é chamado de
+// novo na mesma tarefa; se dois deles disputam o mesmo lugar (cada um
+// recoloca o seu botão quando o outro se move), isso não termina, e a aba
+// trava por completo - nem o DevTools abre (aba Movimentações do SEEU,
+// 2.55.4). Este script roda antes dos demais no mesmo mundo isolado, então
+// troca o MutationObserver só para os scripts da extensão (a página não é
+// afetada): o observador que, mais de LIMITE vezes sem que a tarefa
+// termine, é chamado E muda a página no próprio retorno é desligado, com
+// um aviso no console apontando o script. Os que só são chamados (sem
+// mudar nada) não contam: num laço todos são chamados, mas só os que
+// disputam a página o alimentam. A função desligada para até a próxima
+// carga da tela, mas a aba volta a responder.
+(function () {
+	"use strict";
+	if (!window.__pdpHostPermitido || window.__pdpVigiaLacos) return;
+	window.__pdpVigiaLacos = true;
+	const LIMITE = 300; // retornos que mudaram a página, numa só tarefa
+	const SUSPEITA = 200; // retornos (de todos) numa só tarefa
+	const Original = window.MutationObserver;
+	// Uso normal: só conta os retornos da tarefa (custo quase zero). Passada
+	// a SUSPEITA, liga um observador próprio que diz se cada retorno mudou
+	// a página (esvaziado antes do retorno e conferido depois).
+	const sentinela = new Original(function () {});
+	let total = 0;
+	let suspeita = false;
+	const contados = new Set();
+	const canal = new MessageChannel();
+	// Mensagem = nova tarefa (não sofre o atraso dos temporizadores em
+	// segundo plano, nem roda no meio da fila de microtarefas).
+	canal.port1.onmessage = function () {
+		total = 0;
+		if (suspeita) { suspeita = false; sentinela.disconnect(); }
+		contados.forEach(function (c) { c.n = 0; });
+		contados.clear();
+	};
+
+	function origem(pilha) {
+		const linhas = String(pilha || "").split("\n");
+		for (let i = 0; i < linhas.length; i++) {
+			const m = linhas[i].match(/\/(src\/[\w.-]+\.js:\d+)/);
+			if (m && m[1].indexOf("hostGuard.js") < 0) return m[1];
+		}
+		return "(script desconhecido)";
+	}
+
+	function MutationObserver(callback) {
+		const criadoEm = origem(new Error().stack);
+		const contagem = { n: 0 };
+		return new Original(function (mutacoes, observador) {
+			if (total++ === 0) canal.port2.postMessage(0);
+			if (total > SUSPEITA && !suspeita) {
+				suspeita = true;
+				sentinela.observe(document, { childList: true, subtree: true, attributes: true });
+			}
+			if (!suspeita) return callback.call(this, mutacoes, observador);
+			if (contagem.n >= LIMITE) {
+				observador.disconnect();
+				console.error("[Projudi] Vigia de " + criadoEm + " desligado: mudou a página " + LIMITE +
+					" vezes seguidas sem a página respirar (laço sem fim). Recarregue a tela; se repetir, informe este aviso.");
+				return;
+			}
+			sentinela.takeRecords();
+			try {
+				return callback.call(this, mutacoes, observador);
+			} finally {
+				if (sentinela.takeRecords().length) {
+					contagem.n++;
+					contados.add(contagem);
+				}
+			}
+		});
+	}
+	MutationObserver.prototype = Original.prototype;
+	window.MutationObserver = MutationObserver;
+})();

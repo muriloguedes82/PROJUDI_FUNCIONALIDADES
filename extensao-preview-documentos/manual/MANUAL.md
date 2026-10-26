@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.55.3 |
-| **Versão da extensão** | 2.55.3 |
-| **Data desta versão** | 23/10/2026 |
+| **Versão do manual** | 2.55.4 |
+| **Versão da extensão** | 2.55.4 |
+| **Data desta versão** | 26/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -2838,6 +2838,7 @@ telas abertas a partir daí voltam a funcionar.
 |---|---|
 | Um botão da extensão sumiu | Abra o Menu (ícone da balança) e confira se a função não foi desligada — ou se alguma função de que ela depende foi ([2.6](#cap-2-6)). **↺ Padrão** religa todas |
 | Os cards dos sistemas (SerpJud, BNMP…) não aparecem ao lado da balança | Eles só aparecem com um **processo aberto**; na Mesa e nas listas fica só a balança. Com o processo aberto, aguarde 1 segundo; se continuar sem eles, confira no Menu se **Sistemas do CNJ** está ligada ([8.7](#cap-8-7)) |
+| A tela do processo trava por completo (não responde a cliques, nem deixa fechar a aba) | Corrigido na versão 2.55.4 para o SEEU (aba **Movimentações**): atualize a extensão ([2.3](#cap-2-3)). Se acontecer de novo, a extensão agora desliga sozinha, em menos de um segundo, a função que causou o travamento, e a tela volta a responder; essa função só volta ao recarregar a tela (F5). Se repetir, avise quem mantém a extensão |
 | O Projudi/SEEU fica lento com a extensão (computador mais fraco ou muitas abas abertas) | Desligue no Menu as funções que você não usa: desligadas, elas não são carregadas. Para conferir se a lentidão é da extensão, desligue-a pela chave geral e abra a mesma tela ([2.6](#cap-2-6)) |
 | Nenhum botão da extensão aparece | Confira se aceitou os Termos de Uso ([2.2](#cap-2-2)); recarregue a página (F5); confira se a extensão está ativada em `chrome://extensions`; confira se o perfil não é de advocacia ([10.3](#cap-10-3)) |
 | Atualizei a extensão e nada mudou | Clique em ↻ no card da extensão em `chrome://extensions` e depois recarregue as páginas ([2.3](#cap-2-3)) |
@@ -2878,6 +2879,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.55.4 | 26/10/2026 | Corrigido: no **SEEU**, a tela do processo (sobretudo a aba **Movimentações**) **travava por completo** — nem os botões do SEEU respondiam —, porque os botões **Advogados** e **Localizador** disputavam o mesmo lugar na barra, logo depois de **⭐ Minhas Preferências**, e um tirava o outro do lugar sem parar. Agora o **Localizador** fica depois do **Advogados**. Além disso, se alguma função da extensão voltar a entrar nesse tipo de disputa, ela é desligada sozinha e a tela continua respondendo. Linha nova em Solução de problemas (11). |
 | 2.55.3 | 23/10/2026 | Seção 8.10: o quadrinho que abre no **Novo Valor da Causa** passa a ter o título só com o texto, sem o 💲. Vídeo V47 regravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 2.55.2 | 23/10/2026 | Seções 8.9, 8.10 e 8.11: os botões do cabeçalho do processo (**Alterar** da classe e dos assuntos, **⭐**, **⭐ Secundários**, **Novo Valor da Causa**, **Incluir** e **✖** das prioridades) ficam **retangulares, com cantos levemente curvos** (como os botões das Ações Rápidas), um pouco **menores**, e sem os símbolos ✏️, 💲 e ➕ (as ⭐ e o ✖ continuam). Textos dessas seções e da Solução de problemas (11) ajustados. Vídeos V42, V43, V47, V49, V50 e V56 regravados e guardados em `videos-do-manual/` (não citados no manual). |
 | 2.55.1 | 23/10/2026 | Corrigido: com só o **Enviar por WhatsApp** (ou só o **Enviar por e-mail**) à vista e a página com barra de rolagem, o botão de envio ficava um pouco à esquerda do lugar dele e cobria o último botão da segunda linha (ex.: **Oráculo**). Pelo mesmo motivo, os painéis que abrem a partir da barra (grupos de ação, **⭐ Minhas Preferências**, **🔗 Combos**, **Advogados**, **Juntar Documento**, **Localizador** do SEEU e o **▼** do e-mail) abriam um pouco à esquerda do botão; agora ficam alinhados a ele. Sem alteração de texto nas seções. |
