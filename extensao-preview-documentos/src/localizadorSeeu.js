@@ -520,6 +520,13 @@
 	// O botão fica na fileira de botões da extensão, logo depois do
 	// "⭐ Minhas Preferências" (quickActions.js), e só no frame que também
 	// tem o cabeçalho de localizadores do processo.
+	//
+	// No SEEU o "Advogados" (habilitarAdvogado.js) também fica logo depois
+	// do ⭐; quando ele está na fileira, este botão vai depois dele. Se os
+	// dois disputassem o lugar logo depois do ⭐, cada MutationObserver
+	// recolocaria o seu botão a cada movimento do outro, sem fim, e a aba
+	// travava por completo (aba Movimentações do SEEU, 2.55.4). A ordem na
+	// tela vem do `order` de ordemBotoesAcoes.js, não do HTML.
 	function reconciliarBotao() {
 		const fav = document.getElementById("pdp-fav-prefs-button");
 		if (!fav || !header()) {
@@ -533,7 +540,9 @@
 				onclick: function (ev) { ev.preventDefault(); ev.stopPropagation(); alternarPainel(); }
 			}, [el("span", { text: "Localizador" })]);
 		}
-		if (botao.previousElementSibling !== fav || botao.parentElement !== fav.parentElement) fav.after(botao);
+		const advogados = document.getElementById("pdp-habilitar-advogado-button");
+		const ancora = advogados && advogados.parentElement === fav.parentElement ? advogados : fav;
+		if (botao.previousElementSibling !== ancora || botao.parentElement !== ancora.parentElement) ancora.after(botao);
 	}
 
 	function alternarPainel() {
