@@ -94,3 +94,18 @@
 	white-space: pre-wrap;
 	font: 12px "Times New Roman", serif;
 }
+
+.pdp-ce-destino {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 6px;
+	font-weight: bold;
+}
+
+.pdp-ce-destino input {
+	flex: 1;
+	min-width: 0;
+	padding: 2px 4px;
+	font: 12px Arial, Helvetica, sans-serif;
+}

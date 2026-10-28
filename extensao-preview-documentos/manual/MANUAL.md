@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.56.0 |
-| **Versão da extensão** | 2.56.0 |
+| **Versão do manual** | 2.56.1 |
+| **Versão da extensão** | 2.56.1 |
 | **Data desta versão** | 28/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -930,14 +930,18 @@ dados do envio. Faça a juntada no SEEU como sempre e cole o texto em
 |---|---|
 | **E-mail (Microsoft Graph)** | Dados da pasta **Itens Enviados** do Outlook: De, Para, Cc, data e hora do envio, assunto e anexos |
 | **WhatsApp** | Dados da própria conversa no WhatsApp Web: nome e número do contato e, para cada arquivo, a hora do envio e a situação (enviado, entregue ou lido) |
-| **E-mail (Outlook Web, sem cadastro do TI)** | Neste modo não há como conferir o envio: o quadro avisa, e a hora e o comprovante ficam para você completar no texto |
+| **E-mail (Outlook Web, sem cadastro do TI)** | Neste modo não há como conferir o envio: o quadro avisa, e a certidão sai **sem o comprovante** (a linha dele some do texto) |
 
 **Bom saber:**
 
 - A extensão **confere sozinha**, a cada poucos segundos, se o e-mail ou os
   arquivos saíram. Se você certificar antes da conferência, ela pergunta se
   quer seguir assim mesmo.
-- Se faltar algum dado (por exemplo, a hora no modo Outlook Web), a juntada
+- Se você escolheu o destinatário no próprio Outlook (botão **Pular**), a
+  extensão não sabe para quem foi o e-mail: o quadro mostra o campo
+  **Destinatário**. Digite o nome e/ou o endereço antes de clicar em
+  **📎 Certificar envio** (ou em **📋 Copiar certidão**, no SEEU).
+- Se faltar algum dado (por exemplo, `{hora_envio}` no modo Outlook Web), a juntada
   **para no texto**, com o aviso *sem valor para {…}*: complete e clique em
   **Continuar**, e a extensão segue daí. Marque **conferir o texto antes de
   assinar** para parar sempre nesse ponto.
@@ -2987,6 +2991,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.56.1 | 28/10/2026 | Seção 5.4: no envio pelo **Outlook Web** com o destinatário escolhido no próprio Outlook (**Pular**), o quadro **📎 Certificar envio** passa a ter o campo **Destinatário**, para você digitar para quem foi o e-mail antes de certificar (antes, a juntada parava no texto com "sem valor para {destinatario}"). Quando o envio não pode ser conferido (Outlook Web), a certidão sai **sem o comprovante**, e a linha do `{comprovante}` some do texto, em vez de parar a juntada. Sem vídeo novo: o vídeo V60 mostra o envio pelo Microsoft Graph, que não mudou. |
 | 2.56.0 | 28/10/2026 | Nova seção **5.4 Certidão de envio (e-mail e WhatsApp)**: depois de um envio, o quadro **📎 Certificar envio** aparece na tela do processo e confere o envio nos **Itens Enviados** do Outlook (modo Microsoft Graph) ou na conversa do WhatsApp. No **Projudi**, junta a certidão com uma preferência do Juntar Documento, já com destinatário, documentos e comprovante, e antes pergunta sobre juntadas e conclusão pendentes, como toda preferência; no **SEEU**, **📋 Copiar certidão** copia o texto pronto para colar na juntada. Seção 8.2: **variáveis no texto** das preferências do Juntar Documento (`{numero_processo}`, `{hoje}`, `{reus}`, `{perguntar:…}` etc.); `{remetente}` e `{assunto}` só na certidão de e-mail. Ajustes em 1.3, na tabela da 2.6 e em 10.1; duas linhas novas em Solução de problemas (11). Vídeo V60 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 2.55.4 | 26/10/2026 | Corrigido: no **SEEU**, a tela do processo (sobretudo a aba **Movimentações**) **travava por completo** — nem os botões do SEEU respondiam —, porque os botões **Advogados** e **Localizador** disputavam o mesmo lugar na barra, logo depois de **⭐ Minhas Preferências**, e um tirava o outro do lugar sem parar. Agora o **Localizador** fica depois do **Advogados**. Além disso, se alguma função da extensão voltar a entrar nesse tipo de disputa, ela é desligada sozinha e a tela continua respondendo. Linha nova em Solução de problemas (11). |
 | 2.55.3 | 23/10/2026 | Seção 8.10: o quadrinho que abre no **Novo Valor da Causa** passa a ter o título só com o texto, sem o 💲. Vídeo V47 regravado e guardado em `videos-do-manual/` (não citado no manual). |

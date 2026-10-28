@@ -13,7 +13,9 @@
 // - e-mail pelo Microsoft Graph: o background procura o e-mail na pasta
 //   Itens Enviados (data/hora do servidor, De, Para, Assunto, anexos);
 // - e-mail pelo Outlook Web (sem Azure AD): não há como conferir — o quadro
-//   avisa e a data/hora e o comprovante ficam para o usuário completar;
+//   avisa e a certidão sai sem o {comprovante} (e sem o parágrafo dele);
+//   se o destinatário foi escolhido no próprio Outlook ("Pular"), o quadro
+//   pede que o usuário o digite antes de certificar;
 // - WhatsApp: o background lê, na conversa aberta pela extensão, as
 //   mensagens enviadas depois do envio (nome do arquivo, hora, ✓/✓✓/lida).
 // A conferência é repetida a cada VERIFICAR_MS enquanto o quadro estiver
@@ -265,14 +267,30 @@
 		return envio.arquivos.map(function (a) { return a.nome + (a.seq ? " (mov. " + a.seq + ")" : ""); }).join("; ");
 	}
 
+	function envioConferivel(envio) {
+		return !!envio.verificacao && (envio.verificacao.tipo === "graph" || envio.verificacao.tipo === "whatsapp");
+	}
+
+	// Destinatário que a extensão não conhece (escolhido no próprio Outlook,
+	// pelo "Pular", e ainda não conferido nos Itens Enviados): o quadro pede.
+	function precisaDestinatario(envio) {
+		if (envio.destinatarios.length) return false;
+		const c = envio.conferido;
+		return !(c && c.completo && c.para && c.para.length);
+	}
+
 	function variaveisDoEnvio(envio) {
 		const c = envio.conferido;
 		const vars = {
 			meio: envio.meio === "email" ? "e-mail" : "WhatsApp",
-			destinatario: envio.destinatarios.map(contato).filter(Boolean).join("; "),
+			destinatario: envio.destinatarios.map(contato).filter(Boolean).join("; ") || limpar(envio.destinoDigitado),
 			arquivos: listaArquivos(envio),
 			data_envio: dataBr(envio.criadoEm),
 		};
+		// Sem como conferir (e-mail pelo Outlook Web): a certidão sai sem o
+		// comprovante, em vez de parar a juntada (ver OPCIONAIS em
+		// juntarDocumento.js).
+		if (!envioConferivel(envio)) vars.comprovante = "";
 		if (envio.meio === "email" && c && c.completo) {
 			if (c.para && c.para.length) vars.destinatario = c.para.map(enderecoEmail).join("; ");
 			if (c.enviadoEm) {
@@ -329,7 +347,7 @@
 		const c = envio.conferido;
 		if (envio.meio === "email") {
 			if (tipo !== "graph") {
-				return { texto: 'Depois de clicar em "Enviar" no Outlook, certifique aqui. Neste modo de envio (Outlook Web) a extensão não consegue conferir o envio: a hora e o comprovante ficam para você completar.', tipo: "aviso" };
+				return { texto: 'Depois de clicar em "Enviar" no Outlook, certifique aqui. Neste modo de envio (Outlook Web) a extensão não consegue conferir o envio: a certidão sai sem o comprovante.', tipo: "aviso" };
 			}
 			if (c && c.completo) return { texto: "✅ E-mail enviado em " + dataBr(c.enviadoEm) + " às " + horaBr(c.enviadoEm) + " (conferido nos Itens Enviados do Outlook).", tipo: "ok" };
 		} else {
@@ -396,6 +414,21 @@
 		arquivos.textContent = envio.arquivos.length ? envio.arquivos.length + " documento(s): " + listaArquivos(envio) : "Sem documentos anexados.";
 		quadro.appendChild(arquivos);
 
+		if (precisaDestinatario(envio)) {
+			const dest = document.createElement("label");
+			dest.className = "pdp-ce-destino";
+			dest.appendChild(document.createTextNode("Destinatário: "));
+			const campo = document.createElement("input");
+			campo.type = "text";
+			campo.placeholder = "para quem foi o e-mail (nome e/ou endereço)";
+			campo.value = envio.destinoDigitado || "";
+			campo.addEventListener("input", function () {
+				atualizarEnvio(envio.id, function (e) { e.destinoDigitado = campo.value; });
+			});
+			dest.appendChild(campo);
+			quadro.appendChild(dest);
+		}
+
 		const sit = textoSituacao(envio);
 		ultimaSituacao = sit.texto;
 		const situacao = document.createElement("div");
@@ -459,7 +492,8 @@
 		}
 		if (NO_SEEU) {
 			botao("📋 Copiar certidão", "Copia o texto da certidão com os dados do envio, para colar na juntada do SEEU", function (b) {
-				const r = jd.preencher(MODELO, variaveisDoEnvio(envio));
+				const atualizado = lerEnvios().find(function (e) { return e.id === envio.id; }) || envio;
+				const r = jd.preencher(MODELO, variaveisDoEnvio(atualizado));
 				if (r.faltando.length && !confirm("Ainda sem valor: " + r.faltando.join(", ") + ".\n\nCopiar assim mesmo? Complete esses trechos depois de colar.")) return;
 				copiar(r.texto, b, "✅ Certidão copiada");
 			}, true);
@@ -533,7 +567,13 @@
 			alert("Escolha a preferência do Juntar Documento com o texto da certidão.");
 			return;
 		}
-		const conferivel = envio.verificacao && (envio.verificacao.tipo === "graph" || envio.verificacao.tipo === "whatsapp");
+		if (precisaDestinatario(envio) && !limpar(envio.destinoDigitado)) {
+			alert('Informe no quadro, em "Destinatário", para quem foi o envio.');
+			const campo = quadro && quadro.querySelector(".pdp-ce-destino input");
+			if (campo) campo.focus();
+			return;
+		}
+		const conferivel = envioConferivel(envio);
 		if (conferivel && !(envio.conferido && envio.conferido.completo)) {
 			const ok = confirm(
 				"A extensão ainda não conseguiu confirmar que " + (envio.meio === "email" ? "o e-mail foi enviado" : "todos os arquivos foram enviados no WhatsApp") +

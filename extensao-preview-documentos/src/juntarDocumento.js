@@ -237,6 +237,10 @@
 		comprovante: "certidão de envio: dados conferidos do envio",
 		perguntar: "{perguntar:Texto} pede o valor na hora",
 	};
+	// Podem ficar vazias de propósito (a certidão de envio manda "" quando
+	// o envio não pôde ser conferido): somem do texto, com o parágrafo em que
+	// estavam sozinhas, em vez de parar a juntada.
+	const OPCIONAIS = ["comprovante"];
 	const VARIAVEL_RE = /\{\s*([a-z_]+)\s*(?::\s*([^{}<>]{1,80}?))?\s*\}/gi;
 	const MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
 
@@ -287,11 +291,22 @@
 	// vira <br>). Devolve { html, faltando: [variáveis sem valor] }; as sem
 	// valor ficam como estão, para o usuário ver e completar. Chaves que não
 	// são variáveis da lista ficam intactas e não contam como faltando.
+	function opcionalVazia(vars, nome) {
+		return OPCIONAIS.indexOf(nome) !== -1 && !!vars && Object.prototype.hasOwnProperty.call(vars, nome) && vars[nome] === "";
+	}
+
 	function aplicarVariaveis(html, vars) {
 		const faltando = [];
-		const out = String(html || "").replace(VARIAVEL_RE, function (m, nome, rotulo) {
+		let entrada = String(html || "");
+		OPCIONAIS.forEach(function (nome) {
+			if (!opcionalVazia(vars, nome)) return;
+			const sozinha = new RegExp("<(p|div)\\b[^>]*>(?:\\s|&nbsp;|<br\\s*/?>)*\\{\\s*" + nome + "\\s*\\}(?:\\s|&nbsp;|<br\\s*/?>)*</\\1>", "gi");
+			entrada = entrada.replace(sozinha, "");
+		});
+		const out = entrada.replace(VARIAVEL_RE, function (m, nome, rotulo) {
 			const base = nome.toLowerCase();
 			if (!Object.prototype.hasOwnProperty.call(VARIAVEIS, base)) return m;
+			if (opcionalVazia(vars, base)) return "";
 			const chave = base === "perguntar" ? "perguntar:" + cleanText(rotulo || "Valor") : base;
 			const valor = vars ? vars[chave] : undefined;
 			if (valor === undefined || valor === null || valor === "") {
@@ -659,7 +674,7 @@
 			const r = aplicarVariaveis(escapeHtml(texto), Object.assign(variaveisDoProcesso(document), vars || {}));
 			const div = document.createElement("div");
 			div.innerHTML = r.html.replace(/<br\s*\/?>/gi, "\n");
-			return { texto: div.textContent || "", faltando: r.faltando };
+			return { texto: (div.textContent || "").replace(/\n{3,}/g, "\n\n").trim(), faltando: r.faltando };
 		},
 		// Esta tela tem o botão nativo "Juntar Documento" (tela do processo).
 		available: function () {
