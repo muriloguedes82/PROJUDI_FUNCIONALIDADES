@@ -38,6 +38,17 @@
 // aplicar, esse conteúdo substitui o marcador "XXXXXXXXXX INSIRA O TEXTO
 // AQUI XXXXXXXXXX".
 //
+// Variáveis no texto: o texto gravado pode ter palavras entre chaves, como
+// {numero_processo}, {hoje} ou {reus}, trocadas pelo valor de cada processo
+// ao aplicar a preferência a partir da tela do processo (ver VARIAVEIS e
+// aplicarVariaveis). Os valores são lidos na tela do processo, no início do
+// fluxo, e vão no estado do fluxo (job.vars). {perguntar:Rótulo} pede o
+// valor na hora. A certidão de envio (certidaoEnvio.js) acrescenta as
+// variáveis do envio por e-mail ou WhatsApp ({destinatario}, {arquivos},
+// {comprovante}...). Se sobrar alguma variável sem valor — ou se o fluxo
+// foi aberto com `revisar` —, o texto é inserido mas o "Continuar" não é
+// clicado: o usuário confere e segue.
+//
 // O fluxo atravessa várias páginas (a tela do processo, a "Juntar
 // Documento" e as telas da janela interna do Projudi, que é um iframe da
 // mesma origem). O estado fica no `sessionStorage` (compartilhado pelos
@@ -199,6 +210,97 @@
 				reject(err);
 			}
 		});
+	}
+
+	// -------------------------------------------------------------------
+	// Variáveis no texto das preferências
+	// -------------------------------------------------------------------
+
+	// Nome → descrição (a descrição aparece na ajuda do painel). As do envio
+	// só têm valor na certidão de envio (certidaoEnvio.js); {remetente} e
+	// {assunto}, só no envio por e-mail.
+	const VARIAVEIS = {
+		numero_processo: "número do processo",
+		hoje: "data de hoje (03/10/2026)",
+		hoje_extenso: "data de hoje por extenso (3 de outubro de 2026)",
+		agora: "hora atual (14:32)",
+		juizo: "juízo/vara do cabeçalho",
+		reus: "réus do cabeçalho (com RG e CPF, se a função \"Réus no cabeçalho\" estiver ativa)",
+		evento: "movimentação marcada na caixinha da aba Movimentações",
+		meio: "certidão de envio: e-mail ou WhatsApp",
+		destinatario: "certidão de envio: nome e contato de quem recebeu",
+		arquivos: "certidão de envio: documentos enviados, com o número da movimentação",
+		data_envio: "certidão de envio: data do envio",
+		hora_envio: "certidão de envio: hora do envio",
+		remetente: "certidão de envio por e-mail: conta que enviou",
+		assunto: "certidão de envio por e-mail: assunto",
+		comprovante: "certidão de envio: dados conferidos do envio",
+		perguntar: "{perguntar:Texto} pede o valor na hora",
+	};
+	const VARIAVEL_RE = /\{\s*([a-z_]+)\s*(?::\s*([^{}<>]{1,80}?))?\s*\}/gi;
+	const MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+
+	function doisDigitos(n) {
+		return (n < 10 ? "0" : "") + n;
+	}
+
+	// Lidas na tela do processo, no início do fluxo.
+	function variaveisDoProcesso(doc) {
+		const agora = new Date();
+		const vars = {
+			numero_processo: numeroProcesso(doc) || "",
+			hoje: doisDigitos(agora.getDate()) + "/" + doisDigitos(agora.getMonth() + 1) + "/" + agora.getFullYear(),
+			hoje_extenso: agora.getDate() + " de " + MESES[agora.getMonth()] + " de " + agora.getFullYear(),
+			agora: doisDigitos(agora.getHours()) + ":" + doisDigitos(agora.getMinutes()),
+		};
+		// SEEU: campo "Juízo:" da tabela do processo; Projudi: link "Atuação".
+		const juizoSeeu = doc.querySelector('td[data-label="juízo"]');
+		const juizo = juizoSeeu && juizoSeeu.nextElementSibling ? juizoSeeu.nextElementSibling : doc.querySelector("#areaatuacao");
+		if (juizo && cleanText(juizo.textContent)) vars.juizo = cleanText(juizo.textContent);
+		const reus = Array.prototype.slice.call(doc.querySelectorAll(".pdp-reus-lista > li"))
+			.map(function (el) { return cleanText(el.textContent); })
+			.filter(Boolean);
+		if (reus.length) vars.reus = reus.join("; ");
+		try {
+			const mov = window.__pdpMovimentoBase && window.__pdpMovimentoBase.selecionada();
+			if (mov) vars.evento = (mov.seq ? "mov. " + mov.seq + " – " : "") + (mov.texto || "");
+		} catch (err) {
+			// sem movimentação marcada
+		}
+		return vars;
+	}
+
+	// Rótulos dos {perguntar:...} do texto, sem repetição.
+	function perguntasDoTexto(html) {
+		const rotulos = [];
+		String(html || "").replace(VARIAVEL_RE, function (m, nome, rotulo) {
+			if (nome.toLowerCase() === "perguntar") {
+				const r = cleanText(rotulo || "Valor");
+				if (rotulos.indexOf(r) === -1) rotulos.push(r);
+			}
+			return m;
+		});
+		return rotulos;
+	}
+
+	// Troca as variáveis conhecidas pelo valor (texto com quebras de linha
+	// vira <br>). Devolve { html, faltando: [variáveis sem valor] }; as sem
+	// valor ficam como estão, para o usuário ver e completar. Chaves que não
+	// são variáveis da lista ficam intactas e não contam como faltando.
+	function aplicarVariaveis(html, vars) {
+		const faltando = [];
+		const out = String(html || "").replace(VARIAVEL_RE, function (m, nome, rotulo) {
+			const base = nome.toLowerCase();
+			if (!Object.prototype.hasOwnProperty.call(VARIAVEIS, base)) return m;
+			const chave = base === "perguntar" ? "perguntar:" + cleanText(rotulo || "Valor") : base;
+			const valor = vars ? vars[chave] : undefined;
+			if (valor === undefined || valor === null || valor === "") {
+				if (faltando.indexOf(m) === -1) faltando.push(m);
+				return m;
+			}
+			return escapeHtml(valor).replace(/\r?\n/g, "<br>");
+		});
+		return { html: out, faltando: faltando };
 	}
 
 	// -------------------------------------------------------------------
@@ -439,12 +541,24 @@
 
 	// mode: null (só abrir) | "apply" | "capture" | "edit"
 	// `combo`: juntada iniciada por um combo de preferências (ver
-	// COMBO_DONE_KEY). Devolve false se não achou o botão nativo.
-	function iniciarJuntada(mode, pref, combo) {
+	// COMBO_DONE_KEY). `extra`: { vars, revisar } — variáveis a mais (as da
+	// certidão de envio) e se o texto deve parar para conferência. Devolve
+	// false se não achou o botão nativo (ou o usuário cancelou uma pergunta).
+	function iniciarJuntada(mode, pref, combo, extra) {
 		const url = findJuntarUrl(document);
 		if (!url) {
 			alert('Não encontrei o botão nativo "Juntar Documento" nesta tela. Abra o processo (a barra com "Peticionar", "Juntar Documento", "Navegar"...) e tente de novo.');
 			return false;
+		}
+		let vars = null;
+		if (mode === "apply" && pref) {
+			vars = Object.assign(variaveisDoProcesso(document), (extra && extra.vars) || {});
+			const perguntas = perguntasDoTexto(pref.conteudo);
+			for (let i = 0; i < perguntas.length; i++) {
+				const resposta = prompt('Preferência "' + pref.name + '" — ' + perguntas[i] + ":", "");
+				if (resposta === null) return false;
+				vars["perguntar:" + perguntas[i]] = resposta.trim();
+			}
 		}
 		if (mode) {
 			writeJob({
@@ -454,6 +568,8 @@
 				rec: {},
 				numero: numeroProcesso(document),
 				combo: !!combo,
+				vars: vars,
+				revisar: !!(extra && extra.revisar),
 				createdAt: Date.now(),
 			});
 		} else {
@@ -524,6 +640,26 @@
 		},
 		start: function (pref) {
 			return iniciarJuntada("apply", pref, true);
+		},
+		// Certidão de envio (certidaoEnvio.js): aplica a preferência com as
+		// variáveis do envio; `revisar` para no texto antes do "Continuar".
+		startComVariaveis: function (pref, vars, revisar) {
+			return iniciarJuntada("apply", pref, false, { vars: vars, revisar: revisar });
+		},
+		// Texto que a preferência vai gerar (sem cabeçalho e assinatura,
+		// que são do Projudi) e as variáveis que ficariam sem valor.
+		previa: function (pref, vars) {
+			const r = aplicarVariaveis(pref.conteudo, Object.assign(variaveisDoProcesso(document), vars || {}));
+			const div = document.createElement("div");
+			div.innerHTML = r.html.replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "</p>\n");
+			return { texto: (div.textContent || "").replace(/ /g, " ").replace(/\n{3,}/g, "\n\n").trim(), faltando: r.faltando };
+		},
+		// Troca as variáveis de um texto simples (certidão copiada no SEEU).
+		preencher: function (texto, vars) {
+			const r = aplicarVariaveis(escapeHtml(texto), Object.assign(variaveisDoProcesso(document), vars || {}));
+			const div = document.createElement("div");
+			div.innerHTML = r.html.replace(/<br\s*\/?>/gi, "\n");
+			return { texto: div.textContent || "", faltando: r.faltando };
 		},
 		// Esta tela tem o botão nativo "Juntar Documento" (tela do processo).
 		available: function () {
@@ -2464,6 +2600,22 @@
 		continuar.click();
 	}
 
+	// Variável sem valor no texto, ou juntada aberta para conferência
+	// (`revisar`, certidão de envio): o texto fica no editor e o "Continuar"
+	// é do usuário. Devolve true quando parou.
+	function pararParaConferir(job, body, ultimo, faltando) {
+		if (job.mode !== "apply" || !(faltando.length || job.revisar)) return false;
+		if (ultimo && ultimo.nodeType === 1) placeCaret(body, ultimo, false);
+		showStatus(
+			modeLabel(job) +
+				(faltando.length
+					? ": sem valor para " + faltando.join(", ") + '. Complete o texto e clique em "Continuar" — a extensão continua daí.'
+					: ': confira o texto e clique em "Continuar" — a extensão continua daí.'),
+			faltando.length ? "warn" : null
+		);
+		return true;
+	}
+
 	async function tickDigitar(job) {
 		const form = formDigitar();
 		if (!form) return;
@@ -2498,8 +2650,24 @@
 			return;
 		}
 
+		// Variáveis ({numero_processo}, {destinatario}...): só nas juntadas
+		// iniciadas na tela do processo, que leem os valores lá (job.vars).
+		const comVariaveis = job.mode === "apply" && !!job.vars;
+		let faltando = [];
+		function trocar(html) {
+			if (!comVariaveis) return html;
+			const r = aplicarVariaveis(html, job.vars);
+			r.faltando.forEach(function (f) { if (faltando.indexOf(f) === -1) faltando.push(f); });
+			return r.html;
+		}
+
 		// Preferência gravada como edição do texto do Modelo: refaz a edição.
-		const edicao = job.pref.edicao;
+		const edicaoGravada = job.pref.edicao;
+		const edicao = edicaoGravada && comVariaveis
+			? Object.assign({}, edicaoGravada, {
+				itens: edicaoGravada.itens.map(function (it) { return it.html ? Object.assign({}, it, { html: trocar(it.html) }) : it; }),
+			})
+			: edicaoGravada;
 		if (edicao && edicao.mudou) {
 			const ultimo = aplicarEdicao(body, edicao);
 			if (ultimo === "variaveis") {
@@ -2515,6 +2683,7 @@
 				showStatus(modeLabel(job) + ': edições da preferência refeitas neste documento. Ajuste se quiser e clique em "Continuar".', "rec");
 				return;
 			}
+			if (pararParaConferir(job, body, ultimo, faltando)) return;
 			await clickContinuar(form, job, "edições da preferência refeitas.");
 			return;
 		}
@@ -2547,17 +2716,21 @@
 			return;
 		}
 
+		const conteudoFinal = trocar(conteudo);
+
 		let last = null;
 		if (placeholder) {
-			last = insertConteudo(placeholder, conteudo);
+			last = insertConteudo(placeholder, conteudoFinal);
 		} else {
 			const onde = findAncora(body, job.pref);
 			if (!onde) {
 				showStatus('Não encontrei onde inserir o texto da preferência neste documento. Digite/cole o texto e clique em "Continuar" — a extensão continua daí.', "warn");
 				return;
 			}
-			last = insertAfter(onde.ref, conteudo, onde.antes);
+			last = insertAfter(onde.ref, conteudoFinal, onde.antes);
 		}
+
+		if (pararParaConferir(job, body, last, faltando)) return;
 
 		if (job.mode === "edit") {
 			if (last && last.nodeType === 1) placeCaret(body, last, false);
@@ -2816,6 +2989,27 @@
 		headerBtns.appendChild(openBtn);
 		headerBtns.appendChild(newBtn);
 		header.appendChild(headerBtns);
+
+		// Ajuda: variáveis que podem ser escritas no texto da preferência.
+		const ajuda = document.createElement("details");
+		ajuda.className = "pdp-jd-variaveis";
+		const resumo = document.createElement("summary");
+		resumo.textContent = "{ } Variáveis no texto";
+		ajuda.appendChild(resumo);
+		const explica = document.createElement("div");
+		explica.textContent = "Escreva no texto da preferência, com as chaves; ao juntar, a extensão troca pelo valor deste processo:";
+		ajuda.appendChild(explica);
+		const listaVars = document.createElement("ul");
+		Object.keys(VARIAVEIS).forEach(function (nome) {
+			const li = document.createElement("li");
+			const code = document.createElement("code");
+			code.textContent = nome === "perguntar" ? "{perguntar:Texto}" : "{" + nome + "}";
+			li.appendChild(code);
+			li.appendChild(document.createTextNode(" — " + VARIAVEIS[nome]));
+			listaVars.appendChild(li);
+		});
+		ajuda.appendChild(listaVars);
+		actionRow.appendChild(ajuda);
 
 		panel.appendChild(actionRow);
 		document.body.appendChild(panel);

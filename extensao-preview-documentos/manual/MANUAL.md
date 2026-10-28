@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.55.4 |
-| **Versão da extensão** | 2.55.4 |
-| **Data desta versão** | 26/10/2026 |
+| **Versão do manual** | 2.56.0 |
+| **Versão da extensão** | 2.56.0 |
+| **Data desta versão** | 28/10/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -52,6 +52,7 @@
    - 5.1 [Envio por WhatsApp Web](#cap-5-1)
    - 5.2 [Envio por e-mail (Outlook)](#cap-5-2)
    - 5.3 [Destinatários favoritos e remetentes do e-mail](#cap-5-3)
+   - 5.4 [Certidão de envio (e-mail e WhatsApp)](#cap-5-4)
 6. [Quadro Pendências](#cap-6)
    - 6.1 [Dispensar juntadas](#cap-6-1)
    - 6.2 [Finalizar conclusão pendente](#cap-6-2)
@@ -138,7 +139,7 @@ Não é preciso saber nada de informática além disso.
 | Sistema | O que funciona |
 |---|---|
 | **Projudi (TJPR)** | Todas as funções deste manual |
-| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)), os cards do BNMP, da SESP Intranet e do S.U. (Sistema Uniformizado) ao lado da balança ([8.7](#cap-8-7)), os botões do quadro Pendências ([6](#cap-6)), a Mesa do Analista sem itens zerados ([9.4](#cap-9-4)), o RG e CPF nos cumprimentos ([9.5](#cap-9-5)), o processo ao passar o mouse nas listas ([9.8](#cap-9-8)), o Analisar e Dispensar decurso na lista ([9.10](#cap-9-10)) e o botão **📍 Localizador** ([8.8](#cap-8-8)), que só existe no SEEU — também pela **⭐** das listas de juntadas, de conclusões, de decurso de prazo e de cumprimentos ([9.3](#cap-9-3)); as de juntadas e de conclusões mostram ainda os localizadores de cada processo, com **✏️** para alterá-los ([9.12](#cap-9-12)). Vale também para o **SEEU de treino** (ambiente de testes) |
+| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)), com a certidão do envio pronta para copiar ([5.4](#cap-5-4)), os cards do BNMP, da SESP Intranet e do S.U. (Sistema Uniformizado) ao lado da balança ([8.7](#cap-8-7)), os botões do quadro Pendências ([6](#cap-6)), a Mesa do Analista sem itens zerados ([9.4](#cap-9-4)), o RG e CPF nos cumprimentos ([9.5](#cap-9-5)), o processo ao passar o mouse nas listas ([9.8](#cap-9-8)), o Analisar e Dispensar decurso na lista ([9.10](#cap-9-10)) e o botão **📍 Localizador** ([8.8](#cap-8-8)), que só existe no SEEU — também pela **⭐** das listas de juntadas, de conclusões, de decurso de prazo e de cumprimentos ([9.3](#cap-9-3)); as de juntadas e de conclusões mostram ainda os localizadores de cada processo, com **✏️** para alterá-los ([9.12](#cap-9-12)). Vale também para o **SEEU de treino** (ambiente de testes) |
 
 A extensão **não funciona** quando o usuário está logado com perfil de
 advogado(a) ou de assessor(a) de advogado — veja [10.3](#cap-10-3).
@@ -473,7 +474,7 @@ ligar tudo.
 | Grupo | Funções que podem ser ligadas/desligadas | Seção |
 |---|---|---|
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
-| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Prioridades (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
+| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Prioridades (Projudi) · Alvará Eletrônico · Juntar Documento · Certidão de envio (e-mail e WhatsApp) · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Bloco de anotações | [4](#cap-4) |
 | **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (SEEU) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
@@ -872,6 +873,88 @@ depois que houver pelo menos um salvo):
 ⚠️ A sua conta precisa ter a permissão **"Enviar como"** na caixa escolhida
 (configurada pelo TI). Sem ela, o Outlook não oferece a conta e o remetente
 não muda.
+
+<a id="cap-5-4"></a>
+### 5.4 Certidão de envio (e-mail e WhatsApp)
+
+*No Projudi e no SEEU (no SEEU, a certidão é copiada para você colar).*
+
+**Para que serve:** depois de mandar documentos do processo por e-mail
+([5.2](#cap-5-2)) ou por WhatsApp ([5.1](#cap-5-1)), juntar nos autos a
+**certidão do envio** com um clique e o PIN, com o destinatário, os
+documentos enviados e o **comprovante** do envio já escritos no texto.
+
+**Antes de começar (uma vez só, no Projudi):** grave no **📎 Juntar
+Documento** uma preferência com o texto da certidão ([8.2](#cap-8-2)),
+usando as **variáveis entre chaves**. O botão **📋 Copiar modelo** do quadro
+copia este texto pronto, para você colar ao gravar a preferência:
+
+> CERTIFICO que, nesta data, encaminhei por {meio} a {destinatario} o(s)
+> seguinte(s) documento(s): {arquivos}.
+>
+> {comprovante}
+
+Ponha a palavra **"certidão"** ou **"envio"** no nome da preferência: o
+quadro já vem com ela escolhida. Se quiser textos diferentes para e-mail e
+para WhatsApp, grave duas preferências: o quadro lembra qual você usou em
+cada um.
+
+**Onde fica:** depois de um envio, na tela do processo aparece, no canto
+inferior esquerdo, o quadro **📎 Certificar envio**.
+
+**Passo a passo (Projudi):**
+
+1. Envie os documentos por e-mail ou WhatsApp, como sempre.
+2. O quadro mostra para quem foi, quais documentos (com o número da
+   movimentação) e a situação do envio:
+   - **⏳ Aguardando o envio…**: você ainda não clicou em **Enviar** no
+     Outlook ou no WhatsApp;
+   - **✅ E-mail enviado em … (conferido nos Itens Enviados do Outlook)**;
+   - **✅ 2 de 2 arquivo(s) enviado(s) no WhatsApp (entregue, lido)**.
+3. Confira a preferência em **Certidão:**. Para ler o texto antes, clique
+   em **👁 Ver texto**.
+4. Clique em **📎 Certificar envio**. Como em toda preferência, se houver
+   juntadas ou conclusão pendentes no quadro Pendências, a extensão
+   pergunta antes se deve dispensá-las ou finalizá-la ([6](#cap-6)).
+5. A extensão faz a juntada sozinha e chama o assinador: **você só digita o
+   PIN**.
+
+**No SEEU:** o quadro é o mesmo, mas em vez de juntar sozinho ele tem o
+botão **📋 Copiar certidão**, que copia o texto acima já preenchido com os
+dados do envio. Faça a juntada no SEEU como sempre e cole o texto em
+**Digitar Texto**.
+
+**O que entra no comprovante:**
+
+| Envio | Comprovante |
+|---|---|
+| **E-mail (Microsoft Graph)** | Dados da pasta **Itens Enviados** do Outlook: De, Para, Cc, data e hora do envio, assunto e anexos |
+| **WhatsApp** | Dados da própria conversa no WhatsApp Web: nome e número do contato e, para cada arquivo, a hora do envio e a situação (enviado, entregue ou lido) |
+| **E-mail (Outlook Web, sem cadastro do TI)** | Neste modo não há como conferir o envio: o quadro avisa, e a hora e o comprovante ficam para você completar no texto |
+
+**Bom saber:**
+
+- A extensão **confere sozinha**, a cada poucos segundos, se o e-mail ou os
+  arquivos saíram. Se você certificar antes da conferência, ela pergunta se
+  quer seguir assim mesmo.
+- Se faltar algum dado (por exemplo, a hora no modo Outlook Web), a juntada
+  **para no texto**, com o aviso *sem valor para {…}*: complete e clique em
+  **Continuar**, e a extensão segue daí. Marque **conferir o texto antes de
+  assinar** para parar sempre nesse ponto.
+- `{remetente}` e `{assunto}` só existem no envio por **e-mail**. Numa
+  certidão de WhatsApp, se o texto tiver uma delas, a juntada para no texto
+  para você completar.
+- No WhatsApp, deixe a aba do WhatsApp Web aberta até o quadro mostrar
+  **✅**: é nela que a extensão confere o envio. Se o navegador for fechado
+  depois do envio, a conferência do WhatsApp não é mais possível (certifique
+  assim mesmo e complete a hora).
+- O quadro continua na tela do processo (mesmo recarregando) até você
+  certificar ou clicar em **✕**, por até 4 horas. Vários envios do mesmo
+  processo aparecem um depois do outro.
+- A certidão **não** leva imagem (print) do e-mail ou da conversa: o
+  comprovante é escrito no próprio texto, com os dados conferidos.
+- Pode ser desligada no Menu ([2.6](#cap-2-6)): **Certidão de envio (e-mail e
+  WhatsApp)**, no grupo Ações rápidas e atalhos.
 
 ---
 
@@ -1440,6 +1523,28 @@ fazer em cada tela.
 Arquivo/Modelo → texto → Continuar → Concluir → **Assinar Arquivos**. Você
 digita o PIN; depois ela clica em **Confirmar Inclusão** e **Concluir
 Movimento**.
+
+**Variáveis no texto:** escreva no texto da preferência palavras entre
+chaves; ao juntar, a extensão as troca pelo valor do processo. A lista fica
+em **{ } Variáveis no texto**, no próprio painel do 📎 Juntar Documento.
+
+| Variável | Vira |
+|---|---|
+| `{numero_processo}` | o número do processo |
+| `{hoje}` / `{hoje_extenso}` | a data de hoje (28/10/2026 / 28 de outubro de 2026) |
+| `{agora}` | a hora atual |
+| `{juizo}` | o juízo/vara do cabeçalho |
+| `{reus}` | os réus do cabeçalho, com RG e CPF ([4.3](#cap-4-3)) |
+| `{evento}` | a movimentação marcada na caixinha da aba Movimentações ([7.7](#cap-7-7)) |
+| `{perguntar:Texto}` | a extensão pergunta o valor na hora (ex.: `{perguntar:Número do ofício}`) |
+| `{meio}`, `{destinatario}`, `{arquivos}`, `{data_envio}`, `{hora_envio}`, `{comprovante}` | dados do envio, só na certidão de envio ([5.4](#cap-5-4)) |
+| `{remetente}`, `{assunto}` | conta que enviou e assunto, só na certidão de envio por **e-mail** ([5.4](#cap-5-4)) |
+
+Se uma variável ficar sem valor, a juntada **para no texto** (*sem valor
+para {…}*): complete e clique em **Continuar**, e a extensão segue daí. As
+variáveis valem quando a preferência é usada a partir da tela do processo
+(painel 📎 Juntar Documento, ⭐ Minhas Preferências, combos e certidão de
+envio).
 
 **Bom saber:**
 
@@ -2799,6 +2904,7 @@ ela está instalada (não vai para outro computador):
 | Cores de destaque e "sempre ocultar sem arquivo" | Armazenamento da extensão |
 | Listas de tarefas e tarefas | Armazenamento da extensão |
 | Destinatários (WhatsApp e e-mail) e remetentes | Armazenamento da extensão |
+| Envios a certificar (certidão de envio) | Só na aba do processo, até certificar ou descartar (no máximo 4 horas) |
 | Documentos a anexar | Só até serem anexados; se o envio for interrompido, são apagados em até 15 minutos ou ao fechar o navegador |
 | Login do Outlook (modo Microsoft Graph) | Só enquanto o navegador estiver aberto (nunca gravado no computador) |
 | Cards do cabeçalho, réus, RG/CPF | Só na aba atual, enquanto ela estiver aberta |
@@ -2853,6 +2959,8 @@ telas abertas a partir daí voltam a funcionar.
 | Combo parou numa etapa | Use **↻ Repetir etapa**, **⏭ Próxima etapa** ou **⏹ Parar combo** ([7.4](#cap-7-4)) |
 | WhatsApp abre a conversa, mas sem anexos | Confira se o WhatsApp Web está conectado; recarregue a extensão; anexe manualmente se precisar |
 | E-mail pede Client ID / dá erro de configuração | Mude o **Modo de envio** para **Automático** ou **Outlook Web** nas opções ([2.5](#cap-2-5)), ou peça o Client ID ao TI |
+| A juntada parou no texto com "sem valor para {…}" | A variável não tem valor neste processo ou envio: complete o texto e clique em **Continuar** ([8.2](#cap-8-2), [5.4](#cap-5-4)) |
+| O quadro da certidão de envio fica em "⏳ Aguardando o envio…" | Confira se clicou em **Enviar** no Outlook/WhatsApp. No WhatsApp, deixe a aba do WhatsApp Web aberta; no e-mail, a conferência só existe no modo Microsoft Graph. Se o envio foi feito, **📎 Certificar envio** pergunta e segue assim mesmo ([5.4](#cap-5-4)) |
 | WhatsApp: "O envio expirou" | Passaram-se mais de 15 minutos desde o clique em enviar: marque os documentos e envie de novo ([5.1](#cap-5-1)) |
 | No Outlook Web os anexos não entram sozinhos | É o esperado nesse modo: **Anexar arquivo → Navegar neste computador** e escolha os arquivos na pasta **Downloads** |
 | O campo "De" não muda para a conta escolhida | Falta a permissão "Enviar como" nessa caixa — peça ao TI ([5.3](#cap-5-3)) |
@@ -2879,6 +2987,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.56.0 | 28/10/2026 | Nova seção **5.4 Certidão de envio (e-mail e WhatsApp)**: depois de um envio, o quadro **📎 Certificar envio** aparece na tela do processo e confere o envio nos **Itens Enviados** do Outlook (modo Microsoft Graph) ou na conversa do WhatsApp. No **Projudi**, junta a certidão com uma preferência do Juntar Documento, já com destinatário, documentos e comprovante, e antes pergunta sobre juntadas e conclusão pendentes, como toda preferência; no **SEEU**, **📋 Copiar certidão** copia o texto pronto para colar na juntada. Seção 8.2: **variáveis no texto** das preferências do Juntar Documento (`{numero_processo}`, `{hoje}`, `{reus}`, `{perguntar:…}` etc.); `{remetente}` e `{assunto}` só na certidão de e-mail. Ajustes em 1.3, na tabela da 2.6 e em 10.1; duas linhas novas em Solução de problemas (11). Vídeo V60 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 2.55.4 | 26/10/2026 | Corrigido: no **SEEU**, a tela do processo (sobretudo a aba **Movimentações**) **travava por completo** — nem os botões do SEEU respondiam —, porque os botões **Advogados** e **Localizador** disputavam o mesmo lugar na barra, logo depois de **⭐ Minhas Preferências**, e um tirava o outro do lugar sem parar. Agora o **Localizador** fica depois do **Advogados**. Além disso, se alguma função da extensão voltar a entrar nesse tipo de disputa, ela é desligada sozinha e a tela continua respondendo. Linha nova em Solução de problemas (11). |
 | 2.55.3 | 23/10/2026 | Seção 8.10: o quadrinho que abre no **Novo Valor da Causa** passa a ter o título só com o texto, sem o 💲. Vídeo V47 regravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 2.55.2 | 23/10/2026 | Seções 8.9, 8.10 e 8.11: os botões do cabeçalho do processo (**Alterar** da classe e dos assuntos, **⭐**, **⭐ Secundários**, **Novo Valor da Causa**, **Incluir** e **✖** das prioridades) ficam **retangulares, com cantos levemente curvos** (como os botões das Ações Rápidas), um pouco **menores**, e sem os símbolos ✏️, 💲 e ➕ (as ⭐ e o ✖ continuam). Textos dessas seções e da Solução de problemas (11) ajustados. Vídeos V42, V43, V47, V49, V50 e V56 regravados e guardados em `videos-do-manual/` (não citados no manual). |
