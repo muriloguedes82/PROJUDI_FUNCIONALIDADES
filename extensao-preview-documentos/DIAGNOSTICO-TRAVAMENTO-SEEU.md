@@ -82,6 +82,36 @@ CONSOLE=Vigia node desempenho/travamento-seeu.mjs      # mostra os avisos do vig
 - Laços `while (Date.now() < fim)` dos scripts têm `await` dentro: não
   prendem a página.
 
+## Processo aberto em nova aba a partir das listas
+
+Houve relatos de travamento total também ao abrir o processo **em nova
+aba** a partir das listas de **Análise de Juntadas** e de **Retorno de
+Conclusão**. `desempenho/travamento-nova-aba.mjs` abre cada lista (cabeçalho
++ quadro principal, como no sistema), espera a extensão montá-la, clica no
+número do processo (link que abre em nova aba) e confere, por 8 s, a nova
+aba e a da lista. A tela do processo vem com o quadro Pendências (juntada e
+conclusão), como chega quem vem dessas listas.
+
+```
+cd extensao-preview-documentos
+node desempenho/travamento-nova-aba.mjs
+EXTENSAO=/pasta/da/2.55.3/extensao-preview-documentos node desempenho/travamento-nova-aba.mjs
+```
+
+| Cenário | 2.55.3 | 2.55.4 |
+|---|---|---|
+| Projudi, Análise de Juntadas → nova aba | responde | responde |
+| Projudi, Retorno de Conclusão → nova aba | responde | responde |
+| SEEU, Análise de Juntadas → nova aba | **trava em 1 s** | responde |
+| SEEU, Retorno de Conclusão → nova aba | **trava em 1 s** | responde |
+
+É a mesma causa: a nova aba é a tela do processo do SEEU, com o
+**Advogados** e o **Localizador** disputando o lugar depois do ⭐. Na
+2.55.4 nenhum vigia é desligado nesses cenários (o console não mostra o
+aviso), ou seja, não há outro laço nessas telas. As telas que a lista do
+SEEU carrega escondidas para ler os localizadores (`localizadorNaLista.js`)
+não travavam: nelas o ⭐ não é montado, então a disputa não começa.
+
 ## Se travar de novo
 
 Com a 2.55.4, a tela deve voltar a responder em menos de um segundo. Abra o
