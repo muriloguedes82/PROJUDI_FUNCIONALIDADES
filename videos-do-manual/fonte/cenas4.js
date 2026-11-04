@@ -1719,6 +1719,17 @@ CENAS.V60 = {
 		S.hlOff();
 		telaDoTipo('"★ Instrução e Julgamento" aplicada. Continue o agendamento nesta tela.');
 		await S.cap("Você já chega à tela <b>Agendar Audiência de Instrução e Julgamento</b>: daqui em diante, é com você.", { ms: 4200 });
+		processo();
+		await S.click("#x-fav");
+		pn = panelAt("<h4 style=\"margin:0 0 6px\">⭐ Minhas Preferências</h4>" + favBlocos([
+			{ icon: "", title: "Agendar Audiência", id: "x-bloco-aud", cards: [{ name: "Instrução e Julgamento" }] },
+			{ icon: "🔗", title: "Combos", cards: [{ name: "Intimar MP + agendar AIJ", combo: true, id: "x-combo-aud" }] },
+		], { tools: true }), "#x-fav", { w: 520 });
+		S.hl("#x-bloco-aud", 2);
+		await S.cap("A mesma preferência aparece em <b>⭐ Minhas Preferências</b>, no bloco <b>Agendar Audiência</b>, e pode entrar nos <b>🔗 Combos</b>.", { ms: 4400 });
+		S.hlOff();
+		await S.cap("No combo, a etapa abre o agendamento e o combo <b>espera</b> você voltar à tela do processo para seguir — deixe-a por último.", { ms: 4400 });
+		pn.remove();
 		await S.endCard("⭐ → + Nova preferência → Tipo → Manual → nome · Depois: ⭐ → preferência → tela de agendamento já aberta.");
 	},
 };

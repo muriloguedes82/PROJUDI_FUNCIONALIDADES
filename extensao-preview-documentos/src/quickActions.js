@@ -193,7 +193,7 @@
 	const JUNTAR_PREFS_KEY = "pdpJuntarDocumentoPrefs"; // ver juntarDocumento.js
 	const LOCALIZADOR_PREFS_KEY = "pdpLocalizadorPreferencias"; // ver localizadorSeeu.js (só SEEU)
 	const LOCALIZADOR_LABEL = "📍 Localizador";
-	const FAV_ORDER_KEY = "pdpPreferencesOrder"; // ["a:<id>" | "j:<id>" | "c:<id>" | "l:<id>", ...] — ordem dos cards em "Minhas Preferências"
+	const FAV_ORDER_KEY = "pdpPreferencesOrder"; // ["a:<id>" | "j:<id>" | "c:<id>" | "l:<id>" | "u:<id>", ...] — ordem dos cards em "Minhas Preferências"
 	const FAV_PANEL_ID = "__minhas-preferencias";
 	const FAV_VISIBLE_LIMIT = 20;
 	const DIALOG_WAIT_TIMEOUT_MS = 6000;
@@ -3342,10 +3342,12 @@
 	// COMBO_JUNTAR_DONE_KEY no "Concluir Movimento". De volta à tela do
 	// processo, maybeResumeCombo vê a marca e segue para a próxima etapa.
 	//
-	// Etapas diretas ("Alterar Classe/Assuntos" e "Prioridades", só no
-	// Projudi, e "📍 Localizador", só no SEEU): não têm popup — a
-	// preferência é executada pelo próprio arquivo dela
-	// (alterarClasseAssuntos.js, alterarPrioridades.js, localizadorSeeu.js). A barra do combo mostra o que será feito e só
+	// Etapas diretas ("Alterar Classe/Assuntos", "Prioridades" e "Agendar
+	// Audiência", só no Projudi, e "📍 Localizador", só no SEEU): não têm
+	// popup — a preferência é executada pelo próprio arquivo dela
+	// (alterarClasseAssuntos.js, alterarPrioridades.js, agendarAudiencia.js,
+	// localizadorSeeu.js). "Agendar Audiência" sai da tela do processo: a
+	// etapa fica "running" até o usuário voltar a ela (maybeResumeCombo). A barra do combo mostra o que será feito e só
 	// executa no "▶ Sim, executar" dela; terminada a etapa, segue para a
 	// próxima (a alteração de classe/assuntos recarrega a tela antes, para
 	// o cabeçalho mostrar o novo valor).
@@ -3365,6 +3367,11 @@
 	const ALTERAR_CLASSE_PREFS_KEY = "pdpAlterarClassePrefs"; // ver alterarClasseAssuntos.js
 	const PRIORIDADES_LABEL = "Prioridades";
 	const PRIORIDADES_PREFS_KEY = "pdpPrioridadesPrefs"; // ver alterarPrioridades.js
+	// Etapa direta que SAI da tela do processo (abre o Agendar Audiência e
+	// clica em "Manual"; o usuário termina o agendamento à mão): o combo fica
+	// "running" e só segue quando a tela do processo volta (maybeResumeCombo).
+	const AGENDAR_AUDIENCIA_LABEL = "Agendar Audiência";
+	const AGENDAR_AUDIENCIA_PREFS_KEY = "pdpAgendarAudienciaPrefs"; // ver agendarAudiencia.js
 	let comboResumeChecked = false;
 
 	function loadCombos() {
@@ -3401,7 +3408,7 @@
 		});
 	}
 
-	const COMBO_PREFS_STORAGE_KEYS = [PREFERENCES_KEY, JUNTAR_PREFS_KEY, ALTERAR_CLASSE_PREFS_KEY, PRIORIDADES_PREFS_KEY, LOCALIZADOR_PREFS_KEY];
+	const COMBO_PREFS_STORAGE_KEYS = [PREFERENCES_KEY, JUNTAR_PREFS_KEY, ALTERAR_CLASSE_PREFS_KEY, PRIORIDADES_PREFS_KEY, AGENDAR_AUDIENCIA_PREFS_KEY, LOCALIZADOR_PREFS_KEY];
 
 	// Todas as preferências que podem entrar num combo, por rótulo da ação,
 	// a partir do chrome.storage (chaves COMBO_PREFS_STORAGE_KEYS): as das
@@ -3418,6 +3425,8 @@
 		if (Array.isArray(alterar) && alterar.length) all[ALTERAR_CLASSE_LABEL] = alterar;
 		const prioridades = data[PRIORIDADES_PREFS_KEY];
 		if (Array.isArray(prioridades) && prioridades.length) all[PRIORIDADES_LABEL] = prioridades;
+		const audiencias = data[AGENDAR_AUDIENCIA_PREFS_KEY];
+		if (Array.isArray(audiencias) && audiencias.length) all[AGENDAR_AUDIENCIA_LABEL] = audiencias;
 		const loc = (Array.isArray(data[LOCALIZADOR_PREFS_KEY]) ? data[LOCALIZADOR_PREFS_KEY] : []).filter(function (pref) {
 			return pref && Array.isArray(pref.localizadores) && pref.localizadores.length;
 		});
@@ -4083,6 +4092,22 @@
 				});
 			},
 		},
+		[AGENDAR_AUDIENCIA_LABEL]: {
+			nesteSistema: function () {
+				return !!window.__pdpAgendarAudienciaApi;
+			},
+			disponivel: function () {
+				return !!window.__pdpAgendarAudienciaApi && window.__pdpAgendarAudienciaApi.disponivel();
+			},
+			indisponivel: 'Abra a tela do processo (com o "Agendar" na linha "Audiência" do cabeçalho) e clique em "Repetir etapa".',
+			outroSistema: '"Agendar Audiência" só roda no Projudi, com essa função ligada no Menu. Pule esta etapa ou pare o combo.',
+			descrever: function (pref) {
+				return window.__pdpAgendarAudienciaApi.descrever(pref) + " Você termina o agendamento à mão; o combo continua quando você voltar à tela do processo.";
+			},
+			executar: function (pref) {
+				return window.__pdpAgendarAudienciaApi.executar(pref);
+			},
+		},
 		[LOCALIZADOR_LABEL]: {
 			nesteSistema: function () {
 				return !!window.__pdpLocalizador;
@@ -4145,6 +4170,13 @@
 				logChainStep("combo: etapa direta " + (index + 1) + (r.ok ? " executada" : " não executada"), r.texto || null);
 				if (!r.ok) {
 					setComboWaiting((r.texto || "A etapa não foi executada.") + ' Corrija e clique em "Repetir etapa", ou pule com "Próxima etapa".');
+					return;
+				}
+				// Saiu da tela do processo (Agendar Audiência): a etapa fica
+				// "running" até o processo voltar (maybeResumeCombo).
+				if (r.navegou) {
+					pageReloading = true;
+					renderComboBar("Abrindo o Agendar Audiência… Termine o agendamento à mão; o combo continua quando você voltar à tela do processo.");
 					return;
 				}
 				if (r.recarregar) {
@@ -4321,6 +4353,18 @@
 				return;
 			} else {
 				setComboWaiting('A juntada não chegou ao "Concluir Movimento" pelo combo. Se ela foi concluída, clique em "Próxima etapa"; senão, em "Repetir etapa".');
+				return;
+			}
+		}
+		if (run.phase === "running" && step && step.label === AGENDAR_AUDIENCIA_LABEL) {
+			if (hasProcessoForm() && location.pathname !== "/projudi/audiencia/agendaAudiencia.do") {
+				// De volta ao processo depois do agendamento (feito à mão).
+				run.index++;
+				run.retries = 0;
+				run.phase = "pending";
+				writeComboRun(run);
+			} else {
+				renderComboBar("Agendamento de audiência em andamento — termine-o à mão; o combo continua quando você voltar à tela do processo.");
 				return;
 			}
 		}
@@ -5113,6 +5157,7 @@
 	function favGroupOf(item) {
 		if (item.kind === "combo") return { key: "combo", icon: "🔗", title: "Combos" };
 		if (item.kind === "localizador") return { key: "localizador", icon: "", title: "Localizador" };
+		if (item.kind === "audiencia") return { key: "audiencia", icon: "", title: AGENDAR_AUDIENCIA_LABEL };
 		if (item.kind === "juntar") return { key: "a:" + JUNTAR_LABEL, icon: "", title: JUNTAR_LABEL };
 		// Só o bloco dos combos tem símbolo (pedido do usuário, 2.55.0).
 		return { key: "a:" + item.label, icon: "", title: item.label };
@@ -5196,6 +5241,15 @@
 					});
 				});
 			}
+			// Agendar Audiência: só onde agendarAudiencia.js está carregado
+			// (Projudi, função ligada no Menu).
+			if (includeCombos && window.__pdpAgendarAudienciaApi) {
+				const audPrefs = Array.isArray(data[AGENDAR_AUDIENCIA_PREFS_KEY]) ? data[AGENDAR_AUDIENCIA_PREFS_KEY] : [];
+				audPrefs.forEach(function (pref) {
+					if (!pref || !pref.id) return;
+					items.push({ key: "u:" + pref.id, kind: "audiencia", label: AGENDAR_AUDIENCIA_LABEL, pref: pref });
+				});
+			}
 			if (includeCombos) {
 				const all = comboPreferencesFrom(data);
 				const combos = Array.isArray(data[COMBOS_KEY]) ? data[COMBOS_KEY] : [];
@@ -5225,6 +5279,16 @@
 
 	function removeFavItem(item) {
 		if (item.kind === "combo") return removeCombo(item.combo.id);
+		if (item.kind === "audiencia") {
+			return chrome.storage.local.get([AGENDAR_AUDIENCIA_PREFS_KEY]).then(function (data) {
+				const prefs = Array.isArray(data[AGENDAR_AUDIENCIA_PREFS_KEY]) ? data[AGENDAR_AUDIENCIA_PREFS_KEY] : [];
+				return chrome.storage.local.set({
+					[AGENDAR_AUDIENCIA_PREFS_KEY]: prefs.filter(function (p) {
+						return p.id !== item.pref.id;
+					}),
+				});
+			});
+		}
 		if (item.kind === "action") return removePreference(item.label, item.pref.id);
 		if (item.kind === "localizador") {
 			return chrome.storage.local.get([LOCALIZADOR_PREFS_KEY]).then(function (data) {
@@ -5381,8 +5445,12 @@
 			const isCombo = item.kind === "combo";
 			if (isCombo) card.classList.add("pdp-qa-fav-combo");
 			const isLocalizador = item.kind === "localizador";
+			const isAudiencia = item.kind === "audiencia";
+			const audApi = window.__pdpAgendarAudienciaApi;
 			const mode = isCombo
 				? (comboCanRun ? "combo" : null)
+				: isAudiencia
+					? (audApi && audApi.disponivel() ? "audiencia" : null)
 				: item.kind === "juntar"
 					? (window.__pdpJuntarDocumento && location.pathname.startsWith("/projudi/") ? "juntar" : null)
 					: isLocalizador
@@ -5412,6 +5480,8 @@
 				? "Editar este combo (etapas, ordem e nome)"
 				: isLocalizador && mode
 					? "Editar esta preferência (nome e localizadores)"
+				: isAudiencia && mode
+					? "Mudar o nome desta preferência (para mudar o tipo, grave outra na ⭐ do \"Agendar\")"
 					: mode
 					? "Editar esta preferência: abre o diálogo preenchido com ela para ajustar os campos (e o nome) e salvar de novo"
 					: '"' + item.label + '" não está disponível nesta tela para editar.';
@@ -5425,6 +5495,10 @@
 				closePanel();
 				if (mode === "localizador") {
 					window.__pdpLocalizador.editar(item.pref);
+					return;
+				}
+				if (mode === "audiencia") {
+					audApi.renomear(item.pref);
 					return;
 				}
 				removeConfirmBar();
@@ -5472,6 +5546,11 @@
 				if (!mode) card.classList.add("pdp-qa-fav-unavailable");
 				card.title = (mode ? "Executar em sequência (cada etapa pede a confirmação de sempre):\n" : "Abra a tela do processo para executar:\n") +
 					describeComboSteps(item.combo.steps, item.all);
+			} else if (!mode && isAudiencia) {
+				card.classList.add("pdp-qa-fav-unavailable");
+				card.title = 'Abra a tela do processo (com o "Agendar" na linha "Audiência" do cabeçalho) para usar.\n' + (audApi ? audApi.descrever(item.pref) : "");
+			} else if (isAudiencia) {
+				card.title = audApi.descrever(item.pref) + "\nDepois você continua o agendamento à mão.";
 			} else if (!mode && isLocalizador) {
 				card.classList.add("pdp-qa-fav-unavailable");
 				card.title = "Localizadores só podem ser associados na tela do processo do SEEU (com o \"+\" dos localizadores disponível):\n" + item.pref.localizadores.join("\n");
@@ -5503,6 +5582,12 @@
 				if (mode === "combo") {
 					executarComPendencias('🔗 Combo "' + item.combo.name + '" (' + item.combo.steps.length + " etapas)", true, function () {
 						startCombo(item.combo);
+					});
+					return;
+				}
+				if (mode === "audiencia") {
+					executarComPendencias("★ " + item.pref.name + " — " + AGENDAR_AUDIENCIA_LABEL, false, function () {
+						audApi.abrir(item.pref);
 					});
 					return;
 				}

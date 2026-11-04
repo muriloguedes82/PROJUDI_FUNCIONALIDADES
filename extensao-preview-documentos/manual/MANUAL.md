@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.56.0 |
-| **Versão da extensão** | 2.56.0 |
+| **Versão do manual** | 2.57.0 |
+| **Versão da extensão** | 2.57.0 |
 | **Data desta versão** | 04/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1114,7 +1114,8 @@ Atualizar preferência** (nada é enviado); 🗑 remove.
 ### 7.3 Minhas Preferências
 
 **Para que serve:** ver **todas** as preferências salvas (das ações rápidas,
-do Juntar Documento e, no SEEU, do **📍 Localizador**) e os combos, em
+do Juntar Documento, no Projudi, do **Agendar Audiência** e, no SEEU, do
+**📍 Localizador**) e os combos, em
 cards, num só lugar.
 
 **Como o painel é organizado:** as preferências ficam em **blocos, um por
@@ -1142,7 +1143,9 @@ for comprido, ele continua na linha de baixo, dentro do mesmo card.
 todas** para ver o restante — ou use a busca **🔍 Buscar preferência** do
 topo do painel, que fica parado ao rolar ([7.8](#cap-7-8)). Os cards **📍 Localizador** (só no SEEU)
 associam os localizadores na hora, sem diálogo nem ✅ **Sim, executar**
-— veja [8.8](#cap-8-8).
+— veja [8.8](#cap-8-8). Os cards do bloco **Agendar Audiência** (só no
+Projudi) abrem a tela de agendamento já com o tipo escolhido, depois do
+**Manual** — veja [8.12](#cap-8-12); neles, o **✏️** só muda o nome.
 
 <a id="cap-7-4"></a>
 ### 7.4 Combos de preferências
@@ -1156,7 +1159,8 @@ para usar na tela do processo — as das Ações rápidas (inclusive **Alvará
 Eletrônico** e **⚖️ Advogados**), as do **📎 Juntar Documento**, as do
 **✏️ Alterar Classe/Assuntos** (classe, assunto principal e assunto
 secundário — só no Projudi, [8.9](#cap-8-9)), as de **Prioridades** (só no
-Projudi, [8.11](#cap-8-11)) e as do **📍 Localizador** (só no SEEU,
+Projudi, [8.11](#cap-8-11)), as do **Agendar Audiência** (só no Projudi,
+[8.12](#cap-8-12)) e as do **📍 Localizador** (só no SEEU,
 [8.8](#cap-8-8)). Na caixa de cada etapa elas aparecem separadas
 pelo nome da função.
 
@@ -1198,6 +1202,12 @@ pelo nome da função.
   valor) e o combo segue sozinho. Se algo der errado (por exemplo, um
   localizador que não existe na unidade), a barra mostra o aviso e oferece
   **↻ Repetir etapa**, **⏭ Próxima etapa** ou **⏹ Parar combo**.
+- Etapas de **Agendar Audiência** também pedem o **▶ Sim, executar** na
+  barra do combo. Depois dele, a extensão abre o **Agendar Audiência**,
+  escolhe o tipo e clica em **Manual**; você termina o agendamento à mão.
+  O combo **espera**: só segue para a próxima etapa quando você voltar à
+  tela do processo. Por isso, o mais prático é deixar essa etapa por
+  último.
 - Preferências que só funcionam nas listas (Analisar Decurso, Pré-Análise
   e listas de tarefas) não entram nos combos: elas agem sobre a linha da
   lista, e não sobre a tela do processo.
@@ -2134,6 +2144,10 @@ continua como estava (o próximo clique em **Manual** segue normalmente).
 - Se o Projudi não sair da tela depois do **Manual** (por exemplo, por
   uma mensagem dele), a extensão avisa; confira a tela e clique em
   **Manual** de novo.
+- As mesmas preferências aparecem em **⭐ Minhas Preferências**, no bloco
+  **Agendar Audiência** ([7.3](#cap-7-3)), e podem entrar nos **🔗
+  Combos** ([7.4](#cap-7-4)). No combo, a etapa abre o agendamento e o
+  combo espera você voltar à tela do processo para seguir.
 - Para apagar uma preferência, use **🗑** ao lado dela. As preferências
   entram no **⬇ Exportar** do Menu da extensão ([2.6](#cap-2-6)).
 - Pode ser desligada no Menu ([2.6](#cap-2-6)): **Agendar Audiência
@@ -2947,6 +2961,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.57.0 | 04/11/2026 | Seções 8.12, 7.3 e 7.4: as preferências do **Agendar Audiência** passam a aparecer em **⭐ Minhas Preferências** (bloco **Agendar Audiência**, com ✏️ para mudar o nome) e a poder entrar nos **🔗 Combos**. No combo, a etapa pede o **▶ Sim, executar**, abre o agendamento já depois do **Manual** e espera você voltar à tela do processo para seguir. Vídeo V60 regravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 2.56.0 | 04/11/2026 | **Nova seção 8.12 — Agendar Audiência com preferências:** na linha **Audiência** do cabeçalho do processo (só no Projudi), uma **⭐** ao lado do **Agendar**. A preferência grava o **Tipo da Audiência** escolhido na tela **Agendar Audiência** (e a vara) no clique em **Manual**, pedindo um nome; ao usá-la, a extensão abre a tela, escolhe o tipo, clica em **Manual** e deixa você na tela **Agendar Audiência de …** para continuar à mão. Sumário e tabela da 2.6 atualizados. Novo vídeo V60 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 2.55.5 | 04/11/2026 | Corrigido: o botão **Finalizar conclusão** do quadro Pendências (6.2) às vezes não funcionava e avisava "Não foi encontrada uma conclusão habilitada para finalização", embora a mesma finalização feita antes de uma preferência funcionasse. Agora o botão segue o mesmo caminho: quando preciso, abre sozinho a tela do **Analisar** para achar o botão do Projudi. Ajuste em 6.2 e linha nova em Solução de problemas (11). |
 | 2.55.4 | 26/10/2026 | Corrigido: no **SEEU**, a tela do processo (sobretudo a aba **Movimentações**) **travava por completo** — nem os botões do SEEU respondiam —, porque os botões **Advogados** e **Localizador** disputavam o mesmo lugar na barra, logo depois de **⭐ Minhas Preferências**, e um tirava o outro do lugar sem parar. Agora o **Localizador** fica depois do **Advogados**. Além disso, se alguma função da extensão voltar a entrar nesse tipo de disputa, ela é desligada sozinha e a tela continua respondendo. Linha nova em Solução de problemas (11). |

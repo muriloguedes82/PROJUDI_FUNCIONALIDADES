@@ -91,5 +91,5 @@ para dentro da extensão, retire essa regra.
 | [V57](V57-localizador-na-lista-seeu.mp4) | [Localizador na lista (SEEU)](V57-localizador-na-lista-seeu.mp4) | [9.12](../extensao-preview-documentos/manual/MANUAL.md#cap-9-12) | 1:00 |
 | [V58](V58-escolher-funcoes-e-botoes.mp4) | [Escolher funções e botões (busca, Desativar todas)](V58-escolher-funcoes-e-botoes.mp4) | [2.6](../extensao-preview-documentos/manual/MANUAL.md#cap-2-6) | 1:05 |
 | [V59](V59-mudar-a-ordem-dos-botoes.mp4) | [Mudar a ordem dos botões da barra](V59-mudar-a-ordem-dos-botoes.mp4) | [2.4](../extensao-preview-documentos/manual/MANUAL.md#cap-2-4) | 0:39 |
-| [V60](V60-agendar-audiencia-com-preferencias.mp4) | [Agendar Audiência com preferências](V60-agendar-audiencia-com-preferencias.mp4) | [8.12](../extensao-preview-documentos/manual/MANUAL.md#cap-8-12) | 0:49 |
+| [V60](V60-agendar-audiencia-com-preferencias.mp4) | [Agendar Audiência com preferências](V60-agendar-audiencia-com-preferencias.mp4) | [8.12](../extensao-preview-documentos/manual/MANUAL.md#cap-8-12) | 0:59 |
 <!-- tabela-videos:fim -->

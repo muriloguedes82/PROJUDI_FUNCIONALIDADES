@@ -178,21 +178,28 @@
 		return a ? a.href : null;
 	}
 
+	// Abre a tela "Agendar Audiência" com o modo guardado. Devolve null se
+	// abriu, ou o texto do problema.
 	function abrirTelaAgendar(modo) {
 		const url = urlAgendar();
-		if (!url) {
-			alert('Não encontrei o "Agendar" da linha "Audiência" neste processo.');
-			return;
-		}
-		if (!gravarModo(modo)) {
-			alert("O navegador não deixou a extensão guardar a preferência nesta aba. Agende à mão pelo \"Agendar\".");
-			return;
-		}
+		if (!url) return 'não encontrei o "Agendar" da linha "Audiência" neste processo.';
+		if (!gravarModo(modo)) return 'o navegador não deixou a extensão guardar a preferência nesta aba. Agende à mão pelo "Agendar".';
 		window.location.href = url;
+		return null;
+	}
+
+	function abrirOuAvisar(modo, titulo) {
+		const erro = abrirTelaAgendar(modo);
+		if (erro) alert((titulo ? titulo + ": " : "") + erro.charAt(0).toUpperCase() + erro.slice(1));
+	}
+
+	// Sem as perguntas das pendências (quem chama já as fez).
+	function aplicarDireto(pref) {
+		abrirOuAvisar({ tipo: "usar", pref: pref, cargas: 0 }, "★ " + pref.name);
 	}
 
 	function usarPreferencia(pref) {
-		const executar = function () { abrirTelaAgendar({ tipo: "usar", pref: pref, cargas: 0 }); };
+		const executar = function () { aplicarDireto(pref); };
 		const qa = window.__pdpQuickActions;
 		// Como toda preferência (ver executarComPendencias em quickActions.js
 		// e o CLAUDE.md): pergunta das juntadas/conclusão pendentes antes.
@@ -202,6 +209,31 @@
 			executar();
 		}
 	}
+
+	async function renomear(pref) {
+		const nome = prompt("Nome da preferência:", pref.name);
+		if (nome === null || !nome.trim() || nome.trim() === pref.name) return false;
+		const prefs = await carregarPrefs();
+		await salvarPrefs(prefs.map(function (p) { return p.id === pref.id ? Object.assign({}, p, { name: nome.trim() }) : p; }));
+		return true;
+	}
+
+	// Para "⭐ Minhas Preferências" e os combos (quickActions.js, etapa
+	// direta "Agendar Audiência"). `executar` sai da tela do processo:
+	// resolve com { ok: true, navegou: true } e o combo espera o usuário
+	// voltar à tela do processo (ver maybeResumeCombo em quickActions.js).
+	window.__pdpAgendarAudienciaApi = {
+		label: LABEL,
+		preferencias: carregarPrefs,
+		disponivel: function () { return location.pathname !== AGENDA_PATH && !!linkAgendar(document); },
+		descrever: descreverPref,
+		abrir: aplicarDireto,
+		renomear: renomear,
+		executar: function (pref) {
+			const erro = abrirTelaAgendar({ tipo: "usar", pref: pref, cargas: 0 });
+			return Promise.resolve(erro ? { ok: false, texto: erro } : { ok: true, navegou: true, texto: "abrindo o Agendar Audiência…" });
+		},
+	};
 
 	// Mesmo card cinza do "Incluir"/⭐ das Prioridades (alterarPrioridades.js).
 	function garantirEstilo() {
@@ -294,7 +326,7 @@
 		nova.title = "Abre o Agendar Audiência: escolha o Tipo da Audiência e clique em Manual; a extensão grava a escolha e pede um nome";
 		nova.addEventListener("click", function () {
 			fecharPainel();
-			abrirTelaAgendar({ tipo: "gravar" });
+			abrirOuAvisar({ tipo: "gravar" });
 		});
 		document.body.appendChild(painel);
 		const pp = window.__pdpPainelPrefs;
