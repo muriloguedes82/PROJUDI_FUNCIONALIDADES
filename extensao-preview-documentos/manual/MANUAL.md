@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.58.0 |
-| **Versão da extensão** | 2.58.0 |
+| **Versão do manual** | 2.59.0 |
+| **Versão da extensão** | 2.59.0 |
 | **Data desta versão** | 04/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -57,6 +57,7 @@
    - 6.2 [Finalizar conclusão pendente](#cap-6-2)
    - 6.3 [Dispensar decursos de prazo](#cap-6-3)
    - 6.4 [Dispensar cumprimentos para expedir](#cap-6-4)
+   - 6.5 [Dispensar decurso de cumprimentos](#cap-6-5)
 7. [Ações rápidas e preferências](#cap-7)
    - 7.1 [Ações rápidas](#cap-7-1)
    - 7.2 [Preferências (preencher e confirmar com um clique)](#cap-7-2)
@@ -437,7 +438,7 @@ você esconde só o que não usa, sem desligar a função inteira:
 | **Pré-visualização e WhatsApp** | 📱 Enviar por WhatsApp (a pré-visualização continua) |
 | **Expandir anexos / ocultar sem arquivo** | Expandir/Recolher movimentações · Apenas com arquivo (+) |
 | **Ações rápidas e Minhas Preferências** | Concluso · Remessa · Ordenações · Int. Partes · Outras (inclui Suspender, Transitar e Arquivar) · ⭐ Minhas Preferências · Combos · Destacar mov. · Colar processo (só Projudi) |
-| **Dispensar juntadas, decursos e cumprimentos** | Dispensar juntadas · Dispensar decursos · Dispensar pendências (cumprimentos para expedir) |
+| **Dispensar juntadas, decursos e cumprimentos** | Dispensar juntadas · Dispensar decursos · Dispensar pendências (cumprimentos para expedir) · Dispensar decurso (cumprimentos aguardando análise de decurso) |
 
 - Esconder ou mostrar um botão vale **na hora**, sem recarregar a página, em
   todas as abas abertas daquele sistema.
@@ -957,6 +958,21 @@ onde parou. Uma operação por vez.
 3. Ao terminar, aparece **Cumprimentos dispensados (N)**. A página principal permanece aberta; recarregue-a para atualizar os contadores.
 
 **Bom saber:** cada remoção só é contabilizada depois da confirmação do Projudi. Em caso de erro, a sequência para e aparece **Conferir dispensa (X/N)**, com a quantidade confirmada. Confira a listagem antes de repetir; não há reenvio automático. A opção **Dispensar juntadas, decursos e cumprimentos** no Menu também controla este botão.
+
+<a id="cap-6-5"></a>
+### 6.5 Dispensar decurso de cumprimentos
+
+**Para que serve:** dispensar a análise do decurso de prazo de um cumprimento (ofício, ofício em reiteração etc.) sem abrir a lista **Demais Cumprimentos** e a tela do cumprimento.
+
+**Onde fica:** no quadro **Pendências**, na linha **Cumprimentos Aguardando Análise de Decurso**, ao lado do link (o nome do link muda conforme o tipo, ex.: "Ofício em Reiteração: 01").
+
+**Passo a passo:**
+
+1. Confira o cumprimento (o link abre a lista, como sempre). Clique em **Dispensar decurso**.
+2. O botão mostra **Dispensando decurso…** (com mais de um, **Dispensando decurso 1/N…**). Sem você ver, a extensão abre a lista, clica em **Visualizar**, clica em **Dispensar Decurso** e responde **OK** à pergunta "Confirma que é desnecessário gerar alguma movimentação em função da análise deste decurso de prazo…?".
+3. Ao terminar, aparece **Decurso dispensado** (ou **Decursos dispensados (N)**). A tela do processo continua aberta; recarregue-a para atualizar o quadro Pendências.
+
+**Bom saber:** cada dispensa só é contada depois que o Projudi a confirma. Em caso de erro, a sequência para e aparece **Conferir dispensa (X/N)**, com a quantidade confirmada; confira a lista antes de repetir (não há reenvio automático). Os cumprimentos da lista que não têm o botão **Dispensar Decurso** são deixados como estão. O botão **Analisar decurso** desta linha virá numa próxima versão. A opção **Dispensar juntadas, decursos e cumprimentos** no Menu também controla este botão.
 
 ---
 
@@ -3056,6 +3072,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.59.0 | 04/11/2026 | **Nova seção 6.5 — Dispensar decurso de cumprimentos:** na linha **Cumprimentos Aguardando Análise de Decurso** do quadro Pendências, o botão **Dispensar decurso** faz sozinho o caminho lista **Demais Cumprimentos** → **Visualizar** → **Dispensar Decurso** → **OK**, mostrando **Dispensando decurso…** e, no fim, **Decurso dispensado**. Sumário e tabela da 2.6 atualizados. Novo vídeo V62 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 2.58.0 | 04/11/2026 | Nova seção **9.13 Localizador na lista de juntadas e de conclusões (Projudi)**: nas listas Análise de Juntadas e Retorno de Conclusão do Projudi, a linha **📍** mostra o que consta em **Localizadores:** na aba Informações Gerais (a extensão passa para essa aba antes de ler), o **✏️** troca ou inclui um localizador escolhido entre os ativos do Histórico de Localizadores, e clicar no localizador tira-o do processo. A leitura é feita em três processos ao mesmo tempo, com conferência de que cada resposta é do processo certo. Incluída também na tabela de 2.6. |
 | 2.57.1 | 04/11/2026 | Seção 3.1: a pré-visualização de documentos passa a abrir o PDF **na largura do painel** (texto maior, sem a coluna de miniaturas à esquerda), em vez da página inteira reduzida. Vale para todas as pré-visualizações de documentos (movimentações, pendências, mandados devolvidos e conclusões). Sem vídeo novo (o leitor de PDF do navegador não aparece nos vídeos simulados). |
 | 2.57.0 | 04/11/2026 | Seções 8.12, 7.3 e 7.4: as preferências do **Agendar Audiência** passam a aparecer em **⭐ Minhas Preferências** (bloco **Agendar Audiência**, com ✏️ para mudar o nome) e a poder entrar nos **🔗 Combos**. No combo, a etapa pede o **▶ Sim, executar**, abre o agendamento já depois do **Manual** e espera você voltar à tela do processo para seguir. Vídeo V60 regravado e guardado em `videos-do-manual/` (não citado no manual). |
