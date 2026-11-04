@@ -94,4 +94,5 @@ para dentro da extensão, retire essa regra.
 | [V60](V60-agendar-audiencia-com-preferencias.mp4) | [Agendar Audiência com preferências](V60-agendar-audiencia-com-preferencias.mp4) | [8.12](../extensao-preview-documentos/manual/MANUAL.md#cap-8-12) | 0:59 |
 | [V61](V61-localizador-na-lista-projudi.mp4) | [Localizador na lista (Projudi)](V61-localizador-na-lista-projudi.mp4) | [9.13](../extensao-preview-documentos/manual/MANUAL.md#cap-9-13) | 1:01 |
 | [V62](V62-dispensar-decurso-de-cumprimentos.mp4) | [Dispensar decurso de cumprimentos](V62-dispensar-decurso-de-cumprimentos.mp4) | [6.5](../extensao-preview-documentos/manual/MANUAL.md#cap-6-5) | 0:26 |
+| [V63](V63-analisar-decurso-de-cumprimentos.mp4) | [Analisar decurso de cumprimentos](V63-analisar-decurso-de-cumprimentos.mp4) | [6.5](../extensao-preview-documentos/manual/MANUAL.md#cap-6-5) | 0:38 |
 <!-- tabela-videos:fim -->

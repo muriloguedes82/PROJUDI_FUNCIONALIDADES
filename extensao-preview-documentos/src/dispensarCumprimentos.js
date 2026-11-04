@@ -207,12 +207,103 @@
       button.style.background = '#e5f4e8';
       button.style.color = '#206334';
       button.title = 'Recarregue a página para atualizar o quadro Pendências.';
+      const analisar = button.nextElementSibling;
+      if (analisar && analisar.classList.contains('pdp-analisar-decurso-cumprimento')) {
+        analisar.dataset.pdpFeito = '1';
+        analisar.disabled = true;
+      }
     } catch (error) {
       button.textContent = 'Conferir dispensa (' + done + '/' + count + ')';
       button.style.background = '#fff1d6';
       button.title = error.message;
       alert('Dispensar decurso: ' + done + ' de ' + count + ' dispensa(s) confirmada(s). ' + error.message + '\nConfira a lista antes de repetir. Não houve reenvio automático.');
     } finally { busy = false; }
+  }
+  // "Analisar decurso": acha, na lista Demais Cumprimentos, o primeiro
+  // cumprimento com o botão nativo "Analisar Decurso de Prazo" (onclick
+  // submitPage('/projudi/processo/certificar.do?_tj=...',
+  // document.cumprimentoCartorioForm)) e abre a tela desse cumprimento no
+  // popup das ações rápidas; lá, a extensão clica nesse botão (o envio é o
+  // do próprio Projudi) e a tela "Analisar Decurso de Prazo" segue como no
+  // "Analisar Decurso" das listas de decurso (decursoNaLinha.js, com o menu
+  // de preferências; juntarDocumento.js clica em "Adicionar" e preenche a
+  // "Inserir Arquivo").
+  const ANALISAR_ROTULO = 'analisar decurso de prazo';
+  function botaoAnalisar(doc) {
+    return Array.from(doc.querySelectorAll('input[type="button"], button')).find(el => normalize(el.value || el.textContent) === ANALISAR_ROTULO) || null;
+  }
+  async function cumprimentoParaAnalisar(link) {
+    const url = checkedUrl(link.getAttribute('href'), document.baseURI);
+    const list = await page(url);
+    const form = list.doc.querySelector('form#cumprimentoCartorioForm');
+    if (!form) throw new Error('lista de cumprimentos indisponível. Confira sua sessão.');
+    const detalhes = Array.from(form.querySelectorAll('a[href]')).filter(a => normalize(a.textContent) === 'visualizar');
+    for (const a of detalhes) {
+      let detailUrl;
+      try { detailUrl = checkedUrl(a.getAttribute('href'), list.url); } catch (_) { continue; }
+      const detail = await page(detailUrl);
+      const botao = botaoAnalisar(detail.doc);
+      if (botao && !botao.disabled) return detailUrl;
+    }
+    throw new Error('não foi encontrado nenhum cumprimento com o botão "Analisar Decurso de Prazo".');
+  }
+  function numeroDoProcesso() {
+    const heading = document.querySelector('h3 em.attention');
+    const m = /\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/.exec((document.title || '') + ' ' + (heading ? heading.textContent : ''));
+    return m ? m[0] : null;
+  }
+  function statusDecurso(el, texto, tipo) {
+    el.textContent = texto || '';
+    el.style.display = texto ? 'inline-block' : 'none';
+    const cores = { ok: ['#e5f4e8', '#206334'], erro: ['#fde8e8', '#8a1f1f'], aviso: ['#fff1d6', '#6b4e00'], andamento: ['#eef4fb', '#1f4a7a'] };
+    const c = cores[tipo] || cores.andamento;
+    el.style.background = c[0];
+    el.style.color = c[1];
+  }
+  async function analisarDecurso(link, button, statusEl, outros) {
+    if (busy) return;
+    const api = window.__pdpAnalisarDecurso;
+    if (!api) {
+      alert('Para analisar o decurso por aqui, ligue a função "Analisar e Dispensar decurso na lista" no Menu da extensão.');
+      return;
+    }
+    busy = true;
+    const travar = sim => { button.disabled = sim; outros.forEach(b => { if (!b.dataset.pdpFeito) b.disabled = sim; }); };
+    travar(true);
+    try {
+      const escolha = await api.escolher(button);
+      if (!escolha) return;
+      statusDecurso(statusEl, 'Procurando o cumprimento…', 'andamento');
+      const detailUrl = await cumprimentoParaAnalisar(link);
+      statusDecurso(statusEl, escolha.pref ? 'Abrindo a análise com ★ ' + escolha.pref.name + '…' : 'Abrindo a análise do decurso…', 'andamento');
+      let clicado = false;
+      const r = await api.abrir(detailUrl, escolha, {
+        cnj: numeroDoProcesso(),
+        status: (texto, tipo) => statusDecurso(statusEl, texto, tipo),
+        textoFechado: 'Popup da análise fechado (recarregue a página para conferir)',
+        aoCarregar: iframe => {
+          if (clicado) return;
+          const doc = iframe.contentDocument;
+          if (!doc || new URL(doc.URL).pathname !== COMMON_PATH) return;
+          const botao = botaoAnalisar(doc);
+          if (!botao || botao.disabled) return;
+          clicado = true;
+          botao.click();
+        }
+      });
+      statusDecurso(statusEl, (r.aviso ? '' : '✅ ') + r.texto, r.aviso ? 'aviso' : 'ok');
+      if (r.executado) {
+        [button].concat(outros).forEach(b => { b.dataset.pdpFeito = '1'; b.disabled = true; });
+        button.textContent = 'Decurso analisado';
+        button.style.background = '#e5f4e8';
+        button.style.color = '#206334';
+      }
+    } catch (error) {
+      statusDecurso(statusEl, '⚠ ' + ((error && error.message) || 'falha.'), 'erro');
+    } finally {
+      busy = false;
+      if (!button.dataset.pdpFeito) travar(false);
+    }
   }
   function rowLabel(link) {
     let row = link.closest('tr');
@@ -237,7 +328,19 @@
       button.style.cssText = 'margin-left:10px;padding:5px 10px;border:1px solid #bbc4b2;border-radius:4px;background:#f5f7ef;cursor:pointer;';
       button.addEventListener('click', () => dispensarDecurso(link, button));
       buttons.set(link, button);
+      const analisar = document.createElement('button');
+      analisar.type = 'button';
+      analisar.className = 'pdp-analisar-decurso-cumprimento';
+      analisar.textContent = 'Analisar decurso';
+      analisar.title = 'Abrir a análise do decurso de prazo deste cumprimento (botão "Analisar Decurso de Prazo" do ' + SISTEMA + ') no popup, com as preferências do Analisar Decurso.';
+      analisar.style.cssText = button.style.cssText;
+      const statusEl = document.createElement('span');
+      statusEl.className = 'pdp-analisar-decurso-cumprimento-status';
+      statusEl.style.cssText = 'display:none;margin-left:8px;padding:3px 8px;border-radius:4px;font-size:11px;';
+      analisar.addEventListener('click', () => analisarDecurso(link, analisar, statusEl, [button]));
       link.insertAdjacentElement('afterend', button);
+      button.insertAdjacentElement('afterend', analisar);
+      analisar.insertAdjacentElement('afterend', statusEl);
     });
     document.querySelectorAll('#quadroPendencias a.link[href]').forEach(link => {
       if (buttons.has(link)) return;

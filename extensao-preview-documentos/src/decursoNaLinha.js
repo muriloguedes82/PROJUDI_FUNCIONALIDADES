@@ -47,15 +47,20 @@
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
-	if (window.__pdpDecursoNaLinha) return;
+	if (window.__pdpDecursoNaLinhaCarregado) return;
+	if (!/^\/(projudi|seeu)\//.test(location.pathname)) return;
 
 	const LISTAS = /^\/(projudi|seeu)\/processo\/(intimacaoBusca|intimacaoNomeados|citacao)\.do$/;
-	if (!LISTAS.test(location.pathname)) return;
+	// Fora das listas de decurso, o script só oferece o menu e o popup do
+	// "Analisar Decurso" (window.__pdpAnalisarDecurso) a outras telas - ex.:
+	// o "Analisar decurso" da linha "Cumprimentos Aguardando Análise de
+	// Decurso" do quadro Pendências (dispensarCumprimentos.js).
+	const NA_LISTA = LISTAS.test(location.pathname);
 	try {
 		const fe = window.frameElement;
 		if (fe && (fe.hasAttribute("data-pdp-loader") || fe.hasAttribute("data-pdp-decurso") || fe.hasAttribute("data-pdp-dispensa"))) return;
 	} catch (e) { /* frame de outra origem */ }
-	window.__pdpDecursoNaLinha = true;
+	window.__pdpDecursoNaLinhaCarregado = true;
 
 	const TAG = "[Projudi Decurso na linha]";
 	const NO_SEEU = location.pathname.startsWith("/seeu/");
@@ -427,12 +432,25 @@
 	// juntarDocumento.js (fimDecurso): "concluida" fecha o popup sozinho;
 	// "aguardando" espera o usuário clicar no botão final e fechar o popup.
 	async function analisar(caixa, url, escolha) {
-		const jd = window.__pdpJuntarDocumentoApi;
-		const cnj = caixa.getAttribute("data-pdp-dec-cnj") || null;
 		const destino = await urlAnalisar(url);
+		return abrirAnalise(destino, escolha, {
+			cnj: caixa.getAttribute("data-pdp-dec-cnj") || null,
+			status: function (texto, tipo) { status(caixa, texto, tipo); }
+		});
+	}
+
+	// Abre `destino` no popup das ações rápidas e segue a análise conforme
+	// `escolha`. `opcoes`: { cnj, status(texto, tipo), aoCarregar(iframe) }.
+	// `aoCarregar` roda a cada carregamento do popup (ex.: clicar no botão
+	// nativo "Analisar Decurso de Prazo" quando `destino` é a tela do
+	// cumprimento).
+	async function abrirAnalise(destino, escolha, opcoes) {
+		const jd = window.__pdpJuntarDocumentoApi;
+		const cnj = opcoes.cnj || null;
+		const aviso = opcoes.status || function () {};
 		const qa = window.__pdpQuickActions;
 		if (!qa || !qa.openActionModal) {
-			if (escolha.acao !== "abrir") throw new Error("o popup das ações rápidas não está disponível nesta tela (ligue as Ações rápidas no Menu).");
+			if (escolha.acao !== "abrir" || opcoes.aoCarregar) throw new Error("o popup das ações rápidas não está disponível nesta tela (ligue as Ações rápidas no Menu).");
 			window.location.href = destino;
 			return { ok: true, texto: "Abrindo a análise do decurso…" };
 		}
@@ -450,14 +468,14 @@
 					const fim = jd.fimDecurso();
 					if (fim === "concluida" && !concluida) {
 						concluida = true;
-						status(caixa, "Concluindo a análise…", "andamento");
+						aviso("Concluindo a análise…", "andamento");
 						fechar = setTimeout(function () { if (qa.closeActionModal) qa.closeActionModal(); }, 2500);
 					} else if (fim === "aguardando") {
-						status(caixa, "Arquivo incluído: clique no botão final da análise, no popup.", "aviso");
+						aviso("Arquivo incluído: clique no botão final da análise, no popup.", "aviso");
 					}
 				}, 500);
 			}
-			qa.openActionModal("Analisar Decurso" + rotulo, destino, {
+			const iframe = qa.openActionModal("Analisar Decurso" + rotulo, destino, {
 				onClose: function (motivo) {
 					clearInterval(timer);
 					clearTimeout(fechar);
@@ -466,11 +484,31 @@
 					if ((comPref || gravando) && jd && jd.hasActiveJob && jd.hasActiveJob()) jd.cancel();
 					if (gravando) resolve({ ok: true, texto: "Popup fechado. A preferência é salva no \"Assinar Arquivos\".", aviso: true, executado: false });
 					else if (concluida || motivo === "auto") resolve({ ok: true, texto: "Análise do decurso concluída" + (comPref ? " com ★ " + escolha.pref.name : ""), executado: true });
-					else resolve({ ok: true, texto: "Popup da análise fechado (confira na lista ao atualizar)", aviso: true, executado: false });
+					else resolve({ ok: true, texto: opcoes.textoFechado || "Popup da análise fechado (confira na lista ao atualizar)", aviso: true, executado: false });
 				}
 			});
+			if (opcoes.aoCarregar && iframe) {
+				iframe.addEventListener("load", function () {
+					try {
+						opcoes.aoCarregar(iframe);
+					} catch (e) {
+						console.warn(TAG, e);
+					}
+				});
+			}
 		});
 	}
+
+	// Para outras telas (ver o comentário de NA_LISTA): o menu (Abrir a
+	// análise / + Nova preferência / preferências) e o popup da análise.
+	window.__pdpAnalisarDecurso = {
+		// Resolve com { acao, pref } ou null (menu fechado).
+		escolher: function (botao) {
+			return escolherPreferencia(botao, false);
+		},
+		abrir: abrirAnalise
+	};
+	if (!NA_LISTA) return;
 
 	// --- cliques na linha (delegação) ------------------------------------------------
 
