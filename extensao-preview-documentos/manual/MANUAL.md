@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.55.5 |
-| **Versão da extensão** | 2.55.5 |
+| **Versão do manual** | 2.56.0 |
+| **Versão da extensão** | 2.56.0 |
 | **Data desta versão** | 04/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -91,6 +91,7 @@
    - 9.10 [Analisar e Dispensar decurso na lista](#cap-9-10)
    - 9.11 [Analisar (Pré-Análise) dos cumprimentos com preferências](#cap-9-11)
    - 9.12 [Localizador na lista de juntadas e de conclusões (só no SEEU)](#cap-9-12)
+   - 9.13 [Localizador na lista de juntadas e de conclusões (Projudi)](#cap-9-13)
 10. [Privacidade e convivência com outras extensões](#cap-10)
     - 10.1 [O que fica guardado no seu navegador](#cap-10-1)
     - 10.2 [Convivência com o AzFlow](#cap-10-2)
@@ -475,7 +476,7 @@ ligar tudo.
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Prioridades (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Bloco de anotações | [4](#cap-4) |
-| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (SEEU) | [6](#cap-6), [9](#cap-9) |
+| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (SEEU) · Localizador na lista (Projudi) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
 Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
@@ -2783,6 +2784,88 @@ e a linha mostra o resultado (**✅** ou **⚠**). O **✖** do painel do
 - Enquanto o painel está aberto, a leitura das demais linhas espera; ela
   continua quando você o fecha.
 
+<a id="cap-9-13"></a>
+### 9.13 Localizador na lista de juntadas e de conclusões (Projudi)
+
+*Só no Projudi.* (No SEEU, veja [9.12](#cap-9-12).)
+
+**Para que serve:** ver, já na lista, o **localizador** de cada processo e
+trocá-lo, incluir outro ou tirar um que não serve mais, sem abrir o
+processo. Funciona como no SEEU; a diferença é de onde vem a informação: no
+Projudi, a extensão lê a linha **Localizadores:** da aba **Informações
+Gerais** do processo e faz as alterações pela tela **Histórico de
+Localizadores** (a que abre ao clicar nessa linha).
+
+**Onde fica:** nas listas **Análise de Juntadas** e **Retorno de
+Conclusão** do Projudi, na coluna do **número do processo**: abaixo do
+número aparece a linha **📍** com o que consta em **Localizadores:** na aba
+Informações Gerais (por exemplo, **Localizador não cadastrado**, quando o
+processo não tem nenhum), seguida de dois botões:
+
+| Onde clicar | O que faz |
+|---|---|
+| **No próprio localizador** | Ao pousar o mouse aparece **Remover do processo** (e o **⊗**); clicando, a extensão pergunta "Remover o localizador … do processo …?" e, com **OK**, tira-o do processo |
+| **✏️** | Abre o painel **📍 Localizadores** do processo, para trocar, incluir ou remover localizadores |
+| **↻** | Lê de novo o localizador do processo (por exemplo, depois de alterá-lo no próprio Projudi) |
+
+**Passo a passo:**
+
+1. Abra a lista. Em cada linha aparece **📍 aguardando…** e, logo depois,
+   **lendo…**: a extensão consulta cada processo **em segundo plano**, um
+   de cada vez, de cima para baixo, e mostra o que está na linha
+   **Localizadores:** da aba Informações Gerais. Se a linha não trouxer
+   nada, aparece **sem localizador** (como no SEEU). Você pode continuar
+   trabalhando na lista enquanto isso.
+2. Para trocar ou incluir, clique no **✏️** da linha. O painel abre o
+   **Histórico de Localizadores** do processo em segundo plano e mostra:
+   - **No processo:** os localizadores em aberto, cada um com **✖**;
+   - a caixa **Baixar demais localizadores em aberto (trocar)** — a mesma
+     do Projudi, que já vem marcada. Marcada, o localizador escolhido
+     **substitui** os que o processo tem (**Trocar por**, botões **🔁**);
+     desmarcada, ele é **acrescentado** (**Incluir**, botões **➕**);
+   - os **localizadores ativos** da tela Histórico de Localizadores (a
+     mesma lista do campo **Localizador** dessa tela), com **Pesquisar
+     localizador...**.
+3. Clique no localizador desejado. A extensão faz o mesmo que você faria na
+   tela Histórico de Localizadores: escolhe o localizador, deixa a caixa
+   **Baixar demais localizadores em aberto** como você deixou no painel e
+   clica em **Adicionar**. O painel avisa o resultado e a linha da lista já
+   mostra o localizador novo.
+4. Para remover, clique no **✖** do localizador no painel e responda
+   **OK**: a extensão clica no **Remover** da linha dele no Histórico de
+   Localizadores (e responde à confirmação do Projudi, se houver).
+5. Feche o painel no **✕**, com **Esc** ou clicando fora dele.
+
+**Remover um localizador direto na lista:** clique no nome dele na linha
+**📍** (ao pousar o mouse, aparece **Remover do processo**) e responda
+**OK** em "Remover o localizador … do processo …?". A extensão abre o
+Histórico de Localizadores em segundo plano, clica no **Remover** e a
+linha mostra o resultado (**✅** ou **⚠**).
+
+**Bom saber:**
+
+- Para ligar ou desligar, use **Localizador na lista (Projudi)** no Menu da
+  extensão ([2.6](#cap-2-6)).
+- No **Retorno de Conclusão** a linha da lista não tem o link do processo:
+  a extensão o encontra pela tela do **Analisar** ou pesquisando o número,
+  o que pode levar alguns segundos a mais.
+- O que foi lido fica guardado por **10 minutos** na aba: voltar a uma
+  página da lista já vista mostra os localizadores na hora. Use o **↻**
+  para ler de novo antes disso.
+- Para alterar, o perfil precisa ter acesso à tela Histórico de
+  Localizadores (o link da linha **Localizadores:** precisa aparecer na aba
+  Informações Gerais). Sem ele, o painel avisa.
+- **⚠ não foi possível ler** (passe o mouse para ver o motivo) aparece
+  quando o processo não abriu — por exemplo, se a sessão do Projudi
+  expirou. Use o **↻** para tentar de novo.
+- Se o painel disser que **não deu para confirmar** a alteração, use o
+  **↻** da linha para conferir. Se não for possível remover, o painel
+  mostra **📋 Copiar diagnóstico**: ele copia como a tabela do Histórico de
+  Localizadores aparece (só localizadores, datas e quem cadastrou), para
+  você enviar a quem cuida da extensão.
+- Enquanto o painel está aberto, a leitura das demais linhas espera; ela
+  continua quando você o fecha.
+
 ---
 
 <a id="cap-10"></a>
@@ -2882,6 +2965,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.56.0 | 04/11/2026 | Nova seção **9.13 Localizador na lista de juntadas e de conclusões (Projudi)**: nas listas Análise de Juntadas e Retorno de Conclusão do Projudi, a linha **📍** mostra o que consta em **Localizadores:** na aba Informações Gerais, o **✏️** troca ou inclui um localizador escolhido entre os ativos do Histórico de Localizadores, e clicar no localizador tira-o do processo. Incluída também na tabela de 2.6. |
 | 2.55.5 | 04/11/2026 | Corrigido: o botão **Finalizar conclusão** do quadro Pendências (6.2) às vezes não funcionava e avisava "Não foi encontrada uma conclusão habilitada para finalização", embora a mesma finalização feita antes de uma preferência funcionasse. Agora o botão segue o mesmo caminho: quando preciso, abre sozinho a tela do **Analisar** para achar o botão do Projudi. Ajuste em 6.2 e linha nova em Solução de problemas (11). |
 | 2.55.4 | 26/10/2026 | Corrigido: no **SEEU**, a tela do processo (sobretudo a aba **Movimentações**) **travava por completo** — nem os botões do SEEU respondiam —, porque os botões **Advogados** e **Localizador** disputavam o mesmo lugar na barra, logo depois de **⭐ Minhas Preferências**, e um tirava o outro do lugar sem parar. Agora o **Localizador** fica depois do **Advogados**. Além disso, se alguma função da extensão voltar a entrar nesse tipo de disputa, ela é desligada sozinha e a tela continua respondendo. Linha nova em Solução de problemas (11). |
 | 2.55.3 | 23/10/2026 | Seção 8.10: o quadrinho que abre no **Novo Valor da Causa** passa a ter o título só com o texto, sem o 💲. Vídeo V47 regravado e guardado em `videos-do-manual/` (não citado no manual). |
