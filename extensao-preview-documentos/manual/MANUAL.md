@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.57.0 |
-| **Versão da extensão** | 2.57.0 |
+| **Versão do manual** | 2.57.1 |
+| **Versão da extensão** | 2.57.1 |
 | **Data desta versão** | 04/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -544,8 +544,9 @@ até mudar em uma das abas.
 1. Abra os arquivos de uma movimentação (ícone **+**), como de costume.
 2. **Pare o mouse sobre o nome do arquivo** (ex.: `Certidao de Baixa.pdf`)
    por meio segundo.
-3. O documento aparece num painel sobre a tela. Role dentro dele
-   normalmente.
+3. O documento aparece num painel sobre a tela, já **na largura do
+   painel** (sem a coluna de miniaturas das páginas à esquerda), para a
+   leitura ficar confortável. Role dentro dele normalmente.
 4. Para fechar: tire o mouse do link e do painel, clique no **✕** ou tecle
    **Esc**.
 
@@ -561,6 +562,10 @@ até mudar em uma das abas.
   passe o mouse sobre cada arquivo.
 - O link **Abrir em nova aba**, no topo do painel, mantém o jeito
   tradicional.
+- O mesmo ajuste de tamanho vale para todas as pré-visualizações de
+  documentos da extensão (pendências, mandados devolvidos e conclusões).
+  Se quiser mudar o tamanho, use os botões **−** e **+** do próprio painel;
+  a coluna de miniaturas pode ser reaberta pelo botão **☰**.
 - Arquivos que o navegador não consegue exibir (alguns formatos que não
   são PDF) podem ser baixados em vez de exibidos.
 
@@ -2961,6 +2966,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.57.1 | 04/11/2026 | Seção 3.1: a pré-visualização de documentos passa a abrir o PDF **na largura do painel** (texto maior, sem a coluna de miniaturas à esquerda), em vez da página inteira reduzida. Vale para todas as pré-visualizações de documentos (movimentações, pendências, mandados devolvidos e conclusões). Sem vídeo novo (o leitor de PDF do navegador não aparece nos vídeos simulados). |
 | 2.57.0 | 04/11/2026 | Seções 8.12, 7.3 e 7.4: as preferências do **Agendar Audiência** passam a aparecer em **⭐ Minhas Preferências** (bloco **Agendar Audiência**, com ✏️ para mudar o nome) e a poder entrar nos **🔗 Combos**. No combo, a etapa pede o **▶ Sim, executar**, abre o agendamento já depois do **Manual** e espera você voltar à tela do processo para seguir. Vídeo V60 regravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 2.56.0 | 04/11/2026 | **Nova seção 8.12 — Agendar Audiência com preferências:** na linha **Audiência** do cabeçalho do processo (só no Projudi), uma **⭐** ao lado do **Agendar**. A preferência grava o **Tipo da Audiência** escolhido na tela **Agendar Audiência** (e a vara) no clique em **Manual**, pedindo um nome; ao usá-la, a extensão abre a tela, escolhe o tipo, clica em **Manual** e deixa você na tela **Agendar Audiência de …** para continuar à mão. Sumário e tabela da 2.6 atualizados. Novo vídeo V60 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 2.55.5 | 04/11/2026 | Corrigido: o botão **Finalizar conclusão** do quadro Pendências (6.2) às vezes não funcionava e avisava "Não foi encontrada uma conclusão habilitada para finalização", embora a mesma finalização feita antes de uma preferência funcionasse. Agora o botão segue o mesmo caminho: quando preciso, abre sozinho a tela do **Analisar** para achar o botão do Projudi. Ajuste em 6.2 e linha nova em Solução de problemas (11). |

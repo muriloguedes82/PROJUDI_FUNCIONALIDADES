@@ -381,7 +381,9 @@
 			});
 			p.body.appendChild(iframe);
 			p.frame = iframe;
-			iframe.src = doc.href;
+			// Zoom "Ajustar à largura" e sem a coluna de miniaturas (igual à
+			// pré-visualização de documentos em content.js).
+			iframe.src = doc.href.indexOf("#") === -1 ? doc.href + "#toolbar=1&navpanes=0&view=FitH" : doc.href;
 			p.wrap.classList.add("pdp-pc-visible");
 			panels.push(p);
 		});
