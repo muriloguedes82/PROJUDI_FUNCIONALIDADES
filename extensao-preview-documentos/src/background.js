@@ -869,6 +869,51 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   return true;
 });
 
+// Localizador na lista do Projudi (localizadorNaListaProjudi.js): clica no
+// "Adicionar" ou no comando da coluna "Remover" da tela Histórico de
+// Localizadores, carregada no iframe oculto marcado com o token. Roda no
+// mundo da página para aceitar a confirmação do Projudi, se houver - só uma,
+// e só se falar de localizador/remoção/adição.
+function clickLocalizadorProjudi(token, acao) {
+  if (!window.frameElement || window.frameElement.getAttribute('data-pdp-locl-projudi') !== token) return null;
+  if (location.pathname !== '/projudi/processo/localizadorProcesso.do') return {ok:false, error:'Tela do Histórico de Localizadores inesperada.'};
+  const alvo = document.querySelector('[data-pdp-locl-projudi-botao="' + token + '"]');
+  if (!alvo) return {ok:false, error:'Comando do Histórico de Localizadores indisponível.'};
+  alvo.removeAttribute('data-pdp-locl-projudi-botao');
+  if (acao === 'adicionar' && alvo.id !== 'addButton' && !/^adicionar$/i.test(String(alvo.value || alvo.textContent || '').trim())) {
+    return {ok:false, error:'O botão marcado não é o "Adicionar".'};
+  }
+  if (acao === 'remover') {
+    const tabela = alvo.closest('table.resultTable');
+    if (!tabela || !/remover/i.test((tabela.tHead && tabela.tHead.textContent) || '')) return {ok:false, error:'O comando marcado não está na tabela do histórico.'};
+  }
+  const originalConfirm = window.confirm;
+  let accepted = false, rejected = false;
+  window.confirm = function (message) {
+    const text = String(message || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+    const specific = /localizador|remov|exclu|adicion|baix|cadastr/.test(text) && !/arquiv|remess|conclus|envi|processo sera/.test(text);
+    if (!accepted && specific) { accepted = true; return true; }
+    rejected = true; return false;
+  };
+  try {
+    alvo.click();
+    if (rejected) return {ok:false, error:'A confirmação recebida não correspondeu à alteração de localizador esperada.'};
+    return {ok:true};
+  } catch (error) { return {ok:false, error:String(error.message || error)}; }
+  finally { window.confirm = originalConfirm; }
+}
+
+chrome.runtime.onMessage.addListener((message, sender, reply) => {
+  if (message?.source !== 'projudi-preview' || message.type !== 'localizador-projudi-click') return false;
+  if (!sender.tab || !/^https?:\/\/[^/]+\.tjpr\.jus\.br\/projudi\//.test(sender.url || '') || !/^[a-f0-9-]{36}$/.test(message.token || '') || ['adicionar', 'remover'].indexOf(message.acao) < 0) {
+    reply({ok:false, error:'Origem da operação inválida.'}); return false;
+  }
+  chrome.scripting.executeScript({target:{tabId:sender.tab.id, allFrames:true}, world:'MAIN', func:clickLocalizadorProjudi, args:[message.token, message.acao]})
+    .then(results => reply(results.map(entry => entry.result).find(Boolean) || {ok:false, error:'Não foi localizado o iframe do Histórico de Localizadores.'}))
+    .catch(error => reply({ok:false, error:error.message}));
+  return true;
+});
+
 chrome.runtime.onMessage.addListener((message,sender,reply) => {
   if (message?.source !== 'projudi-preview' || message.type !== 'clipboard-process-open') return false;
   try {

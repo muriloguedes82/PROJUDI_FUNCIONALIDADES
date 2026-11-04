@@ -322,6 +322,14 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					css: ["src/localizadorNaLista.css"],
 					requer: ["localizador"],
 					sistemas: ["seeu"]
+				},
+				{
+					id: "localizadorNaListaProjudi",
+					nome: "Localizador na lista (Projudi)",
+					descricao: "Nas listas Análise de Juntadas e Retorno de Conclusão do Projudi, mostra o localizador que consta na aba Informações Gerais do processo, com ✏️ para trocar ou incluir um localizador (escolhido entre os ativos do Histórico de Localizadores) e clique no localizador para tirá-lo, sem sair da lista.",
+					js: ["src/localizadorNaListaProjudi.js"],
+					css: ["src/localizadorNaListaProjudi.css"],
+					sistemas: ["projudi"]
 				}
 			]
 		},

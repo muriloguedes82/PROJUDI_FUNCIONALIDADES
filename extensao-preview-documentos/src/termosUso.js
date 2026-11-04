@@ -84,6 +84,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/decursoNaLinha.js",
 			"src/previewConclusao.js",
 			"src/localizadorNaLista.js",
+			"src/localizadorNaListaProjudi.js",
 			"src/funcionalidades.js",
 			"src/menuExtensao.js"
 		],
@@ -108,7 +109,8 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/decursoNaLinha.css",
 			"src/previewConclusao.css",
 			"src/localizadorSeeu.css",
-			"src/localizadorNaLista.css"
+			"src/localizadorNaLista.css",
+			"src/localizadorNaListaProjudi.css"
 		],
 		runAt: "document_idle",
 		allFrames: true,
