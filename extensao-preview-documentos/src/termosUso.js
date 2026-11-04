@@ -71,6 +71,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/alterarClasseAssuntos.js",
 			"src/alterarValorCausa.js",
 			"src/alterarPrioridades.js",
+			"src/agendarAudiencia.js",
 			"src/alvaraEletronico.js",
 			"src/juntarDocumento.js",
 			"src/reusCabecalho.js",
