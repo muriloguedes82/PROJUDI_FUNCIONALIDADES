@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.56.0 |
-| **Versão da extensão** | 2.56.0 |
+| **Versão do manual** | 2.56.1 |
+| **Versão da extensão** | 2.56.1 |
 | **Data desta versão** | 04/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -2965,6 +2965,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.56.1 | 04/11/2026 | Sem alteração de texto; corrigido: no Localizador na lista do Projudi (9.13), a linha **📍** mostrava "⚠ não foi possível ler" ("a linha Localizadores não apareceu na aba Informações Gerais") porque a tela do processo abre na aba Movimentações. Agora a extensão passa para a aba **Informações Gerais** antes de ler. |
 | 2.56.0 | 04/11/2026 | Nova seção **9.13 Localizador na lista de juntadas e de conclusões (Projudi)**: nas listas Análise de Juntadas e Retorno de Conclusão do Projudi, a linha **📍** mostra o que consta em **Localizadores:** na aba Informações Gerais, o **✏️** troca ou inclui um localizador escolhido entre os ativos do Histórico de Localizadores, e clicar no localizador tira-o do processo. Incluída também na tabela de 2.6. |
 | 2.55.5 | 04/11/2026 | Corrigido: o botão **Finalizar conclusão** do quadro Pendências (6.2) às vezes não funcionava e avisava "Não foi encontrada uma conclusão habilitada para finalização", embora a mesma finalização feita antes de uma preferência funcionasse. Agora o botão segue o mesmo caminho: quando preciso, abre sozinho a tela do **Analisar** para achar o botão do Projudi. Ajuste em 6.2 e linha nova em Solução de problemas (11). |
 | 2.55.4 | 26/10/2026 | Corrigido: no **SEEU**, a tela do processo (sobretudo a aba **Movimentações**) **travava por completo** — nem os botões do SEEU respondiam —, porque os botões **Advogados** e **Localizador** disputavam o mesmo lugar na barra, logo depois de **⭐ Minhas Preferências**, e um tirava o outro do lugar sem parar. Agora o **Localizador** fica depois do **Advogados**. Além disso, se alguma função da extensão voltar a entrar nesse tipo de disputa, ela é desligada sozinha e a tela continua respondendo. Linha nova em Solução de problemas (11). |

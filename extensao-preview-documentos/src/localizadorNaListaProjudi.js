@@ -143,8 +143,8 @@
 		return { nomes: nomes, rotulo: nomes.length ? null : (rotulo || SEM_LOCALIZADOR), historico: historico };
 	}
 
-	async function buscarHTML(url) {
-		const resposta = await fetch(url, { credentials: "same-origin" });
+	async function buscarHTML(url, opcoes) {
+		const resposta = await fetch(url, Object.assign({ credentials: "same-origin" }, opcoes || {}));
 		if (!resposta.ok) throw new Error("o Projudi respondeu " + resposta.status);
 		const bytes = await resposta.arrayBuffer();
 		const inicio = new TextDecoder("windows-1252").decode(bytes.slice(0, 4096));
@@ -210,8 +210,10 @@
 	function prontoProcesso(doc, decorrido) {
 		const path = caminho(doc);
 		if (path === "/projudi/processo.do" || path === "/projudi/visualizacaoProcesso.do") {
+			// Aba Informações Gerais, ou outra aba com o formulário do
+			// processo (a troca de aba é feita depois, em abaInformacoesGerais).
 			if (lerInformacoesGerais(doc, doc.URL)) return true;
-			if (decorrido > 10000 && doc.readyState === "complete") throw new Error("a linha \"Localizadores\" não apareceu na aba Informações Gerais");
+			if (doc.readyState === "complete" && doc.getElementById("processoForm")) return true;
 			return false;
 		}
 		if (path === "/projudi/processo/buscaProcesso.do") {
@@ -246,15 +248,54 @@
 	}
 	const urlsProcesso = {};
 
+	// A tela do processo abre na aba Movimentações, sem a linha
+	// "Localizadores:". A aba Informações Gerais vem pela mesma troca de aba
+	// do Projudi: o #processoForm enviado com selectedIcon=tabDadosProcesso
+	// (como blocoAnotacoes.js e habilitarAdvogado.js fazem) ou, se não der,
+	// o endereço processo.do?actionType=visualizar&id=…&selectedIcon=… (o
+	// mesmo formato dos links da própria tela).
+	async function abaInformacoesGerais(doc, base) {
+		const direto = lerInformacoesGerais(doc, base);
+		if (direto) return direto;
+		const form = doc.getElementById("processoForm");
+		if (!form) return null;
+		const acao = mesmaOrigem(form.getAttribute("action") || "", base);
+		const campoId = form.querySelector('[name="id"]');
+		const id = (campoId && campoId.value) || (acao && acao.searchParams.get("id")) || "";
+		if (acao) {
+			try {
+				const corpo = new URLSearchParams();
+				for (const c of form.querySelectorAll("input[name], select[name], textarea[name]")) {
+					if (c.disabled || /^(button|submit|image|file|reset)$/i.test(c.type || "")) continue;
+					if (/^(checkbox|radio)$/i.test(c.type || "") && !c.checked) continue;
+					corpo.append(c.name, c.value || "");
+				}
+				corpo.set("selectedIcon", "tabDadosProcesso");
+				if (/^\d+$/.test(id)) corpo.set("id", id);
+				const r = await buscarHTML(acao.href, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: corpo.toString() });
+				const info = lerInformacoesGerais(r.doc, r.url);
+				if (info) return info;
+			} catch (e) {
+				console.warn(TAG, "troca para a aba Informações Gerais (envio do formulário) falhou:", e);
+			}
+		}
+		if (/^\d+$/.test(id)) {
+			const url = location.origin + "/projudi/processo.do?actionType=visualizar&id=" + id + "&selectedIcon=tabDadosProcesso";
+			const r = await buscarHTML(url);
+			return lerInformacoesGerais(r.doc, r.url);
+		}
+		return null;
+	}
+
 	// Lê a linha "Localizadores:" do processo da linha. Primeiro pela
-	// página baixada (rápido); se a linha não vier nela, carrega a tela
-	// num iframe oculto (ou pesquisa pelo número).
+	// página baixada (rápido); se não der, carrega a tela num iframe oculto
+	// (ou pesquisa pelo número) e troca para a aba Informações Gerais.
 	async function lerProcesso(item) {
 		const url = await urlDoProcesso(item);
 		if (url) {
 			try {
 				const r = await buscarHTML(url);
-				const info = lerInformacoesGerais(r.doc, r.url);
+				const info = await abaInformacoesGerais(r.doc, r.url);
 				if (info) return info;
 			} catch (e) {
 				console.warn(TAG, item.cnj, "leitura direta falhou; abrindo a tela:", e);
@@ -263,7 +304,7 @@
 		const alvo = url || (location.origin + "/projudi/processo/buscaProcesso.do?actionType=iniciarSimples#pdp-search=" + encodeURIComponent(item.cnj));
 		const r = await carregar(alvo, prontoProcesso);
 		if (!url && r.url) urlsProcesso[item.cnj] = r.url;
-		return lerInformacoesGerais(r.doc, r.url);
+		return abaInformacoesGerais(r.doc, r.url);
 	}
 
 	// ------------------------------------------------------------------
