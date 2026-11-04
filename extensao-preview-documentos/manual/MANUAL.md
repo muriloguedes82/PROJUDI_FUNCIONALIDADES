@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.56.1 |
-| **Versão da extensão** | 2.56.1 |
+| **Versão do manual** | 2.57.0 |
+| **Versão da extensão** | 2.57.0 |
 | **Data desta versão** | 04/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -2811,8 +2811,8 @@ processo não tem nenhum), seguida de dois botões:
 **Passo a passo:**
 
 1. Abra a lista. Em cada linha aparece **📍 aguardando…** e, logo depois,
-   **lendo…**: a extensão consulta cada processo **em segundo plano**, um
-   de cada vez, de cima para baixo, e mostra o que está na linha
+   **lendo…**: a extensão consulta os processos **em segundo plano**, **três
+   ao mesmo tempo**, de cima para baixo, e mostra o que está na linha
    **Localizadores:** da aba Informações Gerais. Se a linha não trouxer
    nada, aparece **sem localizador** (como no SEEU). Você pode continuar
    trabalhando na lista enquanto isso.
@@ -2852,6 +2852,13 @@ linha mostra o resultado (**✅** ou **⚠**).
 - O que foi lido fica guardado por **10 minutos** na aba: voltar a uma
   página da lista já vista mostra os localizadores na hora. Use o **↻**
   para ler de novo antes disso.
+- Depois da primeira leitura, a extensão sabe o caminho direto para a aba
+  Informações Gerais de cada processo (enquanto a aba do navegador estiver
+  aberta): o **↻** e a leitura depois de uma troca ficam mais rápidos.
+- A extensão confere se cada resposta do Projudi é mesmo do processo da
+  linha. Se vier a de outro processo, ela lê aquele processo de novo,
+  sozinho; se isso acontecer duas vezes na mesma página, ela passa a ler
+  um processo de cada vez até você recarregar a lista.
 - Para alterar, o perfil precisa ter acesso à tela Histórico de
   Localizadores (o link da linha **Localizadores:** precisa aparecer na aba
   Informações Gerais). Sem ele, o painel avisa.
@@ -2965,6 +2972,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.57.0 | 04/11/2026 | Localizador na lista do Projudi (9.13) mais rápido: lê três processos ao mesmo tempo e, depois da primeira leitura, vai direto à aba Informações Gerais; confere se cada resposta é do processo certo e, se o Projudi misturar processos, volta a ler um de cada vez. Ajustados o passo 1 e o Bom saber de 9.13. |
 | 2.56.1 | 04/11/2026 | Sem alteração de texto; corrigido: no Localizador na lista do Projudi (9.13), a linha **📍** mostrava "⚠ não foi possível ler" ("a linha Localizadores não apareceu na aba Informações Gerais") porque a tela do processo abre na aba Movimentações. Agora a extensão passa para a aba **Informações Gerais** antes de ler. |
 | 2.56.0 | 04/11/2026 | Nova seção **9.13 Localizador na lista de juntadas e de conclusões (Projudi)**: nas listas Análise de Juntadas e Retorno de Conclusão do Projudi, a linha **📍** mostra o que consta em **Localizadores:** na aba Informações Gerais, o **✏️** troca ou inclui um localizador escolhido entre os ativos do Histórico de Localizadores, e clicar no localizador tira-o do processo. Incluída também na tabela de 2.6. |
 | 2.55.5 | 04/11/2026 | Corrigido: o botão **Finalizar conclusão** do quadro Pendências (6.2) às vezes não funcionava e avisava "Não foi encontrada uma conclusão habilitada para finalização", embora a mesma finalização feita antes de uma preferência funcionasse. Agora o botão segue o mesmo caminho: quando preciso, abre sozinho a tela do **Analisar** para achar o botão do Projudi. Ajuste em 6.2 e linha nova em Solução de problemas (11). |

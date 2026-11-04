@@ -51,6 +51,10 @@
 	const TAG = "[Projudi Localizador na lista]";
 	const RE_CNJ = /\b\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}\b/;
 	const CHAVE_CACHE = "pdpLocalizadorNaListaProjudi";
+	const CHAVE_IDS = "pdpLocalizadorNaListaProjudiIds";
+	// Quantos processos são lidos ao mesmo tempo. 1 = um de cada vez (como
+	// até a versão 2.56.1).
+	const SIMULTANEAS = 3;
 	const VALIDADE_MS = 10 * 60 * 1000;
 	const TIMEOUT_CARGA_MS = 25000;
 	const PATH_HISTORICO = "/projudi/processo/localizadorProcesso.do";
@@ -251,60 +255,150 @@
 	// A tela do processo abre na aba Movimentações, sem a linha
 	// "Localizadores:". A aba Informações Gerais vem pela mesma troca de aba
 	// do Projudi: o #processoForm enviado com selectedIcon=tabDadosProcesso
-	// (como blocoAnotacoes.js e habilitarAdvogado.js fazem) ou, se não der,
-	// o endereço processo.do?actionType=visualizar&id=…&selectedIcon=… (o
-	// mesmo formato dos links da própria tela).
-	async function abaInformacoesGerais(doc, base) {
-		const direto = lerInformacoesGerais(doc, base);
-		if (direto) return direto;
+	// (como blocoAnotacoes.js e habilitarAdvogado.js fazem) ou o endereço
+	// processo.do?actionType=visualizar&id=…&selectedIcon=… (o mesmo formato
+	// dos links da própria tela).
+	//
+	// Leituras simultâneas (SIMULTANEAS): o Projudi guarda na sessão o
+	// "processo atual", então cada resposta da aba é conferida (id interno e
+	// número CNJ). Se vier a aba de outro processo, a leitura é refeita
+	// sozinha, sem nenhuma outra em andamento (ver processarFila).
+	//
+	// O id interno de cada processo (o "id=" do #processoForm) fica guardado
+	// na aba (sessionStorage, CHAVE_IDS): a partir da segunda leitura (↻,
+	// depois de alterar, outra página da lista) a extensão vai direto à aba
+	// Informações Gerais, com uma consulta só.
+	const idsProcesso = {};
+	try { Object.assign(idsProcesso, JSON.parse(sessionStorage.getItem(CHAVE_IDS) || "{}")); } catch (e) { /* segue */ }
+	function guardarId(cnj, id) {
+		if (!/^\d+$/.test(id || "") || idsProcesso[cnj] === id) return;
+		idsProcesso[cnj] = id;
+		try { sessionStorage.setItem(CHAVE_IDS, JSON.stringify(idsProcesso)); } catch (e) { /* segue */ }
+	}
+	// Qual troca de aba funcionou ("post" ou "get"), para ir direto a ela.
+	let modoAba = null;
+
+	function erroTrocado() {
+		const e = new Error("o Projudi devolveu a aba de outro processo");
+		e.trocado = true;
+		return e;
+	}
+
+	function idDoDoc(doc, base) {
 		const form = doc.getElementById("processoForm");
-		if (!form) return null;
+		if (!form) return "";
+		const campo = form.querySelector('[name="id"]');
+		if (campo && /^\d+$/.test(campo.value || "")) return campo.value;
 		const acao = mesmaOrigem(form.getAttribute("action") || "", base);
-		const campoId = form.querySelector('[name="id"]');
-		const id = (campoId && campoId.value) || (acao && acao.searchParams.get("id")) || "";
-		if (acao) {
-			try {
-				const corpo = new URLSearchParams();
-				for (const c of form.querySelectorAll("input[name], select[name], textarea[name]")) {
-					if (c.disabled || /^(button|submit|image|file|reset)$/i.test(c.type || "")) continue;
-					if (/^(checkbox|radio)$/i.test(c.type || "") && !c.checked) continue;
-					corpo.append(c.name, c.value || "");
-				}
-				corpo.set("selectedIcon", "tabDadosProcesso");
-				if (/^\d+$/.test(id)) corpo.set("id", id);
-				const r = await buscarHTML(acao.href, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: corpo.toString() });
-				const info = lerInformacoesGerais(r.doc, r.url);
-				if (info) return info;
-			} catch (e) {
-				console.warn(TAG, "troca para a aba Informações Gerais (envio do formulário) falhou:", e);
+		return (acao && acao.searchParams.get("id")) || "";
+	}
+
+	// Confere que a resposta é do processo esperado.
+	function conferir(doc, base, cnj, id) {
+		const recebido = idDoDoc(doc, base);
+		if (id && recebido && recebido !== id) throw erroTrocado();
+		const texto = (doc.body && doc.body.textContent) || "";
+		if (cnj && RE_CNJ.test(texto) && texto.indexOf(cnj) < 0) throw erroTrocado();
+	}
+
+	async function abaPorGet(cnj, id) {
+		const r = await buscarHTML(location.origin + "/projudi/processo.do?actionType=visualizar&id=" + id + "&selectedIcon=tabDadosProcesso");
+		const info = lerInformacoesGerais(r.doc, r.url);
+		if (info) conferir(r.doc, r.url, cnj, id);
+		return info;
+	}
+
+	async function abaPorPost(cnj, id, acao, form) {
+		const corpo = new URLSearchParams();
+		if (form) {
+			for (const c of form.querySelectorAll("input[name], select[name], textarea[name]")) {
+				if (c.disabled || /^(button|submit|image|file|reset)$/i.test(c.type || "")) continue;
+				if (/^(checkbox|radio)$/i.test(c.type || "") && !c.checked) continue;
+				corpo.append(c.name, c.value || "");
 			}
 		}
-		if (/^\d+$/.test(id)) {
-			const url = location.origin + "/projudi/processo.do?actionType=visualizar&id=" + id + "&selectedIcon=tabDadosProcesso";
-			const r = await buscarHTML(url);
-			return lerInformacoesGerais(r.doc, r.url);
+		corpo.set("selectedIcon", "tabDadosProcesso");
+		if (id) corpo.set("id", id);
+		const r = await buscarHTML(acao, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: corpo.toString() });
+		const info = lerInformacoesGerais(r.doc, r.url);
+		if (info) conferir(r.doc, r.url, cnj, id);
+		return info;
+	}
+
+	// Direto à aba Informações Gerais pelo id guardado (uma consulta).
+	async function lerPeloId(cnj, id) {
+		const modos = modoAba === "post" ? ["post", "get"] : ["get", "post"];
+		for (const modo of modos) {
+			try {
+				const info = modo === "get" ? await abaPorGet(cnj, id)
+					: await abaPorPost(cnj, id, location.origin + "/projudi/visualizacaoProcesso.do?actionType=visualizar&id=" + id, null);
+				if (info) { modoAba = modo; return info; }
+			} catch (e) {
+				if (e && e.trocado) throw e;
+				console.warn(TAG, cnj, "leitura pelo id (" + modo + ") falhou:", e);
+			}
 		}
 		return null;
 	}
 
-	// Lê a linha "Localizadores:" do processo da linha. Primeiro pela
-	// página baixada (rápido); se não der, carrega a tela num iframe oculto
-	// (ou pesquisa pelo número) e troca para a aba Informações Gerais.
+	async function abaInformacoesGerais(doc, base, cnj) {
+		const id = idDoDoc(doc, base);
+		const direto = lerInformacoesGerais(doc, base);
+		if (direto) {
+			conferir(doc, base, cnj, null);
+			guardarId(cnj, id);
+			return direto;
+		}
+		const form = doc.getElementById("processoForm");
+		if (!form) return null;
+		conferir(doc, base, cnj, null);
+		guardarId(cnj, id);
+		const acao = mesmaOrigem(form.getAttribute("action") || "", base);
+		if (acao && modoAba !== "get") {
+			try {
+				const info = await abaPorPost(cnj, /^\d+$/.test(id) ? id : null, acao.href, form);
+				if (info) { modoAba = "post"; return info; }
+			} catch (e) {
+				if (e && e.trocado) throw e;
+				console.warn(TAG, "troca para a aba Informações Gerais (envio do formulário) falhou:", e);
+			}
+		}
+		if (/^\d+$/.test(id)) {
+			const info = await abaPorGet(cnj, id);
+			if (info) { modoAba = "get"; return info; }
+		}
+		return null;
+	}
+
+	// Lê a linha "Localizadores:" do processo da linha: direto pela aba
+	// Informações Gerais quando o id já é conhecido; senão pela tela do
+	// processo baixada e a troca de aba; se nada disso der, carrega a tela
+	// num iframe oculto (ou pesquisa pelo número).
 	async function lerProcesso(item) {
+		if (idsProcesso[item.cnj]) {
+			try {
+				const info = await lerPeloId(item.cnj, idsProcesso[item.cnj]);
+				if (info) return info;
+			} catch (e) {
+				// Aba de outro processo pelo atalho: segue pelo caminho completo.
+				if (!(e && e.trocado)) throw e;
+			}
+		}
 		const url = await urlDoProcesso(item);
 		if (url) {
 			try {
 				const r = await buscarHTML(url);
-				const info = await abaInformacoesGerais(r.doc, r.url);
+				const info = await abaInformacoesGerais(r.doc, r.url, item.cnj);
 				if (info) return info;
 			} catch (e) {
+				if (e && e.trocado) throw e;
 				console.warn(TAG, item.cnj, "leitura direta falhou; abrindo a tela:", e);
 			}
 		}
 		const alvo = url || (location.origin + "/projudi/processo/buscaProcesso.do?actionType=iniciarSimples#pdp-search=" + encodeURIComponent(item.cnj));
 		const r = await carregar(alvo, prontoProcesso);
 		if (!url && r.url) urlsProcesso[item.cnj] = r.url;
-		return abaInformacoesGerais(r.doc, r.url);
+		return abaInformacoesGerais(r.doc, r.url, item.cnj);
 	}
 
 	// ------------------------------------------------------------------
@@ -610,31 +704,71 @@
 	// Leitura em segundo plano (um processo de cada vez)
 	// ------------------------------------------------------------------
 
-	let rodando = false;
+	// Leitores em andamento (até SIMULTANEAS). Uma leitura que recebeu a
+	// aba de outro processo volta para a fila marcada `sozinho` e só é
+	// refeita quando nenhuma outra está em andamento.
+	let leitores = 0;
 	let pausado = false;
+	// Limite em uso: cai para 1 se o Projudi devolver a aba de outro
+	// processo duas vezes nesta página (aí ler junto só atrasaria).
+	let limite = SIMULTANEAS;
+	let trocados = 0;
 
-	async function processarFila() {
-		if (rodando || pausado) return;
-		rodando = true;
-		try {
-			for (;;) {
-				if (pausado) break;
-				const item = linhas().find(function (i) { return lidos[i.cnj] && lidos[i.cnj].estado === "fila"; });
-				if (!item) break;
-				lidos[item.cnj] = { estado: "lendo" };
-				renderizar();
-				try {
-					const info = await lerProcesso(item);
-					if (!info) throw new Error("a linha \"Localizadores\" não está na aba Informações Gerais");
-					definir(item.cnj, info);
-				} catch (e) {
-					console.warn(TAG, item.cnj, e);
-					lidos[item.cnj] = { estado: "erro", erro: (e && e.message) || "falha ao ler" };
-					renderizar();
-				}
+	function proximoDaFila() {
+		const fila = linhas().filter(function (i) { return lidos[i.cnj] && lidos[i.cnj].estado === "fila"; });
+		return fila.find(function (i) { return lidos[i.cnj].sozinho; }) || fila[0] || null;
+	}
+
+	function processarFila() {
+		while (!pausado) {
+			const item = proximoDaFila();
+			if (!item) return;
+			if (lidos[item.cnj].sozinho) {
+				if (leitores > 0) return; // espera as demais terminarem
+				leitores = Infinity; // ninguém mais começa
+				lerSozinho(item).finally(function () { leitores = 0; processarFila(); });
+				return;
 			}
-		} finally {
-			rodando = false;
+			if (leitores >= limite) return;
+			leitores++;
+			leitor().finally(function () { leitores--; processarFila(); });
+		}
+	}
+
+	async function ler(item, sozinho) {
+		lidos[item.cnj] = { estado: "lendo" };
+		renderizar();
+		try {
+			const info = await lerProcesso(item);
+			if (!info) throw new Error("a linha \"Localizadores\" não está na aba Informações Gerais");
+			definir(item.cnj, info);
+		} catch (e) {
+			if (e && e.trocado && !sozinho) {
+				console.info(TAG, item.cnj, "resposta de outro processo; será lido de novo, sem leituras simultâneas.");
+				if (++trocados >= 2 && limite > 1) {
+					limite = 1;
+					console.info(TAG, "o Projudi misturou processos lidos ao mesmo tempo; nesta página, um de cada vez.");
+				}
+				lidos[item.cnj] = { estado: "fila", sozinho: true };
+				renderizar();
+				return;
+			}
+			console.warn(TAG, item.cnj, e);
+			lidos[item.cnj] = { estado: "erro", erro: (e && e.message) || "falha ao ler" };
+			renderizar();
+		}
+	}
+
+	async function lerSozinho(item) {
+		await ler(item, true);
+	}
+
+	async function leitor() {
+		for (;;) {
+			if (pausado) return;
+			const item = proximoDaFila();
+			if (!item || lidos[item.cnj].sozinho) return;
+			await ler(item, false);
 		}
 	}
 
@@ -681,7 +815,7 @@
 		avisarLinha(item.cnj, "Removendo \"" + nome + "\"…", "info");
 		let hist = null;
 		try {
-			while (rodando) await esperar(200);
+			while (leitores > 0) await esperar(200);
 			hist = (await prepararHistorico(item)).hist;
 			const r = await removerNoHistorico(hist, nome);
 			await atualizarDepois(item, hist);
@@ -727,7 +861,7 @@
 		setTimeout(function () { document.addEventListener("mousedown", foraDoEditor, true); }, 0);
 
 		pausado = true;
-		while (rodando) await esperar(200);
+		while (leitores > 0) await esperar(200);
 		if (editor !== e) return;
 		try {
 			const r = await prepararHistorico(item);
