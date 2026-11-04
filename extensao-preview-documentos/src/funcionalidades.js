@@ -258,7 +258,8 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					partes: [
 						{ id: "juntadas", nome: "Botão \"Dispensar juntadas\"", ocultar: [".pdp-dispensar-juntadas:not([data-pdp-parte=\"decursos\"])"] },
 						{ id: "decursos", nome: "Botão \"Dispensar decursos\"", ocultar: [".pdp-dispensar-juntadas[data-pdp-parte=\"decursos\"]"] },
-						{ id: "cumprimentos", nome: "Botão \"Dispensar pendências\" (cumprimentos para expedir)", ocultar: [".pdp-dispensar-cumprimentos"] }
+						{ id: "cumprimentos", nome: "Botão \"Dispensar pendências\" (cumprimentos para expedir)", ocultar: [".pdp-dispensar-cumprimentos"] },
+						{ id: "decursoCumprimentos", nome: "Botão \"Dispensar decurso\" (cumprimentos aguardando análise de decurso)", ocultar: [".pdp-dispensar-decurso-cumprimento"] }
 					]
 				},
 				{

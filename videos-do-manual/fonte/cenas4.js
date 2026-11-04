@@ -214,6 +214,28 @@ CENAS.V36 = {
 	},
 };
 
+// ------------------------------------------------------------------ V61
+CENAS.V61 = {
+	arquivo: "V61-dispensar-decurso-de-cumprimentos.mp4",
+	titulo: "Dispensar decurso de cumprimentos",
+	secao: "6.5",
+	async run() {
+		telaProcesso({});
+		$("#quadroPendencias table").insertAdjacentHTML("beforeend", '<tr><td class="l">Cumprimentos Aguardando Análise de Decurso:</td><td><a class="link">Ofício em Reiteração: 01</a> <button class="x-btn small" id="b-dec">Dispensar decurso</button></td></tr>');
+		await S.titleCard("VÍDEO V61", "Dispensar decurso de cumprimentos", "Dispense a análise do decurso sem sair da tela do processo.");
+		await S.cap("Na linha <b>Cumprimentos Aguardando Análise de Decurso</b>, confira o cumprimento e clique em <b>Dispensar decurso</b>.");
+		await S.click("#b-dec");
+		$("#b-dec").disabled = true;
+		$("#b-dec").textContent = "Dispensando decurso…";
+		await S.cap("Sem você ver, a extensão abre a lista, clica em <b>Visualizar</b>, em <b>Dispensar Decurso</b> e responde <b>OK</b>.");
+		await sleep(1200);
+		$("#b-dec").textContent = "Decurso dispensado";
+		$("#b-dec").style.background = "#e5f4e8";
+		await S.cap("Pronto: <b>Decurso dispensado</b>. Recarregue a página para atualizar o quadro Pendências.");
+		await S.endCard("Pendências → Cumprimentos Aguardando Análise de Decurso → Dispensar decurso.");
+	},
+};
+
 // ------------------------------------------------------------------ V37
 // Caixinha ao lado do evento para escolher a movimentação de referência das
 // Ações rápidas (src/movimentoBase.js).

@@ -120,7 +120,125 @@
       alert('Dispensa: ' + done + ' de ' + count + ' remoções confirmadas. ' + error.message + '\nConfira a listagem antes de repetir. Não houve reenvio automático.');
     } finally { busy = false; }
   }
+  // "Cumprimentos Aguardando Análise de Decurso:" — botão "Dispensar decurso".
+  // O link abre a lista "Demais Cumprimentos"; cada "Visualizar" abre a tela
+  // do cumprimento, cujo botão nativo "Dispensar Decurso" tem
+  // onclick="if(confirm('Confirma que é desnecessário gerar alguma
+  // movimentação em função da análise deste decurso de prazo ...')){
+  // submitPage('/projudi/processo/cumprimentoCartorio.do?_tj=...',
+  // document.cumprimentoCartorioForm);}". A extensão faz, sem sair da tela do
+  // processo, o mesmo envio que o OK dessa confirmação faria (submitPage troca
+  // a action do formulário e o envia) e confere o resultado.
+  const DECURSO_LABEL = 'cumprimentos aguardando analise de decurso';
+  function dispensarDecursoAction(doc, base) {
+    const button = Array.from(doc.querySelectorAll('input[type="button"], button')).find(el => normalize(el.value || el.textContent) === 'dispensar decurso');
+    if (!button) return null;
+    const onclick = button.getAttribute('onclick') || '';
+    const submitted = /submitPage\s*\(\s*(['"])([^'"]+)\1\s*,\s*document\.cumprimentoCartorioForm\s*\)/i.exec(onclick);
+    if (button.disabled || !submitted || !/confirm\s*\(/i.test(onclick)) throw new Error('Botão Dispensar Decurso indisponível.');
+    const action = checkedUrl(submitted[2], base);
+    if (new URL(action).pathname !== COMMON_PATH) throw new Error('Ação de dispensa do decurso não reconhecida.');
+    return action;
+  }
+  function formBody(form) {
+    const body = new URLSearchParams();
+    for (const [k, v] of new FormData(form)) {
+      if (typeof v !== 'string') throw new Error('Formulário inesperado.');
+      body.append(k, v);
+    }
+    return body;
+  }
+  function hasMessage(doc, selector) {
+    const el = doc.querySelector(selector);
+    return Boolean(el && normalize(el.textContent));
+  }
+  async function dispensarDecurso(link, button) {
+    if (busy) return;
+    const match = COUNT_RE.exec(link.textContent);
+    const count = match ? Number(match[1]) : 1;
+    busy = true;
+    button.disabled = true;
+    let done = 0;
+    const processed = new Set();
+    const label = () => count > 1 ? 'Dispensando decurso ' + (done + 1) + '/' + count + '…' : 'Dispensando decurso…';
+    try {
+      const url = checkedUrl(link.getAttribute('href'), document.baseURI);
+      // Reabre a lista a cada volta (atende paginação); "processed" evita
+      // abrir de novo um cumprimento já dispensado ou sem decurso a dispensar.
+      for (let volta = 0; volta < 5 && done < count; volta++) {
+        button.textContent = label();
+        const list = await page(url);
+        const form = list.doc.querySelector('form#cumprimentoCartorioForm');
+        if (!form) throw new Error('Lista de cumprimentos indisponível. Confira sua sessão.');
+        const detalhes = Array.from(form.querySelectorAll('a[href]'))
+          .filter(a => normalize(a.textContent) === 'visualizar')
+          .map(a => { try { return checkedUrl(a.getAttribute('href'), list.url); } catch (_) { return null; } })
+          .filter(Boolean);
+        let avancou = false;
+        for (const detailUrl of detalhes) {
+          if (done >= count) break;
+          button.textContent = label();
+          const detail = await page(detailUrl);
+          const detailForm = detail.doc.querySelector('form#cumprimentoCartorioForm');
+          if (!detailForm) continue;
+          const id = new URL(detailForm.getAttribute('action') || detail.url, detail.url).searchParams.get('id')
+            || detailForm.querySelector('[name="codCumprimentoCartorio"]')?.value || detailUrl;
+          if (processed.has(id)) continue;
+          processed.add(id);
+          const action = dispensarDecursoAction(detail.doc, detail.url);
+          if (!action) continue; // cumprimento sem decurso a dispensar
+          avancou = true;
+          const result = await page(action, { method: 'POST', body: formBody(detailForm) });
+          if (hasMessage(result.doc, '#errorMessages')) throw new Error(result.doc.querySelector('#errorMessages').textContent.replace(/\s+/g, ' ').trim());
+          let confirmed = hasMessage(result.doc, '#successMessages');
+          if (!confirmed) {
+            // Sem mensagem de sucesso: confere se a tela do cumprimento ainda
+            // oferece o "Dispensar Decurso".
+            const again = await page(detailUrl);
+            confirmed = !hasMessage(again.doc, '#errorMessages') && !dispensarDecursoAction(again.doc, again.url);
+          }
+          if (!confirmed) throw new Error('O ' + SISTEMA + ' não confirmou a dispensa do decurso.');
+          done++;
+        }
+        if (!avancou) break;
+      }
+      if (!done) throw new Error('Não foi encontrado nenhum cumprimento com o botão Dispensar Decurso.');
+      button.textContent = done > 1 ? 'Decursos dispensados (' + done + ')' : 'Decurso dispensado';
+      button.style.background = '#e5f4e8';
+      button.style.color = '#206334';
+      button.title = 'Recarregue a página para atualizar o quadro Pendências.';
+    } catch (error) {
+      button.textContent = 'Conferir dispensa (' + done + '/' + count + ')';
+      button.style.background = '#fff1d6';
+      button.title = error.message;
+      alert('Dispensar decurso: ' + done + ' de ' + count + ' dispensa(s) confirmada(s). ' + error.message + '\nConfira a lista antes de repetir. Não houve reenvio automático.');
+    } finally { busy = false; }
+  }
+  function rowLabel(link) {
+    let row = link.closest('tr');
+    while (row && row.closest('#quadroPendencias')) {
+      const label = row.querySelector('td.labelRadio > label');
+      if (label) return normalize(label.textContent);
+      row = row.parentElement && row.parentElement.closest('tr');
+    }
+    return '';
+  }
   function scan() {
+    document.querySelectorAll('#quadroPendencias a.link[href]').forEach(link => {
+      if (buttons.has(link)) return;
+      try { checkedUrl(link.getAttribute('href'), document.baseURI); } catch (_) { return; }
+      if (!rowLabel(link).startsWith(DECURSO_LABEL)) return;
+      if (new URL(link.href, document.baseURI).pathname !== COMMON_PATH) return;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'pdp-dispensar-decurso-cumprimento';
+      button.textContent = 'Dispensar decurso';
+      button.title = 'Dispensar a análise de decurso de prazo deste cumprimento (o mesmo que o botão "Dispensar Decurso" do ' + SISTEMA + ', confirmando com OK).';
+      button.style.cssText = 'margin-left:10px;padding:5px 10px;border:1px solid #bbc4b2;border-radius:4px;background:#f5f7ef;cursor:pointer;';
+      button.addEventListener('click', () => dispensarDecurso(link, button));
+      buttons.set(link, button);
+      link.insertAdjacentElement('afterend', button);
+    });
     document.querySelectorAll('#quadroPendencias a.link[href]').forEach(link => {
       if (buttons.has(link)) return;
       try { checkedUrl(link.getAttribute('href'), document.baseURI); } catch (_) { return; }
