@@ -1645,3 +1645,80 @@ CENAS.V59 = {
 		await S.endCard("⭐ abre a linha de cima e Combos a de baixo · arraste os demais botões para mudar a ordem (fica salva) · Menu → Ações rápidas → Botões → ↺ Ordem original.");
 	},
 };
+
+// ------------------------------------------------------------------ V60
+// ⭐ ao lado do "Agendar" da linha "Audiência" (agendarAudiencia.js): grava o
+// Tipo da Audiência no clique em "Manual" e, depois, abre o agendamento
+// manual desse tipo com um clique.
+CENAS.V60 = {
+	arquivo: "V60-agendar-audiencia-com-preferencias.mp4",
+	titulo: "Agendar Audiência com preferências",
+	secao: "8.12",
+	async run() {
+		const TIPO = "Audiência de Instrução e Julgamento";
+		const AMARELO = "margin:0 0 10px;padding:8px 10px;border:1px solid #d4b106;background:#fffbe6;color:#5c4400;border-radius:4px";
+		const VERDE = "margin:0 0 10px;padding:8px 10px;border:1px solid #6aa84f;background:#eef7e8;color:#274e13;border-radius:4px";
+		const processo = () => {
+			telaProcesso({ tab: "gerais" });
+			$("#row-assunto").insertAdjacentHTML("afterend", '<tr id="row-aud"><td class="l">Audiência:</td><td colspan="3"><a class="link" id="x-agendar">Agendar</a>' +
+				'<a id="x-aud-pref" style="' + ESTILO_BALAO + ';padding:0 4px">⭐</a></td></tr>');
+		};
+		const telaEscolha = (aviso, tipo) => {
+			browser(["*Projudi - Agendar Audiência"], "https://projudi.tjpr.jus.br/projudi/audiencia/agendaAudiencia.do?_tj=8f2a…");
+			screen(pjHeader() + '<div class="pj-body"><div class="pj-title">Processo <em class="attention">' + PROC + "</em></div>" +
+				(aviso ? '<div id="x-aviso" style="' + AMARELO + '">' + aviso + "</div>" : "") +
+				'<h4 style="margin:10px 0 6px;color:#0d3560">Agendar Audiência</h4><table class="pj-info">' +
+				'<tr><td class="l">* Vara:</td><td><span class="pj-select" style="min-width:260px;display:inline-block">Vara Criminal de Exemplo</span></td></tr>' +
+				'<tr id="row-tipo"><td class="l">* Tipo da Audiência:</td><td><span class="pj-select" id="x-tipo" style="min-width:260px;display:inline-block">' + (tipo || "Audiência Preliminar") + "</span></td></tr>" +
+				'<tr><td class="l">Previsão:</td><td>Sem previsão. Grade de audiência não configurada.</td></tr></table>' +
+				'<div class="pj-btnbar" style="justify-content:flex-start;margin-left:190px"><span class="pj-btn">Automática</span><span class="pj-btn" id="x-manual">Manual</span><span class="pj-btn">Voltar</span></div></div>');
+		};
+		const telaDoTipo = aviso => {
+			browser(["*Projudi - Agendar Audiência"], "https://projudi.tjpr.jus.br/projudi/audiencia/agendaAudiencia.do?actionType=listar");
+			screen(pjHeader() + '<div class="pj-body">' + '<div id="x-aviso" style="' + VERDE + '"><b>' + aviso + "</b></div>" +
+				'<div class="pj-title">Agendar ' + TIPO + "</div>" +
+				'<table class="pj-info"><tr><td class="l">Vara:</td><td>Vara Criminal de Exemplo</td></tr>' +
+				'<tr><td class="l">Período:</td><td><span class="pj-input">04/11/2026</span> à <span class="pj-input">04/12/2026</span></td></tr>' +
+				'<tr><td class="l">Modalidade:</td><td>◉ Indiferente ○ Presencial ○ Videoconferência</td></tr></table>' +
+				'<div class="pj-btnbar" style="justify-content:flex-start;margin-left:190px"><span class="pj-btn">Pesquisar</span><span class="pj-btn">Agendar</span><span class="pj-btn">Voltar</span></div></div>');
+		};
+		processo();
+		await S.titleCard("VÍDEO V60", "Agendar Audiência com preferências", "A ⭐ do “Agendar” escolhe o tipo da audiência e clica em Manual por você; o agendamento você continua à mão.");
+		S.hl("#row-aud", 3);
+		await S.cap("No cabeçalho do processo, a linha <b>Audiência</b> ganha uma <b>⭐</b> ao lado do <b>Agendar</b>.", { ms: 4000 });
+		S.hlOff();
+		await S.click("#x-aud-pref");
+		let pn = panelAt('<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #e3e8dc;padding-bottom:6px;margin-bottom:6px"><h4 style="margin:0">⭐ Preferências — Agendar Audiência</h4><span class="x-btn small" id="x-nova" style="font-weight:bold">+ Nova preferência</span></div>' +
+			'<div style="color:#666">Nenhuma preferência gravada.</div>', "#x-aud-pref", { w: 380 });
+		await S.cap("Para gravar, clique em <b>+ Nova preferência</b>.");
+		await S.click("#x-nova");
+		pn.remove();
+		telaEscolha("<b>⭐ Gravando preferência.</b> Escolha o <b>Tipo da Audiência</b> (e a Vara, se for o caso) e clique em <b>Manual</b>. A extensão grava a escolha, pede o nome da preferência e segue para a tela de agendamento, onde você continua normalmente.");
+		await S.cap("Abre-se a tela <b>Agendar Audiência</b> do Projudi, com o aviso amarelo. Escolha o <b>Tipo da Audiência</b>…", { ms: 4200 });
+		await selecionar("#x-tipo", TIPO);
+		await S.cap("…e clique em <b>Manual</b>, como sempre.");
+		await S.click("#x-manual");
+		modal('<b>Nome da preferência:</b><div class="pj-input" style="display:block;margin:8px 0">Instrução e Julgamento</div><span class="x-btn small green" id="x-ok">OK</span> <span class="x-btn small">Cancelar</span>', { w: 420, top: 180 });
+		await S.cap("A extensão pede o <b>nome da preferência</b> (já sugere o nome do tipo).");
+		await S.click("#x-ok");
+		closeModal();
+		telaDoTipo('Preferência "★ Instrução e Julgamento" gravada. Continue o agendamento nesta tela.');
+		await S.cap("Gravada! O Projudi segue para a tela <b>Agendar Audiência de …</b>, e você continua o agendamento normalmente.", { ms: 4200 });
+		processo();
+		await S.cap("Da próxima vez, basta a <b>⭐</b>…");
+		await S.click("#x-aud-pref");
+		pn = panelAt('<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #e3e8dc;padding-bottom:6px;margin-bottom:6px"><h4 style="margin:0">⭐ Preferências — Agendar Audiência</h4><span class="x-btn small" style="font-weight:bold">+ Nova preferência</span></div>' +
+			'<div style="display:flex;gap:4px;margin-bottom:2px"><span class="x-btn small" id="x-pref" style="flex:1">Instrução e Julgamento</span><span class="x-btn small">🗑</span></div>', "#x-aud-pref", { w: 380 });
+		await S.click("#x-pref");
+		pn.remove();
+		telaEscolha("<b>★ Instrução e Julgamento:</b> escolhendo o que foi gravado e clicando em <b>Manual</b>…");
+		await sleep(700);
+		$("#x-tipo").textContent = TIPO;
+		S.hl("#row-tipo", 2);
+		await S.cap("…e a extensão abre o <b>Agendar Audiência</b>, escolhe o tipo gravado e clica em <b>Manual</b> sozinha.", { ms: 3600 });
+		S.hlOff();
+		telaDoTipo('"★ Instrução e Julgamento" aplicada. Continue o agendamento nesta tela.');
+		await S.cap("Você já chega à tela <b>Agendar Audiência de Instrução e Julgamento</b>: daqui em diante, é com você.", { ms: 4200 });
+		await S.endCard("⭐ → + Nova preferência → Tipo → Manual → nome · Depois: ⭐ → preferência → tela de agendamento já aberta.");
+	},
+};
