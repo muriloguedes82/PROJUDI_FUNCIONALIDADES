@@ -498,6 +498,16 @@
 			});
 	}
 
+	// Abre o PDF já "na largura do painel": sem a coluna de miniaturas à
+	// esquerda (navpanes=0) e com o zoom "Ajustar à largura" (view=FitH),
+	// em vez do "página inteira" padrão do leitor do Chrome, que deixava o
+	// texto pequeno (~45%). São parâmetros de abertura de PDF (após o "#"):
+	// não vão ao servidor e não têm efeito em arquivos que não são PDF.
+	function urlDePreview(href) {
+		if (!href || href.indexOf("#") !== -1) return href;
+		return href + "#toolbar=1&navpanes=0&view=FitH";
+	}
+
 	function buildPanel() {
 		const wrap = document.createElement("div");
 		wrap.className = "pdp-overlay";
@@ -636,7 +646,7 @@
 		panel.wrap.classList.remove("pdp-loaded");
 		panel.title.textContent = filename;
 		panel.openTab.href = href;
-		panel.frame.src = href;
+		panel.frame.src = urlDePreview(href);
 
 		positionPanel(panel, link, 0);
 		panel.wrap.classList.add("pdp-visible");
@@ -769,7 +779,7 @@
 
 			panel.title.textContent = docs.length > 1 ? doc.text + " (" + (index + 1) + "/" + docs.length + ")" : doc.text;
 			panel.openTab.href = doc.href;
-			panel.frame.src = doc.href;
+			panel.frame.src = urlDePreview(doc.href);
 
 			// Documento retornado de um mandado (ver runLoaderMode/
 			// extractAnalisarRetornoAction): oferece o atalho para pular
