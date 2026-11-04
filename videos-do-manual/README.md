@@ -92,5 +92,6 @@ para dentro da extensão, retire essa regra.
 | [V58](V58-escolher-funcoes-e-botoes.mp4) | [Escolher funções e botões (busca, Desativar todas)](V58-escolher-funcoes-e-botoes.mp4) | [2.6](../extensao-preview-documentos/manual/MANUAL.md#cap-2-6) | 1:05 |
 | [V59](V59-mudar-a-ordem-dos-botoes.mp4) | [Mudar a ordem dos botões da barra](V59-mudar-a-ordem-dos-botoes.mp4) | [2.4](../extensao-preview-documentos/manual/MANUAL.md#cap-2-4) | 0:39 |
 | [V60](V60-agendar-audiencia-com-preferencias.mp4) | [Agendar Audiência com preferências](V60-agendar-audiencia-com-preferencias.mp4) | [8.12](../extensao-preview-documentos/manual/MANUAL.md#cap-8-12) | 0:59 |
-| [V61](V61-dispensar-decurso-de-cumprimentos.mp4) | [Dispensar decurso de cumprimentos](V61-dispensar-decurso-de-cumprimentos.mp4) | [6.5](../extensao-preview-documentos/manual/MANUAL.md#cap-6-5) | 0:26 |
+| [V61](V61-localizador-na-lista-projudi.mp4) | [Localizador na lista (Projudi)](V61-localizador-na-lista-projudi.mp4) | [9.13](../extensao-preview-documentos/manual/MANUAL.md#cap-9-13) | 1:01 |
+| [V62](V62-dispensar-decurso-de-cumprimentos.mp4) | [Dispensar decurso de cumprimentos](V62-dispensar-decurso-de-cumprimentos.mp4) | [6.5](../extensao-preview-documentos/manual/MANUAL.md#cap-6-5) | 0:26 |
 <!-- tabela-videos:fim -->

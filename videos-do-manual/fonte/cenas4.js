@@ -214,15 +214,15 @@ CENAS.V36 = {
 	},
 };
 
-// ------------------------------------------------------------------ V61
-CENAS.V61 = {
-	arquivo: "V61-dispensar-decurso-de-cumprimentos.mp4",
+// ------------------------------------------------------------------ V62
+CENAS.V62 = {
+	arquivo: "V62-dispensar-decurso-de-cumprimentos.mp4",
 	titulo: "Dispensar decurso de cumprimentos",
 	secao: "6.5",
 	async run() {
 		telaProcesso({});
 		$("#quadroPendencias table").insertAdjacentHTML("beforeend", '<tr><td class="l">Cumprimentos Aguardando Análise de Decurso:</td><td><a class="link">Ofício em Reiteração: 01</a> <button class="x-btn small" id="b-dec">Dispensar decurso</button></td></tr>');
-		await S.titleCard("VÍDEO V61", "Dispensar decurso de cumprimentos", "Dispense a análise do decurso sem sair da tela do processo.");
+		await S.titleCard("VÍDEO V62", "Dispensar decurso de cumprimentos", "Dispense a análise do decurso sem sair da tela do processo.");
 		await S.cap("Na linha <b>Cumprimentos Aguardando Análise de Decurso</b>, confira o cumprimento e clique em <b>Dispensar decurso</b>.");
 		await S.click("#b-dec");
 		$("#b-dec").disabled = true;
@@ -1753,5 +1753,91 @@ CENAS.V60 = {
 		await S.cap("No combo, a etapa abre o agendamento e o combo <b>espera</b> você voltar à tela do processo para seguir — deixe-a por último.", { ms: 4400 });
 		pn.remove();
 		await S.endCard("⭐ → + Nova preferência → Tipo → Manual → nome · Depois: ⭐ → preferência → tela de agendamento já aberta.");
+	},
+};
+
+// ------------------------------------------------------------------ V61
+// Localizador na coluna do número, nas listas do Projudi: lido da linha
+// "Localizadores:" da aba Informações Gerais; ✏️ troca ou inclui um
+// localizador do Histórico de Localizadores (localizadorNaListaProjudi.js).
+CENAS.V61 = {
+	arquivo: "V61-localizador-na-lista-projudi.mp4",
+	titulo: "Localizador na lista (Projudi)",
+	secao: "9.13",
+	async run() {
+		telaLista("Análise de Juntadas");
+		const ITEM = "display:inline-block;margin-left:3px;padding:0 6px;font-size:11px;color:#1e3a8a;background:#eff6ff;border:1px solid #bfdbfe;border-radius:4px";
+		const BT = "display:inline-block;margin-left:3px;padding:0 4px;font-size:11px;background:#fff;border:1px solid #cbd5e1;border-radius:4px";
+		const VAZIO = ' <i style="color:#64748b">Localizador não cadastrado</i>';
+		const nomes = [[], ["AGUARDA LAUDO"], [], ["ALEGAÇÕES FINAIS - DEFESA"], ["ARQUIVAR"], []];
+		const linha = (i, conteudo) => {
+			const d = $('[data-locl="' + i + '"]');
+			d.innerHTML = "📍" + conteudo;
+			return d;
+		};
+		const mostrar = (i, extra = "") => linha(i, (nomes[i].length ? nomes[i].map((n, k) => '<span style="' + ITEM + '" id="x-chip-' + i + "-" + k + '">' + n + "</span>").join("") : VAZIO) +
+			'<span style="' + BT + '" id="x-ed-' + i + '">✏️</span><span style="' + BT + '">↻</span>' + extra);
+		$$("#lista tr[data-i]").forEach(tr => {
+			tr.children[1].insertAdjacentHTML("beforeend", '<div data-locl="' + tr.dataset.i + '" style="margin-top:3px;font-size:11px;color:#334155"></div>');
+			linha(tr.dataset.i, ' <i style="color:#64748b">aguardando…</i>');
+		});
+		await S.titleCard("VÍDEO V61", "Localizador na lista (Projudi)", "Veja, troque ou inclua o localizador de cada processo sem sair da lista de juntadas ou conclusões.");
+		for (let i = 0; i < nomes.length; i++) {
+			linha(i, ' <i style="color:#64748b">lendo…</i>');
+			await sleep(i < 2 ? 900 : 350);
+			mostrar(i);
+		}
+		S.hl('[data-locl="0"]', 3);
+		await S.cap("A linha <b>📍</b> mostra o que consta em <b>Localizadores:</b> na aba <b>Informações Gerais</b> de cada processo — aqui, “Localizador não cadastrado”.", { ms: 4800 });
+		S.hlOff();
+		await S.click("#x-ed-0");
+		const painel = '<h4 style="margin:0 0 6px">📍 Localizadores — ' + LISTA[0].n + "</h4>";
+		const pn = panelAt(painel + '<div style="padding:5px 7px;background:#f1f5f9;border-radius:4px">Abrindo o Histórico de Localizadores em segundo plano…</div>', "#x-ed-0", { w: 380 });
+		pn.style.left = "440px"; pn.style.top = "250px";
+		await sleep(1500);
+		const ATIVOS = ["AGUARDA LAUDO", "ARQUIVAR", "MALOTE DIGITAL", "SIGILOSO"];
+		const corpo = (no, trocar, st) => painel + (st ? '<div style="padding:5px 7px;background:#ecfdf5;color:#065f46;border-radius:4px;margin-bottom:6px">' + st + "</div>" : "") +
+			'<div style="font-size:11px;font-weight:bold;color:#475569">NO PROCESSO</div>' +
+			(no.length ? no.map((n, k) => '<div style="display:flex;justify-content:space-between;margin:3px 0"><span style="' + ITEM + '">' + n + '</span><span style="' + BT + '" id="x-rem-' + k + '">✖</span></div>').join("") : '<div style="color:#64748b;font-style:italic;margin:3px 0">Localizador não cadastrado</div>') +
+			'<div style="font-size:11px;font-weight:bold;color:#475569;margin-top:6px">' + (trocar ? "TROCAR POR" : "INCLUIR") + "</div>" +
+			'<div style="font-size:11px;margin:3px 0" id="x-trocar">' + (trocar ? "☑" : "☐") + " Baixar demais localizadores em aberto (trocar)</div>" +
+			'<div class="pj-input" style="display:block;margin:3px 0">Pesquisar localizador...</div>' +
+			ATIVOS.filter(n => !no.includes(n)).map(n => '<div class="x-btn small" style="display:block;text-align:left;margin:3px 0" id="x-add-' + n.slice(0, 3) + '">' + (trocar ? "🔁 " : "➕ ") + n + "</div>").join("");
+		pn.innerHTML = corpo([], true);
+		await S.cap("O <b>✏️</b> abre o painel: em cima, o localizador do processo; embaixo, os localizadores ativos da tela <b>Histórico de Localizadores</b>.", { ms: 4800 });
+		await S.click("#x-add-AGU");
+		pn.innerHTML = corpo(["AGUARDA LAUDO"], true, "\"AGUARDA LAUDO\" é agora o localizador do processo.");
+		nomes[0] = ["AGUARDA LAUDO"];
+		mostrar(0);
+		await S.cap("Clique no localizador: a extensão o escolhe no Histórico de Localizadores e clica em <b>Adicionar</b>. A linha da lista já mostra o novo.", { ms: 4600 });
+		await S.click("#x-trocar");
+		pn.innerHTML = corpo(["AGUARDA LAUDO"], false);
+		await S.cap("Com <b>Baixar demais localizadores em aberto</b> marcada, o escolhido substitui os atuais; desmarcada, ele é <b>incluído</b>.", { ms: 4600 });
+		await S.click("#x-add-SIG");
+		pn.innerHTML = corpo(["AGUARDA LAUDO", "SIGILOSO"], false, "\"SIGILOSO\" incluído no processo.");
+		nomes[0] = ["AGUARDA LAUDO", "SIGILOSO"];
+		mostrar(0);
+		await sleep(2200);
+		pn.remove();
+		await S.cap("Para tirar um localizador, <b>clique nele</b> na lista, como no SEEU.", { ms: 3800 });
+		await S.click("#x-chip-1-0");
+		const chip = $("#x-chip-1-0");
+		chip.style.cssText += ";color:#991b1b;background:#fef2f2;border-color:#fca5a5";
+		chip.textContent = "AGUARDA LAUDO ⊗";
+		const dica = toast("Remover do processo", { left: chip.getBoundingClientRect().left, top: chip.getBoundingClientRect().bottom + 6 });
+		await sleep(1400);
+		dica.remove();
+		modal('<b>Remover o localizador "AGUARDA LAUDO" do processo ' + LISTA[1].n + '?</b><p style="margin:8px 0"></p><span class="x-btn small green" id="x-ok">OK</span> <span class="x-btn small">Cancelar</span>', { w: 480, top: 200 });
+		await S.cap("Confirme. A extensão clica no <b>Remover</b> da linha dele no Histórico de Localizadores, em segundo plano.");
+		await S.click("#x-ok");
+		closeModal();
+		linha(1, '<span style="' + ITEM + '">AGUARDA LAUDO</span> <span style="padding:1px 6px;border-radius:4px;background:#f1f5f9">Removendo "AGUARDA LAUDO"…</span>');
+		await sleep(1800);
+		nomes[1] = [];
+		mostrar(1, ' <span style="padding:1px 6px;border-radius:4px;background:#ecfdf5;color:#065f46">✅ "AGUARDA LAUDO" removido do processo.</span>');
+		S.hl('[data-locl="1"]', 3);
+		await S.cap("A linha mostra o resultado.", { ms: 3400 });
+		S.hlOff();
+		await S.endCard("Lista do Projudi → 📍 o que está em Informações Gerais → clique no localizador para removê-lo · ✏️ → 🔁 trocar ou ➕ incluir (Histórico de Localizadores).");
 	},
 };
