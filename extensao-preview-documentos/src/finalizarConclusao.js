@@ -48,28 +48,53 @@
     return norm(doc.querySelector('#successMessages')?.textContent) === 'conclusao pendente finalizada com sucesso!' &&
       !norm(doc.querySelector('#errorMessages')?.textContent);
   }
+  // Botão do quadro Pendências: usa o mesmo caminho da finalização feita
+  // antes das preferências (window.__pdpDispensas.conclusao, abaixo), com
+  // as mesmas proteções - segue o "Analisar" da tela "Dados da Conclusão"
+  // e, se a leitura em segundo plano vier sem o botão nativo, carrega a
+  // tela numa navegação de verdade (iframe oculto). Antes (até 2.55.4) o
+  // botão tinha um caminho próprio sem essas proteções e falhava com
+  // "Não foi encontrada uma conclusão habilitada para finalização".
   async function finalize(link, url) {
     if (busy || states.has(url)) return;
-    busy = true;
-    states.set(url, {label:'Finalizando…'}); refresh();
-    let submitted = false;
-    try {
-      const doc = await request(url);
-      const data = prepare(doc);
-      if (!link.isConnected || safeURL(link.getAttribute('href')) !== url) throw new Error('A pendência mudou. Consulte a página atual antes de tentar novamente.');
-      submitted = true;
-      const result = await request(data.url, {method:'POST', body:data.body});
-      if (!succeeded(result)) throw new Error('A resposta não confirmou a finalização.');
-      states.set(url, {label:'Conclusão finalizada', success:true});
-    } catch (error) {
-      if (submitted) {
-        states.set(url, {label:'Verifique a conclusão', uncertain:true});
-        alert('Não foi possível confirmar o resultado. Verifique a conclusão no ' + SISTEMA + ' antes de repetir a operação.');
-      } else {
-        states.delete(url);
-        alert('Conclusão não enviada: ' + error.message);
-      }
-    } finally { busy = false; refresh(); }
+    if (!link.isConnected) return;
+    const result = await window.__pdpDispensas.conclusao(url);
+    if (result.ok) return;
+    if (result.uncertain) alert('Não foi possível confirmar o resultado. Verifique a conclusão no ' + SISTEMA + ' antes de repetir a operação.');
+    else alert(result.message.replace(/^Conclusão não finalizada: /, 'Conclusão não enviada: '));
+  }
+  // Carrega a tela de análise da conclusão num iframe oculto (navegação de
+  // verdade) e resolve com o documento quando o botão nativo aparece (ou
+  // depois de 5 s sem ele). Mesmo esquema de carregarTelaConclusao em
+  // quickActions.js; é o padrão quando quem chama não passa o seu.
+  function carregarNavegandoPadrao(url) {
+    return new Promise((resolve, reject) => {
+      const iframe = document.createElement('iframe');
+      iframe.setAttribute('data-pdp-loader', 'finalizar-conclusao');
+      iframe.setAttribute('aria-hidden', 'true');
+      iframe.style.cssText = 'position:fixed;left:-15000px;top:0;width:1200px;height:850px;border:0;';
+      const inicio = Date.now();
+      const timer = setInterval(() => {
+        let doc = null;
+        try {
+          doc = iframe.contentDocument;
+          if (iframe.contentWindow.location.href === 'about:blank' || doc.readyState === 'loading') doc = null;
+        } catch (error) {
+          clearInterval(timer); iframe.remove(); reject(error); return;
+        }
+        const decorrido = Date.now() - inicio;
+        if (decorrido > 25000) {
+          clearInterval(timer); iframe.remove();
+          reject(new Error('a tela de análise da conclusão demorou demais para carregar')); return;
+        }
+        if (!doc || (!doc.querySelector('#movimentarProcessoForm #extraButton') && decorrido < 5000)) return;
+        clearInterval(timer);
+        setTimeout(() => iframe.remove(), 0);
+        resolve(doc);
+      }, 300);
+      document.body.appendChild(iframe);
+      iframe.src = url;
+    });
   }
   function refresh() {
     for (const link of document.querySelectorAll('#quadroPendencias a.link[href]')) {
@@ -157,29 +182,31 @@
     let url;
     try { url = safeURL(value); } catch (error) { return {ok:false, message:error.message}; }
     if (busy || states.has(url)) return {ok:false, message:'Esta conclusão já está sendo finalizada.'};
+    carregarNavegando = carregarNavegando || carregarNavegandoPadrao;
     busy = true;
+    // O estado fica sempre na URL recebida (a do link do quadro
+    // Pendências), mesmo quando a tela de análise é outra (`alvo`), para o
+    // botão do quadro e conclusaoFinalizada() o encontrarem.
     states.set(url, {label:'Finalizando…'}); refresh();
     let submitted = false;
+    let alvo = url;
     try {
       let data;
-      let lido = await request(url);
+      let lido = await request(alvo);
       const seguinte = analisarURL(lido);
       if (seguinte && !lido.querySelector('#movimentarProcessoForm #extraButton')) {
-        states.delete(url);
-        url = seguinte;
-        states.set(url, {label:'Finalizando…'});
-        lido = await request(url);
+        alvo = seguinte;
+        lido = await request(alvo);
       }
       try {
         data = prepare(lido);
       } catch (primeiro) {
-        if (!carregarNavegando) throw primeiro;
-        const navegado = await carregarNavegando(url);
+        const navegado = await carregarNavegando(alvo);
         try {
           data = prepare(navegado);
         } catch (segundo) {
           const info = describe(navegado);
-          console.warn('[Projudi Finalizar Conclusão] tela de análise sem o botão "Finalizar Conclusão Pendente" habilitado:', JSON.stringify({url, fetch:describe(lido), navegacao:info}));
+          console.warn('[Projudi Finalizar Conclusão] tela de análise sem o botão "Finalizar Conclusão Pendente" habilitado:', JSON.stringify({url:alvo, fetch:describe(lido), navegacao:info}));
           throw new Error('não há o botão "Finalizar Conclusão Pendente" habilitado na tela de análise' +
             (info.botoes.length ? ' (botões na tela: ' + info.botoes.slice(0, 6).join(', ') + ')' : ''));
         }
