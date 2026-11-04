@@ -156,6 +156,14 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					sistemas: ["projudi"]
 				},
 				{
+					id: "agendarAudiencia",
+					nome: "Agendar Audiência (preferências)",
+					descricao: "⭐ ao lado do \"Agendar\" da linha \"Audiência\" do cabeçalho do processo, com preferências que abrem o Agendar Audiência, escolhem o tipo gravado e clicam em \"Manual\": o agendamento continua à mão na tela seguinte. Também em ⭐ Minhas Preferências e nos Combos.",
+					js: ["src/agendarAudiencia.js"],
+					requer: ["acoesRapidas"],
+					sistemas: ["projudi"]
+				},
+				{
 					id: "alvara",
 					nome: "Alvará Eletrônico",
 					descricao: "Cadastro de alvará eletrônico pelo painel de Ações rápidas.",

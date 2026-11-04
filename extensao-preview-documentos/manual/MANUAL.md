@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.57.0 |
-| **Versão da extensão** | 2.57.0 |
+| **Versão do manual** | 2.58.0 |
+| **Versão da extensão** | 2.58.0 |
 | **Data desta versão** | 04/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -78,6 +78,7 @@
    - 8.9 [Alterar Classe/Assuntos](#cap-8-9)
    - 8.10 [Novo Valor da Causa](#cap-8-10)
    - 8.11 [Prioridades (incluir, remover e preferências)](#cap-8-11)
+   - 8.12 [Agendar Audiência com preferências](#cap-8-12)
 9. [Telas de análise, mesas e cumprimentos](#cap-9)
    - 9.1 [Filtro por Sequencial na Análise de Decurso de Prazo](#cap-9-1)
    - 9.2 [Listas de tarefas](#cap-9-2)
@@ -474,7 +475,7 @@ ligar tudo.
 | Grupo | Funções que podem ser ligadas/desligadas | Seção |
 |---|---|---|
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
-| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Prioridades (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
+| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Prioridades (Projudi) · Agendar Audiência (preferências) (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Bloco de anotações | [4](#cap-4) |
 | **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (SEEU) · Localizador na lista (Projudi) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
@@ -544,8 +545,9 @@ até mudar em uma das abas.
 1. Abra os arquivos de uma movimentação (ícone **+**), como de costume.
 2. **Pare o mouse sobre o nome do arquivo** (ex.: `Certidao de Baixa.pdf`)
    por meio segundo.
-3. O documento aparece num painel sobre a tela. Role dentro dele
-   normalmente.
+3. O documento aparece num painel sobre a tela, já **na largura do
+   painel** (sem a coluna de miniaturas das páginas à esquerda), para a
+   leitura ficar confortável. Role dentro dele normalmente.
 4. Para fechar: tire o mouse do link e do painel, clique no **✕** ou tecle
    **Esc**.
 
@@ -561,6 +563,10 @@ até mudar em uma das abas.
   passe o mouse sobre cada arquivo.
 - O link **Abrir em nova aba**, no topo do painel, mantém o jeito
   tradicional.
+- O mesmo ajuste de tamanho vale para todas as pré-visualizações de
+  documentos da extensão (pendências, mandados devolvidos e conclusões).
+  Se quiser mudar o tamanho, use os botões **−** e **+** do próprio painel;
+  a coluna de miniaturas pode ser reaberta pelo botão **☰**.
 - Arquivos que o navegador não consegue exibir (alguns formatos que não
   são PDF) podem ser baixados em vez de exibidos.
 
@@ -1114,7 +1120,8 @@ Atualizar preferência** (nada é enviado); 🗑 remove.
 ### 7.3 Minhas Preferências
 
 **Para que serve:** ver **todas** as preferências salvas (das ações rápidas,
-do Juntar Documento e, no SEEU, do **📍 Localizador**) e os combos, em
+do Juntar Documento, no Projudi, do **Agendar Audiência** e, no SEEU, do
+**📍 Localizador**) e os combos, em
 cards, num só lugar.
 
 **Como o painel é organizado:** as preferências ficam em **blocos, um por
@@ -1142,7 +1149,9 @@ for comprido, ele continua na linha de baixo, dentro do mesmo card.
 todas** para ver o restante — ou use a busca **🔍 Buscar preferência** do
 topo do painel, que fica parado ao rolar ([7.8](#cap-7-8)). Os cards **📍 Localizador** (só no SEEU)
 associam os localizadores na hora, sem diálogo nem ✅ **Sim, executar**
-— veja [8.8](#cap-8-8).
+— veja [8.8](#cap-8-8). Os cards do bloco **Agendar Audiência** (só no
+Projudi) abrem a tela de agendamento já com o tipo escolhido, depois do
+**Manual** — veja [8.12](#cap-8-12); neles, o **✏️** só muda o nome.
 
 <a id="cap-7-4"></a>
 ### 7.4 Combos de preferências
@@ -1156,7 +1165,8 @@ para usar na tela do processo — as das Ações rápidas (inclusive **Alvará
 Eletrônico** e **⚖️ Advogados**), as do **📎 Juntar Documento**, as do
 **✏️ Alterar Classe/Assuntos** (classe, assunto principal e assunto
 secundário — só no Projudi, [8.9](#cap-8-9)), as de **Prioridades** (só no
-Projudi, [8.11](#cap-8-11)) e as do **📍 Localizador** (só no SEEU,
+Projudi, [8.11](#cap-8-11)), as do **Agendar Audiência** (só no Projudi,
+[8.12](#cap-8-12)) e as do **📍 Localizador** (só no SEEU,
 [8.8](#cap-8-8)). Na caixa de cada etapa elas aparecem separadas
 pelo nome da função.
 
@@ -1198,6 +1208,12 @@ pelo nome da função.
   valor) e o combo segue sozinho. Se algo der errado (por exemplo, um
   localizador que não existe na unidade), a barra mostra o aviso e oferece
   **↻ Repetir etapa**, **⏭ Próxima etapa** ou **⏹ Parar combo**.
+- Etapas de **Agendar Audiência** também pedem o **▶ Sim, executar** na
+  barra do combo. Depois dele, a extensão abre o **Agendar Audiência**,
+  escolhe o tipo e clica em **Manual**; você termina o agendamento à mão.
+  O combo **espera**: só segue para a próxima etapa quando você voltar à
+  tela do processo. Por isso, o mais prático é deixar essa etapa por
+  último.
 - Preferências que só funcionam nas listas (Analisar Decurso, Pré-Análise
   e listas de tarefas) não entram nos combos: elas agem sobre a linha da
   lista, e não sobre a tela do processo.
@@ -2074,6 +2090,74 @@ Combos** ([7.4](#cap-7-4)).
   entram no **⬇ Exportar** do Menu da extensão ([2.6](#cap-2-6)).
 - Pode ser desligada no Menu ([2.6](#cap-2-6)): **Prioridades**, no grupo
   *Ações rápidas e atalhos*.
+
+---
+
+<a id="cap-8-12"></a>
+### 8.12 Agendar Audiência com preferências
+
+*Só no Projudi.*
+
+**Para que serve:** chegar mais rápido à tela de agendamento de um tipo de
+audiência que você marca com frequência (por exemplo, **Audiência de
+Instrução e Julgamento**). A preferência faz por você o começo do caminho
+de sempre — **Agendar** → escolher o **Tipo da Audiência** → **Manual** — e
+para na tela **Agendar Audiência de …**, onde **você continua à mão**
+(data, horário, sala etc.). A extensão **não agenda** a audiência.
+
+**Onde fica:** no cabeçalho do processo, na linha **Audiência**, logo depois
+do link **Agendar**, aparece uma **⭐**. Ela aparece em qualquer aba do
+processo.
+
+**Gravar uma preferência:**
+
+1. Clique na **⭐** da linha **Audiência** e em **+ Nova preferência**.
+2. Abre-se a tela **Agendar Audiência** do Projudi, com o aviso amarelo
+   "Gravando preferência".
+3. Escolha o **Tipo da Audiência** (e a **Vara**, se houver mais de uma) e
+   clique em **Manual**.
+4. A extensão pede o **nome da preferência** (já vem sugerido o nome do
+   tipo escolhido). Digite o nome e clique em **OK**.
+5. A preferência é gravada e o Projudi segue para a tela **Agendar
+   Audiência de …**, com o aviso verde "Preferência … gravada". Continue o
+   agendamento normalmente — ou clique em **Voltar**, se só queria gravar a
+   preferência.
+
+Se você clicar em **Cancelar** na hora do nome, nada é gravado e a tela
+continua como estava (o próximo clique em **Manual** segue normalmente).
+
+**Usar a preferência:**
+
+1. Clique na **⭐** da linha **Audiência** e no nome da preferência.
+2. Se o processo tiver juntadas ou conclusão pendentes no quadro
+   **Pendências**, a extensão pergunta antes se deve dispensá-las ou
+   finalizá-la, como em toda preferência ([7.2](#cap-7-2)).
+3. A extensão abre a tela **Agendar Audiência**, escolhe o tipo gravado e
+   clica em **Manual** sozinha.
+4. Você chega à tela **Agendar Audiência de …**, com o aviso verde
+   "… aplicada. Continue o agendamento nesta tela." Daqui em diante, é
+   com você.
+
+**Bom saber:**
+
+- A preferência só escolhe o tipo (e a vara) e clica em **Manual**: nada é
+  agendado nem gravado no processo até você terminar o agendamento na tela
+  seguinte.
+- Se o tipo gravado **não existir** na tela de agendamento deste processo,
+  a extensão para, avisa e deixa você escolher à mão.
+- Se a vara gravada não aparecer na tela, a extensão mantém a que o
+  Projudi mostrou e avisa na tela seguinte.
+- Se o Projudi não sair da tela depois do **Manual** (por exemplo, por
+  uma mensagem dele), a extensão avisa; confira a tela e clique em
+  **Manual** de novo.
+- As mesmas preferências aparecem em **⭐ Minhas Preferências**, no bloco
+  **Agendar Audiência** ([7.3](#cap-7-3)), e podem entrar nos **🔗
+  Combos** ([7.4](#cap-7-4)). No combo, a etapa abre o agendamento e o
+  combo espera você voltar à tela do processo para seguir.
+- Para apagar uma preferência, use **🗑** ao lado dela. As preferências
+  entram no **⬇ Exportar** do Menu da extensão ([2.6](#cap-2-6)).
+- Pode ser desligada no Menu ([2.6](#cap-2-6)): **Agendar Audiência
+  (preferências)**, no grupo *Ações rápidas e atalhos*.
 
 ---
 
@@ -2972,9 +3056,10 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 2.57.0 | 04/11/2026 | Localizador na lista do Projudi (9.13) mais rápido: lê três processos ao mesmo tempo e, depois da primeira leitura, vai direto à aba Informações Gerais; confere se cada resposta é do processo certo e, se o Projudi misturar processos, volta a ler um de cada vez. Ajustados o passo 1 e o Bom saber de 9.13. |
-| 2.56.1 | 04/11/2026 | Sem alteração de texto; corrigido: no Localizador na lista do Projudi (9.13), a linha **📍** mostrava "⚠ não foi possível ler" ("a linha Localizadores não apareceu na aba Informações Gerais") porque a tela do processo abre na aba Movimentações. Agora a extensão passa para a aba **Informações Gerais** antes de ler. |
-| 2.56.0 | 04/11/2026 | Nova seção **9.13 Localizador na lista de juntadas e de conclusões (Projudi)**: nas listas Análise de Juntadas e Retorno de Conclusão do Projudi, a linha **📍** mostra o que consta em **Localizadores:** na aba Informações Gerais, o **✏️** troca ou inclui um localizador escolhido entre os ativos do Histórico de Localizadores, e clicar no localizador tira-o do processo. Incluída também na tabela de 2.6. |
+| 2.58.0 | 04/11/2026 | Nova seção **9.13 Localizador na lista de juntadas e de conclusões (Projudi)**: nas listas Análise de Juntadas e Retorno de Conclusão do Projudi, a linha **📍** mostra o que consta em **Localizadores:** na aba Informações Gerais (a extensão passa para essa aba antes de ler), o **✏️** troca ou inclui um localizador escolhido entre os ativos do Histórico de Localizadores, e clicar no localizador tira-o do processo. A leitura é feita em três processos ao mesmo tempo, com conferência de que cada resposta é do processo certo. Incluída também na tabela de 2.6. |
+| 2.57.1 | 04/11/2026 | Seção 3.1: a pré-visualização de documentos passa a abrir o PDF **na largura do painel** (texto maior, sem a coluna de miniaturas à esquerda), em vez da página inteira reduzida. Vale para todas as pré-visualizações de documentos (movimentações, pendências, mandados devolvidos e conclusões). Sem vídeo novo (o leitor de PDF do navegador não aparece nos vídeos simulados). |
+| 2.57.0 | 04/11/2026 | Seções 8.12, 7.3 e 7.4: as preferências do **Agendar Audiência** passam a aparecer em **⭐ Minhas Preferências** (bloco **Agendar Audiência**, com ✏️ para mudar o nome) e a poder entrar nos **🔗 Combos**. No combo, a etapa pede o **▶ Sim, executar**, abre o agendamento já depois do **Manual** e espera você voltar à tela do processo para seguir. Vídeo V60 regravado e guardado em `videos-do-manual/` (não citado no manual). |
+| 2.56.0 | 04/11/2026 | **Nova seção 8.12 — Agendar Audiência com preferências:** na linha **Audiência** do cabeçalho do processo (só no Projudi), uma **⭐** ao lado do **Agendar**. A preferência grava o **Tipo da Audiência** escolhido na tela **Agendar Audiência** (e a vara) no clique em **Manual**, pedindo um nome; ao usá-la, a extensão abre a tela, escolhe o tipo, clica em **Manual** e deixa você na tela **Agendar Audiência de …** para continuar à mão. Sumário e tabela da 2.6 atualizados. Novo vídeo V60 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 2.55.5 | 04/11/2026 | Corrigido: o botão **Finalizar conclusão** do quadro Pendências (6.2) às vezes não funcionava e avisava "Não foi encontrada uma conclusão habilitada para finalização", embora a mesma finalização feita antes de uma preferência funcionasse. Agora o botão segue o mesmo caminho: quando preciso, abre sozinho a tela do **Analisar** para achar o botão do Projudi. Ajuste em 6.2 e linha nova em Solução de problemas (11). |
 | 2.55.4 | 26/10/2026 | Corrigido: no **SEEU**, a tela do processo (sobretudo a aba **Movimentações**) **travava por completo** — nem os botões do SEEU respondiam —, porque os botões **Advogados** e **Localizador** disputavam o mesmo lugar na barra, logo depois de **⭐ Minhas Preferências**, e um tirava o outro do lugar sem parar. Agora o **Localizador** fica depois do **Advogados**. Além disso, se alguma função da extensão voltar a entrar nesse tipo de disputa, ela é desligada sozinha e a tela continua respondendo. Linha nova em Solução de problemas (11). |
 | 2.55.3 | 23/10/2026 | Seção 8.10: o quadrinho que abre no **Novo Valor da Causa** passa a ter o título só com o texto, sem o 💲. Vídeo V47 regravado e guardado em `videos-do-manual/` (não citado no manual). |

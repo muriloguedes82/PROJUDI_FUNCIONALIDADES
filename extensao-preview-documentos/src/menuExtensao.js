@@ -376,7 +376,7 @@
 	// backup do mesmo jeito e aparecem como "outras configurações".
 	const CHAVES_DESCRITAS = new Set([
 		"pdpActionPreferences", "pdpJuntarDocumentoPrefs", "pdpDecursoPrefs", "pdpPreAnalisePrefs",
-		"pdpAlterarClassePrefs", "pdpPrioridadesPrefs", "pdpPrioridadesCatalogo", "pdpLocalizadorPreferencias", "pdpPreferenceCombos", "pdpPreferencesOrder",
+		"pdpAlterarClassePrefs", "pdpPrioridadesPrefs", "pdpPrioridadesCatalogo", "pdpAgendarAudienciaPrefs", "pdpLocalizadorPreferencias", "pdpPreferenceCombos", "pdpPreferencesOrder",
 		"pdpTarefasListas", "pdpTarefasPreferencias", "pdpTarefasProcessos",
 		"pdpWhatsappContacts", "pdpEmailRecipients", "pdpFromAccounts", "pdpDefaultFromId",
 		"pdpSistemasCnjOrdem", "pdpSistemasCnjOutros", "pdpSistemasCnjOrdemSeeu", "pdpAcoesRapidasOrdem", "pdpAcoesRapidasOrdemSeeu",
@@ -404,6 +404,7 @@
 			["preferência(s) de assunto secundário", deTipo("secundario")],
 			["outra(s) preferência(s) de Alterar Classe/Assuntos", classe.length - deTipo("classe") - deTipo("assunto") - deTipo("secundario")],
 			["preferência(s) de prioridade", tamanho(local.pdpPrioridadesPrefs)],
+			["preferência(s) de agendamento de audiência", tamanho(local.pdpAgendarAudienciaPrefs)],
 			["preferência(s) de localizador (SEEU)", tamanho(local.pdpLocalizadorPreferencias)],
 			["combo(s)", tamanho(local.pdpPreferenceCombos)],
 			["lista(s) de tarefas", tamanho(local.pdpTarefasListas)],
