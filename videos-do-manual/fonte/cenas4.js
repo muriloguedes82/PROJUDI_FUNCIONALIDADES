@@ -236,6 +236,37 @@ CENAS.V62 = {
 	},
 };
 
+// ------------------------------------------------------------------ V63
+CENAS.V63 = {
+	arquivo: "V63-analisar-decurso-de-cumprimentos.mp4",
+	titulo: "Analisar decurso de cumprimentos",
+	secao: "6.5",
+	async run() {
+		telaProcesso({});
+		$("#quadroPendencias table").insertAdjacentHTML("beforeend", '<tr><td class="l">Cumprimentos Aguardando Análise de Decurso:</td><td><a class="link">Ofício em Reiteração: 01</a> <button class="x-btn small" id="b-disp">Dispensar decurso</button> <button class="x-btn small" id="b-ana">Analisar decurso</button> <span id="s-ana" style="display:none;margin-left:8px;padding:3px 8px;border-radius:4px;font-size:11px;background:#eef4fb;color:#1f4a7a"></span><div id="m-ana" style="display:none;position:absolute;margin-top:6px;padding:8px;background:#fff;border:1px solid #ccc;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.18);font-size:12px;z-index:5"><b>Analisar Decurso</b><div style="margin:6px 0;padding:4px 8px;border:1px solid #e8cf8a;background:#fff8e6;border-radius:6px">Abrir a análise</div><div style="margin:6px 0;padding:4px 8px;border:1px solid #e8cf8a;background:#fff8e6;border-radius:6px">+ Nova preferência</div><div style="color:#666;font-size:11px">Preferências de Analisar Decurso:</div><div id="p-ana" style="margin:6px 0;padding:4px 8px;border:1px solid #e8cf8a;background:#fff8e6;border-radius:6px">Certidão de decurso ✏️ 🗑</div></div></td></tr>');
+		await S.titleCard("VÍDEO V63", "Analisar decurso de cumprimentos", "Analise o decurso com uma preferência, sem sair da tela do processo.");
+		await S.cap("Na linha <b>Cumprimentos Aguardando Análise de Decurso</b>, clique em <b>Analisar decurso</b>.");
+		await S.click("#b-ana");
+		$("#m-ana").style.display = "block";
+		await S.cap("O menu é o mesmo do Analisar Decurso das listas: <b>Abrir a análise</b>, <b>+ Nova preferência</b> e as preferências salvas.");
+		await S.click("#p-ana");
+		$("#m-ana").style.display = "none";
+		const st = $("#s-ana");
+		st.style.display = "inline-block";
+		st.textContent = "Abrindo a análise com ★ Certidão de decurso…";
+		await S.cap("A extensão abre o cumprimento, clica em <b>Analisar Decurso de Prazo</b> e em <b>Adicionar</b>, e preenche a <b>Inserir Arquivo</b>.", { ms: 4600 });
+		await S.cap("No <b>Assinar Arquivos</b>, ela para: <b>assine você mesmo(a)</b> no assinador.", { ms: 4200 });
+		st.textContent = "Concluindo a análise…";
+		await S.cap("Depois da assinatura, ela clica em <b>Confirmar Inclusão</b> e em <b>Concluir</b>.");
+		st.style.background = "#e5f4e8"; st.style.color = "#206334";
+		st.textContent = "✅ Análise do decurso concluída com ★ Certidão de decurso";
+		$("#b-ana").textContent = "Decurso analisado";
+		$("#b-ana").disabled = true; $("#b-disp").disabled = true;
+		await S.cap("Pronto. Recarregue a página para atualizar o quadro Pendências.");
+		await S.endCard("Pendências → Cumprimentos Aguardando Análise de Decurso → Analisar decurso → preferência → assinar.");
+	},
+};
+
 // ------------------------------------------------------------------ V37
 // Caixinha ao lado do evento para escolher a movimentação de referência das
 // Ações rápidas (src/movimentoBase.js).
