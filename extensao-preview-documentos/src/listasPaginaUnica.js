@@ -1,13 +1,14 @@
-// Projudi - Análise de Juntadas em uma única página
+// Projudi - Análise de Juntadas e Conclusões em uma única página
 //
-// A lista "Análise de Juntadas" (processo/analisarJuntada.do) é paginada no
-// servidor (20 registros por página, navegação "Próxima Página" no
-// #navigator). Esta funcionalidade reúne todas as páginas na própria tabela
-// da primeira: ao abrir a lista (ou depois de um Filtrar/ordenação), as
-// demais páginas são buscadas em segundo plano e as linhas delas são
-// acrescentadas, em ordem, ao <tbody> da tabela de resultados — dentro do
-// mesmo formulário, então "Análise Múltipla", "Analisar", "Dispensar" e a
-// caixa de marcar todos alcançam as juntadas de todas as páginas.
+// As listas "Análise de Juntadas" (processo/analisarJuntada.do) e
+// "Conclusões" (processo/conclusao.do) são paginadas no servidor (20
+// registros por página, navegação "Próxima Página" no #navigator). Esta
+// funcionalidade reúne todas as páginas na própria tabela da primeira: ao
+// abrir a lista (ou depois de um Filtrar/ordenação), as demais páginas são
+// buscadas em segundo plano e as linhas delas são acrescentadas, em ordem,
+// ao <tbody> da tabela de resultados — dentro do mesmo formulário, então
+// "Análise Múltipla", "Analisar", "Dispensar" e a caixa de marcar todos
+// alcançam os itens de todas as páginas.
 //
 // Como a "Próxima Página" é descoberta e repetida: mesma técnica de
 // decursoPrazoSequencial.js (que já faz isso no Decurso de Prazo). O link
@@ -16,20 +17,29 @@
 // do href/onclick e repetimos o mesmo POST com fetch() (mesma sessão do
 // usuário), uma página de cada vez, até não haver mais "Próxima Página".
 //
-// Linhas trazidas das outras páginas: cada página do Projudi numera do 0 os
-// ids do "+" dos arquivos (linkArquivosN, iconN, rowN, divN), então os ids
-// são renumerados para continuar a numeração da tabela (e as referências a
-// eles no onclick="showDetail(...)"), para o "+" abrir a linha certa. As
-// demais funções da extensão que enfeitam as linhas (⭐ em lote, 📍
-// localizador, listas de tarefas, pré-visualização) já observam a tabela e
-// tratam as linhas novas sozinhas.
+// Linhas trazidas das outras páginas: na Análise de Juntadas cada página
+// numera do 0 os ids do "+" dos arquivos (linkArquivosN, iconN, rowN,
+// divN), então os ids são renumerados para continuar a numeração da tabela
+// (e as referências a eles no onclick="showDetail(...)"), para o "+" abrir
+// a linha certa. As demais funções da extensão que enfeitam as linhas (⭐ em
+// lote, 📍 localizador, listas de tarefas, pré-visualização) já observam a
+// tabela e tratam as linhas novas sozinhas.
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
-	if (window.__pdpJuntadasPaginaUnica) return;
-	window.__pdpJuntadasPaginaUnica = true;
+	if (window.__pdpListasPaginaUnica) return;
+	window.__pdpListasPaginaUnica = true;
 
-	if (!/^\/projudi\/processo\/analisarJuntada\.do$/.test(location.pathname)) return;
+	// Telas atendidas: `form` é o formulário de busca que envolve a tabela;
+	// `itens`, como os registros são chamados nos avisos.
+	const TELAS = [
+		{ caminho: /^\/projudi\/processo\/analisarJuntada\.do$/, form: "analisarJuntadaForm", itens: "juntadas" },
+		{ caminho: /^\/projudi\/processo\/conclusao\.do$/, form: "processoConclusaoForm", itens: "conclusões" },
+	];
+	const TELA = TELAS.find(function (t) {
+		return t.caminho.test(location.pathname);
+	});
+	if (!TELA) return;
 
 	// Nunca roda nos iframes ocultos que a própria extensão usa para carregar
 	// telas em segundo plano (dispensa de juntadas, decursos, localizador,
@@ -47,7 +57,7 @@
 		/* frameElement inacessível (outra origem) — segue normalmente */
 	}
 
-	const TAG = "[Projudi Juntadas em uma página]";
+	const TAG = "[Projudi " + TELA.itens + " em uma página]";
 	const MAX_PAGINAS = 100;
 	const TIMEOUT_PAGINA_MS = 20000;
 	const PREFIXOS_ID = ["linkArquivos", "icon", "row", "div"];
@@ -55,12 +65,14 @@
 	const CAMPOS_IGNORADOS = new Set(["idJuntadas", "checker"]);
 
 	function formulario(doc) {
-		return doc.querySelector('form#analisarJuntadaForm, form[name="analisarJuntadaForm"]');
+		return doc.querySelector('form[id="' + TELA.form + '"], form[name="' + TELA.form + '"]');
 	}
 
 	function tabelaResultados(doc) {
+		// Só a tabela de dentro do formulário da lista: conclusao.do também
+		// é a tela de análise de uma conclusão, que não deve ser tocada.
 		const form = formulario(doc);
-		return (form && form.querySelector("table.resultTable")) || doc.querySelector("table.resultTable");
+		return form ? form.querySelector("table.resultTable") : null;
 	}
 
 	function navegacao(doc) {
@@ -194,15 +206,16 @@
 	// --- linhas -----------------------------------------------------------------
 
 	// Linha auxiliar: a linha oculta (rowN, com o divN "extendedinfo") que o
-	// "+" preenche com os arquivos da juntada da linha anterior.
+	// "+" preenche com os arquivos da juntada da linha anterior (só existe na
+	// Análise de Juntadas).
 	function linhaAuxiliar(tr) {
 		return /^row\d+$/.test(tr.id || "") || (!!tr.querySelector(".extendedinfo") && !tr.querySelector('a[href*="processo.do"]'));
 	}
 
-	// Identifica a juntada: pela caixa idJuntadas e, quando a linha não tem
-	// caixa (há juntadas que o Projudi não deixa marcar), pelo processo e
-	// pelo texto das colunas.
-	function chaveDaJuntada(tr) {
+	// Identifica o registro: pela caixa idJuntadas e, quando a linha não tem
+	// caixa (há juntadas que o Projudi não deixa marcar, e a lista de
+	// Conclusões não tem nenhuma), pelo processo e pelo texto das colunas.
+	function chaveDoRegistro(tr) {
 		const caixa = tr.querySelector('input[name="idJuntadas"]');
 		if (caixa && caixa.value) return "id:" + caixa.value;
 		// Sem o que a própria extensão acrescenta à linha (📍, ⭐...), que
@@ -220,7 +233,7 @@
 		return "linha:" + (processo ? processo.textContent.trim() : "") + "|" + texto;
 	}
 
-	// Agrupa as linhas do <tbody>: cada juntada seguida das linhas
+	// Agrupa as linhas do <tbody>: cada registro seguido das linhas
 	// auxiliares dela.
 	function gruposDeLinhas(tabela) {
 		const grupos = [];
@@ -232,7 +245,7 @@
 					if (atual) atual.linhas.push(tr);
 					return;
 				}
-				atual = { id: chaveDaJuntada(tr), linhas: [tr] };
+				atual = { id: chaveDoRegistro(tr), linhas: [tr] };
 				grupos.push(atual);
 			});
 		});
@@ -309,13 +322,13 @@
 		aviso.textContent = texto;
 	}
 
-	function concluirNavegacao(totalJuntadas, paginas, erro) {
+	function concluirNavegacao(total, paginas, erro) {
 		const nav = navegacao(document);
 		if (!nav) return;
 		if (erro) {
 			// Mantém a navegação do Projudi para o usuário seguir à mão.
 			mostrarAviso(
-				"Reunidas " + paginas + " página(s) nesta tela (" + totalJuntadas + " juntadas). Não foi possível trazer as páginas seguintes: " + erro + ". Use a navegação do Projudi para vê-las.",
+				"Reunidas " + paginas + " página(s) nesta tela (" + total + " " + TELA.itens + "). Não foi possível trazer as páginas seguintes: " + erro + ". Use a navegação do Projudi para vê-las.",
 				true
 			);
 			return;
@@ -324,7 +337,7 @@
 		if (direita) direita.remove();
 		const esquerda = nav.querySelector(".navLeft");
 		const texto =
-			"Todas as juntadas em uma única página: " + totalJuntadas + " registro(s)" + (paginas > 1 ? " (" + paginas + " páginas do Projudi reunidas)." : ".");
+			"Todas as " + TELA.itens + " em uma única página: " + total + " registro(s)" + (paginas > 1 ? " (" + paginas + " páginas do Projudi reunidas)." : ".");
 		if (esquerda) esquerda.textContent = texto;
 		else mostrarAviso(texto, false);
 		if (aviso) {
@@ -361,7 +374,7 @@
 				erro = "limite de " + MAX_PAGINAS + " páginas atingido";
 				break;
 			}
-			mostrarAviso("Reunindo todas as páginas nesta tela… buscando a página " + (paginas + 1) + " (" + vistos.size + " juntadas até agora).", false);
+			mostrarAviso("Reunindo todas as páginas nesta tela… buscando a página " + (paginas + 1) + " (" + vistos.size + " " + TELA.itens + " até agora).", false);
 
 			let doc;
 			try {
@@ -373,8 +386,8 @@
 			}
 			const tabelaDoc = tabelaResultados(doc);
 			if (!tabelaDoc) {
-				console.warn(TAG, "a resposta da página", paginas + 1, "não trouxe a tabela de juntadas");
-				erro = "a página " + (paginas + 1) + " veio sem a lista de juntadas (a sessão pode ter expirado)";
+				console.warn(TAG, "a resposta da página", paginas + 1, "não trouxe a tabela de " + TELA.itens);
+				erro = "a página " + (paginas + 1) + " veio sem a lista de " + TELA.itens + " (a sessão pode ter expirado)";
 				break;
 			}
 			if (!tabelaResultados(document) || !tabela.isConnected) return; // a tela mudou enquanto buscávamos
@@ -384,7 +397,7 @@
 			});
 			if (!novos.length) {
 				// Página repetida: evita laço infinito se a navegação não avançar.
-				console.warn(TAG, "a página", paginas + 1, "não trouxe nenhuma juntada nova — parando");
+				console.warn(TAG, "a página", paginas + 1, "não trouxe nenhum registro novo — parando");
 				break;
 			}
 			const fragmento = document.createDocumentFragment();
@@ -401,7 +414,7 @@
 			});
 			tbody.appendChild(fragmento);
 			paginas++;
-			console.log(TAG, "página", paginas, "reunida —", novos.length, "juntada(s) nova(s); total:", vistos.size);
+			console.log(TAG, "página", paginas, "reunida —", novos.length, "registro(s) novo(s); total:", vistos.size);
 			docAtual = doc;
 		}
 
@@ -410,6 +423,6 @@
 
 	reunirPaginas().catch(function (e) {
 		console.error(TAG, e);
-		mostrarAviso("Não foi possível reunir as páginas das juntadas nesta tela. Use a navegação do Projudi.", true);
+		mostrarAviso("Não foi possível reunir as páginas das " + TELA.itens + " nesta tela. Use a navegação do Projudi.", true);
 	});
 })();

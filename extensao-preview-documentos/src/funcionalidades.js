@@ -283,10 +283,10 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					js: ["src/decursoPrazoSequencial.js"]
 				},
 				{
-					id: "juntadasPaginaUnica",
-					nome: "Análise de Juntadas em uma única página",
-					descricao: "Na lista Análise de Juntadas, reúne todas as páginas numa só tela: as juntadas das páginas seguintes são trazidas sozinhas e acrescentadas à mesma tabela, sem precisar clicar em Próxima Página.",
-					js: ["src/juntadasPaginaUnica.js"],
+					id: "listasPaginaUnica",
+					nome: "Juntadas e Conclusões em uma única página",
+					descricao: "Nas listas Análise de Juntadas e Conclusões (Retorno de Conclusão), reúne todas as páginas numa só tela: os registros das páginas seguintes são trazidos sozinhos e acrescentados à mesma tabela, sem precisar clicar em Próxima Página.",
+					js: ["src/listasPaginaUnica.js"],
 					sistemas: ["projudi"]
 				},
 				{
