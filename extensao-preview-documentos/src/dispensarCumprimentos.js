@@ -325,7 +325,7 @@
       button.className = 'pdp-dispensar-decurso-cumprimento';
       button.textContent = 'Dispensar decurso';
       button.title = 'Dispensar a análise de decurso de prazo deste cumprimento (o mesmo que o botão "Dispensar Decurso" do ' + SISTEMA + ', confirmando com OK).';
-      button.style.cssText = 'margin-left:10px;padding:5px 10px;border:1px solid #bbc4b2;border-radius:4px;background:#f5f7ef;cursor:pointer;';
+      button.style.cssText = 'margin-left:8px;padding:1px 8px;border:1px solid #a5ac9a;border-radius:3px;font:11px/16px Arial,sans-serif;vertical-align:middle;background:#f5f7ef;color:#35412b;cursor:pointer;';
       button.addEventListener('click', () => dispensarDecurso(link, button));
       buttons.set(link, button);
       const analisar = document.createElement('button');
@@ -336,7 +336,7 @@
       analisar.style.cssText = button.style.cssText;
       const statusEl = document.createElement('span');
       statusEl.className = 'pdp-analisar-decurso-cumprimento-status';
-      statusEl.style.cssText = 'display:none;margin-left:8px;padding:3px 8px;border-radius:4px;font-size:11px;';
+      statusEl.style.cssText = 'display:none;margin-left:8px;padding:1px 8px;border-radius:3px;font:11px/16px Arial,sans-serif;vertical-align:middle;';
       analisar.addEventListener('click', () => analisarDecurso(link, analisar, statusEl, [button]));
       link.insertAdjacentElement('afterend', button);
       button.insertAdjacentElement('afterend', analisar);
@@ -362,7 +362,7 @@
       button.className = 'pdp-dispensar-cumprimentos';
       button.textContent = 'Dispensar pendências';
       button.title = mandado ? 'Remover todos os mandados pendentes para expedir.' : 'Remover todos os cumprimentos para expedir deste tipo.';
-      button.style.cssText = 'margin-left:10px;padding:5px 10px;border:1px solid #bbc4b2;border-radius:4px;background:#f5f7ef;cursor:pointer;';
+      button.style.cssText = 'margin-left:8px;padding:1px 8px;border:1px solid #a5ac9a;border-radius:3px;font:11px/16px Arial,sans-serif;vertical-align:middle;background:#f5f7ef;color:#35412b;cursor:pointer;';
       button.addEventListener('click', () => dispense(link, button));
       buttons.set(link, button);
       link.insertAdjacentElement('afterend', button);
