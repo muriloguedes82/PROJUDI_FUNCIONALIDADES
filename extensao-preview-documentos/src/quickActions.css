@@ -19,6 +19,20 @@
 	right: 14px;
 	z-index: 2147483647;
 	max-width: 70vw;
+	/* Quando a fila quebra em mais de uma linha (ex.: zoom do navegador
+	   acima de 100%), a caixa dela ocupa até 70% da largura da tela, quase
+	   toda transparente à esquerda dos botões, e fica na altura do quadro
+	   Pendências (buttonDrag.js). Sem isto, essa parte vazia "engolia" o
+	   clique nos botões da página embaixo dela ("Dispensar juntadas",
+	   "Finalizar conclusão" etc.): só os botões da fila recebem clique. */
+	pointer-events: none;
+}
+
+/* Especificidade zero (:where): regras próprias de cada botão (ex.:
+   .pdp-qa-ghost, .pdp-qa-btn-disabled, que desligam o clique) continuam
+   valendo. */
+:where(.pdp-qa-row > *, .pdp-qa-row-line > *) {
+	pointer-events: auto;
 }
 
 /* As duas linhas (grupos de ação / demais botões) continuam no HTML, para
