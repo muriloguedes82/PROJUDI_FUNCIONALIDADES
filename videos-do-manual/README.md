@@ -100,4 +100,5 @@ para dentro da extensão, retire essa regra.
 | [V66](V66-conclusoes-em-uma-unica-pagina.mp4) | [Listas em uma única página (Conclusões)](V66-conclusoes-em-uma-unica-pagina.mp4) | [9.14](../extensao-preview-documentos/manual/MANUAL.md#cap-9-14) | 0:23 |
 | [V67](V67-mandados-em-uma-unica-pagina.mp4) | [Listas em uma única página (Mandados)](V67-mandados-em-uma-unica-pagina.mp4) | [9.14](../extensao-preview-documentos/manual/MANUAL.md#cap-9-14) | 0:23 |
 | [V68](V68-multas-fupen-e-juiz-das-garantias-em-uma-unica-pagina.mp4) | [Listas em uma única página (Multas FUPEN e Juiz das Garantias)](V68-multas-fupen-e-juiz-das-garantias-em-uma-unica-pagina.mp4) | [9.14](../extensao-preview-documentos/manual/MANUAL.md#cap-9-14) | 0:31 |
+| [V69](V69-intimacoes-em-uma-unica-pagina.mp4) | [Listas em uma única página (Intimações)](V69-intimacoes-em-uma-unica-pagina.mp4) | [9.14](../extensao-preview-documentos/manual/MANUAL.md#cap-9-14) | 0:34 |
 <!-- tabela-videos:fim -->

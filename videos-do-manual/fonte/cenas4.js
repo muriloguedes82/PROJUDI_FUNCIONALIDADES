@@ -2076,3 +2076,50 @@ CENAS.V68 = {
 		await S.endCard("Multas FUPEN e Juiz das Garantias → a extensão reúne todas as páginas → uma só tabela, com o total no lugar da navegação.");
 	},
 };
+
+// ------------------------------------------------------------------ V69
+CENAS.V69 = {
+	arquivo: "V69-intimacoes-em-uma-unica-pagina.mp4",
+	titulo: "Listas em uma única página (Intimações)",
+	secao: "9.14",
+	async run() {
+		function reunir(tab, rotulo, col3) {
+			for (let k = 0; k < 6; k++) {
+				const i = LISTA.length + k;
+				tab.insertAdjacentHTML("beforeend", '<tr class="' + (i % 2 ? "alt" : "") + '"><td><input type="checkbox"></td><td><a class="link">00' + (71 + k) + '321-5' + k + '.2025.8.16.0001</a><br><span style="color:#555;font-size:11px">Seq.: ' + (45500 + k * 13) + "</span></td><td>" + col3(k) + "</td><td>1" + k + "/10/2026</td></tr>");
+			}
+			$("#paginacao").innerHTML = '<span style="background:#fff8d8;border:1px solid #d9c46a;padding:3px 8px">Todas as intimações em uma única página: 12 registro(s) (2 páginas do Projudi reunidas).</span>';
+		}
+		function acima() {
+			$("#lista").before($("#paginacao")); // no Projudi a navegação fica acima da tabela
+			$("#paginacao").style.margin = "0 0 6px";
+		}
+
+		// 1) Expedir Intimações
+		telaLista("Expedir Intimações", { path: "expedirIntimacao.do", col: "Entrada", pag: "Total de registros nesta página: 6 · ‹ 1 ›" });
+		acima();
+		await S.titleCard("VÍDEO V69", "Intimações em uma única página", "Expedir Intimações e listas de decurso de prazo numa só tela.");
+		await S.cap("No <b>Expedir Intimações</b>, a extensão também traz <b>sozinha</b> as páginas seguintes.", { ms: 3800 });
+		$("#paginacao").innerHTML = 'Total de registros nesta página: 6 · ‹ 1 › · <span style="color:#555">Reunindo todas as páginas nesta tela… buscando a página 2 (6 intimações até agora).</span>';
+		await sleep(1500);
+		reunir($("#lista"), "Expedir", k => ["Pessoal", "Advogado", "Ministério Público"][k % 3]);
+		S.hl("#paginacao", 3);
+		await S.cap("Todas as intimações para expedir ficam <b>numa só tabela</b>, com o total no lugar da navegação.", { ms: 4200 });
+		S.hlOff();
+
+		// 2) Intimação (decurso de prazo) — com e sem Sequencial
+		telaLista("Intimação", { path: "intimacaoBusca.do", seqField: true, col: "Data Decurso", pag: "Total de registros nesta página: 6 · ‹ 1 ›" });
+		acima();
+		await S.cap("O mesmo acontece nas listas de <b>decurso de prazo</b>: <b>Intimação</b> e <b>Intimação de Auxiliares da Justiça</b>.", { ms: 4200 });
+		$("#paginacao").innerHTML = 'Total de registros nesta página: 6 · ‹ 1 › · <span style="color:#555">Reunindo todas as páginas nesta tela… buscando a página 2 (6 intimações até agora).</span>';
+		await sleep(1500);
+		reunir($("#lista"), "Intimação", k => ["Ação Penal - Proc. Ordinário", "Inquérito Policial"][k % 2]);
+		S.hl("#paginacao", 3);
+		await S.cap("Com o campo <b>Sequencial</b> vazio, a lista inteira vem numa só página.", { ms: 3800 });
+		S.hlOff();
+		S.hl("#f-seq", 3);
+		await S.cap("Preenchendo o <b>Sequencial</b> e clicando em <b>Filtrar</b>, vale o filtro de sempre: só os processos com aquele dígito, de todas as páginas.", { ms: 5200 });
+		S.hlOff();
+		await S.endCard("Expedir Intimações · Intimação · Auxiliares da Justiça → a extensão reúne todas as páginas → uma só tabela.");
+	},
+};

@@ -284,8 +284,8 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				},
 				{
 					id: "listasPaginaUnica",
-					nome: "Listas em uma única página (Juntadas, Conclusões, Mandados, Multas FUPEN e Juiz das Garantias)",
-					descricao: "Nas listas Análise de Juntadas, Conclusões (Retorno de Conclusão), Mandados (mandados retornados e demais), Listagem de Multas - Sistema FUPEN e Processos com suspeita de incompetência - Juiz das Garantias, reúne todas as páginas numa só tela: os registros das páginas seguintes são trazidos sozinhos e acrescentados à mesma tabela, sem precisar clicar em Próxima Página.",
+					nome: "Listas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN e Juiz das Garantias)",
+					descricao: "Nas listas Análise de Juntadas, Conclusões (Retorno de Conclusão), Mandados (mandados retornados e demais), Expedir Intimações, Intimação (decurso de prazo), Intimação de Auxiliares da Justiça, Listagem de Multas - Sistema FUPEN e Processos com suspeita de incompetência - Juiz das Garantias, reúne todas as páginas numa só tela: os registros das páginas seguintes são trazidos sozinhos e acrescentados à mesma tabela, sem precisar clicar em Próxima Página.",
 					js: ["src/listasPaginaUnica.js"],
 					sistemas: ["projudi"]
 				},

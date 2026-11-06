@@ -475,6 +475,10 @@
 	}
 
 	if (digitoParaEstaCarga) {
+		// Avisa listasPaginaUnica.js (que roda depois, no mesmo contexto)
+		// para não reunir as páginas nesta carga: este filtro já percorre
+		// todas as páginas e substitui as linhas da tabela.
+		window.__pdpDecursoSequencialAtivo = digitoParaEstaCarga;
 		filtrarEmTodasAsPaginas(digitoParaEstaCarga);
 	}
 })();

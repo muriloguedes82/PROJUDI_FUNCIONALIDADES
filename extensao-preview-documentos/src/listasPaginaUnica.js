@@ -3,9 +3,12 @@
 // As listas "Análise de Juntadas" (processo/analisarJuntada.do),
 // "Conclusões" (processo/conclusao.do), "Mandados" (mandados retornados e
 // demais; processo/cumprimentoCartorioMandado.do), "Listagem de Multas -
-// Sistema FUPEN" (processo/criminal/multaFupen.do) e "Processos com suspeita
+// Sistema FUPEN" (processo/criminal/multaFupen.do), "Processos com suspeita
 // de incompetência - Juiz das Garantias" (judiciario/juizo_garantia.do,
-// actionType=listaProcessosNaoAtendidos) são paginadas no servidor
+// actionType=listaProcessosNaoAtendidos), "Expedir Intimações"
+// (processo/expedirIntimacao.do), "Intimação" - decurso de prazo
+// (processo/intimacaoBusca.do) e "Intimação de Auxiliares da Justiça"
+// (processo/intimacaoNomeados.do) são paginadas no servidor
 // (20 ou 30 registros por página, navegação "Próxima Página" no
 // #navigator; nos Mandados, também o seletor "30/50/100/500 por pág."). Esta
 // funcionalidade reúne todas as páginas na própria tabela da primeira: ao
@@ -43,6 +46,9 @@
 		{ caminho: /^\/projudi\/processo\/cumprimentoCartorioMandado\.do$/, form: "cumprimentoCartorioMandadoForm", itens: "mandados", todos: "Todos os" },
 		{ caminho: /^\/projudi\/processo\/criminal\/multaFupen\.do$/, form: "multaFupenForm", itens: "multas", todos: "Todas as" },
 		{ caminho: /^\/projudi\/judiciario\/juizo_garantia\.do$/, form: "juizoGarantiaForm", itens: "processos", todos: "Todos os" },
+		{ caminho: /^\/projudi\/processo\/expedirIntimacao\.do$/, form: "expedirIntimacaoForm", itens: "intimações", todos: "Todas as" },
+		{ caminho: /^\/projudi\/processo\/intimacaoBusca\.do$/, form: "intimacaoBuscaForm", itens: "intimações", todos: "Todas as", decursoSequencial: true },
+		{ caminho: /^\/projudi\/processo\/intimacaoNomeados\.do$/, form: "intimacaoAuxiliarNomeadoForm", itens: "intimações", todos: "Todas as" },
 	];
 	const TELA = TELAS.find(function (t) {
 		return t.caminho.test(location.pathname);
@@ -270,9 +276,13 @@
 	function maiorIndice(tabela) {
 		let maior = -1;
 		const regex = new RegExp("^(?:" + PREFIXOS_ID.join("|") + ")(\\d+)$");
-		tabela.querySelectorAll("[id]").forEach(function (el) {
-			const m = regex.exec(el.id);
+		tabela.querySelectorAll("[id], [class*='linkArquivos']").forEach(function (el) {
+			const m = regex.exec(el.id || "");
 			if (m) maior = Math.max(maior, Number(m[1]));
+			el.classList.forEach(function (classe) {
+				const c = /^linkArquivos(\d+)$/.exec(classe);
+				if (c) maior = Math.max(maior, Number(c[1]));
+			});
 		});
 		return maior;
 	}
@@ -287,6 +297,12 @@
 			[tr].concat(Array.from(tr.querySelectorAll("[id]"))).forEach(function (el) {
 				const m = el.id && regexId.exec(el.id);
 				if (m) antigos.add(m[2]);
+				if (el.classList) {
+					el.classList.forEach(function (classe) {
+						const c = /^linkArquivos(\d+)$/.exec(classe);
+						if (c) antigos.add(c[1]);
+					});
+				}
 			});
 		});
 		if (!antigos.size) return proximoIndice;
@@ -303,6 +319,11 @@
 			[tr].concat(Array.from(tr.querySelectorAll("*"))).forEach(function (el) {
 				const m = el.id && regexId.exec(el.id);
 				if (m && mapa.has(m[2])) el.id = m[1] + mapa.get(m[2]);
+				// Algumas listas marcam o "+" com a classe linkArquivosN.
+				Array.from(el.classList).forEach(function (classe) {
+					const c = /^linkArquivos(\d+)$/.exec(classe);
+					if (c && mapa.has(c[1])) el.classList.replace(classe, "linkArquivos" + mapa.get(c[1]));
+				});
 				["onclick", "href"].forEach(function (nomeAtributo) {
 					const valor = el.getAttribute(nomeAtributo);
 					if (!valor || (nomeAtributo === "href" && !/^\s*javascript:/i.test(valor))) return;
@@ -363,7 +384,22 @@
 
 	// --- fluxo principal ---------------------------------------------------------
 
+	// Decurso de prazo filtrado por Sequencial (decursoPrazoSequencial.js):
+	// aquele filtro já percorre todas as páginas e troca as linhas da
+	// tabela pelas do dígito escolhido — reunir as páginas aqui também
+	// misturaria as duas coisas. Nessa carga, quem manda é o filtro.
+	function filtroSequencialAtivo() {
+		if (!TELA.decursoSequencial) return false;
+		if (window.__pdpDecursoSequencialAtivo) return true;
+		const campo = document.querySelector("#pdpSequencial");
+		return !!(campo && /^[0-9]$/.test(campo.value || ""));
+	}
+
 	async function reunirPaginas() {
+		if (filtroSequencialAtivo()) {
+			console.log(TAG, "filtro por Sequencial ativo nesta carga — as páginas ficam por conta dele");
+			return;
+		}
 		const tabela = tabelaResultados(document);
 		const form = formulario(document);
 		if (!tabela || !form || !linkProxima(document)) return; // uma página só: nada a fazer

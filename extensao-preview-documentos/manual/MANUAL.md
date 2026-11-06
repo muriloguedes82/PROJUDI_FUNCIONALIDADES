@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 8 |
-| **Versão da extensão** | 8 |
+| **Versão do manual** | 9 |
+| **Versão da extensão** | 9 |
 | **Data desta versão** | 06/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -97,7 +97,7 @@
    - 9.11 [Analisar (Pré-Análise) dos cumprimentos com preferências](#cap-9-11)
    - 9.12 [Localizador na lista de juntadas e de conclusões (só no SEEU)](#cap-9-12)
    - 9.13 [Localizador na lista de juntadas e de conclusões (Projudi)](#cap-9-13)
-   - 9.14 [Listas em uma única página (Juntadas, Conclusões, Mandados, Multas FUPEN e Juiz das Garantias)](#cap-9-14)
+   - 9.14 [Listas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN e Juiz das Garantias)](#cap-9-14)
 10. [Privacidade e convivência com outras extensões](#cap-10)
     - 10.1 [O que fica guardado no seu navegador](#cap-10-1)
     - 10.2 [Convivência com o AzFlow](#cap-10-2)
@@ -2278,7 +2278,8 @@ Prazo**), no formulário de busca, campo **Sequencial:**.
    paginação.
 
 **Bom saber:** o campo começa sempre em branco. Deixe-o vazio para a busca
-normal.
+normal — com ele vazio, a lista inteira aparece numa só página
+([9.14](#cap-9-14)).
 
 <a id="cap-9-2"></a>
 ### 9.2 Listas de tarefas
@@ -3044,7 +3045,7 @@ linha mostra o resultado (**✅** ou **⚠**).
   continua quando você o fecha.
 
 <a id="cap-9-14"></a>
-### 9.14 Listas em uma única página (Juntadas, Conclusões, Mandados, Multas FUPEN e Juiz das Garantias)
+### 9.14 Listas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN e Juiz das Garantias)
 
 *Só no Projudi.*
 
@@ -3062,6 +3063,9 @@ página. Não há botão: a extensão faz isso sozinha.
 | **Análise de Juntadas** | Todas as juntadas em uma única página… |
 | **Conclusões** (Retorno de Conclusão) | Todas as conclusões em uma única página… |
 | **Mandados** (por exemplo, os mandados retornados) | Todos os mandados em uma única página… |
+| **Expedir Intimações** | Todas as intimações em uma única página… |
+| **Intimação** (decurso de prazo) | Todas as intimações em uma única página… |
+| **Intimação de Auxiliares da Justiça** | Todas as intimações em uma única página… |
 | **Listagem de Multas - Sistema FUPEN** | Todas as multas em uma única página… |
 | **Processos com suspeita de incompetência - Juiz das Garantias** | Todos os processos em uma única página… |
 
@@ -3085,6 +3089,11 @@ página. Não há botão: a extensão faz isso sozinha.
      Múltipla** funcionam como sempre;
    - nos **Mandados**, o link da data (coluna **Ordenação**) e o botão
      **Analisar Retorno** de cada linha também;
+   - no **Expedir Intimações**, o **Visualizar** de cada linha abre a
+     intimação; nas listas de **decurso de prazo** (Intimação e
+     Auxiliares da Justiça), os botões **Analisar Decurso** e
+     **Dispensar** da linha ([9.10](#cap-9-10)) também aparecem nas
+     intimações trazidas das outras páginas;
    - nas **Multas FUPEN**, o **Código FUPEN** de cada linha abre a multa;
      no **Juiz das Garantias**, o número abre o processo.
 
@@ -3093,6 +3102,11 @@ página. Não há botão: a extensão faz isso sozinha.
 - Para ligar ou desligar, use **Listas em uma única página** no Menu da
   extensão ([2.6](#cap-2-6)). Desligada, as listas voltam a ser mostradas
   em páginas, como no Projudi.
+- Na lista **Intimação** (decurso de prazo), se você preencher o campo
+  **Sequencial** e clicar em **Filtrar**, quem percorre as páginas é o
+  próprio filtro ([9.1](#cap-9-1)): a tabela mostra só os processos com
+  aquele dígito, de todas as páginas. Com o campo vazio, a lista inteira
+  vem numa só página.
 - Na lista de Mandados, o seletor **30/50/100/500 por pág.** do Projudi
   some junto com a navegação, porque todos os mandados já estão na tela.
 - As outras funções da extensão na lista (**⭐**, **📍** localizador,
@@ -3174,7 +3188,7 @@ telas abertas a partir daí voltam a funcionar.
 | O botão **Finalizar conclusão** avisa "Conclusão não enviada: Não foi encontrada uma conclusão habilitada para finalização", mas a conclusão pode ser finalizada pelo próprio Projudi | Corrigido na versão 2.55.5: atualize a extensão ([2.3](#cap-2-3)). Se o aviso continuar, abra a conclusão pelo link do quadro Pendências e confira se o botão **Finalizar Conclusão Pendente** do Projudi está habilitado ([6.2](#cap-6-2)) |
 | O Projudi/SEEU fica lento com a extensão (computador mais fraco ou muitas abas abertas) | Desligue no Menu as funções que você não usa: desligadas, elas não são carregadas. Para conferir se a lentidão é da extensão, desligue-a pela chave geral e abra a mesma tela ([2.6](#cap-2-6)) |
 | Nenhum botão da extensão aparece | Confira se aceitou os Termos de Uso ([2.2](#cap-2-2)); recarregue a página (F5); confira se a extensão está ativada em `chrome://extensions`; confira se o perfil não é de advocacia ([10.3](#cap-10-3)) |
-| Numa das listas reunidas em uma única página (Juntadas, Conclusões, Mandados, Multas FUPEN, Juiz das Garantias) aparece "Não foi possível trazer as páginas seguintes" | A sessão do Projudi pode ter expirado ou a conexão falhou: recarregue a lista (F5). Enquanto isso, a navegação de páginas do Projudi continua funcionando ([9.14](#cap-9-14)) |
+| Numa das listas reunidas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN, Juiz das Garantias) aparece "Não foi possível trazer as páginas seguintes" | A sessão do Projudi pode ter expirado ou a conexão falhou: recarregue a lista (F5). Enquanto isso, a navegação de páginas do Projudi continua funcionando ([9.14](#cap-9-14)) |
 | Atualizei a extensão e nada mudou | Clique em ↻ no card da extensão em `chrome://extensions` e depois recarregue as páginas ([2.3](#cap-2-3)) |
 | A barra de botões cobre algo da tela | Arraste **↕ Mover** ou clique em **Ocultar** ([2.4](#cap-2-4)) |
 | O painel de ações diz para abrir a aba Movimentações | Abra a aba **Movimentações** do processo e tente de novo ([7.1](#cap-7-1)) |
@@ -3214,6 +3228,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 9 | 06/11/2026 | Seção 9.14 (agora **Listas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN e Juiz das Garantias)**): também as listas **Expedir Intimações**, **Intimação** (decurso de prazo) e **Intimação de Auxiliares da Justiça** passam a mostrar todas as páginas numa só tela; na Intimação, com o campo **Sequencial** preenchido, continua valendo o filtro da 9.1 (que já percorre todas as páginas). Seção 9.1 com a mesma observação. Sumário, tabela da 2.6 e **11. Solução de problemas** atualizados. Novo vídeo V69 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 8 | 06/11/2026 | Seção 9.14 (agora **Listas em uma única página (Juntadas, Conclusões, Mandados, Multas FUPEN e Juiz das Garantias)**): também a **Listagem de Multas - Sistema FUPEN** e a fila **Processos com suspeita de incompetência - Juiz das Garantias** passam a mostrar todas as páginas numa só tela; tabela com as cinco listas. Corrigido: linhas iguais (como as de processos em **Segredo de justiça**) não são mais descartadas como repetidas; e, se o Projudi devolver de novo uma página já reunida, a navegação de páginas fica no lugar, com o aviso em vermelho. O nome da função no Menu mudou para **Listas em uma única página (…)**. Sumário, tabela da 2.6 e **11. Solução de problemas** atualizados. Novo vídeo V68 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 7 | 06/11/2026 | Seção 9.14 (agora **Juntadas, Conclusões e Mandados em uma única página**): a lista de **Mandados** (por exemplo, os mandados retornados) também passa a mostrar todas as páginas numa só tela; no lugar da navegação (e do seletor de registros por página) aparece **Todos os mandados em uma única página: N registro(s)**. O nome da função no Menu mudou para **Juntadas, Conclusões e Mandados em uma única página**. Sumário, tabela da 2.6 e **11. Solução de problemas** atualizados. Novo vídeo V67 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 6 | 06/11/2026 | Seção 9.14 (agora **Juntadas e Conclusões em uma única página**): a lista de **Conclusões** (Retorno de Conclusão) também passa a mostrar todas as páginas numa só tela, como a Análise de Juntadas; no lugar da navegação aparece **Todas as conclusões em uma única página: N registro(s)**. O nome da função no Menu mudou para **Juntadas e Conclusões em uma única página**. Sumário, tabela da 2.6 e **11. Solução de problemas** atualizados. Novo vídeo V66 gravado e guardado em `videos-do-manual/` (não citado no manual). |
