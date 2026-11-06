@@ -2123,3 +2123,42 @@ CENAS.V69 = {
 		await S.endCard("Expedir Intimações · Intimação · Auxiliares da Justiça → a extensão reúne todas as páginas → uma só tabela.");
 	},
 };
+
+// ------------------------------------------------------------------ V70
+CENAS.V70 = {
+	arquivo: "V70-arquivos-do-mais-nas-listas-reunidas.mp4",
+	titulo: "Listas em uma única página (arquivos do +)",
+	secao: "9.14",
+	async run() {
+		telaLista("Análise de Juntadas", { pag: "" });
+		$("#lista").before($("#paginacao")); // no Projudi a navegação fica acima da tabela
+		$("#paginacao").style.margin = "0 0 6px";
+		$("#paginacao").innerHTML = '<span style="background:#fff8d8;border:1px solid #d9c46a;padding:3px 8px">Todas as juntadas em uma única página: 12 registro(s) (2 páginas do Projudi reunidas).</span>';
+		const tab = $("#lista");
+		for (let k = 0; k < 6; k++) {
+			const i = LISTA.length + k;
+			tab.insertAdjacentHTML("beforeend", '<tr class="' + (i % 2 ? "alt" : "") + '" data-i="' + i + '"><td><input type="checkbox"></td><td><a class="link">00' + (81 + k) + '654-6' + k + '.2025.8.16.0001</a><br><span style="color:#555;font-size:11px">Seq.: ' + (45600 + k * 7) + "</span></td><td>" + ["Ação Penal - Proc. Ordinário", "Inquérito Policial"][k % 2] + "</td><td>2" + k + "/09/2026</td></tr>");
+		}
+		// "+" na primeira coluna de cada linha, com a linha oculta dos arquivos logo abaixo
+		$$("#lista tr[data-i]").forEach(tr => {
+			const i = tr.dataset.i;
+			tr.cells[0].insertAdjacentHTML("beforeend", ' <span class="x-btn small" id="mais' + i + '" style="padding:0 5px">+</span>');
+			tr.insertAdjacentHTML("afterend", '<tr id="arq' + i + '" style="display:none"><td></td><td colspan="3" id="arqc' + i + '" style="background:#f7f9fc"></td></tr>');
+		});
+		await S.titleCard("VÍDEO V70", "Arquivos do + nas listas reunidas", "O + mostra os arquivos de qualquer página, mesmo com a lista numa só tela.");
+		await S.cap("Numa lista reunida, o <b>+</b> de cada linha continua mostrando os arquivos da juntada.");
+		async function abrir(i, arquivos) {
+			await S.click("#mais" + i);
+			$("#mais" + i).textContent = "−";
+			$("#arq" + i).style.display = "";
+			$("#arqc" + i).innerHTML = '<span style="color:#666;font-size:11px">Carregando os arquivos…</span>';
+			await sleep(1300);
+			$("#arqc" + i).innerHTML = arquivos.map(a => '📄 <a class="link">' + a + "</a>").join("<br>");
+		}
+		await abrir(1, ["Manifestação do MP.pdf"]);
+		await S.cap("Ao clicar, aparece <b>Carregando os arquivos…</b> e, logo depois, a lista de arquivos.", { ms: 4000 });
+		await abrir(8, ["Petição.pdf", "Procuração.pdf"]);
+		await S.cap("Vale também para as juntadas trazidas das <b>outras páginas</b>: a extensão busca os arquivos na página de onde a linha veio.", { ms: 5000 });
+		await S.endCard("Lista reunida → + da linha → Carregando os arquivos… → arquivos da juntada.");
+	},
+};

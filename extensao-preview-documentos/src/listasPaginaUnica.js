@@ -29,7 +29,10 @@
 // numera do 0 os ids do "+" dos arquivos (linkArquivosN, iconN, rowN,
 // divN), então os ids são renumerados para continuar a numeração da tabela
 // (e as referências a eles no onclick="showDetail(...)"), para o "+" abrir
-// a linha certa. As demais funções da extensão que enfeitam as linhas (⭐ em
+// a linha certa. Numa lista reunida, porém, o "+" do próprio Projudi deixa
+// de trazer os arquivos certos (o servidor passa a "estar" na última página
+// buscada) — o clique no "+" é então atendido pela extensão (ver "Arquivos
+// do +", mais abaixo). As demais funções da extensão que enfeitam as linhas (⭐ em
 // lote, 📍 localizador, listas de tarefas, pré-visualização) já observam a
 // tabela e tratam as linhas novas sozinhas.
 (function () {
@@ -159,6 +162,7 @@
 					if (!CAMPOS_IGNORADOS.has(campo.name)) corpo.set(campo.name, campo.value);
 				});
 			}
+			const alterados = [];
 			atribuicoes.forEach(function (a) {
 				let nome = a.campo;
 				if (a.porId && formDoc) {
@@ -166,9 +170,10 @@
 					if (campo && campo.name) nome = campo.name;
 				}
 				corpo.set(nome, a.valor);
+				alterados.push({ nome: nome, valor: a.valor });
 			});
 			const url = urlDoFormulario(formDoc) || urlDoFormulario(formAtual);
-			if (url) return { url: url, corpo: corpo };
+			if (url) return { url: url, corpo: corpo, alterados: alterados };
 		}
 
 		// Link comum (href com endereço de verdade).
@@ -382,6 +387,323 @@
 		}
 	}
 
+	// --- Arquivos do "+" ---------------------------------------------------------
+	//
+	// O "+" das linhas (arquivos da juntada/intimação) é atendido pelo próprio
+	// Projudi, que pergunta ao servidor pelos arquivos do item N "da página
+	// atual da lista" — e o servidor guarda qual é a página atual: a última
+	// pedida. Depois que a extensão busca as páginas 2, 3..., o "+" nativo
+	// passa a abrir vazio (ou com os arquivos de outro item), inclusive nas
+	// linhas da página 1. Além disso, as linhas trazidas das outras páginas
+	// não têm os comandos que o Projudi liga ao "+" ao carregar a tela.
+	//
+	// Por isso, numa lista reunida, o clique no "+" é atendido assim: a página
+	// de origem da linha é carregada num quadro oculto (com o mesmo pedido
+	// usado para buscá-la, então o servidor volta a "estar" nela), o "+" da
+	// mesma linha é clicado lá — pelo código do próprio Projudi — e o que
+	// ele trouxer é copiado para a linha da tela. É o mesmo recurso de quadro
+	// oculto que a pré-visualização das pendências já usa (content.js).
+	// Os pedidos são atendidos por página de origem, aproveitando o quadro
+	// enquanto ele estiver na página certa (ex.: "Expandir Mov").
+
+	const pedidos = {}; // página -> { url, corpo }
+	const ICONE_MAIS = 'img[id^="icon"], a[id^="linkArquivos"] img, a[class*="linkArquivos"] img, img[onclick*="showDetail"]';
+	const TEMPO_ARQUIVOS_MS = 20000;
+	let maisAtivo = false;
+
+	// Pedido da página 1: o mesmo da página 2, com os campos que o link
+	// "Próxima Página" altera (ex.: pageNumber=2) voltando para 1. Sem essa
+	// informação, repete a busca do formulário (que traz a página 1).
+	function pedidoDaPrimeira(pedido2, form) {
+		if (pedido2 && pedido2.corpo && pedido2.alterados && pedido2.alterados.length) {
+			const corpo = new URLSearchParams(pedido2.corpo);
+			pedido2.alterados.forEach(function (a) {
+				if (a.valor === "2") corpo.set(a.nome, "1");
+			});
+			return { url: pedido2.url, corpo: corpo };
+		}
+		return { url: urlDoFormulario(form), corpo: corpoDoFormulario(form) };
+	}
+
+	function numeroDoMais(tr) {
+		const icone = tr.querySelector('img[id^="icon"]');
+		let m = icone && /^icon(\d+)$/.exec(icone.id);
+		if (m) return m[1];
+		const link = tr.querySelector('a[id^="linkArquivos"], a[class*="linkArquivos"]');
+		if (!link) return null;
+		m = /^linkArquivos(\d+)$/.exec(link.id || "");
+		if (m) return m[1];
+		for (const classe of Array.from(link.classList)) {
+			m = /^linkArquivos(\d+)$/.exec(classe);
+			if (m) return m[1];
+		}
+		return null;
+	}
+
+	// Guarda, na linha, de que página ela veio e qual era o número do "+"
+	// lá (antes de renumerar), para achar a mesma linha na página de origem.
+	function marcarOrigem(linhas, pagina) {
+		const principal = linhas[0];
+		const numero = numeroDoMais(principal);
+		principal.setAttribute("data-pdp-jpu-origem", String(pagina));
+		if (numero !== null) principal.setAttribute("data-pdp-jpu-mais", numero);
+		principal.setAttribute("data-pdp-jpu-chave", chaveDoRegistro(principal));
+	}
+
+	// Contêiner que o Projudi preenche com os arquivos (rowN / divN).
+	function conteinerDoMais(doc, numero, linha) {
+		const div = doc.getElementById("div" + numero);
+		if (div) return { linha: doc.getElementById("row" + numero) || div.closest("tr"), div: div };
+		const prox = linha && linha.nextElementSibling;
+		if (prox && linhaAuxiliar(prox)) return { linha: prox, div: prox.querySelector(".extendedinfo") || prox.cells[0] };
+		return null;
+	}
+
+	function trocarIcone(img, aberto) {
+		if (!img) return;
+		const src = img.getAttribute("src") || "";
+		const novo = aberto ? src.replace(/iPlus\.gif/i, "iMinus.gif") : src.replace(/iMinus\.gif/i, "iPlus.gif");
+		if (novo !== src) img.setAttribute("src", novo);
+	}
+
+	// Quadro oculto, reaproveitado entre os cliques.
+	let quadro = null;
+	let paginaNoQuadro = null;
+
+	function carregarNoQuadro(pagina) {
+		const pedido = pedidos[pagina];
+		if (!pedido || !pedido.url) return Promise.reject(new Error("pedido da página " + pagina + " desconhecido"));
+		return new Promise(function (resolver, rejeitar) {
+			if (!quadro || !quadro.isConnected) {
+				quadro = document.createElement("iframe");
+				quadro.name = "pdpJpuQuadro" + Date.now();
+				// data-pdp-loader vazio: os demais scripts da extensão não
+				// atuam no quadro (eles conferem só a presença do atributo), e
+				// o content.js não entra no modo de coleta (que confere o valor).
+				quadro.setAttribute("data-pdp-loader", "");
+				quadro.setAttribute("data-pdp-jpu-quadro", "1");
+				quadro.setAttribute("aria-hidden", "true");
+				quadro.tabIndex = -1;
+				quadro.style.cssText = "position:fixed;left:-12000px;top:0;width:1000px;height:700px;border:0;visibility:hidden;";
+				document.body.appendChild(quadro);
+			}
+			paginaNoQuadro = null;
+			const tempo = setTimeout(function () {
+				quadro.removeEventListener("load", aoCarregar);
+				rejeitar(new Error("a página " + pagina + " demorou demais para abrir"));
+			}, TEMPO_ARQUIVOS_MS);
+			function aoCarregar() {
+				clearTimeout(tempo);
+				quadro.removeEventListener("load", aoCarregar);
+				paginaNoQuadro = pagina;
+				resolver(quadro.contentDocument);
+			}
+			quadro.addEventListener("load", aoCarregar);
+			if (pedido.corpo) {
+				// Envio de formulário de verdade (não fetch): o quadro abre a
+				// página com os comandos do Projudi, como se fosse a aba.
+				const envio = document.createElement("form");
+				envio.method = "post";
+				envio.action = pedido.url;
+				envio.target = quadro.name;
+				envio.style.display = "none";
+				pedido.corpo.forEach(function (valor, nome) {
+					const campo = document.createElement("input");
+					campo.type = "hidden";
+					campo.name = nome;
+					campo.value = valor;
+					envio.appendChild(campo);
+				});
+				document.body.appendChild(envio);
+				HTMLFormElement.prototype.submit.call(envio);
+				envio.remove();
+			} else {
+				quadro.src = pedido.url;
+			}
+		});
+	}
+
+	function esperar(ms) {
+		return new Promise(function (r) {
+			setTimeout(r, ms);
+		});
+	}
+
+	// Na página aberta no quadro, a linha equivalente: pelo número do "+",
+	// conferindo se é o mesmo registro; se a lista mudou, procura pelo
+	// registro em toda a tabela.
+	function linhaNoQuadro(doc, numero, chave) {
+		const tabelaQ = tabelaResultados(doc);
+		if (!tabelaQ) return null;
+		const grupos = gruposDeLinhas(tabelaQ);
+		const porNumero = grupos.find(function (g) {
+			return numeroDoMais(g.linhas[0]) === numero;
+		});
+		if (porNumero && (!chave || chaveDoRegistro(porNumero.linhas[0]) === chave)) return porNumero.linhas[0];
+		const porChave = chave && grupos.find(function (g) {
+			return chaveDoRegistro(g.linhas[0]) === chave;
+		});
+		return porChave ? porChave.linhas[0] : null;
+	}
+
+	function origemDa(linha) {
+		return Number(linha.getAttribute("data-pdp-jpu-origem"));
+	}
+
+	// Abre o "+" da linha na página que já está no quadro e devolve o que o
+	// Projudi trouxer.
+	async function abrirNoQuadro(doc, pagina, linha) {
+		const numero = linha.getAttribute("data-pdp-jpu-mais");
+		const chave = linha.getAttribute("data-pdp-jpu-chave");
+		const linhaQ = linhaNoQuadro(doc, numero, chave);
+		if (!linhaQ) throw new Error("o registro não está mais na página " + pagina + " da lista (ela pode ter mudado)");
+		const numeroQ = numeroDoMais(linhaQ);
+		const icone = linhaQ.querySelector(ICONE_MAIS);
+		const alvo = conteinerDoMais(doc, numeroQ, linhaQ);
+		if (!icone || !alvo || !alvo.div) throw new Error("a linha não tem arquivos na página " + pagina);
+		linhaQ.setAttribute("data-pdp-jpu-aberto", "1");
+		icone.click();
+		// Espera o Projudi preencher o contêiner e o conteúdo parar de mudar.
+		const limite = Date.now() + TEMPO_ARQUIVOS_MS;
+		let anterior = null;
+		let estavel = 0;
+		while (Date.now() < limite) {
+			await esperar(200);
+			const html = alvo.div.innerHTML.trim();
+			const carregando = !!alvo.div.querySelector('img[src*="indicator"], img[src*="loading"], img[src*="aguarde"]');
+			if (html && !carregando && html === anterior) {
+				if (++estavel >= 2) break;
+			} else {
+				estavel = 0;
+			}
+			anterior = html;
+		}
+		if (!alvo.div.innerHTML.trim()) throw new Error("o Projudi não trouxe os arquivos a tempo");
+		// Copia com endereços completos (o quadro e a aba estão no mesmo
+		// endereço base, mas assim não depende disso).
+		const copia = document.importNode(alvo.div, true);
+		copia.querySelectorAll("[href], [src]").forEach(function (el) {
+			["href", "src"].forEach(function (attr) {
+				const v = el.getAttribute(attr);
+				if (v && !/^\s*(javascript:|#|data:)/i.test(v)) {
+					const abs = urlAbsoluta(v, doc.baseURI);
+					if (abs) el.setAttribute(attr, abs);
+				}
+			});
+		});
+		return copia.innerHTML;
+	}
+
+	// Pedidos pendentes de "+", atendidos por página: com o quadro numa
+	// página, todos os "+" pedidos daquela página são abertos juntos (ex.:
+	// "Expandir Mov"); depois passa para a próxima página pedida.
+	const pendentes = []; // { linha, concluir(html), falhar(erro) }
+	let trabalhando = false;
+
+	function pedirArquivos(item) {
+		pendentes.push(item);
+		if (!trabalhando) processarPendentes();
+	}
+
+	async function processarPendentes() {
+		trabalhando = true;
+		try {
+			while (pendentes.length) {
+				let pagina = paginaNoQuadro;
+				if (!pendentes.some(function (it) { return origemDa(it.linha) === pagina; })) pagina = origemDa(pendentes[0].linha);
+				const lote = [];
+				for (let i = pendentes.length - 1; i >= 0; i--) {
+					if (origemDa(pendentes[i].linha) === pagina) lote.unshift(pendentes.splice(i, 1)[0]);
+				}
+				await atenderLote(pagina, lote);
+			}
+		} finally {
+			trabalhando = false;
+		}
+	}
+
+	async function atenderLote(pagina, lote) {
+		let doc = paginaNoQuadro === pagina && quadro && quadro.contentDocument;
+		// Recarrega a página no quadro se ela não está lá, ou se algum desses
+		// "+" já foi aberto nela (um segundo clique fecharia em vez de abrir).
+		const recarregar = !doc || lote.some(function (it) {
+			const l = linhaNoQuadro(doc, it.linha.getAttribute("data-pdp-jpu-mais"), it.linha.getAttribute("data-pdp-jpu-chave"));
+			return !l || l.hasAttribute("data-pdp-jpu-aberto");
+		});
+		if (recarregar) {
+			try {
+				doc = await carregarNoQuadro(pagina);
+				await esperar(300); // deixa o Projudi ligar os comandos da tela
+			} catch (e) {
+				lote.forEach(function (it) {
+					it.falhar(e);
+				});
+				return;
+			}
+		}
+		await Promise.all(
+			lote.map(function (it) {
+				return abrirNoQuadro(doc, pagina, it.linha).then(it.concluir, it.falhar);
+			})
+		);
+	}
+
+	function alternarMais(linha) {
+		const numero = numeroDoMais(linha);
+		const alvo = numero !== null ? conteinerDoMais(document, numero, linha) : null;
+		const img = linha.querySelector(ICONE_MAIS);
+		if (!alvo || !alvo.linha || !alvo.div) return;
+		const aberto = alvo.linha.style.display !== "none" && alvo.linha.hasAttribute("data-pdp-jpu-mostrado");
+		if (aberto) {
+			alvo.linha.style.display = "none";
+			alvo.linha.removeAttribute("data-pdp-jpu-mostrado");
+			trocarIcone(img, false);
+			return;
+		}
+		alvo.linha.style.display = "";
+		alvo.linha.setAttribute("data-pdp-jpu-mostrado", "1");
+		trocarIcone(img, true);
+		const estado = alvo.div.getAttribute("data-pdp-jpu-arquivos");
+		if (estado === "ok" || estado === "carregando") return; // já trazidos (ou a caminho)
+		alvo.div.setAttribute("data-pdp-jpu-arquivos", "carregando");
+		alvo.div.innerHTML = '<span style="color:#666;font-size:11px">Carregando os arquivos…</span>';
+		pedirArquivos({
+			linha: linha,
+			concluir: function (html) {
+				alvo.div.innerHTML = html;
+				alvo.div.setAttribute("data-pdp-jpu-arquivos", "ok");
+			},
+			falhar: function (e) {
+				console.warn(TAG, "arquivos do + não carregados:", e);
+				alvo.div.removeAttribute("data-pdp-jpu-arquivos");
+				alvo.div.innerHTML = '<span style="color:#a33;font-size:11px">Não foi possível trazer os arquivos: ' + String(e && e.message ? e.message : e).replace(/[<>&]/g, "") + ". Clique no + de novo para tentar outra vez.</span>";
+			},
+		});
+	}
+
+	function ativarArquivosDoMais(tabela) {
+		if (maisAtivo) return;
+		maisAtivo = true;
+		// Na fase de captura, antes dos comandos do Projudi (que já não
+		// trariam os arquivos certos).
+		window.addEventListener(
+			"click",
+			function (ev) {
+				const alvo = ev.target;
+				if (!(alvo instanceof Element) || !tabela.contains(alvo)) return;
+				const mais = alvo.closest('a[id^="linkArquivos"], a[class*="linkArquivos"], img[id^="icon"], img[onclick*="showDetail"]');
+				if (!mais) return;
+				const linha = mais.closest("tr");
+				if (!linha || !linha.hasAttribute("data-pdp-jpu-origem")) return;
+				ev.preventDefault();
+				ev.stopImmediatePropagation();
+				ev.stopPropagation();
+				alternarMais(linha);
+			},
+			true
+		);
+	}
+
 	// --- fluxo principal ---------------------------------------------------------
 
 	// Decurso de prazo filtrado por Sequencial (decursoPrazoSequencial.js):
@@ -427,6 +749,9 @@
 			return b ? b.textContent.trim() : null;
 		}
 		registrarPagina(gruposIniciais);
+		gruposIniciais.forEach(function (g) {
+			marcarOrigem(g.linhas, 1);
+		});
 		let proximoIndice = maiorIndice(tabela) + 1;
 		let docAtual = document;
 		let paginas = 1;
@@ -443,6 +768,13 @@
 				break;
 			}
 			mostrarAviso("Reunindo todas as páginas nesta tela… buscando a página " + (paginas + 1) + " (" + total + " " + TELA.itens + " até agora).", false);
+
+			// A partir daqui o Projudi passa a "estar" em outra página da
+			// lista: o "+" nativo deixaria de trazer os arquivos certos (ver
+			// "Arquivos do +"), então ele passa a ser atendido pela extensão.
+			pedidos[paginas + 1] = pedido;
+			if (!pedidos[1]) pedidos[1] = pedidoDaPrimeira(pedido, form);
+			ativarArquivosDoMais(tabela);
 
 			let doc;
 			try {
@@ -485,6 +817,7 @@
 				const linhas = grupo.linhas.map(function (tr) {
 					return document.importNode(tr, true);
 				});
+				marcarOrigem(linhas, paginas + 1);
 				proximoIndice = renumerar(linhas, proximoIndice);
 				linhas.forEach(function (tr) {
 					tr.setAttribute("data-pdp-jpu-pagina", String(paginas + 1));
