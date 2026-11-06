@@ -283,6 +283,13 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					js: ["src/decursoPrazoSequencial.js"]
 				},
 				{
+					id: "juntadasPaginaUnica",
+					nome: "Análise de Juntadas em uma única página",
+					descricao: "Na lista Análise de Juntadas, reúne todas as páginas numa só tela: as juntadas das páginas seguintes são trazidas sozinhas e acrescentadas à mesma tabela, sem precisar clicar em Próxima Página.",
+					js: ["src/juntadasPaginaUnica.js"],
+					sistemas: ["projudi"]
+				},
+				{
 					id: "previewProcesso",
 					nome: "Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões e nos Cumprimentos, no Expedir e nos Paralisados",
 					descricao: "Nas listas de decurso de prazo (Intimação, Auxiliares da Justiça e Citações/Notificações) na lista da Análise de Juntadas, na lista de Conclusões e nas listas de cumprimentos (Demais Cumprimentos e Mandados) no Expedir Intimações/Citação e na lista de Processos Paralisados, mostra a tela do processo, na aba Movimentações, ao pousar o mouse sobre o número. No SEEU, também nas listas de Execuções e de Processos Suspensos e no Painel de Incidentes.",

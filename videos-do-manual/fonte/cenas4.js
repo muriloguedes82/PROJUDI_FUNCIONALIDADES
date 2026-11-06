@@ -1920,3 +1920,37 @@ CENAS.V64 = {
 		await S.endCard("Seção Preferências (abaixo das Pendências) → clique no card → pendências? → conferir → ✅ Sim, executar · ⚙ Organizar · ▾ Recolher.");
 	},
 };
+
+// ------------------------------------------------------------------ V65
+CENAS.V65 = {
+	arquivo: "V65-juntadas-em-uma-unica-pagina.mp4",
+	titulo: "Análise de Juntadas em uma única página",
+	secao: "9.14",
+	async run() {
+		const nomes = ["Ação Penal - Proc. Ordinário", "Inquérito Policial", "Medidas Protetivas de Urgência", "Ação Penal - Proc. Sumário"];
+		const extra = [];
+		for (let i = 0; i < 6; i++) {
+			extra.push({ n: "00" + (17 + i) + "777-0" + i + ".2025.8.16.0001", seq: String(45200 + i * 7), cl: nomes[i % nomes.length], d: "2" + (1 - (i >> 2)) + "/09/2026" });
+		}
+		telaLista("Análise de Juntadas", { pag: "Total de registros nesta página: 6 · ‹ 1 ›" });
+		$("#lista").before($("#paginacao")); // no Projudi a navegação fica acima da tabela
+		$("#paginacao").style.margin = "0 0 6px";
+		await S.titleCard("VÍDEO V65", "Análise de Juntadas em uma única página", "Todas as juntadas numa só tela, sem clicar em Próxima Página.");
+		await S.cap("Ao abrir a <b>Análise de Juntadas</b>, o Projudi mostra a lista em várias páginas.");
+		S.hl("#paginacao", 3);
+		$("#paginacao").innerHTML = "Total de registros nesta página: 6 · ‹ 1 › · <span style=\"color:#555\">Reunindo todas as páginas nesta tela… buscando a página 2 (6 juntadas até agora).</span>";
+		await S.cap("Agora a extensão busca <b>sozinha</b> as páginas seguintes, enquanto você já pode trabalhar na lista.", { ms: 4200 });
+		S.hlOff();
+		const tab = $("#lista");
+		extra.forEach((r, k) => {
+			const i = LISTA.length + k;
+			tab.insertAdjacentHTML("beforeend", '<tr class="' + (i % 2 ? "alt" : "") + '"><td><input type="checkbox"></td><td><a class="link">' + r.n + '</a><br><span style="color:#555;font-size:11px">Seq.: ' + r.seq + "</span></td><td>" + r.cl + "</td><td>" + r.d + "</td></tr>");
+		});
+		$("#paginacao").innerHTML = '<span style="background:#fff8d8;border:1px solid #d9c46a;padding:3px 8px">Todas as juntadas em uma única página: 12 registro(s) (2 páginas do Projudi reunidas).</span>';
+		S.hl("#paginacao", 3);
+		await S.cap("As juntadas das outras páginas entram <b>no fim da mesma tabela</b>, e a navegação de páginas dá lugar ao total.", { ms: 4600 });
+		S.hlOff();
+		await S.cap("Marque as juntadas que quiser e use <b>Análise Múltipla</b>, <b>Analisar</b> ou <b>Dispensar</b> como sempre — valem para todas.", { ms: 4600 });
+		await S.endCard("Análise de Juntadas → a extensão reúne todas as páginas → uma só tabela, com o total no lugar da navegação.");
+	},
+};

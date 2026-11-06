@@ -96,4 +96,5 @@ para dentro da extensão, retire essa regra.
 | [V62](V62-dispensar-decurso-de-cumprimentos.mp4) | [Dispensar decurso de cumprimentos](V62-dispensar-decurso-de-cumprimentos.mp4) | [6.5](../extensao-preview-documentos/manual/MANUAL.md#cap-6-5) | 0:26 |
 | [V63](V63-analisar-decurso-de-cumprimentos.mp4) | [Analisar decurso de cumprimentos](V63-analisar-decurso-de-cumprimentos.mp4) | [6.5](../extensao-preview-documentos/manual/MANUAL.md#cap-6-5) | 0:38 |
 | [V64](V64-secao-preferencias.mp4) | [Seção Preferências na tela do processo](V64-secao-preferencias.mp4) | [7.9](../extensao-preview-documentos/manual/MANUAL.md#cap-7-9) | 0:45 |
+| [V65](V65-juntadas-em-uma-unica-pagina.mp4) | [Análise de Juntadas em uma única página](V65-juntadas-em-uma-unica-pagina.mp4) | [9.14](../extensao-preview-documentos/manual/MANUAL.md#cap-9-14) | 0:27 |
 <!-- tabela-videos:fim -->
