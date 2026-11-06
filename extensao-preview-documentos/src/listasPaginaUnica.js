@@ -1,8 +1,11 @@
-// Projudi - Análise de Juntadas, Conclusões e Mandados em uma única página
+// Projudi - Listas em uma única página
 //
 // As listas "Análise de Juntadas" (processo/analisarJuntada.do),
-// "Conclusões" (processo/conclusao.do) e "Mandados" (mandados retornados e
-// demais; processo/cumprimentoCartorioMandado.do) são paginadas no servidor
+// "Conclusões" (processo/conclusao.do), "Mandados" (mandados retornados e
+// demais; processo/cumprimentoCartorioMandado.do), "Listagem de Multas -
+// Sistema FUPEN" (processo/criminal/multaFupen.do) e "Processos com suspeita
+// de incompetência - Juiz das Garantias" (judiciario/juizo_garantia.do,
+// actionType=listaProcessosNaoAtendidos) são paginadas no servidor
 // (20 ou 30 registros por página, navegação "Próxima Página" no
 // #navigator; nos Mandados, também o seletor "30/50/100/500 por pág."). Esta
 // funcionalidade reúne todas as páginas na própria tabela da primeira: ao
@@ -38,6 +41,8 @@
 		{ caminho: /^\/projudi\/processo\/analisarJuntada\.do$/, form: "analisarJuntadaForm", itens: "juntadas", todos: "Todas as" },
 		{ caminho: /^\/projudi\/processo\/conclusao\.do$/, form: "processoConclusaoForm", itens: "conclusões", todos: "Todas as" },
 		{ caminho: /^\/projudi\/processo\/cumprimentoCartorioMandado\.do$/, form: "cumprimentoCartorioMandadoForm", itens: "mandados", todos: "Todos os" },
+		{ caminho: /^\/projudi\/processo\/criminal\/multaFupen\.do$/, form: "multaFupenForm", itens: "multas", todos: "Todas as" },
+		{ caminho: /^\/projudi\/judiciario\/juizo_garantia\.do$/, form: "juizoGarantiaForm", itens: "processos", todos: "Todos os" },
 	];
 	const TELA = TELAS.find(function (t) {
 		return t.caminho.test(location.pathname);
@@ -72,10 +77,10 @@
 	}
 
 	function tabelaResultados(doc) {
-		// Só a tabela de dentro do formulário da lista: conclusao.do e
-		// cumprimentoCartorioMandado.do também abrem a tela de um único
-		// registro (análise da conclusão, visualização do mandado), que não
-		// deve ser tocada.
+		// Só a tabela de dentro do formulário da lista: conclusao.do,
+		// cumprimentoCartorioMandado.do e multaFupen.do também abrem a tela
+		// de um único registro (análise da conclusão, visualização do
+		// mandado, detalhe da multa), que não deve ser tocada.
 		const form = formulario(doc);
 		return form ? form.querySelector("table.resultTable") : null;
 	}
@@ -217,9 +222,14 @@
 		return /^row\d+$/.test(tr.id || "") || (!!tr.querySelector(".extendedinfo") && !tr.querySelector('a[href*="processo.do"]'));
 	}
 
-	// Identifica o registro: pela caixa idJuntadas e, quando a linha não tem
-	// caixa (há juntadas que o Projudi não deixa marcar, e a lista de
-	// Conclusões não tem nenhuma), pelo processo e pelo texto das colunas.
+	// Identifica o registro: pela caixa idJuntadas ("id:...", identificação
+	// de verdade, usada para não repetir uma juntada que mudou de página
+	// durante a busca) e, quando a linha não tem caixa (há juntadas que o
+	// Projudi não deixa marcar, e as demais listas não têm nenhuma), pelo
+	// processo e pelo texto das colunas ("linha:..."). A chave "linha:" NÃO
+	// serve para descartar registros: linhas diferentes podem ter o mesmo
+	// texto (ex.: "Segredo de justiça" em todas as colunas). Ela só compõe a
+	// assinatura da página, para perceber uma página repetida.
 	function chaveDoRegistro(tr) {
 		const caixa = tr.querySelector('input[name="idJuntadas"]');
 		if (caixa && caixa.value) return "id:" + caixa.value;
@@ -361,9 +371,26 @@
 		const tbody = tabela.tBodies[tabela.tBodies.length - 1];
 		if (!tbody) return;
 
-		const vistos = new Set(gruposDeLinhas(tabela).map(function (g) {
-			return g.id;
-		}));
+		const gruposIniciais = gruposDeLinhas(tabela);
+		let total = gruposIniciais.length;
+		const idsVistos = new Set();
+		const assinaturas = new Set();
+		function registrarPagina(grupos) {
+			grupos.forEach(function (g) {
+				if (g.id.indexOf("id:") === 0) idsVistos.add(g.id);
+			});
+			assinaturas.add(assinatura(grupos));
+		}
+		function assinatura(grupos) {
+			return grupos.map(function (g) {
+				return g.id;
+			}).join("\n");
+		}
+		function paginaAtualDe(doc) {
+			const b = navegacao(doc) && navegacao(doc).querySelector(".navRight b");
+			return b ? b.textContent.trim() : null;
+		}
+		registrarPagina(gruposIniciais);
 		let proximoIndice = maiorIndice(tabela) + 1;
 		let docAtual = document;
 		let paginas = 1;
@@ -379,7 +406,7 @@
 				erro = "limite de " + MAX_PAGINAS + " páginas atingido";
 				break;
 			}
-			mostrarAviso("Reunindo todas as páginas nesta tela… buscando a página " + (paginas + 1) + " (" + vistos.size + " " + TELA.itens + " até agora).", false);
+			mostrarAviso("Reunindo todas as páginas nesta tela… buscando a página " + (paginas + 1) + " (" + total + " " + TELA.itens + " até agora).", false);
 
 			let doc;
 			try {
@@ -397,17 +424,28 @@
 			}
 			if (!tabelaResultados(document) || !tabela.isConnected) return; // a tela mudou enquanto buscávamos
 
-			const novos = gruposDeLinhas(tabelaDoc).filter(function (g) {
-				return !vistos.has(g.id);
+			// Página repetida (a navegação não avançou): para, em vez de
+			// repetir as mesmas linhas até o limite de páginas.
+			const gruposDoc = gruposDeLinhas(tabelaDoc);
+			const numeroAnterior = paginaAtualDe(docAtual);
+			const numeroDoc = paginaAtualDe(doc);
+			if (assinaturas.has(assinatura(gruposDoc)) || (numeroDoc && numeroDoc === numeroAnterior)) {
+				console.warn(TAG, "a página", paginas + 1, "veio igual a uma já reunida (página", numeroDoc, ") — parando");
+				erro = "o Projudi devolveu de novo uma página já reunida";
+				break;
+			}
+			const novos = gruposDoc.filter(function (g) {
+				return !idsVistos.has(g.id);
 			});
+			registrarPagina(gruposDoc);
 			if (!novos.length) {
-				// Página repetida: evita laço infinito se a navegação não avançar.
 				console.warn(TAG, "a página", paginas + 1, "não trouxe nenhum registro novo — parando");
+				erro = "a página " + (paginas + 1) + " só trouxe registros já reunidos";
 				break;
 			}
 			const fragmento = document.createDocumentFragment();
 			novos.forEach(function (grupo) {
-				vistos.add(grupo.id);
+				total++;
 				const linhas = grupo.linhas.map(function (tr) {
 					return document.importNode(tr, true);
 				});
@@ -419,11 +457,11 @@
 			});
 			tbody.appendChild(fragmento);
 			paginas++;
-			console.log(TAG, "página", paginas, "reunida —", novos.length, "registro(s) novo(s); total:", vistos.size);
+			console.log(TAG, "página", paginas, "reunida —", novos.length, "registro(s) novo(s); total:", total);
 			docAtual = doc;
 		}
 
-		concluirNavegacao(vistos.size, paginas, erro);
+		concluirNavegacao(total, paginas, erro);
 	}
 
 	reunirPaginas().catch(function (e) {
