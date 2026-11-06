@@ -110,7 +110,10 @@ branch principal) e, em seguida, **↻ Recarregar a extensão**
 (`pdpNovaVersaoAdiada`). Nenhuma das duas chaves entra no backup.
 
 Para avisar todos os usuários, basta subir a `version` do `manifest.json`
-no branch principal (o que já é feito a cada versão).
+no branch principal (o que já é feito a cada versão). Desde a versão 3, a
+`version` é um número inteiro, somado de 1 em 1 a cada versão (3, 4, 5…);
+antes eram números como 2.61.0. A comparação é feita número a número, por
+isso 3 é maior que 2.61.0.
 
 As preferências ficam no armazenamento do navegador ligado à extensão, e
 não na pasta: copiar os arquivos novos por cima da **mesma pasta** e

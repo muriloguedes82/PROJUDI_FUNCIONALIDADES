@@ -1,5 +1,14 @@
 # Regras do repositório
 
+## Numeração das versões
+
+Desde a versão 3 (decisão do usuário), cada nova versão da extensão usa um
+**número inteiro**, somado de 1 em 1: `"version": "3"`, depois `"4"`, `"5"`
+etc. no `manifest.json`, para função nova, mudança de comportamento ou
+correção de erro. Não use mais números com pontos (como 2.61.0 ou
+2.60.1.1). A 3 sucede a 2.61.0; o aviso de versão nova compara número a
+número, então 3 > 2.61.0 e as próximas continuam sendo maiores.
+
 ## Manual da extensão (obrigatório a cada versão)
 
 Toda mudança que altera `version` em `extensao-preview-documentos/manifest.json`

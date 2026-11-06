@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.61.0 |
-| **Versão da extensão** | 2.61.0 |
+| **Versão do manual** | 3 |
+| **Versão da extensão** | 3 |
 | **Data desta versão** | 06/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -17,7 +17,9 @@
 > **Como ler este manual.** Cada função tem a mesma estrutura: *Para que
 > serve*, *Onde fica*, *Passo a passo* e *Bom saber*.
 >
-> O número da versão do manual é **igual** ao da extensão. Se a sua
+> O número da versão do manual é **igual** ao da extensão. Desde a
+> versão 3, cada versão nova tem um número inteiro (3, 4, 5…); as
+> anteriores usavam números como 2.61.0. Se a sua
 > extensão estiver numa versão diferente (veja em `chrome://extensions`),
 > algumas telas podem não bater com o que está descrito aqui — veja o
 > [Anexo A](#anexo-a) para saber o que mudou.
@@ -3139,6 +3141,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 3 | 06/11/2026 | Nova forma de numerar as versões: em vez de números como 2.61.0 ou 2.60.1, cada nova versão da extensão (e deste manual) passa a ter um número inteiro — 3, 4, 5 e assim por diante. A 3 vem logo depois da 2.61.0. O conteúdo das seções não mudou. |
 | 2.61.0 | 06/11/2026 | Nova seção **7.9 Seção Preferências na tela do processo**: quadro **Preferências** abaixo do quadro Pendências (ou acima dos botões do Projudi, quando não há pendências) com todas as preferências e combos, executados com um clique, **⚙ Organizar** e **▾ Recolher**. Na tabela do Menu (2.6), a nova parte **Seção "Preferências"** de **Ações rápidas e Minhas Preferências**. |
 | 2.60.1 | 06/11/2026 | Capítulo 6: os botões do quadro **Pendências** (**Dispensar juntadas**, **Finalizar conclusão**, **Dispensar decursos**, **Dispensar pendências**, **Dispensar decurso**, **Analisar decurso** e **Analisar Retorno**) e os avisos que aparecem no lugar deles ficaram menores e com um tamanho padrão, para ocupar menos espaço e deixar o quadro mais limpo. Nada mudou no que eles fazem. |
 | 2.60.0 | 04/11/2026 | Seção 6.5 (agora **Dispensar e analisar decurso de cumprimentos**): na linha **Cumprimentos Aguardando Análise de Decurso** do quadro Pendências, novo botão **Analisar decurso**, com o mesmo menu do Analisar Decurso das listas (**Abrir a análise**, **+ Nova preferência** e as preferências). A extensão abre o cumprimento, clica em **Analisar Decurso de Prazo** e em **Adicionar**, preenche a **Inserir Arquivo**, para no **Assinar Arquivos** para você assinar e depois clica em **Confirmar Inclusão** e em **Concluir**. Sumário e tabela da 2.6 atualizados. Novo vídeo V63 gravado e guardado em `videos-do-manual/` (não citado no manual). |
