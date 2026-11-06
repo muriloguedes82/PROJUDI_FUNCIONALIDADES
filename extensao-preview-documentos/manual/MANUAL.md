@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 10 |
-| **Versão da extensão** | 10 |
+| **Versão do manual** | 11 |
+| **Versão da extensão** | 11 |
 | **Data desta versão** | 06/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -3119,8 +3119,11 @@ página. Não há botão: a extensão faz isso sozinha.
 - **Arquivos do +:** depois que a extensão traz as outras páginas, o
   Projudi passa a "estar" na última delas, e o **+** do próprio Projudi
   abriria vazio. Por isso, nas listas reunidas, quem atende o **+** é a
-  extensão: ela abre, sem você ver, a página de onde a linha veio, clica
-  no **+** da mesma linha ali e copia os arquivos para a sua tela. O
+  extensão. Nas listas de intimação (**Expedir Intimações**, **Intimação**
+  e **Auxiliares da Justiça**) ela pede os arquivos direto ao Projudi,
+  pela própria movimentação, e eles aparecem quase na hora. Na **Análise
+  de Juntadas**, ela abre, sem você ver, a página de onde a linha veio,
+  clica no **+** da mesma linha ali e copia os arquivos para a sua tela: o
   primeiro **+** de cada página demora um pouco mais; os seguintes da
   mesma página, menos. O **Expandir Mov** também funciona (abre os de uma
   mesma página juntos). Se aparecer **Não foi possível trazer os
@@ -3201,7 +3204,7 @@ telas abertas a partir daí voltam a funcionar.
 | O botão **Finalizar conclusão** avisa "Conclusão não enviada: Não foi encontrada uma conclusão habilitada para finalização", mas a conclusão pode ser finalizada pelo próprio Projudi | Corrigido na versão 2.55.5: atualize a extensão ([2.3](#cap-2-3)). Se o aviso continuar, abra a conclusão pelo link do quadro Pendências e confira se o botão **Finalizar Conclusão Pendente** do Projudi está habilitado ([6.2](#cap-6-2)) |
 | O Projudi/SEEU fica lento com a extensão (computador mais fraco ou muitas abas abertas) | Desligue no Menu as funções que você não usa: desligadas, elas não são carregadas. Para conferir se a lentidão é da extensão, desligue-a pela chave geral e abra a mesma tela ([2.6](#cap-2-6)) |
 | Nenhum botão da extensão aparece | Confira se aceitou os Termos de Uso ([2.2](#cap-2-2)); recarregue a página (F5); confira se a extensão está ativada em `chrome://extensions`; confira se o perfil não é de advocacia ([10.3](#cap-10-3)) |
-| Numa lista reunida em uma única página, o **+** abre vazio, sem os arquivos | Corrigido na versão 10: atualize a extensão ([2.3](#cap-2-3)). Ao clicar no **+**, deve aparecer **Carregando os arquivos…** e, em seguida, os arquivos. Se aparecer **Não foi possível trazer os arquivos**, clique no **+** de novo ou recarregue a lista (F5) ([9.14](#cap-9-14)) |
+| Numa lista reunida em uma única página, o **+** abre vazio, sem os arquivos, ou mostra "Não foi possível trazer os arquivos: o registro não está mais na página…" | Corrigido nas versões 10 e 11: atualize a extensão ([2.3](#cap-2-3)). Ao clicar no **+**, deve aparecer **Carregando os arquivos…** e, em seguida, os arquivos. Se aparecer **Não foi possível trazer os arquivos**, clique no **+** de novo ou recarregue a lista (F5) ([9.14](#cap-9-14)) |
 | Numa das listas reunidas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN, Juiz das Garantias) aparece "Não foi possível trazer as páginas seguintes" | A sessão do Projudi pode ter expirado ou a conexão falhou: recarregue a lista (F5). Enquanto isso, a navegação de páginas do Projudi continua funcionando ([9.14](#cap-9-14)) |
 | Atualizei a extensão e nada mudou | Clique em ↻ no card da extensão em `chrome://extensions` e depois recarregue as páginas ([2.3](#cap-2-3)) |
 | A barra de botões cobre algo da tela | Arraste **↕ Mover** ou clique em **Ocultar** ([2.4](#cap-2-4)) |
@@ -3242,6 +3245,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 11 | 06/11/2026 | Corrigido (seção 9.14): nas listas de intimação reunidas (**Intimação** — decurso de prazo, **Expedir Intimações** e **Auxiliares da Justiça**), o **+** mostrava "Não foi possível trazer os arquivos: o registro não está mais na página 1 da lista". Agora, nessas listas, a extensão pede os arquivos direto ao Projudi, pela movimentação da linha, e eles aparecem quase na hora. Linha de **11. Solução de problemas** atualizada. Sem vídeo novo (a tela não mudou). |
 | 10 | 06/11/2026 | Corrigido (seção 9.14): nas listas reunidas em uma única página, o **+** abria vazio, sem os arquivos — tanto nas linhas da primeira página quanto nas trazidas das outras (o Projudi passava a "estar" na última página buscada). Agora a extensão atende o **+**: mostra **Carregando os arquivos…** e traz os arquivos da página de onde a linha veio; o **Expandir Mov** também funciona. Nova linha em **11. Solução de problemas**. Novo vídeo V70 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 9 | 06/11/2026 | Seção 9.14 (agora **Listas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN e Juiz das Garantias)**): também as listas **Expedir Intimações**, **Intimação** (decurso de prazo) e **Intimação de Auxiliares da Justiça** passam a mostrar todas as páginas numa só tela; na Intimação, com o campo **Sequencial** preenchido, continua valendo o filtro da 9.1 (que já percorre todas as páginas). Seção 9.1 com a mesma observação. Sumário, tabela da 2.6 e **11. Solução de problemas** atualizados. Novo vídeo V69 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 8 | 06/11/2026 | Seção 9.14 (agora **Listas em uma única página (Juntadas, Conclusões, Mandados, Multas FUPEN e Juiz das Garantias)**): também a **Listagem de Multas - Sistema FUPEN** e a fila **Processos com suspeita de incompetência - Juiz das Garantias** passam a mostrar todas as páginas numa só tela; tabela com as cinco listas. Corrigido: linhas iguais (como as de processos em **Segredo de justiça**) não são mais descartadas como repetidas; e, se o Projudi devolver de novo uma página já reunida, a navegação de páginas fica no lugar, com o aviso em vermelho. O nome da função no Menu mudou para **Listas em uma única página (…)**. Sumário, tabela da 2.6 e **11. Solução de problemas** atualizados. Novo vídeo V68 gravado e guardado em `videos-do-manual/` (não citado no manual). |

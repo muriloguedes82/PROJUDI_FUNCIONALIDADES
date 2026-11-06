@@ -195,6 +195,10 @@
 	}
 
 	async function buscarPagina(pedido) {
+		return new DOMParser().parseFromString(await buscarTexto(pedido), "text/html");
+	}
+
+	async function buscarTexto(pedido) {
 		const controle = new AbortController();
 		const tempo = setTimeout(function () {
 			controle.abort();
@@ -212,13 +216,11 @@
 			const charset =
 				/charset\s*=\s*["']?([\w-]+)/i.exec(resposta.headers.get("content-type") || "") ||
 				/charset\s*=\s*["']?([\w-]+)/i.exec(inicio);
-			let html;
 			try {
-				html = new TextDecoder((charset && charset[1]) || "windows-1252").decode(bytes);
+				return new TextDecoder((charset && charset[1]) || "windows-1252").decode(bytes);
 			} catch (e) {
-				html = new TextDecoder("windows-1252").decode(bytes);
+				return new TextDecoder("windows-1252").decode(bytes);
 			}
-			return new DOMParser().parseFromString(html, "text/html");
 		} finally {
 			clearTimeout(tempo);
 		}
@@ -246,8 +248,11 @@
 		if (caixa && caixa.value) return "id:" + caixa.value;
 		// Sem o que a própria extensão acrescenta à linha (📍, ⭐...), que
 		// ainda não existe nas linhas buscadas.
+		// Também sem os <script> que o Projudi põe na linha: o do ícone de
+		// copiar o número usa um número aleatório, diferente a cada carga da
+		// página — a mesma linha nunca teria a mesma chave.
 		const copia = tr.cloneNode(true);
-		copia.querySelectorAll('[class^="pdp-"], [class*=" pdp-"]').forEach(function (el) {
+		copia.querySelectorAll('[class^="pdp-"], [class*=" pdp-"], script, noscript, style').forEach(function (el) {
 			el.remove();
 		});
 		const processo = copia.querySelector('a[href*="processo.do"]');
@@ -600,7 +605,98 @@
 	const pendentes = []; // { linha, concluir(html), falhar(erro) }
 	let trabalhando = false;
 
+	// Caminho direto: nas listas de intimação (Expedir Intimações, decurso
+	// de prazo, Auxiliares da Justiça) a própria linha traz o comando do
+	// Projudi que liga o "+", por exemplo:
+	//   new AjaxJspTag.HtmlContent("/projudi/processo/movimentacaoArquivoDocumento.do?actionType=listar",
+	//     { sourceClass: "linkArquivos0", parameters: "idMovimentacao=1815986956,tipoLayout=1",
+	//       doPost: true, target: "div0" });
+	// O pedido é pela identificação da movimentação (não pela "página atual"
+	// da lista): a extensão faz o mesmo pedido, sem quadro oculto. Nas
+	// linhas trazidas das outras páginas esse comando está lá, mas não roda
+	// (scripts copiados de outra página não são executados).
+	function pedidoDiretoDaLinha(linha) {
+		const scripts = [linha].concat(linhasDoGrupo(linha)).reduce(function (lista, tr) {
+			return lista.concat(Array.from(tr.querySelectorAll("script")));
+		}, []);
+		for (const script of scripts) {
+			const texto = script.textContent || "";
+			if (!/AjaxJspTag\.HtmlContent/.test(texto) || !/sourceClass\s*:\s*["']linkArquivos/.test(texto)) continue;
+			const url = /HtmlContent\(\s*["']([^"']+)["']/.exec(texto);
+			if (!url) continue;
+			const parametros = /parameters\s*:\s*["']([^"']*)["']/.exec(texto);
+			const corpo = new URLSearchParams();
+			(parametros ? parametros[1] : "").split(",").forEach(function (par) {
+				const i = par.indexOf("=");
+				if (i > 0) corpo.append(par.slice(0, i).trim(), par.slice(i + 1).trim());
+			});
+			const post = !/doPost\s*:\s*false/.test(texto);
+			const absoluta = urlAbsoluta(url[1]);
+			if (!absoluta) continue;
+			if (post) return { url: absoluta, corpo: corpo };
+			const u = new URL(absoluta);
+			corpo.forEach(function (v, n) {
+				u.searchParams.append(n, v);
+			});
+			return { url: u.href, corpo: null };
+		}
+		return null;
+	}
+
+	// Linhas auxiliares que seguem a linha principal (até a próxima juntada).
+	function linhasDoGrupo(linha) {
+		const lista = [];
+		let prox = linha.nextElementSibling;
+		while (prox && linhaAuxiliar(prox)) {
+			lista.push(prox);
+			prox = prox.nextElementSibling;
+		}
+		return lista;
+	}
+
+	// Poucos pedidos diretos ao mesmo tempo (o "Expandir Mov" pode pedir
+	// dezenas de uma vez).
+	const DIRETOS_SIMULTANEOS = 4;
+	let diretosAtivos = 0;
+	const diretosEsperando = [];
+	function vezDoDireto() {
+		if (diretosAtivos < DIRETOS_SIMULTANEOS) {
+			diretosAtivos++;
+			return Promise.resolve();
+		}
+		return new Promise(function (r) {
+			diretosEsperando.push(r);
+		});
+	}
+	function fimDoDireto() {
+		const proximo = diretosEsperando.shift();
+		if (proximo) proximo();
+		else diretosAtivos--;
+	}
+
+	async function arquivosDiretos(pedido) {
+		await vezDoDireto();
+		try {
+			const html = (await buscarTexto(pedido)).trim();
+			// Página inteira (ex.: sessão expirada, tela de erro) não é a
+			// lista de arquivos.
+			if (!html || /<html[\s>]|<body[\s>]/i.test(html)) throw new Error("resposta inesperada do Projudi");
+			return html;
+		} finally {
+			fimDoDireto();
+		}
+	}
+
 	function pedirArquivos(item) {
+		const direto = pedidoDiretoDaLinha(item.linha);
+		if (direto) {
+			arquivosDiretos(direto).then(item.concluir, function (e) {
+				console.warn(TAG, "arquivos do + pelo pedido direto falharam; tentando pela página de origem:", e);
+				pendentes.push(item);
+				if (!trabalhando) processarPendentes();
+			});
+			return;
+		}
 		pendentes.push(item);
 		if (!trabalhando) processarPendentes();
 	}
