@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 3 |
-| **Versão da extensão** | 3 |
+| **Versão do manual** | 4 |
+| **Versão da extensão** | 4 |
 | **Data desta versão** | 06/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -3119,6 +3119,7 @@ telas abertas a partir daí voltam a funcionar.
 | No Outlook Web os anexos não entram sozinhos | É o esperado nesse modo: **Anexar arquivo → Navegar neste computador** e escolha os arquivos na pasta **Downloads** |
 | O campo "De" não muda para a conta escolhida | Falta a permissão "Enviar como" nessa caixa — peça ao TI ([5.3](#cap-5-3)) |
 | "Verifique a conclusão" | Confira a conclusão no Projudi antes de repetir ([6.2](#cap-6-2)) |
+| Os botões **Dispensar juntadas**, **Dispensar decursos** ou **Finalizar conclusão** aparecem no quadro Pendências, mas não respondem ao clique (acontecia com o zoom do navegador acima de 100%, ex.: 110%) | Corrigido na versão 4: atualize a extensão ([2.3](#cap-2-3)). Enquanto não atualiza, volte o zoom para 100% (**Ctrl+0**) |
 | Dispensa de juntadas/decursos parou com erro | Clique em **Ver detalhes**, resolva no Projudi e tente de novo ([6.1](#cap-6-1), [6.3](#cap-6-3)) |
 | Card de suspensão/monitoração não aparece | Só são sinalizados status **ATIVA** e os motivos listados em [4.1](#cap-4-1)/[4.2](#cap-4-2); aguarde alguns segundos após abrir o processo |
 | Mandado não virou Regionalizado | Só muda se a cidade da parte for de outra comarca **e** constar em Comarca de Destino; veja a nota amarela do diálogo ([9.7](#cap-9-7)) |
@@ -3141,6 +3142,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 4 | 06/11/2026 | Corrigido: com o zoom do navegador acima de 100% (ex.: 110%), os botões **Dispensar juntadas**, **Dispensar decursos** e **Finalizar conclusão** do quadro Pendências apareciam, mas não respondiam ao clique — uma área invisível da fila de botões da extensão ficava por cima deles. Nova linha em **11. Solução de problemas**. |
 | 3 | 06/11/2026 | Nova forma de numerar as versões: em vez de números como 2.61.0 ou 2.60.1, cada nova versão da extensão (e deste manual) passa a ter um número inteiro — 3, 4, 5 e assim por diante. A 3 vem logo depois da 2.61.0. O conteúdo das seções não mudou. |
 | 2.61.0 | 06/11/2026 | Nova seção **7.9 Seção Preferências na tela do processo**: quadro **Preferências** abaixo do quadro Pendências (ou acima dos botões do Projudi, quando não há pendências) com todas as preferências e combos, executados com um clique, **⚙ Organizar** e **▾ Recolher**. Na tabela do Menu (2.6), a nova parte **Seção "Preferências"** de **Ações rápidas e Minhas Preferências**. |
 | 2.60.1 | 06/11/2026 | Capítulo 6: os botões do quadro **Pendências** (**Dispensar juntadas**, **Finalizar conclusão**, **Dispensar decursos**, **Dispensar pendências**, **Dispensar decurso**, **Analisar decurso** e **Analisar Retorno**) e os avisos que aparecem no lugar deles ficaram menores e com um tamanho padrão, para ocupar menos espaço e deixar o quadro mais limpo. Nada mudou no que eles fazem. |
