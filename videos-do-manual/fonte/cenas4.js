@@ -1872,3 +1872,51 @@ CENAS.V61 = {
 		await S.endCard("Lista do Projudi → 📍 o que está em Informações Gerais → clique no localizador para removê-lo · ✏️ → 🔁 trocar ou ➕ incluir (Histórico de Localizadores).");
 	},
 };
+
+// ------------------------------------------------------------------ V64
+CENAS.V64 = {
+	arquivo: "V64-secao-preferencias.mp4",
+	titulo: "Seção Preferências na tela do processo",
+	secao: "7.9",
+	async run() {
+		telaProcesso({});
+		$("#pend-conclusao").closest("tr").remove(); // só juntadas: uma pergunta
+		const blocos = [
+			{ icon: "", title: "Enviar Concluso", cards: [{ name: "Concluso p/ sentença", id: "sp-concluso" }, { name: "Concluso p/ despacho" }] },
+			{ icon: "", title: "Intimar Partes", cards: [{ name: "Intimar MP - ciência 5 dias" }] },
+			{ icon: "", title: "Realizar Remessa", cards: [{ name: "Remessa MP" }] },
+			{ icon: "", title: "Juntar Documento", cards: [{ name: "Certidão de decurso" }] },
+			{ icon: "🔗", title: "Combos", cards: [{ name: "Decurso + concluso", combo: true }] },
+		];
+		$("#quadroPendencias").insertAdjacentHTML("afterend",
+			'<fieldset class="pj-fieldset" id="sp"><legend>Preferências <small style="font-weight:normal;color:#999">(6)</small> ' +
+			'<span class="x-btn small" id="sp-rec">▾ Recolher</span> <span class="x-btn small" id="sp-org">⚙ Organizar</span></legend>' +
+			'<div id="sp-corpo">' + favBlocos(blocos) + "</div></fieldset>");
+		await S.titleCard("VÍDEO V64", "Seção Preferências", "Todas as preferências e combos sempre à vista, abaixo do quadro Pendências.");
+		S.hl("#sp", 3);
+		await S.cap("Logo abaixo do quadro <b>Pendências</b> fica a seção <b>Preferências</b>, com os mesmos blocos do <b>⭐ Minhas Preferências</b>.", { ms: 4800 });
+		S.hlOff();
+		await S.cap("Sem pendências, ela aparece logo <b>acima dos botões do Projudi</b> (Pedido Incidental, Juntar Documento…).", { ms: 4200 });
+		await S.cap("Um clique no card executa. Exemplo: <b>★ Concluso p/ sentença</b>.");
+		await S.click("#sp-concluso");
+		perguntaPend("★ Concluso p/ sentença — Enviar Concluso", ...PERG_JUNTADAS);
+		await S.cap("Como sempre, vem antes a pergunta sobre as <b>pendências</b> do processo.", { ms: 4000 });
+		await S.click("#pend-sim");
+		closeModal();
+		$("#slot-juntada").innerHTML = '<span class="x-inline"><span class="msg">Juntada(s) já dispensada(s) - Movimentação permitida.</span></span>';
+		popup("Enviar Concluso", dlgConcluso({ tipo: "Para sentença", mag: "JULIANA MAGISTRADA" }), { top: 120, h: 500 });
+		bar('Confirmar “Enviar Concluso” com a preferência “Concluso p/ sentença”? <span class="x-btn small green" id="sim">✅ Sim, executar</span> <span class="x-btn small">Cancelar</span>', { top: 78 });
+		await S.cap("O diálogo abre preenchido. Confira e clique em <b>✅ Sim, executar</b>.");
+		await S.click("#sim");
+		$(".x-bar").remove(); $(".x-popup").remove();
+		S.hl("#sp-org", 2);
+		await S.cap("Para editar, remover ou mudar a ordem, use <b>⚙ Organizar</b> (abre o ⭐ Minhas Preferências).", { ms: 4200 });
+		S.hlOff();
+		await S.cap("E <b>▾ Recolher</b> deixa só o título à vista — a escolha fica salva.");
+		await S.click("#sp-rec");
+		$("#sp-corpo").style.display = "none";
+		$("#sp-rec").textContent = "▸ Mostrar";
+		await sleep(1500);
+		await S.endCard("Seção Preferências (abaixo das Pendências) → clique no card → pendências? → conferir → ✅ Sim, executar · ⚙ Organizar · ▾ Recolher.");
+	},
+};

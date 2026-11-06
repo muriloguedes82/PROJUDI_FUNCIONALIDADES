@@ -5310,6 +5310,437 @@
 		});
 	}
 
+	// -------------------------------------------------------------------
+	// Cards de preferência: o mesmo comportamento no painel "⭐ Minhas
+	// Preferências" e na seção "Preferências" da tela do processo.
+	// -------------------------------------------------------------------
+
+	// Mesmo critério do painel "🔗 Combos" (qualquer aba da tela do processo).
+	function comboPodeRodar() {
+		return isOnAcoesScreen() || !!findMovimentarButton() || !!findLatestValidEventLink() || hasProcessoForm() || !!findBackToProcessUrl();
+	}
+
+	// Como o card é acionado nesta tela; null = indisponível aqui.
+	function favItemMode(item, comboCanRun) {
+		if (item.kind === "combo") return comboCanRun ? "combo" : null;
+		if (item.kind === "audiencia") {
+			const audApi = window.__pdpAgendarAudienciaApi;
+			return audApi && audApi.disponivel() ? "audiencia" : null;
+		}
+		if (item.kind === "juntar") return window.__pdpJuntarDocumento && location.pathname.startsWith("/projudi/") ? "juntar" : null;
+		if (item.kind === "localizador") return window.__pdpLocalizador && window.__pdpLocalizador.disponivel() ? "localizador" : null;
+		return modeForLabel(item.label);
+	}
+
+	function favItemNameEl(item) {
+		const isCombo = item.kind === "combo";
+		const nameEl = document.createElement("span");
+		nameEl.className = "pdp-qa-fav-card-name";
+		nameEl.textContent = (isCombo ? "▶ " : "") + item.pref.name;
+		if (!isCombo && item.pref.movimento && item.pref.movimento.texto) {
+			nameEl.textContent += " 📌";
+			nameEl.title = 'Parte do movimento "' + item.pref.movimento.texto + '" (o mais recente com esse nome)';
+		}
+		return nameEl;
+	}
+
+	// Balão do card (o nome pode aparecer cortado: vai inteiro aqui).
+	function favItemTitle(item, mode) {
+		const isCombo = item.kind === "combo";
+		const isLocalizador = item.kind === "localizador";
+		const isAudiencia = item.kind === "audiencia";
+		const audApi = window.__pdpAgendarAudienciaApi;
+		let title;
+		if (isCombo) {
+			title = (mode ? "Executar em sequência (cada etapa pede a confirmação de sempre):\n" : "Abra a tela do processo para executar:\n") +
+				describeComboSteps(item.combo.steps, item.all);
+		} else if (!mode && isAudiencia) {
+			title = 'Abra a tela do processo (com o "Agendar" na linha "Audiência" do cabeçalho) para usar.\n' + (audApi ? audApi.descrever(item.pref) : "");
+		} else if (isAudiencia) {
+			title = audApi.descrever(item.pref) + "\nDepois você continua o agendamento à mão.";
+		} else if (!mode && isLocalizador) {
+			title = "Localizadores só podem ser associados na tela do processo do SEEU (com o \"+\" dos localizadores disponível):\n" + item.pref.localizadores.join("\n");
+		} else if (!mode) {
+			title = '"' + item.label + '" não está disponível nesta tela. Abra a aba "Movimentações" do processo.';
+		} else if (isLocalizador) {
+			title = "Associar ao processo:\n" + item.pref.localizadores.join("\n");
+		} else if (item.kind === "juntar") {
+			title = 'Juntar Documento com a preferência "' + item.pref.name + '"';
+		} else {
+			title = mode === "custom"
+				? 'Abre "' + item.label + '" já preenchido com esta preferência'
+				: 'Preenche automaticamente e pede 1 confirmação para executar "' + item.label + '"';
+			if (item.pref.descricao) title += "\n" + item.pref.descricao;
+		}
+		return (isCombo ? "▶ " : "★ ") + item.pref.name + "\n" + title;
+	}
+
+	// Executa o card (sempre perguntando antes pelas pendências - REGRA do
+	// CLAUDE.md, "pendências antes de uma preferência").
+	function runFavItem(item, mode) {
+		if (mode === "localizador") {
+			executarComPendencias("★ " + item.pref.name + " — 📍 Localizador", false, function () {
+				window.__pdpLocalizador.aplicar(item.pref);
+			});
+			return;
+		}
+		if (mode === "combo") {
+			executarComPendencias('🔗 Combo "' + item.combo.name + '" (' + item.combo.steps.length + " etapas)", true, function () {
+				startCombo(item.combo);
+			});
+			return;
+		}
+		if (mode === "audiencia") {
+			const audApi = window.__pdpAgendarAudienciaApi;
+			executarComPendencias("★ " + item.pref.name + " — " + AGENDAR_AUDIENCIA_LABEL, false, function () {
+				audApi.abrir(item.pref);
+			});
+			return;
+		}
+		executarComPendencias("★ " + item.pref.name + " — " + item.label, false, function () {
+			removeConfirmBar();
+			removeCaptureToolbar();
+			if (mode === "juntar") window.__pdpJuntarDocumento.apply(item.pref);
+			else if (mode === "custom") applyPreferenceCustom(item.label, item.pref);
+			else if (mode === "hop") applyPreferenceViaChain(item.label, item.pref);
+			else applyPreference(item.label, item.pref);
+		});
+	}
+
+	// -------------------------------------------------------------------
+	// Seção "Preferências" (versão 2.61.0): todas as preferências e combos
+	// à vista, num quadro da própria tela do processo - logo abaixo do
+	// quadro Pendências, quando ele existe, ou logo acima da barra de botões
+	// do Projudi (Pedido Incidental, Juntar Documento, Peticionar...), quando
+	// não existe. Um clique no card executa (sem abrir o ⭐ Minhas
+	// Preferências). Mesma ordem e mesmos blocos do painel; editar, remover
+	// e reordenar continuam no painel (botão "⚙ Organizar").
+	//
+	// A seção fica no fluxo da página (empurra o resto para baixo) e não
+	// mexe na ancoragem dos botões da extensão (buttonDrag.js continua
+	// centralizando-os no quadro Pendências). Se os botões fixos da extensão
+	// ficarem na altura da seção (Pendências curto, "↕ Mover", ou sem
+	// Pendências), a seção deixa livre, à direita, a largura que eles
+	// ocupam - os cards nunca ficam por baixo deles.
+	// -------------------------------------------------------------------
+
+	const SECAO_ID = "pdp-secao-preferencias";
+	const SECAO_RECOLHIDA_KEY = "pdpSecaoPreferenciasRecolhida";
+	const SECAO_STORAGE_KEYS = COMBO_PREFS_STORAGE_KEYS.concat([FAV_ORDER_KEY, COMBOS_KEY]);
+	// Botões fixos da extensão que podem ficar na altura da seção.
+	const SECAO_FIXOS = "#pdp-qa-row, #pdp-wa-launcher, .pdp-email-visible, #pdp-buttons-drag, #pdp-buttons-toggle";
+	let secao = null;
+	let secaoItens = null; // null = ainda não carregados
+	let secaoCarregando = false;
+	let secaoRecolhida = false;
+	let secaoRecolhidaLida = false;
+	let secaoAssinatura = "";
+	let secaoUltimaConferencia = 0;
+	let secaoFolgaAgendada = false;
+
+	function textoDoBotao(el) {
+		return (el.textContent || el.value || "").replace(/\s+/g, " ").trim();
+	}
+
+	// Barra nativa do processo (Pedido Incidental, Juntar Documento,
+	// Peticionar, Patronato, Navegar, Exportar Processo, Voltar): o menor
+	// elemento da página que contém todos esses botões. Os botões desta
+	// extensão (ex.: "Juntar Documento" da fileira) não contam.
+	function barraNativaDoProcesso() {
+		const botoes = Array.prototype.filter.call(
+			document.querySelectorAll('button, a, input[type="button"], input[type="submit"]'),
+			function (el) {
+				if (PROCESS_TOOLBAR_LABELS.indexOf(textoDoBotao(el).replace(/\s*▼$/, "")) === -1) return false;
+				if (el.closest('[id^="pdp-"], [class*="pdp-"]')) return false;
+				return el.getClientRects().length > 0;
+			}
+		);
+		if (!botoes.length) return null;
+		let comum = botoes[0].parentElement;
+		while (comum && !botoes.every(function (b) { return comum.contains(b); })) comum = comum.parentElement;
+		if (!comum || comum === document.body || comum === document.documentElement) return null;
+		if (/^(TR|TD|TH|TBODY|THEAD|TFOOT)$/.test(comum.tagName)) comum = comum.closest("table") || comum;
+		// Um contêiner grande demais (a página inteira num <table> de
+		// leiaute, por exemplo) empurraria a seção para o lugar errado: aí
+		// fica só a linha dos botões.
+		const altura = botoes[0].getBoundingClientRect().height || 20;
+		if (comum.getBoundingClientRect().height > altura * 3 + 20) {
+			const linha = botoes[0].closest("tr");
+			if (!linha || !botoes.every(function (b) { return linha.contains(b); })) return null;
+			comum = linha;
+		}
+		return comum;
+	}
+
+	// Onde a seção entra: { ref, onde } para insertAdjacentElement.
+	function secaoLugar() {
+		const pendencias = document.getElementById("quadroPendencias");
+		if (pendencias && pendencias.getClientRects().length) return { ref: pendencias, onde: "afterend" };
+		const barra = barraNativaDoProcesso();
+		if (!barra) return null;
+		// Dentro de uma tabela, a seção vira uma linha própria (célula na
+		// largura toda), para não desalinhar as colunas.
+		if (barra.tagName === "TR") return { ref: barra, onde: "beforebegin", linha: true };
+		return { ref: barra, onde: "beforebegin" };
+	}
+
+	// Mesma aparência do quadro Pendências (borda, fundo e título), lida da
+	// própria página; sem ele, a aparência padrão (quickActions.css).
+	function copiarAparenciaDasPendencias(fieldset, legend) {
+		const pendencias = document.getElementById("quadroPendencias");
+		if (!pendencias) return;
+		try {
+			const cs = getComputedStyle(pendencias);
+			["border-top", "border-right", "border-bottom", "border-left", "border-radius", "background-color", "font-family"].forEach(function (p) {
+				fieldset.style.setProperty(p, cs.getPropertyValue(p));
+			});
+			const legendaNativa = pendencias.querySelector(":scope > legend");
+			if (legendaNativa) {
+				const ls = getComputedStyle(legendaNativa);
+				["font-family", "font-size", "font-weight", "color"].forEach(function (p) {
+					legend.style.setProperty(p, ls.getPropertyValue(p));
+				});
+			}
+		} catch (err) {
+			// segue com a aparência padrão
+		}
+	}
+
+	function criarSecao() {
+		const fieldset = document.createElement("fieldset");
+		fieldset.id = SECAO_ID;
+		fieldset.className = "pdp-sp";
+
+		const legend = document.createElement("legend");
+		legend.className = "pdp-sp-legenda";
+		const titulo = document.createElement("span");
+		titulo.textContent = "Preferências";
+		const contagem = document.createElement("span");
+		contagem.className = "pdp-sp-contagem";
+		legend.appendChild(titulo);
+		legend.appendChild(contagem);
+
+		const recolher = document.createElement("button");
+		recolher.type = "button";
+		recolher.className = "pdp-sp-botao pdp-sp-recolher";
+		recolher.addEventListener("click", function () {
+			secaoRecolhida = !secaoRecolhida;
+			aplicarSecaoRecolhida();
+			chrome.storage.local.set({ [SECAO_RECOLHIDA_KEY]: secaoRecolhida }).catch(function (err) {
+				console.error("[Projudi Ações Rápidas]", "erro ao salvar a seção Preferências recolhida:", err);
+			});
+		});
+		legend.appendChild(recolher);
+
+		const organizar = document.createElement("button");
+		organizar.type = "button";
+		organizar.className = "pdp-sp-botao";
+		organizar.textContent = "⚙ Organizar";
+		organizar.title = 'Abre o "⭐ Minhas Preferências" para editar, remover ou mudar a ordem dos cards (a ordem vale também aqui)';
+		organizar.addEventListener("click", function (e) {
+			e.stopPropagation();
+			if (row && row.isConnected) toggleFavPanel();
+		});
+		legend.appendChild(organizar);
+		fieldset.appendChild(legend);
+
+		const corpo = document.createElement("div");
+		corpo.className = "pdp-qa-fav-grid pdp-sp-corpo";
+		fieldset.appendChild(corpo);
+
+		copiarAparenciaDasPendencias(fieldset, legend);
+		secao = fieldset;
+		aplicarSecaoRecolhida();
+	}
+
+	function aplicarSecaoRecolhida() {
+		if (!secao) return;
+		secao.classList.toggle("pdp-sp-recolhida", secaoRecolhida);
+		const botao = secao.querySelector(".pdp-sp-recolher");
+		if (botao) {
+			botao.textContent = secaoRecolhida ? "▸ Mostrar" : "▾ Recolher";
+			botao.title = secaoRecolhida ? "Mostrar as preferências" : "Recolher a seção (só o título fica à vista; a escolha fica salva)";
+			botao.setAttribute("aria-expanded", String(!secaoRecolhida));
+		}
+		agendarFolgaSecao();
+	}
+
+	// Modo de cada card nesta tela, resumido: quando muda (ex.: a aba
+	// Movimentações terminou de carregar), os cards são refeitos.
+	function assinaturaSecao(itens, comboCanRun) {
+		const porRotulo = {};
+		return itens.map(function (item) {
+			const chave = item.kind + ":" + (item.kind === "action" ? item.label : "");
+			if (!(chave in porRotulo)) porRotulo[chave] = favItemMode(item, comboCanRun) || "-";
+			return porRotulo[chave];
+		}).join("|");
+	}
+
+	function cardDaSecao(item, mode) {
+		const card = document.createElement("div");
+		card.className = "pdp-qa-fav-card";
+		card.dataset.key = item.key;
+		card.tabIndex = 0;
+		card.setAttribute("role", "button");
+		if (item.kind === "combo") card.classList.add("pdp-qa-fav-combo");
+		card.appendChild(favItemNameEl(item));
+		if (!mode) card.classList.add("pdp-qa-fav-unavailable");
+		card.title = favItemTitle(item, mode);
+		function acionar() {
+			// Confere de novo na hora do clique (a tela pode ter mudado).
+			const agora = favItemMode(item, comboPodeRodar());
+			if (!agora) return;
+			closePanel();
+			runFavItem(item, agora);
+		}
+		card.addEventListener("click", acionar);
+		card.addEventListener("keydown", function (e) {
+			if (e.key === "Enter" || e.key === " ") {
+				e.preventDefault();
+				acionar();
+			}
+		});
+		return card;
+	}
+
+	function renderSecao() {
+		if (!secao || !secaoItens) return;
+		const corpo = secao.querySelector(".pdp-sp-corpo");
+		const comboCanRun = comboPodeRodar();
+		const modos = {};
+		secaoItens.forEach(function (item) {
+			modos[item.key] = favItemMode(item, comboCanRun);
+		});
+		secaoAssinatura = assinaturaSecao(secaoItens, comboCanRun);
+		secaoUltimaConferencia = Date.now();
+		corpo.textContent = "";
+		buildFavGroups(corpo, secaoItens, function (item) {
+			return cardDaSecao(item, modos[item.key]);
+		});
+		const contagem = secao.querySelector(".pdp-sp-contagem");
+		if (contagem) contagem.textContent = " (" + secaoItens.length + ")";
+		agendarFolgaSecao();
+	}
+
+	function carregarSecao() {
+		if (secaoCarregando) return;
+		secaoCarregando = true;
+		const leituras = [loadFavItemsWith(true)];
+		if (!secaoRecolhidaLida) leituras.push(chrome.storage.local.get([SECAO_RECOLHIDA_KEY]));
+		Promise.all(leituras).then(function (r) {
+			secaoItens = r[0];
+			if (r[1]) {
+				secaoRecolhidaLida = true;
+				secaoRecolhida = r[1][SECAO_RECOLHIDA_KEY] === true;
+				aplicarSecaoRecolhida();
+			}
+			renderSecao();
+		}).catch(function (err) {
+			console.error("[Projudi Ações Rápidas]", "erro ao carregar a seção Preferências:", err);
+			secaoItens = [];
+		}).finally(function () {
+			secaoCarregando = false;
+			ensureSecao();
+		});
+	}
+
+	function ensureSecao() {
+		if (semInterface || !isOnProcessScreen()) return;
+		const lugar = secaoLugar();
+		// Sem preferências nem combos salvos, a seção não aparece.
+		if (!lugar || (secaoItens && !secaoItens.length)) {
+			if (secao && secao.isConnected) removerSecaoDaTela();
+			if (!secaoItens) carregarSecao();
+			return;
+		}
+		if (!secao) criarSecao();
+		if (!secaoItens) {
+			carregarSecao();
+			return;
+		}
+		let alvo = secao;
+		if (lugar.linha) {
+			// Dentro de tabela: <tr><td colspan> com a seção.
+			alvo = secao.closest("tr.pdp-sp-linha");
+			if (!alvo) {
+				alvo = document.createElement("tr");
+				alvo.className = "pdp-sp-linha";
+				const td = document.createElement("td");
+				td.colSpan = 100;
+				alvo.appendChild(td);
+				td.appendChild(secao);
+			}
+		} else {
+			const linhaAntiga = secao.closest("tr.pdp-sp-linha");
+			if (linhaAntiga) linhaAntiga.remove();
+		}
+		const vizinho = lugar.onde === "afterend" ? lugar.ref.nextElementSibling : lugar.ref.previousElementSibling;
+		if (vizinho !== alvo) {
+			lugar.ref.insertAdjacentElement(lugar.onde, alvo);
+			agendarFolgaSecao();
+		}
+		// Disponibilidade dos cards: conferida no máximo a cada 1,5s (a
+		// reconciliação roda a cada mudança na página).
+		if (Date.now() - secaoUltimaConferencia > 1500) {
+			secaoUltimaConferencia = Date.now();
+			if (assinaturaSecao(secaoItens, comboPodeRodar()) !== secaoAssinatura) renderSecao();
+		}
+	}
+
+	function removerSecaoDaTela() {
+		const linha = secao.closest("tr.pdp-sp-linha");
+		(linha || secao).remove();
+	}
+
+	// Deixa livre, à direita dos cards, a largura dos botões fixos da
+	// extensão que estiverem na altura da seção.
+	function agendarFolgaSecao() {
+		if (secaoFolgaAgendada) return;
+		secaoFolgaAgendada = true;
+		requestAnimationFrame(function () {
+			secaoFolgaAgendada = false;
+			ajustarFolgaSecao();
+		});
+	}
+
+	function ajustarFolgaSecao() {
+		if (!secao || !secao.isConnected) return;
+		const r = secao.getBoundingClientRect();
+		let esquerda = Infinity;
+		if (!document.documentElement.hasAttribute("data-pdp-buttons-hidden")) {
+			document.querySelectorAll(SECAO_FIXOS).forEach(function (el) {
+				if (!el.getClientRects().length || getComputedStyle(el).visibility === "hidden") return;
+				// O grupo de Ações Rápidas é medido pelos botões (a caixa dele
+				// pode ser mais larga que o que se vê).
+				const partes = el.id === "pdp-qa-row" ? el.querySelectorAll(".pdp-qa-group-btn, .pdp-qa-ghost") : [el];
+				Array.prototype.forEach.call(partes, function (p) {
+					if (!p.getClientRects().length) return;
+					const b = p.getBoundingClientRect();
+					if (b.bottom > r.top && b.top < r.bottom && b.right > r.left && b.left < r.right) esquerda = Math.min(esquerda, b.left);
+				});
+			});
+		}
+		const folga = esquerda === Infinity ? 0 : Math.max(0, Math.ceil(r.right - esquerda + 8));
+		const atual = parseFloat(secao.style.paddingRight) || 0;
+		if (Math.abs(atual - folga) < 4) return;
+		if (folga) secao.style.setProperty("padding-right", folga + "px", "important");
+		else secao.style.removeProperty("padding-right");
+	}
+
+	chrome.storage.onChanged.addListener(function (changes, area) {
+		if (area !== "local") return;
+		if (changes[SECAO_RECOLHIDA_KEY]) {
+			secaoRecolhida = changes[SECAO_RECOLHIDA_KEY].newValue === true;
+			aplicarSecaoRecolhida();
+		}
+		if (!semInterface && SECAO_STORAGE_KEYS.some(function (k) { return !!changes[k]; })) {
+			secaoItens = null;
+			if (secao || isOnProcessScreen()) carregarSecao();
+		}
+	});
+	window.addEventListener("pdp-buttons-moved", agendarFolgaSecao);
+	window.addEventListener("resize", agendarFolgaSecao);
+
 	function toggleFavPanel() {
 		if (activeGroupId === FAV_PANEL_ID) {
 			closePanel();
@@ -5424,7 +5855,7 @@
 		let draggedCard = null;
 		let draggedGroup = null;
 		// Mesmo critério do painel "🔗 Combos" (qualquer aba da tela do processo).
-		const comboCanRun = isOnAcoesScreen() || !!findMovimentarButton() || !!findLatestValidEventLink() || hasProcessoForm() || !!findBackToProcessUrl();
+		const comboCanRun = comboPodeRodar();
 
 		function persistOrder() {
 			const order = Array.prototype.map.call(grid.querySelectorAll(".pdp-qa-fav-card"), function (card) {
@@ -5447,24 +5878,9 @@
 			const isLocalizador = item.kind === "localizador";
 			const isAudiencia = item.kind === "audiencia";
 			const audApi = window.__pdpAgendarAudienciaApi;
-			const mode = isCombo
-				? (comboCanRun ? "combo" : null)
-				: isAudiencia
-					? (audApi && audApi.disponivel() ? "audiencia" : null)
-				: item.kind === "juntar"
-					? (window.__pdpJuntarDocumento && location.pathname.startsWith("/projudi/") ? "juntar" : null)
-					: isLocalizador
-						? (window.__pdpLocalizador && window.__pdpLocalizador.disponivel() ? "localizador" : null)
-						: modeForLabel(item.label);
+			const mode = favItemMode(item, comboCanRun);
 
-			const nameEl = document.createElement("span");
-			nameEl.className = "pdp-qa-fav-card-name";
-			nameEl.textContent = (isCombo ? "▶ " : "") + item.pref.name;
-			if (!isCombo && item.pref.movimento && item.pref.movimento.texto) {
-				nameEl.textContent += " 📌";
-				nameEl.title = 'Parte do movimento "' + item.pref.movimento.texto + '" (o mais recente com esse nome)';
-			}
-			card.appendChild(nameEl);
+			card.appendChild(favItemNameEl(item));
 
 			const tools = document.createElement("span");
 			tools.className = "pdp-qa-fav-tools";
@@ -5542,63 +5958,13 @@
 			});
 			tools.appendChild(delBtn);
 
-			if (isCombo) {
-				if (!mode) card.classList.add("pdp-qa-fav-unavailable");
-				card.title = (mode ? "Executar em sequência (cada etapa pede a confirmação de sempre):\n" : "Abra a tela do processo para executar:\n") +
-					describeComboSteps(item.combo.steps, item.all);
-			} else if (!mode && isAudiencia) {
-				card.classList.add("pdp-qa-fav-unavailable");
-				card.title = 'Abra a tela do processo (com o "Agendar" na linha "Audiência" do cabeçalho) para usar.\n' + (audApi ? audApi.descrever(item.pref) : "");
-			} else if (isAudiencia) {
-				card.title = audApi.descrever(item.pref) + "\nDepois você continua o agendamento à mão.";
-			} else if (!mode && isLocalizador) {
-				card.classList.add("pdp-qa-fav-unavailable");
-				card.title = "Localizadores só podem ser associados na tela do processo do SEEU (com o \"+\" dos localizadores disponível):\n" + item.pref.localizadores.join("\n");
-			} else if (!mode) {
-				card.classList.add("pdp-qa-fav-unavailable");
-				card.title = '"' + item.label + '" não está disponível nesta tela. Abra a aba "Movimentações" do processo.';
-			} else if (isLocalizador) {
-				card.title = "Associar ao processo:\n" + item.pref.localizadores.join("\n");
-			} else if (item.kind === "juntar") {
-				card.title = 'Juntar Documento com a preferência "' + item.pref.name + '"';
-			} else {
-				card.title = mode === "custom"
-					? 'Abre "' + item.label + '" já preenchido com esta preferência'
-					: 'Preenche automaticamente e pede 1 confirmação para executar "' + item.label + '"';
-				if (item.pref.descricao) card.title += "\n" + item.pref.descricao;
-			}
-			// O nome pode aparecer cortado ("…") no card: vai inteiro no balão.
-			card.title = (isCombo ? "▶ " : "★ ") + item.pref.name + "\n" + card.title;
+			if (!mode) card.classList.add("pdp-qa-fav-unavailable");
+			card.title = favItemTitle(item, mode);
 
 			function activate() {
 				if (state.editing || !mode) return;
 				closePanel();
-				if (mode === "localizador") {
-					executarComPendencias("★ " + item.pref.name + " — 📍 Localizador", false, function () {
-						window.__pdpLocalizador.aplicar(item.pref);
-					});
-					return;
-				}
-				if (mode === "combo") {
-					executarComPendencias('🔗 Combo "' + item.combo.name + '" (' + item.combo.steps.length + " etapas)", true, function () {
-						startCombo(item.combo);
-					});
-					return;
-				}
-				if (mode === "audiencia") {
-					executarComPendencias("★ " + item.pref.name + " — " + AGENDAR_AUDIENCIA_LABEL, false, function () {
-						audApi.abrir(item.pref);
-					});
-					return;
-				}
-				executarComPendencias("★ " + item.pref.name + " — " + item.label, false, function () {
-					removeConfirmBar();
-					removeCaptureToolbar();
-					if (mode === "juntar") window.__pdpJuntarDocumento.apply(item.pref);
-					else if (mode === "custom") applyPreferenceCustom(item.label, item.pref);
-					else if (mode === "hop") applyPreferenceViaChain(item.label, item.pref);
-					else applyPreference(item.label, item.pref);
-				});
+				runFavItem(item, mode);
 			}
 			card.addEventListener("click", activate);
 			card.addEventListener("keydown", function (e) {
@@ -5856,6 +6222,7 @@
 			if (!isElementUsable(row)) {
 				ensureRow();
 			}
+			ensureSecao();
 			if (activePanel && !activePanel.isConnected) {
 				activePanel = null;
 				activeGroupId = null;
