@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.60.0 |
-| **Versão da extensão** | 2.60.0 |
-| **Data desta versão** | 04/11/2026 |
+| **Versão do manual** | 2.60.1 |
+| **Versão da extensão** | 2.60.1 |
+| **Data desta versão** | 06/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -894,6 +894,10 @@ Acompanhamento; a linha dos cumprimentos mostra a quantidade no fim, ex.:
 
 ⚠️ Estes botões **agem ao clicar**. Confira antes as pendências (a
 pré-visualização do item [3.2](#cap-3-2) ajuda).
+
+Todos esses botões (e os avisos que aparecem no lugar deles depois de
+usados) têm o **mesmo tamanho**, pequeno e discreto, para não poluir o
+quadro.
 
 <a id="cap-6-1"></a>
 ### 6.1 Dispensar juntadas
@@ -3085,6 +3089,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.60.1 | 06/11/2026 | Capítulo 6: os botões do quadro **Pendências** (**Dispensar juntadas**, **Finalizar conclusão**, **Dispensar decursos**, **Dispensar pendências**, **Dispensar decurso**, **Analisar decurso** e **Analisar Retorno**) e os avisos que aparecem no lugar deles ficaram menores e com um tamanho padrão, para ocupar menos espaço e deixar o quadro mais limpo. Nada mudou no que eles fazem. |
 | 2.60.0 | 04/11/2026 | Seção 6.5 (agora **Dispensar e analisar decurso de cumprimentos**): na linha **Cumprimentos Aguardando Análise de Decurso** do quadro Pendências, novo botão **Analisar decurso**, com o mesmo menu do Analisar Decurso das listas (**Abrir a análise**, **+ Nova preferência** e as preferências). A extensão abre o cumprimento, clica em **Analisar Decurso de Prazo** e em **Adicionar**, preenche a **Inserir Arquivo**, para no **Assinar Arquivos** para você assinar e depois clica em **Confirmar Inclusão** e em **Concluir**. Sumário e tabela da 2.6 atualizados. Novo vídeo V63 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 2.59.0 | 04/11/2026 | **Nova seção 6.5 — Dispensar decurso de cumprimentos:** na linha **Cumprimentos Aguardando Análise de Decurso** do quadro Pendências, o botão **Dispensar decurso** faz sozinho o caminho lista **Demais Cumprimentos** → **Visualizar** → **Dispensar Decurso** → **OK**, mostrando **Dispensando decurso…** e, no fim, **Decurso dispensado**. Sumário e tabela da 2.6 atualizados. Novo vídeo V62 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 2.58.0 | 04/11/2026 | Nova seção **9.13 Localizador na lista de juntadas e de conclusões (Projudi)**: nas listas Análise de Juntadas e Retorno de Conclusão do Projudi, a linha **📍** mostra o que consta em **Localizadores:** na aba Informações Gerais (a extensão passa para essa aba antes de ler), o **✏️** troca ou inclui um localizador escolhido entre os ativos do Histórico de Localizadores, e clicar no localizador tira-o do processo. A leitura é feita em três processos ao mesmo tempo, com conferência de que cada resposta é do processo certo. Incluída também na tabela de 2.6. |

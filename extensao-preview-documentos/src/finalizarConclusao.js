@@ -105,7 +105,7 @@
       if (!control || !control.isConnected) {
         control = document.createElement('button'); control.type = 'button';
         control.className = 'pdp-finalizar-conclusao';
-        control.style.cssText = 'margin-left:12px;padding:5px 10px;border:1px solid #b9c4ad;border-radius:4px;background:#f4f6ef;color:#34422a;';
+        control.style.cssText = 'margin-left:8px;padding:1px 8px;border:1px solid #a5ac9a;border-radius:3px;font:11px/16px Arial,sans-serif;vertical-align:middle;background:#f4f6ef;color:#34422a;cursor:pointer;';
         control.addEventListener('click', () => {
           try { finalize(link, safeURL(link.getAttribute('href'))); } catch (_) { refresh(); }
         });
