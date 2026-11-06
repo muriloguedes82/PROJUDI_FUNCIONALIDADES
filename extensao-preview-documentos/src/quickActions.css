@@ -1036,3 +1036,69 @@ html.pdp-qa-combo-active body {
 .pdp-qa-pend-sim {
 	font-weight: bold;
 }
+
+/* Seção "Preferências" da tela do processo (versão 2.61.0): abaixo do
+   quadro Pendências (ou acima da barra de botões do Projudi, sem ele), com
+   todas as preferências e combos em cards - os mesmos blocos e cards do
+   "⭐ Minhas Preferências". Borda, fundo e título copiam os do quadro
+   Pendências quando ele existe (quickActions.js). */
+fieldset.pdp-sp {
+	display: block;
+	box-sizing: border-box;
+	margin: 6px 0;
+	padding: 2px 10px 8px;
+	min-width: 0;
+	border: 1px solid #b5b5a5;
+	font-family: Arial, Helvetica, sans-serif;
+	text-align: left;
+}
+
+.pdp-sp-legenda {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 0 4px;
+	font-size: 15px;
+	font-weight: bold;
+	color: #777;
+}
+
+.pdp-sp-contagem {
+	font-size: 11px;
+	font-weight: normal;
+	color: #999;
+}
+
+.pdp-sp-botao {
+	margin: 0;
+	padding: 1px 6px;
+	border: 1px solid #c9c9c9;
+	border-radius: 3px;
+	background: #fff;
+	color: #333;
+	font: normal 10.5px Arial, Helvetica, sans-serif;
+	line-height: 1.3;
+	cursor: pointer;
+}
+
+.pdp-sp-botao:hover,
+.pdp-sp-botao:focus {
+	background: #f1f1f1;
+	border-color: #999;
+}
+
+.pdp-sp-corpo {
+	margin-top: 2px;
+}
+
+.pdp-sp.pdp-sp-recolhida {
+	padding-bottom: 0;
+}
+
+.pdp-sp.pdp-sp-recolhida .pdp-sp-corpo {
+	display: none;
+}
+
+tr.pdp-sp-linha > td {
+	padding: 0;
+}

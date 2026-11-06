@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 2.60.0 |
-| **Versão da extensão** | 2.60.0 |
-| **Data desta versão** | 04/11/2026 |
+| **Versão do manual** | 2.61.0 |
+| **Versão da extensão** | 2.61.0 |
+| **Data desta versão** | 06/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -67,6 +67,7 @@
    - 7.6 [Nova Remessa](#cap-7-6)
    - 7.7 [Escolher a movimentação das Ações rápidas](#cap-7-7)
    - 7.8 [Painéis com muitas preferências (busca e + Nova preferência no topo)](#cap-7-8)
+   - 7.9 [Seção Preferências na tela do processo](#cap-7-9)
 8. [Atalhos para telas do processo](#cap-8)
    - 8.1 [Alvará Eletrônico](#cap-8-1)
    - 8.2 [Juntar Documento com preferências](#cap-8-2)
@@ -437,7 +438,7 @@ você esconde só o que não usa, sem desligar a função inteira:
 |---|---|
 | **Pré-visualização e WhatsApp** | 📱 Enviar por WhatsApp (a pré-visualização continua) |
 | **Expandir anexos / ocultar sem arquivo** | Expandir/Recolher movimentações · Apenas com arquivo (+) |
-| **Ações rápidas e Minhas Preferências** | Concluso · Remessa · Ordenações · Int. Partes · Outras (inclui Suspender, Transitar e Arquivar) · ⭐ Minhas Preferências · Combos · Destacar mov. · Colar processo (só Projudi) |
+| **Ações rápidas e Minhas Preferências** | Concluso · Remessa · Ordenações · Int. Partes · Outras (inclui Suspender, Transitar e Arquivar) · ⭐ Minhas Preferências · Seção "Preferências" (abaixo das Pendências) · Combos · Destacar mov. · Colar processo (só Projudi) |
 | **Dispensar juntadas, decursos e cumprimentos** | Dispensar juntadas · Dispensar decursos · Dispensar pendências (cumprimentos para expedir) · Dispensar decurso · Analisar decurso (cumprimentos aguardando análise de decurso) |
 
 - Esconder ou mostrar um botão vale **na hora**, sem recarregar a página, em
@@ -1181,6 +1182,8 @@ associam os localizadores na hora, sem diálogo nem ✅ **Sim, executar**
 — veja [8.8](#cap-8-8). Os cards do bloco **Agendar Audiência** (só no
 Projudi) abrem a tela de agendamento já com o tipo escolhido, depois do
 **Manual** — veja [8.12](#cap-8-12); neles, o **✏️** só muda o nome.
+Os mesmos cards ficam também **sempre à vista** na seção **Preferências**
+da tela do processo, abaixo do quadro Pendências — veja [7.9](#cap-7-9).
 
 <a id="cap-7-4"></a>
 ### 7.4 Combos de preferências
@@ -1420,6 +1423,53 @@ do navegador.
   cards precisam estar à vista).
 - A busca só filtra o que aparece no painel: nada é apagado nem mudado
   nas suas preferências.
+
+<a id="cap-7-9"></a>
+### 7.9 Seção Preferências na tela do processo
+
+**Para que serve:** deixar **todas** as suas preferências e combos
+**sempre à vista** na tela do processo, para usar com **um clique só**,
+sem precisar abrir o **⭐ Minhas Preferências**.
+
+**Onde fica:** na própria página do processo, num quadro chamado
+**Preferências**:
+
+- logo **abaixo do quadro Pendências**, quando o processo tem pendências;
+- logo **acima dos botões do Projudi** (**Pedido Incidental**, **Juntar
+  Documento**, **Peticionar**...), quando não tem.
+
+Ela só aparece se você tiver ao menos uma preferência ou combo salvo.
+
+**Passo a passo:**
+
+1. Abra o processo. A seção **Preferências** mostra os mesmos blocos do
+   **⭐ Minhas Preferências** (um por ação, com a quantidade), na mesma
+   ordem, e os combos no bloco **🔗 Combos**, em azul.
+2. Clique no card desejado. O fluxo é o mesmo do item [7.2](#cap-7-2):
+   pergunta sobre juntadas/conclusão pendentes, se houver, diálogo
+   preenchido + ✅ **Sim, executar**. No card de um combo, ele começa como
+   em [7.4](#cap-7-4).
+3. Para editar, remover ou mudar a ordem dos cards, clique em
+   **⚙ Organizar** (no título da seção): ele abre o **⭐ Minhas
+   Preferências** ([7.3](#cap-7-3)). A nova ordem vale também na seção.
+4. Para deixar só o título à vista, clique em **▾ Recolher**; para ver os
+   cards de novo, **▸ Mostrar**. A escolha fica salva para os próximos
+   processos.
+
+**Bom saber:**
+
+- Todas as preferências aparecem, sem o limite do **Mostrar todas** do
+  painel.
+- Um card **apagado** (mais claro) é de uma ação que não pode ser usada na
+  aba em que você está — passe o mouse sobre ele para ver o motivo (ex.:
+  abra a aba **Movimentações**).
+- A seção não muda o lugar dos botões da extensão (eles continuam ao lado
+  do quadro Pendências). Se esses botões ficarem na altura da seção (por
+  exemplo, depois de usar o **↕ Mover**), os cards deixam livre o espaço
+  deles, à direita, e nada fica por baixo de nada.
+- Pode ser escondida no Menu ([2.6](#cap-2-6)): **Ações rápidas e Minhas
+  Preferências** → **Seção "Preferências" (abaixo das Pendências)**. Vale
+  na hora.
 
 ---
 
@@ -3085,6 +3135,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 2.61.0 | 06/11/2026 | Nova seção **7.9 Seção Preferências na tela do processo**: quadro **Preferências** abaixo do quadro Pendências (ou acima dos botões do Projudi, quando não há pendências) com todas as preferências e combos, executados com um clique, **⚙ Organizar** e **▾ Recolher**. Na tabela do Menu (2.6), a nova parte **Seção "Preferências"** de **Ações rápidas e Minhas Preferências**. |
 | 2.60.0 | 04/11/2026 | Seção 6.5 (agora **Dispensar e analisar decurso de cumprimentos**): na linha **Cumprimentos Aguardando Análise de Decurso** do quadro Pendências, novo botão **Analisar decurso**, com o mesmo menu do Analisar Decurso das listas (**Abrir a análise**, **+ Nova preferência** e as preferências). A extensão abre o cumprimento, clica em **Analisar Decurso de Prazo** e em **Adicionar**, preenche a **Inserir Arquivo**, para no **Assinar Arquivos** para você assinar e depois clica em **Confirmar Inclusão** e em **Concluir**. Sumário e tabela da 2.6 atualizados. Novo vídeo V63 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 2.59.0 | 04/11/2026 | **Nova seção 6.5 — Dispensar decurso de cumprimentos:** na linha **Cumprimentos Aguardando Análise de Decurso** do quadro Pendências, o botão **Dispensar decurso** faz sozinho o caminho lista **Demais Cumprimentos** → **Visualizar** → **Dispensar Decurso** → **OK**, mostrando **Dispensando decurso…** e, no fim, **Decurso dispensado**. Sumário e tabela da 2.6 atualizados. Novo vídeo V62 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 2.58.0 | 04/11/2026 | Nova seção **9.13 Localizador na lista de juntadas e de conclusões (Projudi)**: nas listas Análise de Juntadas e Retorno de Conclusão do Projudi, a linha **📍** mostra o que consta em **Localizadores:** na aba Informações Gerais (a extensão passa para essa aba antes de ler), o **✏️** troca ou inclui um localizador escolhido entre os ativos do Histórico de Localizadores, e clicar no localizador tira-o do processo. A leitura é feita em três processos ao mesmo tempo, com conferência de que cada resposta é do processo certo. Incluída também na tabela de 2.6. |
