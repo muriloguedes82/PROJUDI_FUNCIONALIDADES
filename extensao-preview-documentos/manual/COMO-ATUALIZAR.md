@@ -19,6 +19,10 @@ a cada função nova, e ficam guardados para uso futuro em
 repositório, com um índice (vídeo → seção do manual). Essa pasta fica fora
 do .zip baixado pelo botão **2. Atualizar** (regra no `.gitattributes`).
 
+**Numeração:** desde a versão 3, cada versão nova é um número inteiro,
+somado de 1 em 1 (3, 4, 5…), em vez de números como 2.61.0. O manual
+segue o mesmo número.
+
 ## Passo a passo
 
 1. **Capa** do `MANUAL.md`: atualize **Versão do manual**, **Versão da
