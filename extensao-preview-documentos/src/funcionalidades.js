@@ -284,8 +284,8 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				},
 				{
 					id: "listasPaginaUnica",
-					nome: "Juntadas e Conclusões em uma única página",
-					descricao: "Nas listas Análise de Juntadas e Conclusões (Retorno de Conclusão), reúne todas as páginas numa só tela: os registros das páginas seguintes são trazidos sozinhos e acrescentados à mesma tabela, sem precisar clicar em Próxima Página.",
+					nome: "Juntadas, Conclusões e Mandados em uma única página",
+					descricao: "Nas listas Análise de Juntadas, Conclusões (Retorno de Conclusão) e Mandados (mandados retornados e demais), reúne todas as páginas numa só tela: os registros das páginas seguintes são trazidos sozinhos e acrescentados à mesma tabela, sem precisar clicar em Próxima Página.",
 					js: ["src/listasPaginaUnica.js"],
 					sistemas: ["projudi"]
 				},

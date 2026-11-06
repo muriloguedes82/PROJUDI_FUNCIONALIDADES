@@ -1,8 +1,10 @@
-// Projudi - Análise de Juntadas e Conclusões em uma única página
+// Projudi - Análise de Juntadas, Conclusões e Mandados em uma única página
 //
-// As listas "Análise de Juntadas" (processo/analisarJuntada.do) e
-// "Conclusões" (processo/conclusao.do) são paginadas no servidor (20
-// registros por página, navegação "Próxima Página" no #navigator). Esta
+// As listas "Análise de Juntadas" (processo/analisarJuntada.do),
+// "Conclusões" (processo/conclusao.do) e "Mandados" (mandados retornados e
+// demais; processo/cumprimentoCartorioMandado.do) são paginadas no servidor
+// (20 ou 30 registros por página, navegação "Próxima Página" no
+// #navigator; nos Mandados, também o seletor "30/50/100/500 por pág."). Esta
 // funcionalidade reúne todas as páginas na própria tabela da primeira: ao
 // abrir a lista (ou depois de um Filtrar/ordenação), as demais páginas são
 // buscadas em segundo plano e as linhas delas são acrescentadas, em ordem,
@@ -31,10 +33,11 @@
 	window.__pdpListasPaginaUnica = true;
 
 	// Telas atendidas: `form` é o formulário de busca que envolve a tabela;
-	// `itens`, como os registros são chamados nos avisos.
+	// `itens` e `todos`, como os registros são chamados nos avisos.
 	const TELAS = [
-		{ caminho: /^\/projudi\/processo\/analisarJuntada\.do$/, form: "analisarJuntadaForm", itens: "juntadas" },
-		{ caminho: /^\/projudi\/processo\/conclusao\.do$/, form: "processoConclusaoForm", itens: "conclusões" },
+		{ caminho: /^\/projudi\/processo\/analisarJuntada\.do$/, form: "analisarJuntadaForm", itens: "juntadas", todos: "Todas as" },
+		{ caminho: /^\/projudi\/processo\/conclusao\.do$/, form: "processoConclusaoForm", itens: "conclusões", todos: "Todas as" },
+		{ caminho: /^\/projudi\/processo\/cumprimentoCartorioMandado\.do$/, form: "cumprimentoCartorioMandadoForm", itens: "mandados", todos: "Todos os" },
 	];
 	const TELA = TELAS.find(function (t) {
 		return t.caminho.test(location.pathname);
@@ -69,8 +72,10 @@
 	}
 
 	function tabelaResultados(doc) {
-		// Só a tabela de dentro do formulário da lista: conclusao.do também
-		// é a tela de análise de uma conclusão, que não deve ser tocada.
+		// Só a tabela de dentro do formulário da lista: conclusao.do e
+		// cumprimentoCartorioMandado.do também abrem a tela de um único
+		// registro (análise da conclusão, visualização do mandado), que não
+		// deve ser tocada.
 		const form = formulario(doc);
 		return form ? form.querySelector("table.resultTable") : null;
 	}
@@ -337,7 +342,7 @@
 		if (direita) direita.remove();
 		const esquerda = nav.querySelector(".navLeft");
 		const texto =
-			"Todas as " + TELA.itens + " em uma única página: " + total + " registro(s)" + (paginas > 1 ? " (" + paginas + " páginas do Projudi reunidas)." : ".");
+			TELA.todos + " " + TELA.itens + " em uma única página: " + total + " registro(s)" + (paginas > 1 ? " (" + paginas + " páginas do Projudi reunidas)." : ".");
 		if (esquerda) esquerda.textContent = texto;
 		else mostrarAviso(texto, false);
 		if (aviso) {

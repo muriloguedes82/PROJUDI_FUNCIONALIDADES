@@ -1924,7 +1924,7 @@ CENAS.V64 = {
 // ------------------------------------------------------------------ V65
 CENAS.V65 = {
 	arquivo: "V65-juntadas-em-uma-unica-pagina.mp4",
-	titulo: "Juntadas e Conclusões em uma única página (Análise de Juntadas)",
+	titulo: "Juntadas, Conclusões e Mandados em uma única página (Análise de Juntadas)",
 	secao: "9.14",
 	async run() {
 		const nomes = ["Ação Penal - Proc. Ordinário", "Inquérito Policial", "Medidas Protetivas de Urgência", "Ação Penal - Proc. Sumário"];
@@ -1958,7 +1958,7 @@ CENAS.V65 = {
 // ------------------------------------------------------------------ V66
 CENAS.V66 = {
 	arquivo: "V66-conclusoes-em-uma-unica-pagina.mp4",
-	titulo: "Juntadas e Conclusões em uma única página (Conclusões)",
+	titulo: "Juntadas, Conclusões e Mandados em uma única página (Conclusões)",
 	secao: "9.14",
 	async run() {
 		const nomes = ["Ação Penal - Proc. Ordinário", "Inquérito Policial", "Execução de Medidas Alternativas"];
@@ -1985,5 +1985,41 @@ CENAS.V66 = {
 		await S.cap("As conclusões das outras páginas entram <b>no fim da mesma tabela</b>, e a navegação dá lugar ao total.", { ms: 4600 });
 		S.hlOff();
 		await S.endCard("Conclusões → a extensão reúne todas as páginas → uma só tabela, com o total no lugar da navegação.");
+	},
+};
+
+// ------------------------------------------------------------------ V67
+CENAS.V67 = {
+	arquivo: "V67-mandados-em-uma-unica-pagina.mp4",
+	titulo: "Juntadas, Conclusões e Mandados em uma única página (Mandados)",
+	secao: "9.14",
+	async run() {
+		const nomes = ["Mandado de Intimação", "Mandado de Citação", "Mandado de Intimação de Audiência"];
+		const extra = [];
+		for (let i = 0; i < 6; i++) {
+			extra.push({ n: "00" + (41 + i) + "999-2" + i + ".2025.8.16.0001", seq: String(45400 + i * 11), cl: nomes[i % nomes.length], d: "2" + (2 - (i >> 2)) + "/09/2026" });
+		}
+		const rows = LISTA.map((r, i) => Object.assign({}, r, { cl: nomes[i % nomes.length] }));
+		telaLista("Mandados", { path: "cumprimentoCartorioMandado.do", col: "Data retorno", rows: rows,
+			pag: 'Total de registros nesta página: 6 · <span class="pj-select" style="min-width:90px">30 por pág.</span> ‹ 1 ›' });
+		$("#lista").before($("#paginacao")); // no Projudi a navegação fica acima da tabela
+		$("#paginacao").style.margin = "0 0 6px";
+		$$("#lista th")[2].textContent = "Natureza do Mandado";
+		await S.titleCard("VÍDEO V67", "Mandados em uma única página", "Todos os mandados retornados numa só tela, sem clicar em Próxima Página.");
+		await S.cap("A lista de <b>Mandados</b> (por exemplo, os mandados retornados) também vem em várias páginas.");
+		S.hl("#paginacao", 3);
+		$("#paginacao").innerHTML = 'Total de registros nesta página: 6 · <span class="pj-select" style="min-width:90px">30 por pág.</span> ‹ 1 › · <span style="color:#555">Reunindo todas as páginas nesta tela… buscando a página 2 (6 mandados até agora).</span>';
+		await S.cap("A extensão traz <b>sozinha</b> as páginas seguintes, com os mesmos filtros — sem precisar escolher <b>500 por pág.</b>", { ms: 4400 });
+		S.hlOff();
+		const tab = $("#lista");
+		extra.forEach((r, k) => {
+			const i = LISTA.length + k;
+			tab.insertAdjacentHTML("beforeend", '<tr class="' + (i % 2 ? "alt" : "") + '"><td><input type="checkbox"></td><td><a class="link">' + r.n + '</a><br><span style="color:#555;font-size:11px">Seq.: ' + r.seq + "</span></td><td>" + r.cl + "</td><td>" + r.d + "</td></tr>");
+		});
+		$("#paginacao").innerHTML = '<span style="background:#fff8d8;border:1px solid #d9c46a;padding:3px 8px">Todos os mandados em uma única página: 12 registro(s) (2 páginas do Projudi reunidas).</span>';
+		S.hl("#paginacao", 3);
+		await S.cap("Os mandados das outras páginas entram <b>no fim da mesma tabela</b>, e a navegação dá lugar ao total.", { ms: 4600 });
+		S.hlOff();
+		await S.endCard("Mandados → a extensão reúne todas as páginas → uma só tabela, com o total no lugar da navegação.");
 	},
 };
