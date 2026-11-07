@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 4 |
-| **Versão da extensão** | 4 |
+| **Versão do manual** | 11 |
+| **Versão da extensão** | 11 |
 | **Data desta versão** | 06/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -97,6 +97,7 @@
    - 9.11 [Analisar (Pré-Análise) dos cumprimentos com preferências](#cap-9-11)
    - 9.12 [Localizador na lista de juntadas e de conclusões (só no SEEU)](#cap-9-12)
    - 9.13 [Localizador na lista de juntadas e de conclusões (Projudi)](#cap-9-13)
+   - 9.14 [Listas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN e Juiz das Garantias)](#cap-9-14)
 10. [Privacidade e convivência com outras extensões](#cap-10)
     - 10.1 [O que fica guardado no seu navegador](#cap-10-1)
     - 10.2 [Convivência com o AzFlow](#cap-10-2)
@@ -481,7 +482,7 @@ ligar tudo.
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Prioridades (Projudi) · Agendar Audiência (preferências) (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Bloco de anotações | [4](#cap-4) |
-| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (SEEU) · Localizador na lista (Projudi) | [6](#cap-6), [9](#cap-9) |
+| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (SEEU) · Localizador na lista (Projudi) · Listas em uma única página (Projudi) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
 Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
@@ -2277,7 +2278,8 @@ Prazo**), no formulário de busca, campo **Sequencial:**.
    paginação.
 
 **Bom saber:** o campo começa sempre em branco. Deixe-o vazio para a busca
-normal.
+normal — com ele vazio, a lista inteira aparece numa só página
+([9.14](#cap-9-14)).
 
 <a id="cap-9-2"></a>
 ### 9.2 Listas de tarefas
@@ -3042,6 +3044,105 @@ linha mostra o resultado (**✅** ou **⚠**).
 - Enquanto o painel está aberto, a leitura das demais linhas espera; ela
   continua quando você o fecha.
 
+<a id="cap-9-14"></a>
+### 9.14 Listas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN e Juiz das Garantias)
+
+*Só no Projudi.*
+
+**Para que serve:** ver **todos** os registros de uma lista do Projudi numa
+só tela, sem precisar clicar em **Próxima Página** e voltar a cada vez.
+Fica mais fácil percorrer a fila inteira, usar **Ctrl+F** para achar um
+processo e marcar vários registros de páginas diferentes para a **Análise
+Múltipla** ou o **Dispensar**.
+
+**Onde fica:** nestas listas do Projudi, sempre que elas têm mais de uma
+página. Não há botão: a extensão faz isso sozinha.
+
+| Lista | O total aparece como |
+|---|---|
+| **Análise de Juntadas** | Todas as juntadas em uma única página… |
+| **Conclusões** (Retorno de Conclusão) | Todas as conclusões em uma única página… |
+| **Mandados** (por exemplo, os mandados retornados) | Todos os mandados em uma única página… |
+| **Expedir Intimações** | Todas as intimações em uma única página… |
+| **Intimação** (decurso de prazo) | Todas as intimações em uma única página… |
+| **Intimação de Auxiliares da Justiça** | Todas as intimações em uma única página… |
+| **Listagem de Multas - Sistema FUPEN** | Todas as multas em uma única página… |
+| **Processos com suspeita de incompetência - Juiz das Garantias** | Todos os processos em uma única página… |
+
+**Passo a passo:**
+
+1. Abra a lista (ou clique em **Filtrar**, ou em um título de coluna para
+   ordenar). O Projudi mostra a primeira página, como sempre.
+2. Logo abaixo da navegação de páginas aparece **Reunindo todas as páginas
+   nesta tela… buscando a página 2**: a extensão traz, uma a uma, as
+   páginas seguintes, com os **mesmos filtros e a mesma ordenação** que
+   você escolheu. Você já pode trabalhar na lista enquanto isso.
+3. Os registros de cada página entram **no fim da mesma tabela**, na ordem
+   do Projudi. Ao terminar, no lugar da navegação de páginas aparece o
+   total, por exemplo **Todas as juntadas em uma única página: N
+   registro(s) (P páginas do Projudi reunidas)**.
+4. Use a lista normalmente:
+   - o **+** de cada linha mostra os arquivos, em qualquer página de
+     origem: ao clicar, aparece **Carregando os arquivos…** e, em um ou dois
+     segundos, a lista de arquivos (veja **Bom saber**);
+   - na **Análise de Juntadas**, a
+     caixa do título marca todas, e **Análise Múltipla**, **Analisar** e
+     **Dispensar** valem para as juntadas marcadas de qualquer página;
+   - nas **Conclusões**, o **Analisar** de cada linha e a **Análise
+     Múltipla** funcionam como sempre;
+   - nos **Mandados**, o link da data (coluna **Ordenação**) e o botão
+     **Analisar Retorno** de cada linha também;
+   - no **Expedir Intimações**, o **Visualizar** de cada linha abre a
+     intimação; nas listas de **decurso de prazo** (Intimação e
+     Auxiliares da Justiça), os botões **Analisar Decurso** e
+     **Dispensar** da linha ([9.10](#cap-9-10)) também aparecem nas
+     intimações trazidas das outras páginas;
+   - nas **Multas FUPEN**, o **Código FUPEN** de cada linha abre a multa;
+     no **Juiz das Garantias**, o número abre o processo.
+
+**Bom saber:**
+
+- Para ligar ou desligar, use **Listas em uma única página** no Menu da
+  extensão ([2.6](#cap-2-6)). Desligada, as listas voltam a ser mostradas
+  em páginas, como no Projudi.
+- Na lista **Intimação** (decurso de prazo), se você preencher o campo
+  **Sequencial** e clicar em **Filtrar**, quem percorre as páginas é o
+  próprio filtro ([9.1](#cap-9-1)): a tabela mostra só os processos com
+  aquele dígito, de todas as páginas. Com o campo vazio, a lista inteira
+  vem numa só página.
+- Na lista de Mandados, o seletor **30/50/100/500 por pág.** do Projudi
+  some junto com a navegação, porque todos os mandados já estão na tela.
+- As outras funções da extensão na lista (**⭐**, **📍** localizador,
+  listas de tarefas, processo ou documento do Juiz ao passar o mouse,
+  **Analisar Retorno**, RG e CPF das partes) também aparecem nos registros
+  trazidos das outras páginas, alguns instantes depois.
+- **Arquivos do +:** depois que a extensão traz as outras páginas, o
+  Projudi passa a "estar" na última delas, e o **+** do próprio Projudi
+  abriria vazio. Por isso, nas listas reunidas, quem atende o **+** é a
+  extensão. Nas listas de intimação (**Expedir Intimações**, **Intimação**
+  e **Auxiliares da Justiça**) ela pede os arquivos direto ao Projudi,
+  pela própria movimentação, e eles aparecem quase na hora. Na **Análise
+  de Juntadas**, ela abre, sem você ver, a página de onde a linha veio,
+  clica no **+** da mesma linha ali e copia os arquivos para a sua tela: o
+  primeiro **+** de cada página demora um pouco mais; os seguintes da
+  mesma página, menos. O **Expandir Mov** também funciona (abre os de uma
+  mesma página juntos). Se aparecer **Não foi possível trazer os
+  arquivos**, clique no **+** de novo; se a lista tiver mudado (alguém
+  analisou a juntada, por exemplo), recarregue a lista (F5).
+- Linhas de processos em **Segredo de justiça** (que o Projudi mostra sem
+  dados) também são trazidas, mesmo quando várias são iguais.
+- Com muitos registros (centenas), a lista leva alguns segundos a mais
+  para ficar completa. A extensão reúne até **100 páginas**.
+- Se alguma página não puder ser trazida (por exemplo, se a sessão do
+  Projudi expirou), aparece em vermelho **Não foi possível trazer as
+  páginas seguintes** e a navegação de páginas do Projudi continua no
+  lugar, para você seguir à mão. Recarregue a lista (F5) para tentar de
+  novo.
+- Nos registros trazidos das outras páginas, alguns ícones que dependem do
+  próprio Projudi (como o semáforo e o ícone de copiar o número do
+  processo) podem não responder ao clique. Os demais recursos da linha
+  funcionam normalmente.
+
 ---
 
 <a id="cap-10"></a>
@@ -3103,6 +3204,8 @@ telas abertas a partir daí voltam a funcionar.
 | O botão **Finalizar conclusão** avisa "Conclusão não enviada: Não foi encontrada uma conclusão habilitada para finalização", mas a conclusão pode ser finalizada pelo próprio Projudi | Corrigido na versão 2.55.5: atualize a extensão ([2.3](#cap-2-3)). Se o aviso continuar, abra a conclusão pelo link do quadro Pendências e confira se o botão **Finalizar Conclusão Pendente** do Projudi está habilitado ([6.2](#cap-6-2)) |
 | O Projudi/SEEU fica lento com a extensão (computador mais fraco ou muitas abas abertas) | Desligue no Menu as funções que você não usa: desligadas, elas não são carregadas. Para conferir se a lentidão é da extensão, desligue-a pela chave geral e abra a mesma tela ([2.6](#cap-2-6)) |
 | Nenhum botão da extensão aparece | Confira se aceitou os Termos de Uso ([2.2](#cap-2-2)); recarregue a página (F5); confira se a extensão está ativada em `chrome://extensions`; confira se o perfil não é de advocacia ([10.3](#cap-10-3)) |
+| Numa lista reunida em uma única página, o **+** abre vazio, sem os arquivos, ou mostra "Não foi possível trazer os arquivos: o registro não está mais na página…" | Corrigido nas versões 10 e 11: atualize a extensão ([2.3](#cap-2-3)). Ao clicar no **+**, deve aparecer **Carregando os arquivos…** e, em seguida, os arquivos. Se aparecer **Não foi possível trazer os arquivos**, clique no **+** de novo ou recarregue a lista (F5) ([9.14](#cap-9-14)) |
+| Numa das listas reunidas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN, Juiz das Garantias) aparece "Não foi possível trazer as páginas seguintes" | A sessão do Projudi pode ter expirado ou a conexão falhou: recarregue a lista (F5). Enquanto isso, a navegação de páginas do Projudi continua funcionando ([9.14](#cap-9-14)) |
 | Atualizei a extensão e nada mudou | Clique em ↻ no card da extensão em `chrome://extensions` e depois recarregue as páginas ([2.3](#cap-2-3)) |
 | A barra de botões cobre algo da tela | Arraste **↕ Mover** ou clique em **Ocultar** ([2.4](#cap-2-4)) |
 | O painel de ações diz para abrir a aba Movimentações | Abra a aba **Movimentações** do processo e tente de novo ([7.1](#cap-7-1)) |
@@ -3142,6 +3245,13 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 11 | 06/11/2026 | Corrigido (seção 9.14): nas listas de intimação reunidas (**Intimação** — decurso de prazo, **Expedir Intimações** e **Auxiliares da Justiça**), o **+** mostrava "Não foi possível trazer os arquivos: o registro não está mais na página 1 da lista". Agora, nessas listas, a extensão pede os arquivos direto ao Projudi, pela movimentação da linha, e eles aparecem quase na hora. Linha de **11. Solução de problemas** atualizada. Sem vídeo novo (a tela não mudou). |
+| 10 | 06/11/2026 | Corrigido (seção 9.14): nas listas reunidas em uma única página, o **+** abria vazio, sem os arquivos — tanto nas linhas da primeira página quanto nas trazidas das outras (o Projudi passava a "estar" na última página buscada). Agora a extensão atende o **+**: mostra **Carregando os arquivos…** e traz os arquivos da página de onde a linha veio; o **Expandir Mov** também funciona. Nova linha em **11. Solução de problemas**. Novo vídeo V70 gravado e guardado em `videos-do-manual/` (não citado no manual). |
+| 9 | 06/11/2026 | Seção 9.14 (agora **Listas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN e Juiz das Garantias)**): também as listas **Expedir Intimações**, **Intimação** (decurso de prazo) e **Intimação de Auxiliares da Justiça** passam a mostrar todas as páginas numa só tela; na Intimação, com o campo **Sequencial** preenchido, continua valendo o filtro da 9.1 (que já percorre todas as páginas). Seção 9.1 com a mesma observação. Sumário, tabela da 2.6 e **11. Solução de problemas** atualizados. Novo vídeo V69 gravado e guardado em `videos-do-manual/` (não citado no manual). |
+| 8 | 06/11/2026 | Seção 9.14 (agora **Listas em uma única página (Juntadas, Conclusões, Mandados, Multas FUPEN e Juiz das Garantias)**): também a **Listagem de Multas - Sistema FUPEN** e a fila **Processos com suspeita de incompetência - Juiz das Garantias** passam a mostrar todas as páginas numa só tela; tabela com as cinco listas. Corrigido: linhas iguais (como as de processos em **Segredo de justiça**) não são mais descartadas como repetidas; e, se o Projudi devolver de novo uma página já reunida, a navegação de páginas fica no lugar, com o aviso em vermelho. O nome da função no Menu mudou para **Listas em uma única página (…)**. Sumário, tabela da 2.6 e **11. Solução de problemas** atualizados. Novo vídeo V68 gravado e guardado em `videos-do-manual/` (não citado no manual). |
+| 7 | 06/11/2026 | Seção 9.14 (agora **Juntadas, Conclusões e Mandados em uma única página**): a lista de **Mandados** (por exemplo, os mandados retornados) também passa a mostrar todas as páginas numa só tela; no lugar da navegação (e do seletor de registros por página) aparece **Todos os mandados em uma única página: N registro(s)**. O nome da função no Menu mudou para **Juntadas, Conclusões e Mandados em uma única página**. Sumário, tabela da 2.6 e **11. Solução de problemas** atualizados. Novo vídeo V67 gravado e guardado em `videos-do-manual/` (não citado no manual). |
+| 6 | 06/11/2026 | Seção 9.14 (agora **Juntadas e Conclusões em uma única página**): a lista de **Conclusões** (Retorno de Conclusão) também passa a mostrar todas as páginas numa só tela, como a Análise de Juntadas; no lugar da navegação aparece **Todas as conclusões em uma única página: N registro(s)**. O nome da função no Menu mudou para **Juntadas e Conclusões em uma única página**. Sumário, tabela da 2.6 e **11. Solução de problemas** atualizados. Novo vídeo V66 gravado e guardado em `videos-do-manual/` (não citado no manual). |
+| 5 | 06/11/2026 | **Nova seção 9.14 — Análise de Juntadas em uma única página:** quando a lista **Análise de Juntadas** do Projudi tem mais de uma página, a extensão traz sozinha as páginas seguintes (com os mesmos filtros e a mesma ordenação) e as acrescenta à mesma tabela; no lugar da navegação aparece **Todas as juntadas em uma única página: N registro(s)**. Sumário, tabela da 2.6 e **11. Solução de problemas** atualizados. Novo vídeo V65 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 4 | 06/11/2026 | Corrigido: com o zoom do navegador acima de 100% (ex.: 110%), os botões **Dispensar juntadas**, **Dispensar decursos** e **Finalizar conclusão** do quadro Pendências apareciam, mas não respondiam ao clique — uma área invisível da fila de botões da extensão ficava por cima deles. Nova linha em **11. Solução de problemas**. |
 | 3 | 06/11/2026 | Nova forma de numerar as versões: em vez de números como 2.61.0 ou 2.60.1, cada nova versão da extensão (e deste manual) passa a ter um número inteiro — 3, 4, 5 e assim por diante. A 3 vem logo depois da 2.61.0. O conteúdo das seções não mudou. |
 | 2.61.0 | 06/11/2026 | Nova seção **7.9 Seção Preferências na tela do processo**: quadro **Preferências** abaixo do quadro Pendências (ou acima dos botões do Projudi, quando não há pendências) com todas as preferências e combos, executados com um clique, **⚙ Organizar** e **▾ Recolher**. Na tabela do Menu (2.6), a nova parte **Seção "Preferências"** de **Ações rápidas e Minhas Preferências**. |

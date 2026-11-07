@@ -1920,3 +1920,245 @@ CENAS.V64 = {
 		await S.endCard("Seção Preferências (abaixo das Pendências) → clique no card → pendências? → conferir → ✅ Sim, executar · ⚙ Organizar · ▾ Recolher.");
 	},
 };
+
+// ------------------------------------------------------------------ V65
+CENAS.V65 = {
+	arquivo: "V65-juntadas-em-uma-unica-pagina.mp4",
+	titulo: "Listas em uma única página (Análise de Juntadas)",
+	secao: "9.14",
+	async run() {
+		const nomes = ["Ação Penal - Proc. Ordinário", "Inquérito Policial", "Medidas Protetivas de Urgência", "Ação Penal - Proc. Sumário"];
+		const extra = [];
+		for (let i = 0; i < 6; i++) {
+			extra.push({ n: "00" + (17 + i) + "777-0" + i + ".2025.8.16.0001", seq: String(45200 + i * 7), cl: nomes[i % nomes.length], d: "2" + (1 - (i >> 2)) + "/09/2026" });
+		}
+		telaLista("Análise de Juntadas", { pag: "Total de registros nesta página: 6 · ‹ 1 ›" });
+		$("#lista").before($("#paginacao")); // no Projudi a navegação fica acima da tabela
+		$("#paginacao").style.margin = "0 0 6px";
+		await S.titleCard("VÍDEO V65", "Análise de Juntadas em uma única página", "Todas as juntadas numa só tela, sem clicar em Próxima Página.");
+		await S.cap("Ao abrir a <b>Análise de Juntadas</b>, o Projudi mostra a lista em várias páginas.");
+		S.hl("#paginacao", 3);
+		$("#paginacao").innerHTML = "Total de registros nesta página: 6 · ‹ 1 › · <span style=\"color:#555\">Reunindo todas as páginas nesta tela… buscando a página 2 (6 juntadas até agora).</span>";
+		await S.cap("Agora a extensão busca <b>sozinha</b> as páginas seguintes, enquanto você já pode trabalhar na lista.", { ms: 4200 });
+		S.hlOff();
+		const tab = $("#lista");
+		extra.forEach((r, k) => {
+			const i = LISTA.length + k;
+			tab.insertAdjacentHTML("beforeend", '<tr class="' + (i % 2 ? "alt" : "") + '"><td><input type="checkbox"></td><td><a class="link">' + r.n + '</a><br><span style="color:#555;font-size:11px">Seq.: ' + r.seq + "</span></td><td>" + r.cl + "</td><td>" + r.d + "</td></tr>");
+		});
+		$("#paginacao").innerHTML = '<span style="background:#fff8d8;border:1px solid #d9c46a;padding:3px 8px">Todas as juntadas em uma única página: 12 registro(s) (2 páginas do Projudi reunidas).</span>';
+		S.hl("#paginacao", 3);
+		await S.cap("As juntadas das outras páginas entram <b>no fim da mesma tabela</b>, e a navegação de páginas dá lugar ao total.", { ms: 4600 });
+		S.hlOff();
+		await S.cap("Marque as juntadas que quiser e use <b>Análise Múltipla</b>, <b>Analisar</b> ou <b>Dispensar</b> como sempre — valem para todas.", { ms: 4600 });
+		await S.endCard("Análise de Juntadas → a extensão reúne todas as páginas → uma só tabela, com o total no lugar da navegação.");
+	},
+};
+
+// ------------------------------------------------------------------ V66
+CENAS.V66 = {
+	arquivo: "V66-conclusoes-em-uma-unica-pagina.mp4",
+	titulo: "Listas em uma única página (Conclusões)",
+	secao: "9.14",
+	async run() {
+		const nomes = ["Ação Penal - Proc. Ordinário", "Inquérito Policial", "Execução de Medidas Alternativas"];
+		const extra = [];
+		for (let i = 0; i < 6; i++) {
+			extra.push({ n: "00" + (31 + i) + "888-1" + i + ".2025.8.16.0001", seq: String(45300 + i * 9), cl: nomes[i % nomes.length], d: "1" + (9 - (i >> 1)) + "/10/2026" });
+		}
+		telaLista("Conclusões", { path: "conclusao.do", col: "Dt. Retorno", pag: "Total de registros nesta página: 6 · ‹ 1 ›" });
+		$("#lista").before($("#paginacao")); // no Projudi a navegação fica acima da tabela
+		$("#paginacao").style.margin = "0 0 6px";
+		await S.titleCard("VÍDEO V66", "Conclusões em uma única página", "Todo o retorno de conclusão numa só tela, sem clicar em Próxima Página.");
+		await S.cap("A lista de <b>Conclusões</b> (Retorno de Conclusão) também vem do Projudi em várias páginas.");
+		S.hl("#paginacao", 3);
+		$("#paginacao").innerHTML = "Total de registros nesta página: 6 · ‹ 1 › · <span style=\"color:#555\">Reunindo todas as páginas nesta tela… buscando a página 2 (6 conclusões até agora).</span>";
+		await S.cap("Como na Análise de Juntadas, a extensão traz <b>sozinha</b> as páginas seguintes, com os mesmos filtros.", { ms: 4200 });
+		S.hlOff();
+		const tab = $("#lista");
+		extra.forEach((r, k) => {
+			const i = LISTA.length + k;
+			tab.insertAdjacentHTML("beforeend", '<tr class="' + (i % 2 ? "alt" : "") + '"><td><input type="checkbox"></td><td><a class="link">' + r.n + '</a><br><span style="color:#555;font-size:11px">Seq.: ' + r.seq + "</span></td><td>" + r.cl + "</td><td>" + r.d + "</td></tr>");
+		});
+		$("#paginacao").innerHTML = '<span style="background:#fff8d8;border:1px solid #d9c46a;padding:3px 8px">Todas as conclusões em uma única página: 12 registro(s) (2 páginas do Projudi reunidas).</span>';
+		S.hl("#paginacao", 3);
+		await S.cap("As conclusões das outras páginas entram <b>no fim da mesma tabela</b>, e a navegação dá lugar ao total.", { ms: 4600 });
+		S.hlOff();
+		await S.endCard("Conclusões → a extensão reúne todas as páginas → uma só tabela, com o total no lugar da navegação.");
+	},
+};
+
+// ------------------------------------------------------------------ V67
+CENAS.V67 = {
+	arquivo: "V67-mandados-em-uma-unica-pagina.mp4",
+	titulo: "Listas em uma única página (Mandados)",
+	secao: "9.14",
+	async run() {
+		const nomes = ["Mandado de Intimação", "Mandado de Citação", "Mandado de Intimação de Audiência"];
+		const extra = [];
+		for (let i = 0; i < 6; i++) {
+			extra.push({ n: "00" + (41 + i) + "999-2" + i + ".2025.8.16.0001", seq: String(45400 + i * 11), cl: nomes[i % nomes.length], d: "2" + (2 - (i >> 2)) + "/09/2026" });
+		}
+		const rows = LISTA.map((r, i) => Object.assign({}, r, { cl: nomes[i % nomes.length] }));
+		telaLista("Mandados", { path: "cumprimentoCartorioMandado.do", col: "Data retorno", rows: rows,
+			pag: 'Total de registros nesta página: 6 · <span class="pj-select" style="min-width:90px">30 por pág.</span> ‹ 1 ›' });
+		$("#lista").before($("#paginacao")); // no Projudi a navegação fica acima da tabela
+		$("#paginacao").style.margin = "0 0 6px";
+		$$("#lista th")[2].textContent = "Natureza do Mandado";
+		await S.titleCard("VÍDEO V67", "Mandados em uma única página", "Todos os mandados retornados numa só tela, sem clicar em Próxima Página.");
+		await S.cap("A lista de <b>Mandados</b> (por exemplo, os mandados retornados) também vem em várias páginas.");
+		S.hl("#paginacao", 3);
+		$("#paginacao").innerHTML = 'Total de registros nesta página: 6 · <span class="pj-select" style="min-width:90px">30 por pág.</span> ‹ 1 › · <span style="color:#555">Reunindo todas as páginas nesta tela… buscando a página 2 (6 mandados até agora).</span>';
+		await S.cap("A extensão traz <b>sozinha</b> as páginas seguintes, com os mesmos filtros — sem precisar escolher <b>500 por pág.</b>", { ms: 4400 });
+		S.hlOff();
+		const tab = $("#lista");
+		extra.forEach((r, k) => {
+			const i = LISTA.length + k;
+			tab.insertAdjacentHTML("beforeend", '<tr class="' + (i % 2 ? "alt" : "") + '"><td><input type="checkbox"></td><td><a class="link">' + r.n + '</a><br><span style="color:#555;font-size:11px">Seq.: ' + r.seq + "</span></td><td>" + r.cl + "</td><td>" + r.d + "</td></tr>");
+		});
+		$("#paginacao").innerHTML = '<span style="background:#fff8d8;border:1px solid #d9c46a;padding:3px 8px">Todos os mandados em uma única página: 12 registro(s) (2 páginas do Projudi reunidas).</span>';
+		S.hl("#paginacao", 3);
+		await S.cap("Os mandados das outras páginas entram <b>no fim da mesma tabela</b>, e a navegação dá lugar ao total.", { ms: 4600 });
+		S.hlOff();
+		await S.endCard("Mandados → a extensão reúne todas as páginas → uma só tabela, com o total no lugar da navegação.");
+	},
+};
+
+// ------------------------------------------------------------------ V68
+CENAS.V68 = {
+	arquivo: "V68-multas-fupen-e-juiz-das-garantias-em-uma-unica-pagina.mp4",
+	titulo: "Listas em uma única página (Multas FUPEN e Juiz das Garantias)",
+	secao: "9.14",
+	async run() {
+		// 1) Listagem de Multas - Sistema FUPEN
+		const multas = LISTA.map((r, i) => ({ n: r.n, seq: String(371100 + i), cl: ["Vencida", "Paga", "Em aberto"][i % 3], d: "R$ " + (150 + i * 37) + ",90" }));
+		telaLista("Listagem de Multas - Sistema FUPEN", { path: "criminal/multaFupen.do", col: "Valor", rows: multas,
+			pag: "45 registro(s) encontrado(s), exibindo de 1 até 6 · ‹ 1, 2, 3 ›" });
+		$("#lista").before($("#paginacao")); // no Projudi a navegação fica acima da tabela
+		$("#paginacao").style.margin = "0 0 6px";
+		$$("#lista th")[2].textContent = "Situação";
+		await S.titleCard("VÍDEO V68", "Multas FUPEN e Juiz das Garantias", "Mais duas listas do Projudi numa só tela, sem clicar em Próxima Página.");
+		await S.cap("A <b>Listagem de Multas - Sistema FUPEN</b> também vem do Projudi em várias páginas.");
+		S.hl("#paginacao", 3);
+		$("#paginacao").innerHTML = '45 registro(s) encontrado(s), exibindo de 1 até 6 · ‹ 1, 2, 3 › · <span style="color:#555">Reunindo todas as páginas nesta tela… buscando a página 2 (6 multas até agora).</span>';
+		await S.cap("A extensão traz <b>sozinha</b> as páginas seguintes, com os mesmos filtros.", { ms: 3800 });
+		S.hlOff();
+		const tab = $("#lista");
+		for (let k = 0; k < 6; k++) {
+			const i = LISTA.length + k;
+			tab.insertAdjacentHTML("beforeend", '<tr class="' + (i % 2 ? "alt" : "") + '"><td><input type="checkbox"></td><td><a class="link">00' + (51 + k) + '123-3' + k + '.2024.8.16.0001</a><br><span style="color:#555;font-size:11px">Seq.: ' + (371200 + k) + "</span></td><td>" + ["Vencida", "Em aberto"][k % 2] + "</td><td>R$ " + (210 + k * 41) + ",90</td></tr>");
+		}
+		$("#paginacao").innerHTML = '<span style="background:#fff8d8;border:1px solid #d9c46a;padding:3px 8px">Todas as multas em uma única página: 12 registro(s) (2 páginas do Projudi reunidas).</span>';
+		S.hl("#paginacao", 3);
+		await S.cap("As multas das outras páginas entram <b>no fim da mesma tabela</b>, com o total no lugar da navegação.", { ms: 4400 });
+		S.hlOff();
+
+		// 2) Processos com suspeita de incompetência - Juiz das Garantias
+		const procs = LISTA.map((r, i) => ({ n: r.n, seq: r.seq, cl: ["279 - Inquérito Policial", "283 - Ação Penal"][i % 2], d: "2" + (i % 3) + "/09/2025" }));
+		procs[3] = { n: "Segredo de justiça", seq: "—", cl: "Segredo de justiça", d: "Segredo de justiça" };
+		telaLista("Processos com suspeita de incompetência - Juiz das Garantias", { path: "juizo_garantia.do", col: "Data de Distribuição", rows: procs,
+			pag: "44 registro(s) encontrado(s), exibindo de 1 até 6 · ‹ 1, 2, 3 ›" });
+		$("#lista").before($("#paginacao"));
+		$("#paginacao").style.margin = "0 0 6px";
+		$("#browser .url").textContent = "https://projudi.tjpr.jus.br/projudi/judiciario/juizo_garantia.do";
+		$$("#lista tr[data-i]")[3].cells[1].textContent = "Segredo de justiça"; // sem link nem Seq., como no Projudi
+		await S.cap("O mesmo vale para a fila <b>Processos com suspeita de incompetência - Juiz das Garantias</b>.", { ms: 4000 });
+		const tab2 = $("#lista");
+		for (let k = 0; k < 6; k++) {
+			const i = LISTA.length + k;
+			const segredo = k === 2;
+			tab2.insertAdjacentHTML("beforeend", '<tr class="' + (i % 2 ? "alt" : "") + '"><td><input type="checkbox"></td><td>' + (segredo ? "Segredo de justiça" : '<a class="link">00' + (61 + k) + '456-4' + k + '.2025.8.16.0001</a>') + "</td><td>" + (segredo ? "Segredo de justiça" : "279 - Inquérito Policial") + "</td><td>" + (segredo ? "Segredo de justiça" : "1" + k + "/09/2025") + "</td></tr>");
+		}
+		$("#paginacao").innerHTML = '<span style="background:#fff8d8;border:1px solid #d9c46a;padding:3px 8px">Todos os processos em uma única página: 12 registro(s) (2 páginas do Projudi reunidas).</span>';
+		S.hl("#paginacao", 3);
+		await S.cap("Todos os processos numa só tabela — inclusive os em <b>Segredo de justiça</b>.", { ms: 4200 });
+		S.hlOff();
+		await S.endCard("Multas FUPEN e Juiz das Garantias → a extensão reúne todas as páginas → uma só tabela, com o total no lugar da navegação.");
+	},
+};
+
+// ------------------------------------------------------------------ V69
+CENAS.V69 = {
+	arquivo: "V69-intimacoes-em-uma-unica-pagina.mp4",
+	titulo: "Listas em uma única página (Intimações)",
+	secao: "9.14",
+	async run() {
+		function reunir(tab, rotulo, col3) {
+			for (let k = 0; k < 6; k++) {
+				const i = LISTA.length + k;
+				tab.insertAdjacentHTML("beforeend", '<tr class="' + (i % 2 ? "alt" : "") + '"><td><input type="checkbox"></td><td><a class="link">00' + (71 + k) + '321-5' + k + '.2025.8.16.0001</a><br><span style="color:#555;font-size:11px">Seq.: ' + (45500 + k * 13) + "</span></td><td>" + col3(k) + "</td><td>1" + k + "/10/2026</td></tr>");
+			}
+			$("#paginacao").innerHTML = '<span style="background:#fff8d8;border:1px solid #d9c46a;padding:3px 8px">Todas as intimações em uma única página: 12 registro(s) (2 páginas do Projudi reunidas).</span>';
+		}
+		function acima() {
+			$("#lista").before($("#paginacao")); // no Projudi a navegação fica acima da tabela
+			$("#paginacao").style.margin = "0 0 6px";
+		}
+
+		// 1) Expedir Intimações
+		telaLista("Expedir Intimações", { path: "expedirIntimacao.do", col: "Entrada", pag: "Total de registros nesta página: 6 · ‹ 1 ›" });
+		acima();
+		await S.titleCard("VÍDEO V69", "Intimações em uma única página", "Expedir Intimações e listas de decurso de prazo numa só tela.");
+		await S.cap("No <b>Expedir Intimações</b>, a extensão também traz <b>sozinha</b> as páginas seguintes.", { ms: 3800 });
+		$("#paginacao").innerHTML = 'Total de registros nesta página: 6 · ‹ 1 › · <span style="color:#555">Reunindo todas as páginas nesta tela… buscando a página 2 (6 intimações até agora).</span>';
+		await sleep(1500);
+		reunir($("#lista"), "Expedir", k => ["Pessoal", "Advogado", "Ministério Público"][k % 3]);
+		S.hl("#paginacao", 3);
+		await S.cap("Todas as intimações para expedir ficam <b>numa só tabela</b>, com o total no lugar da navegação.", { ms: 4200 });
+		S.hlOff();
+
+		// 2) Intimação (decurso de prazo) — com e sem Sequencial
+		telaLista("Intimação", { path: "intimacaoBusca.do", seqField: true, col: "Data Decurso", pag: "Total de registros nesta página: 6 · ‹ 1 ›" });
+		acima();
+		await S.cap("O mesmo acontece nas listas de <b>decurso de prazo</b>: <b>Intimação</b> e <b>Intimação de Auxiliares da Justiça</b>.", { ms: 4200 });
+		$("#paginacao").innerHTML = 'Total de registros nesta página: 6 · ‹ 1 › · <span style="color:#555">Reunindo todas as páginas nesta tela… buscando a página 2 (6 intimações até agora).</span>';
+		await sleep(1500);
+		reunir($("#lista"), "Intimação", k => ["Ação Penal - Proc. Ordinário", "Inquérito Policial"][k % 2]);
+		S.hl("#paginacao", 3);
+		await S.cap("Com o campo <b>Sequencial</b> vazio, a lista inteira vem numa só página.", { ms: 3800 });
+		S.hlOff();
+		S.hl("#f-seq", 3);
+		await S.cap("Preenchendo o <b>Sequencial</b> e clicando em <b>Filtrar</b>, vale o filtro de sempre: só os processos com aquele dígito, de todas as páginas.", { ms: 5200 });
+		S.hlOff();
+		await S.endCard("Expedir Intimações · Intimação · Auxiliares da Justiça → a extensão reúne todas as páginas → uma só tabela.");
+	},
+};
+
+// ------------------------------------------------------------------ V70
+CENAS.V70 = {
+	arquivo: "V70-arquivos-do-mais-nas-listas-reunidas.mp4",
+	titulo: "Listas em uma única página (arquivos do +)",
+	secao: "9.14",
+	async run() {
+		telaLista("Análise de Juntadas", { pag: "" });
+		$("#lista").before($("#paginacao")); // no Projudi a navegação fica acima da tabela
+		$("#paginacao").style.margin = "0 0 6px";
+		$("#paginacao").innerHTML = '<span style="background:#fff8d8;border:1px solid #d9c46a;padding:3px 8px">Todas as juntadas em uma única página: 12 registro(s) (2 páginas do Projudi reunidas).</span>';
+		const tab = $("#lista");
+		for (let k = 0; k < 6; k++) {
+			const i = LISTA.length + k;
+			tab.insertAdjacentHTML("beforeend", '<tr class="' + (i % 2 ? "alt" : "") + '" data-i="' + i + '"><td><input type="checkbox"></td><td><a class="link">00' + (81 + k) + '654-6' + k + '.2025.8.16.0001</a><br><span style="color:#555;font-size:11px">Seq.: ' + (45600 + k * 7) + "</span></td><td>" + ["Ação Penal - Proc. Ordinário", "Inquérito Policial"][k % 2] + "</td><td>2" + k + "/09/2026</td></tr>");
+		}
+		// "+" na primeira coluna de cada linha, com a linha oculta dos arquivos logo abaixo
+		$$("#lista tr[data-i]").forEach(tr => {
+			const i = tr.dataset.i;
+			tr.cells[0].insertAdjacentHTML("beforeend", ' <span class="x-btn small" id="mais' + i + '" style="padding:0 5px">+</span>');
+			tr.insertAdjacentHTML("afterend", '<tr id="arq' + i + '" style="display:none"><td></td><td colspan="3" id="arqc' + i + '" style="background:#f7f9fc"></td></tr>');
+		});
+		await S.titleCard("VÍDEO V70", "Arquivos do + nas listas reunidas", "O + mostra os arquivos de qualquer página, mesmo com a lista numa só tela.");
+		await S.cap("Numa lista reunida, o <b>+</b> de cada linha continua mostrando os arquivos da juntada.");
+		async function abrir(i, arquivos) {
+			await S.click("#mais" + i);
+			$("#mais" + i).textContent = "−";
+			$("#arq" + i).style.display = "";
+			$("#arqc" + i).innerHTML = '<span style="color:#666;font-size:11px">Carregando os arquivos…</span>';
+			await sleep(1300);
+			$("#arqc" + i).innerHTML = arquivos.map(a => '📄 <a class="link">' + a + "</a>").join("<br>");
+		}
+		await abrir(1, ["Manifestação do MP.pdf"]);
+		await S.cap("Ao clicar, aparece <b>Carregando os arquivos…</b> e, logo depois, a lista de arquivos.", { ms: 4000 });
+		await abrir(8, ["Petição.pdf", "Procuração.pdf"]);
+		await S.cap("Vale também para as juntadas trazidas das <b>outras páginas</b>: a extensão busca os arquivos na página de onde a linha veio.", { ms: 5000 });
+		await S.endCard("Lista reunida → + da linha → Carregando os arquivos… → arquivos da juntada.");
+	},
+};
