@@ -1,9 +1,9 @@
-// Projudi - Visual novo da Mesa do Analista Judiciário (versão 13).
+// Projudi - Visual novo da Mesa do Analista Judiciário (versões 13 a 16).
 //
 // Reorganiza as abas Início, Citações e Intimações, Análise de Juntadas,
-// Outros Cumprimentos, Cumprimentos de Medidas e Mesa do Escrivão Criminal
-// em cartões fáceis de ler. A aba Lembretes fica como está (só a barra de
-// abas, que é comum a todas, ganha o visual novo). Só no Projudi.
+// Outros Cumprimentos, Lembretes, Cumprimentos de Medidas e Mesa do Escrivão
+// Criminal em cartões fáceis de ler. Só no Projudi. O topo do Projudi (barra
+// de menus e linha do usuário) acompanha o tom escolhido em todas as páginas.
 //
 // REGRA: nenhuma informação some. Os elementos ORIGINAIS da página (linhas
 // das tabelas, links e os <span class="contador"> que o Projudi atualiza por
@@ -25,22 +25,28 @@
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
 	if (window.__pdpVisualMesa) return;
 	window.__pdpVisualMesa = true;
-	if (!/^\/projudi\/usuario\/mesaAnalista\.do/.test(location.pathname)) return;
+	if (!/^\/projudi\//.test(location.pathname)) return;
+	// Fora da Mesa, só o topo do Projudi muda (barra de menus, no quadro de
+	// cima, e a linha "Usuário / Atribuição / Atuação…" de cada página).
+	// A Mesa tem endereços diferentes conforme a competência: mesaAnalista.do
+	// (varas em geral), mesaAnalistaVep.do (execução de penas e prestação
+	// pecuniária) etc. As telas de relatório (ex.: mesaAnalistaEscrivao.do)
+	// não têm o formulário da Mesa com abas e ficam de fora pela conferência
+	// de #mesaAnalistaForm + #tabHorz logo abaixo.
+	const NA_MESA = /^\/projudi\/usuario\/mesaAnalista\w*\.do/.test(location.pathname);
 
 	const TAG = "[Projudi Visual da Mesa]";
 	const CHAVE_COR = "pdpVisualMesaCor";
 	const CHAVE_SO_PENDENCIAS = "pdpVisualMesaSoPendencias";
+	// amostra: metade fundo, metade destaque, para a bolinha lembrar o tom.
 	const CORES = [
-		{ id: "oliva", nome: "Oliva", amostra: "#56613c" },
-		{ id: "petroleo", nome: "Azul-petróleo", amostra: "#1d6272" },
-		{ id: "marinho", nome: "Azul-marinho", amostra: "#2c4a80" },
-		{ id: "grafite", nome: "Grafite", amostra: "#3f444c" }
+		{ id: "oliva", nome: "Oliva fosco", amostra: "linear-gradient(135deg,#dfe0d2 50%,#56613c 50%)" },
+		{ id: "areia", nome: "Areia", amostra: "linear-gradient(135deg,#e2d9c6 50%,#6b5a3a 50%)" },
+		{ id: "salvia", nome: "Sálvia", amostra: "linear-gradient(135deg,#d8dfd4 50%,#4a6650 50%)" },
+		{ id: "nevoa", nome: "Névoa", amostra: "linear-gradient(135deg,#d9dfe4 50%,#3e5a6e 50%)" },
+		{ id: "escuro", nome: "Escuro suave", amostra: "linear-gradient(135deg,#2c302b 50%,#b9c79a 50%)" }
 	];
 	const COR_PADRAO = "oliva";
-
-	const form = document.getElementById("mesaAnalistaForm");
-	const tabHorz = document.getElementById("tabHorz");
-	if (!form || !tabHorz) return;
 
 	const normalizar = function (t) {
 		return String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
@@ -71,6 +77,18 @@
 		});
 	}
 	aplicarCor(COR_PADRAO);
+	if (document.getElementById("main-menu") || document.querySelector("table#userinfo")) raiz.classList.add("pdp-vm-topo");
+	try {
+		chrome.storage.local.get(CHAVE_COR).then(function (d) { aplicarCor(d[CHAVE_COR] || COR_PADRAO); }).catch(function () {});
+		chrome.storage.onChanged.addListener(function (ch, area) {
+			if (area === "local" && ch[CHAVE_COR]) aplicarCor(ch[CHAVE_COR].newValue || COR_PADRAO);
+		});
+	} catch (err) { console.warn(TAG, "storage indisponível:", err); }
+
+	if (!NA_MESA) return;
+	const form = document.getElementById("mesaAnalistaForm");
+	const tabHorz = document.getElementById("tabHorz");
+	if (!form || !tabHorz) return;
 	raiz.classList.add("pdp-vm");
 
 	function montarSeletorCor() {
@@ -93,15 +111,12 @@
 	const titulo = form.querySelector("h3");
 	if (titulo) {
 		titulo.classList.add("pdp-vm-titulo");
+		// Seletor deixado por uma versão anterior da extensão (ex.: extensão
+		// atualizada com a Mesa aberta): sai, para não ficarem dois.
+		titulo.querySelectorAll(".pdp-vm-cores").forEach(function (n) { n.remove(); });
 		titulo.append(montarSeletorCor());
 	}
-	aplicarCor(COR_PADRAO);
-	try {
-		chrome.storage.local.get(CHAVE_COR).then(function (d) { aplicarCor(d[CHAVE_COR] || COR_PADRAO); }).catch(function () {});
-		chrome.storage.onChanged.addListener(function (ch, area) {
-			if (area === "local" && ch[CHAVE_COR]) aplicarCor(ch[CHAVE_COR].newValue || COR_PADRAO);
-		});
-	} catch (err) { console.warn(TAG, "storage indisponível:", err); }
+	aplicarCor(raiz.getAttribute("data-pdp-vm-cor"));
 
 	// ---------- aba atual ----------
 	const atual = tabHorz.querySelector("li.currentTab");
@@ -237,7 +252,7 @@
 		if (tr.hasAttribute(JUNTADAS_ESCRIVAO.attr)) {
 			if (!j.escrivao) {
 				j.escrivao = cartao(JUNTADAS_ESCRIVAO.titulo, "lista");
-				j.grade.append(j.escrivao);
+				j.direita.append(j.escrivao);
 			}
 			j.escrivao.__tbody.append(tr);
 			return;
@@ -250,7 +265,7 @@
 		if (!alvo.c.isConnected) {
 			// Mantém a ordem dos subgrupos, com o quadro do Escrivão sempre por último.
 			const depois = j.subs.slice(j.subs.indexOf(alvo) + 1).map(function (s) { return s.c; }).find(function (c) { return c.isConnected; });
-			j.grade.insertBefore(alvo.c, depois || j.escrivao || null);
+			j.direita.insertBefore(alvo.c, depois || j.escrivao || null);
 		}
 	}
 	// Chamado a cada mudança na aba: recolhe as linhas que chegaram no
@@ -264,26 +279,30 @@
 	function montarJuntadas() {
 		const grupos = gruposH4();
 		if (!grupos.length) return false;
-		const g = grade();
-		juntadas = { grade: g, principal: null, subs: [], escrivao: null, tabelasOriginais: [] };
+		// Duas colunas: à esquerda, estreita, Com Urgência e Para Realizar
+		// (juntadas e conclusões); à direita, os demais quadros.
+		const esquerda = el("div", { class: "pdp-vm-col-esq" });
+		const direita = el("div", { class: "pdp-vm-col-dir" });
+		const g = el("div", { class: "pdp-vm-juntadas" }, [esquerda, direita]);
+		juntadas = { grade: g, direita: direita, principal: null, subs: [], escrivao: null, tabelasOriginais: [] };
 		grupos.forEach(function (x) {
 			if (ehUrgente(x.titulo)) {
-				const c = cartao(x.titulo, "blocos", { urgente: true, largo: true, vazio: "Nada com urgência." });
+				const c = cartao(x.titulo, "blocos", { urgente: true, vazio: "Nada com urgência." });
 				x.linhas.forEach(function (tr) { marcarLinha(tr); c.__tbody.append(tr); });
-				g.prepend(c);
+				esquerda.prepend(c);
 				return;
 			}
 			if (!/para realizar/.test(normalizar(x.titulo))) {
 				const c = cartao(x.titulo, "lista");
 				x.linhas.forEach(function (tr) { marcarLinha(tr); c.__tbody.append(tr); });
-				g.append(c);
+				direita.append(c);
 				return;
 			}
-			juntadas.principal = cartao(x.titulo, "blocos", { largo: true });
+			juntadas.principal = cartao(x.titulo, "blocos");
 			juntadas.subs = JUNTADAS_SUBGRUPOS.map(function (s) { return { def: s, c: cartao(s.titulo, "lista") }; });
 			const tabela = x.fs.querySelector("table.form");
 			if (tabela) juntadas.tabelasOriginais.push(tabela);
-			g.append(juntadas.principal);
+			esquerda.append(juntadas.principal);
 			x.linhas.forEach(rotearJuntada);
 		});
 		if (!juntadas.principal) juntadas = null;
@@ -304,8 +323,9 @@
 				if (h4) {
 					const t = h4.textContent.trim();
 					const nt = normalizar(t);
-					atualC = cartao(t, /processos ativos/.test(nt) ? "blocos" : "lista", { largo: true });
+					atualC = cartao(t, /ativos|ativas|lembretes/.test(nt) ? "blocos" : "lista", { largo: true });
 					if (/mensagens/.test(nt)) atualC.classList.add("pdp-vm-mensagens");
+					if (/dados do juizo/.test(nt)) atualC.classList.add("pdp-vm-juizo");
 					g.append(atualC);
 					return;
 				}
@@ -549,16 +569,22 @@
 	// ---------- montagem ----------
 	let montou = false;
 	try {
-		if (/^inicio$/.test(nomeAba)) montou = montarInicio();
-		else if (/^citacoes/.test(nomeAba)) montou = montarGruposSimples({ urgenteLargo: true });
+		if (/^inicio$/.test(nomeAba) || /^lembretes$/.test(nomeAba)) montou = montarInicio();
+		else if (/^(citacoes|intimacoes)/.test(nomeAba)) montou = montarGruposSimples({ urgenteLargo: true });
 		else if (/^analise de juntadas/.test(nomeAba)) montou = montarJuntadas();
 		else if (/^cumprimentos de medidas/.test(nomeAba)) montou = montarGruposSimples({ urgenteLargo: false, vazio: "Nada a cumprir." });
 		else if (/^outros cumprimentos/.test(nomeAba)) montou = montarOutros();
 		else if (/^mesa do escrivao/.test(nomeAba)) montou = montarEscrivao();
+		// Aba de outra competência, com nome diferente: tenta pelo formato.
+		else if (painel.querySelector("#tbMesa div[class^='quadroCorregedoria']")) montou = montarEscrivao();
+		else if (painel.querySelector("table.resultTable")) montou = montarOutros();
+		else if (gruposH4().length) montou = montarGruposSimples({ urgenteLargo: true });
+		else if (painel.querySelector("table.form h4")) montou = montarInicio();
 	} catch (err) {
 		console.error(TAG, "erro ao montar a aba (a parte já movida continua visível):", err);
 	}
 	console.log(TAG, montou ? "visual aplicado" : "aba mantida no visual original (só a barra de abas muda)");
+	if (montou) raiz.classList.add("pdp-vm-montado");
 	if (!montou) return;
 
 	const refazer = function () {

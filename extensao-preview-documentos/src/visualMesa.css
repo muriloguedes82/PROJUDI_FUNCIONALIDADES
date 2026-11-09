@@ -1,52 +1,112 @@
 /* Projudi - Visual novo da Mesa do Analista (ver src/visualMesa.js).
-   Tudo fica sob html.pdp-vm, que o script só põe na Mesa do Analista:
-   este arquivo é carregado em todas as páginas, mas não muda nenhuma outra. */
+   Tudo fica sob html.pdp-vm, que o script só põe na Mesa do Analista, ou sob
+   html.pdp-vm-topo (barra de menus e linha do usuário, em qualquer página do
+   Projudi): este arquivo é carregado em todas as páginas e não muda o resto. */
 
-html.pdp-vm {
+/* Tons pensados para não cansar a vista: fundos médio-claros (sem branco
+   puro) e pouca saturação. Padrão: Oliva fosco. As cores da barra de abas e
+   do seletor (--vm-aba-*) ficam sempre escuras, porque essa parte fica sobre
+   o fundo claro do próprio Projudi, mesmo no tom Escuro suave. */
+html.pdp-vm, html.pdp-vm-topo {
 	--vm-acento: #56613c;
-	--vm-acento-suave: #e8ecdc;
-	--vm-fundo: #f6f6f0;
-	--vm-linha: #dcdccf;
-	--vm-cartao: #ffffff;
+	--vm-acento-suave: #dde2cc;
+	--vm-fundo: #dfe0d2;
+	--vm-linha: #cfd0bf;
+	--vm-cartao: #ecece2;
 	--vm-texto: #262a1f;
-	--vm-suave: #6b6f5e;
-	--vm-fraco: #a9ac9b;
+	--vm-suave: #5f6352;
+	--vm-fraco: #9ea290;
 	--vm-urgente: #b4321f;
-	--vm-urgente-suave: #fbe9e5;
+	--vm-urgente-suave: #f3ddd6;
+	--vm-urgente-borda: #d9a99d;
 	--vm-ok: #3e7a4a;
-	--vm-ok-suave: #e5f1e6;
+	--vm-ok-suave: #d9e7d8;
+	--vm-aba-texto: #262a1f;
+	--vm-aba-suave: #5f6352;
+	--vm-aba-hover: #e3e6d6;
+	/* topo do Projudi: sempre claro (no Escuro suave fica como o Oliva fosco) */
+	--vm-topo-fundo: #e6e7db;
+	--vm-topo-linha: #cfd0bf;
+	--vm-topo-texto: #262a1f;
+	--vm-topo-suave: #5f6352;
+	--vm-topo-hover: #d9dccb;
+	--vm-topo-menu: #efefe7;
+	--vm-topo-destaque: #56613c;
 	--vm-fonte: "Segoe UI", Roboto, Arial, sans-serif;
 }
-html.pdp-vm[data-pdp-vm-cor="petroleo"] { --vm-acento: #1d6272; --vm-acento-suave: #e0eef0; --vm-fundo: #f2f6f6; --vm-linha: #d3dfe1; --vm-texto: #1f2a2c; --vm-suave: #5d6d70; --vm-fraco: #a3b0b2; }
-html.pdp-vm[data-pdp-vm-cor="marinho"] { --vm-acento: #2c4a80; --vm-acento-suave: #e4eaf5; --vm-fundo: #f3f5f9; --vm-linha: #d6dce8; --vm-texto: #1f2533; --vm-suave: #5e6679; --vm-fraco: #a6adbd; }
-html.pdp-vm[data-pdp-vm-cor="grafite"] { --vm-acento: #3f444c; --vm-acento-suave: #e8e9ec; --vm-fundo: #f5f5f6; --vm-linha: #dadbdf; --vm-texto: #24262a; --vm-suave: #64676e; --vm-fraco: #abadb3; }
+html[data-pdp-vm-cor="areia"] { --vm-acento: #6b5a3a; --vm-acento-suave: #e2d6bd; --vm-fundo: #e2d9c6; --vm-cartao: #efe8da; --vm-linha: #d3c8b2; --vm-texto: #3a3226; --vm-suave: #66594a; --vm-fraco: #a99b84; --vm-ok-suave: #dfe3cf; }
+html[data-pdp-vm-cor="salvia"] { --vm-acento: #4a6650; --vm-acento-suave: #d3dfd3; --vm-fundo: #d8dfd4; --vm-cartao: #e6ebe3; --vm-linha: #c6d0c1; --vm-texto: #25302a; --vm-suave: #56655a; --vm-fraco: #9cab9f; }
+html[data-pdp-vm-cor="nevoa"] { --vm-acento: #3e5a6e; --vm-acento-suave: #d4dee6; --vm-fundo: #d9dfe4; --vm-cartao: #e7ebee; --vm-linha: #c7d0d8; --vm-texto: #232c33; --vm-suave: #56636e; --vm-fraco: #9daab4; --vm-ok-suave: #d6e4dc; }
+html[data-pdp-vm-cor="escuro"] { --vm-acento: #b9c79a; --vm-acento-suave: #3a4232; --vm-fundo: #232622; --vm-cartao: #2c302b; --vm-linha: #3d4239; --vm-texto: #e3e6dc; --vm-suave: #a7ad9c; --vm-fraco: #6c7266;
+	--vm-urgente: #ff9a85; --vm-urgente-suave: #4a2a24; --vm-urgente-borda: #7a3e33; --vm-ok: #9fd3a8; --vm-ok-suave: #26382a; --vm-aba-hover: #e3e6d6; }
+
+html[data-pdp-vm-cor="areia"] { --vm-topo-fundo: #e9e1d1; --vm-topo-linha: #d3c8b2; --vm-topo-texto: #3a3226; --vm-topo-suave: #66594a; --vm-topo-hover: #ddd2bc; --vm-topo-menu: #f1ebdf; --vm-topo-destaque: #6b5a3a; }
+html[data-pdp-vm-cor="salvia"] { --vm-topo-fundo: #e1e7dd; --vm-topo-linha: #c6d0c1; --vm-topo-texto: #25302a; --vm-topo-suave: #56655a; --vm-topo-hover: #d3ddd0; --vm-topo-menu: #ebefe8; --vm-topo-destaque: #4a6650; }
+html[data-pdp-vm-cor="nevoa"] { --vm-topo-fundo: #e1e6ea; --vm-topo-linha: #c7d0d8; --vm-topo-texto: #232c33; --vm-topo-suave: #56636e; --vm-topo-hover: #d2dbe2; --vm-topo-menu: #ebeef1; --vm-topo-destaque: #3e5a6e; }
+
+/* ---------- topo do Projudi: barra de menus (quadro de cima) ---------- */
+html.pdp-vm-topo #BarraMenu > div { background: var(--vm-topo-fundo) !important; border-bottom: 1px solid var(--vm-topo-linha); box-sizing: border-box; }
+html.pdp-vm-topo #main-menu.sm-clean { background: transparent; padding: 0 6px; }
+html.pdp-vm-topo .sm-clean > li > a, html.pdp-vm-topo .sm-clean > li > a:hover, html.pdp-vm-topo .sm-clean > li > a:focus,
+html.pdp-vm-topo .sm-clean > li > a:active, html.pdp-vm-topo .sm-clean > li > a.highlighted {
+	padding: 5px 6px; line-height: 16px; font: 400 11px/16px var(--vm-fonte); color: var(--vm-topo-texto); border-radius: 4px !important; }
+html.pdp-vm-topo .sm-clean > li > a.has-submenu { padding-right: 15px; }
+html.pdp-vm-topo .sm-clean > li > a:hover, html.pdp-vm-topo .sm-clean > li > a:focus, html.pdp-vm-topo .sm-clean > li > a.highlighted { background: var(--vm-topo-hover); color: var(--vm-topo-texto); }
+html.pdp-vm-topo .sm-clean > li > a .sub-arrow { border-color: var(--vm-topo-suave) transparent transparent; }
+html.pdp-vm-topo .sm-clean ul { background: var(--vm-topo-menu); border: 1px solid var(--vm-topo-linha); border-radius: 8px !important; box-shadow: 0 6px 16px rgba(30, 32, 24, .14); padding: 4px 0; }
+html.pdp-vm-topo .sm-clean > li > ul::before { border-color: transparent transparent var(--vm-topo-linha); }
+html.pdp-vm-topo .sm-clean > li > ul::after { border-color: transparent transparent var(--vm-topo-menu); }
+html.pdp-vm-topo .sm-clean ul a, html.pdp-vm-topo .sm-clean ul a:hover, html.pdp-vm-topo .sm-clean ul a:focus, html.pdp-vm-topo .sm-clean ul a:active, html.pdp-vm-topo .sm-clean ul a.highlighted {
+	padding: 6px 22px 6px 12px; font: 400 13px var(--vm-fonte); color: var(--vm-topo-texto); }
+html.pdp-vm-topo .sm-clean ul a:hover, html.pdp-vm-topo .sm-clean ul a:focus, html.pdp-vm-topo .sm-clean ul a.highlighted { background: var(--vm-topo-hover); color: var(--vm-topo-texto); }
+html.pdp-vm-topo .sm-clean ul a .sub-arrow { border-color: transparent transparent transparent var(--vm-topo-suave); }
+
+/* ---------- topo do Projudi: linha "Usuário / Atribuição / Atuação…" ---------- */
+html.pdp-vm-topo table#userinfo { background: var(--vm-topo-fundo); border-bottom: 1px solid var(--vm-topo-linha); font: 12px var(--vm-fonte); color: var(--vm-topo-suave); }
+html.pdp-vm-topo table#userinfo td { padding-top: 4px; padding-bottom: 4px; }
+html.pdp-vm-topo table#userinfo .userinfo_label, html.pdp-vm-topo table#userinfo strong { color: var(--vm-topo-suave); font-weight: 600; }
+html.pdp-vm-topo table#userinfo span:not(.userinfo_label), html.pdp-vm-topo table#userinfo a,
+html.pdp-vm-topo table#userinfo a#meusdados, html.pdp-vm-topo table#userinfo a#areaatuacao, html.pdp-vm-topo table#userinfo a#lnkUltimosAcessos { color: var(--vm-topo-destaque) !important; font-weight: 400; }
+html.pdp-vm-topo table#userinfo a:hover { text-decoration: underline; }
+html.pdp-vm-topo table#userinfo a.shortcuts { font-weight: 600; }
 
 /* ---------- título e seletor de cor ---------- */
 html.pdp-vm h3.pdp-vm-titulo { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-html.pdp-vm .pdp-vm-cores { display: inline-flex; align-items: center; gap: 6px; font: 400 12px var(--vm-fonte); color: var(--vm-suave); }
-html.pdp-vm .pdp-vm-cor { width: 18px; height: 18px; padding: 0; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--vm-linha); cursor: pointer; }
-html.pdp-vm .pdp-vm-cor[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--vm-texto); }
-html.pdp-vm .pdp-vm-cor:focus-visible { outline: 2px solid var(--vm-acento); outline-offset: 2px; }
+html.pdp-vm .pdp-vm-cores { display: inline-flex; align-items: center; gap: 6px; font: 400 12px var(--vm-fonte); color: var(--vm-aba-suave); }
+html.pdp-vm .pdp-vm-cor { width: 18px; height: 18px; padding: 0; border-radius: 50%; border: 2px solid #f4f4ee; box-shadow: 0 0 0 1px #bfc0b0; cursor: pointer; }
+html.pdp-vm .pdp-vm-cor[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--vm-aba-texto); }
+html.pdp-vm .pdp-vm-cor:focus-visible { outline: 2px solid var(--vm-aba-texto); outline-offset: 2px; }
 
 /* ---------- barra de abas ---------- */
 html.pdp-vm div#tabHorz { background: none; height: auto; font-size: 13px; font-family: var(--vm-fonte); }
-html.pdp-vm #tabHorz ul { display: flex; flex-wrap: wrap; gap: 2px; margin: 10px 0 0; padding: 0; border-bottom: 1px solid var(--vm-linha); }
+html.pdp-vm #tabHorz ul { display: flex; flex-wrap: wrap; gap: 2px; margin: 10px 0 0; padding: 0; border-bottom: 1px solid #cfd0bf; }
 html.pdp-vm #tabHorz li { float: none; height: auto; margin: 0; list-style: none; }
 html.pdp-vm div#tabHorz div.tabLeft, html.pdp-vm div#tabHorz div.tabRight { display: none; }
 html.pdp-vm div#tabHorz div.tabCenter,
 html.pdp-vm div#tabHorz li.currentTab div.tabCenter { float: none; height: auto; min-width: 0; background: none; border: 0; }
-html.pdp-vm #tabHorz a { padding: 9px 14px 8px; line-height: 1.2; font-weight: 400; color: var(--vm-suave); border-bottom: 3px solid transparent; white-space: nowrap; }
-html.pdp-vm #tabHorz a:hover { font-weight: 400; color: var(--vm-texto); background: var(--vm-acento-suave); }
-html.pdp-vm #tabHorz li.currentTab a { color: var(--vm-texto); font-weight: 600; border-bottom-color: var(--vm-acento); }
-html.pdp-vm .masterBlockSubInfoHorz { background: var(--vm-fundo); border: 1px solid var(--vm-linha); border-top: 0; }
+html.pdp-vm #tabHorz a { padding: 9px 14px 8px; line-height: 1.2; font-weight: 400; color: var(--vm-aba-suave); border-bottom: 3px solid transparent; white-space: nowrap; }
+html.pdp-vm #tabHorz a:hover { font-weight: 400; color: var(--vm-aba-texto); background: var(--vm-aba-hover); }
+html.pdp-vm #tabHorz li.currentTab a { color: var(--vm-aba-texto); font-weight: 600; border-bottom-color: var(--vm-aba-texto); }
+html.pdp-vm.pdp-vm-montado .masterBlockSubInfoHorz { background: var(--vm-fundo); border: 1px solid var(--vm-linha); border-top: 0; }
 
 /* ---------- cartões ---------- */
 html.pdp-vm .pdp-vm-original { display: none !important; }
 html.pdp-vm .pdp-vm-painel { font-family: var(--vm-fonte); color: var(--vm-texto); }
+html.pdp-vm .pdp-vm-painel a, html.pdp-vm .pdp-vm-painel label, html.pdp-vm .pdp-vm-painel td, html.pdp-vm .pdp-vm-painel font:not([color]) { color: inherit; }
+/* avisos que o Projudi pinta de vermelho, como o (NOVO!) das mensagens */
+html.pdp-vm .pdp-vm-painel font[color] { color: var(--vm-urgente); }
+html.pdp-vm .pdp-vm-painel table.pdp-vm-resultado td { color: var(--vm-texto); }
+html.pdp-vm input.pdp-vm-busca { color: var(--vm-texto); }
 html.pdp-vm .pdp-vm-grade { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); align-items: start; }
 html.pdp-vm .pdp-vm-largo { grid-column: 1 / -1; }
+/* Análise de Juntadas: coluna estreita à esquerda (juntadas e conclusões), demais quadros à direita */
+html.pdp-vm .pdp-vm-juntadas { display: grid; grid-template-columns: minmax(240px, 300px) minmax(0, 1fr); gap: 14px; align-items: start; }
+html.pdp-vm .pdp-vm-col-esq { display: grid; gap: 14px; min-width: 0; }
+html.pdp-vm .pdp-vm-col-dir { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); align-items: start; min-width: 0; }
+html.pdp-vm .pdp-vm-col-esq .pdp-vm-blocos table.pdp-vm-tabela > tbody { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); }
+@media (max-width: 760px) { html.pdp-vm .pdp-vm-juntadas { grid-template-columns: minmax(0, 1fr); } }
 html.pdp-vm .pdp-vm-cartao { background: var(--vm-cartao); border: 1px solid var(--vm-linha); border-radius: 8px; padding: 12px 16px 14px; min-width: 0; box-sizing: border-box; }
-html.pdp-vm .pdp-vm-cartao.pdp-vm-urgente { border-color: #e3b1a7; background: linear-gradient(var(--vm-urgente-suave), var(--vm-cartao) 46px); }
+html.pdp-vm .pdp-vm-cartao.pdp-vm-urgente { border-color: var(--vm-urgente-borda); background: linear-gradient(var(--vm-urgente-suave), var(--vm-cartao) 46px); }
 html.pdp-vm h4.pdp-vm-cartao-titulo { width: auto !important; display: flex; justify-content: space-between; gap: 8px; margin: 0 0 8px; padding: 0; border: 0; background: none;
 	font: 700 11px var(--vm-fonte); letter-spacing: .06em; text-transform: uppercase; color: var(--vm-suave); }
 html.pdp-vm .pdp-vm-urgente h4.pdp-vm-cartao-titulo { color: var(--vm-urgente); }
@@ -64,6 +124,10 @@ html.pdp-vm table.pdp-vm-tabela td.pdp-vm-rotulo label, html.pdp-vm table.pdp-vm
 html.pdp-vm .pdp-vm-lista tr.pdp-vm-linha { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 0; border-top: 1px solid var(--vm-linha); font-size: 13px; }
 html.pdp-vm .pdp-vm-lista tr.pdp-vm-linha:first-child { border-top: 0; }
 html.pdp-vm .pdp-vm-lista td.pdp-vm-rotulo { flex: 1; }
+/* Início, Dados do Juízo: o nome da vara logo depois do rótulo, à esquerda */
+html.pdp-vm .pdp-vm-juizo tr.pdp-vm-linha { justify-content: flex-start; gap: 16px; }
+html.pdp-vm .pdp-vm-juizo td.pdp-vm-rotulo { flex: none; min-width: 60px; }
+html.pdp-vm .pdp-vm-lista.pdp-vm-juizo td.pdp-vm-valor { text-align: left; }
 html.pdp-vm .pdp-vm-lista td.pdp-vm-valor { flex: none; text-align: right; }
 html.pdp-vm .pdp-vm-lista td.pdp-vm-valor > a.pdp-vm-num { display: inline-block; min-width: 2.4em; padding: 1px 9px; border-radius: 999px; text-align: center;
 	background: var(--vm-acento-suave); color: var(--vm-acento); font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -100,10 +164,13 @@ html.pdp-vm .pdp-vm-painel span.contador.pdp-vm-zero,
 html.pdp-vm .pdp-vm-painel a.pdp-vm-zero { color: var(--vm-fraco) !important; background: none !important; font-weight: 400; }
 
 /* Início: mensagens com a data numa etiqueta */
-html.pdp-vm .pdp-vm-mensagens tr.pdp-vm-linha { justify-content: flex-start; }
+/* Últimas Mensagens: quadro compacto, só da largura do texto */
+html.pdp-vm .pdp-vm-cartao.pdp-vm-mensagens { justify-self: start; width: auto; max-width: 100%; padding: 8px 12px 6px; }
+html.pdp-vm .pdp-vm-mensagens h4.pdp-vm-cartao-titulo { margin-bottom: 2px; font-size: 10px; }
+html.pdp-vm .pdp-vm-mensagens tr.pdp-vm-linha { justify-content: flex-start; gap: 8px; padding: 3px 0; font-size: 12px; }
 html.pdp-vm .pdp-vm-mensagens td.pdp-vm-rotulo { flex: none; order: 0; }
-html.pdp-vm .pdp-vm-mensagens td.pdp-vm-rotulo label { display: inline-block; padding: 1px 7px; border: 1px solid var(--vm-linha); border-radius: 4px; background: var(--vm-fundo);
-	font-size: 12px; color: var(--vm-suave); font-variant-numeric: tabular-nums; }
+html.pdp-vm .pdp-vm-mensagens td.pdp-vm-rotulo label { display: inline-block; padding: 0 5px; border: 1px solid var(--vm-linha); border-radius: 4px; background: var(--vm-fundo);
+	font-size: 11px !important; color: var(--vm-suave); font-variant-numeric: tabular-nums; }
 html.pdp-vm .pdp-vm-mensagens td.pdp-vm-valor { text-align: left; flex: 1; }
 
 /* ---------- Outros Cumprimentos ---------- */
@@ -133,7 +200,7 @@ html.pdp-vm table.pdp-vm-resultado tr[data-pdp-vm-oculta] { display: none !impor
 html.pdp-vm table.pdp-vm-resultado.pdp-vm-mostrar-zeradas tr[data-pdp-contador-zero]:not([data-pdp-vm-oculta]) { display: table-row !important; }
 
 html.pdp-vm .pdp-vm-barra { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin-bottom: 10px; font: 13px var(--vm-fonte); }
-html.pdp-vm input.pdp-vm-busca { width: 280px; max-width: 100%; padding: 6px 10px; border: 1px solid var(--vm-linha); border-radius: 6px; background: #fff; font: 13px var(--vm-fonte); }
+html.pdp-vm input.pdp-vm-busca { width: 280px; max-width: 100%; padding: 6px 10px; border: 1px solid var(--vm-linha); border-radius: 6px; background: var(--vm-cartao); font: 13px var(--vm-fonte); }
 html.pdp-vm input.pdp-vm-busca:focus { outline: 2px solid var(--vm-acento); outline-offset: 0; }
 html.pdp-vm .pdp-vm-checar { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
 html.pdp-vm .pdp-vm-contagem { color: var(--vm-suave); font-size: 12px; }

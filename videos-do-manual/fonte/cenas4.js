@@ -2279,7 +2279,7 @@ CENAS.V73 = {
 		const abas = on => '<div id="tabHorz"><ul>' + ABAS_MESA.map(a => '<li class="' + (a === on ? "currentTab" : "") + '"><div class="tabCenter"><a>' + a + "</a></div></li>").join("") + "</ul></div>";
 		const linha = (rot, n, urg) => '<tr class="pdp-vm-linha"><td class="label pdp-vm-rotulo">' + rot + '</td><td class="pdp-vm-valor"><a><span class="contador' + (urg ? " urgente" : "") + '">' + n + "</span></a></td></tr>";
 		const cartao = (tit, estilo, linhas, o = {}) => '<section class="pdp-vm-cartao pdp-vm-' + estilo + (o.urg ? " pdp-vm-urgente" : "") + (o.largo ? " pdp-vm-largo" : "") + '"><h4 class="pdp-vm-cartao-titulo">' + tit + '</h4><table class="form pdp-vm-tabela"><tbody>' + linhas.join("") + "</tbody></table></section>";
-		const cores = '<span class="pdp-vm-cores">Cor: <button class="pdp-vm-cor" id="cor-oliva" style="background:#56613c" aria-pressed="true"></button><button class="pdp-vm-cor" id="cor-petroleo" style="background:#1d6272" aria-pressed="false"></button><button class="pdp-vm-cor" id="cor-marinho" style="background:#2c4a80" aria-pressed="false"></button><button class="pdp-vm-cor" id="cor-grafite" style="background:#3f444c" aria-pressed="false"></button></span>';
+		const cores = '<span class="pdp-vm-cores">Cor: ' + [["oliva", "#dfe0d2", "#56613c"], ["areia", "#e2d9c6", "#6b5a3a"], ["salvia", "#d8dfd4", "#4a6650"], ["nevoa", "#d9dfe4", "#3e5a6e"], ["escuro", "#2c302b", "#b9c79a"]].map(c => '<button class="pdp-vm-cor" id="cor-' + c[0] + '" style="background:linear-gradient(135deg,' + c[1] + ' 50%,' + c[2] + ' 50%)" aria-pressed="' + (c[0] === "oliva") + '"></button>').join("") + "</span>";
 		const mesa = (aba, corpo) => {
 			const cor = document.documentElement.getAttribute("data-pdp-vm-cor") || "oliva";
 			browser(["*Projudi - Mesa do Analista"], "https://projudi.tjpr.jus.br/projudi/usuario/mesaAnalista.do");
@@ -2298,24 +2298,24 @@ CENAS.V73 = {
 		await S.cap("Assim era a <b>Mesa do Analista</b>: rótulos longos, números pequenos e muito espaço vazio.", { ms: 4200 });
 
 		// Depois: Análise de Juntadas em quadros.
-		document.documentElement.classList.add("pdp-vm");
+		document.documentElement.classList.add("pdp-vm", "pdp-vm-montado");
 		document.documentElement.setAttribute("data-pdp-vm-cor", "oliva");
-		mesa("Análise de Juntadas", '<div class="pdp-vm-grade">' +
-			cartao("Com Urgência", "blocos", [linha("Juntadas", 12, true), linha("Retorno de Conclusão", 11, true)], { urg: true, largo: true }) +
-			cartao("Para Realizar", "blocos", [linha("Juntadas", 804), linha("Retorno de Conclusão", 71)], { largo: true }) +
+		mesa("Análise de Juntadas", '<div class="pdp-vm-juntadas"><div class="pdp-vm-col-esq">' +
+			cartao("Com Urgência", "blocos", [linha("Juntadas", 12, true), linha("Retorno de Conclusão", 11, true)], { urg: true }) +
+			cartao("Para Realizar", "blocos", [linha("Juntadas", 804), linha("Retorno de Conclusão", 71)]) + '</div><div class="pdp-vm-col-dir">' +
 			cartao("Retornos de cumprimento", "lista", [linha("Mandados aguardando análise de retorno", 49), linha("Cartas Eletrônicas aguardando análise de retorno", 11), linha("Diligências aguardando retorno", 13)]) +
 			cartao("Multas Fupen e custas", "lista", [linha("Multas Fupen vencidas e pendentes de ordenação", 47), linha("Multas Fupen vencidas e pendentes de reenvio ao Fupen", 36), linha("Prestações Pecuniárias em atraso", 8)]) +
-			cartao("Outros", "lista", [linha("Autuação da Guia de Execução pendente", 33), linha("Processos com suspeita de incompetência - Juiz das Garantias", 45)]) + "</div>");
-		await S.cap("Com a extensão, cada assunto fica num <b>quadro</b>. O que é <b>urgente</b> aparece primeiro, em vermelho.", { ms: 4600 });
+			cartao("Outros", "lista", [linha("Autuação da Guia de Execução pendente", 33), linha("Processos com suspeita de incompetência - Juiz das Garantias", 45)]) + "</div></div>");
+		await S.cap("Com a extensão, juntadas e conclusões ficam à esquerda, com o <b>urgente</b> em vermelho; os demais assuntos, em <b>quadros</b> à direita.", { ms: 4600 });
 		S.hl(".pdp-vm-lista", 2);
 		await S.cap("Os demais itens ficam <b>agrupados por assunto</b>. Clicar num número abre a mesma lista de sempre.", { ms: 4400 });
 		S.hlOff();
 
 		// Cor
-		await S.click("#cor-petroleo");
-		document.documentElement.setAttribute("data-pdp-vm-cor", "petroleo");
-		$$(".pdp-vm-cor").forEach(b => b.setAttribute("aria-pressed", String(b.id === "cor-petroleo")));
-		await S.cap("Nas bolinhas ao lado do título, escolha a cor: <b>Oliva</b> (padrão), <b>Azul-petróleo</b>, <b>Azul-marinho</b> ou <b>Grafite</b>. A escolha fica guardada.", { ms: 5000 });
+		await S.click("#cor-areia");
+		document.documentElement.setAttribute("data-pdp-vm-cor", "areia");
+		$$(".pdp-vm-cor").forEach(b => b.setAttribute("aria-pressed", String(b.id === "cor-areia")));
+		await S.cap("Nas bolinhas ao lado do título, escolha o tom: <b>Oliva fosco</b> (padrão), <b>Areia</b>, <b>Sálvia</b>, <b>Névoa</b> ou <b>Escuro suave</b>. A escolha fica guardada.", { ms: 5000 });
 
 		// Mesa do Escrivão Criminal
 		const atalho = (nome, chips) => '<div class="pdp-vm-atalho"><table><tbody><tr><td><b><label>' + nome + "</label></b>" + (chips || []).map(c => ' <a class="pdp-vm-chip">' + c + "</a>").join("") + "</td></tr></tbody></table></div>";
