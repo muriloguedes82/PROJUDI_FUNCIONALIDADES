@@ -2,47 +2,60 @@
    Tudo fica sob html.pdp-vm, que o script só põe na Mesa do Analista:
    este arquivo é carregado em todas as páginas, mas não muda nenhuma outra. */
 
+/* Tons pensados para não cansar a vista: fundos médio-claros (sem branco
+   puro) e pouca saturação. Padrão: Oliva fosco. As cores da barra de abas e
+   do seletor (--vm-aba-*) ficam sempre escuras, porque essa parte fica sobre
+   o fundo claro do próprio Projudi, mesmo no tom Escuro suave. */
 html.pdp-vm {
 	--vm-acento: #56613c;
-	--vm-acento-suave: #e8ecdc;
-	--vm-fundo: #efefe6;
-	--vm-linha: #dcdccf;
-	--vm-cartao: #fafaf4;
+	--vm-acento-suave: #dde2cc;
+	--vm-fundo: #dfe0d2;
+	--vm-linha: #cfd0bf;
+	--vm-cartao: #ecece2;
 	--vm-texto: #262a1f;
-	--vm-suave: #6b6f5e;
-	--vm-fraco: #a9ac9b;
+	--vm-suave: #5f6352;
+	--vm-fraco: #9ea290;
 	--vm-urgente: #b4321f;
-	--vm-urgente-suave: #fbe9e5;
+	--vm-urgente-suave: #f3ddd6;
+	--vm-urgente-borda: #d9a99d;
 	--vm-ok: #3e7a4a;
-	--vm-ok-suave: #e5f1e6;
+	--vm-ok-suave: #d9e7d8;
+	--vm-aba-texto: #262a1f;
+	--vm-aba-suave: #5f6352;
+	--vm-aba-hover: #e3e6d6;
 	--vm-fonte: "Segoe UI", Roboto, Arial, sans-serif;
 }
-html.pdp-vm[data-pdp-vm-cor="petroleo"] { --vm-acento: #1d6272; --vm-acento-suave: #e0eef0; --vm-fundo: #eaf0f0; --vm-cartao: #f7fafa; --vm-linha: #d3dfe1; --vm-texto: #1f2a2c; --vm-suave: #5d6d70; --vm-fraco: #a3b0b2; }
-html.pdp-vm[data-pdp-vm-cor="marinho"] { --vm-acento: #2c4a80; --vm-acento-suave: #e4eaf5; --vm-fundo: #ebeef4; --vm-cartao: #f8f9fc; --vm-linha: #d6dce8; --vm-texto: #1f2533; --vm-suave: #5e6679; --vm-fraco: #a6adbd; }
-html.pdp-vm[data-pdp-vm-cor="grafite"] { --vm-acento: #3f444c; --vm-acento-suave: #e8e9ec; --vm-fundo: #ededef; --vm-cartao: #f8f8f9; --vm-linha: #dadbdf; --vm-texto: #24262a; --vm-suave: #64676e; --vm-fraco: #abadb3; }
+html.pdp-vm[data-pdp-vm-cor="areia"] { --vm-acento: #6b5a3a; --vm-acento-suave: #e2d6bd; --vm-fundo: #e2d9c6; --vm-cartao: #efe8da; --vm-linha: #d3c8b2; --vm-texto: #3a3226; --vm-suave: #66594a; --vm-fraco: #a99b84; --vm-ok-suave: #dfe3cf; }
+html.pdp-vm[data-pdp-vm-cor="salvia"] { --vm-acento: #4a6650; --vm-acento-suave: #d3dfd3; --vm-fundo: #d8dfd4; --vm-cartao: #e6ebe3; --vm-linha: #c6d0c1; --vm-texto: #25302a; --vm-suave: #56655a; --vm-fraco: #9cab9f; }
+html.pdp-vm[data-pdp-vm-cor="nevoa"] { --vm-acento: #3e5a6e; --vm-acento-suave: #d4dee6; --vm-fundo: #d9dfe4; --vm-cartao: #e7ebee; --vm-linha: #c7d0d8; --vm-texto: #232c33; --vm-suave: #56636e; --vm-fraco: #9daab4; --vm-ok-suave: #d6e4dc; }
+html.pdp-vm[data-pdp-vm-cor="escuro"] { --vm-acento: #b9c79a; --vm-acento-suave: #3a4232; --vm-fundo: #232622; --vm-cartao: #2c302b; --vm-linha: #3d4239; --vm-texto: #e3e6dc; --vm-suave: #a7ad9c; --vm-fraco: #6c7266;
+	--vm-urgente: #ff9a85; --vm-urgente-suave: #4a2a24; --vm-urgente-borda: #7a3e33; --vm-ok: #9fd3a8; --vm-ok-suave: #26382a; --vm-aba-hover: #e3e6d6; }
 
 /* ---------- título e seletor de cor ---------- */
 html.pdp-vm h3.pdp-vm-titulo { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-html.pdp-vm .pdp-vm-cores { display: inline-flex; align-items: center; gap: 6px; font: 400 12px var(--vm-fonte); color: var(--vm-suave); }
-html.pdp-vm .pdp-vm-cor { width: 18px; height: 18px; padding: 0; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--vm-linha); cursor: pointer; }
-html.pdp-vm .pdp-vm-cor[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--vm-texto); }
-html.pdp-vm .pdp-vm-cor:focus-visible { outline: 2px solid var(--vm-acento); outline-offset: 2px; }
+html.pdp-vm .pdp-vm-cores { display: inline-flex; align-items: center; gap: 6px; font: 400 12px var(--vm-fonte); color: var(--vm-aba-suave); }
+html.pdp-vm .pdp-vm-cor { width: 18px; height: 18px; padding: 0; border-radius: 50%; border: 2px solid #f4f4ee; box-shadow: 0 0 0 1px #bfc0b0; cursor: pointer; }
+html.pdp-vm .pdp-vm-cor[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--vm-aba-texto); }
+html.pdp-vm .pdp-vm-cor:focus-visible { outline: 2px solid var(--vm-aba-texto); outline-offset: 2px; }
 
 /* ---------- barra de abas ---------- */
 html.pdp-vm div#tabHorz { background: none; height: auto; font-size: 13px; font-family: var(--vm-fonte); }
-html.pdp-vm #tabHorz ul { display: flex; flex-wrap: wrap; gap: 2px; margin: 10px 0 0; padding: 0; border-bottom: 1px solid var(--vm-linha); }
+html.pdp-vm #tabHorz ul { display: flex; flex-wrap: wrap; gap: 2px; margin: 10px 0 0; padding: 0; border-bottom: 1px solid #cfd0bf; }
 html.pdp-vm #tabHorz li { float: none; height: auto; margin: 0; list-style: none; }
 html.pdp-vm div#tabHorz div.tabLeft, html.pdp-vm div#tabHorz div.tabRight { display: none; }
 html.pdp-vm div#tabHorz div.tabCenter,
 html.pdp-vm div#tabHorz li.currentTab div.tabCenter { float: none; height: auto; min-width: 0; background: none; border: 0; }
-html.pdp-vm #tabHorz a { padding: 9px 14px 8px; line-height: 1.2; font-weight: 400; color: var(--vm-suave); border-bottom: 3px solid transparent; white-space: nowrap; }
-html.pdp-vm #tabHorz a:hover { font-weight: 400; color: var(--vm-texto); background: var(--vm-acento-suave); }
-html.pdp-vm #tabHorz li.currentTab a { color: var(--vm-texto); font-weight: 600; border-bottom-color: var(--vm-acento); }
-html.pdp-vm .masterBlockSubInfoHorz { background: var(--vm-fundo); border: 1px solid var(--vm-linha); border-top: 0; }
+html.pdp-vm #tabHorz a { padding: 9px 14px 8px; line-height: 1.2; font-weight: 400; color: var(--vm-aba-suave); border-bottom: 3px solid transparent; white-space: nowrap; }
+html.pdp-vm #tabHorz a:hover { font-weight: 400; color: var(--vm-aba-texto); background: var(--vm-aba-hover); }
+html.pdp-vm #tabHorz li.currentTab a { color: var(--vm-aba-texto); font-weight: 600; border-bottom-color: var(--vm-aba-texto); }
+html.pdp-vm.pdp-vm-montado .masterBlockSubInfoHorz { background: var(--vm-fundo); border: 1px solid var(--vm-linha); border-top: 0; }
 
 /* ---------- cartões ---------- */
 html.pdp-vm .pdp-vm-original { display: none !important; }
 html.pdp-vm .pdp-vm-painel { font-family: var(--vm-fonte); color: var(--vm-texto); }
+html.pdp-vm .pdp-vm-painel a, html.pdp-vm .pdp-vm-painel label, html.pdp-vm .pdp-vm-painel td, html.pdp-vm .pdp-vm-painel font { color: inherit; }
+html.pdp-vm .pdp-vm-painel table.pdp-vm-resultado td { color: var(--vm-texto); }
+html.pdp-vm input.pdp-vm-busca { color: var(--vm-texto); }
 html.pdp-vm .pdp-vm-grade { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); align-items: start; }
 html.pdp-vm .pdp-vm-largo { grid-column: 1 / -1; }
 /* Análise de Juntadas: coluna estreita à esquerda (juntadas e conclusões), demais quadros à direita */
@@ -52,7 +65,7 @@ html.pdp-vm .pdp-vm-col-dir { display: grid; gap: 14px; grid-template-columns: r
 html.pdp-vm .pdp-vm-col-esq .pdp-vm-blocos table.pdp-vm-tabela > tbody { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); }
 @media (max-width: 760px) { html.pdp-vm .pdp-vm-juntadas { grid-template-columns: minmax(0, 1fr); } }
 html.pdp-vm .pdp-vm-cartao { background: var(--vm-cartao); border: 1px solid var(--vm-linha); border-radius: 8px; padding: 12px 16px 14px; min-width: 0; box-sizing: border-box; }
-html.pdp-vm .pdp-vm-cartao.pdp-vm-urgente { border-color: #e3b1a7; background: linear-gradient(var(--vm-urgente-suave), var(--vm-cartao) 46px); }
+html.pdp-vm .pdp-vm-cartao.pdp-vm-urgente { border-color: var(--vm-urgente-borda); background: linear-gradient(var(--vm-urgente-suave), var(--vm-cartao) 46px); }
 html.pdp-vm h4.pdp-vm-cartao-titulo { width: auto !important; display: flex; justify-content: space-between; gap: 8px; margin: 0 0 8px; padding: 0; border: 0; background: none;
 	font: 700 11px var(--vm-fonte); letter-spacing: .06em; text-transform: uppercase; color: var(--vm-suave); }
 html.pdp-vm .pdp-vm-urgente h4.pdp-vm-cartao-titulo { color: var(--vm-urgente); }

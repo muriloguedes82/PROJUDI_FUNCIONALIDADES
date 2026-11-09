@@ -30,11 +30,13 @@
 	const TAG = "[Projudi Visual da Mesa]";
 	const CHAVE_COR = "pdpVisualMesaCor";
 	const CHAVE_SO_PENDENCIAS = "pdpVisualMesaSoPendencias";
+	// amostra: metade fundo, metade destaque, para a bolinha lembrar o tom.
 	const CORES = [
-		{ id: "oliva", nome: "Oliva", amostra: "#56613c" },
-		{ id: "petroleo", nome: "Azul-petróleo", amostra: "#1d6272" },
-		{ id: "marinho", nome: "Azul-marinho", amostra: "#2c4a80" },
-		{ id: "grafite", nome: "Grafite", amostra: "#3f444c" }
+		{ id: "oliva", nome: "Oliva fosco", amostra: "linear-gradient(135deg,#dfe0d2 50%,#56613c 50%)" },
+		{ id: "areia", nome: "Areia", amostra: "linear-gradient(135deg,#e2d9c6 50%,#6b5a3a 50%)" },
+		{ id: "salvia", nome: "Sálvia", amostra: "linear-gradient(135deg,#d8dfd4 50%,#4a6650 50%)" },
+		{ id: "nevoa", nome: "Névoa", amostra: "linear-gradient(135deg,#d9dfe4 50%,#3e5a6e 50%)" },
+		{ id: "escuro", nome: "Escuro suave", amostra: "linear-gradient(135deg,#2c302b 50%,#b9c79a 50%)" }
 	];
 	const COR_PADRAO = "oliva";
 
@@ -564,6 +566,7 @@
 		console.error(TAG, "erro ao montar a aba (a parte já movida continua visível):", err);
 	}
 	console.log(TAG, montou ? "visual aplicado" : "aba mantida no visual original (só a barra de abas muda)");
+	if (montou) raiz.classList.add("pdp-vm-montado");
 	if (!montou) return;
 
 	const refazer = function () {

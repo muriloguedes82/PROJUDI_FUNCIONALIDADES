@@ -1210,13 +1210,15 @@ button.bt.primario:hover { background: #1f5591; }
 
 	// Cor do "Visual novo da Mesa do Analista" (visualMesa.js, só Projudi).
 	// Mesma chave que as bolinhas ao lado do título da Mesa gravam; a Mesa
-	// aberta muda de cor na hora. Padrão: oliva.
+	// aberta muda de cor na hora. Padrão: oliva (Oliva fosco). Quem tinha
+	// escolhido um tom que saiu (petroleo, marinho, grafite) volta ao padrão.
 	const CHAVE_COR_MESA = "pdpVisualMesaCor";
 	const CORES_MESA = [
-		["oliva", "Oliva (padrão)"],
-		["petroleo", "Azul-petróleo"],
-		["marinho", "Azul-marinho"],
-		["grafite", "Grafite"]
+		["oliva", "Oliva fosco (padrão)"],
+		["areia", "Areia"],
+		["salvia", "Sálvia"],
+		["nevoa", "Névoa"],
+		["escuro", "Escuro suave"]
 	];
 	let corMesa = "oliva";
 	function lerCorMesa(data) {
