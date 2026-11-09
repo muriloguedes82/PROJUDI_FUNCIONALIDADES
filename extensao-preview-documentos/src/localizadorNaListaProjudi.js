@@ -1,7 +1,8 @@
 // Projudi - Localizador na lista (Análise de Juntadas e Retorno de Conclusão)
 //
 // Versão do Projudi do "Localizador na lista" do SEEU (localizadorNaLista.js):
-// na coluna do número do processo de cada linha, mostra "📍" com o que
+// numa coluna nova, "Localizadores", acrescentada depois da última coluna da
+// lista (no SEEU fica abaixo do número), mostra "📍" com o que
 // consta na linha "Localizadores:" da aba Informações Gerais do processo e
 // um "✏️" que abre um painel para trocar ou incluir um localizador,
 // escolhido entre os localizadores ativos da tela "Histórico de
@@ -575,8 +576,12 @@
 	// Linhas da lista
 	// ------------------------------------------------------------------
 
+	// Tabela da lista. Com o formulário da lista na tela (a de Conclusões
+	// divide o endereço com a tela de análise de uma conclusão), só a de
+	// dentro dele.
 	function tabelaResultados() {
-		for (const t of document.querySelectorAll("table.resultTable")) {
+		const form = document.getElementById("analisarJuntadaForm") || document.getElementById("processoConclusaoForm");
+		for (const t of (form || document).querySelectorAll("table.resultTable")) {
 			const th = t.querySelector("thead");
 			if (th && /seq\.|sequencial|processo/i.test(th.textContent)) return t;
 		}
@@ -604,9 +609,53 @@
 				if (RE_CNJ.test(e.textContent) && e.textContent.trim().length <= 30) { em = e; break; }
 			}
 			if (!em) continue;
-			resultado.push({ row: row, cnj: em.textContent.match(RE_CNJ)[0], celula: em.closest("td"), url: linkProcesso(row), analisar: linkAnalisar(row) });
+			resultado.push({ row: row, cnj: em.textContent.match(RE_CNJ)[0], celula: row.querySelector(":scope > td." + CLASSE_COLUNA), url: linkProcesso(row), analisar: linkAnalisar(row) });
 		}
 		return resultado;
+	}
+
+	// ------------------------------------------------------------------
+	// Coluna "Localizadores" (a última da tabela)
+	// ------------------------------------------------------------------
+
+	// A coluna fica depois da última coluna da lista. As células da
+	// extensão têm classe "pdp-…", que "Juntadas e Conclusões em uma única
+	// página" (listasPaginaUnica.js) ignora ao comparar linhas. Linhas que
+	// chegam depois (páginas reunidas, novo filtro) ganham a célula na
+	// próxima passada de renderizar().
+	const CLASSE_COLUNA = "pdp-locl-col";
+
+	function prepararColuna(tabela) {
+		if (!tabela) return;
+		const cab = tabela.tHead && tabela.tHead.rows[tabela.tHead.rows.length - 1];
+		if (cab && !cab.querySelector(":scope > th." + CLASSE_COLUNA)) {
+			cab.append(el("th", { class: CLASSE_COLUNA, text: "Localizadores", title: "Localizadores do processo (aba Informações Gerais)" }));
+			const grupo = tabela.querySelector(":scope > colgroup");
+			if (grupo) grupo.append(el("col", { class: CLASSE_COLUNA }));
+			// Linhas de cabeçalho anteriores (se houver) passam a cobrir a
+			// coluna nova.
+			Array.from(tabela.tHead.rows).slice(0, -1).forEach(function (tr) { alargarUltima(tr); });
+		}
+		const secoes = Array.from(tabela.tBodies).concat(tabela.tFoot ? [tabela.tFoot] : []);
+		secoes.forEach(function (secao) {
+			for (const row of secao.rows) {
+				if (!row.cells.length || row.querySelector(":scope > td." + CLASSE_COLUNA) || row.hasAttribute("data-pdp-locl-col")) continue;
+				const processo = !/^row\d+$/.test(row.id) && Array.from(row.querySelectorAll(":scope > td em")).some(function (e) { return RE_CNJ.test(e.textContent) && e.textContent.trim().length <= 30; });
+				if (processo) row.append(el("td", { class: CLASSE_COLUNA }));
+				else alargarUltima(row);
+			}
+		});
+	}
+
+	// Linha que não é de processo ("+" dos arquivos, totais, "Nenhum
+	// registro"): a última célula passa a ocupar também a coluna nova; com
+	// várias células, ganha uma vazia.
+	function alargarUltima(row) {
+		if (row.hasAttribute("data-pdp-locl-col")) return;
+		row.setAttribute("data-pdp-locl-col", "");
+		const ultima = row.cells[row.cells.length - 1];
+		if (row.cells.length === 1 || (ultima && ultima.colSpan > 1)) ultima.colSpan = ultima.colSpan + 1;
+		else row.append(el(ultima && ultima.tagName === "TH" ? "th" : "td", { class: CLASSE_COLUNA + " vazia" }));
 	}
 
 	// ------------------------------------------------------------------
@@ -621,6 +670,7 @@
 	}
 
 	function renderizarLinha(item) {
+		if (!item.celula) return;
 		let caixa = item.celula.querySelector(":scope > .pdp-locl");
 		if (!caixa) {
 			caixa = el("div", { class: "pdp-locl" });
@@ -685,6 +735,7 @@
 	function renderizar() {
 		observador.disconnect();
 		try {
+			prepararColuna(tabelaResultados());
 			linhas().forEach(function (item) {
 				if (!valido(item.cnj)) lidos[item.cnj] = { estado: "fila" };
 				renderizarLinha(item);

@@ -251,3 +251,22 @@ label.pdp-locl-opcao-trocar {
 	color: #334155;
 	cursor: pointer;
 }
+
+/* Coluna "Localizadores" (a última da tabela) */
+th.pdp-locl-col {
+	padding-left: 5px;
+	padding-right: 5px;
+	white-space: nowrap;
+}
+
+td.pdp-locl-col {
+	min-width: 210px;
+	max-width: 340px;
+	padding-left: 5px;
+	padding-right: 5px;
+	vertical-align: middle;
+}
+
+td.pdp-locl-col > div.pdp-locl {
+	margin-top: 0;
+}

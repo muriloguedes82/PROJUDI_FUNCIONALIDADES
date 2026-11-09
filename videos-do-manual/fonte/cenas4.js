@@ -1808,8 +1808,10 @@ CENAS.V61 = {
 		};
 		const mostrar = (i, extra = "") => linha(i, (nomes[i].length ? nomes[i].map((n, k) => '<span style="' + ITEM + '" id="x-chip-' + i + "-" + k + '">' + n + "</span>").join("") : VAZIO) +
 			'<span style="' + BT + '" id="x-ed-' + i + '">✏️</span><span style="' + BT + '">↻</span>' + extra);
+		// Coluna nova "Localizadores", a última da tabela.
+		$("#lista tr").insertAdjacentHTML("beforeend", '<th id="x-col-loc">Localizadores</th>');
 		$$("#lista tr[data-i]").forEach(tr => {
-			tr.children[1].insertAdjacentHTML("beforeend", '<div data-locl="' + tr.dataset.i + '" style="margin-top:3px;font-size:11px;color:#334155"></div>');
+			tr.insertAdjacentHTML("beforeend", '<td style="min-width:230px"><div data-locl="' + tr.dataset.i + '" style="font-size:11px;color:#334155"></div></td>');
 			linha(tr.dataset.i, ' <i style="color:#64748b">aguardando…</i>');
 		});
 		await S.titleCard("VÍDEO V61", "Localizador na lista (Projudi)", "Veja, troque ou inclua o localizador de cada processo sem sair da lista de juntadas ou conclusões.");
@@ -1818,13 +1820,16 @@ CENAS.V61 = {
 			await sleep(i < 2 ? 900 : 350);
 			mostrar(i);
 		}
+		S.hl("#x-col-loc", 3);
+		await S.cap("Uma coluna nova, <b>Localizadores</b>, no fim da tabela, mostra o que consta em <b>Localizadores:</b> na aba <b>Informações Gerais</b> de cada processo.", { ms: 4800 });
+		S.hlOff();
 		S.hl('[data-locl="0"]', 3);
-		await S.cap("A linha <b>📍</b> mostra o que consta em <b>Localizadores:</b> na aba <b>Informações Gerais</b> de cada processo — aqui, “Localizador não cadastrado”.", { ms: 4800 });
+		await S.cap("Sem localizador, aparece o texto do próprio Projudi: “Localizador não cadastrado”.", { ms: 3600 });
 		S.hlOff();
 		await S.click("#x-ed-0");
 		const painel = '<h4 style="margin:0 0 6px">📍 Localizadores — ' + LISTA[0].n + "</h4>";
 		const pn = panelAt(painel + '<div style="padding:5px 7px;background:#f1f5f9;border-radius:4px">Abrindo o Histórico de Localizadores em segundo plano…</div>', "#x-ed-0", { w: 380 });
-		pn.style.left = "440px"; pn.style.top = "250px";
+		pn.style.left = Math.max(20, $("#x-ed-0").getBoundingClientRect().right - 400) + "px"; pn.style.top = "250px";
 		await sleep(1500);
 		const ATIVOS = ["AGUARDA LAUDO", "ARQUIVAR", "MALOTE DIGITAL", "SIGILOSO"];
 		const corpo = (no, trocar, st) => painel + (st ? '<div style="padding:5px 7px;background:#ecfdf5;color:#065f46;border-radius:4px;margin-bottom:6px">' + st + "</div>" : "") +
@@ -1850,7 +1855,7 @@ CENAS.V61 = {
 		mostrar(0);
 		await sleep(2200);
 		pn.remove();
-		await S.cap("Para tirar um localizador, <b>clique nele</b> na lista, como no SEEU.", { ms: 3800 });
+		await S.cap("Para tirar um localizador, <b>clique nele</b> na coluna, como no SEEU.", { ms: 3800 });
 		await S.click("#x-chip-1-0");
 		const chip = $("#x-chip-1-0");
 		chip.style.cssText += ";color:#991b1b;background:#fef2f2;border-color:#fca5a5";
@@ -1869,7 +1874,7 @@ CENAS.V61 = {
 		S.hl('[data-locl="1"]', 3);
 		await S.cap("A linha mostra o resultado.", { ms: 3400 });
 		S.hlOff();
-		await S.endCard("Lista do Projudi → 📍 o que está em Informações Gerais → clique no localizador para removê-lo · ✏️ → 🔁 trocar ou ➕ incluir (Histórico de Localizadores).");
+		await S.endCard("Lista do Projudi → coluna Localizadores (o que está em Informações Gerais) → clique no localizador para removê-lo · ✏️ → 🔁 trocar ou ➕ incluir (Histórico de Localizadores).");
 	},
 };
 
