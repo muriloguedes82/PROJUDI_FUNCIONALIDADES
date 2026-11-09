@@ -1,5 +1,11 @@
 # Regras do repositório
 
+## Idioma das respostas
+
+Responda ao usuário **sempre em português**, em todas as mensagens e em
+qualquer conversa nova (decisão do usuário, versão 12). Isso vale também
+para avisos curtos de andamento, perguntas e resumos finais.
+
 ## Numeração das versões
 
 Desde a versão 3 (decisão do usuário), cada nova versão da extensão usa um
