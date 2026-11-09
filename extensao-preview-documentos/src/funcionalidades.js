@@ -277,6 +277,13 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					js: ["src/mesaAnalistaContadores.js"]
 				},
 				{
+					id: "paralisados90",
+					nome: "Processos Paralisados (+90 dias) na tela Início",
+					descricao: "Na tela Início, logo abaixo de \"Processos Paralisados (+30 dias)\", mostra os totais de processos paralisados há mais de 90 dias na Secretaria, Em Remessa e Em Remessa (exceto processos conclusos); clicar num número abre a Busca por Processos Paralisados já pesquisada.",
+					js: ["src/paralisados90.js"],
+					sistemas: ["projudi"]
+				},
+				{
 					id: "decursoSequencial",
 					nome: "Filtro por Sequencial no Decurso de Prazo",
 					descricao: "Campo \"Sequencial\" na Análise de Decurso de Prazo.",

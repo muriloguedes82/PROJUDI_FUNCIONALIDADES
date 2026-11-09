@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 12 |
-| **Versão da extensão** | 12 |
+| **Versão do manual** | 13 |
+| **Versão da extensão** | 13 |
 | **Data desta versão** | 09/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -98,6 +98,7 @@
    - 9.12 [Localizador na lista de juntadas e de conclusões (só no SEEU)](#cap-9-12)
    - 9.13 [Localizador na lista de juntadas e de conclusões (Projudi)](#cap-9-13)
    - 9.14 [Listas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN e Juiz das Garantias)](#cap-9-14)
+   - 9.15 [Processos Paralisados (+90 dias) na tela Início](#cap-9-15)
 10. [Privacidade e convivência com outras extensões](#cap-10)
     - 10.1 [O que fica guardado no seu navegador](#cap-10-1)
     - 10.2 [Convivência com o AzFlow](#cap-10-2)
@@ -482,7 +483,7 @@ ligar tudo.
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Prioridades (Projudi) · Agendar Audiência (preferências) (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Bloco de anotações | [4](#cap-4) |
-| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (SEEU) · Localizador na lista (Projudi) · Listas em uma única página (Projudi) | [6](#cap-6), [9](#cap-9) |
+| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (SEEU) · Localizador na lista (Projudi) · Listas em uma única página (Projudi) · Processos Paralisados (+90 dias) na tela Início (Projudi) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
 Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
@@ -3150,6 +3151,49 @@ página. Não há botão: a extensão faz isso sozinha.
 
 ---
 
+<a id="cap-9-15"></a>
+### 9.15 Processos Paralisados (+90 dias) na tela Início
+
+*Só no Projudi.*
+
+**Para que serve:** saber, logo ao entrar no Projudi, quantos processos
+estão parados na Secretaria **há mais de 90 dias**, sem precisar abrir a
+**Busca por Processos Paralisados**, trocar o número de dias e pesquisar.
+
+**Onde fica:** na tela **Início** do Projudi, numa linha nova, **Processos
+Paralisados (+90 dias):**, logo abaixo da linha do próprio Projudi
+**Processos Paralisados (+30 dias):**.
+
+**Passo a passo:**
+
+1. Abra a tela **Início**. Na linha **Processos Paralisados (+90 dias):**
+   aparecem **Secretaria: …**, **Em Remessa: …** e **Em Remessa (exceto
+   processos conclusos): …** enquanto a extensão faz a contagem.
+2. Em instantes, no lugar das reticências, aparecem os totais, um de cada
+   vez, em vermelho e sublinhados, como os números da linha de cima. Cada
+   um é o mesmo número que você veria clicando no total correspondente da
+   linha **(+30 dias)**, trocando **Mínimo de dias paralisado** para **91**
+   e clicando em **Pesquisar** (o "N registro(s) encontrado(s)" da lista).
+3. Clique num número para abrir a **Busca por Processos Paralisados** já
+   pesquisada com **91** dias, com a lista desses processos (na
+   Secretaria, em remessa ou em remessa exceto conclusos, conforme o
+   número clicado). Com **Ctrl** apertado, ela abre em outra aba.
+
+**Bom saber:**
+
+- Os totais não usam filtro de prioridade, classe ou localizador. O
+  total de **Razões Externas** da linha de cima não é repetido na linha de
+  +90 dias.
+- Para não repetir as pesquisas a cada volta à tela Início, os totais ficam
+  guardados por **5 minutos** naquela aba. Depois disso (ou numa aba nova),
+  a extensão conta de novo.
+- Se o Projudi não responder, aparece **não disponível** no lugar do
+  número que não pôde ser contado; basta voltar à tela Início mais tarde.
+- Para ligar ou desligar, use **Processos Paralisados (+90 dias) na tela
+  Início** no Menu da extensão ([2.6](#cap-2-6)).
+
+---
+
 <a id="cap-10"></a>
 ## 10. Privacidade e convivência com outras extensões
 
@@ -3250,6 +3294,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 13 | 09/11/2026 | Nova seção 9.15 **Processos Paralisados (+90 dias) na tela Início** (só no Projudi): abaixo de "Processos Paralisados (+30 dias)", a tela Início mostra os totais de processos paralisados há mais de 90 dias na Secretaria, Em Remessa e Em Remessa (exceto processos conclusos); clicar num número abre a Busca por Processos Paralisados já pesquisada com 91 dias. Sumário e tabela da 2.6 atualizados. Novo vídeo V71 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 12 | 09/11/2026 | Localizador na lista do Projudi (9.13): os localizadores passam a aparecer numa **coluna nova, Localizadores**, a última da tabela, em vez de abaixo do número do processo. Ajustados "Onde fica", o passo 1, "Remover um localizador direto na lista" e o Bom saber (linhas das listas em uma única página). |
 | 11 | 06/11/2026 | Corrigido (seção 9.14): nas listas de intimação reunidas (**Intimação** — decurso de prazo, **Expedir Intimações** e **Auxiliares da Justiça**), o **+** mostrava "Não foi possível trazer os arquivos: o registro não está mais na página 1 da lista". Agora, nessas listas, a extensão pede os arquivos direto ao Projudi, pela movimentação da linha, e eles aparecem quase na hora. Linha de **11. Solução de problemas** atualizada. Sem vídeo novo (a tela não mudou). |
 | 10 | 06/11/2026 | Corrigido (seção 9.14): nas listas reunidas em uma única página, o **+** abria vazio, sem os arquivos — tanto nas linhas da primeira página quanto nas trazidas das outras (o Projudi passava a "estar" na última página buscada). Agora a extensão atende o **+**: mostra **Carregando os arquivos…** e traz os arquivos da página de onde a linha veio; o **Expandir Mov** também funciona. Nova linha em **11. Solução de problemas**. Novo vídeo V70 gravado e guardado em `videos-do-manual/` (não citado no manual). |
