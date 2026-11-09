@@ -2221,8 +2221,8 @@ CENAS.V71 = {
 
 // ------------------------------------------------------------------ V72
 CENAS.V72 = {
-	arquivo: "V72-feitos-sem-infracao-penal-na-analise-de-juntadas.mp4",
-	titulo: "Feitos sem infração penal na Análise de Juntadas",
+	arquivo: "V72-totais-da-mesa-do-escrivao-na-analise-de-juntadas.mp4",
+	titulo: "Totais da Mesa do Escrivão Criminal na Análise de Juntadas",
 	secao: "9.16",
 	async run() {
 		browser(["*Projudi - Mesa do Analista"], "https://projudi.tjpr.jus.br/projudi/usuario/mesaAnalista.do?actionType=listaAnaliseJuntadas");
@@ -2238,13 +2238,15 @@ CENAS.V72 = {
 			linha("Autuação da Guia de Execução pendente (Exportação Criminal):", num(33)) +
 			linha("Prestações Pecuniárias em atraso:", num(8)) +
 			"</table></fieldset></div>");
-		await S.titleCard("VÍDEO V72", "Feitos sem infração penal", "O total da Mesa do Escrivão Criminal aparece na Análise de Juntadas.");
-		await S.cap("Na <b>Mesa do Escrivão Criminal</b>, o quadro <b>Feitos sem infração penal</b> não mostra o total: é preciso clicar nele.", { ms: 4600 });
-		$("#realizar").insertAdjacentHTML("beforeend", linha("Feitos sem infração penal:", '<span id="vsi">…</span>', "lsi"));
+		await S.titleCard("VÍDEO V72", "Totais da Mesa do Escrivão Criminal", "Feitos sem infração penal e Reavaliação da prisão provisória aparecem na Análise de Juntadas.");
+		await S.cap("Na <b>Mesa do Escrivão Criminal</b>, os quadros <b>Feitos sem infração penal</b> e <b>Reavaliação da prisão provisória</b> não mostram o total: é preciso clicar neles.", { ms: 5000 });
+		$("#realizar").insertAdjacentHTML("beforeend", linha("Feitos sem infração penal:", '<span id="vsi">…</span>', "lsi") + linha("Reavaliação da prisão provisória a cada 90 dias (Art. 316, CPP):", '<span id="vrp">…</span>', "lrp"));
 		S.hl("#lsi", 3);
-		await S.cap("Na aba <b>Análise de Juntadas</b>, a extensão acrescenta a linha <b>Feitos sem infração penal</b> no fim do quadro <b>Para Realizar</b>.", { ms: 4600 });
+		await S.cap("Na aba <b>Análise de Juntadas</b>, a extensão acrescenta as duas linhas no fim do quadro <b>Para Realizar</b>.", { ms: 4600 });
 		$("#vsi").outerHTML = num(32, "vsi");
-		await S.cap("Em instantes aparece o total, o mesmo da lista aberta pelo quadro.", { ms: 3800 });
+		$("#vrp").outerHTML = num(26, "vrp");
+		S.hl("#lrp", 3);
+		await S.cap("Em instantes aparecem os totais, os mesmos das listas abertas pelos quadros.", { ms: 4000 });
 		S.hlOff();
 		await S.click("#vsi");
 		browser(["*Projudi - Feitos sem infração penal"], "https://projudi.tjpr.jus.br/projudi/usuario/mesaAnalistaEscrivao.do?actionType=pesquisarProcessosSemInfracaoPenal");

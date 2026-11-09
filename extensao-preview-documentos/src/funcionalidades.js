@@ -284,10 +284,10 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					sistemas: ["projudi"]
 				},
 				{
-					id: "semInfracaoPenal",
-					nome: "Feitos sem infração penal na Análise de Juntadas",
-					descricao: "Na aba Análise de Juntadas da Mesa, no quadro \"Para Realizar\", mostra o total de \"Feitos sem infração penal\" (o quadro da aba Mesa do Escrivão Criminal, que não mostra número); clicar no número abre a lista desses feitos. Só nas varas que têm a aba Mesa do Escrivão Criminal.",
-					js: ["src/semInfracaoPenal.js"],
+					id: "totaisMesaEscrivao",
+					nome: "Totais da Mesa do Escrivão Criminal na Análise de Juntadas",
+					descricao: "Na aba Análise de Juntadas da Mesa, no quadro \"Para Realizar\", mostra o total de \"Feitos sem infração penal\" e de \"Reavaliação da prisão provisória a cada 90 dias (Art. 316, CPP)\" (quadros da aba Mesa do Escrivão Criminal, que não mostram número); clicar num número abre a lista. Só nas varas que têm a aba Mesa do Escrivão Criminal.",
+					js: ["src/totaisMesaEscrivao.js"],
 					sistemas: ["projudi"]
 				},
 				{
