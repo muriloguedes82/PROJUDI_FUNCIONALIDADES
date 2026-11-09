@@ -212,7 +212,7 @@ a.link[href*="/arquivo.do"]:hover,
 
 /* Caixinhas criadas pela extensão (arquivos, movimentação base, ⭐ Em
    lote) em laranja, com contorno também quando desmarcadas, para não se
-   confundirem com as caixinhas nativas do Projudi/SEEU (azuis no Chrome).
+   confundirem com as caixinhas nativas do Projudi (azuis no Chrome).
    A mesma cor está em movimentoBase.css e listaTarefas.css. */
 input.pdp-wa-checkbox {
 	accent-color: #d9480f;

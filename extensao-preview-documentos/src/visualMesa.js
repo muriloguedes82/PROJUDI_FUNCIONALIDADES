@@ -22,7 +22,7 @@
 // do Menu). Padrão: oliva. O vermelho dos urgentes não muda com a cor.
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 	if (window.__pdpVisualMesa) return;
 	window.__pdpVisualMesa = true;
 	if (!/^\/projudi\//.test(location.pathname)) return;

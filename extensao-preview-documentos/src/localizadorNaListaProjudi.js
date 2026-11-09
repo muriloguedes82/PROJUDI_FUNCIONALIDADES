@@ -1,13 +1,12 @@
 // Projudi - Localizador na lista (Análise de Juntadas e Retorno de Conclusão)
 //
-// Versão do Projudi do "Localizador na lista" do SEEU (localizadorNaLista.js):
-// numa coluna nova, "Localizadores", acrescentada depois da última coluna da
-// lista (no SEEU fica abaixo do número), mostra "📍" com o que
+// Numa coluna nova, "Localizadores", acrescentada depois da última coluna da
+// lista, mostra "📍" com o que
 // consta na linha "Localizadores:" da aba Informações Gerais do processo e
 // um "✏️" que abre um painel para trocar ou incluir um localizador,
 // escolhido entre os localizadores ativos da tela "Histórico de
 // Localizadores". Clicar num localizador da linha tira-o do processo
-// (depois de confirmar), como no SEEU.
+// (depois de confirmar).
 //
 // Onde fica cada coisa no Projudi (estrutura confirmada por .mhtml salvos):
 // - Informações Gerais (tela do processo): <td class="label"><label>
@@ -36,12 +35,10 @@
 // click") para rodar no mundo da página e aceitar a confirmação do Projudi,
 // se houver.
 //
-// Exclusivo do Projudi: o catálogo (src/funcionalidades.js, `sistemas`)
-// não injeta este arquivo no SEEU, e o script ainda confere o endereço.
+// O script confere o endereço.
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
-	if (/(^|\.)seeu(treino)?\.pje\.jus\.br$/i.test(location.hostname)) return; // só Projudi
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 	if (!/^\/projudi\/processo\/(analisarJuntada|conclusao)\.do$/.test(location.pathname)) return;
 	try {
 		const fe = window.frameElement;
@@ -59,7 +56,7 @@
 	const VALIDADE_MS = 10 * 60 * 1000;
 	const TIMEOUT_CARGA_MS = 25000;
 	const PATH_HISTORICO = "/projudi/processo/localizadorProcesso.do";
-	const SEM_LOCALIZADOR = "sem localizador"; // terminologia do SEEU
+	const SEM_LOCALIZADOR = "sem localizador";
 
 	const esperar = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
 	const normalizar = function (t) {

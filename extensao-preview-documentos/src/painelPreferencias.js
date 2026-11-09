@@ -3,8 +3,7 @@
 // preferências - ⭐ da linha e ⭐ Em lote (preferenciasNaLinha.js), ⭐ Minhas
 // Preferências e painéis das ações rápidas (quickActions.js), 📎 Juntar
 // Documento (juntarDocumento.js), ⭐ de Alterar Classe/Assuntos
-// (alterarClasseAssuntos.js), Analisar Decurso (decursoNaLinha.js) e
-// 📍 Localizador (localizadorSeeu.js).
+// (alterarClasseAssuntos.js) e Analisar Decurso (decursoNaLinha.js).
 //
 // Com muitas preferências esses painéis ficavam compridos e o que vinha no
 // fim - em especial o "+ Nova preferência" - saía da tela ou exigia rolar
@@ -20,7 +19,7 @@
 //     até caber inteiro - a altura máxima é a da tela e ele rola por dentro.
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 	if (window.__pdpPainelPrefs) return;
 
 	const MARGEM = 8;

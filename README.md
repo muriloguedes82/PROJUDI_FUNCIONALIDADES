@@ -2,11 +2,15 @@
 
 > 📘 **[Manual do usuário da extensão](extensao-preview-documentos/manual/MANUAL.md)** — todas as funções,
 > passo a passo.
+>
+> ⚖️ Desde a versão 18 a extensão funciona **só no Projudi**. As funções do
+> SEEU estão guardadas na branch `backup-seeu-versao-17` — veja
+> [SEEU-RECUPERAR.md](SEEU-RECUPERAR.md).
 
 ## Tela de Apresentação de Documentos, Envio por WhatsApp e por E-mail
 
-Problemas resolvidos na tela **Movimentações** do Projudi ou do SEEU (tela
-padrão ao abrir um processo):
+Problemas resolvidos na tela **Movimentações** do Projudi (tela padrão ao
+abrir um processo):
 
 - Para ler a íntegra de um documento é preciso clicar no link e abri-lo em
   outra aba.

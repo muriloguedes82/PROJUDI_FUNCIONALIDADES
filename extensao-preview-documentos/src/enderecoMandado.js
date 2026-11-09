@@ -54,7 +54,7 @@
 // id="codCentralMandadosRegionalizada">.
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 	if (!location.pathname.startsWith("/projudi/")) return;
 
 	// Não roda em iframes ocultos (carregamentos em segundo plano e o

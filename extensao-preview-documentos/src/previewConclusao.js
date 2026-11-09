@@ -1,7 +1,6 @@
-// Projudi/SEEU - Documento do Juiz ao passar o mouse no Retorno de Conclusão
+// Projudi - Documento do Juiz ao passar o mouse no Retorno de Conclusão
 //
-// Na lista "Retorno de Conclusão" (processo/conclusao.do, no Projudi e no
-// SEEU), cada linha tem o link "Analisar". Para ver o despacho/decisão/
+// Na lista "Retorno de Conclusão" (processo/conclusao.do), cada linha tem o link "Analisar". Para ver o despacho/decisão/
 // sentença que o Juiz fez, o usuário precisaria clicar nele (tela "Dados da
 // Conclusão"), depois no botão "Analisar" dessa tela (tela "Movimentar
 // Processo") e só então abrir o arquivo da linha "Documentos:". Ao pousar o
@@ -21,10 +20,10 @@
 // "Analisar" continua funcionando como sempre.
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 	if (window.__pdpPreviewConclusao) return;
 
-	const TELA = /^\/(projudi|seeu)\/processo\/conclusao\.do$/;
+	const TELA = /^\/projudi\/processo\/conclusao\.do$/;
 	if (!TELA.test(location.pathname)) return;
 	try {
 		const fe = window.frameElement;

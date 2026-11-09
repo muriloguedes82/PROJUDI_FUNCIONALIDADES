@@ -1,7 +1,7 @@
-// Restringe a extensão às telas do Projudi e do SEEU e a bloqueia nos
+// Restringe a extensão às telas do Projudi e a bloqueia nos
 // perfis de advogado(a) e de assessor(a) de advogado.
 //
-// Os scripts do Projudi/SEEU (registrados em src/termosUso.js após o aceite
+// Os scripts do Projudi (registrados em src/termosUso.js após o aceite
 // dos Termos de Uso) usam "*://*.tjpr.jus.br/*"
 // (o Chrome exige path "*" com `match_origin_as_fallback`), o que também
 // injeta os scripts em outras páginas do domínio, como o portal
@@ -9,8 +9,8 @@
 // script roda antes de todos os demais (em ambos os blocos) e marca em
 // `window.__pdpHostPermitido` se o frame pertence a um host cujo nome
 // começa com "projudi" (projudi.tjpr.jus.br, projudi2.tjpr.jus.br...) ou
-// "tst" (tst.tjpr.jus.br, ambiente de testes) ou
-// a seeu.pje.jus.br (ou ao SEEU de treino, seeutreino.pje.jus.br). Cada script da extensão encerra de imediato quando a
+// "tst" (tst.tjpr.jus.br, ambiente de testes). Desde a versão 18 o SEEU não
+// é mais atendido. Cada script da extensão encerra de imediato quando a
 // marca é falsa.
 //
 // Usa `location.origin` (e não `location.hostname`) porque os iframes
@@ -45,7 +45,7 @@
 // bloqueio passa a valer nas próximas telas.
 (function () {
 	"use strict";
-	const HOST_PERMITIDO = /^((projudi|tst)[^.]*\.tjpr\.jus\.br|seeu(treino)?\.pje\.jus\.br)$/i;
+	const HOST_PERMITIDO = /^(projudi|tst)[^.]*\.tjpr\.jus\.br$/i;
 	const CHAVE_BLOQUEIO = "pdpPerfilAdvocaciaBloqueado";
 	const ATTR_BLOQUEIO = "data-pdp-perfil-bloqueado";
 

@@ -14,7 +14,7 @@ const versao = JSON.parse(fs.readFileSync(path.join(aqui, "..", "manifest.json")
 // O conversor exige 4 espaços para listas aninhadas; o manual usa 2 ou 3.
 const md = fs.readFileSync(path.join(aqui, "MANUAL.md"), "utf8").replace(/^ {2,3}(?=[-*] )/gm, "    ");
 const corpo = execFileSync("python3", ["-c", "import sys,markdown;print(markdown.markdown(sys.stdin.read(),extensions=['tables','fenced_code']))"], { input: md, maxBuffer: 1 << 28 }).toString();
-const html = `<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>Manual — Extensão Projudi/SEEU</title><style>
+const html = `<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>Manual — Assistente Projudi</title><style>
 @page{size:A4;margin:18mm 16mm}
 body{font:11pt/1.5 "Liberation Sans",Arial,sans-serif;color:#222}
 h1{color:#0d3560;font-size:24pt;margin:0 0 6pt}h2{color:#0d3560;font-size:16pt;border-bottom:2px solid #174a7c;padding-bottom:3pt;margin-top:26pt;break-after:avoid}
@@ -32,7 +32,7 @@ const page = await browser.newPage();
 await page.goto(pathToFileURL(tmp).href);
 await page.pdf({ path: path.join(aqui, "MANUAL.pdf"), format: "A4", printBackground: true,
 	displayHeaderFooter: true, headerTemplate: "<span></span>",
-	footerTemplate: `<div style="font-size:8px;width:100%;text-align:center;color:#666">Manual da extensão Projudi/SEEU — versão ${versao} — página <span class="pageNumber"></span> de <span class="totalPages"></span></div>` });
+	footerTemplate: `<div style="font-size:8px;width:100%;text-align:center;color:#666">Manual do Assistente Projudi — versão ${versao} — página <span class="pageNumber"></span> de <span class="totalPages"></span></div>` });
 await browser.close();
 if (!process.env.MANTER_HTML) fs.unlinkSync(tmp);
 console.log("MANUAL.pdf gerado");

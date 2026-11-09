@@ -37,7 +37,7 @@
 //    de páginas.
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 
 	// Nunca roda dentro de um iframe oculto usado por OUTRA parte desta
 	// extensão para carregar páginas em segundo plano (ex.:

@@ -1,7 +1,6 @@
 /* Projudi - localizadores na coluna do número do processo, nas listas de
    Análise de Juntadas e Retorno de Conclusão (ver localizadorNaListaProjudi.js).
-   Mesmo visual do SEEU (localizadorNaLista.css): o arquivo é separado porque
-   cada funcionalidade do catálogo é exclusiva de um sistema. */
+   */
 div.pdp-locl {
 	display: flex;
 	flex-wrap: wrap;
@@ -179,8 +178,7 @@ button.pdp-locl-diag {
 	padding: 3px 8px;
 }
 
-/* Localizador da linha: clicar nele tira-o do processo, como no
-   cabeçalho do processo do SEEU ("Remover do processo"). */
+/* Localizador da linha: clicar nele tira-o do processo. */
 .pdp-locl-removivel {
 	display: inline-flex;
 	align-items: center;

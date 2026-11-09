@@ -56,27 +56,14 @@
 // etapa; assim, se um passo automático falhar, o usuário faz esse passo à
 // mão e a automação continua do seguinte.
 //
-// SEEU: só o fluxo do "Analisar Decurso" (decursoNaLinha.js) - a tela de
-// análise (certificar.do) e a janela "Inserir Arquivo" são as mesmas, com
-// duas diferenças na janela: o Tipo do Arquivo e o Modelo são campos de
-// texto com autocompletar (#descricaoTipoArquivo e #descricaoModelo, com as
-// sugestões em #ajaxAuto_...), e não listas; e o "Assinar" é o botão
-// #celularButton (código de confirmação, no lugar do assinador). A
-// preferência grava o que foi digitado em cada campo e o texto da sugestão
-// escolhida; ao aplicar, digita de novo e clica na mesma sugestão. As
-// preferências do SEEU ficam marcadas com `sistema: "seeu"` e só aparecem
-// lá (as sem marca são do Projudi). O botão "📎 Juntar Documento" da tela
-// do processo continua só no Projudi (depende do "📋 Processo copiado").
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 
-	if (window.__pdpJuntarDocumento || !/^\/(projudi|seeu)\//.test(location.pathname)) return;
+	if (window.__pdpJuntarDocumento || !/^\/projudi\//.test(location.pathname)) return;
 	window.__pdpJuntarDocumento = true;
-	const NO_SEEU = location.pathname.startsWith("/seeu/");
-	const SISTEMA = NO_SEEU ? "SEEU" : "Projudi";
-	// Assinatura: assinador (Projudi) ou código de confirmação (SEEU).
-	const ASSINE = NO_SEEU ? "Digite o código de confirmação do SEEU para assinar" : "Assine no assinador";
+	const SISTEMA = "Projudi";
+	const ASSINE = "Assine no assinador";
 
 	const PREFS_KEY = "pdpJuntarDocumentoPrefs"; // [{id, name, tipoDocumento, tipoArquivo, descricao, modelo, conteudo, createdAt, updatedAt}]
 	const JOB_KEY = "pdpJuntarDocumentoJob";
@@ -483,7 +470,8 @@
 		// Preferências próprias do "Analisar Decurso".
 		listarDecurso: function () {
 			return loadPrefs(DECURSO_PREFS_KEY).then(function (prefs) {
-				return prefs.filter(function (p) { return (p.sistema || "projudi") === (NO_SEEU ? "seeu" : "projudi"); });
+				// As gravadas no SEEU (`sistema: "seeu"`, antes da versão 18) não aparecem.
+				return prefs.filter(function (p) { return (p.sistema || "projudi") === "projudi"; });
 			});
 		},
 		removerDecurso: function (id) {
@@ -720,10 +708,6 @@
 			totalBlocos: typeof rec.totalBlocos === "number" ? rec.totalBlocos : null,
 			edicao: rec.edicao || null,
 		};
-		if (NO_SEEU) {
-			pref.sistema = "seeu";
-			pref.filtroModelos = rec.filtroModelos || null;
-		}
 		persistPref(pref, DECURSO_PREFS_KEY).catch(function (err) {
 			alert("Não foi possível salvar a preferência: " + err.message);
 		});
@@ -1468,110 +1452,7 @@
 
 	function isUploadScreen() {
 		const form = document.getElementById("fileUploadForm");
-		return !!form && !!(document.getElementById("codDescricao") || isUploadSeeu()) && /upload\.do/i.test(form.getAttribute("action") || "");
-	}
-
-	// SEEU: Tipo do Arquivo e Modelo são campos de texto com autocompletar.
-	function isUploadSeeu() {
-		return NO_SEEU && !!document.getElementById("descricaoTipoArquivo");
-	}
-
-	// O que o usuário digitou no campo (antes de escolher a sugestão, que
-	// troca o texto sem evento "input").
-	function vigiarDigitado(campo) {
-		if (!campo || campo.__pdpJdDigitado) return;
-		campo.__pdpJdDigitado = true;
-		campo.addEventListener("input", function (ev) {
-			if (ev.isTrusted) campo.__pdpDigitado = campo.value;
-		});
-	}
-
-	function lerUploadSeeu() {
-		const tipo = document.getElementById("descricaoTipoArquivo");
-		const modelo = document.getElementById("descricaoModelo");
-		const descricao = document.getElementById("descricao");
-		const filtro = document.querySelector('input[name="filtroModelos"]:checked');
-		function campo(el) {
-			const texto = el && !el.disabled ? cleanText(el.value) : "";
-			if (!texto) return null;
-			const digitado = cleanText(el.__pdpDigitado || "");
-			return { text: texto, digitado: digitado && digitado !== texto ? digitado : null };
-		}
-		return {
-			tipoArquivo: campo(tipo),
-			descricao: descricao && !descricao.readOnly && !descricao.disabled ? cleanText(descricao.value) : "",
-			modelo: campo(modelo),
-			filtroModelos: filtro ? filtro.value : null,
-		};
-	}
-
-	// Preenche um campo com autocompletar do SEEU como o usuário fez: digita
-	// (o que foi digitado na gravação ou, sem isso, o texto escolhido) e
-	// clica na sugestão de mesmo texto. Sem clicar numa sugestão o SEEU não
-	// aceita o campo, então só devolve true depois do clique.
-	async function preencherAutocompletar(input, box, saved) {
-		if (!input || !saved || !saved.text) return false;
-		const alvo = norm(saved.text);
-		const tentativas = [saved.digitado, saved.text].filter(function (t, i, a) { return !!t && a.indexOf(t) === i; });
-		for (let i = 0; i < tentativas.length; i++) {
-			input.focus();
-			input.value = tentativas[i];
-			input.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true }));
-			input.dispatchEvent(new KeyboardEvent("keypress", { bubbles: true }));
-			input.dispatchEvent(new KeyboardEvent("keyup", { bubbles: true }));
-			fire(input, "input");
-			if (!box) continue;
-			const li = await waitFor(function () {
-				const items = Array.prototype.slice.call(box.querySelectorAll("li"));
-				if (!items.length) return null;
-				return items.filter(function (item) { return norm(item.textContent) === alvo; })[0] ||
-					(items.length === 1 && norm(items[0].textContent).indexOf(alvo) === 0 ? items[0] : null);
-			}, 5000);
-			if (!li) continue;
-			li.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-			li.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
-			li.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-			await sleep(400);
-			if (norm(input.value) === alvo || norm(input.value).indexOf(alvo) === 0) return true;
-		}
-		return false;
-	}
-
-	async function preencherUploadSeeu(job) {
-		const pref = job.pref;
-		const tipo = document.getElementById("descricaoTipoArquivo");
-		showStatus(modeLabel(job) + ': escolhendo o Tipo do Arquivo "' + pref.tipoArquivo.text + '"…', job.mode === "edit" ? "rec" : null);
-		if (!(await preencherAutocompletar(tipo, document.getElementById("ajaxAuto_descricaoTipoArquivo"), pref.tipoArquivo))) {
-			showStatus('Não consegui escolher o Tipo do Arquivo "' + pref.tipoArquivo.text + '". Escolha-o manualmente (digite e clique na sugestão) e clique em "Digitar Texto" — a extensão continua daí.', "warn");
-			return false;
-		}
-		const descricao = document.getElementById("descricao");
-		if (pref.descricao && descricao) {
-			await waitFor(function () {
-				return !descricao.readOnly && !descricao.disabled;
-			}, 2000);
-			if (!descricao.readOnly && !descricao.disabled) {
-				descricao.value = pref.descricao;
-				fire(descricao, "input");
-				fire(descricao, "change");
-			}
-		}
-		if (pref.filtroModelos) {
-			const radio = document.querySelector('input[name="filtroModelos"][value="' + pref.filtroModelos + '"]');
-			if (radio && !radio.checked) {
-				radio.click();
-				await sleep(400);
-			}
-		}
-		if (pref.modelo && pref.modelo.text) {
-			showStatus(modeLabel(job) + ': escolhendo o Modelo "' + pref.modelo.text + '"…', job.mode === "edit" ? "rec" : null);
-			if (!(await preencherAutocompletar(document.getElementById("descricaoModelo"), document.getElementById("ajaxAuto_descricaoModelo"), pref.modelo))) {
-				showStatus('Não consegui escolher o Modelo "' + pref.modelo.text + '". Escolha-o manualmente (digite e clique na sugestão) e clique em "Digitar Texto" — a extensão continua daí.', "warn");
-				return false;
-			}
-		}
-		await sleep(300);
-		return true;
+		return !!form && !!document.getElementById("codDescricao") && /upload\.do/i.test(form.getAttribute("action") || "");
 	}
 
 	function selectedOption(select) {
@@ -1604,7 +1485,6 @@
 	}
 
 	function lerUpload() {
-		if (isUploadSeeu()) return lerUploadSeeu();
 		const tipo = selectedOption(document.getElementById("codDescricao"));
 		const descricao = document.getElementById("descricao");
 		const modelo = document.getElementById("codModelo");
@@ -1639,18 +1519,11 @@
 	// Depois do "Concluir" da pré-visualização, o Projudi volta ao
 	// "Inserir Arquivo" com o arquivo "Assinado: Não" e o botão "Assinar
 	// Arquivos" (no lugar do "Confirmar Inclusão"), que chama o assinador.
-	// SEEU: botão #celularButton ("Assinar", com o menu ▾ do certificado),
-	// que pede o código de confirmação.
 	function findAssinarButton() {
-		return findButton(document, "Assinar Arquivos") || findButton(document, "Assinar Arquivo") || findButton(document, "Assinar") ||
-			(NO_SEEU ? document.getElementById("celularButton") : null);
+		return findButton(document, "Assinar Arquivos") || findButton(document, "Assinar Arquivo") || findButton(document, "Assinar");
 	}
 
 	function watchUploadScreen() {
-		if (isUploadSeeu()) {
-			vigiarDigitado(document.getElementById("descricaoTipoArquivo"));
-			vigiarDigitado(document.getElementById("descricaoModelo"));
-		}
 		const digitar = findButton(document, "Digitar Texto");
 		if (digitar && !digitar.__pdpJdWatch) {
 			digitar.__pdpJdWatch = true;
@@ -1750,7 +1623,7 @@
 				if (buttons.assinar) buttons.assinar.classList.add("pdp-jd-highlight");
 				showStatusOnce(
 					"rec-assinar",
-					modeLabel(job) + ': clique em "' + (NO_SEEU ? "Assinar" : "Assinar Arquivos") + '" — a preferência é ' + (job.mode === "edit" ? "atualizada" : "salva") + " nesse momento e " + (NO_SEEU ? "o SEEU pede o código de confirmação." : "o assinador é chamado."),
+					modeLabel(job) + ': clique em "Assinar Arquivos" — a preferência é ' + (job.mode === "edit" ? "atualizada" : "salva") + " nesse momento e o assinador é chamado.",
 					"rec"
 				);
 				return;
@@ -1766,7 +1639,7 @@
 				return;
 			}
 			assinarClicked = true;
-			showStatus(modeLabel(job) + (NO_SEEU ? ': clicando em "Assinar" (o SEEU pede o código de confirmação)…' : ': clicando em "Assinar Arquivos" (o assinador será chamado)…'), "ok");
+			showStatus(modeLabel(job) + ': clicando em "Assinar Arquivos" (o assinador será chamado)…', "ok");
 			buttons.assinar.click();
 			return;
 		}
@@ -1849,7 +1722,6 @@
 	}
 
 	async function preencherUpload(job) {
-		if (isUploadSeeu()) return preencherUploadSeeu(job);
 		const pref = job.pref;
 		const tipo = document.getElementById("codDescricao");
 		const modelo = document.getElementById("codModelo");

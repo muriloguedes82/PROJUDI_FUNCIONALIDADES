@@ -28,7 +28,7 @@
 // guardado por alguns minutos (sessionStorage da aba).
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 	if (window.__pdpParalisados90) return;
 	window.__pdpParalisados90 = true;
 

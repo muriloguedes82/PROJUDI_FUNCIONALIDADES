@@ -1,4 +1,4 @@
-// Projudi/SEEU - Ordem dos botões da barra de Ações Rápidas (#pdp-qa-row),
+// Projudi - Ordem dos botões da barra de Ações Rápidas (#pdp-qa-row),
 // escolhida pelo usuário arrastando os botões, como nos cards dos sistemas
 // do CNJ (sistemasCnj.js).
 //
@@ -6,14 +6,14 @@
 // display: contents, ver quickActions.css), então a ordem é aplicada pela
 // propriedade CSS `order` de cada botão - nenhum botão sai do lugar no
 // HTML. Isso importa porque outros scripts (habilitarAdvogado.js,
-// editarPartes.js, juntarDocumento.js, localizadorSeeu.js, oraculo.js)
+// editarPartes.js, juntarDocumento.js, oraculo.js)
 // põem seus botões ao lado de outros e os recolocam se acharem que
 // saíram do lugar.
 //
 // Cada botão é identificado por uma chave estável (ver chaveDe): o id, o
 // grupo de ação (data-group-id) ou o painel (data-panel-id). A ordem
 // salva é a lista dessas chaves, em chrome.storage.local
-// ("pdpAcoesRapidasOrdem" no Projudi, "pdpAcoesRapidasOrdemSeeu" no SEEU) -
+// ("pdpAcoesRapidasOrdem") -
 // por começar com "pdp", entra no Exportar/Importar do Menu. Botão que
 // ainda não está na lista salva (função ligada depois, botão novo de uma
 // versão nova) entra logo depois do botão que vem antes dele no HTML.
@@ -36,8 +36,7 @@
 	if (location.pathname === "/projudi/processo/criminal/antecedentesCriminais.do") return;
 	window.__pdpOrdemBotoesAcoes = true;
 
-	const NO_SEEU = /(^|\.)seeu(treino)?\.pje\.jus\.br$/i.test(location.hostname);
-	const ORDEM_KEY = NO_SEEU ? "pdpAcoesRapidasOrdemSeeu" : "pdpAcoesRapidasOrdem";
+	const ORDEM_KEY = "pdpAcoesRapidasOrdem";
 	const LIMIAR_ARRASTO = 5; // px de movimento antes de virar arrasto
 	const QUEBRA = "quebra";
 	const ANTES_DA_QUEBRA = "#pdp-qa-options"; // posição padrão: depois do "▾ Ações"
