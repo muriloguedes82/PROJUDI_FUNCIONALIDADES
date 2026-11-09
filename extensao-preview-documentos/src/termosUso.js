@@ -18,8 +18,9 @@
 
 importScripts("termosConfig.js", "funcionalidades.js");
 
-const PDP_TERMOS_MATCHES = ["*://*.tjpr.jus.br/*", "*://seeu.pje.jus.br/*", "*://seeutreino.pje.jus.br/*"];
-const PDP_TERMOS_HOST_TRIBUNAL = /^https?:\/\/((projudi|tst)[^./]*\.tjpr\.jus\.br|seeu(treino)?\.pje\.jus\.br)\//i;
+// Edição Chrome Web Store: somente o Projudi (sem SEEU).
+const PDP_TERMOS_MATCHES = ["*://*.tjpr.jus.br/*"];
+const PDP_TERMOS_HOST_TRIBUNAL = /^https?:\/\/(projudi|tst)[^./]*\.tjpr\.jus\.br\//i;
 
 const PDP_SCRIPTS_TRIBUNAL = [
 	{
@@ -65,7 +66,6 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/listasPaginaUnica.js",
 			"src/suspensaoAtiva.js",
 			"src/monitoracaoAtiva.js",
-			"src/localizadorSeeu.js",
 			"src/oraculoDirect.js",
 			"src/oraculo.js",
 			"src/sistemasCnjLista.js",
@@ -87,7 +87,6 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/previewProcesso.js",
 			"src/decursoNaLinha.js",
 			"src/previewConclusao.js",
-			"src/localizadorNaLista.js",
 			"src/localizadorNaListaProjudi.js",
 			"src/funcionalidades.js",
 			"src/menuExtensao.js"
@@ -112,8 +111,6 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/previewProcesso.css",
 			"src/decursoNaLinha.css",
 			"src/previewConclusao.css",
-			"src/localizadorSeeu.css",
-			"src/localizadorNaLista.css",
 			"src/localizadorNaListaProjudi.css",
 			"src/visualMesa.css"
 		],
@@ -128,7 +125,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 // endereço e a sua lista de funcionalidades desativadas - ver
 // src/funcionalidades.js). Os ids antigos, de antes da separação, são
 // removidos a cada sincronização.
-const PDP_MATCHES_SISTEMA = { projudi: ["*://*.tjpr.jus.br/*"], seeu: ["*://seeu.pje.jus.br/*", "*://seeutreino.pje.jus.br/*"] };
+const PDP_MATCHES_SISTEMA = { projudi: ["*://*.tjpr.jus.br/*"] };
 const PDP_ID_PRINCIPAL_ANTIGO = "pdp-tribunal-principal";
 
 async function pdpTermosAceitos() {

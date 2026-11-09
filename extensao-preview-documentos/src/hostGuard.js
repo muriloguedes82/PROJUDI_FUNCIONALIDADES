@@ -45,7 +45,8 @@
 // bloqueio passa a valer nas próximas telas.
 (function () {
 	"use strict";
-	const HOST_PERMITIDO = /^((projudi|tst)[^.]*\.tjpr\.jus\.br|seeu(treino)?\.pje\.jus\.br)$/i;
+	// Edição Chrome Web Store: somente o Projudi (sem SEEU).
+	const HOST_PERMITIDO = /^(projudi|tst)[^.]*\.tjpr\.jus\.br$/i;
 	const CHAVE_BLOQUEIO = "pdpPerfilAdvocaciaBloqueado";
 	const ATTR_BLOQUEIO = "data-pdp-perfil-bloqueado";
 

@@ -788,7 +788,7 @@ function clickJuntadaWithConfirmation(token) {
 
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
   if (message?.source !== 'projudi-preview' || message.type !== 'juntada-dispense-marked') return false;
-  if (!sender.tab || !/^https?:\/\/([^/]+\.tjpr\.jus\.br\/projudi|seeu(treino)?\.pje\.jus\.br\/seeu)\//.test(sender.url || '') || !/^[a-f0-9-]{36}$/.test(message.token || '')) {
+  if (!sender.tab || !/^https?:\/\/[^/]+\.tjpr\.jus\.br\/projudi\//.test(sender.url || '') || !/^[a-f0-9-]{36}$/.test(message.token || '')) {
     reply({ ok: false, error: 'Origem da operação inválida.' }); return false;
   }
   chrome.scripting.executeScript({ target: { tabId: sender.tab.id, allFrames: true }, world: 'MAIN', func: clickJuntadaWithConfirmation, args: [message.token] })
@@ -832,7 +832,7 @@ function clickDecursoWithConfirmation(token) {
 
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
   if (message?.source !== 'projudi-preview' || message.type !== 'decurso-dispense-marked') return false;
-  if (!sender.tab || !/^https?:\/\/([^/]+\.tjpr\.jus\.br\/projudi|seeu(treino)?\.pje\.jus\.br\/seeu)\//.test(sender.url || '') || !/^[a-f0-9-]{36}$/.test(message.token || '')) {
+  if (!sender.tab || !/^https?:\/\/[^/]+\.tjpr\.jus\.br\/projudi\//.test(sender.url || '') || !/^[a-f0-9-]{36}$/.test(message.token || '')) {
     reply({ok:false, error:'Origem da operação inválida.'}); return false;
   }
   chrome.scripting.executeScript({target:{tabId:sender.tab.id, allFrames:true}, world:'MAIN', func:clickDecursoWithConfirmation, args:[message.token]})
@@ -1033,7 +1033,7 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   try {
     const origin = new URL(sender.url);
     const doProjudi = /(^|\.)tjpr\.jus\.br$/.test(origin.hostname) && origin.pathname.startsWith('/projudi/');
-    const doSeeu = /^seeu(treino)?\.pje\.jus\.br$/.test(origin.hostname) && origin.pathname.startsWith('/seeu/');
+    const doSeeu = false; // Edição Chrome Web Store: somente o Projudi.
     if (!sender.tab || origin.protocol !== 'https:' || !(doProjudi || doSeeu)) throw new Error('Origem inválida.');
     sistema = (self.PDP_SISTEMAS_CNJ || []).find(s => s.id === message.sistema);
     // No SEEU só os marcados com `seeu: true` (sistemasCnjLista.js).
@@ -1109,6 +1109,7 @@ const NOVA_VERSAO_MANIFEST = `https://raw.githubusercontent.com/${NOVA_VERSAO_RE
 const NOVA_VERSAO_ZIP = `https://github.com/${NOVA_VERSAO_REPO}/archive/refs/heads/${NOVA_VERSAO_BRANCH}.zip`;
 const NOVA_VERSAO_CHAVE = 'pdpNovaVersao';
 const ALARME_NOVA_VERSAO = 'pdpVerificarNovaVersao';
+const NOVA_VERSAO_DESLIGADA = true;
 
 // > 0 se a for maior que b ("2.24.0" x "2.23.4").
 function compararVersoes(a, b) {
@@ -1122,6 +1123,9 @@ function compararVersoes(a, b) {
 }
 
 async function verificarNovaVersao() {
+  // Edição Chrome Web Store: a própria loja atualiza a extensão; não há
+  // aviso de versão nova nem download do .zip do GitHub.
+  if (NOVA_VERSAO_DESLIGADA) { await chrome.storage.local.remove(NOVA_VERSAO_CHAVE); return; }
   try {
     const resp = await fetch(NOVA_VERSAO_MANIFEST, { cache: 'no-store', credentials: 'omit' });
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
@@ -1154,6 +1158,7 @@ chrome.alarms.get(ALARME_NOVA_VERSAO).then(function (a) {
 // extensão depois que o usuário copiou os arquivos novos para a pasta dela.
 chrome.runtime.onMessage.addListener((message, _sender, reply) => {
   if (message?.source !== 'projudi-preview' || message.type !== 'nova-versao') return false;
+  if (NOVA_VERSAO_DESLIGADA && message.acao === 'baixar') { reply({ ok: false, error: 'Atualizações chegam pela Chrome Web Store.' }); return false; }
   if (message.acao === 'baixar') {
     chrome.downloads.download({ url: NOVA_VERSAO_ZIP, saveAs: false })
       .then(() => reply({ ok: true }))

@@ -719,7 +719,7 @@
 					el("li", { text: "Abra o arquivo baixado e copie a pasta extensao-preview-documentos que está dentro dele." }),
 					el("li", { text: "Cole-a por cima da pasta da extensão que você já tem (no mesmo lugar), substituindo os arquivos." }),
 					el("li", { text: "Clique em \"↻ Recarregar a extensão\" abaixo." }),
-					el("li", { text: "Recarregue (F5) as abas do Projudi, SEEU, WhatsApp Web e Outlook." })
+					el("li", { text: "Recarregue (F5) as abas do Projudi, WhatsApp Web e Outlook." })
 				]),
 				el("div", { class: "botoes2" }, [
 					el("button", { type: "button", class: "bt primario", text: "↻ Recarregar a extensão", title: "Use depois de copiar os arquivos novos para a pasta da extensão", onclick: recarregarExtensao }),
@@ -994,7 +994,7 @@ button.bt.primario:hover { background: #1f5591; }
 			cabIcone.firstChild,
 			el("div", {}, [
 				el("h2", { text: "Menu da extensão" }),
-				el("small", { text: "Projudi/SEEU · versão " + chrome.runtime.getManifest().version })
+				el("small", { text: "Projudi · versão " + chrome.runtime.getManifest().version })
 			]),
 			el("button", { type: "button", class: "fechar", title: "Fechar (Esc)", "aria-label": "Fechar", text: "✕", onclick: fechar })
 		]);
@@ -1030,7 +1030,7 @@ button.bt.primario:hover { background: #1f5591; }
 						title: "Desliga todas as funcionalidades do " + nomeSistema(abaAtiva) + ", para você ligar só as que usa",
 						onclick: desativarTodas
 					}),
-					el("button", {
+					outro && el("button", {
 						type: "button", class: "copiar", text: "Copiar para o " + outro.nome,
 						title: "Deixa o " + outro.nome + " com as mesmas funcionalidades ativas do " + nomeSistema(abaAtiva),
 						onclick: function () { copiarPara(outro.id); }
@@ -1081,7 +1081,8 @@ button.bt.primario:hover { background: #1f5591; }
 				el("button", { type: "button", class: "bt primario", text: "Como atualizar", onclick: mostrarCartao })
 			]));
 		}
-		filhos.push(geral, abas);
+		filhos.push(geral);
+		if (SISTEMAS.length > 1) filhos.push(abas);
 		if (alterouNestaPagina) {
 			filhos.push(el("div", { class: "recarregar" }, [
 				el("span", { text: "As mudanças valem a partir do próximo carregamento da página." }),

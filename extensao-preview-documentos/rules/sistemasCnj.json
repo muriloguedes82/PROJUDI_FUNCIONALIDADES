@@ -12,7 +12,7 @@
         {
           "header": "content-security-policy",
           "operation": "set",
-          "value": "frame-ancestors 'self' https://*.tjpr.jus.br https://seeu.pje.jus.br https://seeutreino.pje.jus.br https://registros.org.br https://*.registros.org.br https://cnj.jus.br https://*.cnj.jus.br https://pdpj.jus.br https://*.pdpj.jus.br https://receita.fazenda.gov.br https://*.receita.fazenda.gov.br https://copel.com https://*.copel.com https://sanepar.com.br https://*.sanepar.com.br https://depen.pr.gov.br https://*.depen.pr.gov.br https://sesp.parana https://*.sesp.parana https://sso.cloud.pje.jus.br https://sso.acesso.gov.br"
+          "value": "frame-ancestors 'self' https://*.tjpr.jus.br https://registros.org.br https://*.registros.org.br https://cnj.jus.br https://*.cnj.jus.br https://pdpj.jus.br https://*.pdpj.jus.br https://receita.fazenda.gov.br https://*.receita.fazenda.gov.br https://copel.com https://*.copel.com https://sanepar.com.br https://*.sanepar.com.br https://depen.pr.gov.br https://*.depen.pr.gov.br https://sesp.parana https://*.sesp.parana https://sso.cloud.pje.jus.br https://sso.acesso.gov.br"
         }
       ]
     },
@@ -32,8 +32,6 @@
       ],
       "initiatorDomains": [
         "tjpr.jus.br",
-        "seeu.pje.jus.br",
-        "seeutreino.pje.jus.br",
         "registros.org.br",
         "cnj.jus.br",
         "pdpj.jus.br",
@@ -44,35 +42,6 @@
         "sanepar.com.br",
         "depen.pr.gov.br",
         "sesp.parana"
-      ],
-      "resourceTypes": [
-        "sub_frame"
-      ]
-    }
-  },
-  {
-    "id": 2,
-    "priority": 1,
-    "action": {
-      "type": "modifyHeaders",
-      "responseHeaders": [
-        {
-          "header": "x-frame-options",
-          "operation": "remove"
-        },
-        {
-          "header": "content-security-policy",
-          "operation": "set",
-          "value": "frame-ancestors 'self' https://*.tjpr.jus.br https://seeu.pje.jus.br https://seeutreino.pje.jus.br"
-        }
-      ]
-    },
-    "condition": {
-      "requestDomains": [
-        "seeu.pje.jus.br"
-      ],
-      "initiatorDomains": [
-        "tjpr.jus.br"
       ],
       "resourceTypes": [
         "sub_frame"

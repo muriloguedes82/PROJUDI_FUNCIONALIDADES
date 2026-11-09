@@ -1,4 +1,4 @@
-# Manual do Usuário — Extensão Projudi/SEEU
+# Manual do Usuário — Olirum para Projudi
 
 **Documentos, Ações Rápidas, WhatsApp e E-mail**
 
@@ -7,9 +7,15 @@
 | **Versão do manual** | 17 |
 | **Versão da extensão** | 17 |
 | **Data desta versão** | 09/11/2026 |
+| **Edição** | Chrome Web Store — **somente Projudi** (sem as funções do SEEU) |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
-> **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
+> **Esta edição funciona só no Projudi.** Ela é a versão publicada na
+> Chrome Web Store. As funções do SEEU foram retiradas: onde este manual
+> falar do SEEU (ou marcar uma função como *Só no SEEU*), ignore — isso
+> não existe nesta edição.
+>
+> **Como abrir este manual.** No Projudi, clique no ícone da balança
 > (canto superior direito, abaixo de **Sair**) e depois em **📖 Manual do
 > Usuário**. Ele abre numa nova aba, com índice e busca. Veja
 > [2.6](#cap-2-6).
@@ -148,7 +154,7 @@ Não é preciso saber nada de informática além disso.
 | Sistema | O que funciona |
 |---|---|
 | **Projudi (TJPR)** | Todas as funções deste manual |
-| **SEEU** | Menu da extensão ([2.6](#cap-2-6)), pré-visualização de documentos ([3.1](#cap-3-1)), envio por WhatsApp ([5.1](#cap-5-1)) e por e-mail ([5.2](#cap-5-2)), os cards do BNMP, da SESP Intranet e do S.U. (Sistema Uniformizado) ao lado da balança ([8.7](#cap-8-7)), os botões do quadro Pendências ([6](#cap-6)), a Mesa do Analista sem itens zerados ([9.4](#cap-9-4)), o RG e CPF nos cumprimentos ([9.5](#cap-9-5)), o processo ao passar o mouse nas listas ([9.8](#cap-9-8)), o Analisar e Dispensar decurso na lista ([9.10](#cap-9-10)) e o botão **📍 Localizador** ([8.8](#cap-8-8)), que só existe no SEEU — também pela **⭐** das listas de juntadas, de conclusões, de decurso de prazo e de cumprimentos ([9.3](#cap-9-3)); as de juntadas e de conclusões mostram ainda os localizadores de cada processo, com **✏️** para alterá-los ([9.12](#cap-9-12)). Vale também para o **SEEU de treino** (ambiente de testes) |
+| **SEEU** | **Não funciona nesta edição** (Chrome Web Store, somente Projudi). As funções marcadas *Só no SEEU* ([8.8](#cap-8-8) e [9.12](#cap-9-12)) e o card **SEEU** ao lado da balança não existem aqui |
 
 A extensão **não funciona** quando o usuário está logado com perfil de
 advogado(a) ou de assessor(a) de advogado — veja [10.3](#cap-10-3).
@@ -186,19 +192,16 @@ advogado(a) ou de assessor(a) de advogado — veja [10.3](#cap-10-3).
 
 **Passo a passo:**
 
-1. Tenha a pasta **extensao-preview-documentos** no computador (fornecida
-   pelo responsável pela extensão, ou baixada deste repositório).
-2. No Chrome, abra o endereço `chrome://extensions` (no Edge,
-   `edge://extensions`).
-3. Ative o botão **Modo do desenvolvedor** (canto superior direito).
-4. Clique em **Carregar sem compactação**.
-5. Escolha a pasta **extensao-preview-documentos** (a que contém o
-   arquivo `manifest.json`) e confirme.
-6. A extensão aparece na lista e a página de **Termos de Uso** se abre
-   sozinha — siga o item [2.2](#cap-2-2).
+1. No Chrome, abra a **Chrome Web Store** e procure por **Projudi** (ou
+   por **Olirum**).
+2. Abra **Olirum para Projudi** e clique em **Usar no Chrome** (ou
+   **Adicionar ao Chrome**).
+3. Confirme em **Adicionar extensão**.
+4. A página de **Termos de Uso** se abre sozinha — siga o item
+   [2.2](#cap-2-2).
 
-**Bom saber:** não apague nem mova a pasta depois de instalar: o navegador
-usa os arquivos dela.
+**Bom saber:** no Edge, a mesma página da Chrome Web Store funciona: o
+Edge pede para **Permitir extensões de outras lojas** na primeira vez.
 
 <a id="cap-2-2"></a>
 ### 2.2 Termos de Uso
@@ -229,55 +232,24 @@ Projudi/SEEU.
 <a id="cap-2-3"></a>
 ### 2.3 Atualização da extensão
 
-**Para que serve:** saber quando há novidades na extensão e instalar a
-versão nova sem perder as suas preferências.
+**Para que serve:** saber como a extensão recebe as novidades.
 
-**Como você fica sabendo:** a extensão confere sozinha, algumas vezes por
-dia, se saiu uma versão nova. Quando sai, aparece no Projudi/SEEU, logo
-abaixo do **ícone da balança**, o aviso **🆕 Há novidades na extensão!**,
-com a versão nova e a sua. O ícone da balança também ganha um **ponto
-azul**, e o Menu ([2.6](#cap-2-6)) mostra a faixa **"Versão nova
-disponível"**, com o botão **Como atualizar**, que reabre o aviso.
+**Como funciona:** nesta edição, a **Chrome Web Store atualiza a extensão
+sozinha**, sem você fazer nada. Não aparece aviso de versão nova nem é
+preciso baixar arquivos.
 
-**Passo a passo (pelo aviso):**
-
-1. Leia a **Observação**: *antes de atualizar, exporte suas preferências*.
-2. Clique em **1. Exportar preferências**. Um arquivo com todas as suas
-   preferências, combos e listas vai para a pasta **Downloads** — guarde-o
-   até terminar. (Se você pular este passo e clicar direto em **2.
-   Atualizar**, o aviso pergunta se quer exportar antes.)
-3. Clique em **2. Atualizar**. A versão nova é baixada para a pasta
-   **Downloads** (arquivo **PROJUDI_FUNCIONALIDADES-principal.zip**) e o
-   aviso mostra o que fazer em seguida.
-4. Abra o arquivo baixado e copie a pasta **extensao-preview-documentos**
-   que está dentro dele.
-5. Cole-a **por cima** da pasta da extensão que você já tem (**no mesmo
-   lugar** de antes), substituindo os arquivos.
-6. Clique em **↻ Recarregar a extensão**, no próprio aviso (ou, em
-   `chrome://extensions`, no ícone de recarregar ↻ do card da extensão — o
-   botão **Abrir tela de extensões** leva até lá).
-7. Recarregue (**F5**) as abas do Projudi, SEEU, WhatsApp Web e Outlook que
-   estavam abertas — só recarregar a página, sem o passo 6, não basta.
-
-**As minhas preferências continuam depois da atualização?** **Sim**, desde
-que você cole os arquivos novos **por cima da pasta de antes** e recarregue
-a extensão (passos 5 e 6): o navegador guarda as preferências junto da
-extensão instalada, e não dentro da pasta. Elas **se perdem** se você
-**remover** a extensão em `chrome://extensions`, ou se instalar a versão
-nova a partir de **outra pasta** (o navegador a trata como outra extensão).
-Por isso exporte sempre antes: se algo faltar, abra o Menu e use **⬆
-Importar** com o arquivo exportado ([2.6](#cap-2-6)).
+**As minhas preferências continuam depois da atualização?** **Sim**: o
+navegador guarda as preferências junto da extensão instalada. Elas **se
+perdem** só se você **remover** a extensão. Por segurança, de tempos em
+tempos use **⬇ Exportar** no Menu ([2.6](#cap-2-6)) e guarde o arquivo; se
+algo faltar, use **⬆ Importar** com ele.
 
 **Bom saber:**
 
-- **Agora não (lembrar amanhã)** (ou o **✕**) esconde o aviso por um dia;
-  depois ele volta, até você atualizar.
-- **Ver o que mudou** abre o histórico do manual ([Anexo A](#anexo-a)) na
-  página da extensão no GitHub.
-- A versão instalada aparece no card da extensão, em `chrome://extensions`,
-  e no topo do Menu. Compare com a versão na capa deste manual.
-- Também é possível atualizar sem o aviso: substitua o conteúdo da pasta
-  pelos arquivos novos e siga os passos 6 e 7.
+- A versão instalada aparece no topo do Menu e em `chrome://extensions`.
+  Compare com a versão na capa deste manual.
+- Se quiser receber uma atualização na hora, abra `chrome://extensions`,
+  ligue **Modo do desenvolvedor** e clique em **Atualizar**.
 
 <a id="cap-2-4"></a>
 ### 2.4 A barra de botões da extensão
@@ -1838,7 +1810,7 @@ das atualizações da extensão e vai junto no **⬇ Exportar** do Menu.
 <a id="cap-8-8"></a>
 ### 8.8 Localizador (só no SEEU)
 
-*Só no SEEU.*
+*Só no SEEU — **não existe nesta edição** (Chrome Web Store, somente Projudi).*
 
 **Para que serve:** associar ao processo, **com um clique**, os
 localizadores que você mais usa — um ou vários de uma vez —, sem procurar
@@ -2895,7 +2867,7 @@ são feitos um de cada vez; com "postergar", seguem sozinhos até o fim.
 <a id="cap-9-12"></a>
 ### 9.12 Localizador na lista de juntadas e de conclusões (só no SEEU)
 
-*Só no SEEU.*
+*Só no SEEU — **não existe nesta edição** (Chrome Web Store, somente Projudi).*
 
 **Para que serve:** ver, já na lista, os **localizadores** de cada
 processo e trocá-los (associar um novo ou remover um que não serve mais) sem
@@ -3439,6 +3411,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 17 (edição Chrome Web Store) | 09/11/2026 | Edição **somente Projudi** para a Chrome Web Store: retiradas as funções do SEEU (Localizador e Localizador na lista, card **SEEU** ao lado da balança, abas PROJUDI/SEEU do Menu) e o aviso de versão nova (a loja atualiza sozinha). Capa (Edição e aviso), 1.3, 2.1 (instalação pela loja), 2.3 (atualização automática), 8.8 e 9.12 ajustados. Sem vídeo novo. |
 | 17 | 09/11/2026 | Sem alteração de texto; corrigido (seção 9.16): a linha **Prescrições vencidas** da Análise de Juntadas mostrava **não disponível**, porque a página da aba Mesa do Escrivão Criminal, aberta pela extensão sem você ver, não traz o link **Vencidas** do quadro Prescrições. Agora a extensão procura o link de mais formas e, se não o achar, usa o endereço já conhecido desse link, aceito só se abrir a tela de Prescrições. Sem vídeo novo (a tela não mudou). |
 | 16 | 09/11/2026 | Visual novo da Mesa do Analista (9.17): na tela Início, o nome da vara em **Dados do Juízo** fica à esquerda e o quadro **Últimas Mensagens** fica compacto, só da largura do texto; o visual passa a valer também na Mesa das varas de execução e de prestação pecuniária (endereço diferente no Projudi), com a aba **Intimações** e o título **Execuções Ativas**; na Análise de Juntadas, **Com Urgência** e **Para Realizar** ficam numa coluna estreita à esquerda e os demais quadros à direita; os quadros deixam o branco puro. Os tons passam a ser **Oliva fosco** (novo padrão, menos claro que o Oliva), **Areia**, **Sálvia**, **Névoa** e **Escuro suave**; saem Azul-petróleo, Azul-marinho e Grafite (quem os tinha escolhido volta ao Oliva fosco). A aba **Lembretes** ganha o visual novo, e a barra de menus e a linha do usuário (Usuário / Atribuição / Atuação / Data) do Projudi passam a acompanhar o tom escolhido, em todas as telas. Ajustados 2.6 (Cor do visual da Mesa do Analista) e 9.17 (Onde fica, tabela das abas, Escolher a cor e Bom saber). Vídeo V73 regravado (não citado no manual). |
 | 15 | 09/11/2026 | Nova seção 9.17 **Visual novo da Mesa do Analista (Projudi)**: abas Início, Citações e Intimações, Análise de Juntadas (itens agrupados por assunto), Outros Cumprimentos (filtro e caixinha "Só linhas com pendência"), Cumprimentos de Medidas e Mesa do Escrivão Criminal (atalhos agrupados e busca) organizadas em quadros, com escolha de cor (Oliva, Azul-petróleo, Azul-marinho ou Grafite) guardada como preferência. Na tela Início, os Processos Paralisados (+30 dias) e (+90 dias, seção 9.15) ficam no mesmo quadro; na Análise de Juntadas, os totais da Mesa do Escrivão Criminal (seção 9.16) ficam no quadro "Da Mesa do Escrivão Criminal". Sumário, tabela da 2.6 (função e **Cor do visual da Mesa do Analista**) e **11. Solução de problemas** atualizados. Novo vídeo V73 gravado e guardado em `videos-do-manual/` (não citado no manual). |

@@ -45,8 +45,8 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 	// partes escondidas (ver `partes` acima).
 	chavePartes: "pdpPartesDesativadasPorSistema",
 	sistemas: [
-		{ id: "projudi", nome: "PROJUDI" },
-		{ id: "seeu", nome: "SEEU" }
+		// Edição Chrome Web Store: somente o Projudi (sem SEEU).
+		{ id: "projudi", nome: "PROJUDI" }
 	],
 	grupos: [
 		{
@@ -178,15 +178,6 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					js: ["src/juntarDocumento.js"],
 					css: ["src/juntarDocumento.css"],
 					requer: ["acoesRapidas"]
-				},
-				{
-					id: "localizador",
-					nome: "Localizador (SEEU)",
-					descricao: "Botão \"📍 Localizador\" na linha do \"⭐ Minhas Preferências\", com preferências que associam localizadores com um clique.",
-					js: ["src/localizadorSeeu.js"],
-					css: ["src/localizadorSeeu.css"],
-					requer: ["acoesRapidas"],
-					sistemas: ["seeu"]
 				},
 				{
 					id: "oraculo",
@@ -345,15 +336,6 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					descricao: "Aplica preferências e combos direto na linha do processo, ou em lote nos processos marcados (no SEEU, as do \"📍 Localizador\" e, nas listas de decurso, o Analisar Decurso e o Dispensar nos marcados). Em Demais Cumprimentos, Mandados, Expedir Intimações e Expedir Citação, também as preferências do Analisar (Pré-Análise), que podem anexar os documentos de um movimento padrão.",
 					js: ["src/preferenciasNaLinha.js"],
 					requer: ["listaTarefas", "acoesRapidas"]
-				},
-				{
-					id: "localizadorNaLista",
-					nome: "Localizador na lista (SEEU)",
-					descricao: "Nas listas Análise de Juntadas e Retorno de Conclusão do SEEU, mostra os localizadores do processo na coluna do número, com ✏️ para associar ou tirar localizadores sem sair da lista.",
-					js: ["src/localizadorNaLista.js"],
-					css: ["src/localizadorNaLista.css"],
-					requer: ["localizador"],
-					sistemas: ["seeu"]
 				},
 				{
 					id: "localizadorNaListaProjudi",
