@@ -284,6 +284,13 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					sistemas: ["projudi"]
 				},
 				{
+					id: "semInfracaoPenal",
+					nome: "Feitos sem infração penal na Análise de Juntadas",
+					descricao: "Na aba Análise de Juntadas da Mesa, no quadro \"Para Realizar\", mostra o total de \"Feitos sem infração penal\" (o quadro da aba Mesa do Escrivão Criminal, que não mostra número); clicar no número abre a lista desses feitos. Só nas varas que têm a aba Mesa do Escrivão Criminal.",
+					js: ["src/semInfracaoPenal.js"],
+					sistemas: ["projudi"]
+				},
+				{
 					id: "decursoSequencial",
 					nome: "Filtro por Sequencial no Decurso de Prazo",
 					descricao: "Campo \"Sequencial\" na Análise de Decurso de Prazo.",
