@@ -28,7 +28,12 @@
 	if (!/^\/projudi\//.test(location.pathname)) return;
 	// Fora da Mesa, só o topo do Projudi muda (barra de menus, no quadro de
 	// cima, e a linha "Usuário / Atribuição / Atuação…" de cada página).
-	const NA_MESA = /^\/projudi\/usuario\/mesaAnalista\.do/.test(location.pathname);
+	// A Mesa tem endereços diferentes conforme a competência: mesaAnalista.do
+	// (varas em geral), mesaAnalistaVep.do (execução de penas e prestação
+	// pecuniária) etc. As telas de relatório (ex.: mesaAnalistaEscrivao.do)
+	// não têm o formulário da Mesa com abas e ficam de fora pela conferência
+	// de #mesaAnalistaForm + #tabHorz logo abaixo.
+	const NA_MESA = /^\/projudi\/usuario\/mesaAnalista\w*\.do/.test(location.pathname);
 
 	const TAG = "[Projudi Visual da Mesa]";
 	const CHAVE_COR = "pdpVisualMesaCor";
@@ -318,7 +323,7 @@
 				if (h4) {
 					const t = h4.textContent.trim();
 					const nt = normalizar(t);
-					atualC = cartao(t, /processos ativos|lembretes/.test(nt) ? "blocos" : "lista", { largo: true });
+					atualC = cartao(t, /ativos|ativas|lembretes/.test(nt) ? "blocos" : "lista", { largo: true });
 					if (/mensagens/.test(nt)) atualC.classList.add("pdp-vm-mensagens");
 					if (/dados do juizo/.test(nt)) atualC.classList.add("pdp-vm-juizo");
 					g.append(atualC);
@@ -565,11 +570,16 @@
 	let montou = false;
 	try {
 		if (/^inicio$/.test(nomeAba) || /^lembretes$/.test(nomeAba)) montou = montarInicio();
-		else if (/^citacoes/.test(nomeAba)) montou = montarGruposSimples({ urgenteLargo: true });
+		else if (/^(citacoes|intimacoes)/.test(nomeAba)) montou = montarGruposSimples({ urgenteLargo: true });
 		else if (/^analise de juntadas/.test(nomeAba)) montou = montarJuntadas();
 		else if (/^cumprimentos de medidas/.test(nomeAba)) montou = montarGruposSimples({ urgenteLargo: false, vazio: "Nada a cumprir." });
 		else if (/^outros cumprimentos/.test(nomeAba)) montou = montarOutros();
 		else if (/^mesa do escrivao/.test(nomeAba)) montou = montarEscrivao();
+		// Aba de outra competência, com nome diferente: tenta pelo formato.
+		else if (painel.querySelector("#tbMesa div[class^='quadroCorregedoria']")) montou = montarEscrivao();
+		else if (painel.querySelector("table.resultTable")) montou = montarOutros();
+		else if (gruposH4().length) montou = montarGruposSimples({ urgenteLargo: true });
+		else if (painel.querySelector("table.form h4")) montou = montarInicio();
 	} catch (err) {
 		console.error(TAG, "erro ao montar a aba (a parte já movida continua visível):", err);
 	}

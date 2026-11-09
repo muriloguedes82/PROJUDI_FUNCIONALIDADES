@@ -92,7 +92,9 @@ html.pdp-vm.pdp-vm-montado .masterBlockSubInfoHorz { background: var(--vm-fundo)
 /* ---------- cartões ---------- */
 html.pdp-vm .pdp-vm-original { display: none !important; }
 html.pdp-vm .pdp-vm-painel { font-family: var(--vm-fonte); color: var(--vm-texto); }
-html.pdp-vm .pdp-vm-painel a, html.pdp-vm .pdp-vm-painel label, html.pdp-vm .pdp-vm-painel td, html.pdp-vm .pdp-vm-painel font { color: inherit; }
+html.pdp-vm .pdp-vm-painel a, html.pdp-vm .pdp-vm-painel label, html.pdp-vm .pdp-vm-painel td, html.pdp-vm .pdp-vm-painel font:not([color]) { color: inherit; }
+/* avisos que o Projudi pinta de vermelho, como o (NOVO!) das mensagens */
+html.pdp-vm .pdp-vm-painel font[color] { color: var(--vm-urgente); }
 html.pdp-vm .pdp-vm-painel table.pdp-vm-resultado td { color: var(--vm-texto); }
 html.pdp-vm input.pdp-vm-busca { color: var(--vm-texto); }
 html.pdp-vm .pdp-vm-grade { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); align-items: start; }
