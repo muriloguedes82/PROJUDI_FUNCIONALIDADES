@@ -306,6 +306,7 @@
 					const nt = normalizar(t);
 					atualC = cartao(t, /processos ativos/.test(nt) ? "blocos" : "lista", { largo: true });
 					if (/mensagens/.test(nt)) atualC.classList.add("pdp-vm-mensagens");
+					if (/dados do juizo/.test(nt)) atualC.classList.add("pdp-vm-juizo");
 					g.append(atualC);
 					return;
 				}

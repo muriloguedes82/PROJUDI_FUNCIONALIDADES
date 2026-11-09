@@ -5,9 +5,9 @@
 html.pdp-vm {
 	--vm-acento: #56613c;
 	--vm-acento-suave: #e8ecdc;
-	--vm-fundo: #f6f6f0;
+	--vm-fundo: #efefe6;
 	--vm-linha: #dcdccf;
-	--vm-cartao: #ffffff;
+	--vm-cartao: #fafaf4;
 	--vm-texto: #262a1f;
 	--vm-suave: #6b6f5e;
 	--vm-fraco: #a9ac9b;
@@ -17,9 +17,9 @@ html.pdp-vm {
 	--vm-ok-suave: #e5f1e6;
 	--vm-fonte: "Segoe UI", Roboto, Arial, sans-serif;
 }
-html.pdp-vm[data-pdp-vm-cor="petroleo"] { --vm-acento: #1d6272; --vm-acento-suave: #e0eef0; --vm-fundo: #f2f6f6; --vm-linha: #d3dfe1; --vm-texto: #1f2a2c; --vm-suave: #5d6d70; --vm-fraco: #a3b0b2; }
-html.pdp-vm[data-pdp-vm-cor="marinho"] { --vm-acento: #2c4a80; --vm-acento-suave: #e4eaf5; --vm-fundo: #f3f5f9; --vm-linha: #d6dce8; --vm-texto: #1f2533; --vm-suave: #5e6679; --vm-fraco: #a6adbd; }
-html.pdp-vm[data-pdp-vm-cor="grafite"] { --vm-acento: #3f444c; --vm-acento-suave: #e8e9ec; --vm-fundo: #f5f5f6; --vm-linha: #dadbdf; --vm-texto: #24262a; --vm-suave: #64676e; --vm-fraco: #abadb3; }
+html.pdp-vm[data-pdp-vm-cor="petroleo"] { --vm-acento: #1d6272; --vm-acento-suave: #e0eef0; --vm-fundo: #eaf0f0; --vm-cartao: #f7fafa; --vm-linha: #d3dfe1; --vm-texto: #1f2a2c; --vm-suave: #5d6d70; --vm-fraco: #a3b0b2; }
+html.pdp-vm[data-pdp-vm-cor="marinho"] { --vm-acento: #2c4a80; --vm-acento-suave: #e4eaf5; --vm-fundo: #ebeef4; --vm-cartao: #f8f9fc; --vm-linha: #d6dce8; --vm-texto: #1f2533; --vm-suave: #5e6679; --vm-fraco: #a6adbd; }
+html.pdp-vm[data-pdp-vm-cor="grafite"] { --vm-acento: #3f444c; --vm-acento-suave: #e8e9ec; --vm-fundo: #ededef; --vm-cartao: #f8f8f9; --vm-linha: #dadbdf; --vm-texto: #24262a; --vm-suave: #64676e; --vm-fraco: #abadb3; }
 
 /* ---------- título e seletor de cor ---------- */
 html.pdp-vm h3.pdp-vm-titulo { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
@@ -64,6 +64,10 @@ html.pdp-vm table.pdp-vm-tabela td.pdp-vm-rotulo label, html.pdp-vm table.pdp-vm
 html.pdp-vm .pdp-vm-lista tr.pdp-vm-linha { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 0; border-top: 1px solid var(--vm-linha); font-size: 13px; }
 html.pdp-vm .pdp-vm-lista tr.pdp-vm-linha:first-child { border-top: 0; }
 html.pdp-vm .pdp-vm-lista td.pdp-vm-rotulo { flex: 1; }
+/* Início, Dados do Juízo: o nome da vara logo depois do rótulo, à esquerda */
+html.pdp-vm .pdp-vm-juizo tr.pdp-vm-linha { justify-content: flex-start; gap: 16px; }
+html.pdp-vm .pdp-vm-juizo td.pdp-vm-rotulo { flex: none; min-width: 60px; }
+html.pdp-vm .pdp-vm-lista.pdp-vm-juizo td.pdp-vm-valor { text-align: left; }
 html.pdp-vm .pdp-vm-lista td.pdp-vm-valor { flex: none; text-align: right; }
 html.pdp-vm .pdp-vm-lista td.pdp-vm-valor > a.pdp-vm-num { display: inline-block; min-width: 2.4em; padding: 1px 9px; border-radius: 999px; text-align: center;
 	background: var(--vm-acento-suave); color: var(--vm-acento); font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -133,7 +137,7 @@ html.pdp-vm table.pdp-vm-resultado tr[data-pdp-vm-oculta] { display: none !impor
 html.pdp-vm table.pdp-vm-resultado.pdp-vm-mostrar-zeradas tr[data-pdp-contador-zero]:not([data-pdp-vm-oculta]) { display: table-row !important; }
 
 html.pdp-vm .pdp-vm-barra { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin-bottom: 10px; font: 13px var(--vm-fonte); }
-html.pdp-vm input.pdp-vm-busca { width: 280px; max-width: 100%; padding: 6px 10px; border: 1px solid var(--vm-linha); border-radius: 6px; background: #fff; font: 13px var(--vm-fonte); }
+html.pdp-vm input.pdp-vm-busca { width: 280px; max-width: 100%; padding: 6px 10px; border: 1px solid var(--vm-linha); border-radius: 6px; background: var(--vm-cartao); font: 13px var(--vm-fonte); }
 html.pdp-vm input.pdp-vm-busca:focus { outline: 2px solid var(--vm-acento); outline-offset: 0; }
 html.pdp-vm .pdp-vm-checar { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
 html.pdp-vm .pdp-vm-contagem { color: var(--vm-suave); font-size: 12px; }
