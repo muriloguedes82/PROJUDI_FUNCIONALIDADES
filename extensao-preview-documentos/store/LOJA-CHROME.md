@@ -65,8 +65,12 @@ cobre as buscas mais comuns de quem procura essas funções.
 - **Imagem de divulgação pequena (440×280):** `store/promo-pequeno-440x280.png`
   — "Assistente Projudi.", "Seu assistente no Projudi (TJPR)" e as etiquetas
   das funções. Enviada à parte, na ficha da loja (não vai no pacote).
-- **Capturas de tela (1280×800 ou 640×400, pelo menos uma):** feitas no
-  Projudi com dados fictícios ou tapados.
+- **Capturas de tela (1280×800 ou 640×400, pelo menos uma):**
+  `store/captura-1-tela-do-processo-1280x800.png` — tela do processo com as
+  Ações rápidas, Minhas Preferências, Combos e os cards dos sistemas do CNJ.
+  Número do processo, nome, RG e demais números trocados por dados
+  fictícios, e o card **SEEU** retirado (não existe nesta edição). Novas
+  capturas devem seguir o mesmo cuidado.
 
 ## Gerar o pacote (.zip) para enviar à loja
 
