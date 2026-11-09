@@ -124,9 +124,9 @@ CENAS.V34 = {
 		await S.cap("<b>↺ Padrão</b> religa todas as funções, sem apagar nenhuma preferência.");
 		await S.cap("Por fim, <b>📖 Manual do Usuário</b> abre este manual numa nova aba.");
 		await S.click("#m-manual");
-		browser(["Projudi - Processo " + PROC, "*Projudi - Manual do Usuário"], "chrome-extension://…/src/manual.html");
+		browser(["Projudi - Processo " + PROC, "*Assistente Projudi - Manual do Usuário"], "chrome-extension://…/src/manual.html");
 		document.querySelectorAll("#x-menu").forEach(n => n.remove());
-		const app = add('<div class="manual-app"><div class="topo"><div><small>Extensão Projudi · versão ' + VERSAO_EXTENSAO + '</small><b>Manual do Usuário</b></div><div class="busca" id="mbusca" style="color:#fff">Buscar no manual…</div></div>' +
+		const app = add('<div class="manual-app"><div class="topo"><div><small>Assistente Projudi · versão ' + VERSAO_EXTENSAO + '</small><b>Manual do Usuário</b></div><div class="busca" id="mbusca" style="color:#fff">Buscar no manual…</div></div>' +
 			'<div class="idx"><b>Apresentação</b><br>1. Apresentação<br>2. Primeiros passos<br>&nbsp;&nbsp;2.6 Menu da extensão<br>3. Leitura do processo<br>4. Informações extras<br>5. Envio de documentos<br>…<br>Anexo A — Histórico de versões</div>' +
 			'<div class="ct"><div class="card"><h3>3.1 Pré-visualização de documentos</h3><p><a class="link" id="lv">▶ <b>Vídeo V03</b> — Pré-visualização de documentos</a></p><p><b>Para que serve:</b> ler a íntegra de um documento sem abrir outra aba.</p></div></div></div>');
 		await S.cap("O manual tem <b>índice lateral</b> e <b>busca</b>.");
@@ -854,7 +854,7 @@ CENAS.V48 = {
 		await S.titleCard("VÍDEO V48", "Aviso de versão nova", "Quando sai uma versão nova, a extensão avisa — exporte suas preferências e atualize.");
 		add('<span class="dotnova"></span>', $("#x-menuicon"));
 		const card = add('<div id="x-novidade"><div class="mh"><span style="font-size:20px">🆕</span><div><b>Há novidades na extensão!</b><small>Versão nova: 2.26.0 · a sua: 2.25.0</small></div></div><div class="ct" id="nv-ct">' +
-			'<p>Saiu uma versão nova da extensão Olirum. <u style="color:#1f5591">Ver o que mudou</u>.</p>' +
+			'<p>Saiu uma versão nova da extensão Assistente Projudi. <u style="color:#1f5591">Ver o que mudou</u>.</p>' +
 			'<div class="obs"><b>Observação:</b> antes de atualizar, exporte suas preferências (botão 1). Se depois da atualização elas não aparecerem, é só importá-las de novo pelo Menu (ícone da balança → ⬆ Importar).</div>' +
 			'<div class="bts"><span class="bt pri" id="nv-exp">1. Exportar preferências</span><span class="bt" id="nv-atu">2. Atualizar</span></div><div class="ok" id="nv-ok" hidden></div>' +
 			'<div class="depois">Agora não (lembrar amanhã)</div></div></div>');

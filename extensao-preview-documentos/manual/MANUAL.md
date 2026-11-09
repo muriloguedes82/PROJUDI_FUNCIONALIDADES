@@ -1,11 +1,11 @@
-# Manual do Usuário — Extensão Projudi
+# Manual do Usuário — Assistente Projudi – Ações Rápidas e Pré-visualização
 
 **Documentos, Ações Rápidas, WhatsApp e E-mail**
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 18 |
-| **Versão da extensão** | 18 |
+| **Versão do manual** | 19 |
+| **Versão da extensão** | 19 |
 | **Data desta versão** | 09/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -188,7 +188,7 @@ advogado(a) ou de assessor(a) de advogado — veja [10.2](#cap-10-2).
 4. Clique em **Carregar sem compactação**.
 5. Escolha a pasta **extensao-preview-documentos** (a que contém o
    arquivo `manifest.json`) e confirme.
-6. A extensão aparece na lista e a página de **Termos de Uso** se abre
+6. A extensão aparece na lista com o nome **Assistente Projudi – Ações Rápidas e Pré-visualização** e a página de **Termos de Uso** se abre
    sozinha — siga o item [2.2](#cap-2-2).
 
 **Bom saber:** não apague nem mova a pasta depois de instalar: o navegador
@@ -753,7 +753,7 @@ encontrado" em vez de um número errado.
 
 **Onde fica:** no canto superior direito. A anotação do processo aparece nas telas da ficha e de movimentação do processo; a anotação permanente pode ser usada nas demais páginas.
 
-**Passo a passo:** escreva no post-it; o texto fica salvo neste navegador enquanto você edita. Na opção **Deste processo**, clique em **Salvar no Projudi** para atualizar o lembrete ativo mostrado na ficha do processo. Se ainda não houver lembrete ativo, a extensão cria um com o assunto **Anotação compartilhada - Abra ou instale a extensão Olirum**. O envio só acontece ao clicar nesse botão. A extensão consulta **Informações Gerais** em segundo plano para localizar o lembrete, sem trocar a aba que você está usando. Arraste pelo título **Anotações** para mudar a posição. Use **−** para recolher e **▾** para reabrir. Os quadrinhos ao lado do aviso de salvamento escolhem amarelo, azul, verde ou vermelho. Clique em **+** no título para criar uma nota pessoal adicional para o processo; cada nota tem sua própria cor e posição. Use **×** para excluir uma nota adicional (pede confirmação se houver texto). Escolha **Permanente (todos os processos)** para editar uma nota pessoal que não é enviada ao Projudi.
+**Passo a passo:** escreva no post-it; o texto fica salvo neste navegador enquanto você edita. Na opção **Deste processo**, clique em **Salvar no Projudi** para atualizar o lembrete ativo mostrado na ficha do processo. Se ainda não houver lembrete ativo, a extensão cria um com o assunto **Anotação compartilhada - Abra ou instale a extensão Assistente Projudi**. O envio só acontece ao clicar nesse botão. A extensão consulta **Informações Gerais** em segundo plano para localizar o lembrete, sem trocar a aba que você está usando. Arraste pelo título **Anotações** para mudar a posição. Use **−** para recolher e **▾** para reabrir. Os quadrinhos ao lado do aviso de salvamento escolhem amarelo, azul, verde ou vermelho. Clique em **+** no título para criar uma nota pessoal adicional para o processo; cada nota tem sua própria cor e posição. Use **×** para excluir uma nota adicional (pede confirmação se houver texto). Escolha **Permanente (todos os processos)** para editar uma nota pessoal que não é enviada ao Projudi.
 
 **Bom saber:** acompanha a rolagem da página e guarda a posição neste navegador. O texto de **Deste processo**, depois de salvo no Projudi, fica no lembrete ativo e é compartilhado com quem tem acesso ao processo. A extensão não altera lembretes desativados. Cores, posição, notas adicionais e a opção permanente ficam apenas neste perfil do navegador. Nas listagens e telas de análise, mostra apenas a anotação permanente, nunca a anotação de um processo da lista. Não aparece nas janelas de diálogo bloqueadas para os botões.
 
@@ -3099,6 +3099,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 19 | 09/11/2026 | A extensão passa a se chamar **Assistente Projudi – Ações Rápidas e Pré-visualização** (antes, **Olirum**): título do manual, item 6 da seção 2.1 (nome na lista de extensões) e 4.5 (assunto padrão do lembrete criado pelo post-it: "Anotação compartilhada - Abra ou instale a extensão Assistente Projudi"). O aviso de versão nova (2.3) e as páginas do Manual e dos Termos de Uso mostram o nome novo. Vídeos V01, V34 e V48 regravados e guardados em `videos-do-manual/` (não citados no manual). |
 | 18 | 09/11/2026 | **A extensão passa a funcionar só no Projudi.** Retiradas todas as funções do SEEU (a extensão não aparece mais no SEEU nem no SEEU de treino): o Menu não tem mais as abas PROJUDI/SEEU nem o **Copiar para o…** (2.6); saíram as seções **Localizador (só no SEEU)** e **Localizador na lista de juntadas e de conclusões (só no SEEU)** e a seção **Convivência com o AzFlow**, o que renumerou as seções 8.9 a 8.12 (agora 8.8 a 8.11), 9.13 a 9.17 (agora 9.12 a 9.16) e 10.3 (agora 10.2). Tirados também os trechos "No SEEU" das seções 1.3, 1.4, 2.2 a 2.6, 3.1, 5, 6, 7.1 a 7.8, 8.3, 8.7, 9.3, 9.4, 9.5, 9.8, 9.9, 9.10, 9.12, 10 e 11. O card **SEEU** ao lado da balança continua abrindo o SEEU a partir do Projudi (8.7). Preferências gravadas no SEEU não aparecem no Projudi. As funções do SEEU ficam guardadas no repositório (branch **backup-seeu-versao-17**), para recuperar se for preciso. Vídeos V40, V41 e V57 (SEEU) retirados de `videos-do-manual/` e guardados na mesma branch. |
 | 17 | 09/11/2026 | Sem alteração de texto; corrigido (seção 9.16): a linha **Prescrições vencidas** da Análise de Juntadas mostrava **não disponível**, porque a página da aba Mesa do Escrivão Criminal, aberta pela extensão sem você ver, não traz o link **Vencidas** do quadro Prescrições. Agora a extensão procura o link de mais formas e, se não o achar, usa o endereço já conhecido desse link, aceito só se abrir a tela de Prescrições. Sem vídeo novo (a tela não mudou). |
 | 16 | 09/11/2026 | Visual novo da Mesa do Analista (9.17): na tela Início, o nome da vara em **Dados do Juízo** fica à esquerda e o quadro **Últimas Mensagens** fica compacto, só da largura do texto; o visual passa a valer também na Mesa das varas de execução e de prestação pecuniária (endereço diferente no Projudi), com a aba **Intimações** e o título **Execuções Ativas**; na Análise de Juntadas, **Com Urgência** e **Para Realizar** ficam numa coluna estreita à esquerda e os demais quadros à direita; os quadros deixam o branco puro. Os tons passam a ser **Oliva fosco** (novo padrão, menos claro que o Oliva), **Areia**, **Sálvia**, **Névoa** e **Escuro suave**; saem Azul-petróleo, Azul-marinho e Grafite (quem os tinha escolhido volta ao Oliva fosco). A aba **Lembretes** ganha o visual novo, e a barra de menus e a linha do usuário (Usuário / Atribuição / Atuação / Data) do Projudi passam a acompanhar o tom escolhido, em todas as telas. Ajustados 2.6 (Cor do visual da Mesa do Analista) e 9.17 (Onde fica, tabela das abas, Escolher a cor e Bom saber). Vídeo V73 regravado (não citado no manual). |

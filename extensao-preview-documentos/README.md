@@ -1,10 +1,10 @@
-# Olirum – Projudi: Pré-visualização, WhatsApp e E-mail
+# Assistente Projudi – Ações Rápidas e Pré-visualização
 
-<img src="icons/icon128.png" alt="Ícone do Olirum" width="64" align="right">
+<img src="icons/icon128.png" alt="Ícone do Assistente Projudi" width="64" align="right">
 
-**Olirum** é o nome da extensão: é "Murilo" escrito ao contrário, uma
-assinatura do autor. A marca é escrita com um ponto final
-dourado (`Olirum.`). O ícone é uma lupa dourada sobre um documento, em fundo
+**Assistente Projudi – Ações Rápidas e Pré-visualização** é o nome da
+extensão desde a versão 19 (antes se chamava **Olirum**, "Murilo" escrito ao
+contrário, assinatura do autor). O ícone é uma lupa dourada sobre um documento, em fundo
 preto — a pré-visualização dos autos, que é a função principal da extensão.
 Os ícones ficam em `icons/`, e o tile promocional do catálogo do Chrome
 (440×280) em `store/promo-pequeno-440x280.png`.

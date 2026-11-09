@@ -648,7 +648,7 @@
 		} else {
 			conteudo.append(
 				el("p", {}, [
-					"Saiu uma versão nova da extensão Olirum. ",
+					"Saiu uma versão nova da extensão Assistente Projudi. ",
 					el("a", { href: LINK_NOVIDADES, target: "_blank", rel: "noopener", text: "Ver o que mudou" }),
 					"."
 				]),
@@ -837,8 +837,8 @@ button.bt.primario:hover { background: #1f5591; }
 		shadow.append(el("style", { text: CSS }));
 		icone = el("button", {
 			type: "button", class: "icone", "aria-haspopup": "dialog", "aria-expanded": "false",
-			title: "Menu da extensão Projudi - funcionalidades, backup e manual",
-			"aria-label": "Menu da extensão Projudi",
+			title: "Menu do Assistente Projudi - funcionalidades, backup e manual",
+			"aria-label": "Menu do Assistente Projudi",
 			onclick: function (ev) { ev.stopPropagation(); aberto ? fechar() : abrir(); }
 		});
 		icone.innerHTML = ICONE_SVG;

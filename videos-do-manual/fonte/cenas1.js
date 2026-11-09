@@ -24,10 +24,10 @@ CENAS.V01 = {
 		await S.click("#pasta");
 		await S.click("#sel");
 		closeModal();
-		add('<div style="width:360px;background:#fff;border:1px solid #ddd;border-radius:8px;padding:14px;font-size:13px"><b>Olirum – Projudi: Pré-visualização, WhatsApp e E-mail</b><div style="color:#666;margin:6px 0">Versão ' + VERSAO_EXTENSAO + '</div><div style="color:#666">ID: abcdefghijklmnopabcdefghijklmnop</div></div>', $("#cards"));
+		add('<div style="width:360px;background:#fff;border:1px solid #ddd;border-radius:8px;padding:14px;font-size:13px"><b>Assistente Projudi – Ações Rápidas e Pré-visualização</b><div style="color:#666;margin:6px 0">Versão ' + VERSAO_EXTENSAO + '</div><div style="color:#666">ID: abcdefghijklmnopabcdefghijklmnop</div></div>', $("#cards"));
 		await S.cap("A extensão aparece na lista. Em seguida, abre-se sozinha a página de <b>Termos de Uso</b>.");
-		browser(["Extensões", "*Projudi - Termos de Uso"], "chrome-extension://…/src/termos.html");
-		screen('<div style="background:#eef2f6;height:676px;overflow:hidden"><div style="background:#0b3d6e;color:#fff;padding:16px 40px"><div style="font-size:13px;color:#cfe0f2">Extensão Projudi · Documentos e Ações Rápidas</div><div style="font-size:26px;font-weight:bold">Termos de Uso</div></div>' +
+		browser(["Extensões", "*Assistente Projudi - Termos de Uso"], "chrome-extension://…/src/termos.html");
+		screen('<div style="background:#eef2f6;height:676px;overflow:hidden"><div style="background:#0b3d6e;color:#fff;padding:16px 40px"><div style="font-size:13px;color:#cfe0f2">Assistente Projudi · Ações Rápidas e Pré-visualização</div><div style="font-size:26px;font-weight:bold">Termos de Uso</div></div>' +
 			'<div style="background:#fff;margin:16px 40px;padding:16px 24px;border-radius:6px;font-size:13px;line-height:20px;color:#333"><b>Antes de começar</b><p>Leia com atenção. A extensão é uma ferramenta de apoio ao uso do Projudi: não substitui a conferência dos atos, que continua sendo sua responsabilidade.</p>' +
 			'<b>I · Objeto e finalidade</b> · <b>II · Relação com os sistemas oficiais</b> · <b>III · Conferência dos atos e responsabilidade</b> · <b>IV · Sigilo e compartilhamento de documentos</b> · <b>V · Funcionamento local e dados armazenados</b> · <b>VI · Disponibilidade e suporte</b> · <b>VII · Revisão dos termos</b>' +
 			'<div style="margin-top:22px;padding:12px;background:#f5f8fb;border:1px solid #c9d7e6;border-radius:4px"><label><input type="checkbox" id="aceito" style="width:16px;height:16px;vertical-align:middle"> Declaro que li os Termos de Uso e concordo com todas as condições</label></div>' +

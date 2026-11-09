@@ -61,7 +61,7 @@
   const colors = { amarelo: 'Amarelo', azul: 'Azul', verde: 'Verde', vermelho: 'Vermelho' };
   const cards = new Set();
   const records = {};
-  const defaultSubject = 'Anotação compartilhada - Abra ou instale a extensão Olirum';
+  const defaultSubject = 'Anotação compartilhada - Abra ou instale a extensão Assistente Projudi';
   let extraIds = [], queue = Promise.resolve(), main;
   let lembrete = { mode: 'loading', url: '', detail: '', subject: defaultSubject, problem: '', cachedCreateUrl: '', deactivate: null };
   function normalize(value, fallback = {}) {
