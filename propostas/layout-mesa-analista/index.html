@@ -31,6 +31,20 @@
   --bg:#1a1c16;--screen:#21241c;--surface:#2a2e23;--line:#3c4132;--fg:#e9eadf;--muted:#a9ad99;--faint:#6f7463;
   --olive:#b7c58f;--olive-soft:#343b27;--urgent:#ff8f7a;--urgent-soft:#4a2620;--warn:#f0b866;--warn-soft:#45351c;--ok:#8fd19c;--ok-soft:#24392a;color-scheme:dark}
 
+/* paletas de destaque (seletor "Cor" da maquete) */
+:root[data-cor="oliva"]{--olive:#56613c;--olive-soft:#e8ecdc;--bg:#f3f2ec}
+:root[data-cor="petroleo"]{--olive:#1d6272;--olive-soft:#e0eef0;--bg:#eef3f3}
+:root[data-cor="marinho"]{--olive:#2c4a80;--olive-soft:#e4eaf5;--bg:#eff1f6}
+:root[data-cor="grafite"]{--olive:#3f444c;--olive-soft:#e8e9ec;--bg:#f2f2f3}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"])[data-cor="oliva"]{--olive:#b7c58f;--olive-soft:#343b27;--bg:#1b1c1c}}
+:root[data-theme="dark"][data-cor="oliva"]{--olive:#b7c58f;--olive-soft:#343b27;--bg:#1b1c1c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"])[data-cor="petroleo"]{--olive:#8fcbd8;--olive-soft:#1f3a40;--bg:#1b1c1c}}
+:root[data-theme="dark"][data-cor="petroleo"]{--olive:#8fcbd8;--olive-soft:#1f3a40;--bg:#1b1c1c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"])[data-cor="marinho"]{--olive:#a9c0ec;--olive-soft:#263450;--bg:#1b1c1c}}
+:root[data-theme="dark"][data-cor="marinho"]{--olive:#a9c0ec;--olive-soft:#263450;--bg:#1b1c1c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"])[data-cor="grafite"]{--olive:#c9ccd2;--olive-soft:#33363b;--bg:#1b1c1c}}
+:root[data-theme="dark"][data-cor="grafite"]{--olive:#c9ccd2;--olive-soft:#33363b;--bg:#1b1c1c}
+
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);font-size:15px;line-height:1.5;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 64px}
@@ -55,6 +69,21 @@ a{color:inherit}
 .screen{background:var(--screen);border:1px solid var(--line);border-radius:10px;overflow:hidden;min-width:0}
 .screen-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--line)}
 .screen-head h3{font-size:1.15rem}
+.head-tools{display:flex;gap:10px 16px;flex-wrap:wrap;align-items:center}
+.cores{display:inline-flex;gap:6px;align-items:center;font-size:.85rem;color:var(--muted)}
+.cor{width:26px;height:26px;border-radius:50%;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
+.cor[aria-pressed="true"]{box-shadow:0 0 0 2px var(--fg)}
+.cor-nome{min-width:9ch;font-weight:600;color:var(--fg)}
+.esc-groups{columns:3 290px;column-gap:14px}
+.esc-groups .card{break-inside:avoid;margin-bottom:14px}
+.atalho{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 0;border-top:1px solid var(--line);font-size:.92rem}
+.atalho:first-of-type{border-top:0}
+.atalho > a{text-decoration:none;font-weight:600}
+.atalho > a:hover{text-decoration:underline;color:var(--olive)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:.8rem;padding:1px 9px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--fg);text-decoration:none}
+.chip:hover{border-color:var(--olive);color:var(--olive)}
+.card[data-hide]{display:none}
 .compare{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--surface)}
 .compare button{font:inherit;font-size:.85rem;border:0;background:none;color:var(--muted);padding:4px 14px;border-radius:999px;cursor:pointer}
 .compare button[aria-pressed="true"]{background:var(--olive);color:var(--screen);font-weight:600}
@@ -155,9 +184,18 @@ tfoot td:first-child{background:var(--olive-soft)}
   <section class="screen" aria-label="Simulação da tela">
     <div class="screen-head">
       <h3>Mesa do Analista Judiciário</h3>
+      <div class="head-tools">
+      <div class="cores" role="group" aria-label="Cor de destaque">Cor:
+        <button class="cor" data-cor="oliva" style="background:#56613c" aria-pressed="true" aria-label="Oliva"></button>
+        <button class="cor" data-cor="petroleo" style="background:#1d6272" aria-pressed="false" aria-label="Azul-petróleo"></button>
+        <button class="cor" data-cor="marinho" style="background:#2c4a80" aria-pressed="false" aria-label="Azul-marinho"></button>
+        <button class="cor" data-cor="grafite" style="background:#3f444c" aria-pressed="false" aria-label="Grafite"></button>
+        <span class="cor-nome" id="cor-nome">Oliva</span>
+      </div>
       <div class="compare" role="group" aria-label="Comparar">
         <button id="btn-antes" aria-pressed="false">Antes</button>
         <button id="btn-depois" aria-pressed="true">Proposta</button>
+      </div>
       </div>
     </div>
     <div class="tabs" role="tablist">
@@ -165,9 +203,9 @@ tfoot td:first-child{background:var(--olive-soft)}
       <button class="tab" role="tab" data-tab="citacoes">Citações e Intimações</button>
       <button class="tab" role="tab" data-tab="juntadas">Análise de Juntadas</button>
       <button class="tab" role="tab" data-tab="outros">Outros Cumprimentos</button>
-      <button class="tab" role="tab" data-tab="lembretes">Lembretes <span class="off">(fora)</span></button>
+      <button class="tab" role="tab" data-tab="lembretes">Lembretes <span class="off">(sem mudança)</span></button>
       <button class="tab" role="tab" data-tab="medidas">Cumprimentos de Medidas</button>
-      <button class="tab" role="tab" data-tab="escrivao">Mesa do Escrivão Criminal <span class="off">(fora)</span></button>
+      <button class="tab" role="tab" data-tab="escrivao">Mesa do Escrivão Criminal</button>
     </div>
 
     <!-- ============ INÍCIO ============ -->
@@ -310,8 +348,14 @@ tfoot td:first-child{background:var(--olive-soft)}
       <figure class="before" hidden><img src="antes/medidas.jpg" alt="Aba Cumprimentos de Medidas na tela atual"><figcaption>Tela atual: três títulos, dois números e um grupo vazio sem aviso.</figcaption></figure>
     </div>
 
-    <div class="pane" data-pane="lembretes" hidden><p class="note">A aba Lembretes não foi enviada. Se quiser, aplico o mesmo visual a ela.</p></div>
-    <div class="pane" data-pane="escrivao" hidden><p class="note">A aba Mesa do Escrivão Criminal não foi enviada. Se quiser, aplico o mesmo visual a ela.</p></div>
+    <div class="pane" data-pane="lembretes" hidden><p class="note">A aba Lembretes continua com o visual atual, como você pediu.</p></div>
+    <div class="pane" data-pane="escrivao" hidden>
+      <div class="after grid">
+        <div class="toolbar"><input type="search" id="filtro-esc" placeholder="Procurar atalho (ex.: fiança, prazo)" aria-label="Procurar atalho"><span class="note" id="cont-esc">35 atalhos em 7 grupos</span></div>
+        <div class="esc-groups"><div class="card esc"><div class="card-t"><span>Réu preso e prisões</span><span style="font-weight:400">5</span></div><div><div class="atalho"><a href="#">Feitos de réu preso</a><span class="chips"><a class="chip" href="#">Sem sentença anotada</a><a class="chip" href="#">Todos</a></span></div><div class="atalho"><a href="#">Flagrantes em andamento</a></div><div class="atalho"><a href="#">Prisões Provisórias sem sentença com mais de 90 dias</a></div><div class="atalho"><a href="#">Reavaliação da prisão provisória a cada 90 dias (Art 316, CPP)</a></div><div class="atalho"><a href="#">Monitoração Eletrônica</a><span class="chips"><a class="chip" href="#">Expiradas</a><a class="chip" href="#">A Expirar</a><a class="chip" href="#">Ativas</a></span></div></div></div><div class="card esc"><div class="card-t"><span>Prazos vencidos e atrasos</span><span style="font-weight:400">8</span></div><div><div class="atalho"><a href="#">Mandados com prazo vencido</a></div><div class="atalho"><a href="#">Ofícios com prazo vencido</a></div><div class="atalho"><a href="#">Precatórias expedidas com prazo vencido</a></div><div class="atalho"><a href="#">Precatórias recebidas com prazo vencido</a></div><div class="atalho"><a href="#">Prescrições</a><span class="chips"><a class="chip" href="#">Vencidas</a><a class="chip" href="#">A vencer</a></span></div><div class="atalho"><a href="#">Medidas alternativas atrasadas</a></div><div class="atalho"><a href="#">Fianças com prazo excedido</a></div><div class="atalho"><a href="#">Processos paralisados + de 30 dias</a></div></div></div><div class="card esc"><div class="card-t"><span>Denúncia, sentença e arquivamento</span><span style="font-weight:400">7</span></div><div><div class="atalho"><a href="#">Ações penais sem denúncia</a><span class="chips"><a class="chip" href="#">Sem recebimento</a></span></div><div class="atalho"><a href="#">Oferecimento de denúncia/queixa sem recebimento ou rejeição</a></div><div class="atalho"><a href="#">Ações Penais sem sentença anotada</a></div><div class="atalho"><a href="#">Processos físicos sem sentença anotada</a></div><div class="atalho"><a href="#">Inquéritos/flagrantes pendentes de arquivamento</a></div><div class="atalho"><a href="#">Incidentes em andamento</a></div><div class="atalho"><a href="#">HCs TJ</a><span class="chips"><a class="chip" href="#">Pendentes</a><a class="chip" href="#">Todas</a></span></div></div></div><div class="card esc"><div class="card-t"><span>Bens, fianças e valores</span><span style="font-weight:400">5</span></div><div><div class="atalho"><a href="#">Apreensões em aberto</a></div><div class="atalho"><a href="#">Fianças não levantadas</a></div><div class="atalho"><a href="#">Feitos com apreensões de valores sem depósito judicial</a></div><div class="atalho"><a href="#">Multa do FUPEN</a></div><div class="atalho"><a href="#">Autuações de guia pendentes</a></div></div></div><div class="card esc"><div class="card-t"><span>Cadastro incompleto</span><span style="font-weight:400">4</span></div><div><div class="atalho"><a href="#">Feitos sem infração penal</a></div><div class="atalho"><a href="#">Feitos sem data de infração</a></div><div class="atalho"><a href="#">Feitos com réu sem RG/IIPR</a></div><div class="atalho"><a href="#">Feitos com réu sem CPF/CNPJ</a></div></div></div><div class="card esc"><div class="card-t"><span>Violência doméstica</span><span style="font-weight:400">3</span></div><div><div class="atalho"><a href="#">Violência doméstica sem assunto correspondente</a></div><div class="atalho"><a href="#">Campos obrigatórios pendentes da parte em proc. VD</a></div><div class="atalho"><a href="#">Aplicativos do Pânico com erro no envio à Sesp/PR</a><span class="chips"><a class="chip" href="#">Concessão</a><a class="chip" href="#">Revogação</a></span></div></div></div><div class="card esc"><div class="card-t"><span>Comunicações e remessas</span><span style="font-weight:400">3</span></div><div><div class="atalho"><a href="#">Comunicações ao IIPR</a><span class="chips"><a class="chip" href="#">Devolvidas</a><a class="chip" href="#">A enviar</a></span></div><div class="atalho"><a href="#">e-Mandado não Importados</a><span class="chips"><a class="chip" href="#">Mandados</a><a class="chip" href="#">Alvarás</a></span></div><div class="atalho"><a href="#">Remessas</a></div></div></div></div>
+      </div>
+      <figure class="before" hidden><img src="antes/escrivao.jpg" alt="Aba Mesa do Escrivão Criminal na tela atual"><figcaption>Tela atual: 35 quadrados iguais, em cores alternadas, sem nenhuma ordem por assunto.</figcaption></figure>
+    </div>
   </section>
 
   <section class="how">
@@ -320,7 +364,9 @@ tfoot td:first-child{background:var(--olive-soft)}
       <li><b>Só a aparência muda.</b> Os números continuam sendo os do Projudi e se atualizam sozinhos, como hoje. Clicar em um número abre a mesma lista de sempre.</li>
       <li><b>Liga e desliga no Menu</b> (ícone da balança), com a opção "Visual novo da Mesa do Analista". Desligada, a tela volta a ser a original.</li>
       <li><b>Combina com o que já existe:</b> a opção de esconder contadores zerados passa a ser a caixinha "Só linhas com pendência" da aba Outros Cumprimentos.</li>
-      <li><b>Abas Início, Citações e Intimações, Análise de Juntadas, Outros Cumprimentos e Cumprimentos de Medidas</b> nesta primeira etapa.</li>
+      <li><b>Abas Início, Citações e Intimações, Análise de Juntadas, Outros Cumprimentos, Cumprimentos de Medidas e Mesa do Escrivão Criminal</b>. A aba Lembretes fica como está.</li>
+      <li><b>Só no Projudi.</b> O SEEU não muda.</li>
+      <li><b>Mesa do Escrivão Criminal:</b> os 35 atalhos são separados por assunto, e as opções entre colchetes (como [Vencidas] e [A vencer]) viram botõezinhos ao lado do nome. Um campo de busca encontra o atalho pelo nome.</li>
     </ul>
   </section>
 </div>
@@ -354,6 +400,15 @@ function draw(){const q=document.getElementById("filtro").value.trim().toLowerCa
   document.getElementById("contagem").textContent=`Mostrando ${vis.length} de ${C.length} tipos de cumprimento (amostra da tela enviada).`;}
 document.getElementById("filtro").addEventListener("input",draw);document.getElementById("sozero").addEventListener("change",draw);draw();
 
+const NOMES={oliva:"Oliva",petroleo:"Azul-petróleo",marinho:"Azul-marinho",grafite:"Grafite"};
+document.documentElement.dataset.cor="oliva";
+document.querySelectorAll(".cor").forEach(b=>b.onclick=()=>{document.documentElement.dataset.cor=b.dataset.cor;
+  document.querySelectorAll(".cor").forEach(x=>x.setAttribute("aria-pressed",x===b));document.getElementById("cor-nome").textContent=NOMES[b.dataset.cor];});
+const fe=document.getElementById("filtro-esc");
+fe.addEventListener("input",()=>{const q=fe.value.trim().toLowerCase();let n=0;
+  document.querySelectorAll(".card.esc").forEach(c=>{let k=0;c.querySelectorAll(".atalho").forEach(a=>{const ok=!q||a.textContent.toLowerCase().includes(q);a.hidden=!ok;if(ok)k++;});
+    if(k)c.removeAttribute("data-hide");else c.setAttribute("data-hide","");n+=k;});
+  document.getElementById("cont-esc").textContent=q?`${n} atalho(s) encontrado(s)`:"35 atalhos em 7 grupos";});
 let antes=false;
 function setMode(a){antes=a;document.getElementById("btn-antes").setAttribute("aria-pressed",a);document.getElementById("btn-depois").setAttribute("aria-pressed",!a);
   document.querySelectorAll(".after").forEach(e=>e.hidden=a);document.querySelectorAll(".before").forEach(e=>e.hidden=!a);}
