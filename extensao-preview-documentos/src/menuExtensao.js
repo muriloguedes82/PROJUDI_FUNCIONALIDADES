@@ -1104,6 +1104,7 @@ button.bt.primario:hover { background: #1f5591; }
 
 		const termos = el("a", { text: "Termos de Uso", onclick: function () { abrirPagina("termos"); } });
 		filhos.push(el("div", { class: "rodape" }, [
+			IS_SEEU ? null : montarCorMesa(),
 			montarAbertura(),
 			el("h4", { text: "Preferências e combos" }),
 			el("div", { class: "botoes" }, [
@@ -1204,6 +1205,51 @@ button.bt.primario:hover { background: #1f5591; }
 	chrome.storage.onChanged.addListener(function (changes, area) {
 		if (area !== "local" || !changes[CHAVE_ABERTURA]) return;
 		lerAbertura({ [CHAVE_ABERTURA]: changes[CHAVE_ABERTURA].newValue });
+		if (aberto) render();
+	});
+
+	// Cor do "Visual novo da Mesa do Analista" (visualMesa.js, só Projudi).
+	// Mesma chave que as bolinhas ao lado do título da Mesa gravam; a Mesa
+	// aberta muda de cor na hora. Padrão: oliva.
+	const CHAVE_COR_MESA = "pdpVisualMesaCor";
+	const CORES_MESA = [
+		["oliva", "Oliva (padrão)"],
+		["petroleo", "Azul-petróleo"],
+		["marinho", "Azul-marinho"],
+		["grafite", "Grafite"]
+	];
+	let corMesa = "oliva";
+	function lerCorMesa(data) {
+		const v = data && data[CHAVE_COR_MESA];
+		corMesa = CORES_MESA.some(function (c) { return c[0] === v; }) ? v : "oliva";
+	}
+	function montarCorMesa() {
+		const select = el("select", {
+			"aria-label": "Cor do visual da Mesa do Analista",
+			onchange: function () {
+				corMesa = select.value;
+				chrome.storage.local.set({ [CHAVE_COR_MESA]: corMesa }).then(function () {
+					avisar("Pronto: a Mesa do Analista passa a usar essa cor.", "ok");
+				}).catch(function (err) {
+					avisar("Não foi possível gravar a cor: " + err.message, "erro");
+				});
+			}
+		}, CORES_MESA.map(function (c) {
+			return el("option", { value: c[0], text: c[1], selected: c[0] === corMesa });
+		}));
+		return el("div", { class: "abertura" }, [
+			el("h4", { text: "Cor do visual da Mesa do Analista" }),
+			select,
+			el("p", { class: "nota", text: "Também dá para trocar nas bolinhas ao lado do título \"Mesa do Analista Judiciário\". O vermelho dos itens urgentes não muda." })
+		]);
+	}
+	chrome.storage.local.get(CHAVE_COR_MESA).then(function (data) {
+		lerCorMesa(data);
+		if (aberto) render();
+	}).catch(function () {});
+	chrome.storage.onChanged.addListener(function (changes, area) {
+		if (area !== "local" || !changes[CHAVE_COR_MESA]) return;
+		lerCorMesa({ [CHAVE_COR_MESA]: changes[CHAVE_COR_MESA].newValue });
 		if (aberto) render();
 	});
 

@@ -2167,3 +2167,75 @@ CENAS.V70 = {
 		await S.endCard("Lista reunida → + da linha → Carregando os arquivos… → arquivos da juntada.");
 	},
 };
+
+// ------------------------------------------------------------------ V71
+// Usa o CSS de verdade da extensão (src/visualMesa.css); o HTML dos quadros é
+// o mesmo que src/visualMesa.js monta a partir da página do Projudi.
+CENAS.V71 = {
+	arquivo: "V71-visual-novo-da-mesa-do-analista.mp4",
+	titulo: "Visual novo da Mesa do Analista",
+	secao: "9.15",
+	async run() {
+		const css = document.createElement("link");
+		css.rel = "stylesheet";
+		css.href = "../../extensao-preview-documentos/src/visualMesa.css";
+		document.head.appendChild(css);
+		const ABAS_MESA = ["Início", "Citações e Intimações", "Análise de Juntadas", "Outros Cumprimentos", "Lembretes", "Cumprimentos de Medidas", "Mesa do Escrivão Criminal"];
+		const abas = on => '<div id="tabHorz"><ul>' + ABAS_MESA.map(a => '<li class="' + (a === on ? "currentTab" : "") + '"><div class="tabCenter"><a>' + a + "</a></div></li>").join("") + "</ul></div>";
+		const linha = (rot, n, urg) => '<tr class="pdp-vm-linha"><td class="label pdp-vm-rotulo">' + rot + '</td><td class="pdp-vm-valor"><a><span class="contador' + (urg ? " urgente" : "") + '">' + n + "</span></a></td></tr>";
+		const cartao = (tit, estilo, linhas, o = {}) => '<section class="pdp-vm-cartao pdp-vm-' + estilo + (o.urg ? " pdp-vm-urgente" : "") + (o.largo ? " pdp-vm-largo" : "") + '"><h4 class="pdp-vm-cartao-titulo">' + tit + '</h4><table class="form pdp-vm-tabela"><tbody>' + linhas.join("") + "</tbody></table></section>";
+		const cores = '<span class="pdp-vm-cores">Cor: <button class="pdp-vm-cor" id="cor-oliva" style="background:#56613c" aria-pressed="true"></button><button class="pdp-vm-cor" id="cor-petroleo" style="background:#1d6272" aria-pressed="false"></button><button class="pdp-vm-cor" id="cor-marinho" style="background:#2c4a80" aria-pressed="false"></button><button class="pdp-vm-cor" id="cor-grafite" style="background:#3f444c" aria-pressed="false"></button></span>';
+		const mesa = (aba, corpo) => {
+			const cor = document.documentElement.getAttribute("data-pdp-vm-cor") || "oliva";
+			browser(["*Projudi - Mesa do Analista"], "https://projudi.tjpr.jus.br/projudi/usuario/mesaAnalista.do");
+			screen(pjHeader() + '<div class="pj-body" style="padding:10px 18px"><form id="mesaAnalistaForm"><h3 class="pdp-vm-titulo" style="margin:4px 0 0;color:#4b5536;font-size:17px">Mesa do Analista Judiciário ' + cores + "</h3>" + abas(aba) +
+				'<div class="masterBlockSubInfoHorz" style="padding:14px"><div class="pdp-vm-painel">' + corpo + "</div></div></form></div>");
+			$$(".pdp-vm-cor").forEach(bt => bt.setAttribute("aria-pressed", String(bt.id === "cor-" + cor)));
+		};
+
+		// Antes: a tela original, com rótulos à direita e números pequenos.
+		browser(["*Projudi - Mesa do Analista"], "https://projudi.tjpr.jus.br/projudi/usuario/mesaAnalista.do");
+		const itens = [["Juntadas", 804], ["Retorno de Conclusão", 71], ["Mandados aguardando análise de retorno", 49], ["Cartas Eletrônicas aguardando análise de retorno", 11], ["Multas Fupen vencidas e pendentes de ordenação", 47], ["Processos com suspeita de incompetência - Juiz das Garantias", 45]];
+		screen(pjHeader() + '<div class="pj-body"><div class="pj-h2">Mesa do Analista Judiciário</div><div class="pj-tabs">' + ABAS_MESA.map(a => '<span class="pj-tab' + (a === "Análise de Juntadas" ? " on" : "") + '">' + a + "</span>").join("") + "</div>" +
+			'<table style="margin-top:10px;font-size:11px"><tr><td style="vertical-align:top;padding-right:60px"><b style="color:#5b6b4a">Com Urgência</b><br><br>Juntadas: <u style="color:red">12</u><br>Retorno de Conclusão: <u style="color:red">11</u></td><td style="vertical-align:top;text-align:right"><b style="color:#5b6b4a">Para Realizar</b><br><br>' +
+			itens.map(([n, c]) => "<b>" + n + ":</b> <u>" + c + "</u>").join("<br>") + "</td></tr></table></div>");
+		await S.titleCard("VÍDEO V71", "Visual novo da Mesa do Analista", "Os mesmos números e links, organizados em quadros.");
+		await S.cap("Assim era a <b>Mesa do Analista</b>: rótulos longos, números pequenos e muito espaço vazio.", { ms: 4200 });
+
+		// Depois: Análise de Juntadas em quadros.
+		document.documentElement.classList.add("pdp-vm");
+		document.documentElement.setAttribute("data-pdp-vm-cor", "oliva");
+		mesa("Análise de Juntadas", '<div class="pdp-vm-grade">' +
+			cartao("Com Urgência", "blocos", [linha("Juntadas", 12, true), linha("Retorno de Conclusão", 11, true)], { urg: true, largo: true }) +
+			cartao("Para Realizar", "blocos", [linha("Juntadas", 804), linha("Retorno de Conclusão", 71)], { largo: true }) +
+			cartao("Retornos de cumprimento", "lista", [linha("Mandados aguardando análise de retorno", 49), linha("Cartas Eletrônicas aguardando análise de retorno", 11), linha("Diligências aguardando retorno", 13)]) +
+			cartao("Multas Fupen e custas", "lista", [linha("Multas Fupen vencidas e pendentes de ordenação", 47), linha("Multas Fupen vencidas e pendentes de reenvio ao Fupen", 36), linha("Prestações Pecuniárias em atraso", 8)]) +
+			cartao("Outros", "lista", [linha("Autuação da Guia de Execução pendente", 33), linha("Processos com suspeita de incompetência - Juiz das Garantias", 45)]) + "</div>");
+		await S.cap("Com a extensão, cada assunto fica num <b>quadro</b>. O que é <b>urgente</b> aparece primeiro, em vermelho.", { ms: 4600 });
+		S.hl(".pdp-vm-lista", 2);
+		await S.cap("Os demais itens ficam <b>agrupados por assunto</b>. Clicar num número abre a mesma lista de sempre.", { ms: 4400 });
+		S.hlOff();
+
+		// Cor
+		await S.click("#cor-petroleo");
+		document.documentElement.setAttribute("data-pdp-vm-cor", "petroleo");
+		$$(".pdp-vm-cor").forEach(b => b.setAttribute("aria-pressed", String(b.id === "cor-petroleo")));
+		await S.cap("Nas bolinhas ao lado do título, escolha a cor: <b>Oliva</b> (padrão), <b>Azul-petróleo</b>, <b>Azul-marinho</b> ou <b>Grafite</b>. A escolha fica guardada.", { ms: 5000 });
+
+		// Mesa do Escrivão Criminal
+		const atalho = (nome, chips) => '<div class="pdp-vm-atalho"><table><tbody><tr><td><b><label>' + nome + "</label></b>" + (chips || []).map(c => ' <a class="pdp-vm-chip">' + c + "</a>").join("") + "</td></tr></tbody></table></div>";
+		const grupo = (t, lista) => '<section class="pdp-vm-cartao pdp-vm-atalhos"><h4 class="pdp-vm-cartao-titulo"><span>' + t + '</span><span class="pdp-vm-qtd">' + lista.length + "</span></h4>" + lista.join("") + "</section>";
+		mesa("Mesa do Escrivão Criminal", '<div class="pdp-vm-escrivao"><div class="pdp-vm-barra"><span id="busca-atalho" style="display:inline-block;width:260px;min-height:18px;padding:6px 10px;border:1px solid var(--vm-linha);border-radius:6px;background:#fff;font-size:13px"></span><span class="pdp-vm-contagem">35 atalhos em 7 grupos</span></div><div class="pdp-vm-colunas">' +
+			grupo("Réu preso e prisões", [atalho("Feitos de réu preso", ["Sem sentença anotada", "Todos"]), atalho("Flagrantes em andamento"), atalho("Monitoração Eletrônica", ["Expiradas", "A Expirar", "Ativas"])]) +
+			grupo("Prazos vencidos e atrasos", [atalho("Mandados com prazo vencido"), atalho("Prescrições", ["Vencidas", "A vencer"]), atalho("Fianças com prazo excedido")]) +
+			grupo("Bens, fianças e valores", [atalho("Apreensões em aberto"), atalho("Fianças não levantadas"), atalho("Multa do FUPEN")]) + "</div></div>");
+		await S.cap("Na <b>Mesa do Escrivão Criminal</b>, os atalhos ficam separados por assunto, e as opções entre colchetes viram botõezinhos.", { ms: 5000 });
+		await S.type("#busca-atalho", "fiança");
+		$$(".pdp-vm-atalho").forEach(a => { if (!/fian/i.test(a.textContent)) a.setAttribute("data-pdp-vm-oculta", ""); });
+		$$(".pdp-vm-atalhos").forEach(c => { if (!c.querySelector(".pdp-vm-atalho:not([data-pdp-vm-oculta])")) c.setAttribute("data-pdp-vm-oculta", ""); });
+		$$(".pdp-vm-atalhos").forEach(c => { c.querySelector(".pdp-vm-qtd").textContent = String(c.querySelectorAll(".pdp-vm-atalho:not([data-pdp-vm-oculta])").length); });
+		$(".pdp-vm-contagem").textContent = "2 atalho(s) encontrado(s)";
+		await S.cap("Em <b>Procurar atalho</b>, digite parte do nome para achar o atalho na hora.", { ms: 4200 });
+		await S.endCard("Mesa do Analista → quadros por assunto → mesma lista de sempre ao clicar. Cor: bolinhas ao lado do título ou Menu.");
+	},
+};

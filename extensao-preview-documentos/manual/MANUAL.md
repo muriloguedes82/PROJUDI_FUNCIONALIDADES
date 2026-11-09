@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 12 |
-| **Versão da extensão** | 12 |
+| **Versão do manual** | 13 |
+| **Versão da extensão** | 13 |
 | **Data desta versão** | 09/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -98,6 +98,7 @@
    - 9.12 [Localizador na lista de juntadas e de conclusões (só no SEEU)](#cap-9-12)
    - 9.13 [Localizador na lista de juntadas e de conclusões (Projudi)](#cap-9-13)
    - 9.14 [Listas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN e Juiz das Garantias)](#cap-9-14)
+   - 9.15 [Visual novo da Mesa do Analista (Projudi)](#cap-9-15)
 10. [Privacidade e convivência com outras extensões](#cap-10)
     - 10.1 [O que fica guardado no seu navegador](#cap-10-1)
     - 10.2 [Convivência com o AzFlow](#cap-10-2)
@@ -482,12 +483,17 @@ ligar tudo.
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Prioridades (Projudi) · Agendar Audiência (preferências) (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Bloco de anotações | [4](#cap-4) |
-| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (SEEU) · Localizador na lista (Projudi) · Listas em uma única página (Projudi) | [6](#cap-6), [9](#cap-9) |
+| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (SEEU) · Localizador na lista (Projudi) · Listas em uma única página (Projudi) · Visual novo da Mesa do Analista (Projudi) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
 Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
 mov.** fazem parte das funções acima (as duas primeiras, das
 **Ações rápidas**; a última, do **Destaque de movimentações**).
+
+**Cor do visual da Mesa do Analista** (só no Projudi) — escolhe a cor do
+visual novo da Mesa ([9.15](#cap-9-15)): **Oliva** (padrão),
+**Azul-petróleo**, **Azul-marinho** ou **Grafite**. A mesma escolha pode ser
+feita nas bolinhas ao lado do título da Mesa.
 
 **Abrir os sistemas (cards ao lado da balança)** — logo acima de
 Preferências e combos, escolhe como os cards dos sistemas ([8.7](#cap-8-7))
@@ -3148,6 +3154,70 @@ página. Não há botão: a extensão faz isso sozinha.
   processo) podem não responder ao clique. Os demais recursos da linha
   funcionam normalmente.
 
+<a id="cap-9-15"></a>
+### 9.15 Visual novo da Mesa do Analista (Projudi)
+
+*Só no Projudi. Vem ligado.*
+
+**Para que serve:** deixar a **Mesa do Analista Judiciário** mais fácil de
+ler. Os números e os links são os mesmos de sempre; muda só a arrumação na
+tela.
+
+**Onde fica:** na Mesa do Analista Judiciário, nas abas **Início**,
+**Citações e Intimações**, **Análise de Juntadas**, **Outros
+Cumprimentos**, **Cumprimentos de Medidas** e **Mesa do Escrivão
+Criminal**. A aba **Lembretes** continua como era (só a barra das abas, que
+é a mesma para todas, muda de aparência).
+
+**O que muda em cada aba:**
+
+| Aba | Como fica |
+|---|---|
+| **Início** | Cada assunto num quadro: Dados do Juízo, Processos Ativos (números grandes), Processos Paralisados (+30 dias), com um número para Secretaria, Em Remessa, Em Remessa (exceto processos conclusos) e Razões Externas, e Últimas Mensagens, com a data numa etiqueta |
+| **Citações e Intimações** | **Com Urgência** no alto, ocupando a largura toda; depois um quadro para Para Conferir, Para Expedir, Para Assinar, AR Digital e Decurso de Prazo, com os números grandes. Quadro sem nada mostra **Nada pendente.** |
+| **Análise de Juntadas** | **Com Urgência** no alto, depois **Para Realizar** (Juntadas e Retorno de Conclusão em destaque) e os demais itens separados em três quadros: **Retornos de cumprimento** (mandados, cartas eletrônicas, diligências…), **Multas Fupen e custas** (multas Fupen e prestações pecuniárias) e **Outros** (guia de execução, comunicações recursais, Juiz das Garantias e o que mais o Projudi mostrar) |
+| **Outros Cumprimentos** | As tabelas BNMP e Cumprimentos com o número de cada coluna numa etiqueta (vermelha para Com Urgência e Devolvido pelo Juiz) e os zeros bem claros. O título das colunas fica à vista ao rolar a tela, e as colunas aparecem agrupadas em **Andamento**, **Atenção**, **Prazos** e **AR Digital**. Itens soltos abaixo das tabelas (como **Comunicações Recursais Pendentes de Encaminhamento**) vão para o quadro **Outros pendentes** |
+| **Cumprimentos de Medidas** | Um quadro para Atrasados (em vermelho), A Cumprir e Sem Cumprimentos |
+| **Mesa do Escrivão Criminal** | Os 35 atalhos separados por assunto: Réu preso e prisões; Prazos vencidos e atrasos; Denúncia, sentença e arquivamento; Bens, fianças e valores; Cadastro incompleto; Violência doméstica; Comunicações e remessas. As opções que ficavam entre colchetes (como [Vencidas] e [A vencer]) viram botõezinhos ao lado do nome |
+
+**Passo a passo:**
+
+1. Abra a **Mesa do Analista Judiciário** como sempre. O visual novo já
+   aparece.
+2. Clique em um número ou atalho: abre a mesma lista que abria antes.
+3. Em **Outros Cumprimentos**, para achar um tipo de cumprimento, digite
+   parte do nome em **Filtrar cumprimento** (ex.: "edital"). A caixinha
+   **Só linhas com pendência** esconde as linhas em que todas as colunas
+   estão em zero; desmarque-a para ver todas.
+4. Na **Mesa do Escrivão Criminal**, digite parte do nome em **Procurar
+   atalho** (ex.: "fiança") para ver só os atalhos com essa palavra.
+
+**Escolher a cor:**
+
+- Ao lado do título **Mesa do Analista Judiciário** há quatro bolinhas:
+  **Oliva** (padrão), **Azul-petróleo**, **Azul-marinho** e **Grafite**.
+  Clique numa delas e a tela troca de cor na hora.
+- A mesma escolha fica no Menu (ícone da balança), em **Cor do visual da
+  Mesa do Analista** ([2.6](#cap-2-6)).
+- A cor fica guardada no seu navegador e vale nas próximas vezes. Ela entra
+  no **⬇ Exportar** do Menu, para levar a outro computador. Cada
+  computador tem a sua: a cor que você escolhe não muda a dos colegas.
+- O vermelho dos itens urgentes e atrasados é o mesmo em todas as cores.
+
+**Bom saber:**
+
+- Os números continuam se atualizando sozinhos, como antes.
+- Funciona junto com a **Mesa do Analista sem itens zerados**
+  ([9.4](#cap-9-4)): com ela ligada, as linhas zeradas continuam
+  escondidas. Em **Outros Cumprimentos**, desmarcar **Só linhas com
+  pendência** mostra também essas linhas. A escolha da caixinha fica
+  guardada.
+- Para voltar à tela original do Projudi, desligue **Visual novo da Mesa do
+  Analista** no Menu ([2.6](#cap-2-6)) e recarregue a página (F5).
+- Atalho novo que o Projudi acrescentar na Mesa do Escrivão Criminal
+  aparece no quadro **Outros atalhos**; item novo da Análise de Juntadas,
+  no quadro **Outros**.
+
 ---
 
 <a id="cap-10"></a>
@@ -3211,6 +3281,7 @@ telas abertas a partir daí voltam a funcionar.
 | Nenhum botão da extensão aparece | Confira se aceitou os Termos de Uso ([2.2](#cap-2-2)); recarregue a página (F5); confira se a extensão está ativada em `chrome://extensions`; confira se o perfil não é de advocacia ([10.3](#cap-10-3)) |
 | Numa lista reunida em uma única página, o **+** abre vazio, sem os arquivos, ou mostra "Não foi possível trazer os arquivos: o registro não está mais na página…" | Corrigido nas versões 10 e 11: atualize a extensão ([2.3](#cap-2-3)). Ao clicar no **+**, deve aparecer **Carregando os arquivos…** e, em seguida, os arquivos. Se aparecer **Não foi possível trazer os arquivos**, clique no **+** de novo ou recarregue a lista (F5) ([9.14](#cap-9-14)) |
 | Numa das listas reunidas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN, Juiz das Garantias) aparece "Não foi possível trazer as páginas seguintes" | A sessão do Projudi pode ter expirado ou a conexão falhou: recarregue a lista (F5). Enquanto isso, a navegação de páginas do Projudi continua funcionando ([9.14](#cap-9-14)) |
+| A Mesa do Analista está com o visual novo e eu prefiro a tela original | Desligue **Visual novo da Mesa do Analista** no Menu (ícone da balança) e recarregue a página (F5) ([9.15](#cap-9-15)) |
 | Atualizei a extensão e nada mudou | Clique em ↻ no card da extensão em `chrome://extensions` e depois recarregue as páginas ([2.3](#cap-2-3)) |
 | A barra de botões cobre algo da tela | Arraste **↕ Mover** ou clique em **Ocultar** ([2.4](#cap-2-4)) |
 | O painel de ações diz para abrir a aba Movimentações | Abra a aba **Movimentações** do processo e tente de novo ([7.1](#cap-7-1)) |
@@ -3250,6 +3321,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 13 | 09/11/2026 | Nova seção 9.15 **Visual novo da Mesa do Analista (Projudi)**: abas Início, Citações e Intimações, Análise de Juntadas (itens agrupados por assunto), Outros Cumprimentos (filtro e caixinha "Só linhas com pendência"), Cumprimentos de Medidas e Mesa do Escrivão Criminal (atalhos agrupados e busca) organizadas em quadros, com escolha de cor (Oliva, Azul-petróleo, Azul-marinho ou Grafite) guardada como preferência. Sumário, tabela da 2.6 (função e **Cor do visual da Mesa do Analista**) e **11. Solução de problemas** atualizados. Novo vídeo V71 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 12 | 09/11/2026 | Localizador na lista do Projudi (9.13): os localizadores passam a aparecer numa **coluna nova, Localizadores**, a última da tabela, em vez de abaixo do número do processo. Ajustados "Onde fica", o passo 1, "Remover um localizador direto na lista" e o Bom saber (linhas das listas em uma única página). |
 | 11 | 06/11/2026 | Corrigido (seção 9.14): nas listas de intimação reunidas (**Intimação** — decurso de prazo, **Expedir Intimações** e **Auxiliares da Justiça**), o **+** mostrava "Não foi possível trazer os arquivos: o registro não está mais na página 1 da lista". Agora, nessas listas, a extensão pede os arquivos direto ao Projudi, pela movimentação da linha, e eles aparecem quase na hora. Linha de **11. Solução de problemas** atualizada. Sem vídeo novo (a tela não mudou). |
 | 10 | 06/11/2026 | Corrigido (seção 9.14): nas listas reunidas em uma única página, o **+** abria vazio, sem os arquivos — tanto nas linhas da primeira página quanto nas trazidas das outras (o Projudi passava a "estar" na última página buscada). Agora a extensão atende o **+**: mostra **Carregando os arquivos…** e traz os arquivos da página de onde a linha veio; o **Expandir Mov** também funciona. Nova linha em **11. Solução de problemas**. Novo vídeo V70 gravado e guardado em `videos-do-manual/` (não citado no manual). |
