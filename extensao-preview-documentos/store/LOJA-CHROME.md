@@ -33,24 +33,52 @@ foram retiradas apenas aqui (a branch `principal` continua com as duas).
 - **Categoria:** Produtividade (Ferramentas / Fluxo de trabalho).
 - **Idioma:** Português (Brasil).
 
-**Descrição detalhada (sugestão):**
+**Descrição detalhada** (versão reenviada depois da recusa por "spam de
+palavra-chave", ID Yellow Argon: a loja não aceita listas de nomes de
+sistemas ou de telas na descrição; descreva o que a função faz, sem
+enumerar nomes):
 
-> Assistente Projudi é uma extensão para servidores(as) e magistrados(as)
-> que usam o Projudi do Tribunal de Justiça do Paraná (TJPR).
->
-> • Pré-visualização: veja a íntegra do documento ao passar o mouse nas
-> Movimentações, nas juntadas, conclusões e listas — sem abrir outra aba.
-> • Ações rápidas e Minhas Preferências: conclusão, remessa, ordenações,
-> intimações e combos com um clique, sempre com sua confirmação.
-> • Quadro Pendências: dispensar juntadas e decursos e finalizar conclusões.
-> • Listas em uma única página, localizador na lista, tarefas coloridas.
-> • Envio de documentos por WhatsApp Web e por e-mail (Outlook).
-> • Réus, RG/CPF, suspensão e monitoração no cabeçalho do processo.
-> • Atalhos para sistemas do CNJ (BNMP, Sisbajud, Renajud, Infojud, SerpJud…).
->
-> Nenhum ato processual é praticado sem o seu clique. Suas preferências
-> ficam no seu navegador. Extensão independente, sem vínculo oficial com o
-> TJPR ou o CNJ.
+```
+Assistente Projudi é uma extensão para servidores(as), assessores(as) e magistrados(as) que trabalham no Projudi do Tribunal de Justiça do Paraná (TJPR). Ela acrescenta botões, atalhos e informações às telas do próprio Projudi para agilizar as rotinas de secretaria e de gabinete.
+
+PRÉ-VISUALIZAÇÃO
+• Veja a íntegra do documento ao passar o mouse sobre ele, sem abrir outra aba.
+• Nas listas de trabalho, veja o processo ao passar o mouse sobre o número.
+• Expanda os anexos, esconda movimentações sem arquivo e destaque as movimentações por tipo de usuário.
+
+AÇÕES RÁPIDAS E PREFERÊNCIAS
+• Botões para os atos mais comuns direto na tela do processo.
+• Grave os atos que você mais repete como preferências e execute-os com um clique, também em vários processos de uma vez.
+• Encadeie várias preferências numa sequência só.
+
+PENDÊNCIAS E LISTAS
+• Resolva pendências direto da tela do processo.
+• Veja as listas de trabalho numa única página, sem trocar de página.
+• Organize os processos com marcações coloridas e tarefas.
+
+INFORMAÇÕES DO PROCESSO
+• Dados das partes e avisos importantes no cabeçalho do processo.
+• Bloco de anotações por processo.
+
+ENVIO DE DOCUMENTOS
+• Selecione arquivos do processo e envie-os pelo WhatsApp Web ou por e-mail (Outlook).
+
+ATALHOS
+• Abra, sem sair do processo, os sistemas judiciais que você já usa no dia a dia.
+
+VOCÊ NO CONTROLE
+• Nenhum ato processual é praticado sem o seu clique: a extensão preenche e para, para você conferir e confirmar.
+• Cada funcionalidade pode ser ligada ou desligada no Menu da extensão.
+• Exporte e importe as suas preferências.
+• Manual do Usuário completo dentro da própria extensão.
+
+PRIVACIDADE
+• Suas preferências ficam guardadas no seu navegador.
+• A extensão não envia dados para servidores próprios. Documentos só saem do computador quando você clica em enviar.
+
+AVISO
+Extensão independente, sem vínculo oficial com o Tribunal de Justiça do Paraná (TJPR). Antes de usar, a extensão pede o aceite dos Termos de Uso.
+```
 
 **Por que o nome ajuda a achar a extensão:** a busca da Chrome Web Store dá
 mais peso ao **nome**; com "Projudi" logo no início (e repetido no resumo),
