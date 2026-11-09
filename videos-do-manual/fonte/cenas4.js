@@ -2300,13 +2300,13 @@ CENAS.V73 = {
 		// Depois: Análise de Juntadas em quadros.
 		document.documentElement.classList.add("pdp-vm");
 		document.documentElement.setAttribute("data-pdp-vm-cor", "oliva");
-		mesa("Análise de Juntadas", '<div class="pdp-vm-grade">' +
-			cartao("Com Urgência", "blocos", [linha("Juntadas", 12, true), linha("Retorno de Conclusão", 11, true)], { urg: true, largo: true }) +
-			cartao("Para Realizar", "blocos", [linha("Juntadas", 804), linha("Retorno de Conclusão", 71)], { largo: true }) +
+		mesa("Análise de Juntadas", '<div class="pdp-vm-juntadas"><div class="pdp-vm-col-esq">' +
+			cartao("Com Urgência", "blocos", [linha("Juntadas", 12, true), linha("Retorno de Conclusão", 11, true)], { urg: true }) +
+			cartao("Para Realizar", "blocos", [linha("Juntadas", 804), linha("Retorno de Conclusão", 71)]) + '</div><div class="pdp-vm-col-dir">' +
 			cartao("Retornos de cumprimento", "lista", [linha("Mandados aguardando análise de retorno", 49), linha("Cartas Eletrônicas aguardando análise de retorno", 11), linha("Diligências aguardando retorno", 13)]) +
 			cartao("Multas Fupen e custas", "lista", [linha("Multas Fupen vencidas e pendentes de ordenação", 47), linha("Multas Fupen vencidas e pendentes de reenvio ao Fupen", 36), linha("Prestações Pecuniárias em atraso", 8)]) +
-			cartao("Outros", "lista", [linha("Autuação da Guia de Execução pendente", 33), linha("Processos com suspeita de incompetência - Juiz das Garantias", 45)]) + "</div>");
-		await S.cap("Com a extensão, cada assunto fica num <b>quadro</b>. O que é <b>urgente</b> aparece primeiro, em vermelho.", { ms: 4600 });
+			cartao("Outros", "lista", [linha("Autuação da Guia de Execução pendente", 33), linha("Processos com suspeita de incompetência - Juiz das Garantias", 45)]) + "</div></div>");
+		await S.cap("Com a extensão, juntadas e conclusões ficam à esquerda, com o <b>urgente</b> em vermelho; os demais assuntos, em <b>quadros</b> à direita.", { ms: 4600 });
 		S.hl(".pdp-vm-lista", 2);
 		await S.cap("Os demais itens ficam <b>agrupados por assunto</b>. Clicar num número abre a mesma lista de sempre.", { ms: 4400 });
 		S.hlOff();

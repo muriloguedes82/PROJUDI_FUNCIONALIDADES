@@ -45,6 +45,12 @@ html.pdp-vm .pdp-vm-original { display: none !important; }
 html.pdp-vm .pdp-vm-painel { font-family: var(--vm-fonte); color: var(--vm-texto); }
 html.pdp-vm .pdp-vm-grade { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); align-items: start; }
 html.pdp-vm .pdp-vm-largo { grid-column: 1 / -1; }
+/* Análise de Juntadas: coluna estreita à esquerda (juntadas e conclusões), demais quadros à direita */
+html.pdp-vm .pdp-vm-juntadas { display: grid; grid-template-columns: minmax(240px, 300px) minmax(0, 1fr); gap: 14px; align-items: start; }
+html.pdp-vm .pdp-vm-col-esq { display: grid; gap: 14px; min-width: 0; }
+html.pdp-vm .pdp-vm-col-dir { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); align-items: start; min-width: 0; }
+html.pdp-vm .pdp-vm-col-esq .pdp-vm-blocos table.pdp-vm-tabela > tbody { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); }
+@media (max-width: 760px) { html.pdp-vm .pdp-vm-juntadas { grid-template-columns: minmax(0, 1fr); } }
 html.pdp-vm .pdp-vm-cartao { background: var(--vm-cartao); border: 1px solid var(--vm-linha); border-radius: 8px; padding: 12px 16px 14px; min-width: 0; box-sizing: border-box; }
 html.pdp-vm .pdp-vm-cartao.pdp-vm-urgente { border-color: #e3b1a7; background: linear-gradient(var(--vm-urgente-suave), var(--vm-cartao) 46px); }
 html.pdp-vm h4.pdp-vm-cartao-titulo { width: auto !important; display: flex; justify-content: space-between; gap: 8px; margin: 0 0 8px; padding: 0; border: 0; background: none;

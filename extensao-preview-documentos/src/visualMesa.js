@@ -237,7 +237,7 @@
 		if (tr.hasAttribute(JUNTADAS_ESCRIVAO.attr)) {
 			if (!j.escrivao) {
 				j.escrivao = cartao(JUNTADAS_ESCRIVAO.titulo, "lista");
-				j.grade.append(j.escrivao);
+				j.direita.append(j.escrivao);
 			}
 			j.escrivao.__tbody.append(tr);
 			return;
@@ -250,7 +250,7 @@
 		if (!alvo.c.isConnected) {
 			// Mantém a ordem dos subgrupos, com o quadro do Escrivão sempre por último.
 			const depois = j.subs.slice(j.subs.indexOf(alvo) + 1).map(function (s) { return s.c; }).find(function (c) { return c.isConnected; });
-			j.grade.insertBefore(alvo.c, depois || j.escrivao || null);
+			j.direita.insertBefore(alvo.c, depois || j.escrivao || null);
 		}
 	}
 	// Chamado a cada mudança na aba: recolhe as linhas que chegaram no
@@ -264,26 +264,30 @@
 	function montarJuntadas() {
 		const grupos = gruposH4();
 		if (!grupos.length) return false;
-		const g = grade();
-		juntadas = { grade: g, principal: null, subs: [], escrivao: null, tabelasOriginais: [] };
+		// Duas colunas: à esquerda, estreita, Com Urgência e Para Realizar
+		// (juntadas e conclusões); à direita, os demais quadros.
+		const esquerda = el("div", { class: "pdp-vm-col-esq" });
+		const direita = el("div", { class: "pdp-vm-col-dir" });
+		const g = el("div", { class: "pdp-vm-juntadas" }, [esquerda, direita]);
+		juntadas = { grade: g, direita: direita, principal: null, subs: [], escrivao: null, tabelasOriginais: [] };
 		grupos.forEach(function (x) {
 			if (ehUrgente(x.titulo)) {
-				const c = cartao(x.titulo, "blocos", { urgente: true, largo: true, vazio: "Nada com urgência." });
+				const c = cartao(x.titulo, "blocos", { urgente: true, vazio: "Nada com urgência." });
 				x.linhas.forEach(function (tr) { marcarLinha(tr); c.__tbody.append(tr); });
-				g.prepend(c);
+				esquerda.prepend(c);
 				return;
 			}
 			if (!/para realizar/.test(normalizar(x.titulo))) {
 				const c = cartao(x.titulo, "lista");
 				x.linhas.forEach(function (tr) { marcarLinha(tr); c.__tbody.append(tr); });
-				g.append(c);
+				direita.append(c);
 				return;
 			}
-			juntadas.principal = cartao(x.titulo, "blocos", { largo: true });
+			juntadas.principal = cartao(x.titulo, "blocos");
 			juntadas.subs = JUNTADAS_SUBGRUPOS.map(function (s) { return { def: s, c: cartao(s.titulo, "lista") }; });
 			const tabela = x.fs.querySelector("table.form");
 			if (tabela) juntadas.tabelasOriginais.push(tabela);
-			g.append(juntadas.principal);
+			esquerda.append(juntadas.principal);
 			x.linhas.forEach(rotearJuntada);
 		});
 		if (!juntadas.principal) juntadas = null;
