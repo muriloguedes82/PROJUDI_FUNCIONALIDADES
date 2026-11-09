@@ -732,7 +732,7 @@
 		} else {
 			conteudo.append(
 				el("p", {}, [
-					"Saiu uma versão nova da extensão Olirum. ",
+					"Saiu uma versão nova da extensão Assistente Projudi. ",
 					el("a", { href: LINK_NOVIDADES, target: "_blank", rel: "noopener", text: "Ver o que mudou" }),
 					"."
 				]),

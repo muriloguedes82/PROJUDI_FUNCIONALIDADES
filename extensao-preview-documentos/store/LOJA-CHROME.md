@@ -25,8 +25,8 @@ foram retiradas apenas aqui (a branch `principal` continua com as duas).
 
 ## Ficha da loja (sugestão)
 
-- **Nome (no manifest):** Olirum para Projudi – Ações Rápidas, Pré-visualização e WhatsApp
-- **Nome curto:** Olirum Projudi
+- **Nome (no manifest):** Assistente Projudi – Ações Rápidas e Pré-visualização
+- **Nome curto:** Assistente Projudi
 - **Resumo (manifest, 132 caracteres):** Assistente do Projudi (TJPR):
   pré-visualiza documentos ao passar o mouse, ações rápidas, preferências e
   envio por WhatsApp e e-mail.
@@ -35,7 +35,7 @@ foram retiradas apenas aqui (a branch `principal` continua com as duas).
 
 **Descrição detalhada (sugestão):**
 
-> Olirum para Projudi é um assistente para servidores(as) e magistrados(as)
+> Assistente Projudi é uma extensão para servidores(as) e magistrados(as)
 > que usam o Projudi do Tribunal de Justiça do Paraná (TJPR).
 >
 > • Pré-visualização: veja a íntegra do documento ao passar o mouse nas
@@ -54,9 +54,10 @@ foram retiradas apenas aqui (a branch `principal` continua com as duas).
 
 **Por que o nome ajuda a achar a extensão:** a busca da Chrome Web Store dá
 mais peso ao **nome**; com "Projudi" logo no início (e repetido no resumo),
-quem pesquisa "Projudi" encontra a extensão de imediato. "Olirum" mantém a
-marca, e "Ações Rápidas, Pré-visualização e WhatsApp" cobre as buscas mais
-comuns de quem procura essas funções.
+quem pesquisa "Projudi" encontra a extensão de imediato. "Assistente" deixa
+claro que é uma ajuda para usar o Projudi, e não o sistema oficial (a loja
+recusa nomes que pareçam oficiais), e "Ações Rápidas e Pré-visualização"
+cobre as buscas mais comuns de quem procura essas funções.
 
 ## Gerar o pacote (.zip) para enviar à loja
 

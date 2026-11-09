@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Olirum para Projudi – Ações Rápidas, Pré-visualização e WhatsApp",
-  "short_name": "Olirum Projudi",
+  "name": "Assistente Projudi – Ações Rápidas e Pré-visualização",
+  "short_name": "Assistente Projudi",
   "version": "17",
   "description": "Assistente do Projudi (TJPR): pré-visualiza documentos ao passar o mouse, ações rápidas, preferências e envio por WhatsApp e e-mail.",
   "icons": {
@@ -11,7 +11,7 @@
     "128": "icons/icon128.png"
   },
   "action": {
-    "default_title": "Olirum – Seu assistente no Projudi",
+    "default_title": "Assistente Projudi",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",
