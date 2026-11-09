@@ -13,9 +13,19 @@
 //     formulário com action "?actionType=pesquisarProcessosSemInfracaoPenal");
 //   - "Reavaliação da prisão provisória a cada 90 dias (Art 316, CPP)" →
 //     lista de mesmo nome (processo/criminal/reavaliacaoProvisoria.do,
-//     formulário reavaliacaoProvisoriaForm).
+//     formulário reavaliacaoProvisoriaForm);
+//   - "Prescrições" → [Vencidas] → tela "Prescrições de processos ativos"
+//     (usuario/mesaAnalistaEscrivao.do, formulário com action
+//     "?actionType=pesquisarPrescricoes"), pesquisada com "Somente sem
+//     sentença anotada" (semSentencaAnotada) e "Agrupar por processo"
+//     (agruparPorProcesso) marcados. Aqui o "Vencidas"/"A vencer" não vai no
+//     formulário: fica na sessão do Projudi, escolhido pelo link (com _tj
+//     codificado) do quadro. Por isso a extensão abre primeiro esse link,
+//     achado na aba "Mesa do Escrivão Criminal", e depois envia o formulário
+//     com as duas caixas marcadas. Clicar no número refaz os dois passos, na
+//     própria página.
 //
-// Cada total é obtido em segundo plano, tentando, nesta ordem, até um
+// Os dois primeiros totais são obtidos em segundo plano, tentando, nesta ordem, até um
 // trazer a lista certa (conferida pelo formulário ou pelo título):
 //   1. os endereços diretos da lista (sem o _tj codificado do Projudi);
 //   2. o endereço da lista com o _tj "genérico" que o Projudi usa nos links
@@ -63,6 +73,15 @@
 			diretos: ["processo/criminal/reavaliacaoProvisoria.do", "processo/criminal/reavaliacaoProvisoria.do?actionType=listar"],
 			form: "reavaliacaoProvisoriaForm",
 			titulo: /Reavalia[cç][aã]o da pris[aã]o provis[oó]ria/i,
+		},
+		{
+			id: "prescricoesVencidas",
+			rotulo: "Prescrições vencidas:",
+			dica: "Prescrições vencidas, somente sem sentença anotada e agrupadas por processo (quadro Prescrições da aba Mesa do Escrivão Criminal)",
+			acao: "pesquisarPrescricoes",
+			titulo: /Prescri[cç][oõ]es de processos ativos/i,
+			contar: contarPrescricoes,
+			abrir: abrirPrescricoes,
 		},
 	];
 
@@ -185,6 +204,95 @@
 		return { total: lerTotal(doc), href };
 	}
 
+	// ---- Prescrições vencidas ----------------------------------------------
+
+	// Link "Vencidas" do quadro "Prescrições" da aba "Mesa do Escrivão Criminal".
+	async function linkPrescricoesVencidas() {
+		const texto = await codigoMesaEscrivao();
+		const doc = new DOMParser().parseFromString(texto, "text/html");
+		for (const label of doc.querySelectorAll("label")) {
+			if (!/^Prescri[cç][oõ]es$/i.test(normalizar(label.textContent))) continue;
+			const td = label.closest("td") || label.parentElement;
+			const a = Array.from(td.querySelectorAll("a[href]")).find((x) => /^Vencidas$/i.test(normalizar(x.textContent)));
+			if (a) return new URL(a.getAttribute("href"), RAIZ + "usuario/mesaAnalista.do").href;
+		}
+		throw new Error("link \"Vencidas\" do quadro Prescrições não encontrado na Mesa do Escrivão Criminal");
+	}
+
+	// Campos do formulário como o navegador os enviaria (sem botões).
+	function camposDoFormulario(form) {
+		const campos = [];
+		for (const el of form.elements) {
+			if (!el.name || el.disabled) continue;
+			const tipo = (el.type || "").toLowerCase();
+			if (["submit", "button", "reset", "image", "file"].includes(tipo)) continue;
+			if ((tipo === "checkbox" || tipo === "radio") && !el.checked) continue;
+			if (el.tagName === "SELECT") {
+				const opcoes = Array.from(el.options);
+				let escolhidas = opcoes.filter((o) => o.selected);
+				if (!escolhidas.length && !el.multiple && opcoes.length) escolhidas = [opcoes[0]];
+				escolhidas.forEach((o) => campos.push([el.name, o.value]));
+				continue;
+			}
+			campos.push([el.name, el.value]);
+		}
+		return campos;
+	}
+
+	// Abre o link "Vencidas" e devolve o envio do formulário com
+	// "Somente sem sentença anotada" e "Agrupar por processo" marcados.
+	async function prepararPrescricoes() {
+		const vencidas = await linkPrescricoesVencidas();
+		const { doc } = await baixarDocumento(vencidas);
+		const form = doc.querySelector("form[action*='pesquisarPrescricoes'], #mesaAnalistaEscrivaoForm");
+		if (!form || (form.getAttribute("action") || "").indexOf("pesquisarPrescricoes") < 0) throw new Error("tela de Prescrições não encontrada");
+		const fixos = { semSentencaAnotada: "true", agruparPorProcesso: "true", pageNumber: "1" };
+		const campos = camposDoFormulario(form).filter(([nome]) => !(nome in fixos));
+		campos.push(["semSentencaAnotada", "true"], ["agruparPorProcesso", "true"]);
+		if (form.querySelector("[name='pageNumber']")) campos.push(["pageNumber", "1"]);
+		return { vencidas, acao: new URL(form.getAttribute("action"), vencidas).href, campos };
+	}
+
+	async function contarPrescricoes(item) {
+		const envio = await prepararPrescricoes();
+		const corpo = new URLSearchParams();
+		envio.campos.forEach(([nome, valor]) => corpo.append(nome, valor));
+		const resposta = await fetch(envio.acao, {
+			method: "POST",
+			credentials: "same-origin",
+			headers: { "Content-Type": "application/x-www-form-urlencoded" },
+			body: corpo.toString(),
+		});
+		if (!resposta.ok) throw new Error("HTTP " + resposta.status);
+		const bytes = new Uint8Array(await resposta.arrayBuffer());
+		const doc = new DOMParser().parseFromString(new TextDecoder("windows-1252").decode(bytes), "text/html");
+		if (!ehLista(item, doc)) throw new Error("a pesquisa não trouxe a tela de Prescrições");
+		return { total: lerTotal(doc), href: envio.vencidas };
+	}
+
+	// Clique no número: abre "Vencidas" (para a sessão ficar nas vencidas) e
+	// envia, na própria página, o formulário com as duas caixas marcadas.
+	async function abrirPrescricoes(alvo) {
+		const envio = await prepararPrescricoes();
+		const form = document.createElement("form");
+		form.method = "post";
+		form.action = envio.acao;
+		if (alvo) form.target = alvo;
+		form.style.display = "none";
+		envio.campos.forEach(([nome, valor]) => {
+			const input = document.createElement("input");
+			input.type = "hidden";
+			input.name = nome;
+			input.value = valor;
+			form.appendChild(input);
+		});
+		document.body.appendChild(form);
+		form.submit();
+		form.remove();
+	}
+
+	// -----------------------------------------------------------------------
+
 	function lerTodoCache() {
 		try {
 			const c = JSON.parse(sessionStorage.getItem(CACHE) || "null");
@@ -238,6 +346,19 @@
 		span.id = "pdpTotalEscrivao_" + item.id;
 		span.textContent = String(dados.total);
 		link.appendChild(span);
+		if (item.abrir) {
+			link.addEventListener("click", (ev) => {
+				ev.preventDefault();
+				const alvo = ev.ctrlKey || ev.metaKey || ev.shiftKey ? "_blank" : "";
+				// Janela aberta já no clique (senão o navegador a bloqueia).
+				const nome = alvo ? "pdpPrescricoes" + Date.now() : "";
+				if (nome) window.open("about:blank", nome);
+				item.abrir(nome).catch((erro) => {
+					console.warn(TAG, item.id + ": não foi possível abrir a lista:", erro);
+					location.href = dados.href;
+				});
+			});
+		}
 		espera.replaceWith(link);
 	}
 
@@ -258,7 +379,7 @@
 			let dados = lerCache(item.id);
 			if (!dados) {
 				try {
-					dados = await contar(item);
+					dados = await (item.contar || contar)(item);
 					gravarCache(item.id, dados);
 				} catch (erro) {
 					console.warn(TAG, item.id + ": não foi possível contar:", erro);

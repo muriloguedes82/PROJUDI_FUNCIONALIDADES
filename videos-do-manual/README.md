@@ -103,5 +103,5 @@ para dentro da extensão, retire essa regra.
 | [V69](V69-intimacoes-em-uma-unica-pagina.mp4) | [Listas em uma única página (Intimações)](V69-intimacoes-em-uma-unica-pagina.mp4) | [9.14](../extensao-preview-documentos/manual/MANUAL.md#cap-9-14) | 0:34 |
 | [V70](V70-arquivos-do-mais-nas-listas-reunidas.mp4) | [Listas em uma única página (arquivos do +)](V70-arquivos-do-mais-nas-listas-reunidas.mp4) | [9.14](../extensao-preview-documentos/manual/MANUAL.md#cap-9-14) | 0:26 |
 | [V71](V71-paralisados-90-dias-no-inicio.mp4) | [Processos Paralisados (+90 dias) na tela Início](V71-paralisados-90-dias-no-inicio.mp4) | [9.15](../extensao-preview-documentos/manual/MANUAL.md#cap-9-15) | 0:28 |
-| [V72](V72-totais-da-mesa-do-escrivao-na-analise-de-juntadas.mp4) | [Totais da Mesa do Escrivão Criminal na Análise de Juntadas](V72-totais-da-mesa-do-escrivao-na-analise-de-juntadas.mp4) | [9.16](../extensao-preview-documentos/manual/MANUAL.md#cap-9-16) | 0:28 |
+| [V72](V72-totais-da-mesa-do-escrivao-na-analise-de-juntadas.mp4) | [Totais da Mesa do Escrivão Criminal na Análise de Juntadas](V72-totais-da-mesa-do-escrivao-na-analise-de-juntadas.mp4) | [9.16](../extensao-preview-documentos/manual/MANUAL.md#cap-9-16) | 0:29 |
 <!-- tabela-videos:fim -->

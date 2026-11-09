@@ -2238,15 +2238,16 @@ CENAS.V72 = {
 			linha("Autuação da Guia de Execução pendente (Exportação Criminal):", num(33)) +
 			linha("Prestações Pecuniárias em atraso:", num(8)) +
 			"</table></fieldset></div>");
-		await S.titleCard("VÍDEO V72", "Totais da Mesa do Escrivão Criminal", "Feitos sem infração penal e Reavaliação da prisão provisória aparecem na Análise de Juntadas.");
-		await S.cap("Na <b>Mesa do Escrivão Criminal</b>, os quadros <b>Feitos sem infração penal</b> e <b>Reavaliação da prisão provisória</b> não mostram o total: é preciso clicar neles.", { ms: 5000 });
-		$("#realizar").insertAdjacentHTML("beforeend", linha("Feitos sem infração penal:", '<span id="vsi">…</span>', "lsi") + linha("Reavaliação da prisão provisória a cada 90 dias (Art. 316, CPP):", '<span id="vrp">…</span>', "lrp"));
+		await S.titleCard("VÍDEO V72", "Totais da Mesa do Escrivão Criminal", "Feitos sem infração penal, Reavaliação da prisão provisória e Prescrições vencidas aparecem na Análise de Juntadas.");
+		await S.cap("Na <b>Mesa do Escrivão Criminal</b>, os quadros <b>Feitos sem infração penal</b>, <b>Reavaliação da prisão provisória</b> e <b>Prescrições</b> não mostram o total: é preciso clicar neles.", { ms: 5000 });
+		$("#realizar").insertAdjacentHTML("beforeend", linha("Feitos sem infração penal:", '<span id="vsi">…</span>', "lsi") + linha("Reavaliação da prisão provisória a cada 90 dias (Art. 316, CPP):", '<span id="vrp">…</span>', "lrp") + linha("Prescrições vencidas:", '<span id="vpv">…</span>', "lpv"));
 		S.hl("#lsi", 3);
-		await S.cap("Na aba <b>Análise de Juntadas</b>, a extensão acrescenta as duas linhas no fim do quadro <b>Para Realizar</b>.", { ms: 4600 });
+		await S.cap("Na aba <b>Análise de Juntadas</b>, a extensão acrescenta as três linhas no fim do quadro <b>Para Realizar</b>.", { ms: 4600 });
 		$("#vsi").outerHTML = num(32, "vsi");
 		$("#vrp").outerHTML = num(26, "vrp");
-		S.hl("#lrp", 3);
-		await S.cap("Em instantes aparecem os totais, os mesmos das listas abertas pelos quadros.", { ms: 4000 });
+		$("#vpv").outerHTML = num(27, "vpv");
+		S.hl("#lpv", 3);
+		await S.cap("Em instantes aparecem os totais. Nas <b>Prescrições vencidas</b>, conta só as <b>sem sentença anotada</b>, <b>agrupadas por processo</b>.", { ms: 4800 });
 		S.hlOff();
 		await S.click("#vsi");
 		browser(["*Projudi - Feitos sem infração penal"], "https://projudi.tjpr.jus.br/projudi/usuario/mesaAnalistaEscrivao.do?actionType=pesquisarProcessosSemInfracaoPenal");
