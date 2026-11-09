@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 19 |
-| **Versão da extensão** | 19 |
+| **Versão do manual** | 20 |
+| **Versão da extensão** | 20 |
 | **Data desta versão** | 09/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -3099,6 +3099,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 20 | 09/11/2026 | Sem alteração de texto nas seções; nova descrição da extensão na lista de extensões do navegador (`chrome://extensions`): "Ações rápidas, preferências e combos no Projudi; íntegra dos documentos ao passar o mouse e envio por WhatsApp Web e Outlook.". Sem vídeo novo (a descrição não aparece nos vídeos). |
 | 19 | 09/11/2026 | A extensão passa a se chamar **Assistente Projudi – Ações Rápidas e Pré-visualização** (antes, **Olirum**): título do manual, item 6 da seção 2.1 (nome na lista de extensões) e 4.5 (assunto padrão do lembrete criado pelo post-it: "Anotação compartilhada - Abra ou instale a extensão Assistente Projudi"). O aviso de versão nova (2.3) e as páginas do Manual e dos Termos de Uso mostram o nome novo. Vídeos V01, V34 e V48 regravados e guardados em `videos-do-manual/` (não citados no manual). |
 | 18 | 09/11/2026 | **A extensão passa a funcionar só no Projudi.** Retiradas todas as funções do SEEU (a extensão não aparece mais no SEEU nem no SEEU de treino): o Menu não tem mais as abas PROJUDI/SEEU nem o **Copiar para o…** (2.6); saíram as seções **Localizador (só no SEEU)** e **Localizador na lista de juntadas e de conclusões (só no SEEU)** e a seção **Convivência com o AzFlow**, o que renumerou as seções 8.9 a 8.12 (agora 8.8 a 8.11), 9.13 a 9.17 (agora 9.12 a 9.16) e 10.3 (agora 10.2). Tirados também os trechos "No SEEU" das seções 1.3, 1.4, 2.2 a 2.6, 3.1, 5, 6, 7.1 a 7.8, 8.3, 8.7, 9.3, 9.4, 9.5, 9.8, 9.9, 9.10, 9.12, 10 e 11. O card **SEEU** ao lado da balança continua abrindo o SEEU a partir do Projudi (8.7). Preferências gravadas no SEEU não aparecem no Projudi. As funções do SEEU ficam guardadas no repositório (branch **backup-seeu-versao-17**), para recuperar se for preciso. Vídeos V40, V41 e V57 (SEEU) retirados de `videos-do-manual/` e guardados na mesma branch. |
 | 17 | 09/11/2026 | Sem alteração de texto; corrigido (seção 9.16): a linha **Prescrições vencidas** da Análise de Juntadas mostrava **não disponível**, porque a página da aba Mesa do Escrivão Criminal, aberta pela extensão sem você ver, não traz o link **Vencidas** do quadro Prescrições. Agora a extensão procura o link de mais formas e, se não o achar, usa o endereço já conhecido desse link, aceito só se abrir a tela de Prescrições. Sem vídeo novo (a tela não mudou). |
