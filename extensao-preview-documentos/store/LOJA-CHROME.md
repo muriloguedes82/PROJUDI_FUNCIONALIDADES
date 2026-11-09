@@ -59,6 +59,15 @@ claro que é uma ajuda para usar o Projudi, e não o sistema oficial (a loja
 recusa nomes que pareçam oficiais), e "Ações Rápidas e Pré-visualização"
 cobre as buscas mais comuns de quem procura essas funções.
 
+## Imagens da loja
+
+- **Ícone (128×128):** `icons/icon128.png` (vai no pacote).
+- **Imagem de divulgação pequena (440×280):** `store/promo-pequeno-440x280.png`
+  — "Assistente Projudi.", "Seu assistente no Projudi (TJPR)" e as etiquetas
+  das funções. Enviada à parte, na ficha da loja (não vai no pacote).
+- **Capturas de tela (1280×800 ou 640×400, pelo menos uma):** feitas no
+  Projudi com dados fictícios ou tapados.
+
 ## Gerar o pacote (.zip) para enviar à loja
 
 Na raiz do repositório:
