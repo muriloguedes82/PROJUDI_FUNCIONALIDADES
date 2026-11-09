@@ -56,6 +56,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/mesaAnalistaContadores.js",
 			"src/paralisados90.js",
 			"src/totaisMesaEscrivao.js",
+			"src/visualMesa.js",
 			"src/ordenarCumprimentos.js",
 			"src/movementHighlight.js",
 			"src/expandMovements.js",
@@ -113,7 +114,8 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/previewConclusao.css",
 			"src/localizadorSeeu.css",
 			"src/localizadorNaLista.css",
-			"src/localizadorNaListaProjudi.css"
+			"src/localizadorNaListaProjudi.css",
+			"src/visualMesa.css"
 		],
 		runAt: "document_idle",
 		allFrames: true,

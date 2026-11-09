@@ -291,6 +291,14 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					sistemas: ["projudi"]
 				},
 				{
+					id: "visualMesa",
+					nome: "Visual novo da Mesa do Analista",
+					descricao: "Organiza em cartões as abas Início, Citações e Intimações, Análise de Juntadas, Outros Cumprimentos, Cumprimentos de Medidas e Mesa do Escrivão Criminal, com os mesmos números e links. A cor é escolhida nas bolinhas ao lado do título da Mesa ou aqui no Menu.",
+					js: ["src/visualMesa.js"],
+					css: ["src/visualMesa.css"],
+					sistemas: ["projudi"]
+				},
+				{
 					id: "decursoSequencial",
 					nome: "Filtro por Sequencial no Decurso de Prazo",
 					descricao: "Campo \"Sequencial\" na Análise de Decurso de Prazo.",
