@@ -61,7 +61,10 @@ cobre as buscas mais comuns de quem procura essas funções.
 
 ## Imagens da loja
 
-- **Ícone (128×128):** `icons/icon128.png` (vai no pacote).
+- **Ícone da extensão (128×128):** `icons/icon128.png` (vai no pacote).
+- **Ícone da loja (128×128):** `store/icone-loja-128.png` — a mesma lupa,
+  redesenhada (`store/icone-loja.svg`) em 96×96 no centro, com margem
+  transparente de 16 px, como pede a Chrome Web Store.
 - **Imagem de divulgação pequena (440×280):** `store/promo-pequeno-440x280.png`
   — "Assistente Projudi.", "Seu assistente no Projudi (TJPR)" e as etiquetas
   das funções. Enviada à parte, na ficha da loja (não vai no pacote).
