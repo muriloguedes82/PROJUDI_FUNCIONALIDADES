@@ -106,6 +106,9 @@
 	const titulo = form.querySelector("h3");
 	if (titulo) {
 		titulo.classList.add("pdp-vm-titulo");
+		// Seletor deixado por uma versão anterior da extensão (ex.: extensão
+		// atualizada com a Mesa aberta): sai, para não ficarem dois.
+		titulo.querySelectorAll(".pdp-vm-cores").forEach(function (n) { n.remove(); });
 		titulo.append(montarSeletorCor());
 	}
 	aplicarCor(raiz.getAttribute("data-pdp-vm-cor"));
