@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 13 |
-| **Versão da extensão** | 13 |
+| **Versão do manual** | 14 |
+| **Versão da extensão** | 14 |
 | **Data desta versão** | 09/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -98,7 +98,8 @@
    - 9.12 [Localizador na lista de juntadas e de conclusões (só no SEEU)](#cap-9-12)
    - 9.13 [Localizador na lista de juntadas e de conclusões (Projudi)](#cap-9-13)
    - 9.14 [Listas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN e Juiz das Garantias)](#cap-9-14)
-   - 9.15 [Visual novo da Mesa do Analista (Projudi)](#cap-9-15)
+   - 9.15 [Processos Paralisados (+90 dias) na tela Início](#cap-9-15)
+   - 9.16 [Visual novo da Mesa do Analista (Projudi)](#cap-9-16)
 10. [Privacidade e convivência com outras extensões](#cap-10)
     - 10.1 [O que fica guardado no seu navegador](#cap-10-1)
     - 10.2 [Convivência com o AzFlow](#cap-10-2)
@@ -483,7 +484,7 @@ ligar tudo.
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Prioridades (Projudi) · Agendar Audiência (preferências) (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Bloco de anotações | [4](#cap-4) |
-| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (SEEU) · Localizador na lista (Projudi) · Listas em uma única página (Projudi) · Visual novo da Mesa do Analista (Projudi) | [6](#cap-6), [9](#cap-9) |
+| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (SEEU) · Localizador na lista (Projudi) · Listas em uma única página (Projudi) · Processos Paralisados (+90 dias) na tela Início (Projudi) · Visual novo da Mesa do Analista (Projudi) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
 Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
@@ -491,7 +492,7 @@ mov.** fazem parte das funções acima (as duas primeiras, das
 **Ações rápidas**; a última, do **Destaque de movimentações**).
 
 **Cor do visual da Mesa do Analista** (só no Projudi) — escolhe a cor do
-visual novo da Mesa ([9.15](#cap-9-15)): **Oliva** (padrão),
+visual novo da Mesa ([9.16](#cap-9-16)): **Oliva** (padrão),
 **Azul-petróleo**, **Azul-marinho** ou **Grafite**. A mesma escolha pode ser
 feita nas bolinhas ao lado do título da Mesa.
 
@@ -3154,8 +3155,51 @@ página. Não há botão: a extensão faz isso sozinha.
   processo) podem não responder ao clique. Os demais recursos da linha
   funcionam normalmente.
 
+---
+
 <a id="cap-9-15"></a>
-### 9.15 Visual novo da Mesa do Analista (Projudi)
+### 9.15 Processos Paralisados (+90 dias) na tela Início
+
+*Só no Projudi.*
+
+**Para que serve:** saber, logo ao entrar no Projudi, quantos processos
+estão parados na Secretaria **há mais de 90 dias**, sem precisar abrir a
+**Busca por Processos Paralisados**, trocar o número de dias e pesquisar.
+
+**Onde fica:** na tela **Início** do Projudi, numa linha nova, **Processos
+Paralisados (+90 dias):**, logo abaixo da linha do próprio Projudi
+**Processos Paralisados (+30 dias):**.
+
+**Passo a passo:**
+
+1. Abra a tela **Início**. Na linha **Processos Paralisados (+90 dias):**
+   aparecem **Secretaria: …**, **Em Remessa: …** e **Em Remessa (exceto
+   processos conclusos): …** enquanto a extensão faz a contagem.
+2. Em instantes, no lugar das reticências, aparecem os totais, um de cada
+   vez, em vermelho e sublinhados, como os números da linha de cima. Cada
+   um é o mesmo número que você veria clicando no total correspondente da
+   linha **(+30 dias)**, trocando **Mínimo de dias paralisado** para **91**
+   e clicando em **Pesquisar** (o "N registro(s) encontrado(s)" da lista).
+3. Clique num número para abrir a **Busca por Processos Paralisados** já
+   pesquisada com **91** dias, com a lista desses processos (na
+   Secretaria, em remessa ou em remessa exceto conclusos, conforme o
+   número clicado). Com **Ctrl** apertado, ela abre em outra aba.
+
+**Bom saber:**
+
+- Os totais não usam filtro de prioridade, classe ou localizador. O
+  total de **Razões Externas** da linha de cima não é repetido na linha de
+  +90 dias.
+- Para não repetir as pesquisas a cada volta à tela Início, os totais ficam
+  guardados por **5 minutos** naquela aba. Depois disso (ou numa aba nova),
+  a extensão conta de novo.
+- Se o Projudi não responder, aparece **não disponível** no lugar do
+  número que não pôde ser contado; basta voltar à tela Início mais tarde.
+- Para ligar ou desligar, use **Processos Paralisados (+90 dias) na tela
+  Início** no Menu da extensão ([2.6](#cap-2-6)).
+
+<a id="cap-9-16"></a>
+### 9.16 Visual novo da Mesa do Analista (Projudi)
 
 *Só no Projudi. Vem ligado.*
 
@@ -3173,7 +3217,7 @@ Criminal**. A aba **Lembretes** continua como era (só a barra das abas, que
 
 | Aba | Como fica |
 |---|---|
-| **Início** | Cada assunto num quadro: Dados do Juízo, Processos Ativos (números grandes), Processos Paralisados (+30 dias), com um número para Secretaria, Em Remessa, Em Remessa (exceto processos conclusos) e Razões Externas, e Últimas Mensagens, com a data numa etiqueta |
+| **Início** | Cada assunto num quadro: Dados do Juízo, Processos Ativos (números grandes), Processos Paralisados (+30 dias e, se ligado, +90 dias), com um número para Secretaria, Em Remessa, Em Remessa (exceto processos conclusos) e Razões Externas, e Últimas Mensagens, com a data numa etiqueta |
 | **Citações e Intimações** | **Com Urgência** no alto, ocupando a largura toda; depois um quadro para Para Conferir, Para Expedir, Para Assinar, AR Digital e Decurso de Prazo, com os números grandes. Quadro sem nada mostra **Nada pendente.** |
 | **Análise de Juntadas** | **Com Urgência** no alto, depois **Para Realizar** (Juntadas e Retorno de Conclusão em destaque) e os demais itens separados em três quadros: **Retornos de cumprimento** (mandados, cartas eletrônicas, diligências…), **Multas Fupen e custas** (multas Fupen e prestações pecuniárias) e **Outros** (guia de execução, comunicações recursais, Juiz das Garantias e o que mais o Projudi mostrar) |
 | **Outros Cumprimentos** | As tabelas BNMP e Cumprimentos com o número de cada coluna numa etiqueta (vermelha para Com Urgência e Devolvido pelo Juiz) e os zeros bem claros. O título das colunas fica à vista ao rolar a tela, e as colunas aparecem agrupadas em **Andamento**, **Atenção**, **Prazos** e **AR Digital**. Itens soltos abaixo das tabelas (como **Comunicações Recursais Pendentes de Encaminhamento**) vão para o quadro **Outros pendentes** |
@@ -3207,6 +3251,10 @@ Criminal**. A aba **Lembretes** continua como era (só a barra das abas, que
 **Bom saber:**
 
 - Os números continuam se atualizando sozinhos, como antes.
+- Na tela **Início**, a linha **Processos Paralisados (+90 dias)**
+  ([9.15](#cap-9-15)) aparece no mesmo quadro dos paralisados +30 dias,
+  logo abaixo deles, com os números do mesmo tamanho. Clicar num número
+  continua abrindo a Busca por Processos Paralisados já pesquisada.
 - Funciona junto com a **Mesa do Analista sem itens zerados**
   ([9.4](#cap-9-4)): com ela ligada, as linhas zeradas continuam
   escondidas. Em **Outros Cumprimentos**, desmarcar **Só linhas com
@@ -3281,7 +3329,7 @@ telas abertas a partir daí voltam a funcionar.
 | Nenhum botão da extensão aparece | Confira se aceitou os Termos de Uso ([2.2](#cap-2-2)); recarregue a página (F5); confira se a extensão está ativada em `chrome://extensions`; confira se o perfil não é de advocacia ([10.3](#cap-10-3)) |
 | Numa lista reunida em uma única página, o **+** abre vazio, sem os arquivos, ou mostra "Não foi possível trazer os arquivos: o registro não está mais na página…" | Corrigido nas versões 10 e 11: atualize a extensão ([2.3](#cap-2-3)). Ao clicar no **+**, deve aparecer **Carregando os arquivos…** e, em seguida, os arquivos. Se aparecer **Não foi possível trazer os arquivos**, clique no **+** de novo ou recarregue a lista (F5) ([9.14](#cap-9-14)) |
 | Numa das listas reunidas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN, Juiz das Garantias) aparece "Não foi possível trazer as páginas seguintes" | A sessão do Projudi pode ter expirado ou a conexão falhou: recarregue a lista (F5). Enquanto isso, a navegação de páginas do Projudi continua funcionando ([9.14](#cap-9-14)) |
-| A Mesa do Analista está com o visual novo e eu prefiro a tela original | Desligue **Visual novo da Mesa do Analista** no Menu (ícone da balança) e recarregue a página (F5) ([9.15](#cap-9-15)) |
+| A Mesa do Analista está com o visual novo e eu prefiro a tela original | Desligue **Visual novo da Mesa do Analista** no Menu (ícone da balança) e recarregue a página (F5) ([9.16](#cap-9-16)) |
 | Atualizei a extensão e nada mudou | Clique em ↻ no card da extensão em `chrome://extensions` e depois recarregue as páginas ([2.3](#cap-2-3)) |
 | A barra de botões cobre algo da tela | Arraste **↕ Mover** ou clique em **Ocultar** ([2.4](#cap-2-4)) |
 | O painel de ações diz para abrir a aba Movimentações | Abra a aba **Movimentações** do processo e tente de novo ([7.1](#cap-7-1)) |
@@ -3321,7 +3369,8 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 13 | 09/11/2026 | Nova seção 9.15 **Visual novo da Mesa do Analista (Projudi)**: abas Início, Citações e Intimações, Análise de Juntadas (itens agrupados por assunto), Outros Cumprimentos (filtro e caixinha "Só linhas com pendência"), Cumprimentos de Medidas e Mesa do Escrivão Criminal (atalhos agrupados e busca) organizadas em quadros, com escolha de cor (Oliva, Azul-petróleo, Azul-marinho ou Grafite) guardada como preferência. Sumário, tabela da 2.6 (função e **Cor do visual da Mesa do Analista**) e **11. Solução de problemas** atualizados. Novo vídeo V71 gravado e guardado em `videos-do-manual/` (não citado no manual). |
+| 14 | 09/11/2026 | Nova seção 9.16 **Visual novo da Mesa do Analista (Projudi)**: abas Início, Citações e Intimações, Análise de Juntadas (itens agrupados por assunto), Outros Cumprimentos (filtro e caixinha "Só linhas com pendência"), Cumprimentos de Medidas e Mesa do Escrivão Criminal (atalhos agrupados e busca) organizadas em quadros, com escolha de cor (Oliva, Azul-petróleo, Azul-marinho ou Grafite) guardada como preferência. Na tela Início, os Processos Paralisados (+30 dias) e (+90 dias, seção 9.15) ficam no mesmo quadro. Sumário, tabela da 2.6 (função e **Cor do visual da Mesa do Analista**) e **11. Solução de problemas** atualizados. Novo vídeo V72 gravado e guardado em `videos-do-manual/` (não citado no manual). |
+| 13 | 09/11/2026 | Nova seção 9.15 **Processos Paralisados (+90 dias) na tela Início** (só no Projudi): abaixo de "Processos Paralisados (+30 dias)", a tela Início mostra os totais de processos paralisados há mais de 90 dias na Secretaria, Em Remessa e Em Remessa (exceto processos conclusos); clicar num número abre a Busca por Processos Paralisados já pesquisada com 91 dias. Sumário e tabela da 2.6 atualizados. Novo vídeo V71 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 12 | 09/11/2026 | Localizador na lista do Projudi (9.13): os localizadores passam a aparecer numa **coluna nova, Localizadores**, a última da tabela, em vez de abaixo do número do processo. Ajustados "Onde fica", o passo 1, "Remover um localizador direto na lista" e o Bom saber (linhas das listas em uma única página). |
 | 11 | 06/11/2026 | Corrigido (seção 9.14): nas listas de intimação reunidas (**Intimação** — decurso de prazo, **Expedir Intimações** e **Auxiliares da Justiça**), o **+** mostrava "Não foi possível trazer os arquivos: o registro não está mais na página 1 da lista". Agora, nessas listas, a extensão pede os arquivos direto ao Projudi, pela movimentação da linha, e eles aparecem quase na hora. Linha de **11. Solução de problemas** atualizada. Sem vídeo novo (a tela não mudou). |
 | 10 | 06/11/2026 | Corrigido (seção 9.14): nas listas reunidas em uma única página, o **+** abria vazio, sem os arquivos — tanto nas linhas da primeira página quanto nas trazidas das outras (o Projudi passava a "estar" na última página buscada). Agora a extensão atende o **+**: mostra **Carregando os arquivos…** e traz os arquivos da página de onde a linha veio; o **Expandir Mov** também funciona. Nova linha em **11. Solução de problemas**. Novo vídeo V70 gravado e guardado em `videos-do-manual/` (não citado no manual). |

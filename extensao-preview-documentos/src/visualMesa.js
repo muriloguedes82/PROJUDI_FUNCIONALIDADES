@@ -283,13 +283,14 @@
 				marcarLinha(tr);
 				const rot = normalizar(tr.cells[0] && tr.cells[0].textContent);
 				if (/paralisados/.test(rot) && tr.cells[1]) {
-					// "Secretaria: 812 · Em Remessa: 41 ..." vira um bloco para cada par rótulo/número.
-					const c = cartao(semDoisPontos(tr.cells[0].textContent), "blocos", { largo: true });
-					c.classList.add("pdp-vm-paralisados");
-					dividirPares(tr.cells[1]).forEach(function (novo) { c.__tbody.append(novo); });
-					tr.classList.add("pdp-vm-original");
-					c.__tbody.append(tr); // a linha original (já vazia) vai junto, escondida
-					g.append(c);
+					// +30 dias (Projudi) e +90 dias (paralisados90.js) no mesmo quadro.
+					if (!quadroParalisados) {
+						quadroParalisados = cartao("Processos paralisados", "pares", { largo: true });
+						quadroParalisados.classList.add("pdp-vm-paralisados");
+						g.append(quadroParalisados);
+					}
+					agruparPares(tr.cells[1]);
+					quadroParalisados.__tbody.append(tr);
 					return;
 				}
 				atualC.__tbody.append(tr);
@@ -298,26 +299,36 @@
 		substituirConteudo(g);
 		return true;
 	}
-	// Separa "Rótulo: <a>n</a> Rótulo2: <a>m</a>" em linhas próprias, MOVENDO os <a> originais.
-	function dividirPares(td) {
-		const linhas = [];
-		let rotulo = "";
+	let quadroParalisados = null;
+	// "Secretaria: <a>812</a> Em Remessa: <a>41</a> ..." vira um bloco por par,
+	// SEM tirar os números da linha: o par fica num <span> dentro da mesma
+	// célula, com o rótulo logo antes do número. Assim "Processos Paralisados
+	// (+90 dias)" (paralisados90.js) continua achando os links da linha de
+	// +30 dias pelo rótulo, e troca o "…" pelo total dentro do próprio bloco.
+	function agruparPares(td) {
+		if (td.hasAttribute("data-pdp-vm-pares")) return;
+		td.setAttribute("data-pdp-vm-pares", "");
+		let textos = [];
 		Array.from(td.childNodes).forEach(function (n) {
-			if (n.nodeType === 3) {
-				const t = n.textContent.replace(/\u00a0/g, " ").trim();
-				if (t) rotulo += (rotulo ? " " : "") + t;
-				return;
-			}
-			if (n.nodeType === 1 && n.tagName === "A") {
-				const tr = el("tr", { class: "pdp-vm-linha" }, [
-					el("td", { class: "label pdp-vm-rotulo", text: semDoisPontos(rotulo) || "Total" }),
-					el("td", { class: "pdp-vm-valor" }, [n])
-				]);
-				linhas.push(tr);
-				rotulo = "";
-			}
+			if (n.nodeType === 3) { textos.push(n); return; }
+			if (n.nodeType !== 1 || (n.tagName !== "A" && n.tagName !== "SPAN")) return;
+			const rotulo = textos.map(function (t) { return t.textContent; }).join("").replace(/ /g, " ");
+			const par = el("span", { class: "pdp-vm-par" }, [el("span", { class: "pdp-vm-par-rotulo", text: semDoisPontos(rotulo) })]);
+			td.insertBefore(par, n);
+			par.append(n);
+			textos.forEach(function (t) { t.remove(); });
+			textos = [];
 		});
-		return linhas;
+	}
+	// Linha que chega depois (ex.: +90 dias, criada por paralisados90.js logo
+	// abaixo da de +30 dias, já dentro do quadro).
+	function prepararParalisados() {
+		if (!quadroParalisados) return;
+		Array.from(quadroParalisados.__tbody.rows).forEach(function (tr) {
+			if (tr.classList.contains("pdp-vm-linha") || !tr.cells[1]) return;
+			marcarLinha(tr);
+			agruparPares(tr.cells[1]);
+		});
 	}
 
 	// ---------- Outros Cumprimentos ----------
@@ -520,6 +531,7 @@
 	if (!montou) return;
 
 	const refazer = function () {
+		prepararParalisados();
 		atualizarCartoes(painel);
 		painel.querySelectorAll("table.pdp-vm-resultado").forEach(function (t) { if (t.__pdpVmAplicar) t.__pdpVmAplicar(); });
 	};

@@ -102,5 +102,6 @@ para dentro da extensão, retire essa regra.
 | [V68](V68-multas-fupen-e-juiz-das-garantias-em-uma-unica-pagina.mp4) | [Listas em uma única página (Multas FUPEN e Juiz das Garantias)](V68-multas-fupen-e-juiz-das-garantias-em-uma-unica-pagina.mp4) | [9.14](../extensao-preview-documentos/manual/MANUAL.md#cap-9-14) | 0:31 |
 | [V69](V69-intimacoes-em-uma-unica-pagina.mp4) | [Listas em uma única página (Intimações)](V69-intimacoes-em-uma-unica-pagina.mp4) | [9.14](../extensao-preview-documentos/manual/MANUAL.md#cap-9-14) | 0:34 |
 | [V70](V70-arquivos-do-mais-nas-listas-reunidas.mp4) | [Listas em uma única página (arquivos do +)](V70-arquivos-do-mais-nas-listas-reunidas.mp4) | [9.14](../extensao-preview-documentos/manual/MANUAL.md#cap-9-14) | 0:26 |
-| [V71](V71-visual-novo-da-mesa-do-analista.mp4) | [Visual novo da Mesa do Analista](V71-visual-novo-da-mesa-do-analista.mp4) | [9.15](../extensao-preview-documentos/manual/MANUAL.md#cap-9-15) | 0:41 |
+| [V71](V71-paralisados-90-dias-no-inicio.mp4) | [Processos Paralisados (+90 dias) na tela Início](V71-paralisados-90-dias-no-inicio.mp4) | [9.15](../extensao-preview-documentos/manual/MANUAL.md#cap-9-15) | 0:28 |
+| [V72](V72-visual-novo-da-mesa-do-analista.mp4) | [Visual novo da Mesa do Analista](V72-visual-novo-da-mesa-do-analista.mp4) | [9.16](../extensao-preview-documentos/manual/MANUAL.md#cap-9-16) | 0:41 |
 <!-- tabela-videos:fim -->
