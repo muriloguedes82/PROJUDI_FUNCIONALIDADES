@@ -1,4 +1,4 @@
-// Projudi/SEEU - "Analisar Decurso" e "Dispensar" na própria lista de
+// Projudi - "Analisar Decurso" e "Dispensar" na própria lista de
 // decurso de prazo
 //
 // Nas listas do menu "Decurso de Prazo" — Intimação (processo/
@@ -33,24 +33,15 @@
 // - Em lote: na barra "⭐ Em lote" (preferenciasNaLinha.js), "Dispensar nos
 //   marcados" e "Analisar decurso nos marcados" (com uma preferência), um
 //   processo de cada vez.
-// SEEU: as listas Intimação (intimacaoBusca.do) e Intimação de Auxiliares
-// da Justiça (intimacaoNomeados.do) têm a mesma estrutura, com /seeu/ no
-// lugar de /projudi/; o link do número leva a visualizacaoProcesso.do. A
-// tela da intimação tem os mesmos #analisarButton/#dispensarButton (ligados
-// por script, sem endereço no onclick: o Analisar segue pelo clique no iframe
-// oculto) e a mesma confirmação da dispensa. A tela de análise (certificar.do)
-// também é a mesma; as preferências do Analisar Decurso (juntarDocumento.js)
-// são as gravadas no SEEU, e as do "📎 Juntar Documento" (só do Projudi)
-// não aparecem lá.
 // Os botões usam delegação de clique no documento: continuam funcionando nas
 // linhas copiadas pelo filtro por Sequencial (decursoPrazoSequencial.js).
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 	if (window.__pdpDecursoNaLinhaCarregado) return;
-	if (!/^\/(projudi|seeu)\//.test(location.pathname)) return;
+	if (!/^\/projudi\//.test(location.pathname)) return;
 
-	const LISTAS = /^\/(projudi|seeu)\/processo\/(intimacaoBusca|intimacaoNomeados|citacao)\.do$/;
+	const LISTAS = /^\/projudi\/processo\/(intimacaoBusca|intimacaoNomeados|citacao)\.do$/;
 	// Fora das listas de decurso, o script só oferece o menu e o popup do
 	// "Analisar Decurso" (window.__pdpAnalisarDecurso) a outras telas - ex.:
 	// o "Analisar decurso" da linha "Cumprimentos Aguardando Análise de
@@ -63,11 +54,10 @@
 	window.__pdpDecursoNaLinhaCarregado = true;
 
 	const TAG = "[Projudi Decurso na linha]";
-	const NO_SEEU = location.pathname.startsWith("/seeu/");
-	const BASE = NO_SEEU ? "/seeu" : "/projudi";
-	const SISTEMA = NO_SEEU ? "SEEU" : "Projudi";
+	const BASE = "/projudi";
+	const SISTEMA = "Projudi";
 	const DETALHES = [BASE + "/processo/intimacao.do", BASE + "/processo/intimacaoNomeados.do", BASE + "/processo/citacao.do"];
-	const PROCESSO = NO_SEEU ? "/seeu/visualizacaoProcesso.do" : "/projudi/processo.do";
+	const PROCESSO = "/projudi/processo.do";
 	const TIMEOUT_MS = 60000;
 	let emAndamento = false;
 
@@ -311,8 +301,7 @@
 		if (!api) return resultado;
 		try {
 			resultado.decurso = api.listarDecurso ? await api.listarDecurso() : [];
-			// As do "📎 Juntar Documento" são juntadas do Projudi.
-			resultado.juntar = api.listar && !NO_SEEU ? await api.listar() : [];
+			resultado.juntar = api.listar ? await api.listar() : [];
 		} catch (e) {
 			console.warn(TAG, "não foi possível ler as preferências:", e);
 		}
@@ -382,7 +371,7 @@
 			topo.appendChild(titulo);
 			if (!emLote) {
 				linha("Abrir a análise", "Abre a tela de análise no popup, sem preencher nada", { acao: "abrir" });
-				// Sem o Juntar Documento (no SEEU, ou desligado no Menu), não há
+				// Sem o Juntar Documento (desligado no Menu), não há
 				// como gravar a preferência.
 				if (api) linha("+ Nova preferência", "Abre a análise no popup e grava o que você fizer na inclusão do arquivo (Tipo do Arquivo, Modelo e texto); no \"Assinar Arquivos\", pede o nome e salva", { acao: "nova" });
 			}

@@ -1,4 +1,4 @@
-# Olirum – Projudi/SEEU: Pré-visualização, WhatsApp e E-mail
+# Olirum – Projudi: Pré-visualização, WhatsApp e E-mail
 
 <img src="icons/icon128.png" alt="Ícone do Olirum" width="64" align="right">
 
@@ -10,9 +10,13 @@ Os ícones ficam em `icons/`, e o tile promocional do catálogo do Chrome
 (440×280) em `store/promo-pequeno-440x280.png`.
 
 Extensão de navegador (Chrome/Edge, Manifest V3) que resolve problemas do
-dia a dia no Projudi (TJPR) e no SEEU — os dois usam o mesmo padrão de
-link de documento (`<a class="link" href=".../arquivo.do?...">`), então a
-extensão funciona da mesma forma nos dois sistemas:
+dia a dia no Projudi (TJPR):
+
+> **Desde a versão 18 a extensão funciona só no Projudi.** As funções do
+> SEEU foram retiradas; o código delas (versão 17 completa) está guardado na
+> branch `backup-seeu-versao-17` do repositório — veja
+> [`SEEU-RECUPERAR.md`](../SEEU-RECUPERAR.md) na raiz.
+
 
 1. na tela **Movimentações**, para ler a íntegra de um documento anexado é
    preciso clicar no link e abri-lo em outra aba (veja "Pré-visualização de
@@ -57,8 +61,7 @@ extensão funciona da mesma forma nos dois sistemas:
 Com a extensão ativa, um ícone pequeno (a balança da Justiça em azul-marinho,
 num quadrado arredondado dourado) fica sempre visível no cabeçalho:
 
-- **Projudi:** no canto superior direito, logo abaixo do link **Sair**;
-- **SEEU:** na faixa azul do menu, abaixo do nome do usuário.
+no canto superior direito do Projudi, logo abaixo do link **Sair**.
 
 Ao rolar a página, o ícone acompanha o cabeçalho e, quando ele sai da
 tela, fica preso no topo. Um pontinho vermelho no ícone indica que há
@@ -67,7 +70,7 @@ funcionalidades desativadas. Clique no ícone para abrir o **Menu**
 
 1. **Funcionalidades** - todas as funcionalidades da extensão, agrupadas
    por assunto, cada uma com uma chave liga/desliga. A escolha vale para
-   todas as páginas do Projudi e do SEEU a partir do próximo carregamento
+   todas as páginas do Projudi a partir do próximo carregamento
    da página (o Menu mostra o botão **Recarregar agora**). Algumas
    dependem de outras (ex.: "Editar Partes/Outros" usa o popup das "Ações
    rápidas"): ao desativar uma, as que dependem dela também são
@@ -377,9 +380,9 @@ Ao clicar em "Enviar por e-mail":
    de prosseguir (ou pular a etapa, se preferir preencher na hora).
 2. Os arquivos marcados (se houver) são baixados pelo **background script**
    da extensão (não pela página), reaproveitando a sessão já autenticada
-   — necessário porque, no SEEU, o link do arquivo redireciona para um
-   bucket S3 com URL assinada que bloqueia `fetch()` feito a partir da
-   própria página (erro de CORS); o service worker da extensão não sofre
+   — necessário quando o link do arquivo redireciona para um armazenamento
+   externo (ex.: bucket S3 com URL assinada) que bloqueia `fetch()` feito a
+   partir da própria página (erro de CORS); o service worker da extensão não sofre
    essa restrição para os domínios liberados no `manifest.json`.
 3. A extensão autentica o usuário no Outlook institucional (Microsoft
    Entra ID / Azure AD, via Microsoft Graph) e cria um **rascunho de
@@ -401,15 +404,10 @@ REF. AUTOS Nº (0004608-81.2024.8.16.0033)
 JUÍZO: (Vara Criminal de Pinhais)
 ```
 
-A extração muda um pouco conforme o sistema, mas o resultado final é igual:
-
-- **Número dos autos**: no Projudi vem do elemento `<em class="attention">`;
-  no SEEU (e como reserva geral, caso esse elemento não exista) vem do
-  próprio título da página, que em ambos os sistemas contém o número do
-  processo.
-- **Juízo**: no SEEU vem do campo "Juízo:" da tabela de informações do
-  processo (`td[data-label="juízo"]`); no Projudi vem do link "área de
-  atuação" do usuário no cabeçalho (`#areaatuacao`).
+- **Número dos autos**: vem do elemento `<em class="attention">` (como
+  reserva, caso esse elemento não exista, vem do próprio título da página).
+- **Juízo**: vem do link "área de atuação" do usuário no cabeçalho
+  (`#areaatuacao`).
 
 Se nenhuma dessas fontes for encontrada na página (ex.: layout diferente
 numa atualização do sistema), a linha correspondente simplesmente não é
@@ -1026,36 +1024,6 @@ plano) e extrai o endereço (`/projudi/processo/parteProcesso.do?_tj=...`)
 do `onclick` do botão nativo "Partes e Outros" (`id="enableParteButton"`).
 Nenhuma ação é praticada sozinha. Só no Projudi.
 
-## Localizador (só no SEEU)
-
-Na fileira de botões da extensão, logo depois do **"⭐ Minhas
-Preferências"**, a extensão põe o botão **"📍 Localizador"**
-(`src/localizadorSeeu.js`), quando a tela tem o cabeçalho de localizadores
-do SEEU (componente `seeu-localizador-processo-header`, com shadow DOM
-aberto, onde fica o "+"). Ele
-abre um painel com preferências de localizadores (um ou mais por
-preferência), gravadas em `chrome.storage.local` na chave
-`pdpLocalizadorPreferencias`:
-
-- **➕ Nova preferência** abre a lista nativa do "+" ("Associar localizador
-  ao processo"), lê os `seeu-menu-item` (localizadores ativos da unidade),
-  fecha a lista e mostra os nomes com caixinhas e pesquisa;
-- clicar numa preferência abre a lista do "+" e clica, um de cada vez, no
-  item de mesmo nome (sem acento/caixa), esperando o localizador aparecer
-  no cabeçalho antes do próximo. Os que já estão no processo são pulados;
-  os que não estão na lista da unidade são informados no painel.
-
-As mesmas preferências aparecem como cards **"📍 Localizador"** no
-"⭐ Minhas Preferências" (`quickActions.js`, chave de ordem `l:<id>`), que
-as aplica e edita por `window.__pdpLocalizador`. Por isso a
-funcionalidade requer as Ações rápidas.
-
-Exclusivo do SEEU: no catálogo (`src/funcionalidades.js`) o item tem
-`sistemas: ["seeu"]`, o que faz o service worker não injetar os arquivos
-no Projudi e o Menu não mostrar a funcionalidade na aba PROJUDI; o script
-ainda confere o endereço (`seeu.pje.jus.br` ou o SEEU de treino,
-`seeutreino.pje.jus.br`, que a extensão trata como SEEU).
-
 ## Juntar Documento (com preferências gravadas)
 
 Juntar um documento digitado (certidão, informação, termo...) hoje exige:
@@ -1131,9 +1099,7 @@ a tela Juntar Documento for de outro processo. Só no Projudi.
 
 ## Réus/Indiciados/Noticiados no cabeçalho do processo
 
-No SEEU, o cabeçalho do processo já mostra o nome do sentenciado (com RJI,
-CPF e RG), e o nome leva à tela da parte. No Projudi, para saber quem são
-os réus é preciso abrir a aba "Partes e Outros".
+No Projudi, para saber quem são os réus é preciso abrir a aba "Partes e Outros".
 
 A extensão adiciona, na tabela de informações do processo, uma linha logo
 abaixo da última linha de **"Assunto"** (Principal ou Secundário, se
@@ -1431,13 +1397,8 @@ e investigar a causa raiz em vez de adivinhar.
 ## Como funciona
 
 1. Os content scripts (`src/content.js` e `src/email.js`) são injetados nas
-   páginas de processo do Projudi (`processo.do`) e do SEEU (qualquer
-   página em `seeu.pje.jus.br/seeu/`, incluindo a tela de
-   movimentações/autos do processo, carregada em
-   `visualizacaoProcesso.do`).
-2. Eles identificam os links de arquivo da movimentação, que seguem o mesmo
-   padrão nos dois sistemas (o SEEU é construído sobre a mesma plataforma
-   do Projudi):
+   páginas de processo do Projudi (`processo.do`).
+2. Eles identificam os links de arquivo da movimentação:
    ```html
    <a target="_blank" class="link" href=".../arquivo.do?_tj=...">
        Certidao de Baixa.pdf
@@ -1445,7 +1406,7 @@ e investigar a causa raiz em vez de adivinhar.
    ```
 3. Ao detectar o mouse parado sobre um desses links por ~350ms, abre um
    painel (`<iframe>`) carregando a própria URL do `arquivo.do`. Como o
-   iframe está na mesma origem do sistema (Projudi ou SEEU), ele reaproveita
+   iframe está na mesma origem do Projudi, ele reaproveita
    a sessão/cookies já autenticados do usuário — nenhuma credencial extra é
    usada ou armazenada pela extensão.
 4. O painel some automaticamente ao tirar o mouse do link e do próprio
@@ -1453,12 +1414,10 @@ e investigar a causa raiz em vez de adivinhar.
    ele), ou pode ser fechado com o botão "✕" ou a tecla `Esc`. Também há um
    atalho "Abrir em nova aba" para o fluxo tradicional, quando necessário.
 
-## Pendências (Análise de Juntadas / Conclusões) — só no Projudi
+## Pendências (Análise de Juntadas / Conclusões)
 
 Esse recurso depende de uma tela específica do Projudi
-(`analisarJuntada.do`) que não existe no SEEU; lá, a pré-visualização
-funciona normalmente para os links de documento das movimentações (seção
-anterior), só esse quadro de Pendências que não se aplica.
+(`analisarJuntada.do`).
 
 O mesmo painel de pré-visualização também é oferecido no quadro
 **Pendências** da capa do processo, para itens como:
@@ -1659,25 +1618,6 @@ expor a API usada pela linha (`applyPreferenceFrom`/`loadFavItems`), e
 `window.__pdpDispensas`.
 
 
-### No SEEU (preferências do 📍 Localizador)
-
-Nas listas **Análise de Juntadas** (`/seeu/processo/analisarJuntada.do`) e
-**Retorno de Conclusão** (`/seeu/processo/conclusao.do`) do SEEU, a ⭐
-(listaTarefas.js) lista as preferências do **"📍 Localizador"** — as
-ações rápidas não funcionam no SEEU. Ao escolher uma, a tela do processo
-(link da linha, `visualizacaoProcesso.do`) é carregada num iframe oculto
-(`carregar` com `manter`) e os localizadores são associados nela por
-`window.__pdpLocalizador.associarEm` (localizadorSeeu.js), com uma nova
-tentativa quando o localizador não aparece no cabeçalho. A linha mostra o
-andamento e o resultado.
-
-**Regra (Projudi × SEEU):** o Projudi trava as ações enquanto houver
-juntadas ou conclusões pendentes, por isso lá a extensão pergunta antes se
-deve dispensar as juntadas/decursos ou finalizar a conclusão (na ⭐ das
-listas e em `executarComPendencias`, quickActions.js). O SEEU **não** trava:
-lá não há essas perguntas nem dispensa/finalização — a preferência é
-executada direto. Não acrescentar essas perguntas ao SEEU.
-
 ## Dispensar decursos de prazo
 
 Ainda no quadro **Pendências**, quando o item é uma intimação
@@ -1723,9 +1663,9 @@ Fluxo de uso:
    se nenhum DDI for digitado, assume-se `55`/Brasil) — ou escolha um
    destinatário já salvo (ver "Destinatários salvos" abaixo).
 3. Ao confirmar, a extensão baixa os arquivos selecionados (reaproveitando a
-   sessão do Projudi/SEEU, do mesmo jeito que a pré-visualização — o
+   sessão do Projudi, do mesmo jeito que a pré-visualização — o
    download em si é feito pelo `src/background.js`, não pela página, porque
-   alguns sistemas como o SEEU redirecionam o link do documento para um
+   o link pode redirecionar do documento para um
    armazenamento externo com CORS bloqueado para leitura direto da página)
    e abre (ou reaproveita) uma aba do WhatsApp Web na conversa do número
    informado, reaproveitando a sessão já aberta/conectada no navegador, se
@@ -1758,8 +1698,7 @@ parecida com um catálogo de contatos de e-mail:
   antes de remover).
 
 A lista é guardada em `chrome.storage.local` (armazenamento da própria
-extensão, não do site), então é a mesma lista tanto no Projudi quanto no
-SEEU, e continua disponível depois de fechar e reabrir o navegador.
+extensão, não do site), e continua disponível depois de fechar e reabrir o navegador.
 
 **Importante — confira sempre o destinatário antes de clicar em enviar.**
 Documentos de processo são sensíveis; esse segundo antes de clicar em
@@ -1792,7 +1731,7 @@ Essa parte depende de dois componentes adicionais:
 - `src/background.js`: service worker que baixa os arquivos selecionados
   (a partir do seu próprio contexto de extensão — necessário para
   contornar CORS em sistemas que redirecionam o link do documento para um
-  armazenamento externo, como o SEEU faz para um bucket S3), guarda
+  armazenamento externo, como um bucket S3), guarda
   temporariamente o resultado (em `chrome.storage.local`, apenas até serem
   anexados ou expirarem após 15 minutos — `PENDING_TTL_MS`) e
   abre/reaproveita a aba do WhatsApp Web na conversa certa. Envios
@@ -1900,13 +1839,12 @@ marcar "Declaro que li os Termos de Uso e concordo com todas as condições"
 e clicar em **Aceitar e ativar a extensão**; o botão **Não concordo -
 remover extensão** desinstala a extensão (com confirmação do navegador).
 
-Enquanto não houver aceite, **nenhum script é injetado no Projudi ou no
-SEEU**: os scripts dessas telas não ficam mais em `content_scripts` do
+Enquanto não houver aceite, **nenhum script é injetado no Projudi**: os scripts dessas telas não ficam mais em `content_scripts` do
 `manifest.json`, e sim são registrados por `src/termosUso.js`
 (`chrome.scripting.registerContentScripts`) somente após o aceite. Sem
 aceite, a página de termos volta a ser aberta ao iniciar o navegador, após
-uma atualização da extensão e ao abrir uma página do Projudi/SEEU. Depois
-de aceitar, recarregue as páginas do Projudi/SEEU que já estavam abertas.
+uma atualização da extensão e ao abrir uma página do Projudi. Depois
+de aceitar, recarregue as páginas do Projudi que já estavam abertas.
 
 - O aceite fica gravado em `chrome.storage.local` (chave `pdpTermosUso`,
   com versão dos termos, data/hora e versão da extensão).
@@ -1914,7 +1852,7 @@ de aceitar, recarregue as páginas do Projudi/SEEU que já estavam abertas.
   da extensão" na página de opções.
 - Ao alterar o texto dos termos de forma relevante, incremente `versao` em
   `src/termosConfig.js`: todos os usuários terão de aceitar de novo.
-- Ao criar um novo script para o Projudi/SEEU, inclua-o na lista de
+- Ao criar um novo script para o Projudi, inclua-o na lista de
   `src/termosUso.js` (e não no `manifest.json`).
 
 ## Instalação (modo desenvolvedor)
@@ -1925,37 +1863,13 @@ de aceitar, recarregue as páginas do Projudi/SEEU que já estavam abertas.
    `extensao-preview-documentos`.
 4. Na aba de Termos de Uso que se abre, marque a concordância e clique em
    "Aceitar e ativar a extensão".
-5. Abra um processo no Projudi (TJPR) ou no SEEU e passe o mouse sobre um
+5. Abra um processo no Projudi (TJPR) e passe o mouse sobre um
    documento na aba Movimentações.
 
-## Convivência com o AzFlow no SEEU
+## Convivência com outras extensões
 
-O AzFlow é uma extensão de produtividade jurídica muito usada junto com o
-SEEU, e oferece uma pré-visualização de documentos parecida com a desta
-extensão. Como as duas reagem aos mesmos eventos nativos do navegador
-(mouseover/mouseout), tentar fazer as duas coexistirem sem critério gera
-conflito — em um teste anterior, interceptar esses eventos para dar
-prioridade a esta extensão chegou a quebrar o reposicionamento da própria
-barra de botões do AzFlow, que depende deles para funcionar.
-
-A solução adotada: **só no domínio do SEEU**, esta extensão detecta se o
-AzFlow está ativo (procurando pelos atributos/classes com prefixo
-`azflow-`/`data-azflow-` que ele injeta na página) e, se estiver, **não
-abre sua própria pré-visualização de documentos** — deixa o AzFlow cuidar
-disso sozinho, sem nenhuma interferência. As funcionalidades que só esta
-extensão oferece (seleção de documentos e envio por WhatsApp) continuam
-funcionando normalmente, já que não há nada do AzFlow para conflitar ali.
-No Projudi esse comportamento não se aplica — a pré-visualização desta
-extensão funciona normalmente, com ou sem o AzFlow instalado.
-
-Se o AzFlow mudar a forma como se identifica na página e a detecção parar
-de funcionar (a pré-visualização desta extensão voltar a aparecer no SEEU
-mesmo com o AzFlow ativo), ajuste `AZFLOW_MARKER_SELECTOR` em
-`src/content.js`.
-
-Além dessa checagem específica (pré-visualização, só no SEEU), esta
-extensão segue duas regras gerais, em qualquer sistema, para nunca alterar
-a estrutura de outra extensão:
+Esta extensão segue duas regras gerais para nunca alterar a estrutura de
+outra extensão (ex.: AzFlow):
 
 1. **Nunca insere nada dentro da árvore de elementos que outra extensão
    criou**, nem da barra de botões nativa da página — o botão "Enviar por
@@ -1965,7 +1879,7 @@ a estrutura de outra extensão:
 2. **Nunca chama `stopPropagation()`/`stopImmediatePropagation()`** nos
    eventos do navegador (mouseover, mouseout, etc.) — outras extensões
    podem depender desses mesmos eventos para o próprio funcionamento, e
-   "consumi-los" já quebrou o AzFlow numa tentativa anterior (ver acima).
+   "consumi-los" já quebrou o AzFlow numa tentativa anterior.
 
 ## Posição do botão "Enviar por WhatsApp"
 
@@ -1990,7 +1904,7 @@ aba) — mesma técnica do recurso irmão de envio por e-mail:
 
 ## Troca de abas do processo (Movimentações, Partes, etc.)
 
-Ao trocar de aba dentro da tela do processo e voltar, o Projudi/SEEU pode
+Ao trocar de aba dentro da tela do processo e voltar, o Projudi pode
 substituir um contêiner inteiro da página por conteúdo novo (em vez de só
 mostrar/esconder o que já existia) — o que fazia o botão "Enviar por
 WhatsApp", a pré-visualização e as caixinhas de seleção "sumirem", já que
@@ -2025,27 +1939,26 @@ irmão desta mesma extensão, o envio por e-mail):
   algumas abas do processo (Apensamentos, Vínculos, HCs TJ, etc.) navegam
   para URLs que não batem com esses padrões, então o script **nunca
   chegava a rodar** nelas. Agora os padrões cobrem toda a aplicação
-  (`/projudi/*` e `/seeu/*`);
+  (`/projudi/*`);
 - a checagem de "isso é uma tela de processo?" usava classe/id
-  (`table.buttonBar`, `#backButton`), que pode variar entre Projudi e SEEU
-  ou não existir num instante específico de uma transição de aba. Agora
+  (`table.buttonBar`, `#backButton`), que pode
+  não existir num instante específico de uma transição de aba. Agora
   ela procura pelo **texto** dos botões da barra de ações (ex.:
-  "Peticionar", "Juntar Documento", "Voltar"), mais estável entre os dois
-  sistemas — e, uma vez que a tela provou ser de um processo, essa
+  "Peticionar", "Juntar Documento", "Voltar"), mais estável — e, uma vez que a tela provou ser de um processo, essa
   elegibilidade fica guardada (não é reavaliada do zero a cada vez, o que
   evitava um falso negativo bem no meio de uma troca de aba).
 
 ## Regra de rede dos Sistemas do CNJ (`rules/sistemasCnj.json`)
 
 Para que os sistemas do CNJ e de outros órgãos (gov.br, Receita, PDPJ,
-Copel, Sanepar etc.) abram dentro do popup do Projudi/SEEU, a regra de
+Copel, Sanepar etc.) abram dentro do popup do Projudi, a regra de
 `declarativeNetRequest` retira `X-Frame-Options` das respostas carregadas em
 iframe a partir dos domínios de `initiatorDomains`. A
 `Content-Security-Policy` **não é removida**: ela é **substituída** por
-`frame-ancestors 'self' https://*.tjpr.jus.br https://seeu.pje.jus.br https://seeutreino.pje.jus.br`
+`frame-ancestors 'self' https://*.tjpr.jus.br`
 seguido dos próprios domínios de `initiatorDomains` (cada um com e sem
-`*.`). Assim o navegador só deixa esses sites serem embutidos pelo Tribunal,
-pelo SEEU e por eles mesmos, evitando *clickjacking* a partir de qualquer
+`*.`). Assim o navegador só deixa esses sites serem embutidos pelo Tribunal
+e por eles mesmos, evitando *clickjacking* a partir de qualquer
 outra página. Os demais domínios de `initiatorDomains` estão na lista porque
 as navegações internas do login (de um sistema para outro dentro do iframe)
 dependem deles — e, desde a 2.54.1, também no `frame-ancestors`: como a
@@ -2056,7 +1969,7 @@ Adolescentes** de `sna.cnj.jus.br` embute `sna.cloud.cnj.jus.br` (iframe
 `legado`), que ficava em `ERR_BLOCKED_BY_RESPONSE` (ver
 `DIAGNOSTICO-SNA-CNJ.md`).
 
-O card **SEEU** (só no Projudi) usa uma segunda regra (`id` 2), com
+O card **SEEU** (abre o SEEU a partir do Projudi) usa uma segunda regra (`id` 2), com
 `requestDomains` `seeu.pje.jus.br` e `initiatorDomains` só `tjpr.jus.br`:
 assim os quadros que o próprio SEEU abre dentro dele continuam com a CSP
 original.
@@ -2079,21 +1992,16 @@ regra e abrir em aba nova.
   um `<iframe>` (PDF é o caso comum, via visualizador nativo do
   Chrome/Edge). Alguns tipos de arquivo podem ser baixados diretamente pelo
   navegador em vez de exibidos — nesse caso, use "Abrir em nova aba".
-- O `host_permissions` do `manifest.json` está restrito a `*.tjpr.jus.br`
-  (Projudi) e `seeu.pje.jus.br` (SEEU), os domínios usados no TJPR. Para
-  usar em outro Tribunal (outro domínio de Projudi, ou outra instância do
-  SEEU), ajuste os padrões de URL em `manifest.json`.
-- A extensão também tem permissão para `*.amazonaws.com` — necessária
-  porque o SEEU redireciona o link do arquivo para um bucket S3 (com URL
-  assinada) na hora do download, e o service worker precisa poder buscar
+- Os scripts só são injetados em `*.tjpr.jus.br` (Projudi). O
+  `host_permissions` tem também `seeu.pje.jus.br`, só para o card **SEEU**
+  dos Sistemas do CNJ abrir no popup (regra 2 de `rules/sistemasCnj.json`).
+  Para usar em outro Tribunal, ajuste os padrões de URL em
+  `manifest.json` e em `src/termosUso.js`/`src/hostGuard.js`.
+- A extensão também tem permissão para `*.amazonaws.com` — mantida para
+  quando o link do arquivo redireciona para um bucket S3 (com URL
+  assinada) na hora do download (era o caso do SEEU), e o service worker precisa poder buscar
   esse endereço final. Não é usada para mais nada além de baixar o
   documento que o próprio usuário selecionou.
-- O reconhecimento das telas do SEEU foi validado a partir de um HTML
-  estático (arquivo `.mhtml` salvo com a movimentação já expandida), não de
-  testes ao vivo no sistema — o link de arquivo usa o mesmo padrão do
-  Projudi (`class="link"` + `href` contendo `/arquivo.do`), então a
-  detecção de documentos deve funcionar sem ajustes, mas vale confirmar na
-  prática.
 - Não há armazenamento, envio ou cache de nenhum dado do processo pela
   extensão: o documento é sempre buscado diretamente do Projudi no momento
   do hover.

@@ -33,7 +33,7 @@
 // posterior da tela feita à mão.
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 	if (!location.pathname.startsWith("/projudi/")) return;
 
 	// Não roda dentro de iframes ocultos (carregamento em segundo plano) nem

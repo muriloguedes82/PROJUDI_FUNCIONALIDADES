@@ -9,7 +9,7 @@
 // 1) mostra um aviso dizendo quais arquivos foram baixados e como anexá-los;
 // 2) tenta revelar o campo "De" da composição, caso esteja recolhido, e em
 //    seguida selecionar nele o remetente marcado como padrão no botão
-//    "✉️ Remetente" do Projudi/SEEU (chrome.storage.local, gerenciado por
+//    "✉️ Remetente" do Projudi (chrome.storage.local, gerenciado por
 //    src/email.js) — só funciona se essa conta já tiver permissão de
 //    "Enviar como" configurada pelo TI. Diferente da automação de anexo
 //    (que esbarrou em restrições de "evento não confiável"), revelar/clicar
@@ -240,7 +240,7 @@
 	}
 
 	// Tenta selecionar, no campo "De" já revelado, o remetente marcado como
-	// padrão nas opções da extensão (botão "✉️ Remetente" no Projudi/SEEU).
+	// padrão nas opções da extensão (botão "✉️ Remetente" no Projudi).
 	// Só funciona se a conta já tiver permissão de "Enviar como" configurada
 	// pelo TI — sem isso, o e-mail nem aparece na lista para escolher.
 	// EXPERIMENTAL: não temos o HTML real do controle "De" nem da lista de

@@ -41,12 +41,19 @@ não: ficam em `videos-do-manual/`, na raiz do repositório. Ao criar uma funcio
 
 O manual é escrito para quem só conhece o Projudi: sem termos técnicos.
 
-## Projudi e SEEU: pendências antes de uma preferência
+## Só Projudi (versão 18)
 
-Nos **dois sistemas** (decisão do usuário, versão 2.50.0), antes de executar
-uma preferência ou combo (tela do processo, painel 📍 Localizador e ⭐ das
+Desde a versão 18 (decisão do usuário) a extensão funciona **só no
+Projudi**: todas as funções do SEEU foram retiradas. O código completo da
+versão 17 (com o SEEU) está guardado na branch `backup-seeu-versao-17`;
+veja `SEEU-RECUPERAR.md` na raiz. Não acrescente funções para o SEEU sem
+pedido do usuário. O card **SEEU** dos Sistemas do CNJ (abre o SEEU num
+popup a partir do Projudi) continua.
+
+## Pendências antes de uma preferência
+
+Antes de executar uma preferência ou combo (tela do processo e ⭐ das
 listas), a extensão pergunta se deve dispensar as juntadas/decursos ou
 finalizar a conclusão pendentes, e faz isso pelos mesmos recursos dos botões
-do quadro Pendências (que também existem no SEEU). Mantenha o mesmo
-comportamento nos dois (ver `executarComPendencias` em `src/quickActions.js`
+do quadro Pendências (ver `executarComPendencias` em `src/quickActions.js`
 e a REGRA no início de `src/preferenciasNaLinha.js`).

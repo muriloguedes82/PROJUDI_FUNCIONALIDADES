@@ -1,4 +1,4 @@
-// Projudi/SEEU - RG e CPF das partes nas telas de cumprimentos
+// Projudi - RG e CPF das partes nas telas de cumprimentos
 //
 // Na lista de cumprimentos da serventia (`cumprimentoCartorio.do` — a tela
 // que se abre ao clicar num dos contadores da lista de ordenações, ex.:
@@ -37,21 +37,11 @@
 // linha "Identificador do Cumprimento:", o link `processo.do?_tj=...` do
 // processo (número num <em>). A linha "Prazo (Referente a(s) parte(s)):" é
 // outra coisa e é ignorada.
-//
-// SEEU (listas Demais Cumprimentos e Mandados - cumprimentoCartorio.do e
-// cumprimentoCartorioMandado.do - e a tela do cumprimento): mesmas colunas,
-// com o número do processo levando a visualizacaoProcesso.do. O RG e o CPF
-// vêm do cabeçalho da tela do processo, presente em qualquer aba: a linha
-// "Sentenciado:" tem o link parteProcesso.do com "NOME <b>(RJI: ...; CPF:
-// ...; RG: ...);</b>" - uma só leitura, sem a aba das partes. Na lista de
-// Mandados a parte vem como texto na célula (sem <ul>/<li>): a própria
-// célula faz o papel do item.
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
-	if (!/^\/(projudi|seeu)\//.test(location.pathname)) return;
-	const NO_SEEU = location.pathname.startsWith("/seeu/");
-	const BASE = NO_SEEU ? "/seeu/" : "/projudi/";
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
+	if (!/^\/projudi\//.test(location.pathname)) return;
+	const BASE = "/projudi/";
 
 	// Evita rodar dentro de iframes ocultos (carregamento em segundo plano)
 	// e dentro do próprio popup desta extensão.
@@ -194,32 +184,8 @@
 		return field && /^\d+$/.test(field.value) ? field.value : null;
 	}
 
-	// SEEU: partes com documentos no cabeçalho do processo ("Sentenciado:"):
-	// [{ nome, rg, cpf }] ou null se o cabeçalho não veio.
-	function lerPartesSeeu(doc) {
-		const partes = [];
-		for (const link of doc.querySelectorAll('table.form a[href*="parteProcesso.do"]')) {
-			const b = link.querySelector("b");
-			const docs = b ? collapse(b.textContent) : "";
-			if (!/\b(RJI|CPF|RG):/.test(docs)) continue;
-			let nome = "";
-			for (const node of link.childNodes) if (node !== b) nome += node.textContent;
-			nome = collapse(nome);
-			if (!nome) continue;
-			const rg = /\bRG:\s*([^;)]*)/.exec(docs);
-			const cpf = /\bCPF:\s*([^;)]*)/.exec(docs);
-			partes.push({ nome: nome, rg: rg ? valorDocumento(rg[1]) : "", cpf: cpf ? valorDocumento(cpf[1]) : "" });
-		}
-		return partes.length ? partes : null;
-	}
-
 	async function buscarPartes(processoHref) {
 		const pagina = await readPage(projudiURL(processoHref).href, { method: "GET" });
-		if (NO_SEEU) {
-			const partes = lerPartesSeeu(pagina.doc);
-			if (!partes) throw new Error('a tela do processo não trouxe o "Sentenciado" com RG/CPF');
-			return partes;
-		}
 		const local = lerPartes(pagina.doc);
 		if (local) return local;
 
@@ -341,7 +307,7 @@
 	}
 
 	function linkDoProcesso(container) {
-		const link = container.querySelector(NO_SEEU ? 'a[href*="/visualizacaoProcesso.do"]' : 'a[href*="/processo.do"]');
+		const link = container.querySelector('a[href*="/processo.do"]');
 		if (!link) return null;
 		const numero = collapse((link.querySelector("em") || link).textContent);
 		return numero ? { numero: numero, href: link.href } : null;
@@ -362,9 +328,7 @@
 					if (!tdProcesso || !tdPartes) continue;
 					const processo = linkDoProcesso(tdProcesso);
 					if (!processo) continue;
-					let itens = Array.prototype.slice.call(tdPartes.querySelectorAll("li"));
-					// SEEU, Mandados: a parte é texto na própria célula.
-					if (!itens.length && NO_SEEU && nomeDoItem(tdPartes)) itens = [tdPartes];
+					const itens = Array.prototype.slice.call(tdPartes.querySelectorAll("li"));
 					alvos.push(Object.assign(processo, { itens: itens }));
 				}
 			}

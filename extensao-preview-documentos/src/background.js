@@ -21,7 +21,7 @@
 
 "use strict";
 
-// Aceite dos Termos de Uso e registro dos scripts do Projudi/SEEU.
+// Aceite dos Termos de Uso e registro dos scripts do Projudi.
 importScripts("termosUso.js", "sistemasCnjLista.js");
 
 const MESSAGE_SOURCE = "projudi-preview";
@@ -189,7 +189,7 @@ function blobToDataUrl(blob) {
 // própria página. Um fetch feito por uma extensão a partir do seu contexto
 // de background, para um domínio coberto por host_permissions, ignora essa
 // restrição de CORS — daí a exigência de host_permissions tanto para o
-// domínio do sistema (Projudi/SEEU) quanto para o domínio de armazenamento
+// domínio do sistema (Projudi) quanto para o domínio de armazenamento
 // para onde ele redireciona (ver manifest.json).
 async function downloadDocAsPayload(doc) {
 	const resp = await fetch(doc.href, { credentials: "include" });
@@ -765,7 +765,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 // Executa somente o botão previamente marcado no iframe desta operação.
 function clickJuntadaWithConfirmation(token) {
   if (!window.frameElement || window.frameElement.getAttribute('data-pdp-dispensa') !== token) return null;
-  if (!/^\/(projudi|seeu)\/.*\/analisarJuntada\.do$/.test(location.pathname)) return { ok: false, error: 'Página de análise inesperada.' };
+  if (!/^\/projudi\/.*\/analisarJuntada\.do$/.test(location.pathname)) return { ok: false, error: 'Página de análise inesperada.' };
   const button = document.querySelector('[data-pdp-dispensa-button="' + token + '"]');
   if (!button || button.disabled) return { ok: false, error: 'Botão de dispensa indisponível.' };
   button.removeAttribute('data-pdp-dispensa-button');
@@ -788,7 +788,7 @@ function clickJuntadaWithConfirmation(token) {
 
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
   if (message?.source !== 'projudi-preview' || message.type !== 'juntada-dispense-marked') return false;
-  if (!sender.tab || !/^https?:\/\/([^/]+\.tjpr\.jus\.br\/projudi|seeu(treino)?\.pje\.jus\.br\/seeu)\//.test(sender.url || '') || !/^[a-f0-9-]{36}$/.test(message.token || '')) {
+  if (!sender.tab || !/^https?:\/\/[^/]+\.tjpr\.jus\.br\/projudi\//.test(sender.url || '') || !/^[a-f0-9-]{36}$/.test(message.token || '')) {
     reply({ ok: false, error: 'Origem da operação inválida.' }); return false;
   }
   chrome.scripting.executeScript({ target: { tabId: sender.tab.id, allFrames: true }, world: 'MAIN', func: clickJuntadaWithConfirmation, args: [message.token] })
@@ -801,8 +801,7 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
 function clickDecursoWithConfirmation(token) {
   if (!window.frameElement || window.frameElement.getAttribute('data-pdp-decurso') !== token) return null;
   // Tela da intimação (Intimação, Auxiliares da Justiça ou Citação/Notificação).
-  const telas = ['/projudi/processo/intimacao.do', '/projudi/processo/intimacaoNomeados.do', '/projudi/processo/citacao.do',
-    '/seeu/processo/intimacao.do', '/seeu/processo/intimacaoNomeados.do', '/seeu/processo/citacao.do'];
+  const telas = ['/projudi/processo/intimacao.do', '/projudi/processo/intimacaoNomeados.do', '/projudi/processo/citacao.do'];
   if (telas.indexOf(location.pathname) < 0) return {ok:false, error:'Página de intimação inesperada.'};
   const marcado = document.querySelector('[data-pdp-decurso-button="' + token + '"]');
   const button = marcado && marcado.form ? marcado : null;
@@ -832,7 +831,7 @@ function clickDecursoWithConfirmation(token) {
 
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
   if (message?.source !== 'projudi-preview' || message.type !== 'decurso-dispense-marked') return false;
-  if (!sender.tab || !/^https?:\/\/([^/]+\.tjpr\.jus\.br\/projudi|seeu(treino)?\.pje\.jus\.br\/seeu)\//.test(sender.url || '') || !/^[a-f0-9-]{36}$/.test(message.token || '')) {
+  if (!sender.tab || !/^https?:\/\/[^/]+\.tjpr\.jus\.br\/projudi\//.test(sender.url || '') || !/^[a-f0-9-]{36}$/.test(message.token || '')) {
     reply({ok:false, error:'Origem da operação inválida.'}); return false;
   }
   chrome.scripting.executeScript({target:{tabId:sender.tab.id, allFrames:true}, world:'MAIN', func:clickDecursoWithConfirmation, args:[message.token]})
@@ -994,8 +993,7 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
 // Sistemas do CNJ (sistemasCnj.js): botão "abrir fora do popup" de cada
 // sistema. Por padrão abre no segundo monitor, se houver; sem ele, numa aba
 // nova ao lado da do processo. Só abre endereços da lista
-// (sistemasCnjLista.js) e só atende páginas do Projudi (e do SEEU, apenas
-// os sistemas marcados com `seeu: true`).
+// (sistemasCnjLista.js) e só atende páginas do Projudi.
 
 // Abre numa janela maximizada no monitor que NÃO tem a janela do processo.
 // Resolve com false (sem abrir nada) quando não há segundo monitor.
@@ -1033,11 +1031,9 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
   try {
     const origin = new URL(sender.url);
     const doProjudi = /(^|\.)tjpr\.jus\.br$/.test(origin.hostname) && origin.pathname.startsWith('/projudi/');
-    const doSeeu = /^seeu(treino)?\.pje\.jus\.br$/.test(origin.hostname) && origin.pathname.startsWith('/seeu/');
-    if (!sender.tab || origin.protocol !== 'https:' || !(doProjudi || doSeeu)) throw new Error('Origem inválida.');
+    if (!sender.tab || origin.protocol !== 'https:' || !doProjudi) throw new Error('Origem inválida.');
     sistema = (self.PDP_SISTEMAS_CNJ || []).find(s => s.id === message.sistema);
-    // No SEEU só os marcados com `seeu: true` (sistemasCnjLista.js).
-    if (!sistema || (doSeeu && sistema.seeu !== true)) throw new Error('Sistema desconhecido.');
+    if (!sistema) throw new Error('Sistema desconhecido.');
     if (message.onde !== 'fora' && message.onde !== 'monitor') throw new Error('Opção inválida.');
   } catch (error) { reply({ok:false, error:error.message}); return false; }
   const novaAba = () => chrome.tabs.create({ url: sistema.url, windowId: sender.tab.windowId, index: sender.tab.index + 1, openerTabId: sender.tab.id });

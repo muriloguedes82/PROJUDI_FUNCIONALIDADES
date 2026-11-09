@@ -1,8 +1,8 @@
-// Projudi/SEEU - Envio de Documentos por E-mail (Outlook)
+// Projudi - Envio de Documentos por E-mail (Outlook)
 //
 // Compartilha a seleção de documentos com o WhatsApp na tela de
 // Movimentações (mesmo padrão usado por content.js: <a class="link"
-// href=".../arquivo.do?...">, igual no Projudi e no SEEU). O botão
+// href=".../arquivo.do?...">). O botão
 // flutuante "✉️ Enviar por e-mail" fica sempre visível sobre a tela —
 // funciona com ou sem nenhum arquivo marcado, para permitir enviar um
 // e-mail sem anexar documentos dos autos quando o usuário quiser. Ao lado
@@ -22,7 +22,7 @@
 
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 	// A janela do Oráculo mantém apenas os controles nativos.
 	if (location.pathname === "/projudi/processo/criminal/antecedentesCriminais.do") return;
 	if (window.__pdpButtonGroupBlocked) return;
@@ -94,7 +94,7 @@
 		return frameEligible;
 	}
 
-	// Algumas telas do Projudi/SEEU trocam de aba (Movimentações, Partes e
+	// Algumas telas do Projudi trocam de aba (Movimentações, Partes e
 	// Outros, etc.) substituindo trechos inteiros do DOM via AJAX, em vez de
 	// simplesmente escondê-los. Quando isso acontece, os elementos que
 	// tínhamos criado (botões, checkboxes) são removidos da árvore, mas as
@@ -720,42 +720,24 @@
 		return match ? "Documentos do processo " + match[1] : "Documentos do Projudi";
 	}
 
-	// Número dos autos: no Projudi vem de <em class="attention">; no SEEU
-	// vem do cabeçalho do processo (div.titulo.processo, que mistura o
-	// texto "Execução" com o número e alguns ícones/links — por isso
-	// extraímos com regex em vez de usar o textContent inteiro). Como
-	// última reserva, usa o mesmo padrão já usado em subjectFromPage,
+	// Número dos autos: vem de <em class="attention">. Como última reserva, usa o mesmo padrão já usado em subjectFromPage,
 	// aplicado ao título da página.
 	function extractProcessNumber() {
 		const projudiEl = document.querySelector("em.attention");
 		if (projudiEl && projudiEl.textContent.trim()) return projudiEl.textContent.trim();
 
-		const seeuEl = document.querySelector("div.titulo.processo");
-		if (seeuEl) {
-			const seeuMatch = seeuEl.textContent.match(/([\d.\-]{15,})/);
-			if (seeuMatch) return seeuMatch[1];
-		}
-
 		const match = document.title.match(/([\d.\-]{15,})/);
 		return match ? match[1] : "";
 	}
 
-	// Juízo/vara: no SEEU vem do campo "Juízo:" da tabela de informações do
-	// processo (td[data-label="juízo"], valor na célula seguinte); no
-	// Projudi vem do link "área de atuação" do usuário no cabeçalho.
+	// Juízo/vara: vem do link "área de atuação" do usuário no cabeçalho.
 	function extractJudgeText() {
-		const seeuLabelCell = document.querySelector('td[data-label="juízo"]');
-		if (seeuLabelCell && seeuLabelCell.nextElementSibling) {
-			const text = seeuLabelCell.nextElementSibling.textContent.trim();
-			if (text) return text;
-		}
 		const projudiEl = document.querySelector("#areaatuacao");
 		return projudiEl ? projudiEl.textContent.trim() : "";
 	}
 
 	// Monta o texto padrão inserido no início de todo e-mail, com o número
-	// dos autos e o juízo, extraídos da própria tela do processo (Projudi
-	// ou SEEU).
+	// dos autos e o juízo, extraídos da própria tela do processo.
 	function defaultBodyText() {
 		const number = extractProcessNumber();
 		const judge = extractJudgeText();

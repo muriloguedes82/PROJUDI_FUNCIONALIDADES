@@ -1,14 +1,10 @@
 // Botão ao lado da pendência: dispensa de juntadas em segundo plano.
-//
-// Projudi e SEEU: o quadro Pendências (#quadroPendencias) e a tela "Análise
-// de Juntadas" (idJuntadas/checker e o botão "Dispensar") são iguais nos
-// dois; muda só o começo do endereço (/projudi/ ou /seeu/).
 (function () {
   "use strict";
-  if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
-  if (window.__pdpJuntadaDrag || !/^\/(projudi|seeu)\//.test(location.pathname)) return;
+  if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
+  if (window.__pdpJuntadaDrag || !/^\/projudi\//.test(location.pathname)) return;
   window.__pdpJuntadaDrag = true;
-  const ANALISE_RE = location.pathname.startsWith('/seeu/') ? /^\/seeu\/.*\/analisarJuntada\.do$/ : /^\/projudi\/.*\/analisarJuntada\.do$/;
+  const ANALISE_RE = /^\/projudi\/.*\/analisarJuntada\.do$/;
   const normalize = text => String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
   function eligible(link) {
     if (!link || !link.matches('a.link') || !link.closest('#quadroPendencias')) return null;
@@ -231,10 +227,10 @@
 // decurso de prazo no processo atualmente aberto.
 (function () {
   'use strict';
-  if (window.__pdpDispensarDecurso || !/^\/(projudi|seeu)\//.test(location.pathname)) return;
+  if (window.__pdpDispensarDecurso || !/^\/projudi\//.test(location.pathname)) return;
   window.__pdpDispensarDecurso = true;
 
-  const base = location.pathname.startsWith('/seeu/') ? '/seeu' : '/projudi';
+  const base = '/projudi';
   const listRoute = base + '/processo/intimacaoBusca.do';
   const detailRoute = base + '/processo/intimacao.do';
   const normalize = value => String(value || '').normalize('NFD')

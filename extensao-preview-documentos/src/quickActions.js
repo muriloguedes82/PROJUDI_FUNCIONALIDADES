@@ -30,7 +30,7 @@
 
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 	// A janela do Oráculo mantém apenas os controles nativos.
 	if (location.pathname === "/projudi/processo/criminal/antecedentesCriminais.do") return;
 	// Nas telas em que a fileira de botões não aparece (ver uiVisibility.js)
@@ -134,46 +134,13 @@
 		},
 	];
 
-	// SEEU: só as ações cujas telas foram conferidas no SEEU (pedido do
-	// usuário, versão 2.51.0); as demais ficam só no Projudi. Grupos que
-	// ficam sem ação somem no SEEU. No Projudi, todas.
-	const NO_SEEU = /^\/seeu\//.test(location.pathname);
-	const ACOES_SEEU = [
-		"Enviar Concluso",
-		"Realizar Remessa",
-		"Ordenar Cumprimentos",
-		"Intimar Partes",
-		"Intimar Peritos e Auxiliares da Justiça",
-		"Transitar em Julgado",
-		"Arquivar Processo",
-		"Interromper Prazo",
-		"Redistribuir",
-		"Comunicar ao IIPR",
-		// Ação personalizada (habilitarAdvogado.js), sem botão nesta
-		// fileira: abre pelo "⚖️ Advogados" (versão 2.53.0).
-		"Advogados",
-	];
-	// Ações personalizadas que também rodam no SEEU (as demais, como o
-	// Alvará Eletrônico, só no Projudi).
-	const CUSTOM_NO_SEEU = ["Advogados"];
-	// Preferências de "Advogados": as gravadas no SEEU (`sistema: "seeu"`,
-	// um advogado, a Atuação e as partes) só aparecem lá, e as do Projudi
-	// (sem marca) só no Projudi.
+	// Preferências de "Advogados" gravadas no SEEU (`sistema: "seeu"`, de
+	// antes da versão 18) não aparecem: valem só as do Projudi (sem marca).
 	function prefDoSistema(label, pref) {
 		if (label !== "Advogados" || !pref) return true;
-		return (pref.sistema || "projudi") === (NO_SEEU ? "seeu" : "projudi");
+		return (pref.sistema || "projudi") === "projudi";
 	}
-	// Ações que só existem no SEEU (versão 2.52.0), no grupo "Outras":
-	// "Redistribuir" (processoDistribuicao.do, link comum - ver
-	// ACOES_POR_HREF) e "Comunicar ao IIPR" (diálogo comunicacaoIIPR.do).
-	const ACOES_SO_SEEU = ["Redistribuir", "Comunicar ao IIPR"];
-	// Ações cujo link do painel Ações leva à tela por `href` (sem
-	// openDialog no onclick): o popup abre esse endereço.
-	const ACOES_POR_HREF = ["Redistribuir"];
-	const ACTION_GROUPS = !NO_SEEU ? TODOS_ACTION_GROUPS : TODOS_ACTION_GROUPS.map(function (g) {
-		const acoes = g.id === "outras" ? g.actions.concat(ACOES_SO_SEEU) : g.actions;
-		return Object.assign({}, g, { actions: acoes.filter(function (a) { return ACOES_SEEU.indexOf(a) !== -1; }) });
-	}).filter(function (g) { return g.actions.length > 0; });
+	const ACTION_GROUPS = TODOS_ACTION_GROUPS;
 
 	const PROCESS_TOOLBAR_LABELS = [
 		"Peticionar",
@@ -191,9 +158,7 @@
 	const OTHER_BUTTON_SELECTOR = "#pdp-wa-launcher, .pdp-email-visible";
 	const PREFERENCES_KEY = "pdpActionPreferences"; // { [actionLabel]: [{id, name, fields, createdAt}] }
 	const JUNTAR_PREFS_KEY = "pdpJuntarDocumentoPrefs"; // ver juntarDocumento.js
-	const LOCALIZADOR_PREFS_KEY = "pdpLocalizadorPreferencias"; // ver localizadorSeeu.js (só SEEU)
-	const LOCALIZADOR_LABEL = "📍 Localizador";
-	const FAV_ORDER_KEY = "pdpPreferencesOrder"; // ["a:<id>" | "j:<id>" | "c:<id>" | "l:<id>" | "u:<id>", ...] — ordem dos cards em "Minhas Preferências"
+	const FAV_ORDER_KEY = "pdpPreferencesOrder"; // ["a:<id>" | "j:<id>" | "c:<id>" | "u:<id>", ...] — ordem dos cards em "Minhas Preferências"
 	const FAV_PANEL_ID = "__minhas-preferencias";
 	const FAV_VISIBLE_LIMIT = 20;
 	const DIALOG_WAIT_TIMEOUT_MS = 6000;
@@ -351,8 +316,6 @@
 		if (projudiEl && projudiEl.textContent.trim()) return true;
 		const projudiHeader = document.getElementById("barraTituloStatusProcessual");
 		if (projudiHeader && /\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/.test(projudiHeader.textContent || "")) return true;
-		const seeuEl = document.querySelector("div.titulo.processo");
-		if (seeuEl && /[\d.\-]{15,}/.test(seeuEl.textContent || "")) return true;
 		return false;
 	}
 
@@ -746,12 +709,6 @@
 	function dialogResultForLink(label, link, acoesUrl) {
 		const dialogUrl = extractUrlFromOnclick(link.getAttribute("onclick"), acoesUrl);
 		if (dialogUrl) return { url: dialogUrl, acoesUrl: acoesUrl };
-		if (ACOES_POR_HREF.indexOf(label) !== -1) {
-			try {
-				const url = new URL(link.getAttribute("href") || "", acoesUrl);
-				if (url.origin === location.origin && url.search && !/#$/.test(link.getAttribute("href") || "")) return { url: url.href, acoesUrl: acoesUrl };
-			} catch (e) { /* segue */ }
-		}
 		if (ACTIONS_NEEDING_ACOES_PARENT.indexOf(label) !== -1 || ACTIONS_ACOES_PARENT_SEM_URL.indexOf(label) !== -1) {
 			return { url: null, acoesUrl: acoesUrl };
 		}
@@ -3309,8 +3266,8 @@
 	//
 	// Um combo é uma lista ORDENADA de preferências já salvas (de qualquer
 	// ação do painel, e também do "📎 Juntar Documento" — ver
-	// juntarDocumento.js —, do "✏️ Alterar Classe/Assuntos" e do
-	// "📍 Localizador" — ver "Etapas diretas" abaixo), executadas uma depois
+	// juntarDocumento.js —, do "✏️ Alterar Classe/Assuntos", das
+	// Prioridades e do Agendar Audiência — ver "Etapas diretas" abaixo), executadas uma depois
 	// da outra. O editor mostra uma
 	// caixa por etapa: na 1ª o usuário escolhe a preferência que roda
 	// primeiro; "+ Adicionar preferência" cria a caixa seguinte, e assim por
@@ -3343,10 +3300,9 @@
 	// processo, maybeResumeCombo vê a marca e segue para a próxima etapa.
 	//
 	// Etapas diretas ("Alterar Classe/Assuntos", "Prioridades" e "Agendar
-	// Audiência", só no Projudi, e "📍 Localizador", só no SEEU): não têm
+	// Audiência"): não têm
 	// popup — a preferência é executada pelo próprio arquivo dela
-	// (alterarClasseAssuntos.js, alterarPrioridades.js, agendarAudiencia.js,
-	// localizadorSeeu.js). "Agendar Audiência" sai da tela do processo: a
+	// (alterarClasseAssuntos.js, alterarPrioridades.js, agendarAudiencia.js). "Agendar Audiência" sai da tela do processo: a
 	// etapa fica "running" até o usuário voltar a ela (maybeResumeCombo). A barra do combo mostra o que será feito e só
 	// executa no "▶ Sim, executar" dela; terminada a etapa, segue para a
 	// próxima (a alteração de classe/assuntos recarrega a tela antes, para
@@ -3408,15 +3364,14 @@
 		});
 	}
 
-	const COMBO_PREFS_STORAGE_KEYS = [PREFERENCES_KEY, JUNTAR_PREFS_KEY, ALTERAR_CLASSE_PREFS_KEY, PRIORIDADES_PREFS_KEY, AGENDAR_AUDIENCIA_PREFS_KEY, LOCALIZADOR_PREFS_KEY];
+	const COMBO_PREFS_STORAGE_KEYS = [PREFERENCES_KEY, JUNTAR_PREFS_KEY, ALTERAR_CLASSE_PREFS_KEY, PRIORIDADES_PREFS_KEY, AGENDAR_AUDIENCIA_PREFS_KEY];
 
 	// Todas as preferências que podem entrar num combo, por rótulo da ação,
 	// a partir do chrome.storage (chaves COMBO_PREFS_STORAGE_KEYS): as das
 	// Ações rápidas e, em JUNTAR_LABEL, ALTERAR_CLASSE_LABEL,
-	// PRIORIDADES_LABEL e LOCALIZADOR_LABEL, as do "Juntar Documento", do
-	// "Alterar Classe/Assuntos", das "Prioridades" e do "Localizador"
-	// (estas com `name` = nome gravado
-	// ou os localizadores, como em "Minhas Preferências").
+	// PRIORIDADES_LABEL e AGENDAR_AUDIENCIA_LABEL, as do "Juntar
+	// Documento", do "Alterar Classe/Assuntos", das "Prioridades" e do
+	// "Agendar Audiência".
 	function comboPreferencesFrom(data) {
 		const all = Object.assign({}, data[PREFERENCES_KEY] || {});
 		const juntar = data[JUNTAR_PREFS_KEY];
@@ -3427,14 +3382,6 @@
 		if (Array.isArray(prioridades) && prioridades.length) all[PRIORIDADES_LABEL] = prioridades;
 		const audiencias = data[AGENDAR_AUDIENCIA_PREFS_KEY];
 		if (Array.isArray(audiencias) && audiencias.length) all[AGENDAR_AUDIENCIA_LABEL] = audiencias;
-		const loc = (Array.isArray(data[LOCALIZADOR_PREFS_KEY]) ? data[LOCALIZADOR_PREFS_KEY] : []).filter(function (pref) {
-			return pref && Array.isArray(pref.localizadores) && pref.localizadores.length;
-		});
-		if (loc.length) {
-			all[LOCALIZADOR_LABEL] = loc.map(function (pref) {
-				return { id: pref.id, name: pref.nome || pref.localizadores.join(" • "), createdAt: pref.createdAt, localizadores: pref.localizadores };
-			});
-		}
 		return all;
 	}
 
@@ -3445,8 +3392,7 @@
 	// Todas as preferências salvas, na ordem dos grupos do painel, depois o
 	// "Juntar Documento" e as etapas diretas (ações desconhecidas — de
 	// versões antigas — no fim): [{ label, pref }]. As etapas diretas só
-	// entram onde podem rodar (Alterar Classe/Assuntos no Projudi,
-	// Localizador no SEEU), salvo as de `keepLabels` (já usadas no combo
+	// entram onde podem rodar (função ligada no Menu), salvo as de `keepLabels` (já usadas no combo
 	// em edição).
 	function flattenPreferences(all, keepLabels) {
 		const labels = [];
@@ -3718,8 +3664,7 @@
 	// `executar()` depois das perguntas (e das dispensas pedidas), ou não
 	// chama nada se o usuário cancelar.
 	//
-	// REGRA: as perguntas (dispensar juntadas / finalizar conclusão) valem
-	// no Projudi e no SEEU, do mesmo jeito: com juntadas ou conclusão
+	// REGRA: as perguntas (dispensar juntadas / finalizar conclusão): com juntadas ou conclusão
 	// pendentes no quadro Pendências, a extensão pergunta antes de executar a
 	// preferência (ver também preferenciasNaLinha.js e o CLAUDE.md).
 	async function executarComPendencias(titulo, combo, executar) {
@@ -4052,7 +3997,7 @@
 	// --- Etapas diretas (sem popup) --------------------------------------
 	//
 	// Por rótulo: nesteSistema() — o recurso está carregado nesta tela
-	// (Projudi/SEEU, função ligada); disponivel() — dá para executar já;
+	// (função ligada); disponivel() — dá para executar já;
 	// descrever(pref) — o que será feito, na barra; executar(pref) —
 	// resolve com { ok, texto, recarregar }.
 	const DIRECT_STEPS = {
@@ -4106,28 +4051,6 @@
 			},
 			executar: function (pref) {
 				return window.__pdpAgendarAudienciaApi.executar(pref);
-			},
-		},
-		[LOCALIZADOR_LABEL]: {
-			nesteSistema: function () {
-				return !!window.__pdpLocalizador;
-			},
-			disponivel: function () {
-				return !!window.__pdpLocalizador && window.__pdpLocalizador.podeAssociar(document);
-			},
-			indisponivel: 'Abra a tela do processo (com o "+" dos localizadores no cabeçalho) e clique em "Repetir etapa".',
-			outroSistema: "Localizadores só são associados no SEEU, com essa função ligada no Menu. Pule esta etapa ou pare o combo.",
-			descrever: function (pref) {
-				return "Associar ao processo: " + pref.localizadores.join(", ") + ".";
-			},
-			executar: function (pref) {
-				return window.__pdpLocalizador
-					.associarEm(document, pref.localizadores, function (i, total, nome) {
-						renderComboBar("Associando " + i + " de " + total + ": " + nome + "…", { busy: true });
-					})
-					.then(function (r) {
-						return { ok: r.tipo !== "erro", texto: r.texto, recarregar: false };
-					});
 			},
 		},
 	};
@@ -4446,7 +4369,7 @@
 				(existing ? "Editar combo de preferências" : "Novo combo de preferências") +
 				'</span><button type="button" class="pdp-qa-modal-close">✕ Fechar</button></div>' +
 				'<div class="pdp-qa-combo-body">' +
-				'<p class="pdp-qa-combo-help">Escolha na 1ª caixa a preferência que deve ser executada primeiro. Depois use "+ Adicionar preferência" para a próxima, e assim por diante. Ao usar o combo, cada etapa abre já preenchida e pede a confirmação de sempre ("Sim, executar"; no Juntar Documento, a assinatura; no Alterar Classe/Assuntos e no Localizador, o "▶ Sim, executar" da barra do combo); executada uma, a seguinte abre sozinha.</p>' +
+				'<p class="pdp-qa-combo-help">Escolha na 1ª caixa a preferência que deve ser executada primeiro. Depois use "+ Adicionar preferência" para a próxima, e assim por diante. Ao usar o combo, cada etapa abre já preenchida e pede a confirmação de sempre ("Sim, executar"; no Juntar Documento, a assinatura; no Alterar Classe/Assuntos, o "▶ Sim, executar" da barra do combo); executada uma, a seguinte abre sozinha.</p>' +
 				'<label class="pdp-qa-combo-name">Nome do combo <input type="text" maxlength="80"></label>' +
 				'<div class="pdp-qa-combo-steps"></div>' +
 				'<button type="button" class="pdp-qa-combo-add">+ Adicionar preferência</button>' +
@@ -4770,7 +4693,7 @@
 		secondLine.className = "pdp-qa-row-line";
 
 		ACTION_GROUPS.forEach(function (group) {
-			if (group.custom && !location.pathname.startsWith("/projudi/") && !group.actions.some(function (a) { return CUSTOM_NO_SEEU.indexOf(a) !== -1; })) return;
+			if (group.custom && !location.pathname.startsWith("/projudi/")) return;
 			if (group.semBotao) return;
 			const btn = document.createElement("button");
 			btn.type = "button";
@@ -5120,7 +5043,7 @@
 
 	// -------------------------------------------------------------------
 	// "⭐ Minhas Preferências": todas as preferências salvas (das ações
-	// rápidas, do "📎 Juntar Documento" e, no SEEU, do "📍 Localizador")
+	// rápidas e do "📎 Juntar Documento")
 	// em cards, num painel que abre
 	// para baixo do botão, agrupados num bloco por ação (ícone do botão,
 	// nome da ação e quantidade). Só as FAV_VISIBLE_LIMIT primeiras aparecem
@@ -5141,7 +5064,7 @@
 		const group = groupForLabel(label);
 		if (!group) return null;
 		if (group.custom) {
-			if (!location.pathname.startsWith("/projudi/") && CUSTOM_NO_SEEU.indexOf(label) === -1) return null;
+			if (!location.pathname.startsWith("/projudi/")) return null;
 			return getCustomAction(label) ? "custom" : null;
 		}
 		if (isOnAcoesScreen()) return findActionLink(label) ? "ready" : null;
@@ -5156,7 +5079,6 @@
 	// Bloco de "Minhas Preferências" de um item: { key, icon, title }.
 	function favGroupOf(item) {
 		if (item.kind === "combo") return { key: "combo", icon: "🔗", title: "Combos" };
-		if (item.kind === "localizador") return { key: "localizador", icon: "", title: "Localizador" };
 		if (item.kind === "audiencia") return { key: "audiencia", icon: "", title: AGENDAR_AUDIENCIA_LABEL };
 		if (item.kind === "juntar") return { key: "a:" + JUNTAR_LABEL, icon: "", title: JUNTAR_LABEL };
 		// Só o bloco dos combos tem símbolo (pedido do usuário, 2.55.0).
@@ -5209,16 +5131,14 @@
 		if (count) count.textContent = "(" + box.querySelectorAll(".pdp-qa-fav-card").length + ")";
 	}
 
-	// `includeCombos`: também os combos e as preferências de localizadores
-	// (só o painel do botão; o da linha do processo, em
+	// `includeCombos`: também os combos e as preferências do Agendar
+	// Audiência (só o painel do botão; o da linha do processo, em
 	// preferenciasNaLinha.js, não tem como executar nenhum dos dois).
 	function loadFavItemsWith(includeCombos) {
 		return chrome.storage.local.get(COMBO_PREFS_STORAGE_KEYS.concat([FAV_ORDER_KEY, COMBOS_KEY])).then(function (data) {
 			const items = [];
 			const actionPrefs = data[PREFERENCES_KEY] || {};
 			Object.keys(actionPrefs).forEach(function (label) {
-				// No SEEU, só as preferências das ações que existem lá.
-				if (NO_SEEU && ACOES_SEEU.indexOf(label) === -1) return;
 				(actionPrefs[label] || []).forEach(function (pref) {
 					if (!prefDoSistema(label, pref)) return;
 					items.push({ key: "a:" + pref.id, kind: "action", label: label, pref: pref });
@@ -5228,19 +5148,6 @@
 			juntarPrefs.forEach(function (pref) {
 				items.push({ key: "j:" + pref.id, kind: "juntar", label: "Juntar Documento", pref: pref });
 			});
-			// Localizadores: só onde localizadorSeeu.js está carregado (SEEU).
-			if (includeCombos && window.__pdpLocalizador) {
-				const locPrefs = Array.isArray(data[LOCALIZADOR_PREFS_KEY]) ? data[LOCALIZADOR_PREFS_KEY] : [];
-				locPrefs.forEach(function (pref) {
-					if (!pref || !Array.isArray(pref.localizadores) || !pref.localizadores.length) return;
-					items.push({
-						key: "l:" + pref.id,
-						kind: "localizador",
-						label: LOCALIZADOR_LABEL,
-						pref: { id: pref.id, name: pref.nome || pref.localizadores.join(" • "), createdAt: pref.createdAt, localizadores: pref.localizadores },
-					});
-				});
-			}
 			// Agendar Audiência: só onde agendarAudiencia.js está carregado
 			// (Projudi, função ligada no Menu).
 			if (includeCombos && window.__pdpAgendarAudienciaApi) {
@@ -5290,16 +5197,6 @@
 			});
 		}
 		if (item.kind === "action") return removePreference(item.label, item.pref.id);
-		if (item.kind === "localizador") {
-			return chrome.storage.local.get([LOCALIZADOR_PREFS_KEY]).then(function (data) {
-				const prefs = Array.isArray(data[LOCALIZADOR_PREFS_KEY]) ? data[LOCALIZADOR_PREFS_KEY] : [];
-				return chrome.storage.local.set({
-					[LOCALIZADOR_PREFS_KEY]: prefs.filter(function (p) {
-						return p.id !== item.pref.id;
-					}),
-				});
-			});
-		}
 		return chrome.storage.local.get([JUNTAR_PREFS_KEY]).then(function (data) {
 			const prefs = Array.isArray(data[JUNTAR_PREFS_KEY]) ? data[JUNTAR_PREFS_KEY] : [];
 			return chrome.storage.local.set({
@@ -5328,7 +5225,6 @@
 			return audApi && audApi.disponivel() ? "audiencia" : null;
 		}
 		if (item.kind === "juntar") return window.__pdpJuntarDocumento && location.pathname.startsWith("/projudi/") ? "juntar" : null;
-		if (item.kind === "localizador") return window.__pdpLocalizador && window.__pdpLocalizador.disponivel() ? "localizador" : null;
 		return modeForLabel(item.label);
 	}
 
@@ -5347,7 +5243,6 @@
 	// Balão do card (o nome pode aparecer cortado: vai inteiro aqui).
 	function favItemTitle(item, mode) {
 		const isCombo = item.kind === "combo";
-		const isLocalizador = item.kind === "localizador";
 		const isAudiencia = item.kind === "audiencia";
 		const audApi = window.__pdpAgendarAudienciaApi;
 		let title;
@@ -5358,12 +5253,8 @@
 			title = 'Abra a tela do processo (com o "Agendar" na linha "Audiência" do cabeçalho) para usar.\n' + (audApi ? audApi.descrever(item.pref) : "");
 		} else if (isAudiencia) {
 			title = audApi.descrever(item.pref) + "\nDepois você continua o agendamento à mão.";
-		} else if (!mode && isLocalizador) {
-			title = "Localizadores só podem ser associados na tela do processo do SEEU (com o \"+\" dos localizadores disponível):\n" + item.pref.localizadores.join("\n");
 		} else if (!mode) {
 			title = '"' + item.label + '" não está disponível nesta tela. Abra a aba "Movimentações" do processo.';
-		} else if (isLocalizador) {
-			title = "Associar ao processo:\n" + item.pref.localizadores.join("\n");
 		} else if (item.kind === "juntar") {
 			title = 'Juntar Documento com a preferência "' + item.pref.name + '"';
 		} else {
@@ -5378,12 +5269,6 @@
 	// Executa o card (sempre perguntando antes pelas pendências - REGRA do
 	// CLAUDE.md, "pendências antes de uma preferência").
 	function runFavItem(item, mode) {
-		if (mode === "localizador") {
-			executarComPendencias("★ " + item.pref.name + " — 📍 Localizador", false, function () {
-				window.__pdpLocalizador.aplicar(item.pref);
-			});
-			return;
-		}
 		if (mode === "combo") {
 			executarComPendencias('🔗 Combo "' + item.combo.name + '" (' + item.combo.steps.length + " etapas)", true, function () {
 				startCombo(item.combo);
@@ -5875,7 +5760,6 @@
 
 			const isCombo = item.kind === "combo";
 			if (isCombo) card.classList.add("pdp-qa-fav-combo");
-			const isLocalizador = item.kind === "localizador";
 			const isAudiencia = item.kind === "audiencia";
 			const audApi = window.__pdpAgendarAudienciaApi;
 			const mode = favItemMode(item, comboCanRun);
@@ -5894,8 +5778,6 @@
 			editPrefBtn.disabled = !mode && !isCombo;
 			editPrefBtn.title = isCombo
 				? "Editar este combo (etapas, ordem e nome)"
-				: isLocalizador && mode
-					? "Editar esta preferência (nome e localizadores)"
 				: isAudiencia && mode
 					? "Mudar o nome desta preferência (para mudar o tipo, grave outra na ⭐ do \"Agendar\")"
 					: mode
@@ -5909,10 +5791,6 @@
 				}
 				if (!mode) return;
 				closePanel();
-				if (mode === "localizador") {
-					window.__pdpLocalizador.editar(item.pref);
-					return;
-				}
 				if (mode === "audiencia") {
 					audApi.renomear(item.pref);
 					return;
@@ -6328,18 +6206,17 @@
 	//   Um detalhe à parte, no manifest.json: um iframe `srcdoc` tem URL
 	//   própria "about:srcdoc", que por padrão NÃO bate com nenhum padrão
 	//   de `matches` dos content_scripts — sem o `match_origin_as_fallback:
-	//   true` nos blocos de content_scripts do Projudi/SEEU, nenhum script
+	//   true` nos blocos de content_scripts do Projudi, nenhum script
 	//   desta extensão (inclusive a pré-visualização de documentos ao
 	//   passar o mouse, de content.js) rodaria dentro deste popup, mesmo
 	//   a origem "de verdade" da resposta sendo o próprio Projudi. O Chrome
 	//   exige que o `path` do padrão de `matches` seja exatamente "*"
 	//   quando `match_origin_as_fallback` está ativo (senão recusa carregar
-	//   a extensão) — por isso esses dois blocos passaram de
-	//   "*://*.tjpr.jus.br/projudi/*"/"*://seeu.pje.jus.br/seeu/*" para
-	//   "*://*.tjpr.jus.br/*"/"*://seeu.pje.jus.br/*" (mesmos hosts já
-	//   cobertos por host_permissions, só sem restringir o caminho): os
-	//   scripts desta extensão passam a rodar em qualquer página desses
-	//   dois domínios, não só sob /projudi/ ou /seeu/ — sem problema prático
+	//   a extensão) — por isso o bloco passou de
+	//   "*://*.tjpr.jus.br/projudi/*" para "*://*.tjpr.jus.br/*" (mesmo
+	//   host já coberto por host_permissions, só sem restringir o caminho):
+	//   os scripts desta extensão passam a rodar em qualquer página desse
+	//   domínio, não só sob /projudi/ — sem problema prático
 	//   aqui, já que cada recurso só age depois de confirmar marcadores
 	//   específicos da tela (número do processo, formulários nativos etc.),
 	//   nunca só pela URL.
@@ -6359,8 +6236,7 @@
 	}
 
 	window.__pdpQuickActions = {
-		// Pergunta sobre juntadas/conclusão pendentes antes de uma preferência
-		// (localizadorSeeu.js usa no painel "📍 Localizador").
+		// Pergunta sobre juntadas/conclusão pendentes antes de uma preferência.
 		executarComPendencias: executarComPendencias,
 		resolveDialogUrl: resolveDialogUrl,
 		// Preferências salvas (mesma lista/ordem de "Minhas Preferências").
@@ -6382,7 +6258,7 @@
 		comboPendingKey: COMBO_PENDING_KEY,
 		// Etapas que só rodam na tela do processo (navegam a aba ou usam
 		// telas próprias): "Juntar Documento", ações personalizadas e as
-		// etapas diretas (Alterar Classe/Assuntos, Localizador).
+		// etapas diretas (Alterar Classe/Assuntos, Prioridades, Agendar Audiência).
 		stepNeedsProcessScreen: function (label) {
 			return label === JUNTAR_LABEL || !!getCustomAction(label) || label === "Alvará Eletrônico" || !!DIRECT_STEPS[label];
 		},

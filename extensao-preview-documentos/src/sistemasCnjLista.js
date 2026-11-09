@@ -10,13 +10,12 @@
 // `outros`: true = no Projudi começa guardado no card "Outros" (o usuário
 // pode trazê-lo para a fila arrastando).
 // `orgao`: quem mantém o sistema, no título do popup e na dica (padrão: CNJ).
-// `seeu`: true = o ícone também aparece no SEEU (os demais, só no Projudi).
 // `cor`: fundo (dois tons pastel), borda e texto do card - uma cor por
 // sistema; nenhuma repete o dourado da balança.
 // `rotulo`: nome oficial curto escrito no card (o nome completo fica na dica).
 self.PDP_SISTEMAS_CNJ = Object.freeze([
 	{
-		// SEEU (execução penal): só no Projudi - no próprio SEEU não faz sentido.
+		// SEEU (execução penal): abre o SEEU num popup a partir do Projudi.
 		id: "seeu",
 		rotulo: "SEEU",
 		nome: "SEEU",
@@ -46,7 +45,6 @@ self.PDP_SISTEMAS_CNJ = Object.freeze([
 		nome: "BNMP 3.0",
 		titulo: "BNMP 3.0 — Banco Nacional de Medidas Penais e Prisões",
 		url: "https://bnmp.pdpj.jus.br/pagina-inicial",
-		seeu: true,
 		cor: { claro: "#e3e6fb", escuro: "#bcc3f2", borda: "#5b67c7", texto: "#2e3a8f" }
 	},
 	{
@@ -107,7 +105,6 @@ self.PDP_SISTEMAS_CNJ = Object.freeze([
 		orgao: "TJPR",
 		titulo: "Sistema Uniformizado — TJPR (fundos, custas e guias)",
 		url: "https://portal.tjpr.jus.br/fundos/index.do?perform=listar",
-		seeu: true,
 		cor: { claro: "#e8edf2", escuro: "#c4d0dc", borda: "#6b7f93", texto: "#34495e" }
 	},
 	{
@@ -149,7 +146,6 @@ self.PDP_SISTEMAS_CNJ = Object.freeze([
 		titulo: "SESP Intranet — Secretaria da Segurança Pública do Paraná",
 		url: "https://sespintranet.sesp.parana/sespintranet/moduloValidacao.do?action=index",
 		outros: true,
-		seeu: true,
 		cor: { claro: "#f1e6ea", escuro: "#d9c0c9", borda: "#93677a", texto: "#5a3446" }
 	}
 ]);

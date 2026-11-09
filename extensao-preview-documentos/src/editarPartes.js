@@ -20,7 +20,7 @@
 // `src` comum (GET) no iframe.
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 
 	if (window.__pdpEditarPartes || !location.pathname.startsWith("/projudi/")) return;
 	window.__pdpEditarPartes = true;

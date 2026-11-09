@@ -43,7 +43,7 @@
 // (sessionStorage da aba).
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 	if (window.__pdpTotaisMesaEscrivao) return;
 	window.__pdpTotaisMesaEscrivao = true;
 

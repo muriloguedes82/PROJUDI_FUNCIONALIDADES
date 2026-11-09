@@ -34,7 +34,7 @@
 //      formulário completo, preenchido com os campos da preferência.
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 
 	if (window.__pdpAlvaraEletronico || !location.pathname.startsWith("/projudi/")) return;
 	window.__pdpAlvaraEletronico = true;

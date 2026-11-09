@@ -21,7 +21,7 @@
 // Alterações feitas numa aba/frame se refletem nas demais (storage.onChanged).
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 	if (window.__pdpListaTarefas) return;
 	window.__pdpListaTarefas = true;
 
@@ -279,9 +279,7 @@
 			const estrela = el("button", {
 				type: "button",
 				class: "pdp-tl-mais pdp-tl-estrela",
-				title: /^\/seeu\//.test(location.pathname)
-					? "Minhas Preferências: associar localizadores a este processo"
-					: "Minhas Preferências: executar uma ação rápida neste processo",
+				title: "Minhas Preferências: executar uma ação rápida neste processo",
 				text: "⭐",
 				onclick: function (ev) {
 					ev.preventDefault();

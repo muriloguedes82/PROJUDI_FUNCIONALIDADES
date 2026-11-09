@@ -4,7 +4,7 @@
 // aceitar/remover. Com aceite, mostra quando ele foi registrado e permite
 // revogá-lo. O registro fica em chrome.storage.local; o service worker
 // (src/termosUso.js) observa essa chave e liga/desliga os scripts do
-// Projudi/SEEU conforme o aceite.
+// Projudi conforme o aceite.
 (function () {
 	"use strict";
 
@@ -33,7 +33,7 @@
 		if (valido) {
 			const quando = formatarData(aceite.data);
 			aceiteRegistrado.textContent = "Termos aceitos" + (quando ? " em " + quando : "") +
-				" (versão " + aceite.versao + "). A extensão está ativa no Projudi e no SEEU - " +
+				" (versão " + aceite.versao + "). A extensão está ativa no Projudi - " +
 				"recarregue as páginas que já estavam abertas.";
 		} else {
 			concordo.checked = false;
@@ -71,7 +71,7 @@
 	});
 
 	revogar.addEventListener("click", function () {
-		if (!window.confirm("Revogar o aceite desativa a extensão no Projudi e no SEEU até que os termos sejam aceitos novamente. Continuar?")) return;
+		if (!window.confirm("Revogar o aceite desativa a extensão no Projudi até que os termos sejam aceitos novamente. Continuar?")) return;
 		chrome.storage.local.remove(termos.chave);
 	});
 

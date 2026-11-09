@@ -15,18 +15,14 @@
 // da aba, a partir do topo (ver processoAberto). Não mexe na fileira de botões do
 // rodapé (quickActions.js/buttonDrag.js).
 //
-// No SEEU só aparecem os cards marcados com `seeu: true` na lista (BNMP 3.0,
-// SESP Intranet e Sistema Uniformizado), sem o card "Outros".
-//
 // Ordem: por padrão ALFABÉTICA (pelo `nome`, da esquerda para a direita);
-// o usuário reorganiza à vontade arrastando um card para o lado. No Projudi
-// há ainda o card "Outros", colado à balança, que guarda os sistemas fora da
+// o usuário reorganiza à vontade arrastando um card para o lado. Há ainda
+// o card "Outros", colado à balança, que guarda os sistemas fora da
 // fila (no começo, os marcados com `outros: true`): clicar abre um painel
 // com eles; arrastar um card do painel para cima de um card da fila troca
 // os dois de lugar, e arrastar um card da fila para o "Outros" (o card ou o
 // painel) o guarda lá. Tudo fica em chrome.storage.local
-// ("pdpSistemasCnjOrdem" e "pdpSistemasCnjOutros" no Projudi,
-// "pdpSistemasCnjOrdemSeeu" no SEEU) - sobrevive às atualizações da
+// ("pdpSistemasCnjOrdem" e "pdpSistemasCnjOutros") - sobrevive às atualizações da
 // extensão e, por começar com "pdp", entra no Exportar/Importar do Menu
 // (menuExtensao.js). Um clique sem arrastar abre o sistema.
 //
@@ -43,19 +39,16 @@
 //
 // Esses sistemas costumam recusar ser exibidos dentro de outra página; a
 // regra em rules/sistemasCnj.json retira essa recusa apenas quando a janela
-// é aberta a partir do Projudi ou do SEEU.
+// é aberta a partir do Projudi.
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 	// A janela do Oráculo mantém apenas os controles nativos.
 	if (location.pathname === "/projudi/processo/criminal/antecedentesCriminais.do") return;
-	const NO_SEEU = /(^|\.)seeu(treino)?\.pje\.jus\.br$/i.test(location.hostname);
-	if (window.__pdpSistemasCnj || !location.pathname.startsWith(NO_SEEU ? "/seeu/" : "/projudi/") || !self.PDP_SISTEMAS_CNJ) return;
+	if (window.__pdpSistemasCnj || !location.pathname.startsWith("/projudi/") || !self.PDP_SISTEMAS_CNJ) return;
 	window.__pdpSistemasCnj = true;
 
-	const SISTEMAS = NO_SEEU
-		? self.PDP_SISTEMAS_CNJ.filter(function (s) { return s.seeu === true; })
-		: self.PDP_SISTEMAS_CNJ;
+	const SISTEMAS = self.PDP_SISTEMAS_CNJ;
 	const MODAL_ID = "pdp-sistemas-cnj-modal";
 	const MENSAGEM_ABRIR = "pdp-sistemas-cnj-abrir";
 	const TAM = 22; // tamanho da balança (menuExtensao.js)
@@ -64,9 +57,9 @@
 	const ALT = 18;
 	const DESLOCA = (TAM - ALT) / 2;
 	const ESPACO = 4;
-	const ORDEM_KEY = NO_SEEU ? "pdpSistemasCnjOrdemSeeu" : "pdpSistemasCnjOrdem";
-	const OUTROS_KEY = "pdpSistemasCnjOutros"; // só no Projudi
-	const COM_OUTROS = !NO_SEEU;
+	const ORDEM_KEY = "pdpSistemasCnjOrdem";
+	const OUTROS_KEY = "pdpSistemasCnjOutros";
+	const COM_OUTROS = true;
 	const COR_OUTROS = { claro: "#ffffff", escuro: "#e4e7eb", borda: "#8a939c", texto: "#3d4650" };
 	const LARGURA_PAINEL = 270;
 	const LIMIAR_ARRASTO = 4; // px de movimento antes de virar arrasto
@@ -247,12 +240,11 @@
 	// lista de Paralisados ou pelo atalho "Processo" do topo
 	// (buscaProcesso.do?actionType=pesquisaSimples) o número vem como texto
 	// puro, e o primeiro em.attention da página é outro (ex.: a data da
-	// próxima prescrição) - por isso o cabeçalho é conferido primeiro. No
-	// SEEU, o cabeçalho div.titulo.processo.
+	// próxima prescrição) - por isso o cabeçalho é conferido primeiro.
 	const NUMERO_CNJ = /\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/;
 
 	function documentoDeProcesso(doc) {
-		const seletores = NO_SEEU ? ["div.titulo.processo"] : ["#barraTituloStatusProcessual", "em.attention"];
+		const seletores = ["#barraTituloStatusProcessual", "em.attention"];
 		return seletores.some(function (seletor) {
 			const titulo = doc.querySelector(seletor);
 			return !!(titulo && NUMERO_CNJ.test(titulo.textContent || ""));

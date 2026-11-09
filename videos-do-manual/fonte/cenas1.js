@@ -24,22 +24,22 @@ CENAS.V01 = {
 		await S.click("#pasta");
 		await S.click("#sel");
 		closeModal();
-		add('<div style="width:360px;background:#fff;border:1px solid #ddd;border-radius:8px;padding:14px;font-size:13px"><b>Projudi/SEEU - Documentos: Pré-visualização, WhatsApp e E-mail</b><div style="color:#666;margin:6px 0">Versão ' + VERSAO_EXTENSAO + '</div><div style="color:#666">ID: abcdefghijklmnopabcdefghijklmnop</div></div>', $("#cards"));
+		add('<div style="width:360px;background:#fff;border:1px solid #ddd;border-radius:8px;padding:14px;font-size:13px"><b>Olirum – Projudi: Pré-visualização, WhatsApp e E-mail</b><div style="color:#666;margin:6px 0">Versão ' + VERSAO_EXTENSAO + '</div><div style="color:#666">ID: abcdefghijklmnopabcdefghijklmnop</div></div>', $("#cards"));
 		await S.cap("A extensão aparece na lista. Em seguida, abre-se sozinha a página de <b>Termos de Uso</b>.");
-		browser(["Extensões", "*Projudi/SEEU - Termos de Uso"], "chrome-extension://…/src/termos.html");
-		screen('<div style="background:#eef2f6;height:676px;overflow:hidden"><div style="background:#0b3d6e;color:#fff;padding:16px 40px"><div style="font-size:13px;color:#cfe0f2">Extensão Projudi/SEEU · Documentos e Ações Rápidas</div><div style="font-size:26px;font-weight:bold">Termos de Uso</div></div>' +
-			'<div style="background:#fff;margin:16px 40px;padding:16px 24px;border-radius:6px;font-size:13px;line-height:20px;color:#333"><b>Antes de começar</b><p>Leia com atenção. A extensão é uma ferramenta de apoio ao uso do Projudi e do SEEU: não substitui a conferência dos atos, que continua sendo sua responsabilidade.</p>' +
+		browser(["Extensões", "*Projudi - Termos de Uso"], "chrome-extension://…/src/termos.html");
+		screen('<div style="background:#eef2f6;height:676px;overflow:hidden"><div style="background:#0b3d6e;color:#fff;padding:16px 40px"><div style="font-size:13px;color:#cfe0f2">Extensão Projudi · Documentos e Ações Rápidas</div><div style="font-size:26px;font-weight:bold">Termos de Uso</div></div>' +
+			'<div style="background:#fff;margin:16px 40px;padding:16px 24px;border-radius:6px;font-size:13px;line-height:20px;color:#333"><b>Antes de começar</b><p>Leia com atenção. A extensão é uma ferramenta de apoio ao uso do Projudi: não substitui a conferência dos atos, que continua sendo sua responsabilidade.</p>' +
 			'<b>I · Objeto e finalidade</b> · <b>II · Relação com os sistemas oficiais</b> · <b>III · Conferência dos atos e responsabilidade</b> · <b>IV · Sigilo e compartilhamento de documentos</b> · <b>V · Funcionamento local e dados armazenados</b> · <b>VI · Disponibilidade e suporte</b> · <b>VII · Revisão dos termos</b>' +
 			'<div style="margin-top:22px;padding:12px;background:#f5f8fb;border:1px solid #c9d7e6;border-radius:4px"><label><input type="checkbox" id="aceito" style="width:16px;height:16px;vertical-align:middle"> Declaro que li os Termos de Uso e concordo com todas as condições</label></div>' +
 			'<div style="margin-top:14px;display:flex;gap:10px"><span class="pj-btn primary" id="aceitar" style="padding:8px 16px;opacity:.5">Aceitar e ativar a extensão</span><span class="pj-btn" style="padding:8px 16px">Não concordo - remover extensão</span></div><div id="ok" style="margin-top:12px"></div></div></div>');
-		await S.cap("Leia os termos. Sem o aceite, <b>nenhuma função</b> da extensão é carregada no Projudi/SEEU.");
+		await S.cap("Leia os termos. Sem o aceite, <b>nenhuma função</b> da extensão é carregada no Projudi.");
 		await S.cap("Marque a declaração de concordância…");
 		await S.click("#aceito");
 		$("#aceito").checked = true; $("#aceitar").style.opacity = "1";
 		await S.cap("…e clique em <b>Aceitar e ativar a extensão</b>.");
 		await S.click("#aceitar");
 		$("#ok").innerHTML = '<div class="pj-msg-ok">Termos aceitos em 29/09/2026 10:02. A extensão está ativa.</div>';
-		await S.cap("Pronto! Recarregue (F5) as páginas do Projudi/SEEU que já estavam abertas.");
+		await S.cap("Pronto! Recarregue (F5) as páginas do Projudi que já estavam abertas.");
 		await S.endCard("Instalação: chrome://extensions → Modo do desenvolvedor → Carregar sem compactação → pasta da extensão → aceitar os Termos de Uso.");
 	},
 };

@@ -1,15 +1,15 @@
 // Termos de Uso - aceite obrigatório (service worker).
 //
-// Os scripts que atuam no Projudi/SEEU não ficam mais em "content_scripts"
+// Os scripts que atuam no Projudi não ficam mais em "content_scripts"
 // do manifest.json: são registrados aqui, com chrome.scripting, somente
 // depois que o usuário aceita os Termos de Uso (src/termos.html). Enquanto
 // não houver aceite da versão vigente (PDP_TERMOS.versao), nada é injetado
 // nas páginas do Tribunal e a página de termos é aberta:
 //   - logo após a instalação (e após atualizações, se ainda sem aceite);
 //   - ao iniciar o navegador;
-//   - ao abrir uma página do Projudi/SEEU.
+//   - ao abrir uma página do Projudi.
 // Os scripts do Outlook Web e do WhatsApp Web continuam no manifest: eles só
-// agem a partir de envios iniciados nas telas do Projudi/SEEU.
+// agem a partir de envios iniciados nas telas do Projudi.
 //
 // Ao incluir ou remover arquivos dos blocos abaixo, mantenha a mesma ordem
 // que antes era usada no manifest.json - hostGuard.js sempre primeiro.
@@ -18,8 +18,10 @@
 
 importScripts("termosConfig.js", "funcionalidades.js");
 
-const PDP_TERMOS_MATCHES = ["*://*.tjpr.jus.br/*", "*://seeu.pje.jus.br/*", "*://seeutreino.pje.jus.br/*"];
-const PDP_TERMOS_HOST_TRIBUNAL = /^https?:\/\/((projudi|tst)[^./]*\.tjpr\.jus\.br|seeu(treino)?\.pje\.jus\.br)\//i;
+// Desde a versão 18 só o Projudi (o SEEU foi retirado; o código dele está
+// na branch "backup-seeu-versao-17" do repositório).
+const PDP_TERMOS_MATCHES = ["*://*.tjpr.jus.br/*"];
+const PDP_TERMOS_HOST_TRIBUNAL = /^https?:\/\/(projudi|tst)[^./]*\.tjpr\.jus\.br\//i;
 
 const PDP_SCRIPTS_TRIBUNAL = [
 	{
@@ -65,7 +67,6 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/listasPaginaUnica.js",
 			"src/suspensaoAtiva.js",
 			"src/monitoracaoAtiva.js",
-			"src/localizadorSeeu.js",
 			"src/oraculoDirect.js",
 			"src/oraculo.js",
 			"src/sistemasCnjLista.js",
@@ -87,7 +88,6 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/previewProcesso.js",
 			"src/decursoNaLinha.js",
 			"src/previewConclusao.js",
-			"src/localizadorNaLista.js",
 			"src/localizadorNaListaProjudi.js",
 			"src/funcionalidades.js",
 			"src/menuExtensao.js"
@@ -112,8 +112,6 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/previewProcesso.css",
 			"src/decursoNaLinha.css",
 			"src/previewConclusao.css",
-			"src/localizadorSeeu.css",
-			"src/localizadorNaLista.css",
 			"src/localizadorNaListaProjudi.css",
 			"src/visualMesa.css"
 		],
@@ -128,7 +126,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 // endereço e a sua lista de funcionalidades desativadas - ver
 // src/funcionalidades.js). Os ids antigos, de antes da separação, são
 // removidos a cada sincronização.
-const PDP_MATCHES_SISTEMA = { projudi: ["*://*.tjpr.jus.br/*"], seeu: ["*://seeu.pje.jus.br/*", "*://seeutreino.pje.jus.br/*"] };
+const PDP_MATCHES_SISTEMA = { projudi: ["*://*.tjpr.jus.br/*"] };
 const PDP_ID_PRINCIPAL_ANTIGO = "pdp-tribunal-principal";
 
 async function pdpTermosAceitos() {
@@ -235,7 +233,7 @@ chrome.storage.onChanged.addListener(function (changes, area) {
 	if (area === "local" && (changes[PDP_TERMOS.chave] || changes[PDP_FUNCIONALIDADES.chave] || changes[PDP_FUNCIONALIDADES.chaveAntiga] || changes[PDP_FUNCIONALIDADES.chaveExtensao])) pdpSincronizar();
 });
 
-// Sem aceite, abrir o Projudi/SEEU traz a página de termos para a frente.
+// Sem aceite, abrir o Projudi traz a página de termos para a frente.
 chrome.tabs.onUpdated.addListener(function (_tabId, changeInfo, tab) {
 	if (changeInfo.status !== "complete" || !PDP_TERMOS_HOST_TRIBUNAL.test(tab.url || "")) return;
 	pdpExigirTermosSePendente().catch(function () {});
