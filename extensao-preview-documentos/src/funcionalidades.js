@@ -293,7 +293,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "visualMesa",
 					nome: "Visual novo da Mesa do Analista",
-					descricao: "Organiza em cartões as abas Início, Citações e Intimações, Análise de Juntadas, Outros Cumprimentos, Cumprimentos de Medidas e Mesa do Escrivão Criminal, com os mesmos números e links. A cor é escolhida nas bolinhas ao lado do título da Mesa ou aqui no Menu.",
+					descricao: "Organiza em cartões todas as abas da Mesa do Analista, com os mesmos números e links, e deixa a barra de menus e a linha do usuário do Projudi no mesmo tom. O tom é escolhido nas bolinhas ao lado do título da Mesa ou aqui no Menu.",
 					js: ["src/visualMesa.js"],
 					css: ["src/visualMesa.css"],
 					sistemas: ["projudi"]

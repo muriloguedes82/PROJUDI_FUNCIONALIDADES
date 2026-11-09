@@ -1,9 +1,9 @@
-// Projudi - Visual novo da Mesa do Analista Judiciário (versão 13).
+// Projudi - Visual novo da Mesa do Analista Judiciário (versões 13 a 16).
 //
 // Reorganiza as abas Início, Citações e Intimações, Análise de Juntadas,
-// Outros Cumprimentos, Cumprimentos de Medidas e Mesa do Escrivão Criminal
-// em cartões fáceis de ler. A aba Lembretes fica como está (só a barra de
-// abas, que é comum a todas, ganha o visual novo). Só no Projudi.
+// Outros Cumprimentos, Lembretes, Cumprimentos de Medidas e Mesa do Escrivão
+// Criminal em cartões fáceis de ler. Só no Projudi. O topo do Projudi (barra
+// de menus e linha do usuário) acompanha o tom escolhido em todas as páginas.
 //
 // REGRA: nenhuma informação some. Os elementos ORIGINAIS da página (linhas
 // das tabelas, links e os <span class="contador"> que o Projudi atualiza por
@@ -25,7 +25,10 @@
 	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
 	if (window.__pdpVisualMesa) return;
 	window.__pdpVisualMesa = true;
-	if (!/^\/projudi\/usuario\/mesaAnalista\.do/.test(location.pathname)) return;
+	if (!/^\/projudi\//.test(location.pathname)) return;
+	// Fora da Mesa, só o topo do Projudi muda (barra de menus, no quadro de
+	// cima, e a linha "Usuário / Atribuição / Atuação…" de cada página).
+	const NA_MESA = /^\/projudi\/usuario\/mesaAnalista\.do/.test(location.pathname);
 
 	const TAG = "[Projudi Visual da Mesa]";
 	const CHAVE_COR = "pdpVisualMesaCor";
@@ -39,10 +42,6 @@
 		{ id: "escuro", nome: "Escuro suave", amostra: "linear-gradient(135deg,#2c302b 50%,#b9c79a 50%)" }
 	];
 	const COR_PADRAO = "oliva";
-
-	const form = document.getElementById("mesaAnalistaForm");
-	const tabHorz = document.getElementById("tabHorz");
-	if (!form || !tabHorz) return;
 
 	const normalizar = function (t) {
 		return String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
@@ -73,6 +72,18 @@
 		});
 	}
 	aplicarCor(COR_PADRAO);
+	if (document.getElementById("main-menu") || document.querySelector("table#userinfo")) raiz.classList.add("pdp-vm-topo");
+	try {
+		chrome.storage.local.get(CHAVE_COR).then(function (d) { aplicarCor(d[CHAVE_COR] || COR_PADRAO); }).catch(function () {});
+		chrome.storage.onChanged.addListener(function (ch, area) {
+			if (area === "local" && ch[CHAVE_COR]) aplicarCor(ch[CHAVE_COR].newValue || COR_PADRAO);
+		});
+	} catch (err) { console.warn(TAG, "storage indisponível:", err); }
+
+	if (!NA_MESA) return;
+	const form = document.getElementById("mesaAnalistaForm");
+	const tabHorz = document.getElementById("tabHorz");
+	if (!form || !tabHorz) return;
 	raiz.classList.add("pdp-vm");
 
 	function montarSeletorCor() {
@@ -97,13 +108,7 @@
 		titulo.classList.add("pdp-vm-titulo");
 		titulo.append(montarSeletorCor());
 	}
-	aplicarCor(COR_PADRAO);
-	try {
-		chrome.storage.local.get(CHAVE_COR).then(function (d) { aplicarCor(d[CHAVE_COR] || COR_PADRAO); }).catch(function () {});
-		chrome.storage.onChanged.addListener(function (ch, area) {
-			if (area === "local" && ch[CHAVE_COR]) aplicarCor(ch[CHAVE_COR].newValue || COR_PADRAO);
-		});
-	} catch (err) { console.warn(TAG, "storage indisponível:", err); }
+	aplicarCor(raiz.getAttribute("data-pdp-vm-cor"));
 
 	// ---------- aba atual ----------
 	const atual = tabHorz.querySelector("li.currentTab");
@@ -310,7 +315,7 @@
 				if (h4) {
 					const t = h4.textContent.trim();
 					const nt = normalizar(t);
-					atualC = cartao(t, /processos ativos/.test(nt) ? "blocos" : "lista", { largo: true });
+					atualC = cartao(t, /processos ativos|lembretes/.test(nt) ? "blocos" : "lista", { largo: true });
 					if (/mensagens/.test(nt)) atualC.classList.add("pdp-vm-mensagens");
 					if (/dados do juizo/.test(nt)) atualC.classList.add("pdp-vm-juizo");
 					g.append(atualC);
@@ -556,7 +561,7 @@
 	// ---------- montagem ----------
 	let montou = false;
 	try {
-		if (/^inicio$/.test(nomeAba)) montou = montarInicio();
+		if (/^inicio$/.test(nomeAba) || /^lembretes$/.test(nomeAba)) montou = montarInicio();
 		else if (/^citacoes/.test(nomeAba)) montou = montarGruposSimples({ urgenteLargo: true });
 		else if (/^analise de juntadas/.test(nomeAba)) montou = montarJuntadas();
 		else if (/^cumprimentos de medidas/.test(nomeAba)) montou = montarGruposSimples({ urgenteLargo: false, vazio: "Nada a cumprir." });

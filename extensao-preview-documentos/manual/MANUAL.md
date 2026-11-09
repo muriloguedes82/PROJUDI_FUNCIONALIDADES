@@ -3261,11 +3261,12 @@ Juntadas**, em três linhas novas no fim do quadro **Para Realizar**:
 ler. Os números e os links são os mesmos de sempre; muda só a arrumação na
 tela.
 
-**Onde fica:** na Mesa do Analista Judiciário, nas abas **Início**,
-**Citações e Intimações**, **Análise de Juntadas**, **Outros
-Cumprimentos**, **Cumprimentos de Medidas** e **Mesa do Escrivão
-Criminal**. A aba **Lembretes** continua como era (só a barra das abas, que
-é a mesma para todas, muda de aparência).
+**Onde fica:** na Mesa do Analista Judiciário, em todas as abas:
+**Início**, **Citações e Intimações**, **Análise de Juntadas**, **Outros
+Cumprimentos**, **Lembretes**, **Cumprimentos de Medidas** e **Mesa do
+Escrivão Criminal**. O topo do Projudi (a barra de menus — Início,
+Processos, Citações e Notificações… — e a linha **Usuário / Atribuição /
+Atuação / Data**) acompanha o mesmo tom em todas as telas do Projudi.
 
 **O que muda em cada aba:**
 
@@ -3275,6 +3276,7 @@ Criminal**. A aba **Lembretes** continua como era (só a barra das abas, que
 | **Citações e Intimações** | **Com Urgência** no alto, ocupando a largura toda; depois um quadro para Para Conferir, Para Expedir, Para Assinar, AR Digital e Decurso de Prazo, com os números grandes. Quadro sem nada mostra **Nada pendente.** |
 | **Análise de Juntadas** | À esquerda, numa coluna estreita, **Com Urgência** e **Para Realizar** (Juntadas e Retorno de Conclusão). À direita, os demais itens separados em quadros: **Retornos de cumprimento** (mandados, cartas eletrônicas, diligências…), **Multas Fupen e custas** (multas Fupen e prestações pecuniárias), **Outros** (guia de execução, comunicações recursais, Juiz das Garantias e o que mais o Projudi mostrar) e, se for o caso, **Da Mesa do Escrivão Criminal** |
 | **Outros Cumprimentos** | As tabelas BNMP e Cumprimentos com o número de cada coluna numa etiqueta (vermelha para Com Urgência e Devolvido pelo Juiz) e os zeros bem claros. O título das colunas fica à vista ao rolar a tela, e as colunas aparecem agrupadas em **Andamento**, **Atenção**, **Prazos** e **AR Digital**. Itens soltos abaixo das tabelas (como **Comunicações Recursais Pendentes de Encaminhamento**) vão para o quadro **Outros pendentes** |
+| **Lembretes** | Um quadro com **Data de Hoje**, **Últimos 7 dias** e **Total Ativos**, com os números grandes |
 | **Cumprimentos de Medidas** | Um quadro para Atrasados (em vermelho), A Cumprir e Sem Cumprimentos |
 | **Mesa do Escrivão Criminal** | Os 35 atalhos separados por assunto: Réu preso e prisões; Prazos vencidos e atrasos; Denúncia, sentença e arquivamento; Bens, fianças e valores; Cadastro incompleto; Violência doméstica; Comunicações e remessas. As opções que ficavam entre colchetes (como [Vencidas] e [A vencer]) viram botõezinhos ao lado do nome |
 
@@ -3304,7 +3306,8 @@ Criminal**. A aba **Lembretes** continua como era (só a barra das abas, que
   computador tem a sua: a cor que você escolhe não muda a dos colegas.
 - Todos os tons evitam o branco puro e as cores vivas, para não cansar a
   vista. No **Escuro suave**, só os quadros da Mesa ficam escuros: o
-  cabeçalho, o menu e a barra de abas do Projudi continuam claros.
+  cabeçalho, a barra de menus, a linha do usuário e a barra de abas
+  continuam claros (com o tom do Oliva fosco).
 - O vermelho dos itens urgentes e atrasados é o mesmo em todas as cores.
 
 **Bom saber:**
@@ -3319,7 +3322,10 @@ Criminal**. A aba **Lembretes** continua como era (só a barra das abas, que
   escondidas. Em **Outros Cumprimentos**, desmarcar **Só linhas com
   pendência** mostra também essas linhas. A escolha da caixinha fica
   guardada.
-- Para voltar à tela original do Projudi, desligue **Visual novo da Mesa do
+- A barra de menus e a linha do usuário mudam só de cores e letras: os
+  menus abrem e funcionam como antes.
+- Para voltar à tela original do Projudi (Mesa, barra de menus e linha do
+  usuário), desligue **Visual novo da Mesa do
   Analista** no Menu ([2.6](#cap-2-6)) e recarregue a página (F5).
 - Na aba **Análise de Juntadas**, os totais trazidos da Mesa do Escrivão
   Criminal ([9.16](#cap-9-16)) aparecem no quadro **Da Mesa do Escrivão
@@ -3431,7 +3437,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 16 | 09/11/2026 | Visual novo da Mesa do Analista (9.17): na tela Início, o nome da vara em **Dados do Juízo** fica à esquerda; na Análise de Juntadas, **Com Urgência** e **Para Realizar** ficam numa coluna estreita à esquerda e os demais quadros à direita; os quadros deixam o branco puro. Os tons passam a ser **Oliva fosco** (novo padrão, menos claro que o Oliva), **Areia**, **Sálvia**, **Névoa** e **Escuro suave**; saem Azul-petróleo, Azul-marinho e Grafite (quem os tinha escolhido volta ao Oliva fosco). Ajustados 2.6 (Cor do visual da Mesa do Analista) e 9.17 (Escolher a cor). Vídeo V73 regravado (não citado no manual). |
+| 16 | 09/11/2026 | Visual novo da Mesa do Analista (9.17): na tela Início, o nome da vara em **Dados do Juízo** fica à esquerda; na Análise de Juntadas, **Com Urgência** e **Para Realizar** ficam numa coluna estreita à esquerda e os demais quadros à direita; os quadros deixam o branco puro. Os tons passam a ser **Oliva fosco** (novo padrão, menos claro que o Oliva), **Areia**, **Sálvia**, **Névoa** e **Escuro suave**; saem Azul-petróleo, Azul-marinho e Grafite (quem os tinha escolhido volta ao Oliva fosco). A aba **Lembretes** ganha o visual novo, e a barra de menus e a linha do usuário (Usuário / Atribuição / Atuação / Data) do Projudi passam a acompanhar o tom escolhido, em todas as telas. Ajustados 2.6 (Cor do visual da Mesa do Analista) e 9.17 (Onde fica, tabela das abas, Escolher a cor e Bom saber). Vídeo V73 regravado (não citado no manual). |
 | 15 | 09/11/2026 | Nova seção 9.17 **Visual novo da Mesa do Analista (Projudi)**: abas Início, Citações e Intimações, Análise de Juntadas (itens agrupados por assunto), Outros Cumprimentos (filtro e caixinha "Só linhas com pendência"), Cumprimentos de Medidas e Mesa do Escrivão Criminal (atalhos agrupados e busca) organizadas em quadros, com escolha de cor (Oliva, Azul-petróleo, Azul-marinho ou Grafite) guardada como preferência. Na tela Início, os Processos Paralisados (+30 dias) e (+90 dias, seção 9.15) ficam no mesmo quadro; na Análise de Juntadas, os totais da Mesa do Escrivão Criminal (seção 9.16) ficam no quadro "Da Mesa do Escrivão Criminal". Sumário, tabela da 2.6 (função e **Cor do visual da Mesa do Analista**) e **11. Solução de problemas** atualizados. Novo vídeo V73 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 14 | 09/11/2026 | Nova seção 9.16 **Totais da Mesa do Escrivão Criminal na Análise de Juntadas** (só no Projudi, nas varas com a aba Mesa do Escrivão Criminal): no fim do quadro "Para Realizar" da aba Análise de Juntadas aparecem os totais de **Feitos sem infração penal**, de **Reavaliação da prisão provisória a cada 90 dias (Art. 316, CPP)** e de **Prescrições vencidas** (somente sem sentença anotada, agrupadas por processo), que na Mesa do Escrivão Criminal só se veem clicando no quadro; clicar num número abre a lista. Sumário e tabela da 2.6 atualizados. Novo vídeo V72 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 13 | 09/11/2026 | Nova seção 9.15 **Processos Paralisados (+90 dias) na tela Início** (só no Projudi): abaixo de "Processos Paralisados (+30 dias)", a tela Início mostra os totais de processos paralisados há mais de 90 dias na Secretaria, Em Remessa e Em Remessa (exceto processos conclusos); clicar num número abre a Busca por Processos Paralisados já pesquisada com 91 dias. Sumário e tabela da 2.6 atualizados. Novo vídeo V71 gravado e guardado em `videos-do-manual/` (não citado no manual). |

@@ -1,12 +1,13 @@
 /* Projudi - Visual novo da Mesa do Analista (ver src/visualMesa.js).
-   Tudo fica sob html.pdp-vm, que o script só põe na Mesa do Analista:
-   este arquivo é carregado em todas as páginas, mas não muda nenhuma outra. */
+   Tudo fica sob html.pdp-vm, que o script só põe na Mesa do Analista, ou sob
+   html.pdp-vm-topo (barra de menus e linha do usuário, em qualquer página do
+   Projudi): este arquivo é carregado em todas as páginas e não muda o resto. */
 
 /* Tons pensados para não cansar a vista: fundos médio-claros (sem branco
    puro) e pouca saturação. Padrão: Oliva fosco. As cores da barra de abas e
    do seletor (--vm-aba-*) ficam sempre escuras, porque essa parte fica sobre
    o fundo claro do próprio Projudi, mesmo no tom Escuro suave. */
-html.pdp-vm {
+html.pdp-vm, html.pdp-vm-topo {
 	--vm-acento: #56613c;
 	--vm-acento-suave: #dde2cc;
 	--vm-fundo: #dfe0d2;
@@ -23,13 +24,51 @@ html.pdp-vm {
 	--vm-aba-texto: #262a1f;
 	--vm-aba-suave: #5f6352;
 	--vm-aba-hover: #e3e6d6;
+	/* topo do Projudi: sempre claro (no Escuro suave fica como o Oliva fosco) */
+	--vm-topo-fundo: #e6e7db;
+	--vm-topo-linha: #cfd0bf;
+	--vm-topo-texto: #262a1f;
+	--vm-topo-suave: #5f6352;
+	--vm-topo-hover: #d9dccb;
+	--vm-topo-menu: #efefe7;
+	--vm-topo-destaque: #56613c;
 	--vm-fonte: "Segoe UI", Roboto, Arial, sans-serif;
 }
-html.pdp-vm[data-pdp-vm-cor="areia"] { --vm-acento: #6b5a3a; --vm-acento-suave: #e2d6bd; --vm-fundo: #e2d9c6; --vm-cartao: #efe8da; --vm-linha: #d3c8b2; --vm-texto: #3a3226; --vm-suave: #66594a; --vm-fraco: #a99b84; --vm-ok-suave: #dfe3cf; }
-html.pdp-vm[data-pdp-vm-cor="salvia"] { --vm-acento: #4a6650; --vm-acento-suave: #d3dfd3; --vm-fundo: #d8dfd4; --vm-cartao: #e6ebe3; --vm-linha: #c6d0c1; --vm-texto: #25302a; --vm-suave: #56655a; --vm-fraco: #9cab9f; }
-html.pdp-vm[data-pdp-vm-cor="nevoa"] { --vm-acento: #3e5a6e; --vm-acento-suave: #d4dee6; --vm-fundo: #d9dfe4; --vm-cartao: #e7ebee; --vm-linha: #c7d0d8; --vm-texto: #232c33; --vm-suave: #56636e; --vm-fraco: #9daab4; --vm-ok-suave: #d6e4dc; }
-html.pdp-vm[data-pdp-vm-cor="escuro"] { --vm-acento: #b9c79a; --vm-acento-suave: #3a4232; --vm-fundo: #232622; --vm-cartao: #2c302b; --vm-linha: #3d4239; --vm-texto: #e3e6dc; --vm-suave: #a7ad9c; --vm-fraco: #6c7266;
+html[data-pdp-vm-cor="areia"] { --vm-acento: #6b5a3a; --vm-acento-suave: #e2d6bd; --vm-fundo: #e2d9c6; --vm-cartao: #efe8da; --vm-linha: #d3c8b2; --vm-texto: #3a3226; --vm-suave: #66594a; --vm-fraco: #a99b84; --vm-ok-suave: #dfe3cf; }
+html[data-pdp-vm-cor="salvia"] { --vm-acento: #4a6650; --vm-acento-suave: #d3dfd3; --vm-fundo: #d8dfd4; --vm-cartao: #e6ebe3; --vm-linha: #c6d0c1; --vm-texto: #25302a; --vm-suave: #56655a; --vm-fraco: #9cab9f; }
+html[data-pdp-vm-cor="nevoa"] { --vm-acento: #3e5a6e; --vm-acento-suave: #d4dee6; --vm-fundo: #d9dfe4; --vm-cartao: #e7ebee; --vm-linha: #c7d0d8; --vm-texto: #232c33; --vm-suave: #56636e; --vm-fraco: #9daab4; --vm-ok-suave: #d6e4dc; }
+html[data-pdp-vm-cor="escuro"] { --vm-acento: #b9c79a; --vm-acento-suave: #3a4232; --vm-fundo: #232622; --vm-cartao: #2c302b; --vm-linha: #3d4239; --vm-texto: #e3e6dc; --vm-suave: #a7ad9c; --vm-fraco: #6c7266;
 	--vm-urgente: #ff9a85; --vm-urgente-suave: #4a2a24; --vm-urgente-borda: #7a3e33; --vm-ok: #9fd3a8; --vm-ok-suave: #26382a; --vm-aba-hover: #e3e6d6; }
+
+html[data-pdp-vm-cor="areia"] { --vm-topo-fundo: #e9e1d1; --vm-topo-linha: #d3c8b2; --vm-topo-texto: #3a3226; --vm-topo-suave: #66594a; --vm-topo-hover: #ddd2bc; --vm-topo-menu: #f1ebdf; --vm-topo-destaque: #6b5a3a; }
+html[data-pdp-vm-cor="salvia"] { --vm-topo-fundo: #e1e7dd; --vm-topo-linha: #c6d0c1; --vm-topo-texto: #25302a; --vm-topo-suave: #56655a; --vm-topo-hover: #d3ddd0; --vm-topo-menu: #ebefe8; --vm-topo-destaque: #4a6650; }
+html[data-pdp-vm-cor="nevoa"] { --vm-topo-fundo: #e1e6ea; --vm-topo-linha: #c7d0d8; --vm-topo-texto: #232c33; --vm-topo-suave: #56636e; --vm-topo-hover: #d2dbe2; --vm-topo-menu: #ebeef1; --vm-topo-destaque: #3e5a6e; }
+
+/* ---------- topo do Projudi: barra de menus (quadro de cima) ---------- */
+html.pdp-vm-topo #BarraMenu > div { background: var(--vm-topo-fundo) !important; border-bottom: 1px solid var(--vm-topo-linha); box-sizing: border-box; }
+html.pdp-vm-topo #main-menu.sm-clean { background: transparent; padding: 0 6px; }
+html.pdp-vm-topo .sm-clean > li > a, html.pdp-vm-topo .sm-clean > li > a:hover, html.pdp-vm-topo .sm-clean > li > a:focus,
+html.pdp-vm-topo .sm-clean > li > a:active, html.pdp-vm-topo .sm-clean > li > a.highlighted {
+	padding: 5px 6px; line-height: 16px; font: 400 11px/16px var(--vm-fonte); color: var(--vm-topo-texto); border-radius: 4px !important; }
+html.pdp-vm-topo .sm-clean > li > a.has-submenu { padding-right: 15px; }
+html.pdp-vm-topo .sm-clean > li > a:hover, html.pdp-vm-topo .sm-clean > li > a:focus, html.pdp-vm-topo .sm-clean > li > a.highlighted { background: var(--vm-topo-hover); color: var(--vm-topo-texto); }
+html.pdp-vm-topo .sm-clean > li > a .sub-arrow { border-color: var(--vm-topo-suave) transparent transparent; }
+html.pdp-vm-topo .sm-clean ul { background: var(--vm-topo-menu); border: 1px solid var(--vm-topo-linha); border-radius: 8px !important; box-shadow: 0 6px 16px rgba(30, 32, 24, .14); padding: 4px 0; }
+html.pdp-vm-topo .sm-clean > li > ul::before { border-color: transparent transparent var(--vm-topo-linha); }
+html.pdp-vm-topo .sm-clean > li > ul::after { border-color: transparent transparent var(--vm-topo-menu); }
+html.pdp-vm-topo .sm-clean ul a, html.pdp-vm-topo .sm-clean ul a:hover, html.pdp-vm-topo .sm-clean ul a:focus, html.pdp-vm-topo .sm-clean ul a:active, html.pdp-vm-topo .sm-clean ul a.highlighted {
+	padding: 6px 22px 6px 12px; font: 400 13px var(--vm-fonte); color: var(--vm-topo-texto); }
+html.pdp-vm-topo .sm-clean ul a:hover, html.pdp-vm-topo .sm-clean ul a:focus, html.pdp-vm-topo .sm-clean ul a.highlighted { background: var(--vm-topo-hover); color: var(--vm-topo-texto); }
+html.pdp-vm-topo .sm-clean ul a .sub-arrow { border-color: transparent transparent transparent var(--vm-topo-suave); }
+
+/* ---------- topo do Projudi: linha "Usuário / Atribuição / Atuação…" ---------- */
+html.pdp-vm-topo table#userinfo { background: var(--vm-topo-fundo); border-bottom: 1px solid var(--vm-topo-linha); font: 12px var(--vm-fonte); color: var(--vm-topo-suave); }
+html.pdp-vm-topo table#userinfo td { padding-top: 4px; padding-bottom: 4px; }
+html.pdp-vm-topo table#userinfo .userinfo_label, html.pdp-vm-topo table#userinfo strong { color: var(--vm-topo-suave); font-weight: 600; }
+html.pdp-vm-topo table#userinfo span:not(.userinfo_label), html.pdp-vm-topo table#userinfo a,
+html.pdp-vm-topo table#userinfo a#meusdados, html.pdp-vm-topo table#userinfo a#areaatuacao, html.pdp-vm-topo table#userinfo a#lnkUltimosAcessos { color: var(--vm-topo-destaque) !important; font-weight: 400; }
+html.pdp-vm-topo table#userinfo a:hover { text-decoration: underline; }
+html.pdp-vm-topo table#userinfo a.shortcuts { font-weight: 600; }
 
 /* ---------- título e seletor de cor ---------- */
 html.pdp-vm h3.pdp-vm-titulo { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
