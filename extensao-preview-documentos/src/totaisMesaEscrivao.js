@@ -21,7 +21,9 @@
 //     (agruparPorProcesso) marcados. Aqui o "Vencidas"/"A vencer" não vai no
 //     formulário: fica na sessão do Projudi, escolhido pelo link (com _tj
 //     codificado) do quadro. Por isso a extensão abre primeiro esse link,
-//     achado na aba "Mesa do Escrivão Criminal", e depois envia o formulário
+//     achado na aba "Mesa do Escrivão Criminal" (ou, se a página da aba
+//     baixada em segundo plano não o trouxer, o link já conhecido — versão
+//     17), e depois envia o formulário
 //     com as duas caixas marcadas. Clicar no número refaz os dois passos, na
 //     própria página.
 //
@@ -206,17 +208,50 @@
 
 	// ---- Prescrições vencidas ----------------------------------------------
 
-	// Link "Vencidas" do quadro "Prescrições" da aba "Mesa do Escrivão Criminal".
-	async function linkPrescricoesVencidas() {
-		const texto = await codigoMesaEscrivao();
-		const doc = new DOMParser().parseFromString(texto, "text/html");
-		for (const label of doc.querySelectorAll("label")) {
-			if (!/^Prescri[cç][oõ]es$/i.test(normalizar(label.textContent))) continue;
-			const td = label.closest("td") || label.parentElement;
-			const a = Array.from(td.querySelectorAll("a[href]")).find((x) => /^Vencidas$/i.test(normalizar(x.textContent)));
-			if (a) return new URL(a.getAttribute("href"), RAIZ + "usuario/mesaAnalista.do").href;
+	// Link "Vencidas" do quadro "Prescrições", tal como aparece na aba "Mesa
+	// do Escrivão Criminal" (o _tj codificado é o mesmo enquanto o Projudi não
+	// mudar a chave). Só é usado se a página da aba, baixada em segundo plano,
+	// não trouxer o link (o Projudi pode montar o conteúdo da aba depois de
+	// abrir a página); e só é aceito se abrir de fato a tela de Prescrições.
+	const VENCIDAS_CONHECIDO = "usuario/mesaAnalistaEscrivao.do?_tj=879e8a0fd8df99251ba48000d2eefd6adc76785491635d1ccc288204c1f3f4a66b55d45b05f97b4e2fa7dd96a4f20f16ba2e3efd916bbe137fc5a9bdf849bdff94e484499e77f3a3a231dbfe8990f53ed0271b083411a2dcaf4371d943ad729a0733091e5d04f5d6db7fbacd6bfda077736e2db9eb27cfbf23426f62f40f2723dc5cf81db0672ec103049044720f94ff732041a2f7b0162f6aa5cbd2e21ebeebfbd56a1d7c28bb9231a458fbb01fcbef74e2e1483bfbd03e6e9033eb2d9da331425fce913272897e3ea1bdb97226b98b550cfdc2acf5e287998f421caeec0fb9";
+
+	// Endereços candidatos ao link "Vencidas" do quadro "Prescrições", na ordem
+	// em que são tentados: os achados na aba "Mesa do Escrivão Criminal" e,
+	// por último, o conhecido.
+	async function linksPrescricoesVencidas() {
+		const base = RAIZ + "usuario/mesaAnalista.do";
+		const achados = [];
+		let texto = "";
+		try {
+			texto = await codigoMesaEscrivao();
+		} catch (erro) {
+			console.log(TAG, "prescricoesVencidas: não foi possível abrir a Mesa do Escrivão Criminal (" + erro.message + ")");
 		}
-		throw new Error("link \"Vencidas\" do quadro Prescrições não encontrado na Mesa do Escrivão Criminal");
+		if (texto) {
+			// 1) Pela página montada: o link "Vencidas" na mesma célula do rótulo "Prescrições".
+			const doc = new DOMParser().parseFromString(texto, "text/html");
+			for (const label of doc.querySelectorAll("label, b")) {
+				if (!/^Prescri\S{1,6}es$/i.test(normalizar(label.textContent))) continue;
+				const td = label.closest("td") || label.parentElement;
+				const a = Array.from(td.querySelectorAll("a[href]")).find((x) => /^Vencidas$/i.test(normalizar(x.textContent)));
+				if (a) achados.push(new URL(a.getAttribute("href"), base).href);
+			}
+			// 2) Pelo texto da página (também dentro de scripts): o primeiro link
+			// "Vencidas" depois da palavra "Prescrições".
+			const i = texto.search(/>\s*Prescri\S{1,6}es\s*</i);
+			if (i >= 0) {
+				const m = /href\s*=\s*["']([^"']+)["'][^>]*>\s*Vencidas\s*</i.exec(texto.slice(i, i + 4000));
+				if (m) achados.push(new URL(m[1].replace(/&amp;/g, "&"), base).href);
+			}
+			if (!achados.length) {
+				const d = new DOMParser().parseFromString(texto, "text/html");
+				console.log(TAG, "prescricoesVencidas: link \"Vencidas\" não está na página da Mesa do Escrivão Criminal baixada —",
+					"título:", normalizar(d.title), "| h3:", Array.from(d.querySelectorAll("h3")).map((h) => normalizar(h.textContent)).join(" / "),
+					"| tem \"Prescri\":", /Prescri/i.test(texto), "| tamanho:", texto.length);
+			}
+		}
+		achados.push(RAIZ + VENCIDAS_CONHECIDO);
+		return Array.from(new Set(achados));
 	}
 
 	// Campos do formulário como o navegador os enviaria (sem botões).
@@ -242,10 +277,23 @@
 	// Abre o link "Vencidas" e devolve o envio do formulário com
 	// "Somente sem sentença anotada" e "Agrupar por processo" marcados.
 	async function prepararPrescricoes() {
-		const vencidas = await linkPrescricoesVencidas();
-		const { doc } = await baixarDocumento(vencidas);
-		const form = doc.querySelector("form[action*='pesquisarPrescricoes'], #mesaAnalistaEscrivaoForm");
-		if (!form || (form.getAttribute("action") || "").indexOf("pesquisarPrescricoes") < 0) throw new Error("tela de Prescrições não encontrada");
+		let vencidas = null;
+		let form = null;
+		for (const href of await linksPrescricoesVencidas()) {
+			try {
+				const { doc } = await baixarDocumento(href);
+				const f = doc.querySelector("form[action*='pesquisarPrescricoes']");
+				if (f) {
+					vencidas = href;
+					form = f;
+					break;
+				}
+				console.log(TAG, "prescricoesVencidas: " + (href.indexOf(VENCIDAS_CONHECIDO) >= 0 ? "link conhecido" : href) + " não abriu a tela de Prescrições");
+			} catch (erro) {
+				console.log(TAG, "prescricoesVencidas: link falhou (" + erro.message + ")");
+			}
+		}
+		if (!form) throw new Error("nenhum link \"Vencidas\" abriu a tela de Prescrições");
 		const fixos = { semSentencaAnotada: "true", agruparPorProcesso: "true", pageNumber: "1" };
 		const campos = camposDoFormulario(form).filter(([nome]) => !(nome in fixos));
 		campos.push(["semSentencaAnotada", "true"], ["agruparPorProcesso", "true"]);
