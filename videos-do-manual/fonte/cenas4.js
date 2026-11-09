@@ -2167,3 +2167,50 @@ CENAS.V70 = {
 		await S.endCard("Lista reunida → + da linha → Carregando os arquivos… → arquivos da juntada.");
 	},
 };
+
+// ------------------------------------------------------------------ V71
+function telaInicio() {
+	browser(["*Projudi - Início"], "https://projudi.tjpr.jus.br/projudi/usuario/mesaAnalista.do?actionType=listaInicio");
+	const linha = (rot, val, id) => '<tr' + (id ? ' id="' + id + '"' : "") + '><td class="l" style="width:260px">' + rot + "</td><td>" + val + "</td></tr>";
+	const verm = (n, id) => '<a class="link" ' + (id ? 'id="' + id + '" ' : "") + 'style="color:red;text-decoration:underline">' + n + "</a>";
+	screen(pjHeader() + '<div class="pj-body"><div class="pj-h2">Início</div>' +
+		'<fieldset class="pj-fieldset"><legend>Processos</legend><table class="pj-form" id="inicio">' +
+		linha("Ativos:", '<a class="link"><u>4071</u></a>') +
+		linha("Físicos:", "0") +
+		linha("Processos Suspensos por Tempo Indeterminado:", '<a class="link"><u>0</u></a>') +
+		linha("Processos Paralisados (+30 dias):", "Secretaria: " + verm(812) + " &nbsp;&nbsp; Em Remessa: " + verm(41) + " &nbsp;&nbsp; Em Remessa (exceto processos conclusos): " + verm(22) + " &nbsp;&nbsp; Razões Externas: " + verm(0), "p30") +
+		linha("Processos Cujos Precedentes Foram Julgados:", verm(0)) +
+		"</table></fieldset></div>");
+	return verm;
+}
+CENAS.V71 = {
+	arquivo: "V71-paralisados-90-dias-no-inicio.mp4",
+	titulo: "Processos Paralisados (+90 dias) na tela Início",
+	secao: "9.15",
+	async run() {
+		const verm = telaInicio();
+		await S.titleCard("VÍDEO V71", "Paralisados há mais de 90 dias", "O total aparece na tela Início, logo abaixo dos paralisados +30 dias.");
+		S.hl("#p30", 3);
+		await S.cap("Na tela <b>Início</b>, o Projudi mostra os <b>Processos Paralisados (+30 dias)</b>.", { ms: 3800 });
+		S.hlOff();
+		$("#p30").insertAdjacentHTML("afterend", '<tr id="p90"><td class="l" style="width:260px">Processos Paralisados (+90 dias):</td><td>Secretaria: <span id="v90">…</span></td></tr>');
+		S.hl("#p90", 3);
+		await S.cap("Logo abaixo, a extensão acrescenta a linha <b>Processos Paralisados (+90 dias)</b> e faz a contagem sozinha.", { ms: 4200 });
+		$("#v90").outerHTML = verm(195, "v90");
+		await S.cap("O total é o mesmo da <b>Busca por Processos Paralisados</b> com <b>91</b> dias no mínimo.", { ms: 4200 });
+		S.hlOff();
+		await S.click("#v90");
+		browser(["*Projudi - Busca por Processos Paralisados"], "https://projudi.tjpr.jus.br/projudi/processo/processoBuscaParalisado.do?actionType=pesquisar");
+		screen(pjHeader() + '<div class="pj-body"><div class="pj-h2">Busca por Processos Paralisados</div>' +
+			'<fieldset class="pj-fieldset"><table class="pj-form"><tr><td class="l">Local em que está paralisado:</td><td>◉ Na secretaria &nbsp; ○ Em remessa</td></tr>' +
+			'<tr><td class="l">Mínimo de dias paralisado:</td><td><span class="pj-input" id="dias" style="background:#fff8d8">91</span></td></tr></table></fieldset>' +
+			'<div id="nav90" style="margin:6px 0;font-size:12px">195 registro(s) encontrado(s), exibindo de 1 até 20</div>' +
+			'<table class="pj-table"><tr><th>Processo</th><th>Classe Processual</th><th>Dias paralisado</th></tr>' +
+			[0, 1, 2, 3].map(k => '<tr class="' + (k % 2 ? "alt" : "") + '"><td><a class="link">000' + (41 + k) + '87-1' + k + '.2024.8.16.0001</a></td><td>' + ["Ação Penal - Proc. Ordinário", "Inquérito Policial"][k % 2] + "</td><td>" + (412 - k * 37) + "</td></tr>").join("") +
+			"</table></div>");
+		S.hl("#nav90", 3);
+		await S.cap("Clicando no número, abre a <b>Busca por Processos Paralisados</b> já pesquisada com <b>91</b> dias.", { ms: 4600 });
+		S.hlOff();
+		await S.endCard("Tela Início → Processos Paralisados (+90 dias) → clique no total → lista dos processos.");
+	},
+};
