@@ -2,19 +2,25 @@
 //
 // Na tela Início (usuario/mesaAnalista.do?actionType=listaInicio, aberta no
 // quadro central do Projudi), a linha nativa "Processos Paralisados (+30
-// dias):" traz o total de processos parados há mais de 30 dias na
-// Secretaria, com um link para a tela "Busca por Processos Paralisados"
-// (processo/processoBuscaParalisado.do).
+// dias):" traz os totais de processos parados há mais de 30 dias
+// ("Secretaria", "Em Remessa", "Em Remessa (exceto processos conclusos)" e
+// "Razões Externas"), cada um com um link para a tela "Busca por Processos
+// Paralisados" (processo/processoBuscaParalisado.do). Os links abrem o
+// mesmo formulário; muda só a opção "Local em que está paralisado"
+// (opcaoBusca 1, 2 ou 3).
 //
 // Esta funcionalidade acrescenta, logo abaixo dela, a linha "Processos
-// Paralisados (+90 dias):". O total é obtido em segundo plano, repetindo o
-// que a pessoa faria à mão:
-//   1. abre (fetch) o link do total da Secretaria;
+// Paralisados (+90 dias):", com os totais da Secretaria, Em Remessa e Em
+// Remessa (exceto processos conclusos). Cada total é obtido em segundo
+// plano, repetindo o que a pessoa faria à mão:
+//   1. abre (fetch) o link do total correspondente da linha de +30 dias;
 //   2. no formulário "Busca por Processos Paralisados", troca "Mínimo de dias
 //      paralisado" (numeroDiasParalisados) de 30 para 91 e envia a pesquisa,
 //      mantendo os demais campos como vieram;
 //   3. lê o total em "N registro(s) encontrado(s)" (div.navLeft).
-// O número aparece como link: clicar nele abre a Busca por Processos
+// As três pesquisas são feitas uma depois da outra (não ao mesmo tempo),
+// para não embaralhar o formulário que o Projudi guarda na sessão.
+// "Razões Externas" fica de fora. O número aparece como link: clicar nele abre a Busca por Processos
 // Paralisados já pesquisada com 91 dias (o mesmo formulário, enviado na
 // própria página).
 //
@@ -49,10 +55,33 @@
 		return null;
 	}
 
-	// Link do total da Secretaria: o primeiro link para a Busca por Processos
-	// Paralisados da linha (antes de "Em Remessa" e "Razões Externas").
-	function linkSecretaria(linha) {
-		return linha.querySelector('a[href*="processoBuscaParalisado.do"]');
+	// Totais contados, na ordem da linha nativa (o rótulo é o texto que vem
+	// antes de cada link na linha de +30 dias).
+	const LOCAIS = [
+		{ rotulo: "Secretaria", teste: /^Secretaria:?$/i },
+		{ rotulo: "Em Remessa", teste: /^Em Remessa:?$/i },
+		{ rotulo: "Em Remessa (exceto processos conclusos)", teste: /^Em Remessa \(exceto processos conclusos\):?$/i },
+	];
+
+	function textoAntes(link) {
+		let texto = "";
+		for (let n = link.previousSibling; n; n = n.previousSibling) {
+			if (n.nodeType === 1 && n.tagName === "A") break;
+			texto = (n.textContent || "") + texto;
+		}
+		return normalizar(texto.replace(/\u00a0/g, " "));
+	}
+
+	function linksDaLinha(linha) {
+		const links = Array.from(linha.querySelectorAll('a[href*="processoBuscaParalisado.do"]'));
+		const achados = [];
+		LOCAIS.forEach((local) => {
+			const link = links.find((a) => local.teste.test(textoAntes(a)));
+			if (link) achados.push({ rotulo: local.rotulo, href: new URL(link.getAttribute("href"), location.href).href });
+		});
+		// Rótulos diferentes do esperado: ao menos a Secretaria (primeiro link).
+		if (!achados.length && links[0]) achados.push({ rotulo: "Secretaria", href: new URL(links[0].getAttribute("href"), location.href).href });
+		return achados;
 	}
 
 	async function baixarDocumento(url, opcoes) {
@@ -126,17 +155,26 @@
 		return { total: lerTotal(resultado), acao, campos };
 	}
 
-	function lerCache(href) {
+	// { [href]: { quando, total, acao, campos } }, um por total.
+	function lerTodoCache() {
 		try {
 			const c = JSON.parse(sessionStorage.getItem(CACHE) || "null");
-			if (c && c.href === href && Date.now() - c.quando < VALIDADE_MS) return c;
-		} catch (e) {}
-		return null;
+			return c && typeof c === "object" && !c.href ? c : {};
+		} catch (e) {
+			return {};
+		}
+	}
+
+	function lerCache(href) {
+		const c = lerTodoCache()[href];
+		return c && Date.now() - c.quando < VALIDADE_MS ? c : null;
 	}
 
 	function gravarCache(href, dados) {
 		try {
-			sessionStorage.setItem(CACHE, JSON.stringify(Object.assign({ href, quando: Date.now() }, dados)));
+			const todos = lerTodoCache();
+			todos[href] = Object.assign({ quando: Date.now() }, dados);
+			sessionStorage.setItem(CACHE, JSON.stringify(todos));
 		} catch (e) {}
 	}
 
@@ -160,7 +198,7 @@
 		form.remove();
 	}
 
-	function criarLinha(linhaNativa) {
+	function criarLinha(linhaNativa, locais) {
 		const tr = document.createElement("tr");
 		tr.setAttribute(LINHA_ATTR, "");
 		const tdRotulo = document.createElement("td");
@@ -171,14 +209,18 @@
 		label.textContent = ROTULO;
 		tdRotulo.appendChild(label);
 		const tdValor = document.createElement("td");
-		tdValor.appendChild(document.createTextNode("Secretaria: "));
-		const valor = document.createElement("span");
-		valor.textContent = "…";
-		valor.title = "Contando os processos paralisados há mais de 90 dias…";
-		tdValor.appendChild(valor);
+		const valores = locais.map((local, i) => {
+			if (i) tdValor.appendChild(document.createTextNode("\u00a0\u00a0\u00a0\u00a0\u00a0 "));
+			tdValor.appendChild(document.createTextNode(local.rotulo + ": "));
+			const valor = document.createElement("span");
+			valor.textContent = "…";
+			valor.title = "Contando os processos paralisados há mais de 90 dias…";
+			tdValor.appendChild(valor);
+			return valor;
+		});
 		tr.append(tdRotulo, tdValor);
 		linhaNativa.after(tr);
-		return valor;
+		return valores;
 	}
 
 	function mostrarTotal(span, dados) {
@@ -202,27 +244,29 @@
 			return;
 		}
 		if (linha.nextElementSibling && linha.nextElementSibling.hasAttribute(LINHA_ATTR)) return;
-		const link = linkSecretaria(linha);
-		if (!link) {
-			console.log(TAG, "linha dos paralisados sem link da Secretaria");
+		const locais = linksDaLinha(linha);
+		if (!locais.length) {
+			console.log(TAG, "linha dos paralisados sem links para a Busca por Processos Paralisados");
 			return;
 		}
-		const href = new URL(link.getAttribute("href"), location.href).href;
-		const span = criarLinha(linha);
-		let dados = lerCache(href);
-		if (!dados) {
-			try {
-				dados = await pesquisar(href);
-				gravarCache(href, dados);
-			} catch (erro) {
-				console.warn(TAG, "não foi possível contar os paralisados +90 dias:", erro);
-				span.textContent = "não disponível";
-				span.title = "Não foi possível consultar a Busca por Processos Paralisados agora.";
-				return;
+		const spans = criarLinha(linha, locais);
+		for (let i = 0; i < locais.length; i++) {
+			const { rotulo, href } = locais[i];
+			let dados = lerCache(href);
+			if (!dados) {
+				try {
+					dados = await pesquisar(href);
+					gravarCache(href, dados);
+				} catch (erro) {
+					console.warn(TAG, "não foi possível contar os paralisados +90 dias (" + rotulo + "):", erro);
+					spans[i].textContent = "não disponível";
+					spans[i].title = "Não foi possível consultar a Busca por Processos Paralisados agora.";
+					continue;
+				}
 			}
+			console.log(TAG, "total de paralisados +90 dias (" + rotulo + "):", dados.total);
+			mostrarTotal(spans[i], dados);
 		}
-		console.log(TAG, "total de paralisados +90 dias (Secretaria):", dados.total);
-		mostrarTotal(span, dados);
 	}
 
 	if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar, { once: true });

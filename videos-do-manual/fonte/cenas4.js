@@ -2193,11 +2193,15 @@ CENAS.V71 = {
 		S.hl("#p30", 3);
 		await S.cap("Na tela <b>Início</b>, o Projudi mostra os <b>Processos Paralisados (+30 dias)</b>.", { ms: 3800 });
 		S.hlOff();
-		$("#p30").insertAdjacentHTML("afterend", '<tr id="p90"><td class="l" style="width:260px">Processos Paralisados (+90 dias):</td><td>Secretaria: <span id="v90">…</span></td></tr>');
+		$("#p30").insertAdjacentHTML("afterend", '<tr id="p90"><td class="l" style="width:260px">Processos Paralisados (+90 dias):</td><td>Secretaria: <span id="v90">…</span> &nbsp;&nbsp; Em Remessa: <span id="r90">…</span> &nbsp;&nbsp; Em Remessa (exceto processos conclusos): <span id="e90">…</span></td></tr>');
 		S.hl("#p90", 3);
 		await S.cap("Logo abaixo, a extensão acrescenta a linha <b>Processos Paralisados (+90 dias)</b> e faz a contagem sozinha.", { ms: 4200 });
 		$("#v90").outerHTML = verm(195, "v90");
-		await S.cap("O total é o mesmo da <b>Busca por Processos Paralisados</b> com <b>91</b> dias no mínimo.", { ms: 4200 });
+		await sleep(600);
+		$("#r90").outerHTML = verm(17, "r90");
+		await sleep(600);
+		$("#e90").outerHTML = verm(9, "e90");
+		await S.cap("Cada total é o mesmo da <b>Busca por Processos Paralisados</b> com <b>91</b> dias no mínimo: na <b>Secretaria</b> e <b>em remessa</b>.", { ms: 4600 });
 		S.hlOff();
 		await S.click("#v90");
 		browser(["*Projudi - Busca por Processos Paralisados"], "https://projudi.tjpr.jus.br/projudi/processo/processoBuscaParalisado.do?actionType=pesquisar");
