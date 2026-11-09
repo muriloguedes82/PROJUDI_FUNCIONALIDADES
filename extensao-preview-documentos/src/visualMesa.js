@@ -226,10 +226,46 @@
 		{ titulo: "Multas Fupen e custas", ids: ["numeroMultaFupenPendenteQuitada", "numeroMultaFupenPendenteVencida", "numeroMultaFupenPendenteReenvio", "numeroPrestacoesPecuniariasEmAtraso", "numeroPrestacoesPecuniariasEmAnalise"] },
 		{ titulo: "Outros", ids: [] } // tudo o que não estiver acima (inclusive itens novos do Projudi)
 	];
+	// Linhas acrescentadas depois por outra função da extensão no quadro
+	// "Para Realizar" (ex.: totaisMesaEscrivao.js, com data-pdp-total-escrivao)
+	// vão para um quadro próprio; as demais seguem a regra dos subgrupos.
+	const JUNTADAS_ESCRIVAO = { titulo: "Da Mesa do Escrivão Criminal", attr: "data-pdp-total-escrivao" };
+	let juntadas = null; // { grade, principal, subs, escrivao, tabelasOriginais }
+	function rotearJuntada(tr) {
+		const j = juntadas;
+		marcarLinha(tr);
+		if (tr.hasAttribute(JUNTADAS_ESCRIVAO.attr)) {
+			if (!j.escrivao) {
+				j.escrivao = cartao(JUNTADAS_ESCRIVAO.titulo, "lista");
+				j.grade.append(j.escrivao);
+			}
+			j.escrivao.__tbody.append(tr);
+			return;
+		}
+		const span = tr.querySelector("span.contador[id]");
+		const id = span ? span.id : "";
+		if (JUNTADAS_PRINCIPAIS.indexOf(id) >= 0) { j.principal.__tbody.append(tr); return; }
+		const alvo = j.subs.find(function (s) { return s.def.ids.indexOf(id) >= 0; }) || j.subs[j.subs.length - 1];
+		alvo.c.__tbody.append(tr);
+		if (!alvo.c.isConnected) {
+			// Mantém a ordem dos subgrupos, com o quadro do Escrivão sempre por último.
+			const depois = j.subs.slice(j.subs.indexOf(alvo) + 1).map(function (s) { return s.c; }).find(function (c) { return c.isConnected; });
+			j.grade.insertBefore(alvo.c, depois || j.escrivao || null);
+		}
+	}
+	// Chamado a cada mudança na aba: recolhe as linhas que chegaram no
+	// quadro original (escondido) depois de o visual ser montado.
+	function recolherJuntadas() {
+		if (!juntadas) return;
+		juntadas.tabelasOriginais.forEach(function (t) {
+			Array.from(t.rows).forEach(function (tr) { if (tr.cells.length) rotearJuntada(tr); });
+		});
+	}
 	function montarJuntadas() {
 		const grupos = gruposH4();
 		if (!grupos.length) return false;
 		const g = grade();
+		juntadas = { grade: g, principal: null, subs: [], escrivao: null, tabelasOriginais: [] };
 		grupos.forEach(function (x) {
 			if (ehUrgente(x.titulo)) {
 				const c = cartao(x.titulo, "blocos", { urgente: true, largo: true, vazio: "Nada com urgência." });
@@ -243,19 +279,14 @@
 				g.append(c);
 				return;
 			}
-			const principal = cartao(x.titulo, "blocos", { largo: true });
-			const subs = JUNTADAS_SUBGRUPOS.map(function (s) { return { def: s, c: cartao(s.titulo, "lista") }; });
-			x.linhas.forEach(function (tr) {
-				marcarLinha(tr);
-				const span = tr.querySelector("span.contador[id]");
-				const id = span ? span.id : "";
-				if (JUNTADAS_PRINCIPAIS.indexOf(id) >= 0) { principal.__tbody.append(tr); return; }
-				const alvo = subs.find(function (s) { return s.def.ids.indexOf(id) >= 0; }) || subs[subs.length - 1];
-				alvo.c.__tbody.append(tr);
-			});
-			g.append(principal);
-			subs.forEach(function (s) { if (s.c.__tbody.rows.length) g.append(s.c); });
+			juntadas.principal = cartao(x.titulo, "blocos", { largo: true });
+			juntadas.subs = JUNTADAS_SUBGRUPOS.map(function (s) { return { def: s, c: cartao(s.titulo, "lista") }; });
+			const tabela = x.fs.querySelector("table.form");
+			if (tabela) juntadas.tabelasOriginais.push(tabela);
+			g.append(juntadas.principal);
+			x.linhas.forEach(rotearJuntada);
 		});
+		if (!juntadas.principal) juntadas = null;
 		substituirConteudo(g);
 		return true;
 	}
@@ -532,6 +563,7 @@
 
 	const refazer = function () {
 		prepararParalisados();
+		recolherJuntadas();
 		atualizarCartoes(painel);
 		painel.querySelectorAll("table.pdp-vm-resultado").forEach(function (t) { if (t.__pdpVmAplicar) t.__pdpVmAplicar(); });
 	};

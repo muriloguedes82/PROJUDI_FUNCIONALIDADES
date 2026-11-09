@@ -284,6 +284,13 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					sistemas: ["projudi"]
 				},
 				{
+					id: "totaisMesaEscrivao",
+					nome: "Totais da Mesa do Escrivão Criminal na Análise de Juntadas",
+					descricao: "Na aba Análise de Juntadas da Mesa, no quadro \"Para Realizar\", mostra o total de \"Feitos sem infração penal\", de \"Reavaliação da prisão provisória a cada 90 dias (Art. 316, CPP)\" e de \"Prescrições vencidas\" (somente sem sentença anotada, agrupadas por processo) (quadros da aba Mesa do Escrivão Criminal, que não mostram número); clicar num número abre a lista. Só nas varas que têm a aba Mesa do Escrivão Criminal.",
+					js: ["src/totaisMesaEscrivao.js"],
+					sistemas: ["projudi"]
+				},
+				{
 					id: "visualMesa",
 					nome: "Visual novo da Mesa do Analista",
 					descricao: "Organiza em cartões as abas Início, Citações e Intimações, Análise de Juntadas, Outros Cumprimentos, Cumprimentos de Medidas e Mesa do Escrivão Criminal, com os mesmos números e links. A cor é escolhida nas bolinhas ao lado do título da Mesa ou aqui no Menu.",
