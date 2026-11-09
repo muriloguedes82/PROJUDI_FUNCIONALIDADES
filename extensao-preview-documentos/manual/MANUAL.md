@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 11 |
-| **Versão da extensão** | 11 |
-| **Data desta versão** | 06/11/2026 |
+| **Versão do manual** | 12 |
+| **Versão da extensão** | 12 |
+| **Data desta versão** | 09/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi/SEEU, clique no ícone da balança
@@ -2968,10 +2968,11 @@ Gerais** do processo e faz as alterações pela tela **Histórico de
 Localizadores** (a que abre ao clicar nessa linha).
 
 **Onde fica:** nas listas **Análise de Juntadas** e **Retorno de
-Conclusão** do Projudi, na coluna do **número do processo**: abaixo do
-número aparece a linha **📍** com o que consta em **Localizadores:** na aba
+Conclusão** do Projudi, numa coluna nova, **Localizadores**, a última da
+tabela (depois de **Outras**, na Análise de Juntadas). Em cada linha, a
+coluna mostra **📍** com o que consta em **Localizadores:** na aba
 Informações Gerais (por exemplo, **Localizador não cadastrado**, quando o
-processo não tem nenhum), seguida de dois botões:
+processo não tem nenhum), seguido de dois botões:
 
 | Onde clicar | O que faz |
 |---|---|
@@ -2981,7 +2982,8 @@ processo não tem nenhum), seguida de dois botões:
 
 **Passo a passo:**
 
-1. Abra a lista. Em cada linha aparece **📍 aguardando…** e, logo depois,
+1. Abra a lista. Na coluna **Localizadores**, cada linha mostra
+   **📍 aguardando…** e, logo depois,
    **lendo…**: a extensão consulta os processos **em segundo plano**, **três
    ao mesmo tempo**, de cima para baixo, e mostra o que está na linha
    **Localizadores:** da aba Informações Gerais. Se a linha não trouxer
@@ -3007,8 +3009,8 @@ processo não tem nenhum), seguida de dois botões:
    Localizadores (e responde à confirmação do Projudi, se houver).
 5. Feche o painel no **✕**, com **Esc** ou clicando fora dele.
 
-**Remover um localizador direto na lista:** clique no nome dele na linha
-**📍** (ao pousar o mouse, aparece **Remover do processo**) e responda
+**Remover um localizador direto na lista:** clique no nome dele na coluna
+**Localizadores** (ao pousar o mouse, aparece **Remover do processo**) e responda
 **OK** em "Remover o localizador … do processo …?". A extensão abre o
 Histórico de Localizadores em segundo plano, clica no **Remover** e a
 linha mostra o resultado (**✅** ou **⚠**).
@@ -3017,6 +3019,9 @@ linha mostra o resultado (**✅** ou **⚠**).
 
 - Para ligar ou desligar, use **Localizador na lista (Projudi)** no Menu da
   extensão ([2.6](#cap-2-6)).
+- Com **Listas em uma única página** ligada ([9.14](#cap-9-14)), as linhas
+  trazidas das outras páginas também ganham a coluna **Localizadores** e
+  são lidas do mesmo jeito.
 - No **Retorno de Conclusão** a linha da lista não tem o link do processo:
   a extensão o encontra pela tela do **Analisar** ou pesquisando o número,
   o que pode levar alguns segundos a mais.
@@ -3245,6 +3250,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 12 | 09/11/2026 | Localizador na lista do Projudi (9.13): os localizadores passam a aparecer numa **coluna nova, Localizadores**, a última da tabela, em vez de abaixo do número do processo. Ajustados "Onde fica", o passo 1, "Remover um localizador direto na lista" e o Bom saber (linhas das listas em uma única página). |
 | 11 | 06/11/2026 | Corrigido (seção 9.14): nas listas de intimação reunidas (**Intimação** — decurso de prazo, **Expedir Intimações** e **Auxiliares da Justiça**), o **+** mostrava "Não foi possível trazer os arquivos: o registro não está mais na página 1 da lista". Agora, nessas listas, a extensão pede os arquivos direto ao Projudi, pela movimentação da linha, e eles aparecem quase na hora. Linha de **11. Solução de problemas** atualizada. Sem vídeo novo (a tela não mudou). |
 | 10 | 06/11/2026 | Corrigido (seção 9.14): nas listas reunidas em uma única página, o **+** abria vazio, sem os arquivos — tanto nas linhas da primeira página quanto nas trazidas das outras (o Projudi passava a "estar" na última página buscada). Agora a extensão atende o **+**: mostra **Carregando os arquivos…** e traz os arquivos da página de onde a linha veio; o **Expandir Mov** também funciona. Nova linha em **11. Solução de problemas**. Novo vídeo V70 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 9 | 06/11/2026 | Seção 9.14 (agora **Listas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN e Juiz das Garantias)**): também as listas **Expedir Intimações**, **Intimação** (decurso de prazo) e **Intimação de Auxiliares da Justiça** passam a mostrar todas as páginas numa só tela; na Intimação, com o campo **Sequencial** preenchido, continua valendo o filtro da 9.1 (que já percorre todas as páginas). Seção 9.1 com a mesma observação. Sumário, tabela da 2.6 e **11. Solução de problemas** atualizados. Novo vídeo V69 gravado e guardado em `videos-do-manual/` (não citado no manual). |
