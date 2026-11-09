@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 13 |
-| **Versão da extensão** | 13 |
+| **Versão do manual** | 14 |
+| **Versão da extensão** | 14 |
 | **Data desta versão** | 09/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -99,6 +99,7 @@
    - 9.13 [Localizador na lista de juntadas e de conclusões (Projudi)](#cap-9-13)
    - 9.14 [Listas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN e Juiz das Garantias)](#cap-9-14)
    - 9.15 [Processos Paralisados (+90 dias) na tela Início](#cap-9-15)
+   - 9.16 [Totais da Mesa do Escrivão Criminal na Análise de Juntadas](#cap-9-16)
 10. [Privacidade e convivência com outras extensões](#cap-10)
     - 10.1 [O que fica guardado no seu navegador](#cap-10-1)
     - 10.2 [Convivência com o AzFlow](#cap-10-2)
@@ -483,7 +484,7 @@ ligar tudo.
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Prioridades (Projudi) · Agendar Audiência (preferências) (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Bloco de anotações | [4](#cap-4) |
-| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (SEEU) · Localizador na lista (Projudi) · Listas em uma única página (Projudi) · Processos Paralisados (+90 dias) na tela Início (Projudi) | [6](#cap-6), [9](#cap-9) |
+| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (SEEU) · Localizador na lista (Projudi) · Listas em uma única página (Projudi) · Processos Paralisados (+90 dias) na tela Início (Projudi) · Totais da Mesa do Escrivão Criminal na Análise de Juntadas (Projudi) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
 Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
@@ -3194,6 +3195,59 @@ Paralisados (+90 dias):**, logo abaixo da linha do próprio Projudi
 
 ---
 
+<a id="cap-9-16"></a>
+### 9.16 Totais da Mesa do Escrivão Criminal na Análise de Juntadas
+
+*Só no Projudi, nas varas que têm a aba **Mesa do Escrivão Criminal**.*
+
+**Para que serve:** ver, junto com as juntadas e os demais itens do dia,
+quantos processos estão em três quadros da aba **Mesa do Escrivão
+Criminal** que não mostram número (é preciso clicar neles para ver a lista
+e o total):
+
+- **Feitos sem infração penal** — feitos ativos sem infração penal
+  anotada;
+- **Reavaliação da prisão provisória a cada 90 dias (Art 316, CPP)** —
+  prisões provisórias que precisam ser reavaliadas;
+- **Prescrições** → **Vencidas** — processos ativos com prescrição
+  vencida, contados como na tela **Prescrições de processos ativos** com
+  **Somente sem sentença anotada** e **Agrupar por processo** marcados.
+
+**Onde fica:** na **Mesa do Analista Judiciário**, aba **Análise de
+Juntadas**, em três linhas novas no fim do quadro **Para Realizar**:
+**Feitos sem infração penal:**, **Reavaliação da prisão provisória a cada
+90 dias (Art. 316, CPP):** e **Prescrições vencidas:**.
+
+**Passo a passo:**
+
+1. Abra a aba **Análise de Juntadas**. No fim do quadro **Para Realizar**
+   aparecem as três linhas, com **…** enquanto a extensão faz a contagem.
+2. Em instantes, no lugar das reticências, aparece cada total, como os
+   demais números do quadro. É o mesmo número que você veria clicando no
+   quadro correspondente da aba **Mesa do Escrivão Criminal** (o "N
+   registro(s) encontrado(s)" da lista que abre). Nas **Prescrições
+   vencidas**, é o número que aparece depois de clicar em **Vencidas**,
+   marcar **Somente sem sentença anotada** e **Agrupar por processo** e
+   clicar em **Pesquisar**.
+3. Clique num número para abrir a lista correspondente. Com **Ctrl**
+   apertado, ela abre em outra aba. Nas **Prescrições vencidas**, a tela
+   **Prescrições de processos ativos** já abre pesquisada, com as duas
+   caixas marcadas.
+
+**Bom saber:**
+
+- Se um total for **zero** e **Ocultar contadores zerados** estiver
+  ligado, a linha some, como as demais linhas zeradas da Mesa.
+- Para não repetir a contagem a cada volta à aba, os totais ficam
+  guardados por **5 minutos** naquela aba. Depois disso (ou numa aba
+  nova), a extensão conta de novo.
+- Se o Projudi não responder, aparece **não disponível** no lugar do
+  número; basta voltar à aba mais tarde.
+- Para ligar ou desligar, use **Totais da Mesa do Escrivão Criminal na
+  Análise de Juntadas** no Menu da extensão ([2.6](#cap-2-6)).
+
+---
+
 <a id="cap-10"></a>
 ## 10. Privacidade e convivência com outras extensões
 
@@ -3294,6 +3348,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 14 | 09/11/2026 | Nova seção 9.16 **Totais da Mesa do Escrivão Criminal na Análise de Juntadas** (só no Projudi, nas varas com a aba Mesa do Escrivão Criminal): no fim do quadro "Para Realizar" da aba Análise de Juntadas aparecem os totais de **Feitos sem infração penal**, de **Reavaliação da prisão provisória a cada 90 dias (Art. 316, CPP)** e de **Prescrições vencidas** (somente sem sentença anotada, agrupadas por processo), que na Mesa do Escrivão Criminal só se veem clicando no quadro; clicar num número abre a lista. Sumário e tabela da 2.6 atualizados. Novo vídeo V72 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 13 | 09/11/2026 | Nova seção 9.15 **Processos Paralisados (+90 dias) na tela Início** (só no Projudi): abaixo de "Processos Paralisados (+30 dias)", a tela Início mostra os totais de processos paralisados há mais de 90 dias na Secretaria, Em Remessa e Em Remessa (exceto processos conclusos); clicar num número abre a Busca por Processos Paralisados já pesquisada com 91 dias. Sumário e tabela da 2.6 atualizados. Novo vídeo V71 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 12 | 09/11/2026 | Localizador na lista do Projudi (9.13): os localizadores passam a aparecer numa **coluna nova, Localizadores**, a última da tabela, em vez de abaixo do número do processo. Ajustados "Onde fica", o passo 1, "Remover um localizador direto na lista" e o Bom saber (linhas das listas em uma única página). |
 | 11 | 06/11/2026 | Corrigido (seção 9.14): nas listas de intimação reunidas (**Intimação** — decurso de prazo, **Expedir Intimações** e **Auxiliares da Justiça**), o **+** mostrava "Não foi possível trazer os arquivos: o registro não está mais na página 1 da lista". Agora, nessas listas, a extensão pede os arquivos direto ao Projudi, pela movimentação da linha, e eles aparecem quase na hora. Linha de **11. Solução de problemas** atualizada. Sem vídeo novo (a tela não mudou). |

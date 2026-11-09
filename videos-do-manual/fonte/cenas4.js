@@ -2218,3 +2218,47 @@ CENAS.V71 = {
 		await S.endCard("Tela Início → Processos Paralisados (+90 dias) → clique no total → lista dos processos.");
 	},
 };
+
+// ------------------------------------------------------------------ V72
+CENAS.V72 = {
+	arquivo: "V72-totais-da-mesa-do-escrivao-na-analise-de-juntadas.mp4",
+	titulo: "Totais da Mesa do Escrivão Criminal na Análise de Juntadas",
+	secao: "9.16",
+	async run() {
+		browser(["*Projudi - Mesa do Analista"], "https://projudi.tjpr.jus.br/projudi/usuario/mesaAnalista.do?actionType=listaAnaliseJuntadas");
+		const linha = (rot, val, id) => '<tr' + (id ? ' id="' + id + '"' : "") + '><td class="l" style="width:220px">' + rot + "</td><td>" + val + "</td></tr>";
+		const num = (n, id) => '<a class="link" ' + (id ? 'id="' + id + '" ' : "") + 'style="font-weight:bold"><u>' + n + "</u></a>";
+		const abas = ["Início", "Citações e Intimações", "Análise de Juntadas", "Outros Cumprimentos", "Lembretes", "Cumprimentos de Medidas", "Mesa do Escrivão Criminal"]
+			.map((a) => '<span style="display:inline-block;padding:3px 8px;margin-right:2px;border:1px solid #9a9;border-bottom:0;border-radius:4px 4px 0 0;font-size:12px;' + (a === "Análise de Juntadas" ? "background:#fff;font-weight:bold" : "background:#e4ead8") + '">' + a + "</span>").join("");
+		screen(pjHeader() + '<div class="pj-body"><div class="pj-h2">Mesa do Analista Judiciário</div><div>' + abas + "</div>" +
+			'<fieldset class="pj-fieldset"><legend>Para Realizar</legend><table class="pj-form" id="realizar">' +
+			linha("Juntadas:", num(804)) +
+			linha("Retorno de Conclusão:", num(71)) +
+			linha("Mandados aguardando análise de retorno:", num(49)) +
+			linha("Autuação da Guia de Execução pendente (Exportação Criminal):", num(33)) +
+			linha("Prestações Pecuniárias em atraso:", num(8)) +
+			"</table></fieldset></div>");
+		await S.titleCard("VÍDEO V72", "Totais da Mesa do Escrivão Criminal", "Feitos sem infração penal, Reavaliação da prisão provisória e Prescrições vencidas aparecem na Análise de Juntadas.");
+		await S.cap("Na <b>Mesa do Escrivão Criminal</b>, os quadros <b>Feitos sem infração penal</b>, <b>Reavaliação da prisão provisória</b> e <b>Prescrições</b> não mostram o total: é preciso clicar neles.", { ms: 5000 });
+		$("#realizar").insertAdjacentHTML("beforeend", linha("Feitos sem infração penal:", '<span id="vsi">…</span>', "lsi") + linha("Reavaliação da prisão provisória a cada 90 dias (Art. 316, CPP):", '<span id="vrp">…</span>', "lrp") + linha("Prescrições vencidas:", '<span id="vpv">…</span>', "lpv"));
+		S.hl("#lsi", 3);
+		await S.cap("Na aba <b>Análise de Juntadas</b>, a extensão acrescenta as três linhas no fim do quadro <b>Para Realizar</b>.", { ms: 4600 });
+		$("#vsi").outerHTML = num(32, "vsi");
+		$("#vrp").outerHTML = num(26, "vrp");
+		$("#vpv").outerHTML = num(27, "vpv");
+		S.hl("#lpv", 3);
+		await S.cap("Em instantes aparecem os totais. Nas <b>Prescrições vencidas</b>, conta só as <b>sem sentença anotada</b>, <b>agrupadas por processo</b>.", { ms: 4800 });
+		S.hlOff();
+		await S.click("#vsi");
+		browser(["*Projudi - Feitos sem infração penal"], "https://projudi.tjpr.jus.br/projudi/usuario/mesaAnalistaEscrivao.do?actionType=pesquisarProcessosSemInfracaoPenal");
+		screen(pjHeader() + '<div class="pj-body"><div class="pj-h2">Feitos Ativos Com Pendência De Anotação Da Infração Penal</div>' +
+			'<div id="navsi" style="margin:6px 0;font-size:12px">32 registro(s) encontrado(s), exibindo de 1 até 20</div>' +
+			'<table class="pj-table"><tr><th>Processo</th><th>Classe Processual (Assunto Principal)</th><th>Dias Paralisado</th></tr>' +
+			[0, 1, 2, 3].map((k) => '<tr class="' + (k % 2 ? "alt" : "") + '"><td><a class="link">00' + (49 + k) + '38-1' + k + '.2026.8.16.0001</a></td><td>' + ["Medidas Protetivas (Ameaça)", "Inquérito Policial (Vias de fato)"][k % 2] + "</td><td>" + (44 - k * 7) + "</td></tr>").join("") +
+			"</table></div>");
+		S.hl("#navsi", 3);
+		await S.cap("Clicando no número, abre a lista dos <b>feitos sem infração penal</b>.", { ms: 4200 });
+		S.hlOff();
+		await S.endCard("Análise de Juntadas → Para Realizar → Feitos sem infração penal → clique no total → lista dos feitos.");
+	},
+};
