@@ -1,0 +1,40 @@
+Assistente Projudi - Firefox package: build instructions
+=========================================================
+
+All JavaScript, CSS, HTML and JSON files are hand-written source code. Nothing is
+minified, bundled, transpiled or generated from templates.
+
+The Firefox package is produced by a small Node.js script that:
+  1. copies the extension folder (extensao-preview-documentos/), leaving out
+     development notes (*.md except manual/MANUAL.md), the store/ folder,
+     desempenho/, _metadata/, icones.png, RECONSTRUCAO-CHROME-2.9.9.txt,
+     manual/MANUAL.pdf and manual/*.mjs;
+  2. copies store/firefox/firefox-compat.js to src/firefox-compat.js;
+  3. rewrites manifest.json for Firefox: name (45 characters max),
+     background.scripts instead of service_worker, browser_specific_settings.gecko
+     (id, strict_min_version, data_collection_permissions) and removal of the
+     Chrome-only permissions offscreen, system.display and windows.
+
+Requirements
+------------
+- Linux or macOS
+- Node.js 18 or newer (tested with Node.js 22)
+- the "zip" command-line tool
+No npm packages are needed.
+
+Build
+-----
+From this folder (the one containing extensao-preview-documentos/):
+
+    node extensao-preview-documentos/store/firefox/gerar-pacote-firefox.mjs package.zip
+
+Verify
+------
+Unzip package.zip and the submitted package into two folders and compare them:
+
+    mkdir a b
+    (cd a && unzip -q ../package.zip)
+    (cd b && unzip -q ../submitted.zip)
+    diff -r a b
+
+The contents are identical (only zip timestamps differ).
