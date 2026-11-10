@@ -99,9 +99,10 @@ cobre as buscas mais comuns de quem procura essas funções.
 - **Ícone da loja (128×128):** `store/icone-loja-128.png` — a mesma lupa,
   redesenhada (`store/icone-loja.svg`) em 96×96 no centro, com margem
   transparente de 16 px, como pede a Chrome Web Store.
-- **Imagem de divulgação pequena (440×280):** `store/promo-pequeno-440x280.png`
-  — "Assistente Projudi.", "Seu assistente no Projudi (TJPR)" e as etiquetas
-  das funções. Enviada à parte, na ficha da loja (não vai no pacote).
+- **Bloco promocional pequeno (440×280):** `store/promo-pequeno-440x280.png`
+  — ícone em alta definição, "ASSISTENTE / Projudi." e "Ações rápidas e
+  pré-visualização", no mesmo estilo das capturas (pouco texto, legível
+  mesmo reduzido). Enviado à parte, na ficha da loja (não vai no pacote).
 - **Capturas de tela (1280×800 ou 640×400, pelo menos uma):**
   `store/captura-1-tela-do-processo-1280x800.png` — tela do processo com as
   Ações rápidas, Minhas Preferências, Combos e os cards dos sistemas do CNJ.
