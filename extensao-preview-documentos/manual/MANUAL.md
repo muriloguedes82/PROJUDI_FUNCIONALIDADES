@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 20 |
-| **Versão da extensão** | 20 |
-| **Data desta versão** | 09/11/2026 |
+| **Versão do manual** | 21 |
+| **Versão da extensão** | 21 |
+| **Data desta versão** | 10/11/2026 |
 | **Edição** | Chrome Web Store (instalada e atualizada pela loja) |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -2826,9 +2826,10 @@ Paralisados (+90 dias):**, logo abaixo da linha do próprio Projudi
 - Os totais não usam filtro de prioridade, classe ou localizador. O
   total de **Razões Externas** da linha de cima não é repetido na linha de
   +90 dias.
-- Para não repetir as pesquisas a cada volta à tela Início, os totais ficam
-  guardados por **5 minutos** naquela aba. Depois disso (ou numa aba nova),
-  a extensão conta de novo.
+- A contagem é refeita **toda vez** que a tela Início é aberta ou
+  recarregada — inclusive quando você **troca de atuação** (área de
+  atuação/competência): os números são sempre os da atuação em que você
+  está.
 - Se o Projudi não responder, aparece **não disponível** no lugar do
   número que não pôde ser contado; basta voltar à tela Início mais tarde.
 - Para ligar ou desligar, use **Processos Paralisados (+90 dias) na tela
@@ -3063,6 +3064,8 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 21 (edição Chrome Web Store) | 10/11/2026 | Edição para a Chrome Web Store, igual à versão 21, com as mesmas diferenças da edição 20: instalação pela loja (2.1) e atualização automática pela loja, sem o aviso de versão nova nem o download do GitHub (2.3); capa com a linha **Edição**; sem nada do SEEU (1.3, 2.4 e 8.7). Sem vídeo novo. |
+| 21 | 10/11/2026 | Corrigido (seção 9.14): ao trocar de atuação, a linha **Processos Paralisados (+90 dias)** continuava mostrando os números da atuação anterior (os totais ficavam guardados por 5 minutos). Agora a contagem é refeita toda vez que a tela Início é aberta ou recarregada, inclusive na troca de atuação. Bom saber da 9.14 atualizado. Sem vídeo novo (a tela não mudou). |
 | 20 (edição Chrome Web Store) | 10/11/2026 | Edição para a Chrome Web Store, igual à versão 20, exceto: instalação pela loja (2.1) e atualização automática pela loja, sem o aviso de versão nova nem o download do GitHub (2.3); capa com a linha **Edição**. Sem o card **SEEU** ao lado da balança (1.3, 2.4 e 8.7): a edição não tem nada do SEEU. Sem vídeo novo. |
 | 20 | 09/11/2026 | Sem alteração de texto nas seções; nova descrição da extensão na lista de extensões do navegador (`chrome://extensions`): "Ações rápidas, preferências e combos no Projudi; íntegra dos documentos ao passar o mouse e envio por WhatsApp Web e Outlook.". Sem vídeo novo (a descrição não aparece nos vídeos). |
 | 19 | 09/11/2026 | A extensão passa a se chamar **Assistente Projudi – Ações Rápidas e Pré-visualização** (antes, **Olirum**): título do manual, item 6 da seção 2.1 (nome na lista de extensões) e 4.5 (assunto padrão do lembrete criado pelo post-it: "Anotação compartilhada - Abra ou instale a extensão Assistente Projudi"). O aviso de versão nova (2.3) e as páginas do Manual e dos Termos de Uso mostram o nome novo. Vídeos V01, V34 e V48 regravados e guardados em `videos-do-manual/` (não citados no manual). |

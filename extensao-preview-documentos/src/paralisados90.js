@@ -24,8 +24,11 @@
 // Paralisados já pesquisada com 91 dias (o mesmo formulário, enviado na
 // própria página).
 //
-// Para não refazer a pesquisa a cada volta à tela Início, o total fica
-// guardado por alguns minutos (sessionStorage da aba).
+// Os totais NÃO são guardados: a contagem é refeita toda vez que a tela
+// Início é carregada (ao abrir, recarregar ou trocar de atuação). Até a
+// versão 20 eles ficavam guardados por 5 minutos na aba, com o link como
+// chave; como o link do Projudi é o mesmo em todas as atuações, ao trocar
+// de atuação apareciam os números da atuação anterior.
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
@@ -38,8 +41,6 @@
 	const TAG = "[Projudi Paralisados +90]";
 	const DIAS = "91";
 	const ROTULO = "Processos Paralisados (+90 dias):";
-	const CACHE = "pdpParalisados90";
-	const VALIDADE_MS = 5 * 60 * 1000;
 	const LINHA_ATTR = "data-pdp-paralisados90";
 
 	function normalizar(texto) {
@@ -155,29 +156,6 @@
 		return { total: lerTotal(resultado), acao, campos };
 	}
 
-	// { [href]: { quando, total, acao, campos } }, um por total.
-	function lerTodoCache() {
-		try {
-			const c = JSON.parse(sessionStorage.getItem(CACHE) || "null");
-			return c && typeof c === "object" && !c.href ? c : {};
-		} catch (e) {
-			return {};
-		}
-	}
-
-	function lerCache(href) {
-		const c = lerTodoCache()[href];
-		return c && Date.now() - c.quando < VALIDADE_MS ? c : null;
-	}
-
-	function gravarCache(href, dados) {
-		try {
-			const todos = lerTodoCache();
-			todos[href] = Object.assign({ quando: Date.now() }, dados);
-			sessionStorage.setItem(CACHE, JSON.stringify(todos));
-		} catch (e) {}
-	}
-
 	// Abre a Busca por Processos Paralisados já pesquisada com 91 dias:
 	// envia, na própria página, o mesmo formulário usado na contagem.
 	function abrirPesquisa(acao, campos, alvo) {
@@ -252,17 +230,14 @@
 		const spans = criarLinha(linha, locais);
 		for (let i = 0; i < locais.length; i++) {
 			const { rotulo, href } = locais[i];
-			let dados = lerCache(href);
-			if (!dados) {
-				try {
-					dados = await pesquisar(href);
-					gravarCache(href, dados);
-				} catch (erro) {
-					console.warn(TAG, "não foi possível contar os paralisados +90 dias (" + rotulo + "):", erro);
-					spans[i].textContent = "não disponível";
-					spans[i].title = "Não foi possível consultar a Busca por Processos Paralisados agora.";
-					continue;
-				}
+			let dados;
+			try {
+				dados = await pesquisar(href);
+			} catch (erro) {
+				console.warn(TAG, "não foi possível contar os paralisados +90 dias (" + rotulo + "):", erro);
+				spans[i].textContent = "não disponível";
+				spans[i].title = "Não foi possível consultar a Busca por Processos Paralisados agora.";
+				continue;
 			}
 			console.log(TAG, "total de paralisados +90 dias (" + rotulo + "):", dados.total);
 			mostrarTotal(spans[i], dados);

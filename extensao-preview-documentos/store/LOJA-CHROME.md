@@ -28,6 +28,7 @@ ajustes abaixo**: para gerar um pacote novo, traga a `principal` para cá
 |---|---|---|
 | 17 | 09/11/2026 | Recusada por "spam de palavra-chave" (lista de nomes de sistemas na descrição) |
 | 20 | 10/11/2026 | Pacote gerado a partir da `principal` 20, com a descrição sem listas de nomes |
+| 21 | 10/11/2026 | Atualizada a partir da `principal` 21 (Paralisados +90 dias recontados a cada abertura da tela Início) |
 
 ## Ficha da loja (sugestão)
 
