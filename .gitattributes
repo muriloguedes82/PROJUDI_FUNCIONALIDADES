@@ -3,3 +3,5 @@
 # export-ignore fica fora desse .zip. Os vídeos do manual (dezenas de MB)
 # ficam guardados no repositório, para uso futuro, mas não vão no download.
 /videos-do-manual export-ignore
+# O arquivo do SEEU (funções retiradas na versão 18) também não vai no download.
+/arquivo-seeu export-ignore

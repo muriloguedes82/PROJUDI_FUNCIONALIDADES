@@ -1,27 +1,27 @@
-# Publicação na Chrome Web Store — edição somente Projudi
+# Publicação na Chrome Web Store
 
 Esta branch (`claude/elegant-hopper-tvyp0w`) é a edição da extensão para a
-Chrome Web Store. Ela funciona **só no Projudi (TJPR)**: as funções do SEEU
-foram retiradas apenas aqui (a branch `principal` continua com as duas).
+Chrome Web Store. Desde a versão 20 ela é **a branch `principal` mais os
+ajustes abaixo**: para gerar um pacote novo, traga a `principal` para cá
+(sem alterar a `principal`), reaplique estes ajustes e gere o .zip.
 
-## O que mudou em relação à `principal`
+## O que difere da `principal`
 
-- `manifest.json`: nome, `short_name` e descrição (até 132 caracteres) da
-  loja; saem as permissões de `seeu.pje.jus.br`, `seeutreino.pje.jus.br`,
-  `*.amazonaws.com` (armazenamento usado pelo SEEU) e
-  `raw.githubusercontent.com` (aviso de versão nova).
-- `src/funcionalidades.js`: só o sistema PROJUDI; saem **Localizador
-  (SEEU)** e **Localizador na lista (SEEU)** (e os arquivos
-  `localizadorSeeu.*` e `localizadorNaLista.*` deixam de ser injetados).
-- `src/termosUso.js` e `src/hostGuard.js`: scripts registrados e liberados
-  só em `*.tjpr.jus.br`.
-- `src/background.js`: operações aceitas só de páginas do Projudi; aviso de
-  versão nova desligado (a loja atualiza a extensão sozinha).
-- `src/sistemasCnjLista.js` e `rules/sistemasCnj.json`: sai o card **SEEU**
-  ao lado da balança e a regra que o abria em popup.
-- `src/menuExtensao.js`: sem as abas PROJUDI/SEEU e sem "Copiar para o
-  SEEU".
-- Termos de Uso, página do manual e manual: textos só com Projudi.
+- `src/background.js`: aviso de versão nova desligado
+  (`NOVA_VERSAO_DESLIGADA`): a loja atualiza a extensão sozinha e não
+  aceita extensões que baixam a própria atualização de outro lugar.
+- `manifest.json`: saem as permissões de `raw.githubusercontent.com` (aviso
+  de versão nova) e `*.amazonaws.com` (armazenamento usado pelo SEEU).
+- Manual: capa (linha **Edição**), 2.1 (instalação pela loja), 2.3
+  (atualização automática) e linha "(edição Chrome Web Store)" no Anexo A.
+- Pasta `store/`: ficha, política de privacidade e imagens da loja.
+
+## Histórico de envios
+
+| Versão | Data | Resultado |
+|---|---|---|
+| 17 | 09/11/2026 | Recusada por "spam de palavra-chave" (lista de nomes de sistemas na descrição) |
+| 20 | 10/11/2026 | Pacote gerado a partir da `principal` 20, com a descrição sem listas de nomes |
 
 ## Ficha da loja (sugestão)
 
@@ -108,8 +108,11 @@ cobre as buscas mais comuns de quem procura essas funções.
 Na raiz do repositório:
 
 ```bash
-cd extensao-preview-documentos && zip -r ../olirum-projudi-webstore.zip . -x "*.md" "desempenho/*" "store/*" "manual/*.mjs" "manual/MANUAL.pdf" "RECONSTRUCAO-CHROME-2.9.9.txt" "icones.png" && zip ../olirum-projudi-webstore.zip manual/MANUAL.md
+cd extensao-preview-documentos && zip -r ../assistente-projudi-webstore.zip . -x "*.md" "_metadata/*" "desempenho/*" "store/*" "manual/*.mjs" "manual/MANUAL.pdf" "RECONSTRUCAO-CHROME-2.9.9.txt" "icones.png" && zip ../assistente-projudi-webstore.zip manual/MANUAL.md
 ```
+
+A pasta `_metadata` (criada pelo Chrome ao carregar a extensão) não pode ir
+no pacote: a loja recusa nomes que começam com "_".
 
 O `manual/MANUAL.md` precisa ir no pacote (o botão **📖 Manual do Usuário**
 o abre); os demais `.md` são anotações de desenvolvimento.
@@ -119,6 +122,10 @@ o abre); os demais `.md` são anotações de desenvolvimento.
 - Teste no Projudi o envio por WhatsApp: a permissão `*.amazonaws.com` foi
   retirada por ser usada pelo SEEU; se algum documento do Projudi não for
   enviado, ela precisa voltar.
+- A permissão de `seeu.pje.jus.br` continua: ela serve só para o card
+  **SEEU** abrir o SEEU num popup a partir do Projudi. Justificativa na
+  loja: "abrir o SEEU num popup sobre a tela do Projudi, quando o usuário
+  clica no card SEEU".
 - A loja pede justificativa para cada permissão (`tabs`, `scripting`,
   `downloads`, `clipboardRead`, `identity`, `declarativeNetRequest`,
   `system.display` e os endereços) e uma política de privacidade.

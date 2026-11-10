@@ -1,13 +1,13 @@
 // Finalização da conclusão indicada no quadro de pendências, sem navegação.
 (function () {
   'use strict';
-  if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
-  if (window.__pdpFinalizarConclusao || !/^\/(projudi|seeu)\//.test(location.pathname)) return;
+  if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
+  if (window.__pdpFinalizarConclusao || !/^\/projudi\//.test(location.pathname)) return;
   window.__pdpFinalizarConclusao = true;
-  // Projudi e SEEU: mesma tela "Movimentar Processo" com o botão "Finalizar
-  // Conclusão Pendente" (#extraButton); muda só o começo do endereço.
-  const SISTEMA = location.pathname.startsWith('/seeu/') ? 'SEEU' : 'Projudi';
-  const route = (SISTEMA === 'SEEU' ? '/seeu' : '/projudi') + '/processo/conclusao.do';
+  // Tela "Movimentar Processo" com o botão "Finalizar Conclusão Pendente"
+  // (#extraButton).
+  const SISTEMA = 'Projudi';
+  const route = '/projudi/processo/conclusao.do';
   const states = new Map();
   const controls = new WeakMap();
   let busy = false;
@@ -150,7 +150,7 @@
   // linha conta. `doc`: a tela do processo.
   window.__pdpDispensas.conclusaoURL = function (doc) {
     for (const link of doc.querySelectorAll('#quadroPendencias a.link[href]')) {
-      // No SEEU (e às vezes no Projudi) o link fica numa tabela dentro da
+      // Às vezes o link fica numa tabela dentro da
       // linha: o rótulo está na linha de cima, a que tem td.labelRadio.
       let linha = link.closest('tr');
       while (linha && !linha.querySelector(':scope > td.labelRadio, :scope > th') && linha.parentElement && linha.parentElement.closest('#quadroPendencias tr')) {

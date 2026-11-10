@@ -96,7 +96,7 @@
 //   Soltura", "Período de Prisão" e "Arquivo", e um <tfoot> "Total Geral:".
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 	if (!location.pathname.startsWith("/projudi/")) return;
 
 	try {

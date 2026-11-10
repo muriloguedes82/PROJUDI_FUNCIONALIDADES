@@ -1,15 +1,12 @@
 (function () {
   'use strict';
   if (!window.__pdpHostPermitido || window.__pdpDispensarCumprimentos) return;
-  if (!/^\/(projudi|seeu)\//.test(location.pathname)) return;
+  if (!/^\/projudi\//.test(location.pathname)) return;
   window.__pdpDispensarCumprimentos = true;
-  // Projudi e SEEU: mesmas listas e telas de cumprimento; muda o começo do
-  // endereço e, no quadro Pendências do SEEU, a quantidade vem no fim do
-  // texto sem os dois-pontos ("Comunicações Tre 01", no Projudi "Ofício: 1").
-  const NO_SEEU = location.pathname.startsWith('/seeu/');
-  const SISTEMA = NO_SEEU ? 'SEEU' : 'Projudi';
-  const BASE = NO_SEEU ? '/seeu' : '/projudi';
-  const COUNT_RE = NO_SEEU ? /(?::|\s)\s*0*([1-9]\d*)\s*$/ : /:\s*0*([1-9]\d*)\s*$/;
+  // No quadro Pendências a quantidade vem depois dos dois-pontos ("Ofício: 1").
+  const SISTEMA = 'Projudi';
+  const BASE = '/projudi';
+  const COUNT_RE = /:\s*0*([1-9]\d*)\s*$/;
   const buttons = new WeakMap();
   let busy = false;
   const normalize = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();

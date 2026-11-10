@@ -1,4 +1,4 @@
-// Projudi/SEEU - Destaque de movimentações por tipo de usuário
+// Projudi - Destaque de movimentações por tipo de usuário
 //
 // Na aba "Movimentações" do processo, cada linha da tabela mostra na
 // coluna "Movimentado Por" quem fez a movimentação e, logo abaixo do
@@ -9,7 +9,7 @@
 // "mov1Grau,JUIZ,,,,,", "mov1Grau,PROMOTOR,,,,,") — a mesma informação
 // usada pelo quadro nativo "Realces" do Projudi. Usamos esse id (mais
 // confiável do que ler o texto da coluna) para saber o grupo de cada
-// linha; quando ele não existir (ex.: SEEU, ou uma tela em formato
+// linha; quando ele não existir (ex.: uma tela em formato
 // diferente), caímos de volta na leitura do texto da coluna "Movimentado
 // Por".
 //
@@ -23,7 +23,7 @@
 
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 
 	// Evita rodar dentro do iframe oculto usado por content.js para varrer
 	// pendências, e no iframe/popup de ações rápidas — não fazem sentido

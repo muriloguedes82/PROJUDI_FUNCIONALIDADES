@@ -1,4 +1,4 @@
-// Projudi/SEEU - Movimentação de referência para as Ações rápidas
+// Projudi - Movimentação de referência para as Ações rápidas
 //
 // No Projudi, quem movimenta à mão escolhe primeiro a movimentação (clica no
 // evento, na aba Movimentações, e depois em "Movimentar a Partir Desta
@@ -23,7 +23,7 @@
 
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 	// Nada nos iframes ocultos/popups desta extensão (a lista pode estar num
 	// frame do próprio Projudi, por isso não basta olhar só a janela principal).
 	try {

@@ -23,7 +23,7 @@
 // o id) num iframe oculto e lendo a action do "processoForm" de lá.
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 
 	// Evita rodar dentro de iframes ocultos usados por esta ou outras
 	// funcionalidades para carregar páginas em segundo plano.

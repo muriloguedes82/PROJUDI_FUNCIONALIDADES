@@ -1,20 +1,15 @@
-# Manual do Usuário — Assistente Projudi
+# Manual do Usuário — Assistente Projudi – Ações Rápidas e Pré-visualização
 
 **Documentos, Ações Rápidas, WhatsApp e E-mail**
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 17 |
-| **Versão da extensão** | 17 |
+| **Versão do manual** | 20 |
+| **Versão da extensão** | 20 |
 | **Data desta versão** | 09/11/2026 |
-| **Edição** | Chrome Web Store — **somente Projudi** (sem as funções do SEEU) |
+| **Edição** | Chrome Web Store (instalada e atualizada pela loja) |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
-> **Esta edição funciona só no Projudi.** Ela é a versão publicada na
-> Chrome Web Store. As funções do SEEU foram retiradas: onde este manual
-> falar do SEEU (ou marcar uma função como *Só no SEEU*), ignore — isso
-> não existe nesta edição.
->
 > **Como abrir este manual.** No Projudi, clique no ícone da balança
 > (canto superior direito, abaixo de **Sair**) e depois em **📖 Manual do
 > Usuário**. Ele abre numa nova aba, com índice e busca. Veja
@@ -84,11 +79,10 @@
    - 8.5 [Colar processo](#cap-8-5)
    - 8.6 [Oráculo](#cap-8-6)
    - 8.7 [Sistemas do CNJ e outros (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Renajud, SEEU, Sistema Uniformizado, COPEL, FUPEN, SANEPAR, SESP)](#cap-8-7)
-   - 8.8 [Localizador (só no SEEU)](#cap-8-8)
-   - 8.9 [Alterar Classe/Assuntos](#cap-8-9)
-   - 8.10 [Novo Valor da Causa](#cap-8-10)
-   - 8.11 [Prioridades (incluir, remover e preferências)](#cap-8-11)
-   - 8.12 [Agendar Audiência com preferências](#cap-8-12)
+   - 8.8 [Alterar Classe/Assuntos](#cap-8-8)
+   - 8.9 [Novo Valor da Causa](#cap-8-9)
+   - 8.10 [Prioridades (incluir, remover e preferências)](#cap-8-10)
+   - 8.11 [Agendar Audiência com preferências](#cap-8-11)
 9. [Telas de análise, mesas e cumprimentos](#cap-9)
    - 9.1 [Filtro por Sequencial na Análise de Decurso de Prazo](#cap-9-1)
    - 9.2 [Listas de tarefas](#cap-9-2)
@@ -101,16 +95,14 @@
    - 9.9 [Documento do Juiz ao passar o mouse no Retorno de Conclusão](#cap-9-9)
    - 9.10 [Analisar e Dispensar decurso na lista](#cap-9-10)
    - 9.11 [Analisar (Pré-Análise) dos cumprimentos com preferências](#cap-9-11)
-   - 9.12 [Localizador na lista de juntadas e de conclusões (só no SEEU)](#cap-9-12)
-   - 9.13 [Localizador na lista de juntadas e de conclusões (Projudi)](#cap-9-13)
-   - 9.14 [Listas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN e Juiz das Garantias)](#cap-9-14)
-   - 9.15 [Processos Paralisados (+90 dias) na tela Início](#cap-9-15)
-   - 9.16 [Totais da Mesa do Escrivão Criminal na Análise de Juntadas](#cap-9-16)
-   - 9.17 [Visual novo da Mesa do Analista (Projudi)](#cap-9-17)
-10. [Privacidade e convivência com outras extensões](#cap-10)
+   - 9.12 [Localizador na lista de juntadas e de conclusões (Projudi)](#cap-9-12)
+   - 9.13 [Listas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN e Juiz das Garantias)](#cap-9-13)
+   - 9.14 [Processos Paralisados (+90 dias) na tela Início](#cap-9-14)
+   - 9.15 [Totais da Mesa do Escrivão Criminal na Análise de Juntadas](#cap-9-15)
+   - 9.16 [Visual novo da Mesa do Analista (Projudi)](#cap-9-16)
+10. [Privacidade e perfis bloqueados](#cap-10)
     - 10.1 [O que fica guardado no seu navegador](#cap-10-1)
-    - 10.2 [Convivência com o AzFlow](#cap-10-2)
-    - 10.3 [Bloqueio para perfis de advocacia](#cap-10-3)
+    - 10.2 [Bloqueio para perfis de advocacia](#cap-10-2)
 11. [Solução de problemas](#cap-11)
 - [Anexo A — Histórico de versões do manual](#anexo-a)
 
@@ -121,7 +113,7 @@
 
 A extensão é um complemento instalado no navegador (Google Chrome ou
 Microsoft Edge) que acrescenta botões, painéis e informações às telas do
-**Projudi** (TJPR) e, em parte, do **SEEU**. Ela não substitui nenhuma tela
+**Projudi** (TJPR). Ela não substitui nenhuma tela
 do sistema: tudo o que o Projudi já faz continua disponível exatamente como
 antes — a extensão só encurta caminhos.
 
@@ -144,8 +136,6 @@ Não é preciso saber nada de informática além disso.
 |---|---|
 | **Negrito** | Nome de um botão, aba, campo ou tela, exatamente como aparece |
 | ⚠️ | Atenção: cuidado para não praticar um ato sem conferir |
-| *Só no Projudi* | A função não existe no SEEU |
-| *Só no SEEU* | A função não existe no Projudi |
 | ✅ **Sim, executar** | O único botão da extensão que confirma um ato processual — sempre depois de você conferir |
 
 <a id="cap-1-3"></a>
@@ -154,10 +144,10 @@ Não é preciso saber nada de informática além disso.
 | Sistema | O que funciona |
 |---|---|
 | **Projudi (TJPR)** | Todas as funções deste manual |
-| **SEEU** | **Não funciona nesta edição** (Chrome Web Store, somente Projudi). As funções marcadas *Só no SEEU* ([8.8](#cap-8-8) e [9.12](#cap-9-12)) e o card **SEEU** ao lado da balança não existem aqui |
+| **SEEU** | Não funciona. Desde a versão 18 a extensão atende só o Projudi (o card **SEEU**, ao lado da balança, continua abrindo o SEEU a partir do Projudi — [8.7](#cap-8-7)) |
 
 A extensão **não funciona** quando o usuário está logado com perfil de
-advogado(a) ou de assessor(a) de advogado — veja [10.3](#cap-10-3).
+advogado(a) ou de assessor(a) de advogado — veja [10.2](#cap-10-2).
 
 <a id="cap-1-4"></a>
 ### 1.4 Regras de segurança da extensão
@@ -175,10 +165,9 @@ advogado(a) ou de assessor(a) de advogado — veja [10.3](#cap-10-3).
    enviados quando você clica em enviar no WhatsApp Web ou no Outlook.
 4. Documentos do processo são sensíveis: **confira sempre o destinatário**
    antes de enviar.
-5. **Pendências antes de uma preferência — Projudi e SEEU:** com juntadas
+5. **Pendências antes de uma preferência:** com juntadas
    ou conclusões pendentes, a extensão pergunta antes se deve **dispensar
    as juntadas**, **finalizar a conclusão** ou **dispensar os decursos**.
-   Vale do mesmo jeito no **Projudi** e no **SEEU**.
 
 ---
 
@@ -194,8 +183,8 @@ advogado(a) ou de assessor(a) de advogado — veja [10.3](#cap-10-3).
 
 1. No Chrome, abra a **Chrome Web Store** e procure por **Projudi** (ou
    por **Assistente Projudi**).
-2. Abra **Assistente Projudi – Ações Rápidas e Pré-visualização** e clique em **Usar no Chrome** (ou
-   **Adicionar ao Chrome**).
+2. Abra **Assistente Projudi – Ações Rápidas e Pré-visualização** e clique
+   em **Usar no Chrome** (ou **Adicionar ao Chrome**).
 3. Confirme em **Adicionar extensão**.
 4. A página de **Termos de Uso** se abre sozinha — siga o item
    [2.2](#cap-2-2).
@@ -208,7 +197,7 @@ Edge pede para **Permitir extensões de outras lojas** na primeira vez.
 
 **Para que serve:** a extensão só é ativada depois que você lê e aceita os
 Termos de Uso. Enquanto não houver aceite, **nenhuma função aparece** no
-Projudi/SEEU.
+Projudi.
 
 **Passo a passo:**
 
@@ -216,14 +205,14 @@ Projudi/SEEU.
 2. Marque **Declaro que li os Termos de Uso e concordo com todas as
    condições**.
 3. Clique em **Aceitar e ativar a extensão**.
-4. Recarregue (tecla **F5**) as páginas do Projudi/SEEU que já estavam
+4. Recarregue (tecla **F5**) as páginas do Projudi que já estavam
    abertas.
 
 **Bom saber:**
 
 - **Não concordo - remover extensão** desinstala a extensão.
 - Sem aceite, a página de termos volta a abrir ao iniciar o navegador, após
-  uma atualização e ao abrir o Projudi/SEEU.
+  uma atualização e ao abrir o Projudi.
 - Para reler os termos ou **revogar o aceite**, use o link **Termos de Uso
   da extensão** na página de opções ([2.5](#cap-2-5)).
 - Quando o texto dos termos muda de forma relevante, todos precisam aceitar
@@ -234,9 +223,9 @@ Projudi/SEEU.
 
 **Para que serve:** saber como a extensão recebe as novidades.
 
-**Como funciona:** nesta edição, a **Chrome Web Store atualiza a extensão
-sozinha**, sem você fazer nada. Não aparece aviso de versão nova nem é
-preciso baixar arquivos.
+**Como funciona:** a **Chrome Web Store atualiza a extensão sozinha**, sem
+você fazer nada. Não aparece aviso de versão nova nem é preciso baixar
+arquivos.
 
 **As minhas preferências continuam depois da atualização?** **Sim**: o
 navegador guarda as preferências junto da extensão instalada. Elas **se
@@ -276,7 +265,7 @@ e os demais.
 lugar que preferir, inclusive para a outra linha (por exemplo, o **Colar
 processo** para a linha de cima). Só o **⭐ Minhas Preferências** e o
 **Combos** não mudam de lugar. Os outros botões se ajeitam sozinhos, e a nova ordem fica **salva**: vale em todos os
-processos, separada no Projudi e no SEEU, e vai junto no **⬇ Exportar** do
+processos e vai junto no **⬇ Exportar** do
 Menu. Um clique sem arrastar continua abrindo o botão normalmente. Para
 voltar à ordem original: Menu (balança) → **Ações rápidas e Minhas
 Preferências** → lista **Botões** → **↺ Ordem original**. O botão **🔗 Combos**
@@ -287,7 +276,6 @@ achados mais depressa.
 |---|---|---|
 | **▸ Ações** / **▾ Ações** | Mostra ou recolhe os grupos de ações rápidas (**Concluso**, **Remessa**, **Ordenações**, **Int. Partes**, **Alvará Eletrônico**, **Outras**) | [7.1](#cap-7-1) |
 | **⭐ Minhas Preferências** | Todas as preferências salvas, em cards | [7.3](#cap-7-3) |
-| **Localizador** | *Só no SEEU:* preferências de localizadores, associadas ao processo com um clique | [8.8](#cap-8-8) |
 | **Colar processo** | Pesquisa o número de processo que você copiou | [8.5](#cap-8-5) |
 | **Advogados** | Tela de Advogados em popup ((Des)Habilitar Advogado), com preferências de advogados | [8.3](#cap-8-3) |
 | **Editar Partes** | Tela Partes do Processo em popup (Editar Partes/Outros) | [8.4](#cap-8-4) |
@@ -311,7 +299,6 @@ achados mais depressa.
 - A barra acompanha a rolagem da página. Ela se alinha ao quadro
   **Pendências**; quando a tela não tem esse quadro, alinha-se ao quadro
   **Anotações nos autos**.
-- No SEEU aparecem só os botões de envio (WhatsApp e e-mail).
 - A barra aparece na tela do processo. Em algumas telas (ex.: **Juntar
   Documento**, **Análise de Juntadas**, **Retorno de Conclusão**, telas de
   cumprimento, ficha da parte, **Denunciado(s)**, **Sentenciados**,
@@ -345,10 +332,8 @@ desligar funções inteiras ou só os botões que você não usa —, levar as s
 preferências para outro computador e abrir este manual.
 
 **Onde fica:** um ícone pequeno — a **balança da Justiça** em azul-marinho,
-num quadrado dourado — sempre visível no cabeçalho:
-
-- **Projudi:** no canto superior direito, logo abaixo do link **Sair**;
-- **SEEU:** na faixa azul do menu, abaixo do nome do usuário.
+num quadrado dourado — sempre visível no cabeçalho do Projudi, no canto
+superior direito, logo abaixo do link **Sair**.
 
 Ao rolar a página ele acompanha o cabeçalho e, quando este sai da tela, fica
 preso no topo. Um **pontinho vermelho** no ícone avisa que há funções
@@ -367,31 +352,21 @@ abre o aviso com o passo a passo ([2.3](#cap-2-3)). Esse aviso faz parte do
 Menu e não tem chave para desligar.
 
 **0. Chave geral: ativar e desativar a extensão** — logo abaixo do título do
-Menu há uma faixa com uma chave **"Extensão ativada no PROJUDI"** (ou SEEU,
-conforme a aba aberta). Verde = extensão funcionando; ao desligar, a faixa fica
-vermelha ("Extensão desativada…") e **nenhuma função** atua naquele sistema a
+Menu há uma faixa com uma chave **"Extensão ativada no PROJUDI"**. Verde = extensão funcionando; ao desligar, a faixa fica
+vermelha ("Extensão desativada…") e **nenhuma função** atua no Projudi a
 partir do próximo carregamento da página (clique em **Recarregar agora**). Só o
 ícone da balança continua na tela, para você poder ligar de novo. As escolhas
-da lista de funções ficam guardadas e **não** são perdidas. Cada sistema tem a
-sua chave (PROJUDI e SEEU), e o pontinho vermelho do ícone também aparece
+da lista de funções ficam guardadas e **não** são perdidas. O pontinho vermelho do ícone também aparece
 quando a extensão está desativada.
 
 **1. Funcionalidades** — a lista de todas as funções, agrupadas por assunto,
-cada uma com uma **chave liga/desliga**. No topo do Menu há **duas abas,
-PROJUDI e SEEU**, com a mesma lista: cada sistema guarda as suas próprias
-escolhas. Por padrão, **tudo vem ativo nos dois**. A extensão reconhece em que
-sistema você está pelo endereço da página e abre o Menu na aba dele (marcada
-com "(este)"); você pode clicar na outra aba para configurá-la também. Acima
-da lista aparece "Funcionalidades no PROJUDI: N de 30 ativas" (ou no SEEU).
+cada uma com uma **chave liga/desliga**. Por padrão, **tudo vem ativo**.
+Acima da lista aparece "Funcionalidades no PROJUDI: N de 40 ativas".
 
-1. Clique na aba do sistema que quer configurar (PROJUDI ou SEEU).
-2. Clique na chave da função que quer ligar ou desligar.
-3. A mudança vale para **todas as páginas daquele sistema**, a partir da
+1. Clique na chave da função que quer ligar ou desligar.
+2. A mudança vale para **todas as páginas do Projudi**, a partir da
    próxima vez que a página for carregada. Clique em **Recarregar agora** para
-   aplicar na página atual (o aviso só aparece quando você mexeu na aba do
-   sistema em que está).
-4. Para deixar o outro sistema igual, use o link **Copiar para o SEEU** (ou
-   **Copiar para o PROJUDI**), ao lado do total de funções ativas, e confirme.
+   aplicar na página atual.
 
 Algumas funções dependem de outras (aparece em dourado, sob o nome:
 "Requer: …"). O Menu cuida disso e avisa o que fez:
@@ -416,13 +391,12 @@ você esconde só o que não usa, sem desligar a função inteira:
 |---|---|
 | **Pré-visualização e WhatsApp** | 📱 Enviar por WhatsApp (a pré-visualização continua) |
 | **Expandir anexos / ocultar sem arquivo** | Expandir/Recolher movimentações · Apenas com arquivo (+) |
-| **Ações rápidas e Minhas Preferências** | Concluso · Remessa · Ordenações · Int. Partes · Outras (inclui Suspender, Transitar e Arquivar) · ⭐ Minhas Preferências · Seção "Preferências" (abaixo das Pendências) · Combos · Destacar mov. · Colar processo (só Projudi) |
+| **Ações rápidas e Minhas Preferências** | Concluso · Remessa · Ordenações · Int. Partes · Outras (inclui Suspender, Transitar e Arquivar) · ⭐ Minhas Preferências · Seção "Preferências" (abaixo das Pendências) · Combos · Destacar mov. · Colar processo |
 | **Dispensar juntadas, decursos e cumprimentos** | Dispensar juntadas · Dispensar decursos · Dispensar pendências (cumprimentos para expedir) · Dispensar decurso · Analisar decurso (cumprimentos aguardando análise de decurso) |
 
 - Esconder ou mostrar um botão vale **na hora**, sem recarregar a página, em
-  todas as abas abertas daquele sistema.
-- Cada sistema (PROJUDI e SEEU) guarda os seus botões escondidos; o **Copiar
-  para o…** leva também essa escolha, e o **↺ Padrão** mostra todos de novo.
+  todas as abas abertas do Projudi.
+- O **↺ Padrão** mostra todos os botões de novo.
 - Com a função desligada, as chaves dos botões ficam bloqueadas (cinza):
   ligue a função primeiro.
 - Acima da lista aparece também quantos botões estão escondidos ("· 2
@@ -432,13 +406,13 @@ você esconde só o que não usa, sem desligar a função inteira:
   listas).
 
 **Desativar todas (montar a extensão do zero)** — o link **Desativar
-todas**, ao lado do total de funções ativas, desliga todas as funções do
-sistema da aba aberta (o outro sistema não muda), depois de você confirmar.
+todas**, ao lado do total de funções ativas, desliga todas as funções,
+depois de você confirmar.
 Em seguida, ligue uma a uma só as que você usa. Nada do que você salvou
 (preferências, combos, listas, contatos) é apagado, e o **↺ Padrão** volta a
 ligar tudo.
 
-> **Dica: computador lento.** Se o Projudi/SEEU estiver lento num computador
+> **Dica: computador lento.** Se o Projudi estiver lento num computador
 > mais fraco, ou com muitas abas abertas, **desligue no Menu as funções que
 > você não usa**. Uma função desligada deixa de ser carregada nas páginas e
 > não gasta mais nada do computador (vale a partir do próximo carregamento da
@@ -455,17 +429,17 @@ ligar tudo.
 | Grupo | Funções que podem ser ligadas/desligadas | Seção |
 |---|---|---|
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
-| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos (Projudi) · Novo Valor da Causa (Projudi) · Prioridades (Projudi) · Agendar Audiência (preferências) (Projudi) · Alvará Eletrônico · Juntar Documento · Localizador (SEEU) · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
+| **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos · Novo Valor da Causa · Prioridades · Agendar Audiência (preferências) · Alvará Eletrônico · Juntar Documento · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Bloco de anotações | [4](#cap-4) |
-| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (SEEU) · Localizador na lista (Projudi) · Listas em uma única página (Projudi) · Processos Paralisados (+90 dias) na tela Início (Projudi) · Totais da Mesa do Escrivão Criminal na Análise de Juntadas (Projudi) · Visual novo da Mesa do Analista (Projudi) | [6](#cap-6), [9](#cap-9) |
+| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (Projudi) · Listas em uma única página · Processos Paralisados (+90 dias) na tela Início · Totais da Mesa do Escrivão Criminal na Análise de Juntadas · Visual novo da Mesa do Analista | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
 Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
 mov.** fazem parte das funções acima (as duas primeiras, das
 **Ações rápidas**; a última, do **Destaque de movimentações**).
 
-**Cor do visual da Mesa do Analista** (só no Projudi) — escolhe a cor do
-visual novo da Mesa ([9.17](#cap-9-17)): **Oliva fosco** (padrão), **Areia**,
+**Cor do visual da Mesa do Analista** — escolhe a cor do
+visual novo da Mesa ([9.16](#cap-9-16)): **Oliva fosco** (padrão), **Areia**,
 **Sálvia**, **Névoa** ou **Escuro suave**. A mesma escolha pode ser
 feita nas bolinhas ao lado do título da Mesa.
 
@@ -482,12 +456,12 @@ computador:
   que você criou**: as preferências das ações (intimações, citações,
   mandados, alvará, advogados etc.), de **Juntar Documento**, de **Analisar
   Decurso**, de **Pré-Análise**, de **classe**, **assunto principal** e
-  **assuntos secundários**, do **localizador** (SEEU), os **combos**, a ordem
+  **assuntos secundários**, os **combos**, a ordem
   dos cards em **Minhas Preferências**, as listas de tarefas (com as
   preferências e os processos marcados), contatos do WhatsApp, destinatários
   e remetentes de e-mail, configuração do envio por e-mail, destaques de
   movimentações, a ordem dos cards dos sistemas (e o que fica no **Outros**)
-  ([8.7](#cap-8-7)) e as funções desligadas em cada sistema. Ao terminar, o
+  ([8.7](#cap-8-7)) e as funções desligadas. Ao terminar, o
   Menu mostra o resumo do que foi salvo (por exemplo, "12 preferência(s) das
   ações; 3 preferência(s) de assunto secundário; 2 combo(s)…"). Preferências
   de funções novas entram no arquivo automaticamente.
@@ -495,8 +469,7 @@ computador:
   o arquivo. O Menu mostra um **resumo do que ele contém**; depois de você
   **confirmar**, as preferências daquele computador são **substituídas** pelas
   do arquivo. Recarregue as páginas abertas.
-- **↺ Padrão**: religa todas as funções **do sistema da aba aberta** (o outro
-  não muda). **Não** apaga nenhuma preferência.
+- **↺ Padrão**: religa todas as funções. **Não** apaga nenhuma preferência.
 
 ⚠️ O arquivo **não** leva o aceite dos Termos de Uso (cada instalação aceita os
 seus), nem login do Microsoft Graph, nem trabalhos em andamento (envios,
@@ -506,12 +479,9 @@ seus contatos.
 **3. 📖 Manual do Usuário** — abre este manual numa nova aba, com **índice
 lateral e busca**. Logo acima fica o link **Termos de Uso**.
 
-**Bom saber:** se um botão da extensão "sumiu", confira no Menu, **na aba do
-sistema em que você está**, se a função não foi desligada (e se alguma função
-de que ela depende não foi desligada junto). O **pontinho vermelho** do ícone
-refere-se ao sistema em que a página está aberta. Quem já tinha funções
-desligadas antes desta versão continua com elas desligadas nos dois sistemas,
-até mudar em uma das abas.
+**Bom saber:** se um botão da extensão "sumiu", confira no Menu se a função
+não foi desligada (e se alguma função de que ela depende não foi desligada
+junto).
 
 ---
 
@@ -523,7 +493,7 @@ até mudar em uma das abas.
 
 **Para que serve:** ler a íntegra de um documento **sem abrir outra aba**.
 
-**Onde fica:** aba **Movimentações** do processo (Projudi e SEEU).
+**Onde fica:** aba **Movimentações** do processo.
 
 **Passo a passo:**
 
@@ -559,7 +529,7 @@ até mudar em uma das abas.
 ### 3.2 Pré-visualização das pendências
 
 **Para que serve:** ver os documentos de juntadas e conclusões **pendentes**
-sem abrir a tela de análise. *Só no Projudi.*
+sem abrir a tela de análise.
 
 **Onde fica:** quadro **Pendências** da capa do processo, nos links como
 "Há 1 pendência(s) de análise de juntada".
@@ -759,7 +729,7 @@ encontrado" em vez de um número errado.
 <a id="cap-5"></a>
 ## 5. Envio de documentos
 
-Funciona no **Projudi** e no **SEEU**. Nas duas formas de envio, você marca
+Nas duas formas de envio, você marca
 os documentos pelas caixinhas que a extensão coloca ao lado de cada arquivo
 da aba **Movimentações** (abra o **+** da movimentação para vê-las). A
 seleção é a mesma para WhatsApp e e-mail.
@@ -767,7 +737,7 @@ seleção é a mesma para WhatsApp e e-mail.
 > **Caixinhas da extensão são laranja.** Todas as caixinhas de marcar que a
 > extensão coloca na página (as dos arquivos, a da movimentação nas Ações
 > rápidas e a do **⭐ Em lote** nas listas) têm **contorno laranja**, para
-> não serem confundidas com as caixinhas do próprio Projudi/SEEU.
+> não serem confundidas com as caixinhas do próprio Projudi.
 
 <a id="cap-5-1"></a>
 ### 5.1 Envio por WhatsApp Web
@@ -871,10 +841,7 @@ não muda.
 ## 6. Quadro Pendências
 
 Botões que a extensão coloca ao lado dos links do quadro **Pendências** da
-capa do processo. *No Projudi e no SEEU* (no SEEU, o quadro **Pendências**
-fica na tela do processo, abaixo das Prioridades e Condições de
-Acompanhamento; a linha dos cumprimentos mostra a quantidade no fim, ex.:
-"Comunicações Tre 01").
+capa do processo.
 
 ⚠️ Estes botões **agem ao clicar**. Confira antes as pendências (a
 pré-visualização do item [3.2](#cap-3-2) ajuda).
@@ -980,8 +947,6 @@ onde parou. Uma operação por vez.
 <a id="cap-7"></a>
 ## 7. Ações rápidas e preferências
 
-*No Projudi e no SEEU* (no SEEU, só parte das ações — veja a 7.1).
-
 <a id="cap-7-1"></a>
 ### 7.1 Ações rápidas
 
@@ -1004,15 +969,6 @@ preferências já salvas para elas continuam valendo.
 | **Int. Partes** | Intimar Partes; Notificar Partes; Citar Partes; Intimar Peritos e Auxiliares da Justiça |
 | **🏦 Alvará Eletrônico** | Cadastrar Alvará Eletrônico ([8.1](#cap-8-1)) |
 | **Outras** | Interromper Prazo; Declínio de competência para a Segunda Instância; Apensar; Desapensar; Anotações Criminais; Solicitar Antecedentes Criminais; Suspender ou Sobrestar Processo; Transitar em Julgado; Arquivar Processo |
-
-**No SEEU** aparecem só estas: **Enviar Concluso**, **Realizar Remessa**,
-**Ordenar Cumprimentos**, **Intimar Partes**, **Intimar Peritos e
-Auxiliares da Justiça** e, em **Outras**, **Interromper Prazo**,
-**Transitar em Julgado**, **Arquivar Processo**, **Redistribuir** e
-**Comunicar ao IIPR** (estas duas só existem no SEEU). A ação **Suspender
-ou Sobrestar Processo** e o **🏦 Alvará Eletrônico** não aparecem lá. As preferências das ações que ficam só no
-Projudi (ex.: Citar Partes) continuam guardadas, mas só aparecem no
-Projudi.
 
 **Passo a passo:**
 
@@ -1106,8 +1062,6 @@ MP para ciência, 5 dias") e reaplicá-lo em outros processos.
      finalizar conclusão** ou **Não, seguir sem isso**). Havendo as duas
      pendências, são duas perguntas: primeiro as juntadas, depois a
      conclusão. É a mesma pergunta do ⭐ nas listagens ([9.3](#cap-9-3)).
-   - As mesmas perguntas valem no **SEEU** ([1.4](#cap-1-4)), também antes
-     das preferências do **📍 Localizador**.
 2. O diálogo abre **já preenchido** e aparece a barra: *Confirmar "Ação" com
    a preferência "..."?*
 3. ⚠️ Confira os campos e clique em ✅ **Sim, executar** — é esse clique
@@ -1137,8 +1091,7 @@ Atualizar preferência** (nada é enviado); 🗑 remove.
 ### 7.3 Minhas Preferências
 
 **Para que serve:** ver **todas** as preferências salvas (das ações rápidas,
-do Juntar Documento, no Projudi, do **Agendar Audiência** e, no SEEU, do
-**📍 Localizador**) e os combos, em
+do Juntar Documento e do **Agendar Audiência**) e os combos, em
 cards, num só lugar.
 
 **Como o painel é organizado:** as preferências ficam em **blocos, um por
@@ -1164,11 +1117,9 @@ for comprido, ele continua na linha de baixo, dentro do mesmo card.
 
 **Bom saber:** só os primeiros cards aparecem de início; marque **Mostrar
 todas** para ver o restante — ou use a busca **🔍 Buscar preferência** do
-topo do painel, que fica parado ao rolar ([7.8](#cap-7-8)). Os cards **📍 Localizador** (só no SEEU)
-associam os localizadores na hora, sem diálogo nem ✅ **Sim, executar**
-— veja [8.8](#cap-8-8). Os cards do bloco **Agendar Audiência** (só no
+topo do painel, que fica parado ao rolar ([7.8](#cap-7-8)). Os cards do bloco **Agendar Audiência** (só no
 Projudi) abrem a tela de agendamento já com o tipo escolhido, depois do
-**Manual** — veja [8.12](#cap-8-12); neles, o **✏️** só muda o nome.
+**Manual** — veja [8.11](#cap-8-11); neles, o **✏️** só muda o nome.
 Os mesmos cards ficam também **sempre à vista** na seção **Preferências**
 da tela do processo, abaixo do quadro Pendências — veja [7.9](#cap-7-9).
 
@@ -1183,10 +1134,9 @@ sentença".
 para usar na tela do processo — as das Ações rápidas (inclusive **Alvará
 Eletrônico** e **⚖️ Advogados**), as do **📎 Juntar Documento**, as do
 **✏️ Alterar Classe/Assuntos** (classe, assunto principal e assunto
-secundário — só no Projudi, [8.9](#cap-8-9)), as de **Prioridades** (só no
-Projudi, [8.11](#cap-8-11)), as do **Agendar Audiência** (só no Projudi,
-[8.12](#cap-8-12)) e as do **📍 Localizador** (só no SEEU,
-[8.8](#cap-8-8)). Na caixa de cada etapa elas aparecem separadas
+secundário — [8.8](#cap-8-8)), as de **Prioridades**
+([8.10](#cap-8-10)), as do **Agendar Audiência**
+([8.11](#cap-8-11)). Na caixa de cada etapa elas aparecem separadas
 pelo nome da função.
 
 **Criar:**
@@ -1382,9 +1332,8 @@ do navegador.
 |---|---|
 | Painéis das **Ações rápidas** (Partes, Remessa, Concluso…) e **📎 Juntar Documento** | Na linha do nome de cada ação, ao lado de **Abrir** |
 | **⭐ Minhas Preferências** ([7.3](#cap-7-3)) | Não tem (as preferências são criadas nos painéis das ações) |
-| **⭐** de **Alterar Classe/Assuntos** ([8.9](#cap-8-9)) | No topo, ao lado do título |
-| **⭐** da linha **Prioridade** ([8.11](#cap-8-11)) | No topo, ao lado do título |
-| **📍 Localizador** (SEEU, [8.8](#cap-8-8)) | No topo, abaixo do título |
+| **⭐** de **Alterar Classe/Assuntos** ([8.8](#cap-8-8)) | No topo, ao lado do título |
+| **⭐** da linha **Prioridade** ([8.10](#cap-8-10)) | No topo, ao lado do título |
 | **Analisar Decurso** da lista ([9.10](#cap-9-10)) | No topo, abaixo de **Abrir a análise** |
 | **⭐** da linha e **⭐ Em lote** ([9.3](#cap-9-3)) | No topo: **+ Nova · Analisar (Pré-Análise)** / **+ Nova · Analisar Decurso** |
 
@@ -1463,7 +1412,7 @@ Ela só aparece se você tiver ao menos uma preferência ou combo salvo.
 <a id="cap-8"></a>
 ## 8. Atalhos para telas do processo
 
-*Só no Projudi* (exceto o [8.8](#cap-8-8), *só no SEEU*, o [8.3](#cap-8-3), que também vale no SEEU, e os cards do BNMP, da SESP e do S.U. do [8.7](#cap-8-7), que também aparecem no SEEU). Os atalhos de 8.1
+Os atalhos de 8.1
 a 8.6 abrem num **popup** sobre a tela atual — a aba do processo não sai do
 lugar. Feche com **✕ Fechar**.
 
@@ -1611,33 +1560,8 @@ mesmo sem advogado cadastrado (para incluir o primeiro).
   (**Adicionar**/**Remover**) e clique em **💾 Atualizar preferência**.
 - A preferência só funciona na tela do processo (não no ⭐ das listagens).
 
-**No SEEU** o botão **⚖️ Advogados** fica ao lado do **⭐ Minhas
-Preferências**, e o caminho é o mesmo: aba **Partes** → **Advogados** →
-lista dos advogados do processo → **Adicionar** → **Habilitação de
-Advogado para Parte**. As diferenças:
-
-- A habilitação do SEEU tem **um advogado por vez**, escolhido pela lupa
-  ao lado do campo **Advogado** (**Seleção de Advogado**: OAB →
-  **Pesquisar** → linha do advogado → **Selecionar**).
-- A preferência grava também as **Partes do Processo** marcadas — pelo
-  **tipo** da parte, ex.: "(Executado)", porque o nome muda de um processo
-  para outro — e o **Salvar**.
-- **Criar:** **⚖️ Advogados** → **+ Nova preferência**; escolha o
-  advogado pela lupa, a **Atuação** e as **Partes do Processo** e clique em
-  **Salvar** da própria tela: **a habilitação não é salva** — a extensão
-  só pede o **nome** e grava a preferência (o mesmo vale para o
-  **💾 Salvar como preferência** da barra).
-- **Usar:** **⚖️ Advogados** → **nome da preferência**: a extensão escolhe o advogado
-  pela lupa, a Atuação e as partes do mesmo tipo e mostra a barra
-  ⚠️ **✅ Sim, executar** — é esse clique que clica em **Salvar** e
-  habilita o advogado. **Cancelar** desiste.
-- **✏️ Editar:** a tela abre preenchida; ajuste e clique em **Salvar** (ou
-  em **💾 Atualizar preferência**): a preferência é atualizada, sem salvar
-  a habilitação.
-- Se o processo não tiver parte do tipo gravado, o aviso no alto da tela
-  pede para marcar as partes à mão.
-- As preferências criadas no SEEU só aparecem no SEEU, e as do Projudi, só
-  no Projudi.
+- Preferências de advogados gravadas no SEEU (antes da versão 18) não
+  aparecem mais.
 
 <a id="cap-8-4"></a>
 ### 8.4 Editar Partes/Outros
@@ -1698,9 +1622,7 @@ aberto** (de qualquer jeito que ele tenha sido aberto: pela Mesa, pelas
 listas — inclusive a de **Paralisados** — ou pelo atalho **Processo** do
 topo), e só na **tela principal** dele — na Mesa, nas listas, nas demais
 telas e dentro dos popups (Advogados, Partes, ações rápidas, janelas do
-Projudi) fica só a balança. **No SEEU** aparecem só os cards **BNMP**,
-**SESP** e **S.U.** (também só com um processo aberto), sem o card
-**Outros** — o card **SEEU** fica só no Projudi.
+Projudi) fica só a balança.
 
 **Ordem:** por padrão, os cards ficam em **ordem alfabética** do nome do
 sistema, da esquerda para a direita. Você pode reorganizá-los como quiser
@@ -1708,20 +1630,20 @@ sistema, da esquerda para a direita. Você pode reorganizá-los como quiser
 
 | Card | Sistema | Para quê |
 |---|---|---|
-| **BNMP** (azul-lavanda) | BNMP 3.0 | Banco Nacional de Medidas Penais e Prisões (mandados) — Projudi **e SEEU** |
+| **BNMP** (azul-lavanda) | BNMP 3.0 | Banco Nacional de Medidas Penais e Prisões (mandados) |
 | **CNIEP** (lilás) | CNIEP | Inspeções em estabelecimentos penais |
 | **Infojud** (coral) | Infojud | Declarações e dados da Receita Federal (pelo e-CAC) |
 | **PrevJud** (pêssego) | PrevJud | Informações previdenciárias |
 | **Renajud** (orquídea) | Renajud | Restrições judiciais sobre veículos (bloqueio de transferência, licenciamento e circulação) |
-| **SEEU** (terracota) | SEEU | Sistema Eletrônico de Execução Unificado (execução penal) — abre a página de entrada do SEEU; só no Projudi |
+| **SEEU** (terracota) | SEEU | Sistema Eletrônico de Execução Unificado (execução penal) — abre a página de entrada do SEEU |
 | **SerpJud** (verde-água) | SERP-JUD | Registros públicos (cartórios de imóveis, títulos, pessoas) |
 | **Sisbajud** (verde-claro) | Sisbajud | Ordens a bancos (bloqueio de valores, informações) |
-| **S.U.** (cinza-azulado) | Sistema Uniformizado | Sistema do TJPR de fundos, custas e guias — Projudi **e SEEU** |
+| **S.U.** (cinza-azulado) | Sistema Uniformizado | Sistema do TJPR de fundos, custas e guias |
 | **SNGB** (rosa) | SNGB | Gestão de bens apreendidos |
 | **Sniper** (azul-claro) | Sniper | Investigação patrimonial |
-| **Outros ▾** (branco) | — | Abre o painel com os sistemas guardados (só no Projudi) |
+| **Outros ▾** (branco) | — | Abre o painel com os sistemas guardados |
 
-**Card Outros** (só no Projudi): fica colado à balança. Clique nele para abrir
+**Card Outros**: fica colado à balança. Clique nele para abrir
 um painel com os sistemas guardados, também em ordem alfabética. No começo,
 o painel traz:
 
@@ -1730,7 +1652,7 @@ o painel traz:
 | **COPEL** (areia) | COPEL | Companhia Paranaense de Energia |
 | **FUPEN** (oliva) | FUPEN | Fundo Penitenciário do Paraná (DEPEN-PR) |
 | **SANEPAR** (azul-água) | SANEPAR | Portal da Sanepar para o Poder Judiciário |
-| **SESP** (malva) | SESP Intranet | Intranet da Secretaria da Segurança Pública do Paraná — no SEEU fica na fila, ao lado do BNMP |
+| **SESP** (malva) | SESP Intranet | Intranet da Secretaria da Segurança Pública do Paraná |
 
 Clique num card do painel para abrir o sistema. Para fechar o painel, clique
 de novo em **Outros**, clique fora dele ou tecle **Esc**.
@@ -1808,71 +1730,7 @@ das atualizações da extensão e vai junto no **⬇ Exportar** do Menu.
 ---
 
 <a id="cap-8-8"></a>
-### 8.8 Localizador (só no SEEU)
-
-*Só no SEEU — **não existe nesta edição** (Chrome Web Store, somente Projudi).*
-
-**Para que serve:** associar ao processo, **com um clique**, os
-localizadores que você mais usa — um ou vários de uma vez —, sem procurar
-cada um na lista do **+** do SEEU.
-
-**Onde fica:** na barra de botões da extensão ([2.4](#cap-2-4)), logo
-depois do **⭐ Minhas Preferências**: botão **📍 Localizador**. Ele abre um
-painel com as suas preferências:
-
-| Opção | O que faz |
-|---|---|
-| **nome da preferência** | Associa ao processo todos os localizadores da preferência |
-| **➕ Nova preferência** | Abre a lista de localizadores ativos da unidade para você montar uma preferência (fica no topo do painel, com a busca — veja [7.8](#cap-7-8)) |
-| **✏️** | Muda o nome ou os localizadores da preferência |
-| **↑** | Sobe a preferência na lista |
-| **🗑** | Remove a preferência |
-
-**Passo a passo — criar uma preferência:**
-
-1. Clique em **📍 Localizador** → **➕ Nova preferência**.
-2. A extensão lê a lista **Associar localizador ao processo** (a mesma do
-   **+**) e mostra os localizadores ativos da unidade. Use **Pesquisar
-   localizador...** para achar mais rápido.
-3. Marque **um ou mais** localizadores e, se quiser, dê um **nome** (ex.:
-   "Audiência cumprida"). Sem nome, a preferência mostra os localizadores.
-4. Clique em **Salvar**.
-
-**Passo a passo — usar a preferência:**
-
-1. Com o processo aberto, clique em **📍 Localizador** — ou em
-   **⭐ Minhas Preferências**, onde a preferência aparece como um card
-   **📍 Localizador** ([7.3](#cap-7-3)).
-2. Clique na preferência (ou no card). A extensão escolhe cada localizador na lista do
-   **+**, um de cada vez, como você faria, e mostra o andamento no painel.
-3. No fim, o painel diz quais foram associados.
-
-**Bom saber:**
-
-- O botão só aparece no **SEEU** (também no SEEU de treino), na tela do
-  processo, e precisa das **Ações rápidas** ligadas no Menu
-  ([2.6](#cap-2-6)). Para associar, o **+** dos localizadores precisa
-  estar disponível (perfil com permissão para associar localizador).
-- No **✏️** e no **🗑** do card em **⭐ Minhas Preferências** você também
-  edita ou remove a preferência.
-- Localizador que **já está** no processo não é associado de novo.
-- Se um localizador da preferência **não estiver** na lista da unidade (foi
-  desativado, ou você está em outra unidade), o painel avisa qual — os
-  demais são associados normalmente. No **✏️**, ele aparece com o aviso
-  "(não está na lista desta unidade)", para você desmarcá-lo.
-- Se o painel pedir para **conferir no cabeçalho**, a extensão escolheu o
-  localizador na lista, mas não conseguiu confirmar que ele apareceu: olhe
-  os localizadores no alto da tela.
-- Para tirar um localizador do processo, use o próprio SEEU — ou o **✏️**
-  ao lado dos localizadores nas listas de juntadas e de conclusões
-  ([9.12](#cap-9-12)).
-- As preferências entram no **⬇ Exportar** do Menu da extensão
-  ([2.6](#cap-2-6)).
-
-<a id="cap-8-9"></a>
-### 8.9 Alterar Classe/Assuntos
-
-*Só no Projudi.*
+### 8.8 Alterar Classe/Assuntos
 
 **Para que serve:** alterar a **classe processual** ou os **assuntos** do
 processo sem sair da tela em que você está. Abre, num popup, a mesma tela
@@ -2022,10 +1880,8 @@ você abrir a tela de alteração.
 - Se o assunto não sair da lista, **nada é salvo** e a extensão avisa — use
   **Alterar** para fazer à mão.
 
-<a id="cap-8-10"></a>
-### 8.10 Novo Valor da Causa
-
-*Só no Projudi.*
+<a id="cap-8-9"></a>
+### 8.9 Novo Valor da Causa
 
 **Para que serve:** alterar o **valor da causa** do processo só digitando
 o valor novo. Você não precisa clicar em **Alterar**, procurar o campo
@@ -2070,16 +1926,14 @@ em qualquer aba do processo: não é preciso abrir **Informações Gerais**.
 - Se aparecer "Não encontrei o botão Alterar…", o seu perfil não tem
   permissão para alterar este processo.
 
-<a id="cap-8-11"></a>
-### 8.11 Prioridades (incluir, remover e preferências)
-
-*Só no Projudi.*
+<a id="cap-8-10"></a>
+### 8.10 Prioridades (incluir, remover e preferências)
 
 **Para que serve:** incluir ou tirar uma **prioridade** do processo sem
 passar pelo caminho de sempre (**Informações Gerais** → **Alterar** → lupa
 da linha **Prioridade** → **Seleção de Prioridade** → **Selecionar** →
 **Salvar**). Funciona como o **✖** e a **⭐** dos assuntos secundários
-([8.9](#cap-8-9)).
+([8.8](#cap-8-8)).
 
 **Onde fica:** no cabeçalho do processo, na linha **Prioridade** (a frase
 em vermelho com as prioridades, separadas por vírgula). Ela aparece em
@@ -2159,10 +2013,8 @@ Combos** ([7.4](#cap-7-4)).
 
 ---
 
-<a id="cap-8-12"></a>
-### 8.12 Agendar Audiência com preferências
-
-*Só no Projudi.*
+<a id="cap-8-11"></a>
+### 8.11 Agendar Audiência com preferências
 
 **Para que serve:** chegar mais rápido à tela de agendamento de um tipo de
 audiência que você marca com frequência (por exemplo, **Audiência de
@@ -2230,16 +2082,6 @@ continua como estava (o próximo clique em **Manual** segue normalmente).
 <a id="cap-9"></a>
 ## 9. Telas de análise, mesas e cumprimentos
 
-*Só no Projudi*, exceto estas, que também valem no SEEU:
-
-- listas de tarefas ([9.2](#cap-9-2)) e **⭐** ([9.3](#cap-9-3)) — listas
-  de juntadas, de conclusões, de decurso de prazo e de cumprimentos;
-- Mesa do Analista sem itens zerados ([9.4](#cap-9-4));
-- RG e CPF nos cumprimentos ([9.5](#cap-9-5));
-- processo ao passar o mouse ([9.8](#cap-9-8));
-- Analisar e Dispensar decurso na lista ([9.10](#cap-9-10));
-- localizador na lista ([9.12](#cap-9-12)), que só existe no SEEU.
-
 <a id="cap-9-1"></a>
 ### 9.1 Filtro por Sequencial na Análise de Decurso de Prazo
 
@@ -2259,7 +2101,7 @@ Prazo**), no formulário de busca, campo **Sequencial:**.
 
 **Bom saber:** o campo começa sempre em branco. Deixe-o vazio para a busca
 normal — com ele vazio, a lista inteira aparece numa só página
-([9.14](#cap-9-14)).
+([9.13](#cap-9-13)).
 
 <a id="cap-9-2"></a>
 ### 9.2 Listas de tarefas
@@ -2365,8 +2207,7 @@ processos marcados, **em lote**.
 **Em lote (vários processos de uma vez):**
 
 Em todas as telas que têm a **⭐** (Análise de Juntadas, Retorno de
-Conclusão, Análise de Decurso de Prazo, telas de cumprimentos e, no SEEU,
-Análise de Juntadas e Retorno de Conclusão), cada linha tem também uma
+Conclusão, Análise de Decurso de Prazo e telas de cumprimentos), cada linha tem também uma
 **caixinha de marcar** (com contorno laranja), logo abaixo do **+** da primeira coluna (na lista
 de **Mandados**, abaixo do semáforo). Acima da tabela aparece a barra
 **⭐ Em lote**.
@@ -2408,68 +2249,14 @@ de **Mandados**, abaixo do semáforo). Acima da tabela aparece a barra
 - Se você usar o filtro da legenda das listas de tarefas, só os processos
   que estão aparecendo entram no lote.
 
-**No SEEU** (listas **Análise de Juntadas**, **Retorno de Conclusão**, na
-Análise de Decurso de Prazo, **Intimações** e **Intimação de Auxiliares da
-Justiça**, e nos cumprimentos, **Demais Cumprimentos** e **Mandados**):
-
-1. Clique no **⭐** da linha. Aparecem as preferências do
-   **📍 Localizador** ([8.8](#cap-8-8)) — as ações rápidas não funcionam
-   no SEEU.
-2. Clique numa preferência. A extensão abre o processo **em segundo
-   plano** e associa os localizadores dela, um de cada vez, pela lista do
-   **+** do próprio SEEU. Você continua na lista.
-3. A linha mostra o andamento e, no fim, o resultado: **✅** quando todos
-   foram associados; **⚠** dizendo o que não foi possível (ex.:
-   localizador que não está na lista da unidade).
-
-- Localizador que já está no processo não é associado de novo.
-- Antes de associar, o SEEU tem as **mesmas perguntas** do Projudi
-  ([1.4](#cap-1-4)): na Análise de Juntadas, dispensar as juntadas; no
-  Retorno de Conclusão, finalizar a conclusão; nas Intimações do Decurso de
-  Prazo, dispensar os decursos; nas demais listas (Auxiliares da Justiça e
-  cumprimentos), só pelo que estiver pendente no processo. **Em lote**, a
-  pergunta é feita uma vez e vale para todos os marcados.
-- Sem preferências de localizador, a ⭐ avisa para criá-las no botão
-  **📍 Localizador**, na tela do processo.
-- **Nas listas de decurso de prazo**, a ⭐ traz também a seção
-  **📝 Analisar Decurso**, com **Abrir a análise** (a tela de análise do
-  decurso abre num popup — o mesmo do botão da linha, [9.10](#cap-9-10)),
-  **+ Nova preferência** e as preferências do Analisar Decurso gravadas no
-  SEEU, e a barra **⭐ Em lote** ganha **Dispensar nos marcados** e
-  **Analisar decurso nos marcados** (com uma preferência): confira a janela
-  com a lista dos processos e clique em **OK**; cada processo é tratado de
-  uma vez e o resultado aparece em cada linha. Se uma dispensa falhar, o
-  lote para ali.
-- **Em lote:** marque os processos, clique em **⭐ Associar localizadores
-  nos marcados**, escolha a preferência e confira a janela, que mostra os
-  localizadores e **a lista dos processos** que vão recebê-los. Os
-  localizadores são associados em todos, um processo de cada vez, sem
-  confirmação processo a processo (no SEEU não há ato a confirmar). O
-  resultado aparece em cada linha e o resumo, na barra. Se a associação
-  der **erro** num processo, o lote para ali e os seguintes continuam
-  marcados; um simples **⚠** (ex.: localizador que não está na lista da
-  unidade) não interrompe o lote.
-
 <a id="cap-9-4"></a>
 ### 9.4 Mesa do Analista sem itens zerados
-
-*No Projudi e no SEEU.*
 
 **Como funciona:** na **Mesa do Analista** e na **Mesa do Escrivão**, as
 linhas cujos contadores estão **todos em zero** ficam ocultas. Em "Outros
 Cumprimentos", uma linha só some se todas as colunas (Para Expedir, Com
 Urgência, Para Assinar…) estiverem zeradas. Quando surge pendência, a linha
 reaparece sozinha.
-
-**No SEEU:** vale na **Mesa do(a) Analista Judiciário**, em todas as abas
-(Pendências de Incidentes, Cumprimentos de Medidas, Intimações, Análise de
-Juntadas, Outros Cumprimentos…). Ex.: na aba **Pendências de Incidentes**,
-"Indulto: 0" some e "Término de Pena: 2" continua à vista; em **Outros
-Cumprimentos**, uma linha só some se todas as colunas (Para Conferir, Para
-Expedir, Para Assinar, Com Urgência…) estiverem zeradas. Quando todas as
-linhas de um grupo somem (ex.: na aba **Intimações**, "Com Urgência" com
-Citações, Notificações e Intimações em 0), some o grupo inteiro, com o
-título — e ele volta quando alguma linha volta.
 
 <a id="cap-9-5"></a>
 ### 9.5 RG e CPF das partes nos cumprimentos
@@ -2484,13 +2271,6 @@ título — e ele volta quando alguma linha volta.
 
 Formato: `NOME (Réu) — RG: ...; CPF: ...`. Enquanto busca, mostra
 "RG/CPF: carregando…"; documento ausente aparece como "não cadastrado".
-
-**No SEEU:** vale nas listas **Demais Cumprimentos** e **Mandados**, na
-tela do cumprimento (**Visualizar**) e na tela do **Analisar**
-(Pré-Análise), linha **Referente a(s) parte(s):**. O RG e o CPF são os do
-**Sentenciado**, como aparecem no cabeçalho do processo ("RJI: …; CPF: …;
-RG: …"). Uma parte que não é o sentenciado (ex.: o Estado do Paraná)
-aparece como "parte não localizada no processo".
 
 <a id="cap-9-6"></a>
 ### 9.6 Dados processuais nas ordenações BNMP
@@ -2557,8 +2337,6 @@ parte(s)**.
 <a id="cap-9-8"></a>
 ### 9.8 Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados
 
-*No Projudi e no SEEU.*
-
 **Para que serve:** conferir o processo — cabeçalho e **Movimentações** —
 sem sair da lista de decursos, de juntadas, de conclusões, de cumprimentos, do
 Expedir Intimações/Citação ou de processos paralisados e sem abrir outra aba.
@@ -2573,14 +2351,6 @@ Expedir Intimações/Citação ou de processos paralisados e sem abrir outra aba
   um cumprimento aberto (**Visualizar**), o número continua como sempre;
 - listas **Expedir Intimações** e **Expedir Citação**;
 - lista de **Processos Paralisados**.
-
-**No SEEU**, as mesmas listas — **Análise de Juntadas**, **Retorno de
-Conclusão**, **Mandados** (e Demais Cumprimentos), as listas de **Decurso de
-Prazo** (Intimações e Intimação de Auxiliares da Justiça) e **Processos
-Paralisados** — e mais três, que só existem lá: a lista de **Execuções**
-(Execuções Ativas), a de **Processos Suspensos** (Busca de Processos
-Suspensos) e o **Painel de Incidentes**. No SEEU o número do
-processo é sempre um link, inclusive no Retorno de Conclusão.
 
 **Passo a passo:**
 
@@ -2613,8 +2383,6 @@ continua mostrando o documento do Juiz ([9.9](#cap-9-9)).
 
 <a id="cap-9-9"></a>
 ### 9.9 Documento do Juiz ao passar o mouse no Retorno de Conclusão
-
-*No Projudi e no SEEU.*
 
 **Para que serve:** ler o despacho, a decisão ou a sentença que o Juiz fez
 sem sair da lista **Retorno de Conclusão**. Sem a extensão, seria preciso
@@ -2657,8 +2425,6 @@ cada linha.
 
 <a id="cap-9-10"></a>
 ### 9.10 Analisar e Dispensar decurso na lista
-
-*No Projudi e no SEEU* (veja "No SEEU", abaixo).
 
 **Para que serve:** usar os botões **Analisar Decurso** e **Dispensar** da
 tela da intimação sem precisar abri-la — direto na lista de decursos.
@@ -2755,30 +2521,8 @@ Buscar preferência** ficam parados no topo ([7.8](#cap-7-8)).
   regravá-las, use **✏️**.
 - Um decurso (ou um lote) por vez.
 
-**No SEEU:** os botões aparecem nas listas **Intimações** e **Intimação de
-Auxiliares da Justiça** da Análise de Decurso de Prazo, e tudo funciona
-como no Projudi — **Dispensar**, **Abrir a análise**, **+ Nova
-preferência**, as preferências (com ✏️ e 🗑) e os botões em lote —, com
-três diferenças na janela **Inserir Arquivo** do SEEU:
-
-- **Tipo do Arquivo** e **Modelo** são campos de digitar: ao gravar, digite
-  o começo (ex.: "decurso") e **clique na sugestão** que aparecer embaixo
-  (ou use a lupa ao lado). A preferência guarda o que você digitou e a
-  sugestão escolhida; ao ser usada, a extensão digita de novo e clica na
-  mesma sugestão. A escolha **Todos os Modelos / Meus Modelos /
-  Institucionais** também fica gravada.
-- A assinatura é pelo botão **Assinar**, que pede o **código de
-  confirmação**: ao gravar, a preferência é salva nesse clique (a extensão
-  pede o nome); ao usar, a extensão clica em **Assinar** e espera você
-  digitar o código. Assinado, ela clica em **Confirmar Inclusão** e no
-  **Concluir** da análise.
-- As preferências gravadas no SEEU aparecem só no SEEU (e as do Projudi, só
-  no Projudi). As do **📎 Juntar Documento** não aparecem no SEEU.
-
 <a id="cap-9-11"></a>
 ### 9.11 Analisar (Pré-Análise) dos cumprimentos com preferências
-
-*Só no Projudi.*
 
 **Para que serve:** fazer o **Analisar** (Pré-Análise) de um cumprimento —
 por exemplo, um ALVARÁ ou um mandado — com um texto pronto, sem abrir o cumprimento,
@@ -2865,85 +2609,11 @@ são feitos um de cada vez; com "postergar", seguem sozinhos até o fim.
   nada nela: termine o mandado à mão e feche o popup.
 
 <a id="cap-9-12"></a>
-### 9.12 Localizador na lista de juntadas e de conclusões (só no SEEU)
-
-*Só no SEEU — **não existe nesta edição** (Chrome Web Store, somente Projudi).*
-
-**Para que serve:** ver, já na lista, os **localizadores** de cada
-processo e trocá-los (associar um novo ou remover um que não serve mais) sem
-abrir o processo.
-
-**Onde fica:** nas listas **Análise de Juntadas** e **Retorno de
-Conclusão** do SEEU, na coluna do **número do processo**: abaixo do
-número aparece a linha **📍** com os localizadores do processo, seguida de
-dois botões:
-
-| Onde clicar | O que faz |
-|---|---|
-| **No próprio localizador** | Como no cabeçalho do processo do SEEU: ao pousar o mouse aparece **Remover do processo** (e o **⊗**); clicando, a extensão pergunta "Remover o localizador … do processo …?" e, com **OK**, remove-o do processo |
-| **✏️** | Abre o painel **📍 Localizadores** do processo, para associar ou remover localizadores |
-| **↻** | Lê de novo os localizadores do processo (por exemplo, depois de alterá-los no próprio SEEU) |
-
-**Passo a passo:**
-
-1. Abra a lista. Em cada linha aparece **📍 aguardando…** e, logo depois,
-   **lendo…**: a extensão abre cada processo **em segundo plano**, um de
-   cada vez, de cima para baixo, e mostra os localizadores que ele tem
-   (ou **sem localizador**). Você pode continuar trabalhando na lista
-   enquanto isso.
-2. Para alterar, clique no **✏️** da linha. O painel abre o processo em
-   segundo plano e mostra:
-   - **No processo:** os localizadores que ele tem, cada um com **✖**;
-   - **Associar:** os localizadores ativos da unidade (a mesma lista do
-     **+** do cabeçalho do processo), com **Pesquisar localizador...**.
-3. Clique num localizador de **Associar** para colocá-lo no processo, ou no
-   **✖** de um localizador para removê-lo: a extensão pede confirmação e,
-   no processo, faz o mesmo que você faria — clica no localizador e
-   responde **SIM** na janela **Confirme** ("Deseja desassociar o
-   localizador…") do SEEU. O painel avisa o resultado e a linha da lista
-   já mostra os localizadores novos.
-4. Feche o painel no **✕**, com **Esc** ou clicando fora dele.
-
-**Remover um localizador direto na lista:** clique no nome dele na linha
-**📍** (ao pousar o mouse, aparece **Remover do processo**) e responda
-**OK** em "Remover o localizador … do processo …?". A extensão abre o
-processo em segundo plano, responde **SIM** na janela **Confirme** do SEEU
-e a linha mostra o resultado (**✅** ou **⚠**). O **✖** do painel do
-**✏️** continua funcionando do mesmo jeito.
-
-**Bom saber:**
-
-- Para ligar ou desligar, use **Localizador na lista (SEEU)** no Menu da
-  extensão ([2.6](#cap-2-6)). Precisa do **Localizador (SEEU)** ligado.
-- O que foi lido fica guardado por **10 minutos** na aba: voltar a uma
-  página da lista já vista mostra os localizadores na hora. Use o **↻**
-  para ler de novo antes disso.
-- Ao associar localizadores pela **⭐** da linha ([9.3](#cap-9-3)), a linha
-  **📍** é atualizada sozinha.
-- Para associar ou remover, o perfil precisa ter permissão para isso no SEEU
-  (o **+** dos localizadores precisa aparecer na tela do processo). Sem
-  ela, o painel só mostra os localizadores e avisa.
-- **⚠ não foi possível ler** (passe o mouse para ver o motivo) aparece
-  quando o processo não abriu — por exemplo, se a sessão do SEEU expirou.
-  Use o **↻** para tentar de novo.
-- Se o painel disser que **não deu para confirmar** a alteração, use o
-  **↻** da linha para conferir os localizadores do processo.
-- Se não for possível remover um localizador, o painel mostra
-  **📋 Copiar diagnóstico**: ele copia como os localizadores aparecem
-  naquela tela do SEEU (sem dados das partes), para você enviar a quem
-  cuida da extensão.
-- Enquanto o painel está aberto, a leitura das demais linhas espera; ela
-  continua quando você o fecha.
-
-<a id="cap-9-13"></a>
-### 9.13 Localizador na lista de juntadas e de conclusões (Projudi)
-
-*Só no Projudi.* (No SEEU, veja [9.12](#cap-9-12).)
+### 9.12 Localizador na lista de juntadas e de conclusões (Projudi)
 
 **Para que serve:** ver, já na lista, o **localizador** de cada processo e
 trocá-lo, incluir outro ou tirar um que não serve mais, sem abrir o
-processo. Funciona como no SEEU; a diferença é de onde vem a informação: no
-Projudi, a extensão lê a linha **Localizadores:** da aba **Informações
+processo. A extensão lê a linha **Localizadores:** da aba **Informações
 Gerais** do processo e faz as alterações pela tela **Histórico de
 Localizadores** (a que abre ao clicar nessa linha).
 
@@ -2967,7 +2637,7 @@ processo não tem nenhum), seguido de dois botões:
    **lendo…**: a extensão consulta os processos **em segundo plano**, **três
    ao mesmo tempo**, de cima para baixo, e mostra o que está na linha
    **Localizadores:** da aba Informações Gerais. Se a linha não trouxer
-   nada, aparece **sem localizador** (como no SEEU). Você pode continuar
+   nada, aparece **sem localizador**. Você pode continuar
    trabalhando na lista enquanto isso.
 2. Para trocar ou incluir, clique no **✏️** da linha. O painel abre o
    **Histórico de Localizadores** do processo em segundo plano e mostra:
@@ -2999,7 +2669,7 @@ linha mostra o resultado (**✅** ou **⚠**).
 
 - Para ligar ou desligar, use **Localizador na lista (Projudi)** no Menu da
   extensão ([2.6](#cap-2-6)).
-- Com **Listas em uma única página** ligada ([9.14](#cap-9-14)), as linhas
+- Com **Listas em uma única página** ligada ([9.13](#cap-9-13)), as linhas
   trazidas das outras páginas também ganham a coluna **Localizadores** e
   são lidas do mesmo jeito.
 - No **Retorno de Conclusão** a linha da lista não tem o link do processo:
@@ -3029,10 +2699,8 @@ linha mostra o resultado (**✅** ou **⚠**).
 - Enquanto o painel está aberto, a leitura das demais linhas espera; ela
   continua quando você o fecha.
 
-<a id="cap-9-14"></a>
-### 9.14 Listas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN e Juiz das Garantias)
-
-*Só no Projudi.*
+<a id="cap-9-13"></a>
+### 9.13 Listas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN e Juiz das Garantias)
 
 **Para que serve:** ver **todos** os registros de uma lista do Projudi numa
 só tela, sem precisar clicar em **Próxima Página** e voltar a cada vez.
@@ -3130,10 +2798,8 @@ página. Não há botão: a extensão faz isso sozinha.
 
 ---
 
-<a id="cap-9-15"></a>
-### 9.15 Processos Paralisados (+90 dias) na tela Início
-
-*Só no Projudi.*
+<a id="cap-9-14"></a>
+### 9.14 Processos Paralisados (+90 dias) na tela Início
 
 **Para que serve:** saber, logo ao entrar no Projudi, quantos processos
 estão parados na Secretaria **há mais de 90 dias**, sem precisar abrir a
@@ -3173,10 +2839,10 @@ Paralisados (+90 dias):**, logo abaixo da linha do próprio Projudi
 
 ---
 
-<a id="cap-9-16"></a>
-### 9.16 Totais da Mesa do Escrivão Criminal na Análise de Juntadas
+<a id="cap-9-15"></a>
+### 9.15 Totais da Mesa do Escrivão Criminal na Análise de Juntadas
 
-*Só no Projudi, nas varas que têm a aba **Mesa do Escrivão Criminal**.*
+*Só nas varas que têm a aba **Mesa do Escrivão Criminal**.*
 
 **Para que serve:** ver, junto com as juntadas e os demais itens do dia,
 quantos processos estão em três quadros da aba **Mesa do Escrivão
@@ -3224,10 +2890,10 @@ Juntadas**, em três linhas novas no fim do quadro **Para Realizar**:
 - Para ligar ou desligar, use **Totais da Mesa do Escrivão Criminal na
   Análise de Juntadas** no Menu da extensão ([2.6](#cap-2-6)).
 
-<a id="cap-9-17"></a>
-### 9.17 Visual novo da Mesa do Analista (Projudi)
+<a id="cap-9-16"></a>
+### 9.16 Visual novo da Mesa do Analista (Projudi)
 
-*Só no Projudi. Vem ligado.*
+*Vem ligado.*
 
 **Para que serve:** deixar a **Mesa do Analista Judiciário** mais fácil de
 ler. Os números e os links são os mesmos de sempre; muda só a arrumação na
@@ -3288,7 +2954,7 @@ Atuação / Data**) acompanha o mesmo tom em todas as telas do Projudi.
 
 - Os números continuam se atualizando sozinhos, como antes.
 - Na tela **Início**, a linha **Processos Paralisados (+90 dias)**
-  ([9.15](#cap-9-15)) aparece no mesmo quadro dos paralisados +30 dias,
+  ([9.14](#cap-9-14)) aparece no mesmo quadro dos paralisados +30 dias,
   logo abaixo deles, com os números do mesmo tamanho. Clicar num número
   continua abrindo a Busca por Processos Paralisados já pesquisada.
 - Funciona junto com a **Mesa do Analista sem itens zerados**
@@ -3302,7 +2968,7 @@ Atuação / Data**) acompanha o mesmo tom em todas as telas do Projudi.
   usuário), desligue **Visual novo da Mesa do
   Analista** no Menu ([2.6](#cap-2-6)) e recarregue a página (F5).
 - Na aba **Análise de Juntadas**, os totais trazidos da Mesa do Escrivão
-  Criminal ([9.16](#cap-9-16)) aparecem no quadro **Da Mesa do Escrivão
+  Criminal ([9.15](#cap-9-15)) aparecem no quadro **Da Mesa do Escrivão
   Criminal**, logo depois dos demais quadros de Para Realizar.
 - Atalho novo que o Projudi acrescentar na Mesa do Escrivão Criminal
   aparece no quadro **Outros atalhos**; item novo da Análise de Juntadas,
@@ -3311,7 +2977,7 @@ Atuação / Data**) acompanha o mesmo tom em todas as telas do Projudi.
 ---
 
 <a id="cap-10"></a>
-## 10. Privacidade e convivência com outras extensões
+## 10. Privacidade e perfis bloqueados
 
 <a id="cap-10-1"></a>
 ### 10.1 O que fica guardado no seu navegador
@@ -3322,7 +2988,7 @@ ela está instalada (não vai para outro computador):
 | O que | Onde |
 |---|---|
 | Aceite dos Termos de Uso | Armazenamento da extensão |
-| Preferências (inclusive de advogados e de localizadores), combos, ordem dos cards | Armazenamento da extensão |
+| Preferências (inclusive de advogados), combos, ordem dos cards | Armazenamento da extensão |
 | Cores de destaque e "sempre ocultar sem arquivo" | Armazenamento da extensão |
 | Listas de tarefas e tarefas | Armazenamento da extensão |
 | Destinatários (WhatsApp e e-mail) e remetentes | Armazenamento da extensão |
@@ -3333,22 +2999,11 @@ ela está instalada (não vai para outro computador):
 Para levar esses dados a outro computador, use **⬇ Exportar** / **⬆ Importar**
 no Menu ([2.6](#cap-2-6)).
 
-Documentos são sempre lidos do Projudi/SEEU na hora; não há cópia guardada.
+Documentos são sempre lidos do Projudi na hora; não há cópia guardada.
 A senha/PIN do certificado **nunca** é guardada.
 
 <a id="cap-10-2"></a>
-### 10.2 Convivência com o AzFlow
-
-No **SEEU**, se o AzFlow estiver ligado, a pré-visualização desta extensão
-(passar o mouse sobre um documento ou movimentação) fica desligada para não
-conflitar — o AzFlow cuida disso. Vale em todas as telas do SEEU, inclusive
-no quadro **Movimentações Realizadas** da tela **Analisar Conclusão**. Se o
-AzFlow for desligado (pelo botão dele ou em `chrome://extensions`), a
-pré-visualização desta extensão volta a funcionar. O envio por WhatsApp e
-e-mail continua funcionando. No Projudi, as duas convivem normalmente.
-
-<a id="cap-10-3"></a>
-### 10.3 Bloqueio para perfis de advocacia
+### 10.2 Bloqueio para perfis de advocacia
 
 A extensão é de uso interno e **não carrega** quando o perfil logado é de
 advogado(a) ou de assessor(a) de advogado (identificado pelo campo
@@ -3365,22 +3020,22 @@ telas abertas a partir daí voltam a funcionar.
 |---|---|
 | Um botão da extensão sumiu | Abra o Menu (ícone da balança) e confira se a função não foi desligada — ou se alguma função de que ela depende foi ([2.6](#cap-2-6)). **↺ Padrão** religa todas |
 | Os cards dos sistemas (SerpJud, BNMP…) não aparecem ao lado da balança | Eles só aparecem com um **processo aberto**; na Mesa e nas listas fica só a balança. Com o processo aberto, aguarde 1 segundo; se continuar sem eles, confira no Menu se **Sistemas do CNJ** está ligada ([8.7](#cap-8-7)) |
-| A tela do processo trava por completo (não responde a cliques, nem deixa fechar a aba) | Corrigido na versão 2.55.4 para o SEEU (aba **Movimentações**): atualize a extensão ([2.3](#cap-2-3)). Se acontecer de novo, a extensão agora desliga sozinha, em menos de um segundo, a função que causou o travamento, e a tela volta a responder; essa função só volta ao recarregar a tela (F5). Se repetir, avise quem mantém a extensão |
+| A tela do processo trava por completo (não responde a cliques, nem deixa fechar a aba) | Atualize a extensão ([2.3](#cap-2-3)). Se acontecer, a extensão desliga sozinha, em menos de um segundo, a função que causou o travamento, e a tela volta a responder; essa função só volta ao recarregar a tela (F5). Se repetir, avise quem mantém a extensão |
 | O botão **Finalizar conclusão** avisa "Conclusão não enviada: Não foi encontrada uma conclusão habilitada para finalização", mas a conclusão pode ser finalizada pelo próprio Projudi | Corrigido na versão 2.55.5: atualize a extensão ([2.3](#cap-2-3)). Se o aviso continuar, abra a conclusão pelo link do quadro Pendências e confira se o botão **Finalizar Conclusão Pendente** do Projudi está habilitado ([6.2](#cap-6-2)) |
-| O Projudi/SEEU fica lento com a extensão (computador mais fraco ou muitas abas abertas) | Desligue no Menu as funções que você não usa: desligadas, elas não são carregadas. Para conferir se a lentidão é da extensão, desligue-a pela chave geral e abra a mesma tela ([2.6](#cap-2-6)) |
-| Nenhum botão da extensão aparece | Confira se aceitou os Termos de Uso ([2.2](#cap-2-2)); recarregue a página (F5); confira se a extensão está ativada em `chrome://extensions`; confira se o perfil não é de advocacia ([10.3](#cap-10-3)) |
-| Numa lista reunida em uma única página, o **+** abre vazio, sem os arquivos, ou mostra "Não foi possível trazer os arquivos: o registro não está mais na página…" | Corrigido nas versões 10 e 11: atualize a extensão ([2.3](#cap-2-3)). Ao clicar no **+**, deve aparecer **Carregando os arquivos…** e, em seguida, os arquivos. Se aparecer **Não foi possível trazer os arquivos**, clique no **+** de novo ou recarregue a lista (F5) ([9.14](#cap-9-14)) |
-| Numa das listas reunidas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN, Juiz das Garantias) aparece "Não foi possível trazer as páginas seguintes" | A sessão do Projudi pode ter expirado ou a conexão falhou: recarregue a lista (F5). Enquanto isso, a navegação de páginas do Projudi continua funcionando ([9.14](#cap-9-14)) |
-| A Mesa do Analista está com o visual novo e eu prefiro a tela original | Desligue **Visual novo da Mesa do Analista** no Menu (ícone da balança) e recarregue a página (F5) ([9.17](#cap-9-17)) |
+| O Projudi fica lento com a extensão (computador mais fraco ou muitas abas abertas) | Desligue no Menu as funções que você não usa: desligadas, elas não são carregadas. Para conferir se a lentidão é da extensão, desligue-a pela chave geral e abra a mesma tela ([2.6](#cap-2-6)) |
+| Nenhum botão da extensão aparece | Confira se aceitou os Termos de Uso ([2.2](#cap-2-2)); recarregue a página (F5); confira se a extensão está ativada em `chrome://extensions`; confira se o perfil não é de advocacia ([10.2](#cap-10-2)) |
+| Numa lista reunida em uma única página, o **+** abre vazio, sem os arquivos, ou mostra "Não foi possível trazer os arquivos: o registro não está mais na página…" | Corrigido nas versões 10 e 11: atualize a extensão ([2.3](#cap-2-3)). Ao clicar no **+**, deve aparecer **Carregando os arquivos…** e, em seguida, os arquivos. Se aparecer **Não foi possível trazer os arquivos**, clique no **+** de novo ou recarregue a lista (F5) ([9.13](#cap-9-13)) |
+| Numa das listas reunidas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN, Juiz das Garantias) aparece "Não foi possível trazer as páginas seguintes" | A sessão do Projudi pode ter expirado ou a conexão falhou: recarregue a lista (F5). Enquanto isso, a navegação de páginas do Projudi continua funcionando ([9.13](#cap-9-13)) |
+| A Mesa do Analista está com o visual novo e eu prefiro a tela original | Desligue **Visual novo da Mesa do Analista** no Menu (ícone da balança) e recarregue a página (F5) ([9.16](#cap-9-16)) |
 | Atualizei a extensão e nada mudou | Clique em ↻ no card da extensão em `chrome://extensions` e depois recarregue as páginas ([2.3](#cap-2-3)) |
 | A barra de botões cobre algo da tela | Arraste **↕ Mover** ou clique em **Ocultar** ([2.4](#cap-2-4)) |
 | O painel de ações diz para abrir a aba Movimentações | Abra a aba **Movimentações** do processo e tente de novo ([7.1](#cap-7-1)) |
 | "A movimentação … marcada não leva à ação" | Marque outro evento na aba Movimentações (um despacho/decisão costuma funcionar) ou desmarque a caixinha ([7.7](#cap-7-7)) |
 | "Não localizei o movimento … na aba Movimentações" | O processo não tem movimento com o nome gravado na preferência 📌: **✅ Prosseguir** segue a regra geral, **Cancelar** não executa ([7.7](#cap-7-7)) |
-| "Não encontrei o botão Alterar…" no Alterar do cabeçalho ou no Novo Valor da Causa | Seu perfil não pode alterar este processo; confira na aba **Informações Gerais** se o botão **Alterar** aparece ([8.9](#cap-8-9), [8.10](#cap-8-10)) |
+| "Não encontrei o botão Alterar…" no Alterar do cabeçalho ou no Novo Valor da Causa | Seu perfil não pode alterar este processo; confira na aba **Informações Gerais** se o botão **Alterar** aparece ([8.8](#cap-8-8), [8.9](#cap-8-9)) |
 | Preferência abre com "⚠ Não consegui preencher" | A opção gravada não existe neste processo; preencha o campo à mão, ou edite/recrie a preferência ([7.2](#cap-7-2)) |
 | Preferência de Intimar Partes não marca as caixas certas | Grave-a de novo (preferências anteriores à versão 2.9.84) |
-| Importei o arquivo de backup e nada mudou | Recarregue (F5) as páginas do Projudi/SEEU abertas ([2.6](#cap-2-6)) |
+| Importei o arquivo de backup e nada mudou | Recarregue (F5) as páginas do Projudi abertas ([2.6](#cap-2-6)) |
 | Combo parou numa etapa | Use **↻ Repetir etapa**, **⏭ Próxima etapa** ou **⏹ Parar combo** ([7.4](#cap-7-4)) |
 | WhatsApp abre a conversa, mas sem anexos | Confira se o WhatsApp Web está conectado; recarregue a extensão; anexe manualmente se precisar |
 | E-mail pede Client ID / dá erro de configuração | Mude o **Modo de envio** para **Automático** ou **Outlook Web** nas opções ([2.5](#cap-2-5)), ou peça o Client ID ao TI |
@@ -3411,7 +3066,10 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 17 (edição Chrome Web Store) | 09/11/2026 | Edição **somente Projudi** para a Chrome Web Store: retiradas as funções do SEEU (Localizador e Localizador na lista, card **SEEU** ao lado da balança, abas PROJUDI/SEEU do Menu) e o aviso de versão nova (a loja atualiza sozinha). Capa (Edição e aviso), 1.3, 2.1 (instalação pela loja), 2.3 (atualização automática), 8.8 e 9.12 ajustados. Nome da extensão: **Assistente Projudi – Ações Rápidas e Pré-visualização** (sem "Olirum"), também no assunto padrão dos lembretes do post-it (seção do Bloco de anotações). Sem vídeo novo. |
+| 20 (edição Chrome Web Store) | 10/11/2026 | Edição para a Chrome Web Store, igual à versão 20, exceto: instalação pela loja (2.1) e atualização automática pela loja, sem o aviso de versão nova nem o download do GitHub (2.3); capa com a linha **Edição**. Sem vídeo novo. |
+| 20 | 09/11/2026 | Sem alteração de texto nas seções; nova descrição da extensão na lista de extensões do navegador (`chrome://extensions`): "Ações rápidas, preferências e combos no Projudi; íntegra dos documentos ao passar o mouse e envio por WhatsApp Web e Outlook.". Sem vídeo novo (a descrição não aparece nos vídeos). |
+| 19 | 09/11/2026 | A extensão passa a se chamar **Assistente Projudi – Ações Rápidas e Pré-visualização** (antes, **Olirum**): título do manual, item 6 da seção 2.1 (nome na lista de extensões) e 4.5 (assunto padrão do lembrete criado pelo post-it: "Anotação compartilhada - Abra ou instale a extensão Assistente Projudi"). O aviso de versão nova (2.3) e as páginas do Manual e dos Termos de Uso mostram o nome novo. Vídeos V01, V34 e V48 regravados e guardados em `videos-do-manual/` (não citados no manual). |
+| 18 | 09/11/2026 | **A extensão passa a funcionar só no Projudi.** Retiradas todas as funções do SEEU (a extensão não aparece mais no SEEU nem no SEEU de treino): o Menu não tem mais as abas PROJUDI/SEEU nem o **Copiar para o…** (2.6); saíram as seções **Localizador (só no SEEU)** e **Localizador na lista de juntadas e de conclusões (só no SEEU)** e a seção **Convivência com o AzFlow**, o que renumerou as seções 8.9 a 8.12 (agora 8.8 a 8.11), 9.13 a 9.17 (agora 9.12 a 9.16) e 10.3 (agora 10.2). Tirados também os trechos "No SEEU" das seções 1.3, 1.4, 2.2 a 2.6, 3.1, 5, 6, 7.1 a 7.8, 8.3, 8.7, 9.3, 9.4, 9.5, 9.8, 9.9, 9.10, 9.12, 10 e 11. O card **SEEU** ao lado da balança continua abrindo o SEEU a partir do Projudi (8.7). Preferências gravadas no SEEU não aparecem no Projudi. As funções do SEEU ficam guardadas no repositório (branch **backup-seeu-versao-17**), para recuperar se for preciso. Vídeos V40, V41 e V57 (SEEU) retirados de `videos-do-manual/` e guardados na mesma branch. |
 | 17 | 09/11/2026 | Sem alteração de texto; corrigido (seção 9.16): a linha **Prescrições vencidas** da Análise de Juntadas mostrava **não disponível**, porque a página da aba Mesa do Escrivão Criminal, aberta pela extensão sem você ver, não traz o link **Vencidas** do quadro Prescrições. Agora a extensão procura o link de mais formas e, se não o achar, usa o endereço já conhecido desse link, aceito só se abrir a tela de Prescrições. Sem vídeo novo (a tela não mudou). |
 | 16 | 09/11/2026 | Visual novo da Mesa do Analista (9.17): na tela Início, o nome da vara em **Dados do Juízo** fica à esquerda e o quadro **Últimas Mensagens** fica compacto, só da largura do texto; o visual passa a valer também na Mesa das varas de execução e de prestação pecuniária (endereço diferente no Projudi), com a aba **Intimações** e o título **Execuções Ativas**; na Análise de Juntadas, **Com Urgência** e **Para Realizar** ficam numa coluna estreita à esquerda e os demais quadros à direita; os quadros deixam o branco puro. Os tons passam a ser **Oliva fosco** (novo padrão, menos claro que o Oliva), **Areia**, **Sálvia**, **Névoa** e **Escuro suave**; saem Azul-petróleo, Azul-marinho e Grafite (quem os tinha escolhido volta ao Oliva fosco). A aba **Lembretes** ganha o visual novo, e a barra de menus e a linha do usuário (Usuário / Atribuição / Atuação / Data) do Projudi passam a acompanhar o tom escolhido, em todas as telas. Ajustados 2.6 (Cor do visual da Mesa do Analista) e 9.17 (Onde fica, tabela das abas, Escolher a cor e Bom saber). Vídeo V73 regravado (não citado no manual). |
 | 15 | 09/11/2026 | Nova seção 9.17 **Visual novo da Mesa do Analista (Projudi)**: abas Início, Citações e Intimações, Análise de Juntadas (itens agrupados por assunto), Outros Cumprimentos (filtro e caixinha "Só linhas com pendência"), Cumprimentos de Medidas e Mesa do Escrivão Criminal (atalhos agrupados e busca) organizadas em quadros, com escolha de cor (Oliva, Azul-petróleo, Azul-marinho ou Grafite) guardada como preferência. Na tela Início, os Processos Paralisados (+30 dias) e (+90 dias, seção 9.15) ficam no mesmo quadro; na Análise de Juntadas, os totais da Mesa do Escrivão Criminal (seção 9.16) ficam no quadro "Da Mesa do Escrivão Criminal". Sumário, tabela da 2.6 (função e **Cor do visual da Mesa do Analista**) e **11. Solução de problemas** atualizados. Novo vídeo V73 gravado e guardado em `videos-do-manual/` (não citado no manual). |

@@ -1,8 +1,6 @@
 // Projudi - Réus/Indiciados/Noticiados no cabeçalho do processo
 //
-// No SEEU, o cabeçalho do processo já mostra o nome do sentenciado (com RJI,
-// CPF e RG), e o nome é um link para a tela da parte. No Projudi, para ver
-// quem são os réus é preciso abrir a aba "Partes e Outros".
+// No Projudi, para ver quem são os réus é preciso abrir a aba "Partes e Outros".
 //
 // Este recurso lê as partes do polo passivo (Réu, Indiciado, Noticiado,
 // etc.) da aba "Partes e Outros" e as lista numa nova linha da tabela de
@@ -43,7 +41,7 @@
 //   <thead>; valores ausentes vêm vazios ou "Não Cadastrado".
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 	if (!location.pathname.startsWith("/projudi/")) return;
 
 	// Evita rodar dentro de iframes ocultos (carregamento em segundo plano)

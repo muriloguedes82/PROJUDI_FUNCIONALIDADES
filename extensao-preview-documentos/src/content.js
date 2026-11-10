@@ -1,13 +1,10 @@
-// Projudi/SEEU - Pré-visualização de Documentos
+// Projudi - Pré-visualização de Documentos
 //
 // Ao passar o mouse sobre um link de arquivo na tela de Movimentações
 // (ex.: <a class="link" target="_blank" href=".../arquivo.do?...">Certidao.pdf</a>),
 // mostra a íntegra do documento em um painel flutuante, sem abrir nova aba.
 // O documento é carregado num <iframe> apontando para a própria URL do
-// sistema (Projudi ou SEEU — os dois usam o mesmo padrão de link e de
-// sessão via cookies), reaproveitando a sessão/cookies já autenticados do
-// usuário. O quadro de "Pendências" (mais abaixo) é específico do Projudi;
-// no SEEU esse trecho simplesmente não encontra nada e não tem efeito.
+// Projudi, reaproveitando a sessão/cookies já autenticados do usuário.
 //
 // O mesmo painel flutuante é oferecido para os itens do quadro
 // "Pendências" (ex.: "Análise de Juntadas: Há 1 pendência(s) de análise de
@@ -85,7 +82,7 @@
 
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 
 	const LOADER_ATTR = "data-pdp-loader";
 	const MESSAGE_SOURCE = "projudi-preview";
@@ -307,65 +304,6 @@
 	const PENDENCIA_TIMEOUT_MS = 8000;
 
 	const PENDENCIA_FIELDSET_SELECTOR = "#quadroPendencias";
-
-	// No SEEU (só lá — no Projudi não houve esse conflito), a extensão
-	// AzFlow também oferece pré-visualização de documentos ao passar o
-	// mouse, disputando o mesmo tipo de interação. Tentar "vencer" esse
-	// conflito silenciando os eventos da AzFlow já mostrou ter efeitos
-	// colaterais (quebrou o reposicionamento da barra de botões dela) —
-	// então, em vez disso, quando o AzFlow está ativo no SEEU, esta
-	// extensão simplesmente não abre sua própria pré-visualização, e deixa
-	// o AzFlow cuidar disso sozinho. O restante (seleção de documentos e
-	// envio por WhatsApp) continua funcionando normalmente, já que não é
-	// algo que o AzFlow ofereça.
-	const IS_SEEU = /(^|\.)seeu(treino)?\.pje\.jus\.br$/i.test(window.location.hostname);
-
-	// O AzFlow injeta atributos/classes com esse prefixo por toda a página
-	// quando está ativo (confirmado inspecionando o SEEU com ele habilitado:
-	// "data-azflow-onclick-original", "azflow-button-text", etc.). Sem esses
-	// marcadores, consideramos que o AzFlow não está rodando. O resultado é
-	// guardado em cache (uma vez detectado, continua detectado) para não
-	// repetir essa consulta a cada evento de mouseover.
-	const AZFLOW_MARKER_SELECTOR =
-		'[class*="azflow-"], [id*="azflow-"], [data-azflow-onclick-original], [data-azflow-menucs-applied]';
-	let azFlowDetected = false;
-
-	// O AzFlow também marca o <html> das páginas com
-	// data-azflow-disabled="false" (ligado) ou "true" (desligado pelo botão
-	// dele) — confirmado no .mhtml da tela Analisar Conclusão do SEEU. Nem
-	// todo quadro recebe a marca: lá, o da conclusão (onde ficam os
-	// documentos) não tinha nenhuma marca do AzFlow, só os quadros de fora.
-	// Por isso olhamos este quadro e os de cima (mesma origem). Sem cache:
-	// se o usuário desligar o AzFlow, a nossa pré-visualização volta.
-	function azFlowSwitchState() {
-		let win = window;
-		for (let depth = 0; depth < 6 && win; depth++) {
-			try {
-				const value = win.document.documentElement.getAttribute("data-azflow-disabled");
-				if (value !== null) return value !== "true";
-			} catch (e) {
-				return null; // quadro de outra origem: para de subir
-			}
-			if (win === win.parent) break;
-			win = win.parent;
-		}
-		return null;
-	}
-
-	function isAzFlowActive() {
-		const switchState = azFlowSwitchState();
-		if (switchState !== null) return switchState;
-		if (azFlowDetected) return true;
-		if (document.querySelector(AZFLOW_MARKER_SELECTOR)) {
-			azFlowDetected = true;
-			return true;
-		}
-		return false;
-	}
-
-	function shouldDeferPreviewToAzFlow() {
-		return IS_SEEU && isAzFlowActive();
-	}
 
 	let openTimer = null;
 	let closeTimerDoc = null;
@@ -1273,8 +1211,6 @@
 	document.addEventListener(
 		"mouseover",
 		function (e) {
-			if (shouldDeferPreviewToAzFlow()) return;
-
 			const docLink = findDocumentLink(e.target);
 			if (docLink) {
 				cancelCloseDoc();
@@ -1300,8 +1236,6 @@
 	document.addEventListener(
 		"mouseout",
 		function (e) {
-			if (shouldDeferPreviewToAzFlow()) return;
-
 			const docLink = findDocumentLink(e.target);
 			if (docLink) {
 				const toEl = e.relatedTarget;
@@ -1359,7 +1293,7 @@
 	//
 	// Adiciona uma caixinha de seleção ao lado de cada link de documento
 	// (mesmo padrão a.link[href*="/arquivo.do"] usado na pré-visualização,
-	// idêntico no Projudi e no SEEU) e um botão flutuante, acima da barra de
+	// do Projudi) e um botão flutuante, acima da barra de
 	// botões da tela do processo (Peticionar/Juntar Documento, ..., Voltar),
 	// que abre um pequeno painel para informar o número de WhatsApp e
 	// confirmar o envio.
@@ -1421,8 +1355,7 @@
 	// ---------------------------------------------------------------------
 	//
 	// Guardados em chrome.storage.local (compartilhado pela extensão, não
-	// por site), então a mesma lista aparece tanto no Projudi quanto no
-	// SEEU — igual a uma lista de contatos de e-mail.
+	// por site) — igual a uma lista de contatos de e-mail.
 
 	const CONTACTS_STORAGE_KEY = "pdpWhatsappContacts";
 	let contactsCache = [];
@@ -1789,7 +1722,7 @@
 	//    elemento novo, solto, ao body. Isso evita repetir o problema já
 	//    visto no SEEU, em que interferir na estrutura/eventos de outra
 	//    extensão quebrou o funcionamento dela.
-	// Rótulos da barra de ações do processo (Projudi/SEEU). Procurar pelo
+	// Rótulos da barra de ações do processo (Projudi). Procurar pelo
 	// TEXTO do botão, em vez de por classe/id (`table.buttonBar`,
 	// `#backButton`), é mais resistente a diferenças de estrutura entre
 	// Projudi e SEEU e a re-renderizações que mudem atributos internos —
@@ -1940,7 +1873,7 @@
 		setPx(launcher, "right", BUTTON_SCREEN_MARGIN);
 	}
 
-	// Algumas telas (Projudi e SEEU) trocam de "aba" do processo (ex.:
+	// Algumas telas do Projudi trocam de "aba" do processo (ex.:
 	// Movimentações → Partes → Movimentações de novo) substituindo um
 	// contêiner inteiro da página por conteúdo novo, em vez de só
 	// mostrar/esconder o que já existia. Quando isso inclui o próprio

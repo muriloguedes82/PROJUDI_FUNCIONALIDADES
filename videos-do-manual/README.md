@@ -71,38 +71,35 @@ para dentro da extensão, retire essa regra.
 | [V37](V37-escolher-a-movimentacao.mp4) | [Escolher a movimentação das Ações rápidas](V37-escolher-a-movimentacao.mp4) | [7.7](../extensao-preview-documentos/manual/MANUAL.md#cap-7-7) | 1:14 |
 | [V38](V38-preferencia-a-partir-de-um-movimento.mp4) | [Preferência a partir de um movimento](V38-preferencia-a-partir-de-um-movimento.mp4) | [7.7](../extensao-preview-documentos/manual/MANUAL.md#cap-7-7) | 0:56 |
 | [V39](V39-sistemas-do-cnj.mp4) | [Sistemas do CNJ](V39-sistemas-do-cnj.mp4) | [8.7](../extensao-preview-documentos/manual/MANUAL.md#cap-8-7) | 1:19 |
-| [V40](V40-localizador-seeu.mp4) | [Localizador (SEEU)](V40-localizador-seeu.mp4) | [8.8](../extensao-preview-documentos/manual/MANUAL.md#cap-8-8) | 1:02 |
-| [V41](V41-localizador-na-linha-seeu.mp4) | [Localizador pela ⭐ da lista (SEEU)](V41-localizador-na-linha-seeu.mp4) | [9.3](../extensao-preview-documentos/manual/MANUAL.md#cap-9-3) | 0:31 |
-| [V42](V42-alterar-classe-e-assuntos.mp4) | [Alterar Classe/Assuntos](V42-alterar-classe-e-assuntos.mp4) | [8.9](../extensao-preview-documentos/manual/MANUAL.md#cap-8-9) | 0:44 |
-| [V43](V43-preferencia-de-alteracao-de-classe.mp4) | [Preferência de alteração de classe](V43-preferencia-de-alteracao-de-classe.mp4) | [8.9](../extensao-preview-documentos/manual/MANUAL.md#cap-8-9) | 0:43 |
+| [V42](V42-alterar-classe-e-assuntos.mp4) | [Alterar Classe/Assuntos](V42-alterar-classe-e-assuntos.mp4) | [8.8](../extensao-preview-documentos/manual/MANUAL.md#cap-8-8) | 0:44 |
+| [V43](V43-preferencia-de-alteracao-de-classe.mp4) | [Preferência de alteração de classe](V43-preferencia-de-alteracao-de-classe.mp4) | [8.8](../extensao-preview-documentos/manual/MANUAL.md#cap-8-8) | 0:43 |
 | [V44](V44-processo-ao-passar-o-mouse.mp4) | [Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões e nos Cumprimentos, no Expedir e nos Paralisados](V44-processo-ao-passar-o-mouse.mp4) | [9.8](../extensao-preview-documentos/manual/MANUAL.md#cap-9-8) | 1:30 |
-| [V45](V45-preferencias-em-lote.mp4) | [Preferências em lote (⭐ Em lote)](V45-preferencias-em-lote.mp4) | [9.3](../extensao-preview-documentos/manual/MANUAL.md#cap-9-3) | 1:01 |
+| [V45](V45-preferencias-em-lote.mp4) | [Preferências em lote (⭐ Em lote)](V45-preferencias-em-lote.mp4) | [9.3](../extensao-preview-documentos/manual/MANUAL.md#cap-9-3) | 0:57 |
 | [V46](V46-remessa-turma-recursal.mp4) | [Remessa para a Turma Recursal](V46-remessa-turma-recursal.mp4) | [7.1](../extensao-preview-documentos/manual/MANUAL.md#cap-7-1) | 0:47 |
-| [V47](V47-novo-valor-da-causa.mp4) | [Novo Valor da Causa](V47-novo-valor-da-causa.mp4) | [8.10](../extensao-preview-documentos/manual/MANUAL.md#cap-8-10) | 0:36 |
+| [V47](V47-novo-valor-da-causa.mp4) | [Novo Valor da Causa](V47-novo-valor-da-causa.mp4) | [8.9](../extensao-preview-documentos/manual/MANUAL.md#cap-8-9) | 0:36 |
 | [V48](V48-aviso-de-versao-nova.mp4) | [Aviso de versão nova e atualização](V48-aviso-de-versao-nova.mp4) | [2.3](../extensao-preview-documentos/manual/MANUAL.md#cap-2-3) | 0:41 |
-| [V49](V49-preferencia-de-assunto-secundario.mp4) | [Preferência de assunto secundário](V49-preferencia-de-assunto-secundario.mp4) | [8.9](../extensao-preview-documentos/manual/MANUAL.md#cap-8-9) | 0:52 |
-| [V50](V50-remover-assunto-secundario.mp4) | [Remover assunto secundário](V50-remover-assunto-secundario.mp4) | [8.9](../extensao-preview-documentos/manual/MANUAL.md#cap-8-9) | 0:22 |
-| [V51](V51-documento-da-conclusao.mp4) | [Documento do Juiz no Retorno de Conclusão](V51-documento-da-conclusao.mp4) | [9.9](../extensao-preview-documentos/manual/MANUAL.md#cap-9-9) | 0:59 |
+| [V49](V49-preferencia-de-assunto-secundario.mp4) | [Preferência de assunto secundário](V49-preferencia-de-assunto-secundario.mp4) | [8.8](../extensao-preview-documentos/manual/MANUAL.md#cap-8-8) | 0:52 |
+| [V50](V50-remover-assunto-secundario.mp4) | [Remover assunto secundário](V50-remover-assunto-secundario.mp4) | [8.8](../extensao-preview-documentos/manual/MANUAL.md#cap-8-8) | 0:22 |
+| [V51](V51-documento-da-conclusao.mp4) | [Documento do Juiz no Retorno de Conclusão](V51-documento-da-conclusao.mp4) | [9.9](../extensao-preview-documentos/manual/MANUAL.md#cap-9-9) | 0:58 |
 | [V52](V52-analisar-e-dispensar-decurso-na-lista.mp4) | [Analisar e Dispensar decurso na lista](V52-analisar-e-dispensar-decurso-na-lista.mp4) | [9.10](../extensao-preview-documentos/manual/MANUAL.md#cap-9-10) | 1:28 |
 | [V53](V53-pre-analise-com-preferencias.mp4) | [Pré-Análise com preferências](V53-pre-analise-com-preferencias.mp4) | [9.11](../extensao-preview-documentos/manual/MANUAL.md#cap-9-11) | 1:11 |
 | [V54](V54-painel-da-estrela-com-muitas-preferencias.mp4) | [⭐ da linha com muitas preferências](V54-painel-da-estrela-com-muitas-preferencias.mp4) | [9.3](../extensao-preview-documentos/manual/MANUAL.md#cap-9-3) | 0:40 |
 | [V55](V55-paineis-com-muitas-preferencias.mp4) | [Painéis com muitas preferências](V55-paineis-com-muitas-preferencias.mp4) | [7.8](../extensao-preview-documentos/manual/MANUAL.md#cap-7-8) | 0:42 |
-| [V56](V56-incluir-e-remover-prioridades.mp4) | [Incluir e remover prioridades](V56-incluir-e-remover-prioridades.mp4) | [8.11](../extensao-preview-documentos/manual/MANUAL.md#cap-8-11) | 0:58 |
-| [V57](V57-localizador-na-lista-seeu.mp4) | [Localizador na lista (SEEU)](V57-localizador-na-lista-seeu.mp4) | [9.12](../extensao-preview-documentos/manual/MANUAL.md#cap-9-12) | 1:00 |
+| [V56](V56-incluir-e-remover-prioridades.mp4) | [Incluir e remover prioridades](V56-incluir-e-remover-prioridades.mp4) | [8.10](../extensao-preview-documentos/manual/MANUAL.md#cap-8-10) | 0:58 |
 | [V58](V58-escolher-funcoes-e-botoes.mp4) | [Escolher funções e botões (busca, Desativar todas)](V58-escolher-funcoes-e-botoes.mp4) | [2.6](../extensao-preview-documentos/manual/MANUAL.md#cap-2-6) | 1:05 |
 | [V59](V59-mudar-a-ordem-dos-botoes.mp4) | [Mudar a ordem dos botões da barra](V59-mudar-a-ordem-dos-botoes.mp4) | [2.4](../extensao-preview-documentos/manual/MANUAL.md#cap-2-4) | 0:39 |
-| [V60](V60-agendar-audiencia-com-preferencias.mp4) | [Agendar Audiência com preferências](V60-agendar-audiencia-com-preferencias.mp4) | [8.12](../extensao-preview-documentos/manual/MANUAL.md#cap-8-12) | 0:59 |
-| [V61](V61-localizador-na-lista-projudi.mp4) | [Localizador na lista (Projudi)](V61-localizador-na-lista-projudi.mp4) | [9.13](../extensao-preview-documentos/manual/MANUAL.md#cap-9-13) | 1:05 |
+| [V60](V60-agendar-audiencia-com-preferencias.mp4) | [Agendar Audiência com preferências](V60-agendar-audiencia-com-preferencias.mp4) | [8.11](../extensao-preview-documentos/manual/MANUAL.md#cap-8-11) | 0:59 |
+| [V61](V61-localizador-na-lista-projudi.mp4) | [Localizador na lista (Projudi)](V61-localizador-na-lista-projudi.mp4) | [9.12](../extensao-preview-documentos/manual/MANUAL.md#cap-9-12) | 1:05 |
 | [V62](V62-dispensar-decurso-de-cumprimentos.mp4) | [Dispensar decurso de cumprimentos](V62-dispensar-decurso-de-cumprimentos.mp4) | [6.5](../extensao-preview-documentos/manual/MANUAL.md#cap-6-5) | 0:26 |
 | [V63](V63-analisar-decurso-de-cumprimentos.mp4) | [Analisar decurso de cumprimentos](V63-analisar-decurso-de-cumprimentos.mp4) | [6.5](../extensao-preview-documentos/manual/MANUAL.md#cap-6-5) | 0:38 |
 | [V64](V64-secao-preferencias.mp4) | [Seção Preferências na tela do processo](V64-secao-preferencias.mp4) | [7.9](../extensao-preview-documentos/manual/MANUAL.md#cap-7-9) | 0:45 |
-| [V65](V65-juntadas-em-uma-unica-pagina.mp4) | [Listas em uma única página (Análise de Juntadas)](V65-juntadas-em-uma-unica-pagina.mp4) | [9.14](../extensao-preview-documentos/manual/MANUAL.md#cap-9-14) | 0:27 |
-| [V66](V66-conclusoes-em-uma-unica-pagina.mp4) | [Listas em uma única página (Conclusões)](V66-conclusoes-em-uma-unica-pagina.mp4) | [9.14](../extensao-preview-documentos/manual/MANUAL.md#cap-9-14) | 0:23 |
-| [V67](V67-mandados-em-uma-unica-pagina.mp4) | [Listas em uma única página (Mandados)](V67-mandados-em-uma-unica-pagina.mp4) | [9.14](../extensao-preview-documentos/manual/MANUAL.md#cap-9-14) | 0:23 |
-| [V68](V68-multas-fupen-e-juiz-das-garantias-em-uma-unica-pagina.mp4) | [Listas em uma única página (Multas FUPEN e Juiz das Garantias)](V68-multas-fupen-e-juiz-das-garantias-em-uma-unica-pagina.mp4) | [9.14](../extensao-preview-documentos/manual/MANUAL.md#cap-9-14) | 0:31 |
-| [V69](V69-intimacoes-em-uma-unica-pagina.mp4) | [Listas em uma única página (Intimações)](V69-intimacoes-em-uma-unica-pagina.mp4) | [9.14](../extensao-preview-documentos/manual/MANUAL.md#cap-9-14) | 0:34 |
-| [V70](V70-arquivos-do-mais-nas-listas-reunidas.mp4) | [Listas em uma única página (arquivos do +)](V70-arquivos-do-mais-nas-listas-reunidas.mp4) | [9.14](../extensao-preview-documentos/manual/MANUAL.md#cap-9-14) | 0:26 |
-| [V71](V71-paralisados-90-dias-no-inicio.mp4) | [Processos Paralisados (+90 dias) na tela Início](V71-paralisados-90-dias-no-inicio.mp4) | [9.15](../extensao-preview-documentos/manual/MANUAL.md#cap-9-15) | 0:28 |
-| [V72](V72-totais-da-mesa-do-escrivao-na-analise-de-juntadas.mp4) | [Totais da Mesa do Escrivão Criminal na Análise de Juntadas](V72-totais-da-mesa-do-escrivao-na-analise-de-juntadas.mp4) | [9.16](../extensao-preview-documentos/manual/MANUAL.md#cap-9-16) | 0:29 |
-| [V73](V73-visual-novo-da-mesa-do-analista.mp4) | [Visual novo da Mesa do Analista](V73-visual-novo-da-mesa-do-analista.mp4) | [9.17](../extensao-preview-documentos/manual/MANUAL.md#cap-9-17) | 0:41 |
+| [V65](V65-juntadas-em-uma-unica-pagina.mp4) | [Listas em uma única página (Análise de Juntadas)](V65-juntadas-em-uma-unica-pagina.mp4) | [9.13](../extensao-preview-documentos/manual/MANUAL.md#cap-9-13) | 0:27 |
+| [V66](V66-conclusoes-em-uma-unica-pagina.mp4) | [Listas em uma única página (Conclusões)](V66-conclusoes-em-uma-unica-pagina.mp4) | [9.13](../extensao-preview-documentos/manual/MANUAL.md#cap-9-13) | 0:23 |
+| [V67](V67-mandados-em-uma-unica-pagina.mp4) | [Listas em uma única página (Mandados)](V67-mandados-em-uma-unica-pagina.mp4) | [9.13](../extensao-preview-documentos/manual/MANUAL.md#cap-9-13) | 0:23 |
+| [V68](V68-multas-fupen-e-juiz-das-garantias-em-uma-unica-pagina.mp4) | [Listas em uma única página (Multas FUPEN e Juiz das Garantias)](V68-multas-fupen-e-juiz-das-garantias-em-uma-unica-pagina.mp4) | [9.13](../extensao-preview-documentos/manual/MANUAL.md#cap-9-13) | 0:31 |
+| [V69](V69-intimacoes-em-uma-unica-pagina.mp4) | [Listas em uma única página (Intimações)](V69-intimacoes-em-uma-unica-pagina.mp4) | [9.13](../extensao-preview-documentos/manual/MANUAL.md#cap-9-13) | 0:34 |
+| [V70](V70-arquivos-do-mais-nas-listas-reunidas.mp4) | [Listas em uma única página (arquivos do +)](V70-arquivos-do-mais-nas-listas-reunidas.mp4) | [9.13](../extensao-preview-documentos/manual/MANUAL.md#cap-9-13) | 0:26 |
+| [V71](V71-paralisados-90-dias-no-inicio.mp4) | [Processos Paralisados (+90 dias) na tela Início](V71-paralisados-90-dias-no-inicio.mp4) | [9.14](../extensao-preview-documentos/manual/MANUAL.md#cap-9-14) | 0:28 |
+| [V72](V72-totais-da-mesa-do-escrivao-na-analise-de-juntadas.mp4) | [Totais da Mesa do Escrivão Criminal na Análise de Juntadas](V72-totais-da-mesa-do-escrivao-na-analise-de-juntadas.mp4) | [9.15](../extensao-preview-documentos/manual/MANUAL.md#cap-9-15) | 0:29 |
+| [V73](V73-visual-novo-da-mesa-do-analista.mp4) | [Visual novo da Mesa do Analista](V73-visual-novo-da-mesa-do-analista.mp4) | [9.16](../extensao-preview-documentos/manual/MANUAL.md#cap-9-16) | 0:41 |
 <!-- tabela-videos:fim -->

@@ -33,9 +33,8 @@ function abrirMenu() {
 		for (const [id, n, d, rq] of lista)
 			html += '<div class="it" data-id="' + id + '"><span class="sw"></span><div><div class="nm">' + n + '</div><div class="ds">' + d + "</div>" + (rq ? '<div class="rq">Requer: ' + rq.map(nome).join(", ") + "</div>" : "") + "</div></div>";
 	}
-	const m = add('<div id="x-menu"><div class="mh"><div><b>Menu da extensão</b><small>Projudi/SEEU · versão ' + VERSAO_EXTENSAO + '</small></div><span class="mx">✕</span></div>' +
+	const m = add('<div id="x-menu"><div class="mh"><div><b>Menu da extensão</b><small>Projudi · versão ' + VERSAO_EXTENSAO + '</small></div><span class="mx">✕</span></div>' +
 		'<div class="geral" id="mgeral"><span class="sw" id="mgsw"></span><div><div class="nm" id="mgnm">Extensão ativada no PROJUDI</div><div class="ds" id="mgds">Desligue para pausar todas as funcionalidades sem perder suas escolhas.</div></div></div>' +
-		'<div class="abas"><span class="aba sel">PROJUDI <small>(este)</small></span><span class="aba">SEEU</span></div>' +
 		'<div class="mb"><div class="mb-in"><div class="cnt" id="mcnt">Funcionalidades: 25 de 25 ativas</div>' + html + '</div><div class="aviso" id="mav" hidden></div></div>' +
 		'<div class="mf"><h4>Abrir os sistemas (cards ao lado da balança)</h4><div id="m-abertura" style="border:1px solid #c7d2e2;border-radius:6px;padding:4px 6px;margin-bottom:8px;color:#13396b">Automático (padrão): 2º monitor ou popup <span style="float:right">▾</span></div><h4>Preferências e combos</h4><div class="btns"><span class="bt" id="m-exp">⬇ Exportar</span><span class="bt" id="m-imp">⬆ Importar</span><span class="bt" id="m-pad">↺ Padrão</span></div>' +
 		'<div class="nota">Use "Exportar" e, no outro computador, "Importar" o mesmo arquivo para levar tudo junto. <u>Termos de Uso</u>.</div><div class="bt manual" id="m-manual">📖 Manual do Usuário</div></div></div>');
@@ -85,7 +84,7 @@ CENAS.V34 = {
 		await S.cap("Clique no ícone para abrir o Menu.");
 		await S.click("#x-menuicon");
 		const menu = abrirMenu();
-		await S.cap("Logo abaixo do título fica a <b>chave geral</b>: <b>Extensão ativada no PROJUDI</b>. Ao lado, as abas <b>PROJUDI</b> e <b>SEEU</b> — cada sistema tem a sua chave.", { ms: 5000 });
+		await S.cap("Logo abaixo do título fica a <b>chave geral</b>: <b>Extensão ativada no PROJUDI</b>.", { ms: 5000 });
 		await S.cap("Para pausar a extensão inteira, desligue a chave geral.");
 		await menu.geral(false);
 		S.hl("#x-menuicon", 5);
@@ -125,9 +124,9 @@ CENAS.V34 = {
 		await S.cap("<b>↺ Padrão</b> religa todas as funções, sem apagar nenhuma preferência.");
 		await S.cap("Por fim, <b>📖 Manual do Usuário</b> abre este manual numa nova aba.");
 		await S.click("#m-manual");
-		browser(["Projudi - Processo " + PROC, "*Projudi/SEEU - Manual do Usuário"], "chrome-extension://…/src/manual.html");
+		browser(["Projudi - Processo " + PROC, "*Assistente Projudi - Manual do Usuário"], "chrome-extension://…/src/manual.html");
 		document.querySelectorAll("#x-menu").forEach(n => n.remove());
-		const app = add('<div class="manual-app"><div class="topo"><div><small>Extensão Projudi/SEEU · versão ' + VERSAO_EXTENSAO + '</small><b>Manual do Usuário</b></div><div class="busca" id="mbusca" style="color:#fff">Buscar no manual…</div></div>' +
+		const app = add('<div class="manual-app"><div class="topo"><div><small>Assistente Projudi · versão ' + VERSAO_EXTENSAO + '</small><b>Manual do Usuário</b></div><div class="busca" id="mbusca" style="color:#fff">Buscar no manual…</div></div>' +
 			'<div class="idx"><b>Apresentação</b><br>1. Apresentação<br>2. Primeiros passos<br>&nbsp;&nbsp;2.6 Menu da extensão<br>3. Leitura do processo<br>4. Informações extras<br>5. Envio de documentos<br>…<br>Anexo A — Histórico de versões</div>' +
 			'<div class="ct"><div class="card"><h3>3.1 Pré-visualização de documentos</h3><p><a class="link" id="lv">▶ <b>Vídeo V03</b> — Pré-visualização de documentos</a></p><p><b>Para que serve:</b> ler a íntegra de um documento sem abrir outra aba.</p></div></div></div>');
 		await S.cap("O manual tem <b>índice lateral</b> e <b>busca</b>.");
@@ -473,144 +472,6 @@ CENAS.V39 = {
 	},
 };
 
-// ------------------------------------------------------------------ V40
-// Botão 📍 Localizador do SEEU (src/localizadorSeeu.js), na linha do
-// ⭐ Minhas Preferências: preferências de localizadores associadas ao
-// processo pela lista nativa do "+"; também como cards em ⭐ Minhas
-// Preferências.
-const LOCS_SEEU = ["ABERTO", "AGUARDANDO AUDIÊNCIA - JÁ CUMPRIDA", "Aguardando Audiência - Pendente de Cumprimento", "AGUARDANDO CUMPRIMENTO DE PENA", "CÁLCULO DE PENA", "REVISAR INCIDENTES- ANÁLISE PRESCRIÇÃO", "SUSPENDER - MANDADO EXPEDIDO"];
-function telaSeeu() {
-	browser(["*SEEU - Sistema Eletrônico de Execução Unificado"], "https://seeu.pje.jus.br/seeu/visualizacaoProcesso.do?…");
-	screen('<div style="background:#fff;height:676px;font-family:Inter,Arial,sans-serif;font-size:13px;color:#333">' +
-		'<div style="background:#1f3b57;color:#fff;padding:10px 20px;font-weight:600">SEEU · Sistema Eletrônico de Execução Unificado</div>' +
-		'<div style="display:flex;align-items:center;padding:12px 20px;border-bottom:1px solid #ddd">' +
-		'<div><div style="font-size:18px;font-weight:700">Execução ' + PROC + '</div><div style="font-size:11px;color:#666">2454 dia(s) em tramitação</div></div>' +
-		'<div id="sl-chips" style="flex:1;display:flex;justify-content:flex-end;gap:6px;align-items:center"></div>' +
-		'<span id="sl-plus" style="padding:0 8px;font-size:18px;color:#555">+</span></div>' +
-		'<div style="padding:14px 20px;line-height:24px">Juízo: Vara de Execução de Exemplo<br>Sentenciado: FULANO DE TAL (fictício)<br>Classe Processual: 386 - Execução da Pena</div></div>');
-	document.querySelectorAll("#x-group").forEach(n => n.remove());
-	add('<div id="x-group"><div class="line"><span class="x-btn">▸ Ações</span><span class="x-btn" id="x-fav">⭐ Minhas Preferências</span><span class="x-btn" id="sl-bt">📍 Localizador</span><span class="x-btn">🖍️ Destacar mov.</span><span class="x-btn">🔗 Combos</span></div>' +
-		'<div class="line"><span class="x-btn">📱 Enviar por WhatsApp</span><span class="x-btn">✉️ Enviar por e-mail</span><span class="x-btn small" style="align-self:center">↕ Mover</span><span class="x-btn small" style="align-self:center">Ocultar</span></div></div>');
-}
-// Painel do 📍 Localizador: abre para cima, porque a fileira fica no rodapé.
-function painelLoc(html) {
-	document.querySelectorAll("#sl-painel").forEach(n => n.remove());
-	const r = $("#sl-bt").getBoundingClientRect();
-	const p = add('<div id="sl-painel" style="position:fixed;width:320px;background:#fff;border:1px solid #cbd5e1;border-radius:8px;box-shadow:0 8px 24px rgba(15,23,42,.18);font:12px/1.4 Inter,Arial;padding:10px;z-index:60">' + html + "</div>");
-	p.style.left = Math.min(1270 - 320, r.right - 320) + "px";
-	p.style.bottom = 720 - r.top + 4 + "px";
-	return p;
-}
-const SL_TIT = t => '<div style="font-weight:700;text-transform:uppercase;color:#475569;margin-bottom:6px">' + t + "</div>";
-const SL_BT = (id, t, prim) => '<span id="' + id + '" style="display:inline-block;padding:5px 10px;font-weight:600;border-radius:6px;border:1px solid ' + (prim ? "#2563eb;background:#2563eb;color:#fff" : "#cbd5e1;background:#fff") + '">' + t + "</span>";
-function listaPrefsLoc(prefs, status) {
-	let h = '<div style="border-bottom:1px solid #e3e8dc;padding-bottom:6px;margin-bottom:4px">' + SL_TIT("Minhas preferências de localizadores") + '<div style="text-align:right">' + SL_BT("sl-nova", "➕ Nova preferência", true) + "</div></div>";
-	if (!prefs.length) h += '<div style="color:#64748b;font-style:italic">Nenhuma preferência ainda. Crie uma com os localizadores que você mais usa: depois, um clique associa todos ao processo.</div>';
-	prefs.forEach((p, i) => {
-		h += '<div style="display:flex;gap:2px;margin:4px 0"><span id="sl-pref' + i + '" style="flex:1;padding:6px 8px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:4px;color:#1e3a8a"><b>' + p[0] + '</b><br><small style="color:#475569">' + p[1].join(" • ") + '</small></span><span style="width:24px;text-align:center;opacity:.5">↑</span><span style="width:24px;text-align:center">✏️</span><span style="width:24px;text-align:center">🗑</span></div>';
-	});
-	if (status) h += '<div style="margin-top:8px;padding:6px 8px;border-radius:6px;background:' + (status[1] ? "#ecfdf5;color:#065f46" : "#f1f5f9;color:#334155") + '">' + status[0] + "</div>";
-	return painelLoc(h);
-}
-CENAS.V40 = {
-	arquivo: "V40-localizador-seeu.mp4",
-	titulo: "Localizador (SEEU)",
-	secao: "8.8",
-	async run() {
-		telaSeeu();
-		await S.titleCard("VÍDEO V40", "Localizador (SEEU)", "Preferências de localizadores: associe ao processo com um clique.");
-		S.hl("#sl-plus", 6);
-		await S.cap("No SEEU, os localizadores do processo ficam no alto, à direita. O <b>+</b> do próprio SEEU associa um de cada vez.");
-		S.hlOff();
-		S.hl("#sl-bt", 4);
-		await S.cap("Na fileira de botões da extensão, ao lado de <b>⭐ Minhas Preferências</b>, fica o botão <b>📍 Localizador</b>.");
-		S.hlOff();
-		await S.click("#sl-bt");
-		listaPrefsLoc([]);
-		await S.cap("Para criar uma preferência, clique em <b>➕ Nova preferência</b>.");
-		await S.click("#sl-nova");
-		const marc = new Set();
-		const editor = () => painelLoc(SL_TIT("Nova preferência") + '<div style="font-weight:600;color:#475569">Nome da preferência</div><div id="sl-nome" style="border:1px solid #cbd5e1;border-radius:6px;padding:5px 7px;min-height:16px"></div>' +
-			'<div style="font-weight:600;color:#475569;margin-top:6px">Localizadores (' + marc.size + " marcado" + (marc.size === 1 ? "" : "s") + ')</div><div style="border:1px solid #cbd5e1;border-radius:6px;padding:5px 7px;color:#94a3b8">Pesquisar localizador...</div>' +
-			'<div style="border:1px solid #e2e8f0;border-radius:6px;margin-top:6px;padding:2px">' + LOCS_SEEU.map((n, i) => '<div id="sl-o' + i + '" style="padding:4px 6px;font-size:11px">' + (marc.has(i) ? "☑" : "☐") + " " + n + "</div>").join("") + "</div>" +
-			'<div style="text-align:right;margin-top:8px">' + SL_BT("sl-canc", "Cancelar") + " " + SL_BT("sl-salvar", "Salvar", true) + "</div>");
-		editor();
-		await S.cap("A extensão lê a lista de <b>localizadores ativos da unidade</b> (a mesma do +).");
-		await S.type("#sl-nome", "Audiência cumprida");
-		const nome = $("#sl-nome").textContent;
-		await S.cap("Marque <b>um ou mais</b> localizadores e clique em <b>Salvar</b>.");
-		for (const i of [0, 1]) {
-			await S.click("#sl-o" + i);
-			marc.add(i);
-			editor();
-			$("#sl-nome").textContent = nome;
-		}
-		await S.click("#sl-salvar");
-		const pref = ["Audiência cumprida", [LOCS_SEEU[0], LOCS_SEEU[1]]];
-		listaPrefsLoc([pref], ["Preferência salva.", true]);
-		await S.cap("A preferência também entra em <b>⭐ Minhas Preferências</b>, junto das outras.");
-		$("#sl-painel").remove();
-		await S.click("#x-fav");
-		const pn = panelAt('<div style="display:flex;justify-content:space-between;align-items:center"><h4 style="margin:0">⭐ Minhas Preferências</h4><span class="x-btn small">✏️ Editar posição</span></div>' + favBlocos([
-			{ icon: "📍", title: "Localizador", cards: [{ name: "Audiência cumprida", id: "card-loc" }] },
-			{ icon: "📨", title: "Intimar Partes", cards: [{ name: "Intimar MP - ciência 5 dias" }] },
-			{ icon: "🔗", title: "Combos", cards: [{ name: "Decurso + concluso", combo: true }] },
-		], { tools: true }), "#x-fav", { w: 520 });
-		await S.cap("Um clique no card <b>★ Audiência cumprida</b>, do bloco <b>📍 Localizador</b>, associa os localizadores.");
-		await S.click("#card-loc");
-		pn.remove();
-		listaPrefsLoc([pref], ["Associando 1 de 2: ABERTO..."]);
-		await sleep(900);
-		$("#sl-chips").innerHTML = '<span style="padding:2px 8px;background:#e2e8f0;border-radius:10px;font-size:11px">ABERTO ×</span>';
-		listaPrefsLoc([pref], ["Associando 2 de 2: AGUARDANDO AUDIÊNCIA - JÁ CUMPRIDA..."]);
-		await sleep(900);
-		$("#sl-chips").innerHTML += '<span style="padding:2px 8px;background:#e2e8f0;border-radius:10px;font-size:11px">AGUARDANDO AUDIÊNCIA - JÁ CUMPRIDA ×</span>';
-		listaPrefsLoc([pref], ["Associado(s): ABERTO, AGUARDANDO AUDIÊNCIA - JÁ CUMPRIDA.", true]);
-		await S.cap("A extensão escolhe cada localizador na lista do <b>+</b>, como você faria, e mostra o resultado.", { ms: 4200 });
-		await S.cap("Localizador que já está no processo não é associado de novo.");
-		await S.endCard("📍 Localizador → ➕ Nova preferência → marcar localizadores → Salvar → um clique na preferência (ou no card de ⭐ Minhas Preferências) associa todos.");
-	},
-};
-
-// ------------------------------------------------------------------ V41
-// ⭐ na linha das listas do SEEU (preferenciasNaLinha.js, modo SEEU):
-// preferências do 📍 Localizador associadas em segundo plano.
-CENAS.V41 = {
-	arquivo: "V41-localizador-na-linha-seeu.mp4",
-	titulo: "Localizador pela ⭐ da lista (SEEU)",
-	secao: "9.3",
-	async run() {
-		telaLista("Análise de Juntadas");
-		browser(["*SEEU - Sistema Eletrônico de Execução Unificado"], "https://seeu.pje.jus.br/seeu/processo/analisarJuntada.do");
-		$(".pj-logo").innerHTML = "SEEU<small>Sistema Eletrônico de Execução Unificado</small>";
-		$(".pj-menu").innerHTML = "<span>Início</span><span>Processos</span><span>Intimações</span><span>Decurso de Prazo</span><span>Análise de Juntadas</span><span>Cumprimentos</span><span>Outros</span>";
-		$("#areaatuacao").textContent = "Vara de Execução de Exemplo";
-		$$(".x-rowslot").forEach((s, i) => (s.innerHTML = ' <span class="x-btn small">+</span> <span class="x-btn small" data-star="' + i + '">⭐</span><span class="st" data-st="' + i + '" style="margin-left:6px;font-size:11px"></span>'));
-		await S.titleCard("VÍDEO V41", "Localizador pela ⭐ da lista (SEEU)", "Associe localizadores a um processo sem sair da lista de juntadas ou conclusões.");
-		await S.cap("No SEEU, as listas <b>Análise de Juntadas</b> e <b>Retorno de Conclusão</b> também têm a <b>⭐</b> em cada linha.");
-		await S.click('[data-star="0"]');
-		const pn = panelAt('<h4>⭐ Minhas Preferências — ' + LISTA[0].n + '</h4>' + favBlocos([
-			{ icon: "📍", title: "Localizador", cards: [{ name: "Audiência cumprida", id: "card" }, { name: "Cálculo de pena" }] },
-		]), '[data-star="0"]', { w: 440 });
-		pn.style.left = "520px"; pn.style.top = "200px";
-		await S.cap("No SEEU, a ⭐ mostra as preferências do <b>📍 Localizador</b>. Escolha uma.");
-		await S.click("#card");
-		pn.remove();
-		const st = $('[data-st="0"]');
-		st.textContent = "★ Audiência cumprida · Carregando o processo…";
-		await S.cap("A extensão abre o processo <b>em segundo plano</b> — você continua na lista.", { ms: 3200 });
-		st.textContent = "★ Audiência cumprida · Associando 1 de 2: ABERTO…";
-		await sleep(1300);
-		st.textContent = "★ Audiência cumprida · Associando 2 de 2: AGUARDANDO AUDIÊNCIA - JÁ CUMPRIDA…";
-		await sleep(1300);
-		st.textContent = "✅ ★ Audiência cumprida · Associado(s): ABERTO, AGUARDANDO AUDIÊNCIA - JÁ CUMPRIDA.";
-		S.hl(st, 3);
-		await S.cap("No fim, a linha mostra o resultado: ✅ quando deu certo, ⚠ com o que não foi possível.", { ms: 4200 });
-		S.hlOff();
-		await S.endCard("Lista do SEEU → ⭐ na linha → preferência do 📍 Localizador → associada em segundo plano → resultado na linha.");
-	},
-};
-
 // Balões "Alterar" e "⭐" ao lado da classe e do assunto (alterarClasseAssuntos.js).
 // Desde a 2.55.2: retangulares, cantos levemente curvos, compactos e sem ✏️/💲/➕.
 const ESTILO_BALAO = "display:inline-block;margin-left:6px;padding:0 5px;font:11px/15px Arial,sans-serif;color:#222;text-decoration:none;white-space:nowrap;background:linear-gradient(to bottom,#fafafa,#e9e9e9);border:1px solid #adadad;border-radius:3px;box-shadow:0 1px 2px rgba(0,0,0,.08)";
@@ -624,7 +485,7 @@ function cardsAlterar() {
 CENAS.V42 = {
 	arquivo: "V42-alterar-classe-e-assuntos.mp4",
 	titulo: "Alterar Classe/Assuntos",
-	secao: "8.9",
+	secao: "8.8",
 	async run() {
 		telaProcesso({});
 		cardsAlterar();
@@ -666,7 +527,7 @@ CENAS.V42 = {
 CENAS.V43 = {
 	arquivo: "V43-preferencia-de-alteracao-de-classe.mp4",
 	titulo: "Preferência de alteração de classe",
-	secao: "8.9",
+	secao: "8.8",
 	async run() {
 		telaProcesso({});
 		cardsAlterar();
@@ -878,7 +739,6 @@ CENAS.V45 = {
 		await S.cap("Cada processo executado é desmarcado; os que não forem executados <b>continuam marcados</b>.");
 		S.hlOff();
 		await S.cap("Se der <b>erro</b> num processo, o lote <b>para ali</b>: os seguintes não são tocados e continuam marcados.", { ms: 3800 });
-		await S.cap("No SEEU, a barra associa os localizadores do <b>📍 Localizador</b> em todos os marcados, sem confirmar um a um.", { ms: 4200 });
 		await S.endCard("Marque os processos → ⭐ Executar preferência nos marcados → card → uma resposta → ✅ Sim, executar em cada um.");
 	},
 };
@@ -947,7 +807,7 @@ CENAS.V46 = {
 CENAS.V47 = {
 	arquivo: "V47-novo-valor-da-causa.mp4",
 	titulo: "Novo Valor da Causa",
-	secao: "8.10",
+	secao: "8.9",
 	async run() {
 		telaProcesso({});
 		$("#row-assunto").insertAdjacentHTML("afterend",
@@ -994,7 +854,7 @@ CENAS.V48 = {
 		await S.titleCard("VÍDEO V48", "Aviso de versão nova", "Quando sai uma versão nova, a extensão avisa — exporte suas preferências e atualize.");
 		add('<span class="dotnova"></span>', $("#x-menuicon"));
 		const card = add('<div id="x-novidade"><div class="mh"><span style="font-size:20px">🆕</span><div><b>Há novidades na extensão!</b><small>Versão nova: 2.26.0 · a sua: 2.25.0</small></div></div><div class="ct" id="nv-ct">' +
-			'<p>Saiu uma versão nova da extensão Olirum. <u style="color:#1f5591">Ver o que mudou</u>.</p>' +
+			'<p>Saiu uma versão nova da extensão Assistente Projudi. <u style="color:#1f5591">Ver o que mudou</u>.</p>' +
 			'<div class="obs"><b>Observação:</b> antes de atualizar, exporte suas preferências (botão 1). Se depois da atualização elas não aparecerem, é só importá-las de novo pelo Menu (ícone da balança → ⬆ Importar).</div>' +
 			'<div class="bts"><span class="bt pri" id="nv-exp">1. Exportar preferências</span><span class="bt" id="nv-atu">2. Atualizar</span></div><div class="ok" id="nv-ok" hidden></div>' +
 			'<div class="depois">Agora não (lembrar amanhã)</div></div></div>');
@@ -1010,7 +870,7 @@ CENAS.V48 = {
 		await S.cap("Agora clique em <b>2. Atualizar</b>: a versão nova é baixada.");
 		await S.click("#nv-atu");
 		$("#nv-ct").innerHTML = '<p>A versão nova foi baixada (arquivo PROJUDI_FUNCIONALIDADES-principal.zip, na pasta Downloads). Para terminar:</p>' +
-			'<ol><li>Abra o arquivo baixado e copie a pasta extensao-preview-documentos que está dentro dele.</li><li>Cole-a por cima da pasta da extensão que você já tem (no mesmo lugar), substituindo os arquivos.</li><li>Clique em "↻ Recarregar a extensão" abaixo.</li><li>Recarregue (F5) as abas do Projudi, SEEU, WhatsApp Web e Outlook.</li></ol>' +
+			'<ol><li>Abra o arquivo baixado e copie a pasta extensao-preview-documentos que está dentro dele.</li><li>Cole-a por cima da pasta da extensão que você já tem (no mesmo lugar), substituindo os arquivos.</li><li>Clique em "↻ Recarregar a extensão" abaixo.</li><li>Recarregue (F5) as abas do Projudi, WhatsApp Web e Outlook.</li></ol>' +
 			'<div class="bts"><span class="bt pri" id="nv-rec">↻ Recarregar a extensão</span><span class="bt">Abrir tela de extensões</span></div>';
 		await S.cap("Siga os passos: copie a pasta nova <b>por cima da pasta atual</b>, no mesmo lugar.", { ms: 4600 });
 		await S.cap("Depois clique em <b>↻ Recarregar a extensão</b> e aperte <b>F5</b> nas abas abertas.", { ms: 3800 });
@@ -1027,7 +887,7 @@ CENAS.V48 = {
 CENAS.V49 = {
 	arquivo: "V49-preferencia-de-assunto-secundario.mp4",
 	titulo: "Preferência de assunto secundário",
-	secao: "8.9",
+	secao: "8.8",
 	async run() {
 		telaProcesso({});
 		cardsAlterar();
@@ -1090,7 +950,7 @@ CENAS.V49 = {
 CENAS.V50 = {
 	arquivo: "V50-remover-assunto-secundario.mp4",
 	titulo: "Remover assunto secundário",
-	secao: "8.9",
+	secao: "8.8",
 	async run() {
 		telaProcesso({});
 		cardsAlterar();
@@ -1142,7 +1002,7 @@ CENAS.V51 = {
 	async run() {
 		listaConclusao();
 		await S.titleCard("VÍDEO V51", "Documento do Juiz ao passar o mouse", "Leia o despacho, a decisão ou a sentença sem sair da lista Retorno de Conclusão.");
-		await S.cap("Na lista <b>Retorno de Conclusão</b> (Projudi ou SEEU), pare o mouse sobre o <b>Analisar</b> da linha.");
+		await S.cap("Na lista <b>Retorno de Conclusão</b>, pare o mouse sobre o <b>Analisar</b> da linha.");
 		await S.move($('#lista tr[data-i="1"] .x-analisar'));
 		await sleep(500);
 		let p = janelaDoc(LISTA[1].n, "Despacho.pdf", 420, 150, 1, 1);
@@ -1416,7 +1276,7 @@ CENAS.V55 = {
 		$$("#g2 .x-fgrp").forEach(g => { if (!g.querySelector("#c-mp")) g.style.display = "none"; });
 		await S.cap("Com a busca preenchida, aparecem <b>todas</b> as que combinam — mesmo as que o <b>Mostrar todas</b> esconderia.", { ms: 4800, bottom: true });
 		pn.remove();
-		await S.cap("O mesmo vale para a ⭐ de Alterar Classe/Assuntos, o 📎 Juntar Documento, o Analisar Decurso e o 📍 Localizador (SEEU).", { ms: 5000 });
+		await S.cap("O mesmo vale para a ⭐ de Alterar Classe/Assuntos, o 📎 Juntar Documento e o Analisar Decurso.", { ms: 5000 });
 		await S.endCard("Muitas preferências? 🔍 Buscar no topo · + Nova preferência sempre à vista.");
 	},
 };
@@ -1426,7 +1286,7 @@ CENAS.V55 = {
 CENAS.V56 = {
 	arquivo: "V56-incluir-e-remover-prioridades.mp4",
 	titulo: "Incluir e remover prioridades",
-	secao: "8.11",
+	secao: "8.10",
 	async run() {
 		telaProcesso({});
 		const x = id => '<a id="' + id + '" style="' + ESTILO_BALAO + ';margin-left:4px;padding:0 6px;color:#a00">✖</a>';
@@ -1492,94 +1352,6 @@ CENAS.V56 = {
 	},
 };
 
-// ------------------------------------------------------------------ V57
-// Localizadores na coluna do número, nas listas do SEEU, com ✏️ para
-// associar e tirar localizadores (localizadorNaLista.js).
-CENAS.V57 = {
-	arquivo: "V57-localizador-na-lista-seeu.mp4",
-	titulo: "Localizador na lista (SEEU)",
-	secao: "9.12",
-	async run() {
-		telaLista("Retorno de Conclusão", { col: "Retorno em" });
-		browser(["*SEEU - Sistema Eletrônico de Execução Unificado"], "https://seeu.pje.jus.br/seeu/processo/conclusao.do");
-		$(".pj-logo").innerHTML = "SEEU<small>Sistema Eletrônico de Execução Unificado</small>";
-		$(".pj-menu").innerHTML = "<span>Início</span><span>Processos</span><span>Intimações</span><span>Decurso de Prazo</span><span>Análise de Juntadas</span><span>Cumprimentos</span><span>Outros</span>";
-		$("#areaatuacao").textContent = "Vara de Execução de Exemplo";
-		const ITEM = "display:inline-block;margin-left:3px;padding:0 6px;font-size:11px;color:#1e3a8a;background:#eff6ff;border:1px solid #bfdbfe;border-radius:4px";
-		const BT = "display:inline-block;margin-left:3px;padding:0 4px;font-size:11px;background:#fff;border:1px solid #cbd5e1;border-radius:4px";
-		const nomes = [["ABERTO"], ["AGUARDANDO AUDIÊNCIA - JÁ CUMPRIDA", "CÁLCULO DE PENA"], [], ["ABERTO", "PRESO"], ["CÁLCULO DE PENA"], ["ABERTO"]];
-		const linha = (i, conteudo) => {
-			const d = $('[data-locl="' + i + '"]');
-			d.innerHTML = "📍" + conteudo;
-			return d;
-		};
-		const mostrar = (i, extra = "") => linha(i, (nomes[i].length ? nomes[i].map((n, k) => '<span style="' + ITEM + '" id="x-chip-' + i + "-" + k + '">' + n + "</span>").join("") : ' <i style="color:#64748b">sem localizador</i>') +
-			'<span style="' + BT + '" id="x-ed-' + i + '">✏️</span><span style="' + BT + '">↻</span>' + extra);
-		$$("#lista tr[data-i]").forEach(tr => {
-			tr.children[1].insertAdjacentHTML("beforeend", '<div data-locl="' + tr.dataset.i + '" style="margin-top:3px;font-size:11px;color:#334155"></div>');
-			linha(tr.dataset.i, ' <i style="color:#64748b">aguardando…</i>');
-		});
-		await S.titleCard("VÍDEO V57", "Localizador na lista (SEEU)", "Veja e altere os localizadores de cada processo sem sair da lista de juntadas ou conclusões.");
-		for (let i = 0; i < nomes.length; i++) {
-			linha(i, ' <i style="color:#64748b">lendo…</i>');
-			await sleep(i < 2 ? 900 : 350);
-			mostrar(i);
-		}
-		S.hl('[data-locl="1"]', 3);
-		await S.cap("Na coluna do número do processo, a linha <b>📍</b> mostra os localizadores cadastrados — a extensão lê um processo de cada vez, em segundo plano.", { ms: 4600 });
-		S.hlOff();
-		await S.click("#x-ed-0");
-		const painel = '<h4 style="margin:0 0 6px">📍 Localizadores — ' + LISTA[0].n + "</h4>";
-		let pn = panelAt(painel + '<div id="x-st" style="padding:5px 7px;background:#f1f5f9;border-radius:4px">Abrindo o processo em segundo plano…</div>', "#x-ed-0", { w: 360 });
-		pn.style.left = "440px"; pn.style.top = "250px";
-		await sleep(1500);
-		const corpo = (no, st) => painel + (st ? '<div style="padding:5px 7px;background:#ecfdf5;color:#065f46;border-radius:4px;margin-bottom:6px">' + st + "</div>" : "") +
-			'<div style="font-size:11px;font-weight:bold;color:#475569">NO PROCESSO</div>' +
-			no.map((n, k) => '<div style="display:flex;justify-content:space-between;margin:3px 0"><span style="' + ITEM + '">' + n + '</span><span style="' + BT + '" id="x-rem-' + k + '">✖</span></div>').join("") +
-			'<div style="font-size:11px;font-weight:bold;color:#475569;margin-top:6px">ASSOCIAR</div><div class="pj-input" style="display:block;margin:3px 0">Pesquisar localizador...</div>' +
-			["AGUARDANDO AUDIÊNCIA - JÁ CUMPRIDA", "CÁLCULO DE PENA", "PRESO"].filter(n => !no.includes(n)).map(n => '<div class="x-btn small" style="display:block;text-align:left;margin:3px 0" id="x-add-' + n.slice(0, 3) + '">➕ ' + n + "</div>").join("");
-		pn.innerHTML = corpo(["ABERTO"]);
-		await S.cap("O <b>✏️</b> abre o painel do processo: em cima, os localizadores que ele tem; embaixo, os localizadores ativos da unidade (a lista do <b>+</b> do SEEU).", { ms: 4800 });
-		await S.click("#x-add-CÁL");
-		pn.innerHTML = corpo(["ABERTO", "CÁLCULO DE PENA"], "\"CÁLCULO DE PENA\" associado ao processo.");
-		nomes[0] = ["ABERTO", "CÁLCULO DE PENA"];
-		mostrar(0);
-		await S.cap("Clique num localizador para <b>associá-lo</b>. A linha da lista já mostra o resultado.", { ms: 3800 });
-		await S.click("#x-rem-0");
-		modal('<b>Remover o localizador "ABERTO" do processo ' + LISTA[0].n + '?</b><p style="margin:8px 0"></p><span class="x-btn small green" id="x-ok">OK</span> <span class="x-btn small">Cancelar</span>', { w: 460, top: 200 });
-		await S.cap("O <b>✖</b> remove o localizador do processo, depois de você confirmar.");
-		await S.click("#x-ok");
-		closeModal();
-		pn.innerHTML = corpo(["CÁLCULO DE PENA"], "\"ABERTO\" removido do processo.");
-		nomes[0] = ["CÁLCULO DE PENA"];
-		mostrar(0);
-		S.hl('[data-locl="0"]', 3);
-		await S.cap("Tudo feito no próprio SEEU, em segundo plano — você continua na lista.", { ms: 3800 });
-		S.hlOff();
-		pn.remove();
-		await S.cap("Também dá para remover direto na lista: <b>clique no localizador</b>, como no cabeçalho do processo do SEEU.", { ms: 4000 });
-		await S.click("#x-chip-3-1");
-		const chip = $("#x-chip-3-1");
-		chip.style.cssText += ";color:#991b1b;background:#fef2f2;border-color:#fca5a5";
-		chip.textContent = "PRESO ⊗";
-		const dica = toast("Remover do processo", { left: chip.getBoundingClientRect().left, top: chip.getBoundingClientRect().bottom + 6 });
-		await sleep(1400);
-		dica.remove();
-		modal('<b>Remover o localizador "PRESO" do processo ' + LISTA[3].n + '?</b><p style="margin:8px 0"></p><span class="x-btn small green" id="x-ok2">OK</span> <span class="x-btn small">Cancelar</span>', { w: 460, top: 200 });
-		await S.cap("Confirme. A extensão abre o processo em segundo plano e responde <b>SIM</b> na janela <b>Confirme</b> do SEEU.");
-		await S.click("#x-ok2");
-		closeModal();
-		linha(3, '<span style="' + ITEM + '">ABERTO</span><span style="' + ITEM + '">PRESO</span> <span style="padding:1px 6px;border-radius:4px;background:#f1f5f9">Removendo "PRESO"…</span>');
-		await sleep(1800);
-		nomes[3] = ["ABERTO"];
-		mostrar(3, ' <span style="padding:1px 6px;border-radius:4px;background:#ecfdf5;color:#065f46">✅ "PRESO" removido do processo.</span>');
-		S.hl('[data-locl="3"]', 3);
-		await S.cap("A linha mostra o resultado.", { ms: 3400 });
-		S.hlOff();
-		await S.endCard("Lista do SEEU → 📍 localizadores na coluna do número → clique no localizador para removê-lo · ✏️ → ➕ associar ou ✖ remover → a linha mostra o resultado.");
-	},
-};
-
 // ------------------------------------------------------------------ V58
 CENAS.V58 = {
 	arquivo: "V58-escolher-funcoes-e-botoes.mp4",
@@ -1595,7 +1367,7 @@ CENAS.V58 = {
 			["⭐ Minhas Preferências", "#x-fav"], ["🔗 Combos", "#x-combos"], ["🖍️ Destacar mov.", "#x-destacar"], ["📋 Colar processo", "#x-clip"]];
 		const MINI = "display:inline-block;flex:none;width:26px;height:14px;border-radius:7px;position:relative;vertical-align:middle;margin-right:7px";
 		const mini = on => '<span class="mini" style="' + MINI + ";background:" + (on ? "#1f5591" : "#aeb8c6") + '"><span style="position:absolute;top:2px;left:' + (on ? 14 : 2) + 'px;width:10px;height:10px;border-radius:50%;background:#fff"></span></span>';
-		$("#mcnt").outerHTML = '<div class="cnt" id="mcnt"><div id="mcnt-t">Funcionalidades no PROJUDI: 25 de 25 ativas</div><div style="text-align:right"><u id="m-todas" style="color:#1f5591">Desativar todas</u> &nbsp; <u style="color:#1f5591">Copiar para o SEEU</u></div></div>' +
+		$("#mcnt").outerHTML = '<div class="cnt" id="mcnt"><div id="mcnt-t">Funcionalidades no PROJUDI: 25 de 25 ativas</div><div style="text-align:right"><u id="m-todas" style="color:#1f5591">Desativar todas</u></div></div>' +
 			'<div id="m-busca" style="border:1px solid #c3ccd9;border-radius:6px;padding:6px 8px;margin-bottom:4px;color:#25324a;min-height:15px"></div>';
 		const placeholder = () => { if (!$("#m-busca").textContent) $("#m-busca").innerHTML = '<span style="color:#98a3b5">🔎 Procurar funcionalidade ou botão…</span>'; };
 		placeholder();
@@ -1706,7 +1478,7 @@ CENAS.V59 = {
 CENAS.V60 = {
 	arquivo: "V60-agendar-audiencia-com-preferencias.mp4",
 	titulo: "Agendar Audiência com preferências",
-	secao: "8.12",
+	secao: "8.11",
 	async run() {
 		const TIPO = "Audiência de Instrução e Julgamento";
 		const AMARELO = "margin:0 0 10px;padding:8px 10px;border:1px solid #d4b106;background:#fffbe6;color:#5c4400;border-radius:4px";
@@ -1794,7 +1566,7 @@ CENAS.V60 = {
 CENAS.V61 = {
 	arquivo: "V61-localizador-na-lista-projudi.mp4",
 	titulo: "Localizador na lista (Projudi)",
-	secao: "9.13",
+	secao: "9.12",
 	async run() {
 		telaLista("Análise de Juntadas");
 		const ITEM = "display:inline-block;margin-left:3px;padding:0 6px;font-size:11px;color:#1e3a8a;background:#eff6ff;border:1px solid #bfdbfe;border-radius:4px";
@@ -1855,7 +1627,7 @@ CENAS.V61 = {
 		mostrar(0);
 		await sleep(2200);
 		pn.remove();
-		await S.cap("Para tirar um localizador, <b>clique nele</b> na coluna, como no SEEU.", { ms: 3800 });
+		await S.cap("Para tirar um localizador, <b>clique nele</b> na coluna.", { ms: 3800 });
 		await S.click("#x-chip-1-0");
 		const chip = $("#x-chip-1-0");
 		chip.style.cssText += ";color:#991b1b;background:#fef2f2;border-color:#fca5a5";
@@ -1930,7 +1702,7 @@ CENAS.V64 = {
 CENAS.V65 = {
 	arquivo: "V65-juntadas-em-uma-unica-pagina.mp4",
 	titulo: "Listas em uma única página (Análise de Juntadas)",
-	secao: "9.14",
+	secao: "9.13",
 	async run() {
 		const nomes = ["Ação Penal - Proc. Ordinário", "Inquérito Policial", "Medidas Protetivas de Urgência", "Ação Penal - Proc. Sumário"];
 		const extra = [];
@@ -1964,7 +1736,7 @@ CENAS.V65 = {
 CENAS.V66 = {
 	arquivo: "V66-conclusoes-em-uma-unica-pagina.mp4",
 	titulo: "Listas em uma única página (Conclusões)",
-	secao: "9.14",
+	secao: "9.13",
 	async run() {
 		const nomes = ["Ação Penal - Proc. Ordinário", "Inquérito Policial", "Execução de Medidas Alternativas"];
 		const extra = [];
@@ -1997,7 +1769,7 @@ CENAS.V66 = {
 CENAS.V67 = {
 	arquivo: "V67-mandados-em-uma-unica-pagina.mp4",
 	titulo: "Listas em uma única página (Mandados)",
-	secao: "9.14",
+	secao: "9.13",
 	async run() {
 		const nomes = ["Mandado de Intimação", "Mandado de Citação", "Mandado de Intimação de Audiência"];
 		const extra = [];
@@ -2033,7 +1805,7 @@ CENAS.V67 = {
 CENAS.V68 = {
 	arquivo: "V68-multas-fupen-e-juiz-das-garantias-em-uma-unica-pagina.mp4",
 	titulo: "Listas em uma única página (Multas FUPEN e Juiz das Garantias)",
-	secao: "9.14",
+	secao: "9.13",
 	async run() {
 		// 1) Listagem de Multas - Sistema FUPEN
 		const multas = LISTA.map((r, i) => ({ n: r.n, seq: String(371100 + i), cl: ["Vencida", "Paga", "Em aberto"][i % 3], d: "R$ " + (150 + i * 37) + ",90" }));
@@ -2086,7 +1858,7 @@ CENAS.V68 = {
 CENAS.V69 = {
 	arquivo: "V69-intimacoes-em-uma-unica-pagina.mp4",
 	titulo: "Listas em uma única página (Intimações)",
-	secao: "9.14",
+	secao: "9.13",
 	async run() {
 		function reunir(tab, rotulo, col3) {
 			for (let k = 0; k < 6; k++) {
@@ -2133,7 +1905,7 @@ CENAS.V69 = {
 CENAS.V70 = {
 	arquivo: "V70-arquivos-do-mais-nas-listas-reunidas.mp4",
 	titulo: "Listas em uma única página (arquivos do +)",
-	secao: "9.14",
+	secao: "9.13",
 	async run() {
 		telaLista("Análise de Juntadas", { pag: "" });
 		$("#lista").before($("#paginacao")); // no Projudi a navegação fica acima da tabela
@@ -2186,7 +1958,7 @@ function telaInicio() {
 CENAS.V71 = {
 	arquivo: "V71-paralisados-90-dias-no-inicio.mp4",
 	titulo: "Processos Paralisados (+90 dias) na tela Início",
-	secao: "9.15",
+	secao: "9.14",
 	async run() {
 		const verm = telaInicio();
 		await S.titleCard("VÍDEO V71", "Paralisados há mais de 90 dias", "O total aparece na tela Início, logo abaixo dos paralisados +30 dias.");
@@ -2223,7 +1995,7 @@ CENAS.V71 = {
 CENAS.V72 = {
 	arquivo: "V72-totais-da-mesa-do-escrivao-na-analise-de-juntadas.mp4",
 	titulo: "Totais da Mesa do Escrivão Criminal na Análise de Juntadas",
-	secao: "9.16",
+	secao: "9.15",
 	async run() {
 		browser(["*Projudi - Mesa do Analista"], "https://projudi.tjpr.jus.br/projudi/usuario/mesaAnalista.do?actionType=listaAnaliseJuntadas");
 		const linha = (rot, val, id) => '<tr' + (id ? ' id="' + id + '"' : "") + '><td class="l" style="width:220px">' + rot + "</td><td>" + val + "</td></tr>";
@@ -2269,7 +2041,7 @@ CENAS.V72 = {
 CENAS.V73 = {
 	arquivo: "V73-visual-novo-da-mesa-do-analista.mp4",
 	titulo: "Visual novo da Mesa do Analista",
-	secao: "9.17",
+	secao: "9.16",
 	async run() {
 		const css = document.createElement("link");
 		css.rel = "stylesheet";

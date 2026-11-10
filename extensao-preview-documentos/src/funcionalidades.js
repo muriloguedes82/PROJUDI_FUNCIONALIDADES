@@ -1,5 +1,5 @@
 // Catálogo das funcionalidades que o usuário pode ativar/desativar no Menu
-// da extensão (ícone fixo no Projudi/SEEU - ver src/menuExtensao.js).
+// da extensão (ícone fixo no Projudi - ver src/menuExtensao.js).
 //
 // Carregado pelo service worker (importScripts em termosUso.js), que só
 // registra os arquivos das funcionalidades ativas, e pelo próprio Menu, que
@@ -11,10 +11,11 @@
 // (ex.: os atalhos que abrem telas no popup das Ações rápidas). O Menu ativa
 // as exigidas junto e desativa as dependentes em cascata.
 //
-// Preferência por sistema: cada funcionalidade pode ficar ativa ou desativada
-// separadamente no Projudi e no SEEU (abas do Menu). O sistema é reconhecido
-// pelo endereço da página (seeu.pje.jus.br e o treino seeutreino.pje.jus.br = SEEU; demais hosts do Tribunal =
-// Projudi). Por padrão, tudo vem ativo nos dois.
+// Preferência por sistema: as escolhas são gravadas por sistema (abas do
+// Menu). Desde a versão 18 a extensão atende só o Projudi, então há um
+// sistema só e o Menu não mostra abas. O SEEU foi retirado; o código dele
+// está guardado na branch "backup-seeu-versao-17" do repositório. Por
+// padrão, tudo vem ativo.
 //
 // `sistemas` (opcional): funcionalidade exclusiva desses sistemas. Nos
 // demais, os arquivos dela nunca são injetados e ela não aparece no Menu.
@@ -33,19 +34,18 @@
 // painelPreferencias.js/.css, clipboardProcess.js, documentSelection.js, buttonDrag.js,
 // partesFuncionalidades.js e o próprio Menu) são infraestrutura e são sempre carregados.
 self.PDP_FUNCIONALIDADES = Object.freeze({
-	// { projudi: [id], seeu: [id] } em chrome.storage.local
+	// { projudi: [id] } em chrome.storage.local
 	chave: "pdpFuncionalidadesDesativadasPorSistema",
 	// Chave antiga (uma só lista para os dois sistemas): usada enquanto a nova
 	// não existe, para não perder a escolha de quem já desativou algo.
 	chaveAntiga: "pdpFuncionalidadesDesativadas",
-	// { projudi: true|false, seeu: true|false } em chrome.storage.local:
+	// { projudi: true|false } em chrome.storage.local:
 	// true = extensão desligada naquele sistema (chave geral do Menu).
 	chaveExtensao: "pdpExtensaoDesligadaPorSistema",
-	// { projudi: ["item.parte"], seeu: [...] } em chrome.storage.local:
+	// { projudi: ["item.parte"] } em chrome.storage.local:
 	// partes escondidas (ver `partes` acima).
 	chavePartes: "pdpPartesDesativadasPorSistema",
 	sistemas: [
-		// Edição Chrome Web Store: somente o Projudi (sem SEEU).
 		{ id: "projudi", nome: "PROJUDI" }
 	],
 	grupos: [
@@ -121,7 +121,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "habilitarAdvogado",
 					nome: "(Des)Habilitar Advogado",
-					descricao: "Tela de advogados do processo num popup, com preferências de listas de advogados. No SEEU, a preferência grava um advogado, a Atuação, as partes e o Salvar.",
+					descricao: "Tela de advogados do processo num popup, com preferências de listas de advogados.",
 					js: ["src/habilitarAdvogado.js"],
 					requer: ["acoesRapidas"]
 				},
@@ -174,7 +174,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "juntarDocumento",
 					nome: "Juntar Documento",
-					descricao: "Juntada de documento digitado com preferências gravadas. No SEEU, vale para as preferências do Analisar Decurso.",
+					descricao: "Juntada de documento digitado com preferências gravadas.",
 					js: ["src/juntarDocumento.js"],
 					css: ["src/juntarDocumento.css"],
 					requer: ["acoesRapidas"]
@@ -305,7 +305,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "previewProcesso",
 					nome: "Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões e nos Cumprimentos, no Expedir e nos Paralisados",
-					descricao: "Nas listas de decurso de prazo (Intimação, Auxiliares da Justiça e Citações/Notificações) na lista da Análise de Juntadas, na lista de Conclusões e nas listas de cumprimentos (Demais Cumprimentos e Mandados) no Expedir Intimações/Citação e na lista de Processos Paralisados, mostra a tela do processo, na aba Movimentações, ao pousar o mouse sobre o número. No SEEU, também nas listas de Execuções e de Processos Suspensos e no Painel de Incidentes.",
+					descricao: "Nas listas de decurso de prazo (Intimação, Auxiliares da Justiça e Citações/Notificações) na lista da Análise de Juntadas, na lista de Conclusões e nas listas de cumprimentos (Demais Cumprimentos e Mandados) no Expedir Intimações/Citação e na lista de Processos Paralisados, mostra a tela do processo, na aba Movimentações, ao pousar o mouse sobre o número.",
 					js: ["src/previewProcesso.js"],
 					css: ["src/previewProcesso.css"]
 				},
@@ -333,7 +333,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "preferenciasNaLinha",
 					nome: "Minhas Preferências na linha (⭐)",
-					descricao: "Aplica preferências e combos direto na linha do processo, ou em lote nos processos marcados (no SEEU, as do \"📍 Localizador\" e, nas listas de decurso, o Analisar Decurso e o Dispensar nos marcados). Em Demais Cumprimentos, Mandados, Expedir Intimações e Expedir Citação, também as preferências do Analisar (Pré-Análise), que podem anexar os documentos de um movimento padrão.",
+					descricao: "Aplica preferências e combos direto na linha do processo, ou em lote nos processos marcados. Em Demais Cumprimentos, Mandados, Expedir Intimações e Expedir Citação, também as preferências do Analisar (Pré-Análise), que podem anexar os documentos de um movimento padrão.",
 					js: ["src/preferenciasNaLinha.js"],
 					requer: ["listaTarefas", "acoesRapidas"]
 				},
@@ -353,7 +353,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "cpfPartes",
 					nome: "RG e CPF nos cumprimentos",
-					descricao: "RG e CPF das partes nas telas de cumprimentos (no SEEU, os do Sentenciado, lidos do cabeçalho do processo).",
+					descricao: "RG e CPF das partes nas telas de cumprimentos.",
 					js: ["src/cpfPartesCumprimentos.js"],
 					css: ["src/cpfPartesCumprimentos.css"]
 				},
@@ -400,11 +400,9 @@ self.pdpArquivosDesativados = function (desativadas, sistema) {
 	return arquivos;
 };
 
-// Sistema ("projudi" ou "seeu") a que pertence um endereço/host.
-self.pdpSistemaDoHost = function (endereco) {
-	let host = String(endereco || "");
-	try { host = new URL(host).hostname; } catch (e) { /* já é um host */ }
-	return /(^|\.)seeu(treino)?\.pje\.jus\.br$/i.test(host) ? "seeu" : "projudi";
+// Sistema a que pertence um endereço/host. Desde a versão 18 só o Projudi.
+self.pdpSistemaDoHost = function () {
+	return "projudi";
 };
 
 // Lista de ids desativados de um sistema, a partir do que está em

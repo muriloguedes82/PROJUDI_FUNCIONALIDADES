@@ -68,7 +68,7 @@
 
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 
 	if (window.__pdpNovaOrdenacaoInjected) return;
 	window.__pdpNovaOrdenacaoInjected = true;

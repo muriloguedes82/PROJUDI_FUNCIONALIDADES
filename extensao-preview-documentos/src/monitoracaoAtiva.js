@@ -79,7 +79,7 @@
 // (`MEDIDA_CAUTELAR_LABELS`), caso o card ainda não apareça.
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 
 	// Evita rodar dentro de iframes ocultos usados por esta ou outras
 	// funcionalidades desta extensão para carregar páginas em segundo plano.
@@ -818,15 +818,13 @@
 	// Cabeçalho do processo: no Projudi (tela visualizacaoProcesso.do) é
 	// <h3 id="barraTituloStatusProcessual">, terminando em "(N dia(s) em
 	// tramitação)" — é logo depois desse texto que os cards devem aparecer.
-	// Em telas/sistemas sem esse cabeçalho (ex.: SEEU), cai para os mesmos
+	// Em telas sem esse cabeçalho, cai para os mesmos
 	// elementos já usados em email.js (extractProcessNumber).
 	function headerContainer() {
 		const barra = document.getElementById("barraTituloStatusProcessual");
 		if (barra && barra.textContent.trim()) return barra;
 		const projudiEl = document.querySelector("em.attention");
 		if (projudiEl && projudiEl.textContent.trim()) return projudiEl.parentElement || projudiEl;
-		const seeuEl = document.querySelector("div.titulo.processo");
-		if (seeuEl && seeuEl.textContent.trim()) return seeuEl;
 		return null;
 	}
 

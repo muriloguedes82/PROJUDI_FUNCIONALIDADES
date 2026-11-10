@@ -9,7 +9,7 @@ request**. Não há verificação automática no GitHub: antes de commitar, rode
 `node extensao-preview-documentos/manual/verificar-manual.mjs` (passo 7).
 
 O manual fica **dentro da extensão** porque o botão **📖 Manual do Usuário**
-do Menu (ícone da balança no Projudi/SEEU) abre `manual/MANUAL.md` numa aba,
+do Menu (ícone da balança no Projudi) abre `manual/MANUAL.md` numa aba,
 com índice e busca (`src/manual.html` e `src/manual.js`).
 
 **Vídeos:** desde a versão 2.53.2 (decisão do usuário), os vídeos **não vão

@@ -1,9 +1,8 @@
-// Menu da extensão - ícone fixo e discreto no cabeçalho do Projudi/SEEU.
+// Menu da extensão - ícone fixo e discreto no cabeçalho do Projudi.
 //
-// Onde fica o ícone:
-//   - Projudi: logo abaixo do link "Sair" (canto superior direito);
-//   - SEEU: na faixa azul do menu, abaixo do nome do usuário (no documento
-//     do topo ou no quadro do cabeçalho, se a página for dividida em quadros).
+// Onde fica o ícone: logo abaixo do link "Sair" (canto superior direito).
+// (O SEEU foi retirado da extensão na versão 18; o código dele está guardado
+// na branch "backup-seeu-versao-17" do repositório.)
 // O ícone acompanha o elemento de referência (posição fixa recalculada a
 // cada rolagem/redimensionamento) e nunca sai do topo da tela. Se a
 // referência não for encontrada (tela diferente), fica no canto superior
@@ -12,11 +11,10 @@
 //
 // Ao clicar, abre o Menu com:
 //   1. todas as funcionalidades (src/funcionalidades.js), cada uma com uma
-//      chave liga/desliga, em duas abas iguais: PROJUDI e SEEU. A aba que
-//      abre é a do sistema em que a página está (reconhecido pelo endereço),
-//      mas as duas podem ser editadas. A escolha é gravada em
-//      chrome.storage.local, por sistema, e o service worker
-//      (src/termosUso.js) passa a injetar em cada sistema só os arquivos das
+//      chave liga/desliga. A escolha é gravada em chrome.storage.local, por
+//      sistema (hoje só o Projudi: com um sistema só, as abas e o "Copiar
+//      para" não aparecem), e o service worker
+//      (src/termosUso.js) passa a injetar só os arquivos das
 //      funcionalidades ativas nele - vale a partir do próximo carregamento
 //      da página (o Menu oferece "Recarregar agora"). As funcionalidades
 //      com `partes` (ex.: cada botão das Ações rápidas) mostram, abaixo da
@@ -52,7 +50,7 @@
 // não interfira nela (e vice-versa).
 (function () {
 	"use strict";
-	if (!window.__pdpHostPermitido) return; // só Projudi/SEEU (ver hostGuard.js)
+	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 	if (window.__pdpMenuExtensao || !self.PDP_FUNCIONALIDADES) return;
 	window.__pdpMenuExtensao = true;
 
@@ -64,13 +62,13 @@
 	const CHAVES_PARTES = new Set(ITENS.flatMap(function (item) {
 		return (item.partes || []).map(function (parte) { return item.id + "." + parte.id; });
 	}));
-	const IS_SEEU = /(^|\.)seeu(treino)?\.pje\.jus\.br$/i.test(location.hostname);
 	const SISTEMAS = CAT.sistemas;
 	const SISTEMA_ATUAL = self.pdpSistemaDoHost(location.hostname);
 	const outroSistema = function (id) { return SISTEMAS.find(function (s) { return s.id !== id; }); };
 	const nomeSistema = function (id) { return SISTEMAS.find(function (s) { return s.id === id; }).nome; };
 	const IS_TOPO = window.top === window;
 
+	// Nome do formato mantido como era, para importar backups antigos.
 	const FORMATO_BACKUP = "projudi-seeu-extensao-backup";
 	// Chaves do chrome.storage.local que não vão para o backup (ver acima).
 	// Todo o resto vai: o backup leva TODA chave do storage.local que não
@@ -138,94 +136,13 @@
 		return null;
 	}
 
-	// Texto do próprio elemento, sem o dos filhos (o item do menu do SEEU pode
-	// trazer um ícone ou uma setinha junto do nome).
-	function textoProprio(e) {
-		return [...e.childNodes].filter(function (n) { return n.nodeType === 3; }).map(function (n) { return n.textContent; }).join("");
-	}
-
-	// Distância do topo da aba até este documento (0 no documento do topo;
-	// num quadro, soma a posição dos quadros ancestrais). null se algum
-	// ancestral for de outro endereço.
-	function topoNaAba() {
-		let soma = 0;
-		let w = window;
-		try {
-			while (w !== w.top) {
-				const quadro = w.frameElement;
-				if (!quadro) return null;
-				soma += quadro.getBoundingClientRect().top;
-				w = w.parent;
-			}
-		} catch (_) {
-			return null;
-		}
-		return soma;
-	}
-
-	// SEEU: faixa do menu (Início, Processos, ... Cadastro, Outros) e, acima
-	// dela, o nome do usuário (texto mais à direita do cabeçalho). O ícone
-	// fica na faixa, logo abaixo do nome. A faixa pode estar no documento do
-	// topo ou num quadro (no SEEU atual, o quadro "mainFrame" de um
-	// <frameset>); vale a que estiver no alto da aba.
-	//
-	// No SEEU atual o cabeçalho e o menu são componentes próprios
-	// (<seeu-header>, <seeu-menubar> dentro de div#BarraMenu), com o
-	// conteúdo - o nome do usuário, os itens do menu - num Shadow DOM, que
-	// document.querySelectorAll não enxerga; o menu antigo (Processos ...
-	// Cadastro) continua na página, mas escondido. O formato antigo (menu
-	// comum) segue como alternativa.
-	function faixaSeeu() {
-		const atual = document.getElementById("BarraMenu") || document.querySelector("seeu-menubar");
-		if (visivel(atual)) return atual;
-		const links = [...document.querySelectorAll("a, span, li, button")].filter(function (e) {
-			return /^(processos|cadastro)$/.test(normalizar(textoProprio(e))) && visivel(e);
-		});
-		const processos = links.find(function (e) { return normalizar(textoProprio(e)) === "processos"; });
-		const cadastro = links.find(function (e) { return normalizar(textoProprio(e)) === "cadastro"; });
-		if (!processos || !cadastro) return null;
-		let barra = processos.parentElement;
-		while (barra && !barra.contains(cadastro)) barra = barra.parentElement;
-		return barra;
-	}
-
-	// Elementos do documento e dos Shadow DOM abertos do cabeçalho.
-	function elementosDoCabecalho() {
-		const lista = [...document.body.querySelectorAll("*")];
-		document.querySelectorAll("seeu-header").forEach(function (h) {
-			if (h.shadowRoot) lista.push(...h.shadowRoot.querySelectorAll("*"));
-		});
-		return lista;
-	}
-
-	function referenciaSeeu() {
-		const deslocamento = topoNaAba();
-		if (deslocamento === null) return null;
-		let barra = faixaSeeu();
-		// Sobe até a faixa ocupar (quase) toda a largura da tela.
-		while (barra && barra.parentElement && barra.getBoundingClientRect().width < innerWidth * 0.8 &&
-			barra.parentElement !== document.body) barra = barra.parentElement;
-		const rBarra = barra && visivel(barra);
-		if (!rBarra || rBarra.top + deslocamento > 260) return null;
-		let nome = null, rNome = null;
-		for (const e of elementosDoCabecalho()) {
-			if (e.id === "pdp-menu-host") continue;
-			const texto = textoProprio(e).trim();
-			if (!/[a-z]{2,}/.test(normalizar(texto)) || /tjpr|vara|seeu|juizo|comarca/.test(normalizar(texto))) continue;
-			const r = visivel(e);
-			if (!r || r.bottom > rBarra.top + 2 || r.left < innerWidth * 0.6) continue;
-			if (!rNome || r.right > rNome.right) { nome = e; rNome = r; }
-		}
-		return { tipo: "faixa", alvo: barra, nome: nome };
-	}
-
 	// A busca percorre a página; o resultado fica guardado e só é refeito
 	// quando o elemento some (ou a cada verificação periódica, se ainda não
 	// houver referência).
 	let referencia = null;
 	function calcularPosicao(buscar) {
 		const TAM = 22;
-		if (!visivel(referencia && referencia.alvo) && buscar) referencia = IS_SEEU ? referenciaSeeu() : referenciaProjudi();
+		if (!visivel(referencia && referencia.alvo) && buscar) referencia = referenciaProjudi();
 		const ref = referencia;
 		const rect = visivel(ref && ref.alvo);
 		if (!rect) return null;
@@ -376,10 +293,10 @@
 	// backup do mesmo jeito e aparecem como "outras configurações".
 	const CHAVES_DESCRITAS = new Set([
 		"pdpActionPreferences", "pdpJuntarDocumentoPrefs", "pdpDecursoPrefs", "pdpPreAnalisePrefs",
-		"pdpAlterarClassePrefs", "pdpPrioridadesPrefs", "pdpPrioridadesCatalogo", "pdpAgendarAudienciaPrefs", "pdpLocalizadorPreferencias", "pdpPreferenceCombos", "pdpPreferencesOrder",
+		"pdpAlterarClassePrefs", "pdpPrioridadesPrefs", "pdpPrioridadesCatalogo", "pdpAgendarAudienciaPrefs", "pdpPreferenceCombos", "pdpPreferencesOrder",
 		"pdpTarefasListas", "pdpTarefasPreferencias", "pdpTarefasProcessos",
 		"pdpWhatsappContacts", "pdpEmailRecipients", "pdpFromAccounts", "pdpDefaultFromId",
-		"pdpSistemasCnjOrdem", "pdpSistemasCnjOutros", "pdpSistemasCnjOrdemSeeu", "pdpAcoesRapidasOrdem", "pdpAcoesRapidasOrdemSeeu",
+		"pdpSistemasCnjOrdem", "pdpSistemasCnjOutros", "pdpAcoesRapidasOrdem",
 		CHAVE, CAT.chaveAntiga, CAT.chaveExtensao, CAT.chavePartes
 	]);
 
@@ -405,7 +322,6 @@
 			["outra(s) preferência(s) de Alterar Classe/Assuntos", classe.length - deTipo("classe") - deTipo("assunto") - deTipo("secundario")],
 			["preferência(s) de prioridade", tamanho(local.pdpPrioridadesPrefs)],
 			["preferência(s) de agendamento de audiência", tamanho(local.pdpAgendarAudienciaPrefs)],
-			["preferência(s) de localizador (SEEU)", tamanho(local.pdpLocalizadorPreferencias)],
 			["combo(s)", tamanho(local.pdpPreferenceCombos)],
 			["lista(s) de tarefas", tamanho(local.pdpTarefasListas)],
 			["preferência(s) das listas de tarefas", tamanho(local.pdpTarefasPreferencias)],
@@ -415,8 +331,8 @@
 			["remetente(s) de e-mail", tamanho(local.pdpFromAccounts)]
 		].filter(function (l) { return l[1] > 0; }).map(function (l) { return l[1] + " " + l[0]; });
 		if (tamanho(local.pdpPreferencesOrder)) linhas.push("ordem dos cards em \"Minhas Preferências\"");
-		if (tamanho(local.pdpSistemasCnjOrdem) || tamanho(local.pdpSistemasCnjOutros) || tamanho(local.pdpSistemasCnjOrdemSeeu)) linhas.push("ordem dos cards dos sistemas e o que fica no \"Outros\"");
-		if (tamanho(local.pdpAcoesRapidasOrdem) || tamanho(local.pdpAcoesRapidasOrdemSeeu)) linhas.push("ordem dos botões da barra de ações rápidas");
+		if (tamanho(local.pdpSistemasCnjOrdem) || tamanho(local.pdpSistemasCnjOutros)) linhas.push("ordem dos cards dos sistemas e o que fica no \"Outros\"");
+		if (tamanho(local.pdpAcoesRapidasOrdem)) linhas.push("ordem dos botões da barra de ações rápidas");
 		if (local.pdpSistemasCnjAbertura) linhas.push("como abrir os sistemas");
 		if (Object.values(objeto(sync.movementHighlightPrefs)).some(function (v) { return v && v.enabled; })) linhas.push("cores do destaque de movimentações");
 		if (objeto(sync.hideMovementsWithoutFilePrefs).alwaysHide) linhas.push("ocultar movimentações sem arquivo");
@@ -453,7 +369,7 @@
 			const url = URL.createObjectURL(blob);
 			const hoje = new Date();
 			const data = hoje.getFullYear() + "-" + String(hoje.getMonth() + 1).padStart(2, "0") + "-" + String(hoje.getDate()).padStart(2, "0");
-			const a = el("a", { href: url, download: "extensao-projudi-seeu-preferencias-" + data + ".json" });
+			const a = el("a", { href: url, download: "extensao-projudi-preferencias-" + data + ".json" });
 			shadow.append(a);
 			a.click();
 			a.remove();
@@ -511,7 +427,7 @@
 			if (Object.keys(sync).length) await chrome.storage.sync.set(sync);
 			definirListas(local);
 			alterouNestaPagina = true;
-			avisar("Preferências importadas. Recarregue as páginas do Projudi/SEEU abertas para aplicá-las.", "ok");
+			avisar("Preferências importadas. Recarregue as páginas do Projudi abertas para aplicá-las.", "ok");
 		} catch (err) {
 			avisar("Falha ao importar: " + err.message, "erro");
 		}
@@ -538,7 +454,7 @@
 	function restaurarPadrao() {
 		confirmacao = {
 			titulo: "Restaurar o padrão do " + nomeSistema(abaAtiva) + "?",
-			texto: "Todas as funcionalidades e botões do " + nomeSistema(abaAtiva) + " voltam a ficar ativos (o outro sistema não muda). Preferências, combos, listas e contatos salvos não são apagados.",
+			texto: "Todas as funcionalidades e botões do " + nomeSistema(abaAtiva) + " voltam a ficar ativos. Preferências, combos, listas e contatos salvos não são apagados.",
 			rotulo: "Reativar tudo",
 			acao: function () {
 				listas[abaAtiva] = desativadas = new Set();
@@ -558,7 +474,7 @@
 	function desativarTodas() {
 		confirmacao = {
 			titulo: "Desativar todas as funcionalidades do " + nomeSistema(abaAtiva) + "?",
-			texto: "Todas ficam desligadas no " + nomeSistema(abaAtiva) + " (o outro sistema não muda) e você liga, uma a uma, só as que usa. Preferências, combos, listas e contatos salvos não são apagados. \"↺ Padrão\" volta a ativar tudo.",
+			texto: "Todas ficam desligadas no " + nomeSistema(abaAtiva) + " e você liga, uma a uma, só as que usa. Preferências, combos, listas e contatos salvos não são apagados. \"↺ Padrão\" volta a ativar tudo.",
 			rotulo: "Desativar todas",
 			acao: function () {
 				const doSistema = function (item) { return !item.sistemas || item.sistemas.indexOf(abaAtiva) >= 0; };
@@ -921,8 +837,8 @@ button.bt.primario:hover { background: #1f5591; }
 		shadow.append(el("style", { text: CSS }));
 		icone = el("button", {
 			type: "button", class: "icone", "aria-haspopup": "dialog", "aria-expanded": "false",
-			title: "Menu da extensão Projudi/SEEU - funcionalidades, backup e manual",
-			"aria-label": "Menu da extensão Projudi/SEEU",
+			title: "Menu do Assistente Projudi - funcionalidades, backup e manual",
+			"aria-label": "Menu do Assistente Projudi",
 			onclick: function (ev) { ev.stopPropagation(); aberto ? fechar() : abrir(); }
 		});
 		icone.innerHTML = ICONE_SVG;
@@ -999,7 +915,8 @@ button.bt.primario:hover { background: #1f5591; }
 			el("button", { type: "button", class: "fechar", title: "Fechar (Esc)", "aria-label": "Fechar", text: "✕", onclick: fechar })
 		]);
 
-		const abas = el("div", { class: "abas", role: "tablist", "aria-label": "Sistema" }, SISTEMAS.map(function (sis) {
+		// Abas e "Copiar para" só com mais de um sistema no catálogo.
+		const abas = SISTEMAS.length < 2 ? null : el("div", { class: "abas", role: "tablist", "aria-label": "Sistema" }, SISTEMAS.map(function (sis) {
 			const selecionada = sis.id === abaAtiva;
 			return el("button", {
 				type: "button", class: "aba", role: "tab", "aria-selected": selecionada ? "true" : "false", "data-aba": sis.id,
@@ -1081,8 +998,7 @@ button.bt.primario:hover { background: #1f5591; }
 				el("button", { type: "button", class: "bt primario", text: "Como atualizar", onclick: mostrarCartao })
 			]));
 		}
-		filhos.push(geral);
-		if (SISTEMAS.length > 1) filhos.push(abas);
+		filhos.push(geral, abas);
 		if (alterouNestaPagina) {
 			filhos.push(el("div", { class: "recarregar" }, [
 				el("span", { text: "As mudanças valem a partir do próximo carregamento da página." }),
@@ -1105,7 +1021,7 @@ button.bt.primario:hover { background: #1f5591; }
 
 		const termos = el("a", { text: "Termos de Uso", onclick: function () { abrirPagina("termos"); } });
 		filhos.push(el("div", { class: "rodape" }, [
-			IS_SEEU ? null : montarCorMesa(),
+			montarCorMesa(),
 			montarAbertura(),
 			el("h4", { text: "Preferências e combos" }),
 			el("div", { class: "botoes" }, [
@@ -1149,7 +1065,7 @@ button.bt.primario:hover { background: #1f5591; }
 		lista.append(el("p", { class: "nota", text: "Esconder um botão vale na hora, sem recarregar a página." }));
 		// Ordem dos botões da barra, escolhida arrastando (ordemBotoesAcoes.js).
 		if (item.id === "acoesRapidas") {
-			const chaveOrdem = abaAtiva === "seeu" ? "pdpAcoesRapidasOrdemSeeu" : "pdpAcoesRapidasOrdem";
+			const chaveOrdem = "pdpAcoesRapidasOrdem";
 			lista.append(el("p", { class: "nota" }, [
 				el("span", { text: "Para mudar a ordem, arraste o botão na barra. " }),
 				el("button", {
@@ -1326,7 +1242,7 @@ button.bt.primario:hover { background: #1f5591; }
 		const podeSemReferencia = IS_TOPO && tentativa >= 6 && !window.opener && document.body &&
 			document.body.tagName !== "FRAMESET" && !document.documentElement.hasAttribute(MARCA_FRAME);
 		if (!temReferencia && !podeSemReferencia) {
-			// Num quadro, o cabeçalho do SEEU pode demorar mais a ser montado.
+			// Num quadro, o cabeçalho pode demorar mais a ser montado.
 			if (tentativa < (IS_TOPO ? 6 : 20)) setTimeout(function () { iniciar(tentativa + 1); }, 500);
 			return;
 		}

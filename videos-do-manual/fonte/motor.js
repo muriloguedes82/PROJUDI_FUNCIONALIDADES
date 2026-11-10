@@ -124,7 +124,7 @@ const S = {
 		t.querySelector(".code").textContent = code;
 		t.querySelector(".name").textContent = name;
 		t.querySelector(".sub").textContent = sub || "";
-		t.querySelector(".foot").textContent = "Manual da extensão Projudi/SEEU · versão " + VERSAO_EXTENSAO;
+		t.querySelector(".foot").textContent = "Manual da extensão Projudi · versão " + VERSAO_EXTENSAO;
 		t.style.display = "flex";
 		t.style.opacity = "1";
 		await sleep(2600);
