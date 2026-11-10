@@ -114,7 +114,10 @@ cobre as buscas mais comuns de quem procura essas funções.
   `store/captura-3-destacar-movimentacoes-1280x800.png` (cores por tipo de
   usuário) e `store/captura-4-salvar-como-preferencia-1280x800.png` (Realizar
   Remessa com "Salvar como preferência"; o nome da Promotoria foi trocado por
-  "Promotoria de Justiça"). A loja aceita até 5 capturas.
+  "Promotoria de Justiça") e
+  `store/captura-5-mesa-do-analista-1280x800.png` (Mesa do Analista em
+  quadros, com detalhes ampliados; o "não disponível" de Prescrições
+  vencidas virou o número 12). A loja aceita até 5 capturas.
 
 ## Gerar o pacote (.zip) para enviar à loja
 
