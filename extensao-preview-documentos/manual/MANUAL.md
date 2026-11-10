@@ -78,7 +78,7 @@
    - 8.4 [Editar Partes/Outros](#cap-8-4)
    - 8.5 [Colar processo](#cap-8-5)
    - 8.6 [Oráculo](#cap-8-6)
-   - 8.7 [Sistemas do CNJ e outros (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Renajud, SEEU, Sistema Uniformizado, COPEL, FUPEN, SANEPAR, SESP)](#cap-8-7)
+   - 8.7 [Sistemas do CNJ e outros (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Renajud, Sistema Uniformizado, COPEL, FUPEN, SANEPAR, SESP)](#cap-8-7)
    - 8.8 [Alterar Classe/Assuntos](#cap-8-8)
    - 8.9 [Novo Valor da Causa](#cap-8-9)
    - 8.10 [Prioridades (incluir, remover e preferências)](#cap-8-10)
@@ -144,7 +144,7 @@ Não é preciso saber nada de informática além disso.
 | Sistema | O que funciona |
 |---|---|
 | **Projudi (TJPR)** | Todas as funções deste manual |
-| **SEEU** | Não funciona. Desde a versão 18 a extensão atende só o Projudi (o card **SEEU**, ao lado da balança, continua abrindo o SEEU a partir do Projudi — [8.7](#cap-8-7)) |
+| **SEEU** | Não funciona: esta extensão atende só o Projudi |
 
 A extensão **não funciona** quando o usuário está logado com perfil de
 advogado(a) ou de assessor(a) de advogado — veja [10.2](#cap-10-2).
@@ -293,7 +293,7 @@ achados mais depressa.
 - O **ícone da balança** (canto superior direito, abaixo de **Sair**) não faz
   parte desta barra: ele abre o **Menu da extensão** — veja [2.6](#cap-2-6).
   Os **cards coloridos com o nome** de cada sistema, logo à esquerda dela, abrem os **sistemas do CNJ**
-  (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud e Renajud, o SEEU e o Sistema Uniformizado do TJPR), e o card **Outros** guarda
+  (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud e Renajud, e o Sistema Uniformizado do TJPR), e o card **Outros** guarda
   COPEL, FUPEN, SANEPAR e SESP Intranet — veja [8.7](#cap-8-7).
 - Passe o mouse sobre qualquer botão para ver uma dica.
 - A barra acompanha a rolagem da página. Ela se alinha ao quadro
@@ -1560,8 +1560,6 @@ mesmo sem advogado cadastrado (para incluir o primeiro).
   (**Adicionar**/**Remover**) e clique em **💾 Atualizar preferência**.
 - A preferência só funciona na tela do processo (não no ⭐ das listagens).
 
-- Preferências de advogados gravadas no SEEU (antes da versão 18) não
-  aparecem mais.
 
 <a id="cap-8-4"></a>
 ### 8.4 Editar Partes/Outros
@@ -1608,7 +1606,7 @@ da parte sem ir até a ficha dela.
 botão Oráculo dela.
 
 <a id="cap-8-7"></a>
-### 8.7 Sistemas do CNJ e outros (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Renajud, SEEU, Sistema Uniformizado, COPEL, FUPEN, SANEPAR, SESP)
+### 8.7 Sistemas do CNJ e outros (SerpJud, CNIEP, BNMP 3.0, PrevJud, Sisbajud, SNGB, Sniper, Infojud, Renajud, Sistema Uniformizado, COPEL, FUPEN, SANEPAR, SESP)
 
 **Para que serve:** abrir sistemas do CNJ e de outros órgãos usados no dia
 a dia sem sair do processo.
@@ -1635,7 +1633,6 @@ sistema, da esquerda para a direita. Você pode reorganizá-los como quiser
 | **Infojud** (coral) | Infojud | Declarações e dados da Receita Federal (pelo e-CAC) |
 | **PrevJud** (pêssego) | PrevJud | Informações previdenciárias |
 | **Renajud** (orquídea) | Renajud | Restrições judiciais sobre veículos (bloqueio de transferência, licenciamento e circulação) |
-| **SEEU** (terracota) | SEEU | Sistema Eletrônico de Execução Unificado (execução penal) — abre a página de entrada do SEEU |
 | **SerpJud** (verde-água) | SERP-JUD | Registros públicos (cartórios de imóveis, títulos, pessoas) |
 | **Sisbajud** (verde-claro) | Sisbajud | Ordens a bancos (bloqueio de valores, informações) |
 | **S.U.** (cinza-azulado) | Sistema Uniformizado | Sistema do TJPR de fundos, custas e guias |
@@ -3066,7 +3063,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 20 (edição Chrome Web Store) | 10/11/2026 | Edição para a Chrome Web Store, igual à versão 20, exceto: instalação pela loja (2.1) e atualização automática pela loja, sem o aviso de versão nova nem o download do GitHub (2.3); capa com a linha **Edição**. Sem vídeo novo. |
+| 20 (edição Chrome Web Store) | 10/11/2026 | Edição para a Chrome Web Store, igual à versão 20, exceto: instalação pela loja (2.1) e atualização automática pela loja, sem o aviso de versão nova nem o download do GitHub (2.3); capa com a linha **Edição**. Sem o card **SEEU** ao lado da balança (1.3, 2.4 e 8.7): a edição não tem nada do SEEU. Sem vídeo novo. |
 | 20 | 09/11/2026 | Sem alteração de texto nas seções; nova descrição da extensão na lista de extensões do navegador (`chrome://extensions`): "Ações rápidas, preferências e combos no Projudi; íntegra dos documentos ao passar o mouse e envio por WhatsApp Web e Outlook.". Sem vídeo novo (a descrição não aparece nos vídeos). |
 | 19 | 09/11/2026 | A extensão passa a se chamar **Assistente Projudi – Ações Rápidas e Pré-visualização** (antes, **Olirum**): título do manual, item 6 da seção 2.1 (nome na lista de extensões) e 4.5 (assunto padrão do lembrete criado pelo post-it: "Anotação compartilhada - Abra ou instale a extensão Assistente Projudi"). O aviso de versão nova (2.3) e as páginas do Manual e dos Termos de Uso mostram o nome novo. Vídeos V01, V34 e V48 regravados e guardados em `videos-do-manual/` (não citados no manual). |
 | 18 | 09/11/2026 | **A extensão passa a funcionar só no Projudi.** Retiradas todas as funções do SEEU (a extensão não aparece mais no SEEU nem no SEEU de treino): o Menu não tem mais as abas PROJUDI/SEEU nem o **Copiar para o…** (2.6); saíram as seções **Localizador (só no SEEU)** e **Localizador na lista de juntadas e de conclusões (só no SEEU)** e a seção **Convivência com o AzFlow**, o que renumerou as seções 8.9 a 8.12 (agora 8.8 a 8.11), 9.13 a 9.17 (agora 9.12 a 9.16) e 10.3 (agora 10.2). Tirados também os trechos "No SEEU" das seções 1.3, 1.4, 2.2 a 2.6, 3.1, 5, 6, 7.1 a 7.8, 8.3, 8.7, 9.3, 9.4, 9.5, 9.8, 9.9, 9.10, 9.12, 10 e 11. O card **SEEU** ao lado da balança continua abrindo o SEEU a partir do Projudi (8.7). Preferências gravadas no SEEU não aparecem no Projudi. As funções do SEEU ficam guardadas no repositório (branch **backup-seeu-versao-17**), para recuperar se for preciso. Vídeos V40, V41 e V57 (SEEU) retirados de `videos-do-manual/` e guardados na mesma branch. |

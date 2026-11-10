@@ -15,15 +15,6 @@
 // `rotulo`: nome oficial curto escrito no card (o nome completo fica na dica).
 self.PDP_SISTEMAS_CNJ = Object.freeze([
 	{
-		// SEEU (execução penal): abre o SEEU num popup a partir do Projudi.
-		id: "seeu",
-		rotulo: "SEEU",
-		nome: "SEEU",
-		titulo: "SEEU — Sistema Eletrônico de Execução Unificado",
-		url: "https://seeu.pje.jus.br/seeu/",
-		cor: { claro: "#fbe9dc", escuro: "#eec3a2", borda: "#b0643a", texto: "#6e3415" }
-	},
-	{
 		id: "serpjud",
 		rotulo: "SerpJud",
 		nome: "SerpJud",

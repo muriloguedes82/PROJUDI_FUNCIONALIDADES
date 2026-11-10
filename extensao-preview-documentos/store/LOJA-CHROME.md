@@ -11,7 +11,13 @@ ajustes abaixo**: para gerar um pacote novo, traga a `principal` para cá
   (`NOVA_VERSAO_DESLIGADA`): a loja atualiza a extensão sozinha e não
   aceita extensões que baixam a própria atualização de outro lugar.
 - `manifest.json`: saem as permissões de `raw.githubusercontent.com` (aviso
-  de versão nova) e `*.amazonaws.com` (armazenamento usado pelo SEEU).
+  de versão nova), `*.amazonaws.com` (armazenamento usado pelo SEEU) e
+  `seeu.pje.jus.br` (card SEEU).
+- Nada do SEEU: sai o card **SEEU** ao lado da balança
+  (`src/sistemasCnjLista.js`), a regra que o abria em popup
+  (`rules/sistemasCnj.json`) e o SEEU dos textos do Menu
+  (`src/funcionalidades.js`), dos Termos de Uso e do manual (1.3, 2.4, 8.3
+  e 8.7).
 - Manual: capa (linha **Edição**), 2.1 (instalação pela loja), 2.3
   (atualização automática) e linha "(edição Chrome Web Store)" no Anexo A.
 - Pasta `store/`: ficha, política de privacidade e imagens da loja.
@@ -122,10 +128,6 @@ o abre); os demais `.md` são anotações de desenvolvimento.
 - Teste no Projudi o envio por WhatsApp: a permissão `*.amazonaws.com` foi
   retirada por ser usada pelo SEEU; se algum documento do Projudi não for
   enviado, ela precisa voltar.
-- A permissão de `seeu.pje.jus.br` continua: ela serve só para o card
-  **SEEU** abrir o SEEU num popup a partir do Projudi. Justificativa na
-  loja: "abrir o SEEU num popup sobre a tela do Projudi, quando o usuário
-  clica no card SEEU".
 - A loja pede justificativa para cada permissão (`tabs`, `scripting`,
   `downloads`, `clipboardRead`, `identity`, `declarativeNetRequest`,
   `system.display` e os endereços) e uma política de privacidade.
