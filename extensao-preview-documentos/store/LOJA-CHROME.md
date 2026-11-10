@@ -103,6 +103,10 @@ cobre as buscas mais comuns de quem procura essas funções.
   — ícone em alta definição, "ASSISTENTE / Projudi." e "Ações rápidas e
   pré-visualização", no mesmo estilo das capturas (pouco texto, legível
   mesmo reduzido). Enviado à parte, na ficha da loja (não vai no pacote).
+- **Bloco promocional de letreiro (1400×560):** `store/promo-letreiro-1400x560.png`
+  — marca à esquerda e, à direita, os cards dos sistemas, o cabeçalho do
+  processo (dados fictícios) e a barra de botões da extensão. Enviado à
+  parte, na ficha da loja.
 - **Capturas de tela (1280×800 ou 640×400, pelo menos uma):**
   `store/captura-1-tela-do-processo-1280x800.png` — tela do processo com as
   Ações rápidas, Minhas Preferências, Combos e os cards dos sistemas do CNJ.
