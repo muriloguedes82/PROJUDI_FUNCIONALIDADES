@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 20 |
-| **Versão da extensão** | 20 |
-| **Data desta versão** | 09/11/2026 |
+| **Versão do manual** | 21 |
+| **Versão da extensão** | 21 |
+| **Data desta versão** | 10/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi, clique no ícone da balança
@@ -2862,9 +2862,10 @@ Paralisados (+90 dias):**, logo abaixo da linha do próprio Projudi
 - Os totais não usam filtro de prioridade, classe ou localizador. O
   total de **Razões Externas** da linha de cima não é repetido na linha de
   +90 dias.
-- Para não repetir as pesquisas a cada volta à tela Início, os totais ficam
-  guardados por **5 minutos** naquela aba. Depois disso (ou numa aba nova),
-  a extensão conta de novo.
+- A contagem é refeita **toda vez** que a tela Início é aberta ou
+  recarregada — inclusive quando você **troca de atuação** (área de
+  atuação/competência): os números são sempre os da atuação em que você
+  está.
 - Se o Projudi não responder, aparece **não disponível** no lugar do
   número que não pôde ser contado; basta voltar à tela Início mais tarde.
 - Para ligar ou desligar, use **Processos Paralisados (+90 dias) na tela
@@ -3099,6 +3100,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 21 | 10/11/2026 | Corrigido (seção 9.14): ao trocar de atuação, a linha **Processos Paralisados (+90 dias)** continuava mostrando os números da atuação anterior (os totais ficavam guardados por 5 minutos). Agora a contagem é refeita toda vez que a tela Início é aberta ou recarregada, inclusive na troca de atuação. Bom saber da 9.14 atualizado. Sem vídeo novo (a tela não mudou). |
 | 20 | 09/11/2026 | Sem alteração de texto nas seções; nova descrição da extensão na lista de extensões do navegador (`chrome://extensions`): "Ações rápidas, preferências e combos no Projudi; íntegra dos documentos ao passar o mouse e envio por WhatsApp Web e Outlook.". Sem vídeo novo (a descrição não aparece nos vídeos). |
 | 19 | 09/11/2026 | A extensão passa a se chamar **Assistente Projudi – Ações Rápidas e Pré-visualização** (antes, **Olirum**): título do manual, item 6 da seção 2.1 (nome na lista de extensões) e 4.5 (assunto padrão do lembrete criado pelo post-it: "Anotação compartilhada - Abra ou instale a extensão Assistente Projudi"). O aviso de versão nova (2.3) e as páginas do Manual e dos Termos de Uso mostram o nome novo. Vídeos V01, V34 e V48 regravados e guardados em `videos-do-manual/` (não citados no manual). |
 | 18 | 09/11/2026 | **A extensão passa a funcionar só no Projudi.** Retiradas todas as funções do SEEU (a extensão não aparece mais no SEEU nem no SEEU de treino): o Menu não tem mais as abas PROJUDI/SEEU nem o **Copiar para o…** (2.6); saíram as seções **Localizador (só no SEEU)** e **Localizador na lista de juntadas e de conclusões (só no SEEU)** e a seção **Convivência com o AzFlow**, o que renumerou as seções 8.9 a 8.12 (agora 8.8 a 8.11), 9.13 a 9.17 (agora 9.12 a 9.16) e 10.3 (agora 10.2). Tirados também os trechos "No SEEU" das seções 1.3, 1.4, 2.2 a 2.6, 3.1, 5, 6, 7.1 a 7.8, 8.3, 8.7, 9.3, 9.4, 9.5, 9.8, 9.9, 9.10, 9.12, 10 e 11. O card **SEEU** ao lado da balança continua abrindo o SEEU a partir do Projudi (8.7). Preferências gravadas no SEEU não aparecem no Projudi. As funções do SEEU ficam guardadas no repositório (branch **backup-seeu-versao-17**), para recuperar se for preciso. Vídeos V40, V41 e V57 (SEEU) retirados de `videos-do-manual/` e guardados na mesma branch. |
