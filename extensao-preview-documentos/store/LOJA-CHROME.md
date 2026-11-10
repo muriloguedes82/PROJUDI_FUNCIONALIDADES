@@ -108,6 +108,13 @@ cobre as buscas mais comuns de quem procura essas funções.
   Número do processo, nome, RG e demais números trocados por dados
   fictícios, e o card **SEEU** retirado (não existe nesta edição). Novas
   capturas devem seguir o mesmo cuidado.
+  Mais três, no mesmo estilo (texto à esquerda ou em cima, tela emoldurada):
+  `store/captura-2-acoes-em-segundo-plano-1280x800.png` (Ordenar
+  Cumprimentos/RPV/Expedição BNMP com "Ir e abrir"),
+  `store/captura-3-destacar-movimentacoes-1280x800.png` (cores por tipo de
+  usuário) e `store/captura-4-salvar-como-preferencia-1280x800.png` (Realizar
+  Remessa com "Salvar como preferência"; o nome da Promotoria foi trocado por
+  "Promotoria de Justiça"). A loja aceita até 5 capturas.
 
 ## Gerar o pacote (.zip) para enviar à loja
 
