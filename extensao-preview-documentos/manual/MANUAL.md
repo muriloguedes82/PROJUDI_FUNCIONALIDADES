@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 21 |
-| **Versão da extensão** | 21 |
-| **Data desta versão** | 10/11/2026 |
+| **Versão do manual** | 22 |
+| **Versão da extensão** | 22 |
+| **Data desta versão** | 11/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi, clique no ícone da balança
@@ -2919,6 +2919,9 @@ Juntadas**, em três linhas novas no fim do quadro **Para Realizar**:
 - Para não repetir a contagem a cada volta à aba, os totais ficam
   guardados por **5 minutos** naquela aba. Depois disso (ou numa aba
   nova), a extensão conta de novo.
+- As **Prescrições vencidas** podem levar alguns segundos a mais para
+  aparecer: a extensão abre a aba **Mesa do Escrivão Criminal** sem
+  mostrá-la, clica em **Vencidas** e faz a pesquisa, como você faria.
 - Se o Projudi não responder, aparece **não disponível** no lugar do
   número; basta voltar à aba mais tarde.
 - Para ligar ou desligar, use **Totais da Mesa do Escrivão Criminal na
@@ -3100,6 +3103,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 22 | 11/11/2026 | Corrigido (seção 9.15): a linha **Prescrições vencidas** da Análise de Juntadas continuava em **não disponível**: o link **Vencidas** do quadro Prescrições não vem na página da aba Mesa do Escrivão Criminal quando ela é aberta sem ser mostrada, e o endereço desse link muda a cada vez que se entra no Projudi. Agora, se não achar o link, a extensão abre a aba Mesa do Escrivão Criminal sem mostrá-la e clica em **Vencidas**, como a pessoa faria. Novo item no Bom saber. Sem vídeo novo (a tela não mudou). |
 | 21 | 10/11/2026 | Corrigido (seção 9.14): ao trocar de atuação, a linha **Processos Paralisados (+90 dias)** continuava mostrando os números da atuação anterior (os totais ficavam guardados por 5 minutos). Agora a contagem é refeita toda vez que a tela Início é aberta ou recarregada, inclusive na troca de atuação. Bom saber da 9.14 atualizado. Sem vídeo novo (a tela não mudou). |
 | 20 | 09/11/2026 | Sem alteração de texto nas seções; nova descrição da extensão na lista de extensões do navegador (`chrome://extensions`): "Ações rápidas, preferências e combos no Projudi; íntegra dos documentos ao passar o mouse e envio por WhatsApp Web e Outlook.". Sem vídeo novo (a descrição não aparece nos vídeos). |
 | 19 | 09/11/2026 | A extensão passa a se chamar **Assistente Projudi – Ações Rápidas e Pré-visualização** (antes, **Olirum**): título do manual, item 6 da seção 2.1 (nome na lista de extensões) e 4.5 (assunto padrão do lembrete criado pelo post-it: "Anotação compartilhada - Abra ou instale a extensão Assistente Projudi"). O aviso de versão nova (2.3) e as páginas do Manual e dos Termos de Uso mostram o nome novo. Vídeos V01, V34 e V48 regravados e guardados em `videos-do-manual/` (não citados no manual). |
