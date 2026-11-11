@@ -44,11 +44,13 @@ html[data-pdp-vm-cor="escuro"] { --vm-acento: #b9c79a; --vm-acento-suave: #3a423
    #3E4034 texto e bordas, #63735F títulos e cabeçalho das tabelas, #F3F3E2
    fundo das abas, #C6C1A6 abas e cabeçalhos secundários, #E6E1C6 linhas
    alternadas, #F1F2EE barra de menus, #F56527 dados do usuário, #FF0000
-   números urgentes. Quadros em branco, como as tabelas do Projudi. */
-html[data-pdp-vm-cor="projudi"] { --vm-acento: #63735f; --vm-acento-suave: #e6e1c6; --vm-fundo: #f3f3e2; --vm-cartao: #ffffff; --vm-linha: #c6c1a6; --vm-texto: #3e4034; --vm-suave: #63735f; --vm-fraco: #b0a178;
+   números urgentes. Os quadros não ficam no branco puro: usam um creme
+   bem claro (#F9F9EF), um pouco mais claro que o fundo #F3F3E2, para
+   reduzir o brilho sem perder o destaque. */
+html[data-pdp-vm-cor="projudi"] { --vm-acento: #63735f; --vm-acento-suave: #e6e1c6; --vm-fundo: #f3f3e2; --vm-cartao: #f9f9ef; --vm-linha: #c6c1a6; --vm-texto: #3e4034; --vm-suave: #63735f; --vm-fraco: #b0a178;
 	--vm-urgente: #ff0000; --vm-urgente-suave: #fde6e1; --vm-urgente-borda: #f0b4a8;
 	--vm-aba-texto: #3e4034; --vm-aba-suave: #63735f; --vm-aba-hover: #e6e1c6;
-	--vm-topo-fundo: #f1f2ee; --vm-topo-linha: #c6c1a6; --vm-topo-texto: #3e4034; --vm-topo-suave: #63735f; --vm-topo-hover: #e6e1c6; --vm-topo-menu: #ffffff; --vm-topo-destaque: #f56527; }
+	--vm-topo-fundo: #f1f2ee; --vm-topo-linha: #c6c1a6; --vm-topo-texto: #3e4034; --vm-topo-suave: #63735f; --vm-topo-hover: #e6e1c6; --vm-topo-menu: #f9f9ef; --vm-topo-destaque: #f56527; }
 html[data-pdp-vm-cor="areia"] { --vm-topo-fundo: #e9e1d1; --vm-topo-linha: #d3c8b2; --vm-topo-texto: #3a3226; --vm-topo-suave: #66594a; --vm-topo-hover: #ddd2bc; --vm-topo-menu: #f1ebdf; --vm-topo-destaque: #6b5a3a; }
 html[data-pdp-vm-cor="salvia"] { --vm-topo-fundo: #e1e7dd; --vm-topo-linha: #c6d0c1; --vm-topo-texto: #25302a; --vm-topo-suave: #56655a; --vm-topo-hover: #d3ddd0; --vm-topo-menu: #ebefe8; --vm-topo-destaque: #4a6650; }
 html[data-pdp-vm-cor="nevoa"] { --vm-topo-fundo: #e1e6ea; --vm-topo-linha: #c7d0d8; --vm-topo-texto: #232c33; --vm-topo-suave: #56636e; --vm-topo-hover: #d2dbe2; --vm-topo-menu: #ebeef1; --vm-topo-destaque: #3e5a6e; }
