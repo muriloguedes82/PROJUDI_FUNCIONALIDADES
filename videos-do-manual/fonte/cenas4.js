@@ -2051,7 +2051,7 @@ CENAS.V73 = {
 		const abas = on => '<div id="tabHorz"><ul>' + ABAS_MESA.map(a => '<li class="' + (a === on ? "currentTab" : "") + '"><div class="tabCenter"><a>' + a + "</a></div></li>").join("") + "</ul></div>";
 		const linha = (rot, n, urg) => '<tr class="pdp-vm-linha"><td class="label pdp-vm-rotulo">' + rot + '</td><td class="pdp-vm-valor"><a><span class="contador' + (urg ? " urgente" : "") + '">' + n + "</span></a></td></tr>";
 		const cartao = (tit, estilo, linhas, o = {}) => '<section class="pdp-vm-cartao pdp-vm-' + estilo + (o.urg ? " pdp-vm-urgente" : "") + (o.largo ? " pdp-vm-largo" : "") + '"><h4 class="pdp-vm-cartao-titulo">' + tit + '</h4><table class="form pdp-vm-tabela"><tbody>' + linhas.join("") + "</tbody></table></section>";
-		const cores = '<span class="pdp-vm-cores">Cor: ' + [["oliva", "#dfe0d2", "#56613c"], ["areia", "#e2d9c6", "#6b5a3a"], ["salvia", "#d8dfd4", "#4a6650"], ["nevoa", "#d9dfe4", "#3e5a6e"], ["escuro", "#2c302b", "#b9c79a"]].map(c => '<button class="pdp-vm-cor" id="cor-' + c[0] + '" style="background:linear-gradient(135deg,' + c[1] + ' 50%,' + c[2] + ' 50%)" aria-pressed="' + (c[0] === "oliva") + '"></button>').join("") + "</span>";
+		const cores = '<span class="pdp-vm-cores">Cor: ' + [["oliva", "#dfe0d2", "#56613c"], ["areia", "#e2d9c6", "#6b5a3a"], ["salvia", "#d8dfd4", "#4a6650"], ["nevoa", "#d9dfe4", "#3e5a6e"], ["escuro", "#2c302b", "#b9c79a"], ["projudi", "#f3f3e2", "#63735f"]].map(c => '<button class="pdp-vm-cor" id="cor-' + c[0] + '" style="background:linear-gradient(135deg,' + c[1] + ' 50%,' + c[2] + ' 50%)" aria-pressed="' + (c[0] === "oliva") + '"></button>').join("") + "</span>";
 		const mesa = (aba, corpo) => {
 			const cor = document.documentElement.getAttribute("data-pdp-vm-cor") || "oliva";
 			browser(["*Projudi - Mesa do Analista"], "https://projudi.tjpr.jus.br/projudi/usuario/mesaAnalista.do");
@@ -2087,7 +2087,7 @@ CENAS.V73 = {
 		await S.click("#cor-areia");
 		document.documentElement.setAttribute("data-pdp-vm-cor", "areia");
 		$$(".pdp-vm-cor").forEach(b => b.setAttribute("aria-pressed", String(b.id === "cor-areia")));
-		await S.cap("Nas bolinhas ao lado do título, escolha o tom: <b>Oliva fosco</b> (padrão), <b>Areia</b>, <b>Sálvia</b>, <b>Névoa</b> ou <b>Escuro suave</b>. A escolha fica guardada.", { ms: 5000 });
+		await S.cap("Nas bolinhas ao lado do título, escolha o tom: <b>Oliva fosco</b> (padrão), <b>Areia</b>, <b>Sálvia</b>, <b>Névoa</b>, <b>Escuro suave</b> ou <b>Projudi original</b>. A escolha fica guardada.", { ms: 5000 });
 
 		// Mesa do Escrivão Criminal
 		const atalho = (nome, chips) => '<div class="pdp-vm-atalho"><table><tbody><tr><td><b><label>' + nome + "</label></b>" + (chips || []).map(c => ' <a class="pdp-vm-chip">' + c + "</a>").join("") + "</td></tr></tbody></table></div>";

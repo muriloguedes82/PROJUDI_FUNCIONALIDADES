@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 22 |
-| **Versão da extensão** | 22 |
+| **Versão do manual** | 23 |
+| **Versão da extensão** | 23 |
 | **Data desta versão** | 11/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -473,7 +473,7 @@ mov.** fazem parte das funções acima (as duas primeiras, das
 
 **Cor do visual da Mesa do Analista** — escolhe a cor do
 visual novo da Mesa ([9.16](#cap-9-16)): **Oliva fosco** (padrão), **Areia**,
-**Sálvia**, **Névoa** ou **Escuro suave**. A mesma escolha pode ser
+**Sálvia**, **Névoa**, **Escuro suave** ou **Projudi original**. A mesma escolha pode ser
 feita nas bolinhas ao lado do título da Mesa.
 
 **Abrir os sistemas (cards ao lado da balança)** — logo acima de
@@ -2971,21 +2971,26 @@ Atuação / Data**) acompanha o mesmo tom em todas as telas do Projudi.
 
 **Escolher a cor:**
 
-- Ao lado do título **Mesa do Analista Judiciário** há cinco bolinhas,
+- Ao lado do título **Mesa do Analista Judiciário** há seis bolinhas,
   cada uma com as duas cores do tom: **Oliva fosco** (padrão), **Areia**
   (bege de papel), **Sálvia** (verde-acinzentado), **Névoa**
-  (cinza-azulado) e **Escuro suave** (quadros escuros). Clique numa delas e
-  a tela troca de cor na hora.
+  (cinza-azulado), **Escuro suave** (quadros escuros) e **Projudi
+  original** (as cores de sempre do Projudi). Clique numa delas e a tela
+  troca de cor na hora.
 - A mesma escolha fica no Menu (ícone da balança), em **Cor do visual da
   Mesa do Analista** ([2.6](#cap-2-6)).
 - A cor fica guardada no seu navegador e vale nas próximas vezes. Ela entra
   no **⬇ Exportar** do Menu, para levar a outro computador. Cada
   computador tem a sua: a cor que você escolhe não muda a dos colegas.
-- Todos os tons evitam o branco puro e as cores vivas, para não cansar a
+- **Projudi original** usa as mesmas cores do Projudi: creme esverdeado no
+  fundo, verde-oliva nos títulos, quadros brancos, laranja nos dados do
+  usuário e vermelho puro nos números urgentes. É o mais claro de todos.
+- Os demais tons evitam o branco puro e as cores vivas, para não cansar a
   vista. No **Escuro suave**, só os quadros da Mesa ficam escuros: o
   cabeçalho, a barra de menus, a linha do usuário e a barra de abas
   continuam claros (com o tom do Oliva fosco).
-- O vermelho dos itens urgentes e atrasados é o mesmo em todas as cores.
+- Os itens urgentes e atrasados ficam sempre em vermelho (no Projudi
+  original, o vermelho puro do próprio Projudi).
 
 **Bom saber:**
 
@@ -3103,6 +3108,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 23 | 11/11/2026 | Visual novo da Mesa do Analista (9.16): novo tom **Projudi original**, com as cores do tema do próprio Projudi (creme esverdeado, verde-oliva, quadros brancos, laranja nos dados do usuário e vermelho puro nos urgentes). Ajustados 2.6 (Cor do visual da Mesa do Analista) e 9.16 (Escolher a cor). Vídeo V73 regravado (não citado no manual). |
 | 22 | 11/11/2026 | Corrigido (seção 9.15): a linha **Prescrições vencidas** da Análise de Juntadas continuava em **não disponível**: o link **Vencidas** do quadro Prescrições não vem na página da aba Mesa do Escrivão Criminal quando ela é aberta sem ser mostrada, e o endereço desse link muda a cada vez que se entra no Projudi. Agora, se não achar o link, a extensão abre a aba Mesa do Escrivão Criminal sem mostrá-la e clica em **Vencidas**, como a pessoa faria. Novo item no Bom saber. Sem vídeo novo (a tela não mudou). |
 | 21 | 10/11/2026 | Corrigido (seção 9.14): ao trocar de atuação, a linha **Processos Paralisados (+90 dias)** continuava mostrando os números da atuação anterior (os totais ficavam guardados por 5 minutos). Agora a contagem é refeita toda vez que a tela Início é aberta ou recarregada, inclusive na troca de atuação. Bom saber da 9.14 atualizado. Sem vídeo novo (a tela não mudou). |
 | 20 | 09/11/2026 | Sem alteração de texto nas seções; nova descrição da extensão na lista de extensões do navegador (`chrome://extensions`): "Ações rápidas, preferências e combos no Projudi; íntegra dos documentos ao passar o mouse e envio por WhatsApp Web e Outlook.". Sem vídeo novo (a descrição não aparece nos vídeos). |

@@ -1135,7 +1135,8 @@ button.bt.primario:hover { background: #1f5591; }
 		["areia", "Areia"],
 		["salvia", "Sálvia"],
 		["nevoa", "Névoa"],
-		["escuro", "Escuro suave"]
+		["escuro", "Escuro suave"],
+		["projudi", "Projudi original"]
 	];
 	let corMesa = "oliva";
 	function lerCorMesa(data) {

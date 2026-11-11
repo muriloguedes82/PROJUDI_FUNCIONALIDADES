@@ -44,7 +44,8 @@
 		{ id: "areia", nome: "Areia", amostra: "linear-gradient(135deg,#e2d9c6 50%,#6b5a3a 50%)" },
 		{ id: "salvia", nome: "Sálvia", amostra: "linear-gradient(135deg,#d8dfd4 50%,#4a6650 50%)" },
 		{ id: "nevoa", nome: "Névoa", amostra: "linear-gradient(135deg,#d9dfe4 50%,#3e5a6e 50%)" },
-		{ id: "escuro", nome: "Escuro suave", amostra: "linear-gradient(135deg,#2c302b 50%,#b9c79a 50%)" }
+		{ id: "escuro", nome: "Escuro suave", amostra: "linear-gradient(135deg,#2c302b 50%,#b9c79a 50%)" },
+		{ id: "projudi", nome: "Projudi original", amostra: "linear-gradient(135deg,#f3f3e2 50%,#63735f 50%)" }
 	];
 	const COR_PADRAO = "oliva";
 
