@@ -4,7 +4,7 @@
    Projudi): este arquivo é carregado em todas as páginas e não muda o resto. */
 
 /* Tons pensados para não cansar a vista: fundos médio-claros (sem branco
-   puro) e pouca saturação. Padrão: Oliva fosco. As cores da barra de abas e
+   puro) e pouca saturação. Padrão: Projudi original (as cores do Projudi). As cores da barra de abas e
    do seletor (--vm-aba-*) ficam sempre escuras, porque essa parte fica sobre
    o fundo claro do próprio Projudi, mesmo no tom Escuro suave. */
 html.pdp-vm, html.pdp-vm-topo {

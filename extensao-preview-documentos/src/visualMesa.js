@@ -19,7 +19,7 @@
 //
 // Cor de destaque: escolhida nas bolinhas ao lado do título da Mesa ou no
 // Menu (balança). Fica em chrome.storage.local (CHAVE_COR, entra no backup
-// do Menu). Padrão: oliva. O vermelho dos urgentes não muda com a cor.
+// do Menu). Padrão: Projudi original. O vermelho dos urgentes não muda com a cor.
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
@@ -40,14 +40,14 @@
 	const CHAVE_SO_PENDENCIAS = "pdpVisualMesaSoPendencias";
 	// amostra: metade fundo, metade destaque, para a bolinha lembrar o tom.
 	const CORES = [
+		{ id: "projudi", nome: "Projudi original", amostra: "linear-gradient(135deg,#f3f3e2 50%,#63735f 50%)" },
 		{ id: "oliva", nome: "Oliva fosco", amostra: "linear-gradient(135deg,#dfe0d2 50%,#56613c 50%)" },
 		{ id: "areia", nome: "Areia", amostra: "linear-gradient(135deg,#e2d9c6 50%,#6b5a3a 50%)" },
 		{ id: "salvia", nome: "Sálvia", amostra: "linear-gradient(135deg,#d8dfd4 50%,#4a6650 50%)" },
 		{ id: "nevoa", nome: "Névoa", amostra: "linear-gradient(135deg,#d9dfe4 50%,#3e5a6e 50%)" },
-		{ id: "escuro", nome: "Escuro suave", amostra: "linear-gradient(135deg,#2c302b 50%,#b9c79a 50%)" },
-		{ id: "projudi", nome: "Projudi original", amostra: "linear-gradient(135deg,#f3f3e2 50%,#63735f 50%)" }
+		{ id: "escuro", nome: "Escuro suave", amostra: "linear-gradient(135deg,#2c302b 50%,#b9c79a 50%)" }
 	];
-	const COR_PADRAO = "oliva";
+	const COR_PADRAO = "projudi"; // as cores de sempre do Projudi
 
 	const normalizar = function (t) {
 		return String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
