@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 21 |
-| **Versão da extensão** | 21 |
-| **Data desta versão** | 10/11/2026 |
+| **Versão do manual** | 23 |
+| **Versão da extensão** | 23 |
+| **Data desta versão** | 11/11/2026 |
 | **Edição** | Chrome Web Store (instalada e atualizada pela loja) |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -439,8 +439,9 @@ mov.** fazem parte das funções acima (as duas primeiras, das
 **Ações rápidas**; a última, do **Destaque de movimentações**).
 
 **Cor do visual da Mesa do Analista** — escolhe a cor do
-visual novo da Mesa ([9.16](#cap-9-16)): **Oliva fosco** (padrão), **Areia**,
-**Sálvia**, **Névoa** ou **Escuro suave**. A mesma escolha pode ser
+visual novo da Mesa ([9.16](#cap-9-16)): **Projudi original** (padrão, as
+cores de sempre do Projudi), **Oliva fosco**, **Areia**, **Sálvia**, **Névoa**
+ou **Escuro suave**. A mesma escolha pode ser
 feita nas bolinhas ao lado do título da Mesa.
 
 **Abrir os sistemas (cards ao lado da balança)** — logo acima de
@@ -2883,6 +2884,9 @@ Juntadas**, em três linhas novas no fim do quadro **Para Realizar**:
 - Para não repetir a contagem a cada volta à aba, os totais ficam
   guardados por **5 minutos** naquela aba. Depois disso (ou numa aba
   nova), a extensão conta de novo.
+- As **Prescrições vencidas** podem levar alguns segundos a mais para
+  aparecer: a extensão abre a aba **Mesa do Escrivão Criminal** sem
+  mostrá-la, clica em **Vencidas** e faz a pesquisa, como você faria.
 - Se o Projudi não responder, aparece **não disponível** no lugar do
   número; basta voltar à aba mais tarde.
 - Para ligar ou desligar, use **Totais da Mesa do Escrivão Criminal na
@@ -2932,21 +2936,27 @@ Atuação / Data**) acompanha o mesmo tom em todas as telas do Projudi.
 
 **Escolher a cor:**
 
-- Ao lado do título **Mesa do Analista Judiciário** há cinco bolinhas,
-  cada uma com as duas cores do tom: **Oliva fosco** (padrão), **Areia**
+- Ao lado do título **Mesa do Analista Judiciário** há seis bolinhas,
+  cada uma com as duas cores do tom: **Projudi original** (padrão, as cores
+  de sempre do Projudi), **Oliva fosco** (oliva mais fechado), **Areia**
   (bege de papel), **Sálvia** (verde-acinzentado), **Névoa**
-  (cinza-azulado) e **Escuro suave** (quadros escuros). Clique numa delas e
-  a tela troca de cor na hora.
+  (cinza-azulado) e **Escuro suave** (quadros escuros). Clique numa delas e a tela
+  troca de cor na hora.
 - A mesma escolha fica no Menu (ícone da balança), em **Cor do visual da
   Mesa do Analista** ([2.6](#cap-2-6)).
 - A cor fica guardada no seu navegador e vale nas próximas vezes. Ela entra
   no **⬇ Exportar** do Menu, para levar a outro computador. Cada
   computador tem a sua: a cor que você escolhe não muda a dos colegas.
-- Todos os tons evitam o branco puro e as cores vivas, para não cansar a
-  vista. No **Escuro suave**, só os quadros da Mesa ficam escuros: o
+- **Projudi original**, o padrão, usa as mesmas cores do Projudi: creme esverdeado no
+  fundo, verde-oliva nos títulos, quadros num creme bem claro (um pouco
+  mais claro que o fundo, sem o brilho do branco puro), laranja nos dados do
+  usuário e vermelho puro nos números urgentes. É o mais claro de todos.
+  Quem preferir menos brilho pode escolher um dos outros tons, que evitam o
+  branco puro e as cores vivas para não cansar a vista. No **Escuro suave**, só os quadros da Mesa ficam escuros: o
   cabeçalho, a barra de menus, a linha do usuário e a barra de abas
-  continuam claros (com o tom do Oliva fosco).
-- O vermelho dos itens urgentes e atrasados é o mesmo em todas as cores.
+  continuam claros.
+- Os itens urgentes e atrasados ficam sempre em vermelho (no Projudi
+  original, o vermelho puro do próprio Projudi).
 
 **Bom saber:**
 
@@ -3064,6 +3074,9 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 23 (edição Chrome Web Store) | 11/11/2026 | Edição para a Chrome Web Store, igual à versão 23, com as mesmas diferenças da edição 20: instalação pela loja (2.1) e atualização automática pela loja, sem o aviso de versão nova nem o download do GitHub (2.3), capa com a linha **Edição** e nada do SEEU (sem o card **SEEU** ao lado da balança). Sem vídeo novo. |
+| 23 | 11/11/2026 | Visual novo da Mesa do Analista (9.16): novo tom **Projudi original**, com as cores do tema do próprio Projudi (creme esverdeado, verde-oliva, quadros num creme bem claro, laranja nos dados do usuário e vermelho puro nos urgentes), que passa a ser o **padrão** (antes, Oliva fosco). Quem já tinha escolhido um tom continua com ele. Ajustados 2.6 (Cor do visual da Mesa do Analista) e 9.16 (Escolher a cor). Vídeo V73 regravado (não citado no manual). |
+| 22 | 11/11/2026 | Corrigido (seção 9.15): a linha **Prescrições vencidas** da Análise de Juntadas continuava em **não disponível**: o link **Vencidas** do quadro Prescrições não vem na página da aba Mesa do Escrivão Criminal quando ela é aberta sem ser mostrada, e o endereço desse link muda a cada vez que se entra no Projudi. Agora, se não achar o link, a extensão abre a aba Mesa do Escrivão Criminal sem mostrá-la e clica em **Vencidas**, como a pessoa faria. Novo item no Bom saber. Sem vídeo novo (a tela não mudou). |
 | 21 (edição Chrome Web Store) | 10/11/2026 | Edição para a Chrome Web Store, igual à versão 21, com as mesmas diferenças da edição 20: instalação pela loja (2.1) e atualização automática pela loja, sem o aviso de versão nova nem o download do GitHub (2.3); capa com a linha **Edição**; sem nada do SEEU (1.3, 2.4 e 8.7). Sem vídeo novo. |
 | 21 | 10/11/2026 | Corrigido (seção 9.14): ao trocar de atuação, a linha **Processos Paralisados (+90 dias)** continuava mostrando os números da atuação anterior (os totais ficavam guardados por 5 minutos). Agora a contagem é refeita toda vez que a tela Início é aberta ou recarregada, inclusive na troca de atuação. Bom saber da 9.14 atualizado. Sem vídeo novo (a tela não mudou). |
 | 20 (edição Chrome Web Store) | 10/11/2026 | Edição para a Chrome Web Store, igual à versão 20, exceto: instalação pela loja (2.1) e atualização automática pela loja, sem o aviso de versão nova nem o download do GitHub (2.3); capa com a linha **Edição**. Sem o card **SEEU** ao lado da balança (1.3, 2.4 e 8.7): a edição não tem nada do SEEU. Sem vídeo novo. |
