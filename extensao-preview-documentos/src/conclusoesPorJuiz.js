@@ -85,7 +85,8 @@
 			g.total++;
 			g.tipos.set(r.tipo, (g.tipos.get(r.tipo) || 0) + 1);
 		}
-		return Array.from(mapa.values()).sort((a, b) => b.total - a.total || a.juiz.localeCompare(b.juiz, "pt"));
+		// Ordem crescente: do juiz com menos conclusões para o com mais.
+		return Array.from(mapa.values()).sort((a, b) => a.total - b.total || a.juiz.localeCompare(b.juiz, "pt"));
 	}
 
 	function iniciais(nome) {

@@ -2121,10 +2121,10 @@ CENAS.V74 = {
 		document.head.appendChild(css);
 		const COR_TIPO = { "SENTENÇA": "#3b82f6", "DECISÃO": "#f59e0b", "DESPACHO": "#10b981" };
 		const JUIZES = [
-			["Ana Beatriz Moreira", "AM", "#2563eb", [["SENTENÇA", 18], ["DECISÃO", 6], ["DESPACHO", 2]]],
-			["Carlos Eduardo Lima", "CL", "#7c3aed", [["DECISÃO", 14], ["SENTENÇA", 3]]],
-			["Fernanda Souza Prado", "FP", "#0d9488", [["SENTENÇA", 9]]],
 			["Rafael Tavares Neto", "RN", "#d97706", [["DESPACHO", 4], ["DECISÃO", 1]]],
+			["Fernanda Souza Prado", "FP", "#0d9488", [["SENTENÇA", 9]]],
+			["Carlos Eduardo Lima", "CL", "#7c3aed", [["DECISÃO", 14], ["SENTENÇA", 3]]],
+			["Ana Beatriz Moreira", "AM", "#2563eb", [["SENTENÇA", 18], ["DECISÃO", 6], ["DESPACHO", 2]]],
 		];
 		const linhas = [];
 		JUIZES.forEach(([nome, , , tipos]) => tipos.forEach(([t, n]) => { for (let k = 0; k < Math.min(n, 2); k++) linhas.push([nome, t]); }));
