@@ -354,6 +354,14 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					sistemas: ["projudi"]
 				},
 				{
+					id: "dispensaPorTipoJuntada",
+					nome: "Dispensa rápida por tipo na Análise de Juntadas",
+					descricao: "Na lista Análise de Juntadas, quadro com preferências de tipos de juntada (ex.: JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO), cada uma com o total; clicar na preferência dispensa, com confirmação, todas as juntadas daquele tipo de uma vez. As preferências são criadas em \"+ Preferência\" e tiradas no \"×\".",
+					js: ["src/dispensaPorTipoJuntada.js"],
+					css: ["src/dispensaPorTipoJuntada.css"],
+					sistemas: ["projudi"]
+				},
+				{
 					id: "conclusoesPorJuiz",
 					nome: "Conclusões por juiz",
 					descricao: "Na lista de Conclusões, mostra acima da tabela um card para cada juiz com o total de conclusões dele e, dentro do card, o total por tipo de conclusão (Sentença, Decisão, Despacho...). Clicar no juiz ou num tipo mostra na lista só aquelas conclusões.",

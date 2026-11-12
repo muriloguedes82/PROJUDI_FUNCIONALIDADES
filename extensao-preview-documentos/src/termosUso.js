@@ -91,6 +91,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/previewConclusao.js",
 			"src/localizadorNaListaProjudi.js",
 			"src/conclusoesPorJuiz.js",
+			"src/dispensaPorTipoJuntada.js",
 			"src/funcionalidades.js",
 			"src/menuExtensao.js"
 		],
@@ -116,6 +117,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/previewConclusao.css",
 			"src/localizadorNaListaProjudi.css",
 			"src/conclusoesPorJuiz.css",
+			"src/dispensaPorTipoJuntada.css",
 			"src/visualMesa.css",
 			"src/totaisJuntadasPorTipo.css"
 		],

@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 26 |
-| **Versão da extensão** | 26 |
+| **Versão do manual** | 27 |
+| **Versão da extensão** | 27 |
 | **Data desta versão** | 12/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -101,6 +101,7 @@
    - 9.16 [Visual novo da Mesa do Analista (Projudi)](#cap-9-16)
    - 9.17 [Conclusões por juiz](#cap-9-17)
    - 9.18 [Totais de juntadas por tipo na Análise de Juntadas](#cap-9-18)
+   - 9.19 [Dispensa rápida por tipo na Análise de Juntadas](#cap-9-19)
 10. [Privacidade e perfis bloqueados](#cap-10)
     - 10.1 [O que fica guardado no seu navegador](#cap-10-1)
     - 10.2 [Bloqueio para perfis de advocacia](#cap-10-2)
@@ -466,7 +467,7 @@ ligar tudo.
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos · Novo Valor da Causa · Prioridades · Agendar Audiência (preferências) · Alvará Eletrônico · Juntar Documento · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Bloco de anotações | [4](#cap-4) |
-| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (Projudi) · Listas em uma única página · Processos Paralisados (+90 dias) na tela Início · Totais da Mesa do Escrivão Criminal na Análise de Juntadas · Visual novo da Mesa do Analista · Conclusões por juiz · Totais de juntadas por tipo (cards que filtram a Análise de Juntadas) | [6](#cap-6), [9](#cap-9) |
+| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (Projudi) · Listas em uma única página · Processos Paralisados (+90 dias) na tela Início · Totais da Mesa do Escrivão Criminal na Análise de Juntadas · Visual novo da Mesa do Analista · Conclusões por juiz · Totais de juntadas por tipo (cards que filtram a Análise de Juntadas) · Dispensa rápida por tipo na Análise de Juntadas | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
 Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
@@ -3218,6 +3219,98 @@ juntadas**, todos numa linha só; os demais ficam no botão **+ N tipos**
 
 ---
 
+<a id="cap-9-19"></a>
+### 9.19 Dispensa rápida por tipo na Análise de Juntadas
+
+*Vem ligado.*
+
+**Para que serve:** dispensar, com um clique, **todas** as juntadas de um
+mesmo tipo que estão na lista **Análise de Juntadas** — por exemplo, todas
+as **JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO** — sem precisar filtrar, marcar
+uma a uma e clicar em **Dispensar**, página por página.
+
+**Onde fica:** na tela **Análise de Juntadas** (a lista aberta pela Mesa do
+Analista), logo abaixo do título, num quadro chamado **Dispensa rápida por
+tipo**. Cada **preferência** aparece como um cartão pequeno, com uma
+faixa colorida à esquerda (uma cor para cada preferência), o total daquele
+tipo (o mesmo número que aparece entre parênteses no filtro **Tipo
+Movimento** do Projudi) e o nome do tipo, em letras normais (ex.:
+"Juntada de certidão"). Nome comprido termina em "…"; o nome inteiro
+aparece ao passar o mouse. Só aparecem as preferências com **juntadas na
+lista** (total maior que zero). As cores do quadro seguem as do Projudi (creme e
+verde-oliva) e acompanham o tom escolhido no **Visual novo da Mesa do
+Analista** ([9.16](#cap-9-16)); a mensagem do fim fica em verde quando deu
+certo e em vermelho quando falhou. O quadro vem **sem nenhuma preferência**:
+você cria as preferências dos tipos que quiser (veja **Escolher as preferências**,
+abaixo).
+
+**Passo a passo:**
+
+1. Abra a **Análise de Juntadas**. O quadro **Dispensa rápida por tipo**
+   aparece abaixo do título. Na primeira vez, ele está vazio: crie uma
+   preferência em **+ Preferência** (veja **Escolher as preferências**, abaixo).
+2. Clique na preferência do tipo que quer dispensar. A extensão pergunta se deve
+   dispensar as juntadas daquele tipo em todos os processos da lista;
+   clique em **OK** para seguir ou em **Cancelar** para desistir.
+3. Enquanto trabalha, uma linha fina na cor da preferência cresce na base
+   do cartão, e o quadro mostra **Dispensando as juntadas do tipo …** e
+   quantas já foram dispensadas. A extensão faz, sem você ver, o
+   mesmo que você faria: escolhe o tipo em **Tipo Movimento**, clica em
+   **Filtrar** e passa por **todas as páginas** da lista (**Próxima
+   Página**), procurando o nome do tipo na coluna **Tipo de Documento**. Em
+   cada página onde o encontra, marca só as juntadas daquele tipo e clica
+   em **Dispensar**. Depois, recomeça da primeira página, até percorrer a
+   lista inteira sem achar mais nenhuma.
+4. No fim, a lista é atualizada sozinha e o quadro mostra, em verde,
+   quantas juntadas foram dispensadas. A mensagem some sozinha depois de
+   2 segundos.
+
+**Escolher as preferências:**
+
+- Para criar uma preferência, clique em **+ Preferência**, escolha o tipo de
+  juntada na lista (são os mesmos tipos do filtro **Tipo Movimento**, com o
+  total de cada um) e clique em **Acrescentar**.
+- Para tirar uma preferência, clique no **×** ao lado dela e confirme.
+- As preferências criadas ficam guardadas como as suas demais preferências
+  (entram no **⬇ Exportar** / **Importar** do Menu, [2.6](#cap-2-6)) e já
+  aparecem carregadas sempre que a Análise de Juntadas é aberta ou
+  atualizada (**Filtrar**, **F5**, a volta da lista depois de uma dispensa),
+  sempre com o total atualizado.
+  Preferência criada ou tirada em outra aba do Projudi também vale na hora
+  nas demais abas abertas.
+
+**Bom saber:**
+
+- A dispensa **não pode ser desfeita**: confira o tipo antes de clicar na
+  preferência.
+- São dispensadas só as juntadas do tipo da preferência, que é um dos
+  tipos da lista **Tipo Movimento**. Na coluna **Tipo de Documento**, vale
+  só o nome do tipo: o que vem depois dele (como o responsável) é
+  ignorado. As demais juntadas não são tocadas. Os outros filtros da tela (Status,
+  Grupo, Localizador etc.) não são considerados: valem todas as juntadas
+  daquele tipo.
+- Todas as páginas da lista são conferidas, não só a primeira. Se o
+  Projudi não aceitar o filtro pelo tipo, a extensão procura na lista
+  inteira (**Todos**), página por página — pode levar mais tempo, mas o
+  resultado é o mesmo.
+- Preferência sem juntadas na lista (total **0**) **não aparece**, para não
+  poluir a tela: ela continua guardada e volta sozinha quando houver
+  juntadas daquele tipo. No fim do quadro, a nota **+N sem juntadas agora**
+  avisa quantas estão fora de vista; passe o mouse sobre ela para ver os
+  nomes.
+- A partir da 11ª preferência, as cores das faixas se repetem.
+- Se o Projudi não confirmar a dispensa (por exemplo, uma juntada continua
+  na lista depois do **Dispensar**), a extensão para, mostra em vermelho
+  **Dispensa interrompida** com o motivo e quantas já foram dispensadas, e
+  não insiste (essa mensagem também some sozinha depois de 2 segundos).
+  Confira a lista e, se for o caso, clique na preferência de novo.
+- Enquanto uma dispensa está em andamento, as demais preferências ficam
+  bloqueadas.
+- Para ligar ou desligar, use **Dispensa rápida por tipo na Análise de
+  Juntadas** no Menu da extensão ([2.6](#cap-2-6)).
+
+---
+
 <a id="cap-10"></a>
 ## 10. Privacidade e perfis bloqueados
 
@@ -3287,6 +3380,7 @@ telas abertas a partir daí voltam a funcionar.
 | O campo "De" não muda para a conta escolhida | Falta a permissão "Enviar como" nessa caixa — peça ao TI ([5.3](#cap-5-3)) |
 | "Verifique a conclusão" | Confira a conclusão no Projudi antes de repetir ([6.2](#cap-6-2)) |
 | Os botões **Dispensar juntadas**, **Dispensar decursos** ou **Finalizar conclusão** aparecem no quadro Pendências, mas não respondem ao clique (acontecia com o zoom do navegador acima de 100%, ex.: 110%) | Corrigido na versão 4: atualize a extensão ([2.3](#cap-2-3)). Enquanto não atualiza, volte o zoom para 100% (**Ctrl+0**) |
+| Dispensa rápida por tipo: "Dispensa interrompida" | Confira na lista se as juntadas daquele tipo ainda estão lá e clique na preferência de novo; se continuar, dispense pelo botão **Dispensar** do Projudi ([9.19](#cap-9-19)) |
 | Dispensa de juntadas/decursos parou com erro | Clique em **Ver detalhes**, resolva no Projudi e tente de novo ([6.1](#cap-6-1), [6.3](#cap-6-3)) |
 | Card de suspensão/monitoração não aparece | Só são sinalizados status **ATIVA** e os motivos listados em [4.1](#cap-4-1)/[4.2](#cap-4-2); aguarde alguns segundos após abrir o processo |
 | Mandado não virou Regionalizado | Só muda se a cidade da parte for de outra comarca **e** constar em Comarca de Destino; veja a nota amarela do diálogo ([9.7](#cap-9-7)) |
@@ -3309,6 +3403,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 27 | 12/11/2026 | Nova seção 9.19 **Dispensa rápida por tipo na Análise de Juntadas**: quadro abaixo do título da Análise de Juntadas com **preferências** de tipos de juntada, cada uma com o total do tipo; cada preferência é um cartão pequeno, com uma cor própria na faixa lateral, o total e o nome do tipo em letras normais (nome comprido termina em "…"), e só aparece quando o total é maior que zero (a nota **+N sem juntadas agora** lembra as demais); clicar na preferência dispensa, com confirmação, todas as juntadas daquele tipo de uma vez, procurando o nome do tipo em **todas as páginas** da lista (e na lista inteira, se o Projudi não aplicar o filtro pelo tipo), considerando só o nome do tipo da lista **Tipo Movimento** e ignorando o responsável que aparece junto na coluna **Tipo de Documento**. O quadro vem sem nenhuma preferência: cada pessoa cria as suas em **+ Preferência** e tira no **×**; elas ficam guardadas como as demais preferências (entram no **⬇ Exportar** / **Importar** do Menu e no resumo do backup) e aparecem carregadas sempre que a tela é aberta ou atualizada, com o total atualizado. O quadro usa as cores do Projudi original e acompanha o tom do Visual novo da Mesa (9.16); a mensagem do fim (verde se deu certo, vermelha se falhou) some sozinha depois de 2 segundos. Sumário, tabela da 2.6 e **11. Solução de problemas** atualizados. Novo vídeo V76 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 26 | 12/11/2026 | Nova seção **9.18 Totais de juntadas por tipo na Análise de Juntadas**: cards pequenos e coloridos com o total e a porcentagem de cada tipo da lista **Tipo Movimento** acima da lista (só tipos com total maior que zero; por padrão, os 10 maiores, numa linha só); em **⚙ Personalizar**, escolha quantos cards e quais tipos aparecem por padrão (fica salvo), e os demais ficam em **+ N tipos**; clicar num card deixa na lista só as juntadas daquele tipo, e **Mostrar todas** volta à lista inteira. As cores seguem o tom do Visual novo da Mesa (padrão: Projudi original). Incluída também na tabela de 2.6. |
 | 25 | 12/11/2026 | Nova seção **9.17 Conclusões por juiz**: na lista Conclusões, acima da tabela, um card para cada juiz (coluna Responsável), em ordem crescente do total (do que tem menos conclusões para o que tem mais), só para juízes com total maior que zero (com a lista vazia, os cards não aparecem), com o total de conclusões dele e, dentro do card, o total e a porcentagem de cada tipo de conclusão; cards compactos, sempre numa linha só (com muitos juízes, a linha rola para o lado), com uma cor fixa para cada juiz; no pé do card, etiquetas no formato do card (como as etiquetas de tipo do alto e os botões Mostrar todas e Copiar resumo), em dois tons de vermelho, com as conclusões há mais de 120 dias e as de réu preso (com o símbolo do Projudi), explicadas ao pousar o mouse; clicar no juiz, num tipo ou numa etiqueta mostra na tabela só aquelas conclusões, e esse filtro fica guardado até clicar em Mostrar todas; botão Copiar resumo, que copia os totais em texto; as cores do quadro acompanham a cor do Visual novo da Mesa do Analista (9.16), com cores vivas quando ele está desligado. Nova linha em 10.1 (filtro guardado). Incluída também na tabela de 2.6. |
 | 24 | 12/11/2026 | Sistemas do CNJ (8.7): os cards dos sistemas deixam de aparecer nas telas de **Análise de Juntadas**, **Conclusões** e **Feitos Ativos Com Réu Preso**, onde surgiam por engano por causa dos números de processo da lista. Continuam só na tela principal de um processo aberto. |

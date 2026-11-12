@@ -21,7 +21,10 @@ do .zip baixado pelo botão **2. Atualizar** (regra no `.gitattributes`).
 
 **Numeração:** desde a versão 3, cada versão nova é um número inteiro,
 somado de 1 em 1 (3, 4, 5…), em vez de números como 2.61.0. O manual
-segue o mesmo número.
+segue o mesmo número. Desde a versão 24, o número só sobe **uma vez por
+mesclagem**: enquanto a branch não é mesclada, ela fica na versão da
+`principal` + 1, por mais correções que receba; cada correção ajusta o
+texto, a data da capa e a **mesma linha** do Anexo A dessa versão.
 
 ## Passo a passo
 

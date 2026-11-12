@@ -104,4 +104,5 @@ para dentro da extensão, retire essa regra.
 | [V73](V73-visual-novo-da-mesa-do-analista.mp4) | [Visual novo da Mesa do Analista](V73-visual-novo-da-mesa-do-analista.mp4) | [9.16](../extensao-preview-documentos/manual/MANUAL.md#cap-9-16) | 0:41 |
 | [V74](V74-conclusoes-por-juiz.mp4) | [Conclusões por juiz](V74-conclusoes-por-juiz.mp4) | [9.17](../extensao-preview-documentos/manual/MANUAL.md#cap-9-17) | 0:43 |
 | [V75](V75-totais-de-juntadas-por-tipo.mp4) | [Totais de juntadas por tipo na Análise de Juntadas](V75-totais-de-juntadas-por-tipo.mp4) | [9.18](../extensao-preview-documentos/manual/MANUAL.md#cap-9-18) | 0:34 |
+| [V76](V76-dispensa-rapida-por-tipo-na-analise-de-juntadas.mp4) | [Dispensa rápida por tipo na Análise de Juntadas](V76-dispensa-rapida-por-tipo-na-analise-de-juntadas.mp4) | [9.19](../extensao-preview-documentos/manual/MANUAL.md#cap-9-19) | 0:46 |
 <!-- tabela-videos:fim -->
