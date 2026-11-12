@@ -65,6 +65,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/sequencialProcessoPrincipal.js",
 			"src/decursoPrazoSequencial.js",
 			"src/listasPaginaUnica.js",
+			"src/totaisJuntadasPorTipo.js",
 			"src/suspensaoAtiva.js",
 			"src/monitoracaoAtiva.js",
 			"src/oraculoDirect.js",
@@ -115,7 +116,8 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/previewConclusao.css",
 			"src/localizadorNaListaProjudi.css",
 			"src/conclusoesPorJuiz.css",
-			"src/visualMesa.css"
+			"src/visualMesa.css",
+			"src/totaisJuntadasPorTipo.css"
 		],
 		runAt: "document_idle",
 		allFrames: true,

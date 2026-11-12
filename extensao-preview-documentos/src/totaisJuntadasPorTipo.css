@@ -1,0 +1,124 @@
+/* Totais de juntadas por tipo (totaisJuntadasPorTipo.js): cards acima da
+   lista da Análise de Juntadas, no formato dos cards de "Conclusões por
+   juiz", nas cores do tom escolhido no Visual novo da Mesa (data-tom, mesmos
+   valores de visualMesa.css). Padrão: Projudi original. Seletores com #id
+   para o estilo do Projudi não alterar letras e botões. */
+
+/* ---------- tons ----------
+   --jt-fundo: fundo do quadro       --jt-cartao: cards e blocos
+   --jt-linha: bordas                --jt-texto: texto principal
+   --jt-suave: títulos e dicas       --jt-pct: porcentagem dos cards
+   --jt-acento: botões e destaques   --jt-acento-suave: card escolhido / hover */
+#pdp-juntadas-tipo, #pdp-juntadas-tipo[data-tom="projudi"] {
+	/* Projudi original: as cores do tema "olive" do Projudi */
+	--jt-fundo: #f3f3e2; --jt-cartao: #f9f9ef; --jt-linha: #c6c1a6; --jt-texto: #3e4034;
+	--jt-suave: #63735f; --jt-pct: #8a7a45; --jt-acento: #63735f; --jt-acento-suave: #e6e1c6;
+	--jt-acento-texto: #fff; --jt-sombra: rgba(62, 64, 52, .10);
+}
+#pdp-juntadas-tipo[data-tom="oliva"] {
+	--jt-fundo: #dfe0d2; --jt-cartao: #ecece2; --jt-linha: #cfd0bf; --jt-texto: #262a1f;
+	--jt-suave: #5f6352; --jt-pct: #6f735e; --jt-acento: #56613c; --jt-acento-suave: #dde2cc;
+}
+#pdp-juntadas-tipo[data-tom="areia"] {
+	--jt-fundo: #e2d9c6; --jt-cartao: #efe8da; --jt-linha: #d3c8b2; --jt-texto: #3a3226;
+	--jt-suave: #66594a; --jt-pct: #7d6c55; --jt-acento: #6b5a3a; --jt-acento-suave: #e2d6bd;
+}
+#pdp-juntadas-tipo[data-tom="salvia"] {
+	--jt-fundo: #d8dfd4; --jt-cartao: #e6ebe3; --jt-linha: #c6d0c1; --jt-texto: #25302a;
+	--jt-suave: #56655a; --jt-pct: #677a6b; --jt-acento: #4a6650; --jt-acento-suave: #d3dfd3;
+}
+#pdp-juntadas-tipo[data-tom="nevoa"] {
+	--jt-fundo: #d9dfe4; --jt-cartao: #e7ebee; --jt-linha: #c7d0d8; --jt-texto: #232c33;
+	--jt-suave: #56636e; --jt-pct: #687682; --jt-acento: #3e5a6e; --jt-acento-suave: #d4dee6;
+}
+#pdp-juntadas-tipo[data-tom="escuro"] {
+	--jt-fundo: #232622; --jt-cartao: #2c302b; --jt-linha: #3d4239; --jt-texto: #e3e6dc;
+	--jt-suave: #a7ad9c; --jt-pct: #b9bfa9; --jt-acento: #b9c79a; --jt-acento-suave: #3a4232;
+	--jt-acento-texto: #1e211c; --jt-sombra: rgba(0, 0, 0, .35);
+}
+
+/* ---------- quadro ---------- */
+#pdp-juntadas-tipo.pdp-jtipo {
+	margin: 10px 0 14px; padding: 12px 14px; border-radius: 14px;
+	background: var(--jt-fundo); border: 1px solid var(--jt-linha);
+	font: 13px/1.4 "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif; color: var(--jt-texto);
+	accent-color: var(--jt-acento);
+}
+#pdp-juntadas-tipo * { box-sizing: border-box; }
+#pdp-juntadas-tipo button { font: inherit; color: inherit; cursor: pointer; margin: 0; }
+#pdp-juntadas-tipo .pdp-jtipo-topo { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 10px; }
+#pdp-juntadas-tipo .pdp-jtipo-titulo { display: flex; align-items: baseline; gap: 10px; }
+#pdp-juntadas-tipo .pdp-jtipo-titulo-texto { font-size: 15px; font-weight: 700; letter-spacing: -.01em; color: var(--jt-suave); }
+#pdp-juntadas-tipo .pdp-jtipo-geral, #pdp-juntadas-tipo .pdp-jtipo-dica { font-size: 12px; color: var(--jt-suave); }
+#pdp-juntadas-tipo .pdp-jtipo-dica { flex: 1; }
+#pdp-juntadas-tipo .pdp-jtipo-limpar, #pdp-juntadas-tipo .pdp-jtipo-engrenagem {
+	padding: 4px 12px; border-radius: 999px; border: 1px solid var(--jt-linha); background: var(--jt-cartao);
+	font-size: 12px; font-weight: 600; color: var(--jt-texto);
+}
+#pdp-juntadas-tipo .pdp-jtipo-limpar:hover, #pdp-juntadas-tipo .pdp-jtipo-engrenagem:hover { background: var(--jt-acento-suave); border-color: var(--jt-acento); }
+
+/* ---------- cards ---------- */
+#pdp-juntadas-tipo .pdp-jtipo-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 8px; }
+/* Padrão (até 12 cards): todos numa linha só, dividindo a largura. O
+   número fica em cima e o nome embaixo, com a largura toda do card. */
+#pdp-juntadas-tipo .pdp-jtipo-grade.pdp-jtipo-uma-linha { grid-template-columns: repeat(var(--pdp-jtipo-colunas), minmax(0, 1fr)); gap: 6px; }
+#pdp-juntadas-tipo .pdp-jtipo-grade.pdp-jtipo-uma-linha.pdp-jtipo-com-botao { grid-template-columns: repeat(var(--pdp-jtipo-colunas), minmax(0, 1fr)) max-content; }
+#pdp-juntadas-tipo .pdp-jtipo-uma-linha .pdp-jtipo-card { justify-content: flex-start; padding: 6px 8px 6px 10px; gap: 2px; }
+#pdp-juntadas-tipo .pdp-jtipo-uma-linha .pdp-jtipo-cab { flex-direction: column; align-items: flex-start; gap: 2px; }
+#pdp-juntadas-tipo .pdp-jtipo-uma-linha .pdp-jtipo-total { min-width: 0; font-size: 17px; }
+#pdp-juntadas-tipo .pdp-jtipo-uma-linha .pdp-jtipo-nome { width: 100%; font-size: 11px; min-height: 2.5em; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; }
+#pdp-juntadas-tipo .pdp-jtipo-uma-linha .pdp-jtipo-mais { padding: 6px 10px; font-size: 11px; white-space: nowrap; }
+
+#pdp-juntadas-tipo .pdp-jtipo-card {
+	position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 3px; padding: 6px 10px 6px 12px;
+	background: var(--jt-cartao); border-radius: 10px; border: 1px solid var(--jt-linha); overflow: hidden; text-align: left;
+	box-shadow: 0 1px 2px var(--jt-sombra);
+	transition: box-shadow .15s ease, transform .15s ease, opacity .15s ease, background .15s ease;
+}
+#pdp-juntadas-tipo .pdp-jtipo-card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--pdp-jtipo-cor); }
+#pdp-juntadas-tipo .pdp-jtipo-card:hover { transform: translateY(-1px); background: var(--jt-acento-suave); box-shadow: 0 3px 8px var(--jt-sombra); }
+/* Card escolhido: fundo do tom e contorno na cor do card. */
+#pdp-juntadas-tipo .pdp-jtipo-card.pdp-jtipo-ativo {
+	background: var(--jt-acento-suave); border-color: var(--pdp-jtipo-cor);
+	box-shadow: 0 0 0 2px var(--pdp-jtipo-cor), 0 4px 12px var(--jt-sombra);
+}
+/* Os demais ficam só um pouco mais claros: os números continuam legíveis. */
+#pdp-juntadas-tipo .pdp-jtipo-card.pdp-jtipo-apagado { opacity: .72; }
+#pdp-juntadas-tipo .pdp-jtipo-card.pdp-jtipo-apagado:hover { opacity: 1; }
+
+#pdp-juntadas-tipo .pdp-jtipo-cab { display: flex; align-items: center; gap: 7px; width: 100%; }
+#pdp-juntadas-tipo .pdp-jtipo-total { flex: none; min-width: 20px; font-size: 17px; font-weight: 800; line-height: 1; color: var(--pdp-jtipo-cor); letter-spacing: -.02em; }
+#pdp-juntadas-tipo .pdp-jtipo-nome {
+	flex: 1; min-width: 0; font-weight: 600; font-size: 11.5px; line-height: 1.25; color: var(--jt-texto);
+	display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+#pdp-juntadas-tipo .pdp-jtipo-pct { font-size: 10.5px; font-weight: 600; color: var(--jt-pct); }
+#pdp-juntadas-tipo .pdp-jtipo-mais { padding: 6px 10px; border-radius: 10px; border: 1px dashed var(--jt-linha); background: transparent; font-size: 12px; font-weight: 600; color: var(--jt-suave); }
+#pdp-juntadas-tipo .pdp-jtipo-mais:hover { background: var(--jt-acento-suave); border-color: var(--jt-acento); }
+#pdp-juntadas-tipo .pdp-jtipo-carregando { opacity: .5; pointer-events: none; }
+
+/* ---------- ⚙ Personalizar ---------- */
+#pdp-juntadas-tipo .pdp-jtipo-config { margin-top: 12px; padding: 12px 14px; border-radius: 10px; background: var(--jt-cartao); border: 1px solid var(--jt-linha); font-size: 12px; color: var(--jt-texto); }
+#pdp-juntadas-tipo .pdp-jtipo-config[hidden] { display: none; }
+#pdp-juntadas-tipo .pdp-jtipo-config-titulo { font-weight: 700; font-size: 13px; color: var(--jt-suave); margin-bottom: 8px; }
+#pdp-juntadas-tipo .pdp-jtipo-config-linha { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; margin: 6px 0; font-weight: 600; }
+#pdp-juntadas-tipo .pdp-jtipo-config-numero { width: 70px; padding: 3px 6px; border: 1px solid var(--jt-linha); border-radius: 6px; background: var(--jt-fundo); color: var(--jt-texto); font: inherit; }
+#pdp-juntadas-tipo .pdp-jtipo-config-ajuda { font-weight: 400; color: var(--jt-suave); }
+#pdp-juntadas-tipo .pdp-jtipo-config-opcao { font-weight: 400; cursor: pointer; }
+#pdp-juntadas-tipo .pdp-jtipo-config-atalhos { display: flex; gap: 12px; margin: 4px 0 6px; }
+#pdp-juntadas-tipo .pdp-jtipo-config-tipos { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 2px 12px; max-height: 260px; overflow: auto; padding: 4px; border: 1px solid var(--jt-acento-suave); border-radius: 8px; }
+#pdp-juntadas-tipo .pdp-jtipo-config-desligado { opacity: .5; }
+#pdp-juntadas-tipo .pdp-jtipo-config-tipo { display: flex; align-items: center; gap: 6px; padding: 2px 4px; border-radius: 6px; cursor: pointer; }
+#pdp-juntadas-tipo .pdp-jtipo-config-tipo:hover { background: var(--jt-acento-suave); }
+#pdp-juntadas-tipo .pdp-jtipo-config-tipo span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#pdp-juntadas-tipo .pdp-jtipo-config-tipo small { color: var(--jt-pct); }
+#pdp-juntadas-tipo .pdp-jtipo-config-aviso { min-height: 14px; margin-top: 6px; color: #b4321f; }
+#pdp-juntadas-tipo[data-tom="escuro"] .pdp-jtipo-config-aviso { color: #ff9a85; }
+#pdp-juntadas-tipo .pdp-jtipo-config-acoes { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-top: 6px; }
+#pdp-juntadas-tipo .pdp-jtipo-salvar { padding: 4px 14px; border-radius: 999px; border: 1px solid var(--jt-acento); background: var(--jt-acento); color: var(--jt-acento-texto, #fff) !important; font-size: 12px; font-weight: 600; }
+#pdp-juntadas-tipo .pdp-jtipo-salvar:hover { filter: brightness(.9); }
+#pdp-juntadas-tipo .pdp-jtipo-link { padding: 0; border: 0; background: none; font-size: 12px; font-weight: 600; color: var(--jt-suave); text-decoration: underline; }
+#pdp-juntadas-tipo input[type="checkbox"], #pdp-juntadas-tipo input[type="radio"] { margin: 0; }
+#pdp-juntadas-tipo button:focus-visible { outline: 2px solid var(--jt-acento); outline-offset: 2px; }
+
+tr[data-pdp-jtipo-oculta] { display: none !important; }

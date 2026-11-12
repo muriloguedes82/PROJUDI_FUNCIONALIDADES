@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 25 |
-| **Versão da extensão** | 25 |
+| **Versão do manual** | 26 |
+| **Versão da extensão** | 26 |
 | **Data desta versão** | 12/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -100,6 +100,7 @@
    - 9.15 [Totais da Mesa do Escrivão Criminal na Análise de Juntadas](#cap-9-15)
    - 9.16 [Visual novo da Mesa do Analista (Projudi)](#cap-9-16)
    - 9.17 [Conclusões por juiz](#cap-9-17)
+   - 9.18 [Totais de juntadas por tipo na Análise de Juntadas](#cap-9-18)
 10. [Privacidade e perfis bloqueados](#cap-10)
     - 10.1 [O que fica guardado no seu navegador](#cap-10-1)
     - 10.2 [Bloqueio para perfis de advocacia](#cap-10-2)
@@ -465,7 +466,7 @@ ligar tudo.
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos · Novo Valor da Causa · Prioridades · Agendar Audiência (preferências) · Alvará Eletrônico · Juntar Documento · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Bloco de anotações | [4](#cap-4) |
-| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (Projudi) · Listas em uma única página · Processos Paralisados (+90 dias) na tela Início · Totais da Mesa do Escrivão Criminal na Análise de Juntadas · Visual novo da Mesa do Analista · Conclusões por juiz | [6](#cap-6), [9](#cap-9) |
+| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (Projudi) · Listas em uma única página · Processos Paralisados (+90 dias) na tela Início · Totais da Mesa do Escrivão Criminal na Análise de Juntadas · Visual novo da Mesa do Analista · Conclusões por juiz · Totais de juntadas por tipo (cards que filtram a Análise de Juntadas) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
 Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
@@ -3020,8 +3021,6 @@ Atuação / Data**) acompanha o mesmo tom em todas as telas do Projudi.
   aparece no quadro **Outros atalhos**; item novo da Análise de Juntadas,
   no quadro **Outros**.
 
----
-
 <a id="cap-9-17"></a>
 ### 9.17 Conclusões por juiz
 
@@ -3113,6 +3112,109 @@ por linha na lista.
   responsável**.
 - Para ligar ou desligar, use **Conclusões por juiz** no Menu da extensão
   ([2.6](#cap-2-6)).
+
+
+<a id="cap-9-18"></a>
+### 9.18 Totais de juntadas por tipo na Análise de Juntadas
+
+*Vem ligado.*
+
+**Para que serve:** ver de relance quantas juntadas de cada tipo estão
+aguardando análise (manifestações, certidões, respostas de ofício etc.) e
+deixar na lista só as de um tipo, com um clique, sem usar o campo **Tipo
+Movimento** e o botão **Filtrar**.
+
+**Onde fica:** na tela **Análise de Juntadas**, num quadro **Juntadas por
+tipo** logo acima da lista. Os cards seguem a lista do campo **Tipo
+Movimento** do próprio Projudi (no formulário de busca, acima da lista):
+um card para cada tipo que aparece ali, com o total que o Projudi informa
+entre parênteses (ex.: **JUNTADA DE MANIFESTAÇÃO(92)** vira o card **92
+Manifestação**). No alto do quadro aparecem a soma desses totais e quantos
+tipos há. Os cards são pequenos, para caberem
+muitos tipos sem poluir a tela. Cada um tem uma cor e mostra:
+
+- o total de juntadas daquele tipo, em número destacado, no alto;
+- o nome do tipo, em letras minúsculas e sem o "JUNTADA DE" do começo (ex.:
+  **Resposta de ofício**); o nome completo aparece ao pousar o mouse sobre
+  o card;
+- a porcentagem que esse tipo representa no total da lista (ex.: **4% do
+  total**; abaixo de 1%, aparece **<1% do total**).
+
+Só aparecem cards de tipos com **pelo menos uma** juntada na lista: tipo
+com total zero não ganha card. Os cards ficam em ordem, do tipo com mais
+juntadas para o com menos. Por padrão, aparecem os **10 tipos com mais
+juntadas**, todos numa linha só; os demais ficam no botão **+ N tipos**
+(ex.: **+ 56 tipos**), ao fim da linha, que mostra todos.
+
+**Passo a passo:**
+
+1. Abra a **Análise de Juntadas**. O quadro **Juntadas por tipo** aparece
+   acima da lista.
+2. Clique no card do tipo desejado (ex.: **Resposta de ofício**). A lista
+   passa a mostrar só as juntadas desse tipo. O card fica com contorno
+   colorido, os demais ficam mais claros, e no alto do quadro aparece, por
+   exemplo, "mostrando 22 de 480".
+   - Se a lista inteira já está na tela (com **Listas em uma única página**
+     ([9.13](#cap-9-13)), ou quando tudo cabe numa página) e o campo
+     **Tipo Movimento** está em **Todos**, o filtro é feito na hora, na
+     própria tela.
+   - Senão, a extensão escolhe o tipo no campo **Tipo Movimento** e clica
+     em **Filtrar** por você; a tela recarrega já só com aquele tipo.
+3. Para voltar a ver todas, clique em **Mostrar todas** (no alto do
+   quadro, à direita) ou clique de novo no card destacado. Para trocar de
+   tipo, basta clicar em outro card.
+
+**Escolher quantos cards e quais tipos aparecem (⚙ Personalizar):**
+
+1. No alto do quadro, à direita, clique em **⚙ Personalizar**. Abre um
+   bloco logo abaixo dos cards.
+2. Em **Quantos cards mostrar por padrão**, digite um número (ex.: **8**).
+   O padrão é **10**. Deixe em branco para mostrar todos. Até 12 cards,
+   eles ficam numa linha só; com mais, ocupam várias linhas. Os tipos com
+   mais juntadas vêm
+   primeiro.
+3. Em **Tipos mostrados por padrão**, escolha **todos os tipos** ou **só os
+   marcados abaixo**. Na segunda opção, marque os tipos que quer ver (ao
+   lado de cada um aparece quantas juntadas ele tem agora). **Marcar
+   todos** e **Desmarcar todos** ajudam a montar a escolha.
+4. Clique em **Salvar**. A escolha fica guardada e vale nas próximas vezes
+   que você abrir a Análise de Juntadas (também em outras abas). Os tipos
+   que ficaram de fora continuam a um clique: o botão **+ N tipos** (ex.:
+   **+ 22 tipos**) mostra todos, e **− Mostrar menos** volta à sua escolha.
+5. Para voltar ao padrão (os 10 tipos com mais juntadas), abra **⚙
+   Personalizar** e clique em **Voltar ao padrão (10 maiores)**. **Cancelar** fecha o bloco sem
+   mudar nada.
+
+**Bom saber:**
+
+- Os totais dos cards são os do campo **Tipo Movimento**. A coluna
+  **Juntado por** (quem juntou) não entra na contagem.
+- ⚠️ Ao escolher um tipo, as caixas de marcar das juntadas que ficaram
+  escondidas são desmarcadas, e a caixa de marcar todas (no cabeçalho da
+  lista) passa a marcar só as que estão à vista. Assim **Análise
+  Múltipla**, **Analisar** e **Dispensar** só alcançam as juntadas que você
+  está vendo.
+- Se o campo **Tipo Movimento** já estiver escolhendo um tipo, o card
+  desse tipo aparece destacado. **Mostrar todas** (ou um clique no card
+  destacado) volta o campo para **Todos** e clica em **Filtrar**; um clique
+  em outro card troca o tipo no campo.
+- Se o campo **Tipo Movimento** não tiver nenhum tipo com total, o quadro
+  não aparece.
+- As cores do quadro seguem o tom escolhido no **Visual novo da Mesa do
+  Analista** ([9.16](#cap-9-16)): no padrão, **Projudi original**, o
+  quadro fica no bege e oliva do próprio Projudi; escolhendo **Oliva
+  fosco**, **Areia**, **Sálvia**, **Névoa** ou **Escuro suave** nas
+  bolinhas da Mesa (ou no Menu), o quadro muda junto. Cada card tem uma
+  faixa colorida à esquerda, em tons que combinam com o tom escolhido.
+- Um tipo escolhido em **⚙ Personalizar** que não tenha nenhuma juntada no
+  momento não ganha card; ele continua na sua escolha para as próximas
+  vezes.
+- A escolha do **⚙ Personalizar** vai junto no backup das preferências do
+  Menu ([2.6](#cap-2-6)).
+- Para ligar ou desligar, use **Totais de juntadas por tipo (cards que
+  filtram a Análise de Juntadas)** no Menu da extensão ([2.6](#cap-2-6)).
+
+---
 
 ---
 
@@ -3207,6 +3309,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 26 | 12/11/2026 | Nova seção **9.18 Totais de juntadas por tipo na Análise de Juntadas**: cards pequenos e coloridos com o total e a porcentagem de cada tipo da lista **Tipo Movimento** acima da lista (só tipos com total maior que zero; por padrão, os 10 maiores, numa linha só); em **⚙ Personalizar**, escolha quantos cards e quais tipos aparecem por padrão (fica salvo), e os demais ficam em **+ N tipos**; clicar num card deixa na lista só as juntadas daquele tipo, e **Mostrar todas** volta à lista inteira. As cores seguem o tom do Visual novo da Mesa (padrão: Projudi original). Incluída também na tabela de 2.6. |
 | 25 | 12/11/2026 | Nova seção **9.17 Conclusões por juiz**: na lista Conclusões, acima da tabela, um card para cada juiz (coluna Responsável), em ordem crescente do total (do que tem menos conclusões para o que tem mais), só para juízes com total maior que zero (com a lista vazia, os cards não aparecem), com o total de conclusões dele e, dentro do card, o total e a porcentagem de cada tipo de conclusão; cards compactos, sempre numa linha só (com muitos juízes, a linha rola para o lado), com uma cor fixa para cada juiz; no pé do card, etiquetas no formato do card (como as etiquetas de tipo do alto e os botões Mostrar todas e Copiar resumo), em dois tons de vermelho, com as conclusões há mais de 120 dias e as de réu preso (com o símbolo do Projudi), explicadas ao pousar o mouse; clicar no juiz, num tipo ou numa etiqueta mostra na tabela só aquelas conclusões, e esse filtro fica guardado até clicar em Mostrar todas; botão Copiar resumo, que copia os totais em texto; as cores do quadro acompanham a cor do Visual novo da Mesa do Analista (9.16), com cores vivas quando ele está desligado. Nova linha em 10.1 (filtro guardado). Incluída também na tabela de 2.6. |
 | 24 | 12/11/2026 | Sistemas do CNJ (8.7): os cards dos sistemas deixam de aparecer nas telas de **Análise de Juntadas**, **Conclusões** e **Feitos Ativos Com Réu Preso**, onde surgiam por engano por causa dos números de processo da lista. Continuam só na tela principal de um processo aberto. |
 | 23 | 11/11/2026 | Visual novo da Mesa do Analista (9.16): novo tom **Projudi original**, com as cores do tema do próprio Projudi (creme esverdeado, verde-oliva, quadros num creme bem claro, laranja nos dados do usuário e vermelho puro nos urgentes), que passa a ser o **padrão** (antes, Oliva fosco). Quem já tinha escolhido um tom continua com ele. Ajustados 2.6 (Cor do visual da Mesa do Analista) e 9.16 (Escolher a cor). Vídeo V73 regravado (não citado no manual). |
