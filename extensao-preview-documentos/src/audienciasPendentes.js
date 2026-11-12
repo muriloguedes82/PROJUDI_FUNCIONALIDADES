@@ -21,8 +21,11 @@
 // Clicar no número envia o mesmo formulário na própria página e abre a
 // Listagem de Audiências já pesquisada (Ctrl+clique abre em outra aba).
 //
-// O total NÃO é guardado: é contado toda vez que a aba é aberta (como nos
-// Paralisados +90 dias, para não mostrar o número de outra atuação). Com
+// O total NÃO é guardado: é contado de novo toda vez que a aba é aberta,
+// recarregada, reaberta pelo botão Voltar do navegador ou tem o conteúdo
+// trocado (ver atualizar()), sem reaproveitar respostas antigas do
+// navegador (cache "no-store"), para nunca mostrar um número velho ou de
+// outra atuação. Com
 // total zero, a linha some se "Ocultar contadores zerados" estiver ligado
 // (mesaAnalistaContadores.js). No visual novo da Mesa (visualMesa.js), a
 // linha (data-pdp-audiencias-pendentes) vai para o quadro principal "Para
@@ -76,7 +79,7 @@
 	}
 
 	async function baixar(url, opcoes) {
-		const resposta = await fetch(url, Object.assign({ credentials: "same-origin" }, opcoes || {}));
+		const resposta = await fetch(url, Object.assign({ credentials: "same-origin", cache: "no-store" }, opcoes || {}));
 		if (!resposta.ok) throw new Error("HTTP " + resposta.status);
 		const bytes = new Uint8Array(await resposta.arrayBuffer());
 		const texto = decodificar(bytes, resposta.headers.get("content-type"));
@@ -195,7 +198,11 @@
 		form.remove();
 	}
 
-	function criarLinha(tabela) {
+	// Linha da extensão no quadro "Para Realizar" (cria se ainda não houver)
+	// e devolve a célula do número.
+	function celulaDoTotal(tabela) {
+		const existente = document.querySelector("tr[" + LINHA_ATTR + "]");
+		if (existente && existente.cells[1]) return existente.cells[1];
 		const corpo = tabela.tBodies[0] || tabela;
 		const tr = document.createElement("tr");
 		tr.setAttribute(LINHA_ATTR, "");
@@ -208,13 +215,16 @@
 		label.title = DICA;
 		tdRotulo.appendChild(label);
 		const tdValor = document.createElement("td");
+		tr.append(tdRotulo, tdValor);
+		corpo.appendChild(tr);
+		return tdValor;
+	}
+
+	function mostrarEspera(celula) {
 		const espera = document.createElement("span");
 		espera.textContent = "…";
 		espera.title = "Contando…";
-		tdValor.appendChild(espera);
-		tr.append(tdRotulo, tdValor);
-		corpo.appendChild(tr);
-		return espera;
+		celula.replaceChildren(espera);
 	}
 
 	function pintarVermelho() {
@@ -225,7 +235,7 @@
 		(document.head || document.documentElement).appendChild(estilo);
 	}
 
-	function mostrarTotal(espera, total, envio) {
+	function mostrarTotal(celula, total, envio) {
 		const link = document.createElement("a");
 		link.href = LISTAGEM;
 		link.title = "Abrir a Listagem de Audiências (Pendentes)";
@@ -248,28 +258,63 @@
 			if (nome) window.open("about:blank", nome);
 			abrir(envio, nome);
 		});
-		espera.replaceWith(link);
+		celula.replaceChildren(link);
 	}
 
-	async function iniciar() {
+	// A contagem é refeita a cada vez que a aba é carregada ou atualizada:
+	//   - ao abrir ou recarregar a aba (o script roda de novo);
+	//   - ao voltar a ela pelo botão Voltar do navegador (página restaurada
+	//     da memória do navegador, evento pageshow com persisted);
+	//   - se o conteúdo da aba for trocado sem recarregar a página (a linha
+	//     some e é recriada pelo observador abaixo).
+	// Só vale a contagem mais recente (rodada): uma mais antiga que termine
+	// depois não sobrescreve o número.
+	let rodada = 0;
+	async function atualizar() {
 		if (!naAnaliseDeJuntadas()) return;
-		if (document.querySelector("[" + LINHA_ATTR + "]")) return;
 		const tabela = acharTabelaParaRealizar();
-		if (!tabela) {
+		if (!tabela && !document.querySelector("tr[" + LINHA_ATTR + "]")) {
 			console.log(TAG, "quadro \"Para Realizar\" não encontrado na Análise de Juntadas");
 			return;
 		}
-		const espera = criarLinha(tabela);
+		const minha = ++rodada;
+		const celula = celulaDoTotal(tabela);
+		mostrarEspera(celula);
 		try {
 			const envio = await prepararEnvio();
 			const total = await contar(envio);
+			if (minha !== rodada) return;
 			console.log(TAG, "total", total);
-			mostrarTotal(espera, total, envio);
+			mostrarTotal(celula, total, envio);
 		} catch (erro) {
+			if (minha !== rodada) return;
 			console.warn(TAG, "não foi possível contar:", erro);
-			espera.textContent = "não disponível";
-			espera.title = "Não foi possível abrir a Listagem de Audiências agora.";
+			const aviso = document.createElement("span");
+			aviso.textContent = "não disponível";
+			aviso.title = "Não foi possível abrir a Listagem de Audiências agora.";
+			celula.replaceChildren(aviso);
 		}
+	}
+
+	function vigiarConteudo() {
+		let agendado = false;
+		new MutationObserver(() => {
+			if (agendado || document.querySelector("tr[" + LINHA_ATTR + "]")) return;
+			if (!naAnaliseDeJuntadas() || !acharTabelaParaRealizar()) return;
+			agendado = true;
+			setTimeout(() => {
+				agendado = false;
+				if (!document.querySelector("tr[" + LINHA_ATTR + "]")) atualizar();
+			}, 300);
+		}).observe(document.body, { childList: true, subtree: true });
+	}
+
+	function iniciar() {
+		atualizar();
+		if (document.body) vigiarConteudo();
+		window.addEventListener("pageshow", (ev) => {
+			if (ev.persisted) atualizar();
+		});
 	}
 
 	if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar, { once: true });
