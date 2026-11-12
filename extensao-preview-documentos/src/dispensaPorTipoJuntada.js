@@ -394,7 +394,9 @@
 	// Uma cor de faixa lateral por preferência (pela posição na lista
 	// gravada, então cada uma mantém a sua mesmo quando outras somem por
 	// estarem zeradas); da 11ª em diante, as cores se repetem.
-	const CORES = ["#526b32", "#2f6f8f", "#a0522d", "#7b5ea7", "#3f8f6b", "#b5485d", "#5c6f8a", "#b08a2e", "#2d7d7a", "#8a5a7a"];
+	// Tons mais sóbrios, que combinam com o creme e o verde-oliva do Projudi,
+	// mas ainda diferentes entre si.
+	const CORES = ["#5f7340", "#3d6f86", "#9a5a36", "#6e5d8f", "#4a7d63", "#9b4f5c", "#5a6a80", "#a1813a", "#3f7773", "#7d5a70"];
 
 	// "JUNTADA DE CERTIDÃO" -> "Juntada de certidão" (deixa o card menor).
 	function emFrase(texto) {
