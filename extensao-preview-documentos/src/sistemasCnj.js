@@ -244,7 +244,7 @@
 	const NUMERO_CNJ = /\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}/;
 
 	// Só o número do TÍTULO conta (h3): as listas de Análise de Juntadas,
-	// Conclusões etc. também mostram números em em.attention, um por linha
+	// Conclusões, Feitos Ativos Com Réu Preso etc. mostram números em em.attention, um por linha
 	// da tabela, e com isso os cards apareciam nelas (corrigido na versão 24).
 	function documentoDeProcesso(doc) {
 		const seletores = ["#barraTituloStatusProcessual", "h3 em.attention"];
