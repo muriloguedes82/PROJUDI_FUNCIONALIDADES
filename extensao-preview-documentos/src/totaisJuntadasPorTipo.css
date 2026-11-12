@@ -19,6 +19,15 @@
 #pdp-juntadas-tipo .pdp-jtipo-limpar:hover { background: #eff6ff; border-color: #93c5fd; }
 
 #pdp-juntadas-tipo .pdp-jtipo-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 8px; }
+/* Padrão (até 12 cards): todos numa linha só, dividindo a largura. O
+   número fica em cima e o nome embaixo, com a largura toda do card. */
+#pdp-juntadas-tipo .pdp-jtipo-grade.pdp-jtipo-uma-linha { grid-template-columns: repeat(var(--pdp-jtipo-colunas), minmax(0, 1fr)); gap: 6px; }
+#pdp-juntadas-tipo .pdp-jtipo-grade.pdp-jtipo-uma-linha.pdp-jtipo-com-botao { grid-template-columns: repeat(var(--pdp-jtipo-colunas), minmax(0, 1fr)) max-content; }
+#pdp-juntadas-tipo .pdp-jtipo-uma-linha .pdp-jtipo-card { justify-content: flex-start; padding: 6px 8px 6px 10px; gap: 2px; }
+#pdp-juntadas-tipo .pdp-jtipo-uma-linha .pdp-jtipo-cab { flex-direction: column; align-items: flex-start; gap: 2px; }
+#pdp-juntadas-tipo .pdp-jtipo-uma-linha .pdp-jtipo-total { min-width: 0; font-size: 17px; }
+#pdp-juntadas-tipo .pdp-jtipo-uma-linha .pdp-jtipo-nome { width: 100%; font-size: 11px; min-height: 2.5em; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; }
+#pdp-juntadas-tipo .pdp-jtipo-uma-linha .pdp-jtipo-mais { padding: 6px 10px; font-size: 11px; white-space: nowrap; }
 #pdp-juntadas-tipo .pdp-jtipo-card {
 	position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 3px; padding: 6px 10px 6px 12px;
 	background: #fff; border-radius: 10px; border: 1px solid #e2e8f0; overflow: hidden; text-align: left;

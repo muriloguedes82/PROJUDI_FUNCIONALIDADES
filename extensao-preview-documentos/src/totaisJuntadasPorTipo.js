@@ -5,7 +5,8 @@
 // formulário de busca (ex.: JUNTADA DE MANIFESTAÇÃO(92)), com o total
 // que o próprio Projudi informa ali e a porcentagem que ele representa
 // no total (visual igual ao dos cards de "Conclusões por juiz"). Por
-// padrão aparecem todos os tipos; em "⚙ Personalizar" o usuário escolhe quantos cards e
+// padrão aparecem os 10 tipos com mais juntadas, numa linha só; em
+// "⚙ Personalizar" o usuário escolhe quantos cards e
 // quais tipos aparecem por padrão (preferência salva), e os demais ficam
 // no botão "+ N tipos".
 //
@@ -51,9 +52,14 @@
 	// Preferência do usuário (chrome.storage.local; entra no backup do Menu):
 	//   limite: quantos cards mostrar por padrão (0 = todos);
 	//   tipos: tipos mostrados por padrão (vazio = todos os tipos).
-	// Os demais tipos ficam no botão "+ N tipos". Por padrão, tudo aparece.
+	// Os demais tipos ficam no botão "+ N tipos". Sem preferência salva, vale
+	// o padrão: os 10 tipos com mais juntadas, todos numa linha só. Qualquer
+	// mudança feita em "⚙ Personalizar" é salva e passa a valer no lugar dele.
 	const CHAVE_PREF = "pdpJuntadasPorTipoPreferencias";
-	let pref = { limite: 0, tipos: [] };
+	const PREF_PADRAO = Object.freeze({ limite: 10, tipos: [] });
+	// Até quantos cards cabem numa linha só (acima disso, quebram em linhas).
+	const MAX_UMA_LINHA = 12;
+	let pref = { limite: PREF_PADRAO.limite, tipos: [] };
 
 	let tipoAtivo = null; // tipo filtrado na própria tela, ou null (todas)
 	let tipoDestaque = null; // card destacado (filtro da tela ou do Projudi)
@@ -67,7 +73,8 @@
 	let ultimosTipos = []; // [tipo, total] da última contagem (para o ⚙)
 
 	function lerPref(valor) {
-		const p = valor && typeof valor === "object" ? valor : {};
+		if (!valor || typeof valor !== "object") return { limite: PREF_PADRAO.limite, tipos: [] };
+		const p = valor;
 		const limite = Math.max(0, Math.floor(Number(p.limite) || 0));
 		const tipos = Array.isArray(p.tipos) ? p.tipos.filter(function (t) { return typeof t === "string" && t; }) : [];
 		return { limite: limite, tipos: tipos };
@@ -87,6 +94,16 @@
 			});
 		} catch (e) {
 			/* sem storage: fica o padrão (todos) */
+		}
+	}
+
+	// Volta ao padrão: apaga a preferência salva.
+	function apagarPref() {
+		pref = lerPref(null);
+		try {
+			chrome.storage.local.remove(CHAVE_PREF).catch(function () {});
+		} catch (e) {
+			/* sem storage */
 		}
 	}
 
@@ -223,6 +240,7 @@
 		if (painel && painel.isConnected) return painel;
 		painel = el("section", "pdp-jtipo");
 		painel.id = "pdp-juntadas-tipo";
+		painel.lang = "pt-BR"; // hifenização das palavras longas nos cards estreitos
 		painel.setAttribute("aria-label", "Totais de juntadas por tipo");
 		conteudo = el("div", "pdp-jtipo-conteudo");
 		config = el("div", "pdp-jtipo-config");
@@ -387,6 +405,13 @@
 			grade.append(criarCard(par[0], par[1], geral, CORES[i % CORES.length]));
 		});
 		const fora = tipos.length - mostrados;
+		// Poucos cards (ex.: os 10 do padrão): todos numa linha só.
+		const colunas = mostrados + (fora > 0 || expandido ? 1 : 0);
+		if (colunas <= MAX_UMA_LINHA) {
+			grade.classList.add("pdp-jtipo-uma-linha");
+			grade.style.setProperty("--pdp-jtipo-colunas", String(mostrados));
+			if (colunas > mostrados) grade.classList.add("pdp-jtipo-com-botao");
+		}
 		if (fora > 0) {
 			grade.append(botao("pdp-jtipo-mais", "+ " + fora + (fora === 1 ? " tipo" : " tipos"), "Mostrar os cards dos demais tipos", function () {
 				expandido = true;
@@ -498,8 +523,8 @@
 				atualizar();
 			}),
 			botao("pdp-jtipo-limpar", "Cancelar", null, function () { config.hidden = true; }),
-			botao("pdp-jtipo-link", "Voltar ao padrão (todos)", "Mostrar sempre todos os tipos", function () {
-				salvarPref({ limite: 0, tipos: [] });
+			botao("pdp-jtipo-link", "Voltar ao padrão (10 maiores)", "Mostrar os 10 tipos com mais juntadas, numa linha só", function () {
+				apagarPref();
 				expandido = false;
 				config.hidden = true;
 				atualizar();

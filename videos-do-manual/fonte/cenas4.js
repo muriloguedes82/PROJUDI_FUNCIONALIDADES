@@ -2139,11 +2139,11 @@ CENAS.V74 = {
 				'<span class="pdp-jtipo-dica">' + (ativo ? "Filtrando: " + ativo : "Clique num card para ver só aquele tipo na lista.") + "</span>" +
 				(ativo ? '<button type="button" id="limpar" class="pdp-jtipo-limpar">Mostrar todas</button>' : "") +
 				'<button type="button" id="engrenagem" class="pdp-jtipo-engrenagem">⚙ Personalizar</button></div>' +
-				'<div class="pdp-jtipo-grade">' + ordem.map((t, k) => card(k, t, ativo)).join("") + "</div>" +
+				'<div class="pdp-jtipo-grade pdp-jtipo-uma-linha" style="--pdp-jtipo-colunas:3">' + ordem.map((t, k) => card(k, t, ativo)).join("") + "</div>" +
 				(config ? '<div class="pdp-jtipo-config"><div class="pdp-jtipo-config-titulo">Personalizar os cards (fica salvo para as próximas vezes)</div>' +
 					'<label class="pdp-jtipo-config-linha">Quantos cards mostrar por padrão: <span class="pdp-jtipo-config-numero" id="limite" style="display:inline-block;min-height:20px"></span><span class="pdp-jtipo-config-ajuda"> (vazio = todos; os maiores vêm primeiro)</span></label>' +
 					'<div class="pdp-jtipo-config-linha">Tipos mostrados por padrão: <label class="pdp-jtipo-config-opcao"><input type="radio" name="m" checked> todos os tipos</label><label class="pdp-jtipo-config-opcao"><input type="radio" name="m"> só os marcados abaixo</label></div>' +
-					'<div class="pdp-jtipo-config-acoes"><button type="button" id="salvar" class="pdp-jtipo-salvar">Salvar</button><button type="button" class="pdp-jtipo-limpar">Cancelar</button><button type="button" class="pdp-jtipo-link">Voltar ao padrão (todos)</button></div></div>' : "") +
+					'<div class="pdp-jtipo-config-acoes"><button type="button" id="salvar" class="pdp-jtipo-salvar">Salvar</button><button type="button" class="pdp-jtipo-limpar">Cancelar</button><button type="button" class="pdp-jtipo-link">Voltar ao padrão (10 maiores)</button></div></div>' : "") +
 				"</section>";
 			$$("#lista tr[data-i]").forEach((tr) => (tr.style.display = !ativo || tr.getAttribute("data-tipo") === ativo ? "" : "none"));
 		};

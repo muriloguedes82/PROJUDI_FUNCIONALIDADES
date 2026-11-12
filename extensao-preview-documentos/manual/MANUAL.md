@@ -3038,7 +3038,7 @@ Manifestação**). No alto do quadro aparecem a soma desses totais e quantos
 tipos há. Os cards são pequenos, para caberem
 muitos tipos sem poluir a tela. Cada um tem uma cor e mostra:
 
-- o total de juntadas daquele tipo, em número destacado;
+- o total de juntadas daquele tipo, em número destacado, no alto;
 - o nome do tipo, em letras minúsculas e sem o "JUNTADA DE" do começo (ex.:
   **Resposta de ofício**); o nome completo aparece ao pousar o mouse sobre
   o card;
@@ -3047,7 +3047,9 @@ muitos tipos sem poluir a tela. Cada um tem uma cor e mostra:
 
 Só aparecem cards de tipos com **pelo menos uma** juntada na lista: tipo
 com total zero não ganha card. Os cards ficam em ordem, do tipo com mais
-juntadas para o com menos. Por padrão, aparecem **todos** os tipos.
+juntadas para o com menos. Por padrão, aparecem os **10 tipos com mais
+juntadas**, todos numa linha só; os demais ficam no botão **+ N tipos**
+(ex.: **+ 56 tipos**), ao fim da linha, que mostra todos.
 
 **Passo a passo:**
 
@@ -3072,7 +3074,9 @@ juntadas para o com menos. Por padrão, aparecem **todos** os tipos.
 1. No alto do quadro, à direita, clique em **⚙ Personalizar**. Abre um
    bloco logo abaixo dos cards.
 2. Em **Quantos cards mostrar por padrão**, digite um número (ex.: **8**).
-   Deixe em branco para mostrar todos. Os tipos com mais juntadas vêm
+   O padrão é **10**. Deixe em branco para mostrar todos. Até 12 cards,
+   eles ficam numa linha só; com mais, ocupam várias linhas. Os tipos com
+   mais juntadas vêm
    primeiro.
 3. Em **Tipos mostrados por padrão**, escolha **todos os tipos** ou **só os
    marcados abaixo**. Na segunda opção, marque os tipos que quer ver (ao
@@ -3082,8 +3086,8 @@ juntadas para o com menos. Por padrão, aparecem **todos** os tipos.
    que você abrir a Análise de Juntadas (também em outras abas). Os tipos
    que ficaram de fora continuam a um clique: o botão **+ N tipos** (ex.:
    **+ 22 tipos**) mostra todos, e **− Mostrar menos** volta à sua escolha.
-5. Para voltar a mostrar sempre todos os tipos, abra **⚙ Personalizar** e
-   clique em **Voltar ao padrão (todos)**. **Cancelar** fecha o bloco sem
+5. Para voltar ao padrão (os 10 tipos com mais juntadas), abra **⚙
+   Personalizar** e clique em **Voltar ao padrão (10 maiores)**. **Cancelar** fecha o bloco sem
    mudar nada.
 
 **Bom saber:**
@@ -3201,7 +3205,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 24 | 12/11/2026 | Nova seção **9.17 Totais de juntadas por tipo na Análise de Juntadas**: cards pequenos e coloridos com o total e a porcentagem de cada tipo da lista **Tipo Movimento** acima da lista (só tipos com total maior que zero; por padrão, todos os tipos); em **⚙ Personalizar**, escolha quantos cards e quais tipos aparecem por padrão (fica salvo), e os demais ficam em **+ N tipos**; clicar num card deixa na lista só as juntadas daquele tipo, e **Mostrar todas** volta à lista inteira. Incluída também na tabela de 2.6. |
+| 24 | 12/11/2026 | Nova seção **9.17 Totais de juntadas por tipo na Análise de Juntadas**: cards pequenos e coloridos com o total e a porcentagem de cada tipo da lista **Tipo Movimento** acima da lista (só tipos com total maior que zero; por padrão, os 10 maiores, numa linha só); em **⚙ Personalizar**, escolha quantos cards e quais tipos aparecem por padrão (fica salvo), e os demais ficam em **+ N tipos**; clicar num card deixa na lista só as juntadas daquele tipo, e **Mostrar todas** volta à lista inteira. Incluída também na tabela de 2.6. |
 | 23 | 11/11/2026 | Visual novo da Mesa do Analista (9.16): novo tom **Projudi original**, com as cores do tema do próprio Projudi (creme esverdeado, verde-oliva, quadros num creme bem claro, laranja nos dados do usuário e vermelho puro nos urgentes), que passa a ser o **padrão** (antes, Oliva fosco). Quem já tinha escolhido um tom continua com ele. Ajustados 2.6 (Cor do visual da Mesa do Analista) e 9.16 (Escolher a cor). Vídeo V73 regravado (não citado no manual). |
 | 22 | 11/11/2026 | Corrigido (seção 9.15): a linha **Prescrições vencidas** da Análise de Juntadas continuava em **não disponível**: o link **Vencidas** do quadro Prescrições não vem na página da aba Mesa do Escrivão Criminal quando ela é aberta sem ser mostrada, e o endereço desse link muda a cada vez que se entra no Projudi. Agora, se não achar o link, a extensão abre a aba Mesa do Escrivão Criminal sem mostrá-la e clica em **Vencidas**, como a pessoa faria. Novo item no Bom saber. Sem vídeo novo (a tela não mudou). |
 | 21 | 10/11/2026 | Corrigido (seção 9.14): ao trocar de atuação, a linha **Processos Paralisados (+90 dias)** continuava mostrando os números da atuação anterior (os totais ficavam guardados por 5 minutos). Agora a contagem é refeita toda vez que a tela Início é aberta ou recarregada, inclusive na troca de atuação. Bom saber da 9.14 atualizado. Sem vídeo novo (a tela não mudou). |
