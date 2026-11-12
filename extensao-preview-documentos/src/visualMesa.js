@@ -246,6 +246,9 @@
 	// "Para Realizar" (ex.: totaisMesaEscrivao.js, com data-pdp-total-escrivao)
 	// vão para um quadro próprio; as demais seguem a regra dos subgrupos.
 	const JUNTADAS_ESCRIVAO = { titulo: "Da Mesa do Escrivão Criminal", attr: "data-pdp-total-escrivao" };
+	// Audiências pendentes (audienciasPendentes.js): no quadro principal,
+	// junto das Juntadas e do Retorno de Conclusão.
+	const JUNTADAS_PRINCIPAL_ATTR = "data-pdp-audiencias-pendentes";
 	let juntadas = null; // { grade, principal, subs, escrivao, tabelasOriginais }
 	function rotearJuntada(tr) {
 		const j = juntadas;
@@ -258,6 +261,7 @@
 			j.escrivao.__tbody.append(tr);
 			return;
 		}
+		if (tr.hasAttribute(JUNTADAS_PRINCIPAL_ATTR)) { j.principal.__tbody.append(tr); return; }
 		const span = tr.querySelector("span.contador[id]");
 		const id = span ? span.id : "";
 		if (JUNTADAS_PRINCIPAIS.indexOf(id) >= 0) { j.principal.__tbody.append(tr); return; }

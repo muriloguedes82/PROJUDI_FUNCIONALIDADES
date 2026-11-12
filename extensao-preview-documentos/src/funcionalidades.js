@@ -282,6 +282,13 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					sistemas: ["projudi"]
 				},
 				{
+					id: "audienciasPendentes",
+					nome: "Audiências pendentes na Análise de Juntadas",
+					descricao: "Na aba Análise de Juntadas da Mesa, no quadro \"Para Realizar\", mostra o total de audiências pendentes (designadas, com a data já passada e ainda não movimentadas), o mesmo da Listagem de Audiências com a situação \"Pendentes\"; clicar no número abre essa lista já pesquisada.",
+					js: ["src/audienciasPendentes.js"],
+					sistemas: ["projudi"]
+				},
+				{
 					id: "visualMesa",
 					nome: "Visual novo da Mesa do Analista",
 					descricao: "Organiza em cartões todas as abas da Mesa do Analista, com os mesmos números e links, e deixa a barra de menus e a linha do usuário do Projudi no mesmo tom. O tom é escolhido nas bolinhas ao lado do título da Mesa ou aqui no Menu.",

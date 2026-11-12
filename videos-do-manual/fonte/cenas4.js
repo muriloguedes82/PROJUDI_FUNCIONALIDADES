@@ -2106,3 +2106,45 @@ CENAS.V73 = {
 		await S.endCard("Mesa do Analista → quadros por assunto → mesma lista de sempre ao clicar. Cor: bolinhas ao lado do título ou Menu.");
 	},
 };
+
+// ------------------------------------------------------------------ V74
+CENAS.V74 = {
+	arquivo: "V74-audiencias-pendentes-na-analise-de-juntadas.mp4",
+	titulo: "Audiências pendentes na Análise de Juntadas",
+	secao: "9.17",
+	async run() {
+		browser(["*Projudi - Mesa do Analista"], "https://projudi.tjpr.jus.br/projudi/usuario/mesaAnalista.do?actionType=listaAnaliseJuntadas");
+		const linha = (rot, val, id) => '<tr' + (id ? ' id="' + id + '"' : "") + '><td class="l" style="width:220px">' + rot + "</td><td>" + val + "</td></tr>";
+		const num = (n, id) => '<a class="link" ' + (id ? 'id="' + id + '" ' : "") + 'style="font-weight:bold"><u>' + n + "</u></a>";
+		const abas = ["Início", "Citações e Intimações", "Análise de Juntadas", "Outros Cumprimentos", "Lembretes", "Cumprimentos de Medidas"]
+			.map((a) => '<span style="display:inline-block;padding:3px 8px;margin-right:2px;border:1px solid #9a9;border-bottom:0;border-radius:4px 4px 0 0;font-size:12px;' + (a === "Análise de Juntadas" ? "background:#fff;font-weight:bold" : "background:#e4ead8") + '">' + a + "</span>").join("");
+		screen(pjHeader() + '<div class="pj-body"><div class="pj-h2">Mesa do Analista Judiciário</div><div>' + abas + "</div>" +
+			'<fieldset class="pj-fieldset"><legend>Para Realizar</legend><table class="pj-form" id="realizar">' +
+			linha("Juntadas:", num(804)) +
+			linha("Retorno de Conclusão:", num(71)) +
+			linha("Mandados aguardando análise de retorno:", num(49)) +
+			linha("Prestações Pecuniárias em atraso:", num(8)) +
+			"</table></fieldset></div>");
+		await S.titleCard("VÍDEO V74", "Audiências pendentes", "O total de audiências designadas que já passaram e não foram movimentadas aparece na Análise de Juntadas.");
+		await S.cap("No Projudi, as <b>audiências pendentes</b> só aparecem em <b>Audiências → Listagem</b>, marcando <b>Pendentes</b> e pesquisando.", { ms: 4800 });
+		$("#realizar").insertAdjacentHTML("beforeend", linha("Audiências pendentes:", '<span id="vap">…</span>', "lap"));
+		S.hl("#lap", 3);
+		await S.cap("Na aba <b>Análise de Juntadas</b>, a extensão acrescenta a linha <b>Audiências pendentes</b> no fim do quadro <b>Para Realizar</b>.", { ms: 4600 });
+		$("#vap").outerHTML = num(24, "vap");
+		await S.cap("Em instantes aparece o total: audiências <b>designadas</b> cuja data já passou e que ainda não foram movimentadas.", { ms: 4600 });
+		S.hlOff();
+		await S.click("#vap");
+		browser(["*Projudi - Listagem de Audiências"], "https://projudi.tjpr.jus.br/projudi/audiencia/busca.do?actionType=listar");
+		screen(pjHeader() + '<div class="pj-body"><div class="pj-h2">Listagem de Audiências</div>' +
+			'<fieldset class="pj-fieldset"><table class="pj-form"><tr><td class="l">Situação da Audiência:</td><td>○ Para Hoje &nbsp; <span style="background:#fff8d8">◉ Pendentes</span> &nbsp; ○ Movimentadas Hoje &nbsp; ○ Para a data</td></tr>' +
+			'<tr><td class="l">Local da Audiência:</td><td>Vara Criminal</td></tr></table></fieldset>' +
+			'<div id="navap" style="margin:6px 0;font-size:12px">24 registro(s) encontrado(s), exibindo de 1 até 20</div>' +
+			'<table class="pj-table"><tr><th>Processo/Recurso</th><th>Data</th><th>Tipo da Audiência</th><th>Situação da Audiência</th></tr>' +
+			[0, 1, 2, 3].map((k) => '<tr class="' + (k % 2 ? "alt" : "") + '"><td><a class="link">000' + (62 + k) + '1-7' + k + '.2026.8.16.0001</a></td><td>' + ["27/07/2026 09:20", "18/08/2026 08:00", "28/08/2026 08:50", "22/09/2026 09:40"][k] + "</td><td>" + ["Audiência de Instrução e Julgamento", "Audiência de Custódia"][k % 2] + '</td><td><a class="link">DESIGNADA</a></td></tr>').join("") +
+			"</table></div>");
+		S.hl("#navap", 3);
+		await S.cap("Clicando no número, abre a <b>Listagem de Audiências</b> já pesquisada em <b>Pendentes</b>.", { ms: 4600 });
+		S.hlOff();
+		await S.endCard("Análise de Juntadas → Para Realizar → Audiências pendentes → clique no total → Listagem de Audiências.");
+	},
+};

@@ -58,6 +58,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/mesaAnalistaContadores.js",
 			"src/paralisados90.js",
 			"src/totaisMesaEscrivao.js",
+			"src/audienciasPendentes.js",
 			"src/visualMesa.js",
 			"src/ordenarCumprimentos.js",
 			"src/movementHighlight.js",
