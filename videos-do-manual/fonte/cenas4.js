@@ -2106,3 +2106,73 @@ CENAS.V73 = {
 		await S.endCard("Mesa do Analista → quadros por assunto → mesma lista de sempre ao clicar. Cor: bolinhas ao lado do título ou Menu.");
 	},
 };
+
+// ------------------------------------------------------------------ V74
+// Usa o CSS de verdade da extensão (src/conclusoesPorJuiz.css); o HTML dos
+// cards é o mesmo que src/conclusoesPorJuiz.js monta. Nomes fictícios.
+CENAS.V74 = {
+	arquivo: "V74-conclusoes-por-juiz.mp4",
+	titulo: "Conclusões por juiz",
+	secao: "9.17",
+	async run() {
+		const css = document.createElement("link");
+		css.rel = "stylesheet";
+		css.href = "../../extensao-preview-documentos/src/conclusoesPorJuiz.css";
+		document.head.appendChild(css);
+		const COR_TIPO = { "SENTENÇA": "#3b82f6", "DECISÃO": "#f59e0b", "DESPACHO": "#10b981" };
+		const JUIZES = [
+			["Rafael Tavares Neto", "RN", "#d97706", [["DESPACHO", 4], ["DECISÃO", 1]], [0, 0, 3]],
+			["Fernanda Souza Prado", "FP", "#0d9488", [["SENTENÇA", 9]], [1, 2, 6]],
+			["Carlos Eduardo Lima", "CL", "#7c3aed", [["DECISÃO", 14], ["SENTENÇA", 3]], [4, 5, 10]],
+			["Ana Beatriz Moreira", "AM", "#2563eb", [["SENTENÇA", 18], ["DECISÃO", 6], ["DESPACHO", 2]], [2, 0, 20]],
+		];
+		const linhas = [];
+		JUIZES.forEach(([nome, , , tipos]) => tipos.forEach(([t, n]) => { for (let k = 0; k < Math.min(n, 2); k++) linhas.push([nome, t]); }));
+		const tabela = '<table class="pj-table" id="lista"><tr><th>Analisar</th><th>Dt. Remessa</th><th>Processo</th><th>Tipo de conclusão</th><th>Responsável</th></tr>' +
+			linhas.map((l, i) => '<tr class="' + (i % 2 ? "alt" : "") + '" data-j="' + l[0] + '" data-t="' + l[1] + '"><td><a class="link">Analisar</a></td><td>' + String(10 + (i % 18)).padStart(2, "0") + '/10/2026</td><td><a class="link">00' + (31 + i) + "27-4" + (i % 10) + '.2026.8.16.0001</a></td><td>' + l[1] + "</td><td>" + l[0] + "</td></tr>").join("") + "</table>";
+		browser(["*Projudi - Conclusões"], "https://projudi.tjpr.jus.br/projudi/processo/conclusao.do");
+		screen(pjHeader() + '<div class="pj-body"><div class="pj-h2">Conclusões</div><div id="slot"></div>' +
+			'<div style="margin:6px 0;font-size:12px">Todas as conclusões em uma única página: 57 registro(s).</div>' + tabela + "</div>");
+		await S.titleCard("VÍDEO V74", "Conclusões por juiz", "Total de conclusões de cada juiz, separado por tipo.");
+		await S.cap("Na lista <b>Conclusões</b>, era preciso contar linha por linha para saber quantas conclusões há com cada juiz.", { ms: 4200 });
+
+		const ponto = (t) => '<i class="pdp-cpj-ponto" style="background:' + COR_TIPO[t] + '"></i>';
+		const PRESO = '<svg width="11" height="11" viewBox="0 0 12 12" style="vertical-align:-1px"><rect x="1" y="1" width="10" height="10" fill="#555"/><path d="M3 1v10M6 1v10M9 1v10" stroke="#ddd" stroke-width="1"/></svg>';
+		const marcas = (m) => '<div class="pdp-cpj-marcas">' + (m[0] ? '<button type="button" class="pdp-cpj-marca pdp-cpj-marca-atraso">⏱ ' + m[0] + "</button>" : "") +
+			(m[1] ? '<button type="button" class="pdp-cpj-marca pdp-cpj-marca-preso">' + PRESO + m[1] + "</button>" : "") + "</div>";
+		const card = ([nome, , cor, tipos, m]) => {
+			const tot = tipos.reduce((a, b) => a + b[1], 0);
+			return '<article class="pdp-cpj-card" data-j="' + nome + '" style="--pdp-cpj-cor:' + cor + '"><button type="button" class="pdp-cpj-cab"><span class="pdp-cpj-nome">' + nome + '</span><span class="pdp-cpj-total"><strong>' + tot + "</strong><small>conclusões</small></span></button>" +
+				'<div class="pdp-cpj-barra">' + tipos.map(([t, n]) => '<span class="pdp-cpj-seg" style="width:' + (n / tot) * 100 + "%;background:" + COR_TIPO[t] + '"></span>').join("") + "</div>" +
+				'<ul class="pdp-cpj-tipos">' + tipos.map(([t, n]) => '<li><button type="button" class="pdp-cpj-tipo" data-t="' + t + '">' + ponto(t) + '<span class="pdp-cpj-tipo-nome">' + t + '</span><span class="pdp-cpj-tipo-pct">' + Math.round((n / tot) * 100) + '%</span><span class="pdp-cpj-tipo-n">' + n + "</span></button></li>").join("") + "</ul>" + (m[0] || m[1] ? marcas(m) : "") + "</article>";
+		};
+		$("#slot").innerHTML = '<section class="pdp-cpj" id="pdp-conclusoes-juiz"><div class="pdp-cpj-topo"><div class="pdp-cpj-titulo"><span class="pdp-cpj-titulo-texto">Conclusões por juiz</span><span class="pdp-cpj-geral">57 conclusões</span></div>' +
+			'<div class="pdp-cpj-resumo">' + [["SENTENÇA", 30], ["DECISÃO", 21], ["DESPACHO", 6]].map(([t, n]) => '<span class="pdp-cpj-chip" style="--pdp-cpj-chip-cor:' + COR_TIPO[t] + '">' + t + " · " + n + "</span>").join("") + '</div><span id="slot-limpar"></span><button type="button" class="pdp-cpj-copiar" id="copiar">📋 Copiar resumo</button></div>' +
+			'<div class="pdp-cpj-grade">' + JUIZES.map(card).join("") + "</div></section>";
+		S.hl("#pdp-conclusoes-juiz", 4);
+		await S.cap("A extensão mostra, acima da tabela, um <b>card para cada juiz</b> com o total de conclusões dele.", { ms: 4600 });
+		S.hl(".pdp-cpj-card .pdp-cpj-tipos", 4);
+		await S.cap("Dentro do card, o total e a porcentagem de cada <b>tipo de conclusão</b>: Sentença, Decisão, Despacho…", { ms: 4600 });
+		S.hlOff();
+		S.hl(".pdp-cpj-card:nth-child(3) .pdp-cpj-marcas", 4);
+		await S.cap("No pé do card: <b>⏱</b> conclusões há mais de <b>120 dias</b>, e o símbolo de <b>réu preso</b> do Projudi, com quantas são de réu preso.", { ms: 5200 });
+		S.hlOff();
+		const alvo = '.pdp-cpj-card[data-j="Carlos Eduardo Lima"] .pdp-cpj-tipo[data-t="DECISÃO"]';
+		await S.click(alvo);
+		$(alvo).classList.add("pdp-cpj-tipo-ativo");
+		$$(".pdp-cpj-card").forEach((c) => c.classList.add(c.dataset.j === "Carlos Eduardo Lima" ? "pdp-cpj-ativo" : "pdp-cpj-apagado"));
+		$("#slot-limpar").outerHTML = '<button type="button" class="pdp-cpj-limpar" id="limpar">Mostrar todas</button>';
+		$$("#lista tr[data-j]").forEach((tr) => { if (!(tr.dataset.j === "Carlos Eduardo Lima" && tr.dataset.t === "DECISÃO")) tr.style.display = "none"; });
+		await S.cap("Clique num tipo para ver na tabela <b>só aquelas conclusões</b> daquele juiz. Clicando no nome, aparecem todas as dele.", { ms: 5000 });
+		await S.click("#limpar");
+		$$("#lista tr[data-j]").forEach((tr) => { tr.style.display = ""; });
+		$$(".pdp-cpj-card").forEach((c) => c.classList.remove("pdp-cpj-ativo", "pdp-cpj-apagado"));
+		$$(".pdp-cpj-tipo-ativo").forEach((b) => b.classList.remove("pdp-cpj-tipo-ativo"));
+		$("#limpar").style.display = "none";
+		await S.cap("Em <b>Mostrar todas</b>, a lista volta inteira. Até lá, o filtro fica guardado, mesmo recarregando a lista.", { ms: 4200 });
+		await S.click("#copiar");
+		$("#copiar").textContent = "✓ Copiado";
+		await S.cap("<b>📋 Copiar resumo</b> copia os totais de cada juiz em texto, para colar num e-mail.", { ms: 4200 });
+		await S.endCard("Conclusões → cards por juiz → total por tipo → clique para ver só aquelas conclusões.");
+	},
+};
