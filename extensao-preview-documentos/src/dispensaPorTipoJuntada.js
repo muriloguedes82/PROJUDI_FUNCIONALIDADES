@@ -15,9 +15,14 @@
 //      do card e aciona o "Dispensar" nativo pelo service worker
 //      (mensagem "juntada-dispense-marked", que aceita apenas a confirmação
 //      da dispensa - ver background.js);
-//   4. filtra de novo e repete (a lista do Projudi é paginada) até não sobrar
-//      nenhuma juntada do tipo. Se uma juntada já dispensada voltar a
-//      aparecer, ou se nada mudar, para e avisa, sem insistir.
+//   4. percorre TODAS as páginas da lista (link "Próxima Página", como em
+//      listasPaginaUnica.js) procurando o tipo pelo nome na coluna "Tipo de
+//      Documento"; em cada página com juntadas do tipo, marca e dispensa;
+//      depois filtra de novo e recomeça da 1ª página, até uma volta inteira
+//      por todas as páginas não achar nenhuma. Se o Projudi não aplicar o
+//      filtro pelo tipo, a busca é feita na lista inteira ("Todos"), página
+//      por página. Se uma juntada já dispensada voltar a aparecer, para e
+//      avisa, sem insistir.
 //
 // No fim, a lista da tela é recarregada (o mesmo "Filtrar" da pessoa) e o
 // resultado aparece no quadro.
@@ -51,7 +56,8 @@
 
 	const CHAVE = "pdpDispensaTipoJuntadaCards";
 	const CHAVE_AVISO = "pdpDispensaTipoJuntadaAviso";
-	const MAX_RODADAS = 60;
+	const MAX_RODADAS = 200;
+	const MAX_PAGINAS = 300;
 	const TEMPO_ETAPA_MS = 60000;
 
 	const normalizar = (texto) => String(texto || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().replace(/\s+/g, " ").trim();
@@ -132,8 +138,45 @@
 		if (el && el.checked) el.click();
 	}
 
-	// Filtros limpos ("Todos") e só o tipo escolhido.
-	function prepararFiltro(doc, valorTipo) {
+	// "Próxima Página" do quadro oculto: aplica no formulário dele as mesmas
+	// atribuições do link (document.forms[...]['pageNumber'].value='2' etc.)
+	// e o envia. Devolve false se não houver próxima página.
+	function irParaProxima(doc) {
+		const link = doc.querySelector("#navigator a.arrowNextOn");
+		if (!link) return false;
+		const href = link.getAttribute("href") || "";
+		const trecho = href + "\n" + (link.getAttribute("onclick") || "");
+		const form = formulario(doc);
+		const atribuicoes = [];
+		let m;
+		const porNome = /document\.forms\[['"]([^'"]+)['"]\]\[['"]([^'"]+)['"]\]\.value\s*=\s*['"]([^'"]*)['"]/g;
+		while ((m = porNome.exec(trecho))) atribuicoes.push({ nome: m[2], valor: m[3] });
+		const porId = /getElementById\(\s*['"]([^'"]+)['"]\s*\)\.value\s*=\s*['"]([^'"]*)['"]/g;
+		while ((m = porId.exec(trecho))) atribuicoes.push({ id: m[1], valor: m[2] });
+		if (atribuicoes.length && form) {
+			for (const a of atribuicoes) {
+				let campo = a.id ? doc.getElementById(a.id) : form.elements[a.nome];
+				if (!campo && a.nome) {
+					campo = doc.createElement("input");
+					campo.type = "hidden";
+					campo.name = a.nome;
+					form.append(campo);
+				}
+				if (campo) campo.value = a.valor;
+			}
+			HTMLFormElement.prototype.submit.call(form);
+			return true;
+		}
+		if (href && !/^\s*(javascript:|#)/i.test(href)) {
+			doc.location.href = new URL(href, doc.URL).href;
+			return true;
+		}
+		throw new Error("não foi possível passar para a próxima página da lista");
+	}
+
+	// Filtros limpos ("Todos") e só o tipo escolhido (ou "Todos" também no
+	// tipo, quando `porTipo` é false).
+	function prepararFiltro(doc, valorTipo, porTipo) {
 		const form = formulario(doc);
 		if (!form) return null;
 		const select = doc.getElementById("codTipoMovimento");
@@ -155,7 +198,7 @@
 		marcarValor(doc.getElementById("dataInicioEnvio"), "");
 		marcarValor(doc.getElementById("dataFimEnvio"), "");
 		if (form.elements.pageNumber) form.elements.pageNumber.value = "1";
-		select.value = opcao.value;
+		select.value = porTipo === false ? "-1" : opcao.value;
 		select.dispatchEvent(new Event("change", { bubbles: true }));
 		return botao;
 	}
@@ -171,9 +214,12 @@
 			frame.title = "Dispensa de juntadas por tipo em segundo plano";
 			frame.style.cssText = "position:fixed;left:-15000px;top:0;width:1200px;height:850px;border:0;";
 			const dispensadas = new Set(); // enviadas ao "Dispensar"
-			let presentes = new Set(); // do tipo, na última lista filtrada
-			let fase = "filtrar"; // filtrar -> listado -> dispensando -> filtrar ...
+			let presentes = new Set(); // do tipo, vistas na volta atual pelas páginas
+			let fase = "filtrar"; // filtrar -> listado (página a página) -> dispensando -> filtrar ...
 			let rodadas = 0;
+			let porTipo = true; // filtro "Tipo Movimento" aplicado pelo Projudi
+			let paginas = 0; // páginas vistas na volta atual
+			let vistas = new Set(); // ids das linhas vistas na volta atual
 			let terminou = false;
 			let relogio = null;
 
@@ -210,35 +256,69 @@
 							fim(false, "Muitas voltas sem terminar; confira a lista.");
 							return;
 						}
-						const botao = prepararFiltro(doc, valorTipo);
+						const botao = prepararFiltro(doc, valorTipo, porTipo);
 						if (!botao) {
 							// Sem o tipo no filtro: não há mais juntadas dele.
-							if (formulario(doc) && doc.getElementById("codTipoMovimento")) fim(true, "");
+							if (formulario(doc) && doc.getElementById("codTipoMovimento")) {
+								presentes = new Set();
+								fim(true, "");
+							}
 							else fim(false, "O filtro da Análise de Juntadas não foi encontrado.");
 							return;
 						}
 						fase = "listado";
+						presentes = new Set();
+						vistas = new Set();
+						paginas = 0;
 						vigiar();
 						botao.click();
 						return;
 					}
 					if (fase === "listado") {
 						const select = doc.getElementById("codTipoMovimento");
-						if (!select || normalizar(select.value) !== alvo) {
+						if (!select) {
+							fim(false, "O filtro da Análise de Juntadas não foi encontrado.");
+							return;
+						}
+						if (paginas === 0 && porTipo && normalizar(select.value) !== alvo) {
 							// O Projudi tira o tipo do filtro quando não sobra nenhuma.
-							if (select && !acharTipo(doc, valorTipo)) fim(true, "");
-							else fim(false, "O filtro pelo tipo não foi aplicado.");
+							if (!acharTipo(doc, valorTipo)) {
+								presentes = new Set();
+								fim(true, "");
+								return;
+							}
+							// Filtro pelo tipo não aplicado: procura na lista inteira.
+							porTipo = false;
+							const botao = prepararFiltro(doc, valorTipo, false);
+							if (!botao) {
+								fim(false, "O filtro da Análise de Juntadas não foi encontrado.");
+								return;
+							}
+							fase = "listado";
+							vigiar();
+							botao.click();
 							return;
 						}
-						const todas = linhas(doc);
-						if (!todas) {
-							fim(true, ""); // sem tabela: nenhum registro
+						paginas++;
+						const todas = linhas(doc) || [];
+						// Página repetida (o Projudi devolveu de novo uma já vista):
+						// não há como seguir pelas páginas.
+						if (todas.length && todas.every((l) => vistas.has(l.id))) {
+							fim(false, "A lista voltou a uma página já vista; confira a lista.");
 							return;
 						}
+						todas.forEach((l) => vistas.add(l.id));
 						const doTipo = todas.filter((l) => l.tipo === alvo);
-						presentes = new Set(doTipo.map((l) => l.id));
+						doTipo.forEach((l) => presentes.add(l.id));
 						if (!doTipo.length) {
-							fim(true, "");
+							// Nada do tipo nesta página: segue para a próxima; na
+							// última, a volta inteira não achou nenhuma - terminou.
+							if (paginas > MAX_PAGINAS) {
+								fim(false, "A lista tem páginas demais; confira a lista.");
+								return;
+							}
+							vigiar();
+							if (!irParaProxima(doc)) fim(true, "");
 							return;
 						}
 						if (doTipo.some((l) => dispensadas.has(l.id))) {

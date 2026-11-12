@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 27 |
-| **Versão da extensão** | 27 |
+| **Versão do manual** | 28 |
+| **Versão da extensão** | 28 |
 | **Data desta versão** | 12/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -3048,8 +3048,11 @@ abaixo).
 3. Enquanto trabalha, o quadro mostra **Dispensando as juntadas do tipo
    …** e quantas já foram dispensadas. A extensão faz, sem você ver, o
    mesmo que você faria: escolhe o tipo em **Tipo Movimento**, clica em
-   **Filtrar**, marca só as juntadas daquele tipo, clica em **Dispensar** e
-   repete até não sobrar nenhuma.
+   **Filtrar** e passa por **todas as páginas** da lista (**Próxima
+   Página**), procurando o nome do tipo na coluna **Tipo de Documento**. Em
+   cada página onde o encontra, marca só as juntadas daquele tipo e clica
+   em **Dispensar**. Depois, recomeça da primeira página, até percorrer a
+   lista inteira sem achar mais nenhuma.
 4. No fim, a lista é atualizada sozinha e o quadro mostra, em verde,
    quantas juntadas foram dispensadas.
 
@@ -3075,6 +3078,10 @@ abaixo).
   da preferência; as demais não são tocadas. Os outros filtros da tela (Status,
   Grupo, Localizador etc.) não são considerados: valem todas as juntadas
   daquele tipo.
+- Todas as páginas da lista são conferidas, não só a primeira. Se o
+  Projudi não aceitar o filtro pelo tipo, a extensão procura na lista
+  inteira (**Todos**), página por página — pode levar mais tempo, mas o
+  resultado é o mesmo.
 - Preferência com total **0** (nenhuma juntada daquele tipo na lista) fica
   apagada, sem efeito ao clicar.
 - Se o Projudi não confirmar a dispensa (por exemplo, uma juntada continua
@@ -3179,6 +3186,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 28 | 12/11/2026 | Dispensa rápida por tipo (9.17): a busca passa a percorrer **todas as páginas** da lista (Próxima Página), procurando o nome do tipo na coluna **Tipo de Documento**; em cada página onde o encontra, dispensa e recomeça da primeira, até uma volta inteira sem nenhuma. Se o Projudi não aplicar o filtro pelo tipo, a extensão procura na lista inteira, página por página. Corrigido também o total do aviso final, que podia mostrar menos juntadas do que as dispensadas. Ajustados o passo 3 e o Bom saber. Sem vídeo novo (a tela não mudou). |
 | 27 | 12/11/2026 | Dispensa rápida por tipo (9.17): as preferências já criadas passam a aparecer carregadas **sempre** que a Análise de Juntadas é aberta ou atualizada (Filtrar, F5, volta da lista depois da dispensa), inclusive com a lista sem juntadas (antes, sem juntadas na lista o quadro não aparecia), e quando o Projudi refaz a tela no lugar. Criar ou tirar uma preferência numa aba vale também nas outras abas abertas. Ajustado "Escolher as preferências". Sem vídeo novo (a tela não mudou). |
 | 26 | 12/11/2026 | Dispensa rápida por tipo (9.17): o botão **+ Card** passa a se chamar **+ Preferência**, e os cards do quadro passam a ser chamados de **preferências** (na tela, no Menu e no resumo do backup). Nada mudou no funcionamento; quem já tinha criado cards continua com eles. Texto da 9.17 e de **11. Solução de problemas** ajustado. Vídeo V74 regravado (não citado no manual). |
 | 25 | 12/11/2026 | Dispensa rápida por tipo (9.17): o quadro passa a vir **sem nenhum card** (antes vinha com **JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO**); cada pessoa cria os seus em **+ Card**. Os cards ficam guardados como preferência e entram no **⬇ Exportar** / **Importar** do Menu (2.6), que passa a contá-los no resumo do backup. Ajustados "Onde fica", o passo 1 e "Escolher os cards". Vídeo V74 regravado (não citado no manual). |
