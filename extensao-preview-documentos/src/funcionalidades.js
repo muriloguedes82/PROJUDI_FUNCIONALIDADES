@@ -284,7 +284,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "audienciasPendentes",
 					nome: "Audiências pendentes e para hoje na Análise de Juntadas",
-					descricao: "Na aba Análise de Juntadas da Mesa, no quadro \"Para Realizar\", mostra o total de audiências pendentes (designadas, com a data já passada e ainda não movimentadas), com quantas são de réu preso (em vermelho), quantas estão pendentes há mais de 30 dias e a data da mais antiga, e o total de audiências para hoje (os mesmos da Listagem de Audiências com \"Pendentes\" e \"Para Hoje\"). Ao pousar o mouse num número aparece a lista das audiências; clicar no número abre a Listagem já pesquisada. Os números são contados de novo a cada vez que a aba é aberta ou atualizada.",
+					descricao: "Na aba Análise de Juntadas da Mesa, no quadro \"Para Realizar\", mostra o total de audiências pendentes (designadas, com a data já passada e ainda não movimentadas), com quantas são de réu preso (em vermelho), quantas estão pendentes há mais de 30 dias e a data da mais antiga, e o total de audiências para hoje (os mesmos da Listagem de Audiências com \"Pendentes\" e \"Para Hoje\"); cada linha só aparece quando o total é maior que zero. Ao pousar o mouse num número aparece a lista das audiências; clicar no número abre a Listagem já pesquisada. Os números são contados de novo a cada vez que a aba é aberta ou atualizada.",
 					js: ["src/audienciasPendentes.js"],
 					sistemas: ["projudi"]
 				},

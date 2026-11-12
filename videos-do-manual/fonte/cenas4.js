@@ -2127,12 +2127,10 @@ CENAS.V74 = {
 			"</table></fieldset></div>");
 		await S.titleCard("VÍDEO V74", "Audiências pendentes e para hoje", "Os totais, o réu preso e a mais antiga aparecem na Análise de Juntadas.");
 		await S.cap("No Projudi, as <b>audiências pendentes</b> e as <b>de hoje</b> só aparecem em <b>Audiências → Listagem</b>, pesquisando.", { ms: 4800 });
-		$("#realizar").insertAdjacentHTML("beforeend", linha("Audiências pendentes:", '<span id="vap">…</span>', "lap") + linha("Audiências para hoje:", '<span id="vah">…</span>', "lah"));
+		$("#realizar").insertAdjacentHTML("beforeend", linha("Audiências pendentes:", num(24, "vap") + '<span id="dap" style="margin-left:10px;font-size:11px;color:#555"><b style="color:#d00000">2 com réu preso</b> · 5 há mais de 30 dias · mais antiga: 27/07/2026 (108 dias)</span>', "lap") + linha("Audiências para hoje:", num(3, "vah"), "lah"));
 		S.hl("#lap", 3);
-		await S.cap("Na aba <b>Análise de Juntadas</b>, a extensão acrescenta duas linhas no fim do quadro <b>Para Realizar</b>.", { ms: 4400 });
-		$("#vap").outerHTML = num(24, "vap") + '<span id="dap" style="margin-left:10px;font-size:11px;color:#555"><b style="color:#d00000">2 com réu preso</b> · 5 há mais de 30 dias · mais antiga: 27/07/2026 (108 dias)</span>';
-		$("#vah").outerHTML = num(3, "vah");
-		await S.cap("Em instantes aparecem os totais. Nas pendentes, também quantas são de <b>réu preso</b> (em vermelho), quantas passam de <b>30 dias</b> e a <b>mais antiga</b>.", { ms: 5400 });
+		await S.cap("Na aba <b>Análise de Juntadas</b>, a extensão acrescenta no fim do quadro <b>Para Realizar</b> as <b>audiências pendentes</b> e as <b>para hoje</b> — só quando há pelo menos uma.", { ms: 5000 });
+		await S.cap("Nas pendentes, também quantas são de <b>réu preso</b> (em vermelho), quantas passam de <b>30 dias</b> e a <b>mais antiga</b>.", { ms: 5000 });
 		S.hlOff();
 		await S.move("#vap");
 		const r = $("#vap").getBoundingClientRect();

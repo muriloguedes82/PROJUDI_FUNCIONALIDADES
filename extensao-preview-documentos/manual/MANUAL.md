@@ -3051,9 +3051,9 @@ Juntadas**, em duas linhas novas no fim do quadro **Para Realizar**:
 
 **Passo a passo:**
 
-1. Abra a aba **Análise de Juntadas**. No fim do quadro **Para Realizar**
-   aparecem as duas linhas, com **…** enquanto a extensão faz a contagem.
-2. Em instantes, no lugar das reticências, aparecem os totais:
+1. Abra a aba **Análise de Juntadas**. A extensão faz a contagem sozinha.
+2. Em instantes, no fim do quadro **Para Realizar**, aparecem as linhas
+   que têm **pelo menos uma** audiência (com zero, a linha não aparece):
    - **Audiências pendentes**: o total e, ao lado (no visual novo da Mesa, logo abaixo), por exemplo
      **2 com réu preso · 5 há mais de 30 dias · mais antiga: 27/07/2026
      (108 dias)**. Só o **com réu preso** aparece em vermelho;
@@ -3087,8 +3087,11 @@ Juntadas**, em duas linhas novas no fim do quadro **Para Realizar**:
   páginas** da Listagem. Se o Projudi não deixar passar de página, ela usa
   as audiências da primeira página e avisa ao lado do total (por exemplo,
   **nas 20 primeiras**); a janelinha também avisa quantas está mostrando.
-- Se um total for **zero** e **Ocultar contadores zerados** estiver ligado,
-  a linha some, como as demais linhas zeradas da Mesa.
+- Cada linha só aparece quando o total é **maior que zero**: sem
+  audiências pendentes (ou sem audiências para hoje), a linha
+  correspondente não aparece, com ou sem **Ocultar contadores zerados**.
+  Se depois surgir alguma, a linha volta na próxima vez que a aba for
+  aberta ou atualizada.
 - No **Visual novo da Mesa do Analista** ([9.16](#cap-9-16)), as duas
   linhas ficam no quadro **Para Realizar**, junto de Juntadas e Retorno de
   Conclusão.
@@ -3222,7 +3225,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 24 | 12/11/2026 | Nova seção 9.17 **Audiências pendentes e para hoje na Análise de Juntadas** (só no Projudi): no fim do quadro "Para Realizar" da aba Análise de Juntadas aparecem o total de **audiências pendentes** (designadas, com a data já passada e ainda não movimentadas), com quantas são de **réu preso** (em vermelho), quantas estão pendentes **há mais de 30 dias** e a **mais antiga**, e o total de **audiências para hoje**; ao pousar o mouse num número abre a lista das audiências, e clicar nele abre a Listagem já pesquisada. Os números são contados de novo toda vez que a aba é aberta ou atualizada (inclusive ao voltar pelo botão Voltar do navegador). Nova seção 9.18 **Dias de atraso na Listagem de Audiências** (coluna **Atraso**, com destaque para mais de 30 dias). Seção 9.13: a **Listagem de Audiências** passa a vir em uma única página. No visual novo da Mesa (9.16), as linhas de audiências ficam no quadro Para Realizar. Sumário e tabela da 2.6 atualizados. Novos vídeos V74 e V75 gravados e guardados em `videos-do-manual/` (não citados no manual). |
+| 24 | 12/11/2026 | Nova seção 9.17 **Audiências pendentes e para hoje na Análise de Juntadas** (só no Projudi): no fim do quadro "Para Realizar" da aba Análise de Juntadas aparecem o total de **audiências pendentes** (designadas, com a data já passada e ainda não movimentadas), com quantas são de **réu preso** (em vermelho), quantas estão pendentes **há mais de 30 dias** e a **mais antiga**, e o total de **audiências para hoje** (cada linha só aparece quando o total é maior que zero); ao pousar o mouse num número abre a lista das audiências, e clicar nele abre a Listagem já pesquisada. Os números são contados de novo toda vez que a aba é aberta ou atualizada (inclusive ao voltar pelo botão Voltar do navegador). Nova seção 9.18 **Dias de atraso na Listagem de Audiências** (coluna **Atraso**, com destaque para mais de 30 dias). Seção 9.13: a **Listagem de Audiências** passa a vir em uma única página. No visual novo da Mesa (9.16), as linhas de audiências ficam no quadro Para Realizar. Sumário e tabela da 2.6 atualizados. Novos vídeos V74 e V75 gravados e guardados em `videos-do-manual/` (não citados no manual). |
 | 23 | 11/11/2026 | Visual novo da Mesa do Analista (9.16): novo tom **Projudi original**, com as cores do tema do próprio Projudi (creme esverdeado, verde-oliva, quadros num creme bem claro, laranja nos dados do usuário e vermelho puro nos urgentes), que passa a ser o **padrão** (antes, Oliva fosco). Quem já tinha escolhido um tom continua com ele. Ajustados 2.6 (Cor do visual da Mesa do Analista) e 9.16 (Escolher a cor). Vídeo V73 regravado (não citado no manual). |
 | 22 | 11/11/2026 | Corrigido (seção 9.15): a linha **Prescrições vencidas** da Análise de Juntadas continuava em **não disponível**: o link **Vencidas** do quadro Prescrições não vem na página da aba Mesa do Escrivão Criminal quando ela é aberta sem ser mostrada, e o endereço desse link muda a cada vez que se entra no Projudi. Agora, se não achar o link, a extensão abre a aba Mesa do Escrivão Criminal sem mostrá-la e clica em **Vencidas**, como a pessoa faria. Novo item no Bom saber. Sem vídeo novo (a tela não mudou). |
 | 21 | 10/11/2026 | Corrigido (seção 9.14): ao trocar de atuação, a linha **Processos Paralisados (+90 dias)** continuava mostrando os números da atuação anterior (os totais ficavam guardados por 5 minutos). Agora a contagem é refeita toda vez que a tela Início é aberta ou recarregada, inclusive na troca de atuação. Bom saber da 9.14 atualizado. Sem vídeo novo (a tela não mudou). |

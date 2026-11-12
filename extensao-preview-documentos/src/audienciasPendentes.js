@@ -39,8 +39,10 @@
 // aberta, recarregada, reaberta pelo botão Voltar do navegador ou tem o
 // conteúdo trocado (ver atualizar()), sem reaproveitar respostas antigas do
 // navegador (cache "no-store"), para nunca mostrar um número velho ou de
-// outra atuação. Com total zero, a linha some se "Ocultar contadores
-// zerados" estiver ligado (mesaAnalistaContadores.js). No visual novo da
+// outra atuação. Cada linha só aparece quando o total é maior que zero
+// (versão 24, pedido do usuário): com zero ela fica escondida, mesmo com
+// "Ocultar contadores zerados" desligado, e também fica escondida enquanto
+// a primeira contagem não termina (para não aparecer e sumir em seguida). No visual novo da
 // Mesa (visualMesa.js), as linhas (data-pdp-audiencias-pendentes e
 // data-pdp-audiencias-hoje) vão para o quadro principal "Para Realizar",
 // junto das Juntadas e do Retorno de Conclusão.
@@ -451,8 +453,16 @@
 		tdRotulo.appendChild(label);
 		const tdValor = document.createElement("td");
 		tr.append(tdRotulo, tdValor);
+		mostrarLinha(tr, false); // só aparece com total maior que zero
 		corpo.appendChild(tr);
 		return tdValor;
+	}
+
+	// "important": vence o display do visual novo da Mesa (visualMesa.css).
+	function mostrarLinha(tr, visivel) {
+		if (!tr) return;
+		if (visivel) tr.style.removeProperty("display");
+		else tr.style.setProperty("display", "none", "important");
 	}
 
 	function mostrarEspera(celula) {
@@ -588,6 +598,7 @@
 			clearTimeout(abrirTimer);
 			agendarFechar();
 		});
+		mostrarLinha(celula.closest("tr"), resultado.total > 0);
 		const filhos = [link];
 		const detalhe = item.pendentes ? detalheDasPendentes(resultado) : null;
 		if (detalhe) filhos.push(detalhe);
@@ -599,6 +610,7 @@
 		aviso.textContent = "não disponível";
 		aviso.title = "Não foi possível abrir a Listagem de Audiências agora.";
 		celula.replaceChildren(aviso);
+		mostrarLinha(celula.closest("tr"), true);
 	}
 
 	// A contagem é refeita a cada vez que a aba é carregada ou atualizada:
