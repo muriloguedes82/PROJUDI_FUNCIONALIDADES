@@ -23,6 +23,9 @@
 	font-size: 10px; line-height: 15px; font-weight: 700; color: #334155;
 }
 #pdp-conclusoes-juiz .pdp-cpj-ponto { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex: none; }
+#pdp-conclusoes-juiz .pdp-cpj-chip { cursor: pointer; }
+#pdp-conclusoes-juiz .pdp-cpj-chip:hover { box-shadow: 0 2px 6px rgba(15, 23, 42, .12); }
+#pdp-conclusoes-juiz .pdp-cpj-chip.pdp-cpj-chip-ativo { box-shadow: 0 0 0 2px var(--pdp-cpj-chip-cor); }
 #pdp-conclusoes-juiz .pdp-cpj-limpar { --pdp-cpj-chip-cor: #2563eb; font-size: 11px; color: #1e40af; }
 #pdp-conclusoes-juiz .pdp-cpj-limpar:hover, #pdp-conclusoes-juiz .pdp-cpj-copiar:hover { box-shadow: 0 2px 6px rgba(15, 23, 42, .1); }
 
@@ -107,11 +110,14 @@ html.pdp-vm-topo[data-pdp-vm-cor] #pdp-conclusoes-juiz .pdp-cpj-tipo-nome { colo
 html.pdp-vm-topo[data-pdp-vm-cor] #pdp-conclusoes-juiz .pdp-cpj-barra,
 html.pdp-vm-topo[data-pdp-vm-cor] #pdp-conclusoes-juiz .pdp-cpj-tipo-n { background: var(--vm-acento-suave); color: var(--vm-texto); }
 html.pdp-vm-topo[data-pdp-vm-cor] #pdp-conclusoes-juiz .pdp-cpj-tipo:hover { background: var(--vm-acento-suave); }
+html.pdp-vm-topo[data-pdp-vm-cor] #pdp-conclusoes-juiz .pdp-cpj-tipo.pdp-cpj-tipo-ativo { background: var(--vm-acento-suave); box-shadow: inset 0 0 0 1px var(--vm-linha); }
 html.pdp-vm-topo[data-pdp-vm-cor] #pdp-conclusoes-juiz .pdp-cpj-marcas { border-top-color: var(--vm-linha); }
 html.pdp-vm-topo[data-pdp-vm-cor] #pdp-conclusoes-juiz .pdp-cpj-chip,
 html.pdp-vm-topo[data-pdp-vm-cor] #pdp-conclusoes-juiz .pdp-cpj-limpar,
 html.pdp-vm-topo[data-pdp-vm-cor] #pdp-conclusoes-juiz .pdp-cpj-copiar { background: var(--vm-cartao); border-color: var(--vm-linha); border-top-color: var(--pdp-cpj-chip-cor); box-shadow: none; color: var(--vm-texto); }
 html.pdp-vm-topo[data-pdp-vm-cor] #pdp-conclusoes-juiz .pdp-cpj-copiar { --pdp-cpj-chip-cor: var(--vm-acento); }
+html.pdp-vm-topo[data-pdp-vm-cor] #pdp-conclusoes-juiz .pdp-cpj-chip:hover { box-shadow: 0 1px 4px rgba(0, 0, 0, .18); }
+html.pdp-vm-topo[data-pdp-vm-cor] #pdp-conclusoes-juiz .pdp-cpj-chip.pdp-cpj-chip-ativo { box-shadow: 0 0 0 2px var(--pdp-cpj-chip-cor); }
 html.pdp-vm-topo[data-pdp-vm-cor] #pdp-conclusoes-juiz .pdp-cpj-limpar { --pdp-cpj-chip-cor: var(--pdp-cpj-atraso); color: var(--vm-texto); }
 html.pdp-vm-topo[data-pdp-vm-cor] #pdp-conclusoes-juiz .pdp-cpj-marca { background: var(--vm-cartao); border-color: var(--vm-linha); border-top-color: var(--pdp-cpj-marca-cor); box-shadow: none; }
 html.pdp-vm-topo[data-pdp-vm-cor] #pdp-conclusoes-juiz .pdp-cpj-marca-atraso { --pdp-cpj-marca-cor: var(--pdp-cpj-atraso); }
