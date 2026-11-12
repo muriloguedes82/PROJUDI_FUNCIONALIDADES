@@ -2130,7 +2130,7 @@ CENAS.V74 = {
 			const n = contagem[t], pct = Math.round((n / tipos.length) * 100);
 			return '<button type="button" id="c-' + k + '" class="pdp-jtipo-card' + (ativo === t ? " pdp-jtipo-ativo" : ativo ? " pdp-jtipo-apagado" : "") + '" style="--pdp-jtipo-cor:' + CORES[k] + '">' +
 				'<span class="pdp-jtipo-cab"><strong class="pdp-jtipo-total">' + n + '</strong><span class="pdp-jtipo-nome">' + t.replace(/^JUNTADA DE /, "") + "</span></span>" +
-				'<span class="pdp-jtipo-barra"><span class="pdp-jtipo-seg" style="width:' + pct + '%"></span></span></button>";
+				'<span class="pdp-jtipo-barra"><span class="pdp-jtipo-seg" style="width:' + pct + '%"></span></span></button>';
 		};
 		const painel = (ativo) => {
 			$("#slot-legenda").innerHTML = '<section id="pdp-juntadas-tipo" class="pdp-jtipo"><div class="pdp-jtipo-topo"><div class="pdp-jtipo-titulo"><span class="pdp-jtipo-titulo-texto">Juntadas por tipo</span><span class="pdp-jtipo-geral">' +
