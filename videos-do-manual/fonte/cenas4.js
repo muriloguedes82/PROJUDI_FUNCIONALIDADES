@@ -2119,7 +2119,7 @@ CENAS.V74 = {
 		css.rel = "stylesheet";
 		css.href = "../../extensao-preview-documentos/src/totaisJuntadasPorTipo.css";
 		document.head.appendChild(css);
-		const CORES = ["#2563eb", "#7c3aed", "#0d9488", "#d97706"];
+		const CORES = ["#63735f", "#9a6a2f", "#4f6d7a", "#a0522d"];
 		const tipos = ["JUNTADA DE MANIFESTAÇÃO", "JUNTADA DE RESPOSTA DE OFÍCIO", "JUNTADA DE MANIFESTAÇÃO", "JUNTADA DE CERTIDÃO", "JUNTADA DE RESPOSTA DE OFÍCIO", "JUNTADA DE MANIFESTAÇÃO"];
 		const curto = { "JUNTADA DE MANIFESTAÇÃO": "Manifestação", "JUNTADA DE RESPOSTA DE OFÍCIO": "Resposta de ofício", "JUNTADA DE CERTIDÃO": "Certidão" };
 		telaLista("Análise de Juntadas", { col: "Tipo de Documento", rows: LISTA.map((r, i) => Object.assign({}, r, { d: "<b>" + tipos[i] + "</b>" })), pag: "Todas as juntadas em uma única página: 6 registro(s)." });

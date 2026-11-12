@@ -4,7 +4,8 @@
 // acima da tabela um card para cada tipo da lista "Tipo Movimento" do
 // formulário de busca (ex.: JUNTADA DE MANIFESTAÇÃO(92)), com o total
 // que o próprio Projudi informa ali e a porcentagem que ele representa
-// no total (visual igual ao dos cards de "Conclusões por juiz"). Por
+// no total (cards no formato dos de "Conclusões por juiz", nas cores do
+// tom escolhido no Visual novo da Mesa; padrão: Projudi original). Por
 // padrão aparecem os 10 tipos com mais juntadas, numa linha só; em
 // "⚙ Personalizar" o usuário escolhe quantos cards e
 // quais tipos aparecem por padrão (preferência salva), e os demais ficam
@@ -82,15 +83,17 @@
 
 	function carregarPref() {
 		try {
-			chrome.storage.local.get(CHAVE_PREF).then(function (d) {
+			chrome.storage.local.get([CHAVE_PREF, CHAVE_TOM]).then(function (d) {
 				pref = lerPref(d[CHAVE_PREF]);
+				aplicarTom(d[CHAVE_TOM]);
 				agendar();
 			}).catch(function () {});
-			// Mudou em outra aba: vale aqui também.
+			// Mudou em outra aba (ou o tom foi trocado na Mesa): vale aqui também.
 			chrome.storage.onChanged.addListener(function (mudancas, area) {
-				if (area !== "local" || !mudancas[CHAVE_PREF]) return;
-				pref = lerPref(mudancas[CHAVE_PREF].newValue);
-				agendar();
+				if (area !== "local") return;
+				if (mudancas[CHAVE_PREF]) pref = lerPref(mudancas[CHAVE_PREF].newValue);
+				if (mudancas[CHAVE_TOM]) aplicarTom(mudancas[CHAVE_TOM].newValue);
+				if (mudancas[CHAVE_PREF] || mudancas[CHAVE_TOM]) agendar();
 			});
 		} catch (e) {
 			/* sem storage: fica o padrão (todos) */
@@ -185,8 +188,24 @@
 		});
 	}
 
-	// Mesma paleta dos cards de "Conclusões por juiz" (conclusoesPorJuiz.js).
-	const CORES = ["#2563eb", "#7c3aed", "#0d9488", "#d97706", "#db2777", "#4f46e5", "#059669", "#dc2626", "#0891b2", "#65a30d"];
+	// Tom do quadro: o mesmo escolhido no "Visual novo da Mesa do Analista"
+	// (visualMesa.js, chave pdpVisualMesaCor; padrão: Projudi original). As
+	// cores de cada tom ficam em totaisJuntadasPorTipo.css; aqui, só a
+	// paleta das faixas dos cards: tons terrosos, que combinam com o oliva
+	// do Projudi, e uma versão mais clara para o Escuro suave.
+	const CHAVE_TOM = "pdpVisualMesaCor";
+	const TONS = ["projudi", "oliva", "areia", "salvia", "nevoa", "escuro"];
+	const TOM_PADRAO = "projudi";
+	let tom = TOM_PADRAO;
+	const CORES_CLARO = ["#63735f", "#9a6a2f", "#4f6d7a", "#a0522d", "#6b5b8a", "#5b7a52", "#8c7a2a", "#7a4f5f", "#3e6b66", "#b06a3b"];
+	const CORES_ESCURO = ["#b9c79a", "#e0b070", "#8fb4c4", "#e09a78", "#b6a6d8", "#9fc79a", "#d8c46a", "#d39ab0", "#82c4bc", "#eaa77a"];
+	function cores() {
+		return tom === "escuro" ? CORES_ESCURO : CORES_CLARO;
+	}
+	function aplicarTom(valor) {
+		tom = TONS.indexOf(valor) >= 0 ? valor : TOM_PADRAO;
+		if (painel) painel.setAttribute("data-tom", tom);
+	}
 
 	function el(tag, cls, texto) {
 		const e = document.createElement(tag);
@@ -240,6 +259,7 @@
 		if (painel && painel.isConnected) return painel;
 		painel = el("section", "pdp-jtipo");
 		painel.id = "pdp-juntadas-tipo";
+		painel.setAttribute("data-tom", tom);
 		painel.lang = "pt-BR"; // hifenização das palavras longas nos cards estreitos
 		painel.setAttribute("aria-label", "Totais de juntadas por tipo");
 		conteudo = el("div", "pdp-jtipo-conteudo");
@@ -402,7 +422,7 @@
 			const destacado = tipoDestaque !== null && chave(par[0]) === chave(tipoDestaque);
 			if (!expandido && !padrao.has(chave(par[0])) && !destacado) return;
 			mostrados++;
-			grade.append(criarCard(par[0], par[1], geral, CORES[i % CORES.length]));
+			grade.append(criarCard(par[0], par[1], geral, cores()[i % cores().length]));
 		});
 		const fora = tipos.length - mostrados;
 		// Poucos cards (ex.: os 10 do padrão): todos numa linha só.
