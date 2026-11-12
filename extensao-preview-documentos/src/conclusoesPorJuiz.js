@@ -137,7 +137,17 @@
 		const col = colunas(tab);
 		if (!col) return;
 		const regs = registros(tab, col);
-		const grupos = agrupar(regs);
+		// Só entram cards (e tipos) com total maior que zero; sem nenhuma
+		// conclusão na lista, o quadro inteiro não aparece.
+		const grupos = agrupar(regs).filter((g) => g.total > 0);
+		if (!grupos.length) {
+			filtro = null;
+			aplicarFiltro(regs);
+			const velho = document.getElementById("pdp-conclusoes-juiz");
+			if (velho) velho.remove();
+			assinatura = "";
+			return;
+		}
 		if (filtro && !grupos.some((g) => g.juiz === filtro.juiz && (!filtro.tipo || g.tipos.has(filtro.tipo)))) filtro = null;
 		aplicarFiltro(regs);
 
@@ -174,11 +184,6 @@
 		}
 		q.append(topo);
 
-		if (!grupos.length) {
-			q.append(el("div", "pdp-cpj-vazio", "Nenhuma conclusão na lista."));
-			return;
-		}
-
 		const grade = el("div", "pdp-cpj-grade");
 		grupos.forEach((g, i) => {
 			const card = el("article", "pdp-cpj-card");
@@ -205,7 +210,7 @@
 
 			const barra = el("div", "pdp-cpj-barra");
 			const lista = el("ul", "pdp-cpj-tipos");
-			for (const [t, n] of Array.from(g.tipos).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "pt"))) {
+			for (const [t, n] of Array.from(g.tipos).filter((x) => x[1] > 0).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "pt"))) {
 				const pct = (n / g.total) * 100;
 				const seg = el("span", "pdp-cpj-seg");
 				seg.style.width = pct + "%";
