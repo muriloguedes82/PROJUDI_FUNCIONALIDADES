@@ -172,6 +172,21 @@
 		return cores;
 	}
 
+	// Os filtros agem já ao apertar o botão do mouse: enquanto as outras
+	// páginas da lista chegam, o quadro é redesenhado, e um clique comum
+	// (apertar e soltar) que pegasse um redesenho no meio se perderia. O
+	// teclado (Enter/Espaço) continua pelo "click".
+	function aoAtivar(botao, acao) {
+		botao.addEventListener("mousedown", (ev) => {
+			if (ev.button !== 0) return;
+			ev.preventDefault();
+			acao();
+		});
+		botao.addEventListener("click", (ev) => {
+			if (ev.detail === 0) acao();
+		});
+	}
+
 	function el(tag, cls, texto) {
 		const e = document.createElement(tag);
 		if (cls) e.className = cls;
@@ -258,14 +273,14 @@
 			chip.type = "button";
 			chip.style.setProperty("--pdp-cpj-chip-cor", corTipo.get(t));
 			chip.title = ligado ? "Mostrar todas as conclusões" : "Mostrar na lista todas as conclusões do tipo " + t + " (" + n + "), de todos os juízes";
-			chip.addEventListener("click", () => alternar(fTodos));
+			aoAtivar(chip, () => alternar(fTodos));
 			resumo.append(chip);
 		}
 		topo.append(resumo);
 		if (ativo) {
 			const limpar = el("button", "pdp-cpj-limpar", "Mostrar todas");
 			limpar.type = "button";
-			limpar.addEventListener("click", () => definirFiltro(null));
+			aoAtivar(limpar, () => definirFiltro(null));
 			topo.append(limpar);
 		}
 		const copiar = el("button", "pdp-cpj-copiar", "📋 Copiar resumo");
@@ -295,9 +310,12 @@
 				: g.juiz + " — " + g.total + (g.total === 1 ? " conclusão" : " conclusões") + ". Clique para ver na lista só as conclusões deste juiz.";
 			const nome = el("span", "pdp-cpj-nome", g.juiz);
 			const tot = el("span", "pdp-cpj-total");
+			tot.title = mesmoFiltro(ativo, soJuiz)
+				? "Mostrar todas as conclusões"
+				: "Mostrar na lista as " + g.total + (g.total === 1 ? " conclusão" : " conclusões") + " de " + g.juiz;
 			tot.append(el("strong", null, String(g.total)), el("small", null, g.total === 1 ? "conclusão" : "conclusões"));
 			cab.append(nome, tot);
-			cab.addEventListener("click", () => alternar(soJuiz));
+			aoAtivar(cab, () => alternar(soJuiz));
 			card.append(cab);
 
 			const barra = el("div", "pdp-cpj-barra");
@@ -320,7 +338,7 @@
 				const ponto = el("i", "pdp-cpj-ponto");
 				ponto.style.background = corTipo.get(t);
 				bt.append(ponto, el("span", "pdp-cpj-tipo-nome", t), el("span", "pdp-cpj-tipo-pct", Math.round(pct) + "%"), el("span", "pdp-cpj-tipo-n", String(n)));
-				bt.addEventListener("click", () => alternar(fTipo));
+				aoAtivar(bt, () => alternar(fTipo));
 				li.append(bt);
 				lista.append(li);
 			}
@@ -335,7 +353,7 @@
 				b.type = "button";
 				b.append(...conteudo);
 				b.title = (ligado ? "Mostrar todas as conclusões. " : "") + titulo + (ligado ? "" : " Clique para ver só essas na lista.");
-				b.addEventListener("click", () => alternar(f));
+				aoAtivar(b, () => alternar(f));
 				marcas.append(b);
 			};
 			if (g.atraso) {

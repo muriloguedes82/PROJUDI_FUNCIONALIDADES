@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 30 |
-| **Versão da extensão** | 30 |
+| **Versão do manual** | 31 |
+| **Versão da extensão** | 31 |
 | **Data desta versão** | 12/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -3088,7 +3088,8 @@ por linha na lista.
 1. Abra a lista **Conclusões** como sempre. Os cards aparecem acima da
    tabela.
 2. Para ver na tabela só as conclusões de um juiz, clique no nome ou no
-   total do card dele. Os outros cards ficam mais apagados.
+   **total** do card dele (ao passar o mouse, o total fica sublinhado). Os
+   outros cards ficam mais apagados.
 3. Para ver só um tipo de um juiz (ex.: as **SENTENÇAS** de um juiz),
    clique na linha daquele tipo dentro do card.
 4. Para ver **todas as conclusões de um tipo**, de todos os juízes (ex.:
@@ -3530,6 +3531,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 31 | 12/11/2026 | Corrigido (9.17): o clique no **total** do card (ou no nome do juiz, num tipo ou numa etiqueta) às vezes não filtrava a lista, quando o quadro era atualizado no meio do clique (por exemplo, enquanto as outras páginas da lista ainda chegavam). Agora o filtro age já ao apertar o botão do mouse. Ao passar o mouse, o total fica sublinhado, para mostrar que é clicável. Passo 2 ajustado. Sem vídeo novo (o que aparece na tela não mudou). |
 | 30 | 12/11/2026 | Corrigido (seção 9.18, Totais de juntadas por tipo): o clique no card passa a valer sobre a linha **Situação** — marca **Todos** e lista sempre todas as juntadas do tipo, o mesmo número do card, mesmo com **Urgente** ou **Conclusos** marcado ou depois de abrir as juntadas urgentes pela Mesa. Corrigida também a leitura do tipo quando o Projudi mostra uma descrição abaixo dele na coluna **Tipo de Documento**. |
 | 29 | 12/11/2026 | Conclusões por juiz (9.17): as etiquetas de tipo do alto do quadro (ex.: **SENTENÇA · 60**, **DECISÃO · 50**) também filtram: clicar numa mostra na tabela todas as conclusões daquele tipo, de todos os juízes; clicar de novo ou em Mostrar todas volta a lista inteira. Novo passo 4 (os seguintes foram renumerados). Vídeo V74 regravado (não citado no manual). |
 | 28 | 12/11/2026 | Nova seção 9.20 **Audiências pendentes e para hoje na Análise de Juntadas** (só no Projudi): no fim do quadro "Para Realizar" da aba Análise de Juntadas aparecem o total de **audiências pendentes** (designadas, com a data já passada e ainda não movimentadas), com quantas são de **réu preso** (em vermelho), quantas estão pendentes **há mais de 30 dias** e a **mais antiga**, e o total de **audiências para hoje** (cada linha só aparece quando o total é maior que zero); ao pousar o mouse num número abre a lista das audiências, e clicar nele abre a Listagem já pesquisada. Os números são contados de novo toda vez que a aba é aberta ou atualizada (inclusive ao voltar pelo botão Voltar do navegador). Nova seção 9.21 **Dias de atraso na Listagem de Audiências** (coluna **Atraso**, com destaque para mais de 30 dias). Seção 9.13: a **Listagem de Audiências** passa a vir em uma única página. No visual novo da Mesa (9.16), as linhas de audiências ficam no quadro Para Realizar. Sumário e tabela da 2.6 atualizados. Novos vídeos V77 e V78 gravados e guardados em `videos-do-manual/` (não citados no manual). |
