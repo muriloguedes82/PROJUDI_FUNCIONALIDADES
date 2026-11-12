@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 28 |
-| **Versão da extensão** | 28 |
+| **Versão do manual** | 29 |
+| **Versão da extensão** | 29 |
 | **Data desta versão** | 12/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -3091,11 +3091,15 @@ por linha na lista.
    total do card dele. Os outros cards ficam mais apagados.
 3. Para ver só um tipo de um juiz (ex.: as **SENTENÇAS** de um juiz),
    clique na linha daquele tipo dentro do card.
-4. Para ver só as conclusões de um juiz há mais de 120 dias ou de réu
+4. Para ver **todas as conclusões de um tipo**, de todos os juízes (ex.:
+   as 60 sentenças da lista), clique na etiqueta daquele tipo no alto
+   (ex.: **SENTENÇA · 60**). Os cards sem aquele tipo ficam apagados, e a
+   linha do tipo fica marcada nos demais.
+5. Para ver só as conclusões de um juiz há mais de 120 dias ou de réu
    preso, clique na etiqueta correspondente no pé do card.
-5. Para voltar a ver a lista inteira, clique de novo no mesmo lugar ou em
+6. Para voltar a ver a lista inteira, clique de novo no mesmo lugar ou em
    **Mostrar todas**, no alto.
-6. Para mandar os números a alguém, clique em **📋 Copiar resumo**, no
+7. Para mandar os números a alguém, clique em **📋 Copiar resumo**, no
    alto, à direita, e cole (Ctrl+V) num e-mail ou documento. Vem uma linha
    por juiz, com o total, os tipos e as etiquetas. Ex.: *• Fulano de Tal:
    16 (SENTENÇA 16) — 3 há mais de 120 dias; 2 réu preso*.
@@ -3518,6 +3522,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 29 | 12/11/2026 | Conclusões por juiz (9.17): as etiquetas de tipo do alto do quadro (ex.: **SENTENÇA · 60**, **DECISÃO · 50**) também filtram: clicar numa mostra na tabela todas as conclusões daquele tipo, de todos os juízes; clicar de novo ou em Mostrar todas volta a lista inteira. Novo passo 4 (os seguintes foram renumerados). Vídeo V74 regravado (não citado no manual). |
 | 28 | 12/11/2026 | Nova seção 9.20 **Audiências pendentes e para hoje na Análise de Juntadas** (só no Projudi): no fim do quadro "Para Realizar" da aba Análise de Juntadas aparecem o total de **audiências pendentes** (designadas, com a data já passada e ainda não movimentadas), com quantas são de **réu preso** (em vermelho), quantas estão pendentes **há mais de 30 dias** e a **mais antiga**, e o total de **audiências para hoje** (cada linha só aparece quando o total é maior que zero); ao pousar o mouse num número abre a lista das audiências, e clicar nele abre a Listagem já pesquisada. Os números são contados de novo toda vez que a aba é aberta ou atualizada (inclusive ao voltar pelo botão Voltar do navegador). Nova seção 9.21 **Dias de atraso na Listagem de Audiências** (coluna **Atraso**, com destaque para mais de 30 dias). Seção 9.13: a **Listagem de Audiências** passa a vir em uma única página. No visual novo da Mesa (9.16), as linhas de audiências ficam no quadro Para Realizar. Sumário e tabela da 2.6 atualizados. Novos vídeos V77 e V78 gravados e guardados em `videos-do-manual/` (não citados no manual). |
 | 27 | 12/11/2026 | Nova seção 9.19 **Dispensa rápida por tipo na Análise de Juntadas**: quadro abaixo do título da Análise de Juntadas com **preferências** de tipos de juntada, cada uma com o total do tipo; cada preferência é um cartão pequeno, com uma cor própria na faixa lateral, o total e o nome do tipo em letras normais (nome comprido termina em "…"), e só aparece quando o total é maior que zero (a nota **+N sem juntadas agora** lembra as demais); clicar na preferência dispensa, com confirmação, todas as juntadas daquele tipo de uma vez, procurando o nome do tipo em **todas as páginas** da lista (e na lista inteira, se o Projudi não aplicar o filtro pelo tipo), considerando só o nome do tipo da lista **Tipo Movimento** e ignorando o responsável que aparece junto na coluna **Tipo de Documento**. O quadro vem sem nenhuma preferência: cada pessoa cria as suas em **+ Preferência** e tira no **×**; elas ficam guardadas como as demais preferências (entram no **⬇ Exportar** / **Importar** do Menu e no resumo do backup) e aparecem carregadas sempre que a tela é aberta ou atualizada, com o total atualizado. O quadro usa as cores do Projudi original e acompanha o tom do Visual novo da Mesa (9.16); a mensagem do fim (verde se deu certo, vermelha se falhou) some sozinha depois de 2 segundos. Sumário, tabela da 2.6 e **11. Solução de problemas** atualizados. Novo vídeo V76 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 26 | 12/11/2026 | Nova seção **9.18 Totais de juntadas por tipo na Análise de Juntadas**: cards pequenos e coloridos com o total e a porcentagem de cada tipo da lista **Tipo Movimento** acima da lista (só tipos com total maior que zero; por padrão, os 10 maiores, numa linha só); em **⚙ Personalizar**, escolha quantos cards e quais tipos aparecem por padrão (fica salvo), e os demais ficam em **+ N tipos**; clicar num card deixa na lista só as juntadas daquele tipo, e **Mostrar todas** volta à lista inteira. As cores seguem o tom do Visual novo da Mesa (padrão: Projudi original). Incluída também na tabela de 2.6. |

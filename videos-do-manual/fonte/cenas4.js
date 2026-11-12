@@ -2147,7 +2147,7 @@ CENAS.V74 = {
 				'<ul class="pdp-cpj-tipos">' + tipos.map(([t, n]) => '<li><button type="button" class="pdp-cpj-tipo" data-t="' + t + '">' + ponto(t) + '<span class="pdp-cpj-tipo-nome">' + t + '</span><span class="pdp-cpj-tipo-pct">' + Math.round((n / tot) * 100) + '%</span><span class="pdp-cpj-tipo-n">' + n + "</span></button></li>").join("") + "</ul>" + (m[0] || m[1] ? marcas(m) : "") + "</article>";
 		};
 		$("#slot").innerHTML = '<section class="pdp-cpj" id="pdp-conclusoes-juiz"><div class="pdp-cpj-topo"><div class="pdp-cpj-titulo"><span class="pdp-cpj-titulo-texto">Conclusões por juiz</span><span class="pdp-cpj-geral">57 conclusões</span></div>' +
-			'<div class="pdp-cpj-resumo">' + [["SENTENÇA", 30], ["DECISÃO", 21], ["DESPACHO", 6]].map(([t, n]) => '<span class="pdp-cpj-chip" style="--pdp-cpj-chip-cor:' + COR_TIPO[t] + '">' + t + " · " + n + "</span>").join("") + '</div><span id="slot-limpar"></span><button type="button" class="pdp-cpj-copiar" id="copiar">📋 Copiar resumo</button></div>' +
+			'<div class="pdp-cpj-resumo">' + [["SENTENÇA", 30], ["DECISÃO", 21], ["DESPACHO", 6]].map(([t, n]) => '<button type="button" class="pdp-cpj-chip" data-t="' + t + '" style="--pdp-cpj-chip-cor:' + COR_TIPO[t] + '">' + t + " · " + n + "</button>").join("") + '</div><span id="slot-limpar"></span><button type="button" class="pdp-cpj-copiar" id="copiar">📋 Copiar resumo</button></div>' +
 			'<div class="pdp-cpj-grade">' + JUIZES.map(card).join("") + "</div></section>";
 		S.hl("#pdp-conclusoes-juiz", 4);
 		await S.cap("A extensão mostra, acima da tabela, um <b>card para cada juiz</b> com o total de conclusões dele.", { ms: 4600 });
@@ -2170,6 +2170,20 @@ CENAS.V74 = {
 		$$(".pdp-cpj-tipo-ativo").forEach((b) => b.classList.remove("pdp-cpj-tipo-ativo"));
 		$("#limpar").style.display = "none";
 		await S.cap("Em <b>Mostrar todas</b>, a lista volta inteira. Até lá, o filtro fica guardado, mesmo recarregando a lista.", { ms: 4200 });
+		const chip = '.pdp-cpj-chip[data-t="SENTENÇA"]';
+		await S.click(chip);
+		$(chip).classList.add("pdp-cpj-chip-ativo");
+		$$(".pdp-cpj-card").forEach((c) => { if (!c.querySelector('.pdp-cpj-tipo[data-t="SENTENÇA"]')) c.classList.add("pdp-cpj-apagado"); });
+		$$('.pdp-cpj-tipo[data-t="SENTENÇA"]').forEach((b) => b.classList.add("pdp-cpj-tipo-ativo"));
+		$("#limpar").style.display = "";
+		$$("#lista tr[data-j]").forEach((tr) => { if (tr.dataset.t !== "SENTENÇA") tr.style.display = "none"; });
+		await S.cap("As etiquetas de tipo do alto também filtram: <b>SENTENÇA · 30</b> mostra todas as sentenças, de todos os juízes.", { ms: 5000 });
+		await S.click("#limpar");
+		$(chip).classList.remove("pdp-cpj-chip-ativo");
+		$$(".pdp-cpj-card").forEach((c) => c.classList.remove("pdp-cpj-apagado"));
+		$$(".pdp-cpj-tipo-ativo").forEach((b) => b.classList.remove("pdp-cpj-tipo-ativo"));
+		$$("#lista tr[data-j]").forEach((tr) => { tr.style.display = ""; });
+		$("#limpar").style.display = "none";
 		await S.click("#copiar");
 		$("#copiar").textContent = "✓ Copiado";
 		await S.cap("<b>📋 Copiar resumo</b> copia os totais de cada juiz em texto, para colar num e-mail.", { ms: 4200 });
