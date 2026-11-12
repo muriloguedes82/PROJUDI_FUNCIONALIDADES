@@ -3036,28 +3036,46 @@ na coluna **Tipo de Documento**. Os cards são pequenos, para caberem
 muitos tipos sem poluir a tela. Cada um tem uma cor e mostra:
 
 - o total de juntadas daquele tipo, em número destacado;
-- o nome do tipo (sem o "JUNTADA DE" do começo; o nome completo e a
-  porcentagem do tipo na lista aparecem ao pousar o mouse sobre o card);
-- uma barrinha com a parte da lista que esse tipo representa.
+- o nome do tipo, em letras minúsculas e sem o "JUNTADA DE" do começo (ex.:
+  **Resposta de ofício**); o nome completo aparece ao pousar o mouse sobre
+  o card;
+- a porcentagem que esse tipo representa no total da lista (ex.: **4% do
+  total**; abaixo de 1%, aparece **<1% do total**).
 
 Só aparecem cards de tipos com **pelo menos uma** juntada na lista: tipo
 com total zero não ganha card. Os cards ficam em ordem, do tipo com mais
-juntadas para o com menos. Quando há mais de 12 tipos, aparecem só os 11
-maiores e um botão **+ N tipos** (ex.: **+ 19 tipos**) para ver os demais;
-**− Mostrar menos** recolhe de novo. O tipo que você escolheu continua à
-vista mesmo com os cards recolhidos.
+juntadas para o com menos. Por padrão, aparecem **todos** os tipos.
 
 **Passo a passo:**
 
 1. Abra a **Análise de Juntadas**. O quadro **Juntadas por tipo** aparece
    acima da lista.
-2. Clique no card do tipo desejado (ex.: **RESPOSTA DE OFÍCIO**). A lista
+2. Clique no card do tipo desejado (ex.: **Resposta de ofício**). A lista
    passa a mostrar só as juntadas desse tipo. O card fica com contorno
-   colorido, os demais ficam mais claros, e no
-   alto do quadro aparece, por exemplo, "mostrando 22 de 480".
+   colorido, os demais ficam mais claros, e no alto do quadro aparece, por
+   exemplo, "mostrando 22 de 480".
 3. Para voltar a ver todas, clique em **Mostrar todas** (no alto do
    quadro, à direita) ou clique de novo no card destacado. Para trocar de
    tipo, basta clicar em outro card.
+
+**Escolher quantos cards e quais tipos aparecem (⚙ Personalizar):**
+
+1. No alto do quadro, à direita, clique em **⚙ Personalizar**. Abre um
+   bloco logo abaixo dos cards.
+2. Em **Quantos cards mostrar por padrão**, digite um número (ex.: **8**).
+   Deixe em branco para mostrar todos. Os tipos com mais juntadas vêm
+   primeiro.
+3. Em **Tipos mostrados por padrão**, escolha **todos os tipos** ou **só os
+   marcados abaixo**. Na segunda opção, marque os tipos que quer ver (ao
+   lado de cada um aparece quantas juntadas ele tem agora). **Marcar
+   todos** e **Desmarcar todos** ajudam a montar a escolha.
+4. Clique em **Salvar**. A escolha fica guardada e vale nas próximas vezes
+   que você abrir a Análise de Juntadas (também em outras abas). Os tipos
+   que ficaram de fora continuam a um clique: o botão **+ N tipos** (ex.:
+   **+ 22 tipos**) mostra todos, e **− Mostrar menos** volta à sua escolha.
+5. Para voltar a mostrar sempre todos os tipos, abra **⚙ Personalizar** e
+   clique em **Voltar ao padrão (todos)**. **Cancelar** fecha o bloco sem
+   mudar nada.
 
 **Bom saber:**
 
@@ -3077,6 +3095,11 @@ vista mesmo com os cards recolhidos.
   amarela. Para ver os totais de todos os tipos, escolha **Todos** nesse
   campo e clique em **Filtrar**.
 - Se a lista estiver vazia, o quadro não aparece.
+- Um tipo escolhido em **⚙ Personalizar** que não tenha nenhuma juntada no
+  momento não ganha card; ele continua na sua escolha para as próximas
+  vezes.
+- A escolha do **⚙ Personalizar** vai junto no backup das preferências do
+  Menu ([2.6](#cap-2-6)).
 - Para ligar ou desligar, use **Totais de juntadas por tipo (cards que
   filtram a Análise de Juntadas)** no Menu da extensão ([2.6](#cap-2-6)).
 
@@ -3172,7 +3195,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 24 | 12/11/2026 | Nova seção **9.17 Totais de juntadas por tipo na Análise de Juntadas**: cards pequenos e coloridos com o total de cada tipo acima da lista (só tipos com total maior que zero; com mais de 12 tipos, os demais ficam em **+ N tipos**); clicar num card deixa na lista só as juntadas daquele tipo, e **Mostrar todas** volta à lista inteira. Incluída também na tabela de 2.6. |
+| 24 | 12/11/2026 | Nova seção **9.17 Totais de juntadas por tipo na Análise de Juntadas**: cards pequenos e coloridos com o total e a porcentagem de cada tipo acima da lista (só tipos com total maior que zero; por padrão, todos os tipos); em **⚙ Personalizar**, escolha quantos cards e quais tipos aparecem por padrão (fica salvo), e os demais ficam em **+ N tipos**; clicar num card deixa na lista só as juntadas daquele tipo, e **Mostrar todas** volta à lista inteira. Incluída também na tabela de 2.6. |
 | 23 | 11/11/2026 | Visual novo da Mesa do Analista (9.16): novo tom **Projudi original**, com as cores do tema do próprio Projudi (creme esverdeado, verde-oliva, quadros num creme bem claro, laranja nos dados do usuário e vermelho puro nos urgentes), que passa a ser o **padrão** (antes, Oliva fosco). Quem já tinha escolhido um tom continua com ele. Ajustados 2.6 (Cor do visual da Mesa do Analista) e 9.16 (Escolher a cor). Vídeo V73 regravado (não citado no manual). |
 | 22 | 11/11/2026 | Corrigido (seção 9.15): a linha **Prescrições vencidas** da Análise de Juntadas continuava em **não disponível**: o link **Vencidas** do quadro Prescrições não vem na página da aba Mesa do Escrivão Criminal quando ela é aberta sem ser mostrada, e o endereço desse link muda a cada vez que se entra no Projudi. Agora, se não achar o link, a extensão abre a aba Mesa do Escrivão Criminal sem mostrá-la e clica em **Vencidas**, como a pessoa faria. Novo item no Bom saber. Sem vídeo novo (a tela não mudou). |
 | 21 | 10/11/2026 | Corrigido (seção 9.14): ao trocar de atuação, a linha **Processos Paralisados (+90 dias)** continuava mostrando os números da atuação anterior (os totais ficavam guardados por 5 minutos). Agora a contagem é refeita toda vez que a tela Início é aberta ou recarregada, inclusive na troca de atuação. Bom saber da 9.14 atualizado. Sem vídeo novo (a tela não mudou). |
