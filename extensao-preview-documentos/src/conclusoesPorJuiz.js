@@ -8,8 +8,8 @@
 // No pé do card, etiquetas pequenas (só aparecem quando há o que contar):
 // - ⏱ conclusões há mais de 120 dias (coluna "Dt. Remessa");
 // - o mesmo símbolo de réu preso que o Projudi põe ao lado do número do
-//   processo, com quantas conclusões são de processo com réu preso;
-// - 📝 quantas já têm pré-análise (coluna "Pré-análise") / total do juiz.
+//   processo, com quantas conclusões são de processo com réu preso.
+// As duas ficam em vermelho, e a dica (mouse em cima) diz o que significam.
 //
 // Clicar no total do card mostra na tabela só as conclusões daquele juiz;
 // clicar num tipo ou numa etiqueta, só aquelas do juiz. Clicar de novo (ou
@@ -44,11 +44,6 @@
 
 	const DIAS_ATRASO = 120;
 	const CHAVE_FILTRO = "pdpConclusoesPorJuizFiltro";
-	const MARCAS = {
-		atraso: { nome: "há mais de " + DIAS_ATRASO + " dias" },
-		preso: { nome: "de processo com réu preso" },
-		pre: { nome: "com pré-análise" },
-	};
 
 	// { juiz, tipo|null, marca|null } — guardado até "Mostrar todas".
 	let filtro = lerFiltro();
@@ -101,15 +96,14 @@
 	function colunas(tab) {
 		const cab = tab.tHead && tab.tHead.rows[0];
 		if (!cab) return null;
-		let tipo = -1, juiz = -1, data = -1, pre = -1;
+		let tipo = -1, juiz = -1, data = -1;
 		Array.from(cab.cells).forEach((c, i) => {
 			const t = semAcento(c.textContent);
 			if (tipo < 0 && t.startsWith("tipo de conclusao")) tipo = i;
 			if (juiz < 0 && t === "responsavel") juiz = i;
 			if (data < 0 && t.includes("remessa")) data = i;
-			if (pre < 0 && t.replace(/[^a-z]/g, "") === "preanalise") pre = i;
 		});
-		return tipo < 0 || juiz < 0 ? null : { tipo, juiz, data, pre };
+		return tipo < 0 || juiz < 0 ? null : { tipo, juiz, data };
 	}
 
 	// Linhas de registro: as do <tbody> com as células das colunas achadas
@@ -129,7 +123,6 @@
 					atraso: dias != null && dias > DIAS_ATRASO,
 					preso: !!(imgPreso || tr.querySelector('[class*="REU_PRESO"]')),
 					imgPreso: imgPreso ? imgPreso.src : null,
-					pre: col.pre >= 0 && !!tr.cells[col.pre] && normal(tr.cells[col.pre].textContent) !== "",
 				});
 			}
 		}
@@ -139,12 +132,11 @@
 	function agrupar(regs) {
 		const mapa = new Map();
 		for (const r of regs) {
-			if (!mapa.has(r.juiz)) mapa.set(r.juiz, { juiz: r.juiz, total: 0, tipos: new Map(), atraso: 0, preso: 0, pre: 0, maisAntiga: null });
+			if (!mapa.has(r.juiz)) mapa.set(r.juiz, { juiz: r.juiz, total: 0, tipos: new Map(), atraso: 0, preso: 0, maisAntiga: null });
 			const g = mapa.get(r.juiz);
 			g.total++;
 			if (r.atraso) g.atraso++;
 			if (r.preso) g.preso++;
-			if (r.pre) g.pre++;
 			if (r.dias != null && (g.maisAntiga == null || r.dias > g.maisAntiga)) g.maisAntiga = r.dias;
 			g.tipos.set(r.tipo, (g.tipos.get(r.tipo) || 0) + 1);
 		}
@@ -234,7 +226,7 @@
 		aplicarFiltro(regs, ativo);
 
 		const imgPreso = (regs.find((r) => r.imgPreso) || {}).imgPreso || null;
-		const nova = JSON.stringify([grupos.map((g) => [g.juiz, Array.from(g.tipos), g.atraso, g.preso, g.pre, g.maisAntiga]), ativo, col.pre >= 0, imgPreso]);
+		const nova = JSON.stringify([grupos.map((g) => [g.juiz, Array.from(g.tipos), g.atraso, g.preso, g.maisAntiga]), ativo, imgPreso]);
 		const q = quadro(tab);
 		if (nova === assinatura && q.childElementCount) return;
 		assinatura = nova;
@@ -268,7 +260,7 @@
 		const copiar = el("button", "pdp-cpj-copiar", "📋 Copiar resumo");
 		copiar.type = "button";
 		copiar.title = "Copiar os totais por juiz em texto, para colar num e-mail ou relatório";
-		copiar.addEventListener("click", () => copiarResumo(grupos, regs.length, col.pre >= 0, copiar));
+		copiar.addEventListener("click", () => copiarResumo(grupos, regs.length, copiar));
 		topo.append(copiar);
 		q.append(topo);
 
@@ -322,30 +314,24 @@
 
 			// Etiquetas do pé do card (só as que têm o que contar).
 			const marcas = el("div", "pdp-cpj-marcas");
-			const marca = (chave, conteudo, titulo, extra) => {
+			const marca = (chave, conteudo, titulo) => {
 				const f = { juiz: g.juiz, tipo: null, marca: chave };
 				const ligado = mesmoFiltro(ativo, f);
 				const b = el("button", "pdp-cpj-marca pdp-cpj-marca-" + chave + (ligado ? " pdp-cpj-marca-ativa" : ""));
 				b.type = "button";
 				b.append(...conteudo);
 				b.title = (ligado ? "Mostrar todas as conclusões. " : "") + titulo + (ligado ? "" : " Clique para ver só essas na lista.");
-				if (extra) b.classList.add(extra);
 				b.addEventListener("click", () => alternar(f));
 				marcas.append(b);
 			};
 			if (g.atraso) {
 				marca("atraso", [document.createTextNode("⏱ " + g.atraso)],
-					g.atraso + (g.atraso === 1 ? " conclusão" : " conclusões") + " há mais de " + DIAS_ATRASO + " dias (a mais antiga, há " + g.maisAntiga + " dias).");
+					"⏱ Conclusas há mais de " + DIAS_ATRASO + " dias: " + g.atraso + (g.atraso === 1 ? " conclusão" : " conclusões") + " (a mais antiga, há " + g.maisAntiga + " dias).");
 			}
 			if (g.preso) {
 				const icone = imgPreso ? Object.assign(el("img", "pdp-cpj-preso"), { src: imgPreso, alt: "Réu preso" }) : document.createTextNode("🔒");
 				marca("preso", [icone, document.createTextNode(String(g.preso))],
-					g.preso + (g.preso === 1 ? " conclusão" : " conclusões") + " de processo com réu preso.");
-			}
-			if (col.pre >= 0) {
-				const sem = g.total - g.pre;
-				marca("pre", [document.createTextNode("📝 " + g.pre + "/" + g.total)],
-					g.pre + " com pré-análise e " + sem + " sem pré-análise.", g.pre ? null : "pdp-cpj-marca-zero");
+					"Réu preso: " + g.preso + (g.preso === 1 ? " conclusão" : " conclusões") + " de processo com réu preso.");
 			}
 			if (marcas.childElementCount) card.append(marcas);
 			grade.append(card);
@@ -353,7 +339,7 @@
 		q.append(grade);
 	}
 
-	function textoResumo(grupos, total, temPre) {
+	function textoResumo(grupos, total) {
 		const h = new Date();
 		const data = String(h.getDate()).padStart(2, "0") + "/" + String(h.getMonth() + 1).padStart(2, "0") + "/" + h.getFullYear();
 		const linhas = ["Conclusões por juiz — " + data + " — " + total + (total === 1 ? " conclusão" : " conclusões")];
@@ -362,14 +348,13 @@
 			const extras = [];
 			if (g.atraso) extras.push(g.atraso + " há mais de " + DIAS_ATRASO + " dias");
 			if (g.preso) extras.push(g.preso + " réu preso");
-			if (temPre) extras.push(g.pre + " com pré-análise");
 			linhas.push("• " + g.juiz + ": " + g.total + " (" + tipos + ")" + (extras.length ? " — " + extras.join("; ") : ""));
 		}
 		return linhas.join("\n");
 	}
 
-	async function copiarResumo(grupos, total, temPre, botao) {
-		const texto = textoResumo(grupos, total, temPre);
+	async function copiarResumo(grupos, total, botao) {
+		const texto = textoResumo(grupos, total);
 		let ok = false;
 		try {
 			await navigator.clipboard.writeText(texto);

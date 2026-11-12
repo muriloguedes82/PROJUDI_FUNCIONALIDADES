@@ -2138,14 +2138,13 @@ CENAS.V74 = {
 
 		const ponto = (t) => '<i class="pdp-cpj-ponto" style="background:' + COR_TIPO[t] + '"></i>';
 		const PRESO = '<svg width="11" height="11" viewBox="0 0 12 12" style="vertical-align:-1px"><rect x="1" y="1" width="10" height="10" fill="#555"/><path d="M3 1v10M6 1v10M9 1v10" stroke="#ddd" stroke-width="1"/></svg>';
-		const marcas = (m, tot) => '<div class="pdp-cpj-marcas">' + (m[0] ? '<button type="button" class="pdp-cpj-marca pdp-cpj-marca-atraso">⏱ ' + m[0] + "</button>" : "") +
-			(m[1] ? '<button type="button" class="pdp-cpj-marca pdp-cpj-marca-preso">' + PRESO + m[1] + "</button>" : "") +
-			'<button type="button" class="pdp-cpj-marca pdp-cpj-marca-pre">📝 ' + m[2] + "/" + tot + "</button></div>";
+		const marcas = (m) => '<div class="pdp-cpj-marcas">' + (m[0] ? '<button type="button" class="pdp-cpj-marca pdp-cpj-marca-atraso">⏱ ' + m[0] + "</button>" : "") +
+			(m[1] ? '<button type="button" class="pdp-cpj-marca pdp-cpj-marca-preso">' + PRESO + m[1] + "</button>" : "") + "</div>";
 		const card = ([nome, , cor, tipos, m]) => {
 			const tot = tipos.reduce((a, b) => a + b[1], 0);
 			return '<article class="pdp-cpj-card" data-j="' + nome + '" style="--pdp-cpj-cor:' + cor + '"><button type="button" class="pdp-cpj-cab"><span class="pdp-cpj-nome">' + nome + '</span><span class="pdp-cpj-total"><strong>' + tot + "</strong><small>conclusões</small></span></button>" +
 				'<div class="pdp-cpj-barra">' + tipos.map(([t, n]) => '<span class="pdp-cpj-seg" style="width:' + (n / tot) * 100 + "%;background:" + COR_TIPO[t] + '"></span>').join("") + "</div>" +
-				'<ul class="pdp-cpj-tipos">' + tipos.map(([t, n]) => '<li><button type="button" class="pdp-cpj-tipo" data-t="' + t + '">' + ponto(t) + '<span class="pdp-cpj-tipo-nome">' + t + '</span><span class="pdp-cpj-tipo-pct">' + Math.round((n / tot) * 100) + '%</span><span class="pdp-cpj-tipo-n">' + n + "</span></button></li>").join("") + "</ul>" + marcas(m, tot) + "</article>";
+				'<ul class="pdp-cpj-tipos">' + tipos.map(([t, n]) => '<li><button type="button" class="pdp-cpj-tipo" data-t="' + t + '">' + ponto(t) + '<span class="pdp-cpj-tipo-nome">' + t + '</span><span class="pdp-cpj-tipo-pct">' + Math.round((n / tot) * 100) + '%</span><span class="pdp-cpj-tipo-n">' + n + "</span></button></li>").join("") + "</ul>" + (m[0] || m[1] ? marcas(m) : "") + "</article>";
 		};
 		$("#slot").innerHTML = '<section class="pdp-cpj" id="pdp-conclusoes-juiz"><div class="pdp-cpj-topo"><div class="pdp-cpj-titulo"><span class="pdp-cpj-titulo-texto">Conclusões por juiz</span><span class="pdp-cpj-geral">57 conclusões</span></div>' +
 			'<div class="pdp-cpj-resumo">' + [["SENTENÇA", 30], ["DECISÃO", 21], ["DESPACHO", 6]].map(([t, n]) => '<span class="pdp-cpj-chip">' + ponto(t) + t + " · " + n + "</span>").join("") + '</div><span id="slot-limpar"></span><button type="button" class="pdp-cpj-copiar" id="copiar">📋 Copiar resumo</button></div>' +
@@ -2156,7 +2155,7 @@ CENAS.V74 = {
 		await S.cap("Dentro do card, o total e a porcentagem de cada <b>tipo de conclusão</b>: Sentença, Decisão, Despacho…", { ms: 4600 });
 		S.hlOff();
 		S.hl(".pdp-cpj-card:nth-child(3) .pdp-cpj-marcas", 4);
-		await S.cap("No pé do card: <b>⏱</b> conclusões há mais de <b>120 dias</b>, o símbolo de <b>réu preso</b> do Projudi e <b>📝</b> quantas já têm pré-análise.", { ms: 5200 });
+		await S.cap("No pé do card: <b>⏱</b> conclusões há mais de <b>120 dias</b>, e o símbolo de <b>réu preso</b> do Projudi, com quantas são de réu preso.", { ms: 5200 });
 		S.hlOff();
 		const alvo = '.pdp-cpj-card[data-j="Carlos Eduardo Lima"] .pdp-cpj-tipo[data-t="DECISÃO"]';
 		await S.click(alvo);
