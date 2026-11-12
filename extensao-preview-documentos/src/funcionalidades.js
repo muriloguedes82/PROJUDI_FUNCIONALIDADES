@@ -352,6 +352,14 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					js: ["src/localizadorNaListaProjudi.js"],
 					css: ["src/localizadorNaListaProjudi.css"],
 					sistemas: ["projudi"]
+				},
+				{
+					id: "conclusoesPorJuiz",
+					nome: "Conclusões por juiz",
+					descricao: "Na lista de Conclusões, mostra acima da tabela um card para cada juiz com o total de conclusões dele e, dentro do card, o total por tipo de conclusão (Sentença, Decisão, Despacho...). Clicar no juiz ou num tipo mostra na lista só aquelas conclusões.",
+					js: ["src/conclusoesPorJuiz.js"],
+					css: ["src/conclusoesPorJuiz.css"],
+					sistemas: ["projudi"]
 				}
 			]
 		},

@@ -1029,7 +1029,9 @@
 	function caixasVisiveis() {
 		return Array.from(document.querySelectorAll("input.pdp-pl-lote-check")).filter(function (c) {
 			const row = c.closest("tr");
-			return row && !row.classList.contains("pdp-tl-oculta");
+			// pdp-tl-oculta: filtro das Listas de tarefas; data-pdp-cpj-oculta:
+			// filtro dos cards de Conclusões por juiz (conclusoesPorJuiz.js).
+			return row && !row.classList.contains("pdp-tl-oculta") && !row.hasAttribute("data-pdp-cpj-oculta");
 		});
 	}
 
