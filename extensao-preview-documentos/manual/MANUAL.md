@@ -3029,23 +3029,31 @@ aguardando análise (manifestações, certidões, respostas de ofício etc.) e
 deixar na lista só as de um tipo, com um clique, sem usar o campo **Tipo
 Movimento** e o botão **Filtrar**.
 
-**Onde fica:** na tela **Análise de Juntadas**, num quadro logo acima da
-lista, com um card para cada tipo de documento que aparece na coluna
-**Tipo de Documento** e um card **Todas**. Cada card mostra o total e o
-nome do tipo (sem o "JUNTADA DE" do começo; o nome completo aparece ao
-pousar o mouse sobre o card). Os cards ficam em ordem, do tipo com mais
+**Onde fica:** na tela **Análise de Juntadas**, num quadro **Juntadas por
+tipo** logo acima da lista. No alto do quadro aparecem o total de juntadas
+e quantos tipos há; abaixo, um card para cada tipo de documento que aparece
+na coluna **Tipo de Documento**. Cada card tem uma cor e mostra:
+
+- o nome do tipo (sem o "JUNTADA DE" do começo; o nome completo aparece ao
+  pousar o mouse sobre o card);
+- o total de juntadas daquele tipo, em número grande;
+- uma barrinha e a porcentagem que esse tipo representa na lista.
+
+Só aparecem cards de tipos com **pelo menos uma** juntada na lista: tipo
+com total zero não ganha card. Os cards ficam em ordem, do tipo com mais
 juntadas para o com menos.
 
 **Passo a passo:**
 
 1. Abra a **Análise de Juntadas**. O quadro **Juntadas por tipo** aparece
    acima da lista.
-2. Clique no card do tipo desejado (ex.: **22 RESPOSTA DE OFÍCIO**). A
-   lista passa a mostrar só as juntadas desse tipo, e o card fica
-   destacado. No alto do quadro aparece, por exemplo, "Mostrando 22 de 480
-   juntadas".
-3. Para voltar a ver todas, clique em **Todas** ou clique de novo no card
-   destacado.
+2. Clique no card do tipo desejado (ex.: **RESPOSTA DE OFÍCIO**). A lista
+   passa a mostrar só as juntadas desse tipo. O card fica com contorno
+   colorido e a marca **✓ Filtrando**, os demais ficam mais claros, e no
+   alto do quadro aparece, por exemplo, "mostrando 22 de 480".
+3. Para voltar a ver todas, clique em **Mostrar todas** (no alto do
+   quadro, à direita) ou clique de novo no card destacado. Para trocar de
+   tipo, basta clicar em outro card.
 
 **Bom saber:**
 
@@ -3061,8 +3069,10 @@ juntadas para o com menos.
   seguintes chegam. Com ela desligada, os totais são só da página que está
   na tela.
 - Se o campo **Tipo Movimento** do Projudi estiver escolhendo um tipo, a
-  lista já vem só com esse tipo, e o quadro avisa disso. Para ver os totais
-  de todos os tipos, escolha **Todos** nesse campo e clique em **Filtrar**.
+  lista já vem só com esse tipo, e o quadro avisa disso numa faixa
+  amarela. Para ver os totais de todos os tipos, escolha **Todos** nesse
+  campo e clique em **Filtrar**.
+- Se a lista estiver vazia, o quadro não aparece.
 - Para ligar ou desligar, use **Totais de juntadas por tipo (cards que
   filtram a Análise de Juntadas)** no Menu da extensão ([2.6](#cap-2-6)).
 
@@ -3158,7 +3168,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 24 | 12/11/2026 | Nova seção **9.17 Totais de juntadas por tipo na Análise de Juntadas**: cards com o total de juntadas de cada tipo acima da lista; clicar num card deixa na lista só as juntadas daquele tipo. Incluída também na tabela de 2.6. |
+| 24 | 12/11/2026 | Nova seção **9.17 Totais de juntadas por tipo na Análise de Juntadas**: cards coloridos com o total e a porcentagem de cada tipo acima da lista (só tipos com total maior que zero); clicar num card deixa na lista só as juntadas daquele tipo, e **Mostrar todas** volta à lista inteira. Incluída também na tabela de 2.6. |
 | 23 | 11/11/2026 | Visual novo da Mesa do Analista (9.16): novo tom **Projudi original**, com as cores do tema do próprio Projudi (creme esverdeado, verde-oliva, quadros num creme bem claro, laranja nos dados do usuário e vermelho puro nos urgentes), que passa a ser o **padrão** (antes, Oliva fosco). Quem já tinha escolhido um tom continua com ele. Ajustados 2.6 (Cor do visual da Mesa do Analista) e 9.16 (Escolher a cor). Vídeo V73 regravado (não citado no manual). |
 | 22 | 11/11/2026 | Corrigido (seção 9.15): a linha **Prescrições vencidas** da Análise de Juntadas continuava em **não disponível**: o link **Vencidas** do quadro Prescrições não vem na página da aba Mesa do Escrivão Criminal quando ela é aberta sem ser mostrada, e o endereço desse link muda a cada vez que se entra no Projudi. Agora, se não achar o link, a extensão abre a aba Mesa do Escrivão Criminal sem mostrá-la e clica em **Vencidas**, como a pessoa faria. Novo item no Bom saber. Sem vídeo novo (a tela não mudou). |
 | 21 | 10/11/2026 | Corrigido (seção 9.14): ao trocar de atuação, a linha **Processos Paralisados (+90 dias)** continuava mostrando os números da atuação anterior (os totais ficavam guardados por 5 minutos). Agora a contagem é refeita toda vez que a tela Início é aberta ou recarregada, inclusive na troca de atuação. Bom saber da 9.14 atualizado. Sem vídeo novo (a tela não mudou). |

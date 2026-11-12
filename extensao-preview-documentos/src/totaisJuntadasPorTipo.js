@@ -3,12 +3,13 @@
 // Na lista "Análise de Juntadas" (processo/analisarJuntada.do), mostra
 // acima da tabela um card para cada tipo de documento presente na lista
 // (coluna "Tipo de Documento", ex.: JUNTADA DE MANIFESTAÇÃO), com o total
-// de juntadas daquele tipo, e um card "Todas" com o total geral.
+// de juntadas daquele tipo e a parte da lista que ele representa (visual
+// igual ao dos cards de "Conclusões por juiz").
 //
 // O card funciona como filtro automático: clicar nele deixa na tabela só
 // as juntadas daquele tipo (as demais linhas, e a linha de arquivos do
 // "+" delas, ficam escondidas); clicar de novo no mesmo card, ou em
-// "Todas", mostra tudo outra vez. Nada é pedido ao servidor: o filtro é
+// "Mostrar todas", mostra tudo outra vez. Nada é pedido ao servidor: o filtro é
 // feito na própria tabela, por isso é instantâneo.
 //
 // Junto com "Listas em uma única página" (listasPaginaUnica.js), que
@@ -111,31 +112,54 @@
 		});
 	}
 
-	function criarCard(texto, total, dica, ativo, aoClicar) {
-		const botao = document.createElement("button");
-		botao.type = "button";
-		botao.className = "pdp-jtipo-card" + (ativo ? " pdp-jtipo-ativo" : "");
-		botao.title = dica;
-		botao.setAttribute("aria-pressed", ativo ? "true" : "false");
-		const numero = document.createElement("span");
-		numero.className = "pdp-jtipo-total";
-		numero.textContent = String(total);
-		const nome = document.createElement("span");
-		nome.className = "pdp-jtipo-nome";
-		nome.textContent = texto;
-		botao.append(numero, nome);
-		botao.addEventListener("click", function (ev) {
+	// Mesma paleta dos cards de "Conclusões por juiz" (conclusoesPorJuiz.js).
+	const CORES = ["#2563eb", "#7c3aed", "#0d9488", "#d97706", "#db2777", "#4f46e5", "#059669", "#dc2626", "#0891b2", "#65a30d"];
+
+	function el(tag, cls, texto) {
+		const e = document.createElement(tag);
+		if (cls) e.className = cls;
+		if (texto != null) e.textContent = texto;
+		return e;
+	}
+
+	function plural(n) {
+		return n === 1 ? "juntada" : "juntadas";
+	}
+
+	function criarCard(tipo, total, geral, cor) {
+		const ativo = tipoAtivo === tipo;
+		const card = el("button", "pdp-jtipo-card" + (ativo ? " pdp-jtipo-ativo" : tipoAtivo !== null ? " pdp-jtipo-apagado" : ""));
+		card.type = "button";
+		card.style.setProperty("--pdp-jtipo-cor", cor);
+		card.setAttribute("aria-pressed", ativo ? "true" : "false");
+		card.title = tipo + " — " + total + " " + plural(total) + ". " + (ativo ? "Clique para mostrar todas." : "Clique para ver só este tipo.");
+
+		const cab = el("span", "pdp-jtipo-cab");
+		cab.append(el("span", "pdp-jtipo-nome", rotulo(tipo)));
+		const tot = el("span", "pdp-jtipo-total");
+		tot.append(el("strong", null, String(total)), el("small", null, plural(total)));
+		cab.append(tot);
+
+		const pct = geral ? Math.round((total / geral) * 100) : 0;
+		const barra = el("span", "pdp-jtipo-barra");
+		const preenchido = el("span", "pdp-jtipo-seg");
+		preenchido.style.width = Math.max(pct, 2) + "%";
+		barra.append(preenchido);
+		const rodape = el("span", "pdp-jtipo-rodape");
+		rodape.append(el("span", null, pct + "% da lista"), el("span", "pdp-jtipo-acao", ativo ? "✓ Filtrando" : "Ver só este tipo"));
+
+		card.append(cab, barra, rodape);
+		card.addEventListener("click", function (ev) {
 			ev.preventDefault();
-			aoClicar();
+			escolher(tipo);
 		});
-		return botao;
+		return card;
 	}
 
 	function garantirPainel() {
 		if (painel && painel.isConnected) return painel;
-		painel = document.createElement("div");
-		painel.className = "pdp-jtipo-painel";
-		painel.setAttribute("role", "group");
+		painel = el("section", "pdp-jtipo");
+		painel.id = "pdp-juntadas-tipo";
 		painel.setAttribute("aria-label", "Totais de juntadas por tipo");
 		// Logo acima da navegação de páginas (ou da própria tabela).
 		const ancora = document.getElementById("navigator") || tabela;
@@ -166,53 +190,59 @@
 
 		aplicarFiltro(lista);
 
-		const tipos = Array.from(totais.entries()).sort(function (a, b) {
+		// Só tipos com total maior que zero ganham card.
+		const tipos = Array.from(totais.entries()).filter(function (par) {
+			return par[1] > 0;
+		}).sort(function (a, b) {
 			return b[1] - a[1] || a[0].localeCompare(b[0], "pt-BR");
 		});
 
 		const caixa = garantirPainel();
 		const fragmento = document.createDocumentFragment();
-		const titulo = document.createElement("div");
-		titulo.className = "pdp-jtipo-titulo";
-		titulo.textContent =
-			tipoAtivo === null
-				? "Juntadas por tipo — clique num card para ver só aquele tipo"
-				: "Mostrando " + totais.get(tipoAtivo) + " de " + lista.length + " juntadas (" + tipoAtivo + "). Clique em \"Todas\" para ver a lista inteira.";
-		fragmento.appendChild(titulo);
 
-		const grade = document.createElement("div");
-		grade.className = "pdp-jtipo-grade";
-		grade.appendChild(
-			criarCard("Todas", lista.length, "Mostrar todas as juntadas da lista", tipoAtivo === null, function () {
+		const topo = el("div", "pdp-jtipo-topo");
+		const titulo = el("div", "pdp-jtipo-titulo");
+		titulo.append(el("span", "pdp-jtipo-titulo-texto", "Juntadas por tipo"));
+		titulo.append(
+			el(
+				"span",
+				"pdp-jtipo-geral",
+				lista.length + " " + plural(lista.length) + " · " + tipos.length + (tipos.length === 1 ? " tipo" : " tipos") +
+					(tipoAtivo !== null ? " · mostrando " + totais.get(tipoAtivo) + " de " + lista.length : "")
+			)
+		);
+		topo.append(titulo);
+		topo.append(el("span", "pdp-jtipo-dica", tipoAtivo === null ? "Clique num card para ver só aquele tipo na lista." : "Filtrando: " + tipoAtivo));
+		if (tipoAtivo !== null) {
+			const limpar = el("button", "pdp-jtipo-limpar", "Mostrar todas");
+			limpar.type = "button";
+			limpar.title = "Mostrar todas as juntadas da lista";
+			limpar.addEventListener("click", function (ev) {
+				ev.preventDefault();
 				tipoAtivo = null;
 				atualizar();
-			})
-		);
-		tipos.forEach(function (par) {
-			const tipo = par[0];
-			grade.appendChild(
-				criarCard(
-					rotulo(tipo),
-					par[1],
-					tipo + " — " + par[1] + " juntada(s). " + (tipoAtivo === tipo ? "Clique para mostrar todas." : "Clique para ver só este tipo."),
-					tipoAtivo === tipo,
-					function () {
-						escolher(tipo);
-					}
-				)
-			);
+			});
+			topo.append(limpar);
+		}
+		fragmento.append(topo);
+
+		const grade = el("div", "pdp-jtipo-grade");
+		tipos.forEach(function (par, i) {
+			grade.append(criarCard(par[0], par[1], lista.length, CORES[i % CORES.length]));
 		});
-		fragmento.appendChild(grade);
+		fragmento.append(grade);
 
 		const filtroProjudi = document.getElementById("codTipoMovimento");
 		if (filtroProjudi && filtroProjudi.value && filtroProjudi.value !== "-1") {
-			const nota = document.createElement("div");
-			nota.className = "pdp-jtipo-nota";
-			nota.textContent =
-				"O campo Tipo Movimento do Projudi está filtrando a lista (" +
-				normalizar(filtroProjudi.options[filtroProjudi.selectedIndex].text) +
-				"). Para ver os totais de todos os tipos, escolha \"Todos\" nele e clique em Filtrar.";
-			fragmento.appendChild(nota);
+			fragmento.append(
+				el(
+					"div",
+					"pdp-jtipo-nota",
+					"O campo Tipo Movimento do Projudi está filtrando a lista (" +
+						normalizar(filtroProjudi.options[filtroProjudi.selectedIndex].text) +
+						"). Para ver os totais de todos os tipos, escolha \"Todos\" nele e clique em Filtrar."
+				)
+			);
 		}
 
 		caixa.replaceChildren(fragmento);

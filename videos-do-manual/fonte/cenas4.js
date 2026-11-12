@@ -2119,30 +2119,40 @@ CENAS.V74 = {
 		css.rel = "stylesheet";
 		css.href = "../../extensao-preview-documentos/src/totaisJuntadasPorTipo.css";
 		document.head.appendChild(css);
+		const CORES = ["#2563eb", "#7c3aed", "#0d9488", "#d97706"];
 		const tipos = ["JUNTADA DE MANIFESTAÇÃO", "JUNTADA DE RESPOSTA DE OFÍCIO", "JUNTADA DE MANIFESTAÇÃO", "JUNTADA DE CERTIDÃO", "JUNTADA DE RESPOSTA DE OFÍCIO", "JUNTADA DE MANIFESTAÇÃO"];
 		telaLista("Análise de Juntadas", { col: "Tipo de Documento", rows: LISTA.map((r, i) => Object.assign({}, r, { d: "<b>" + tipos[i] + "</b>" })), pag: "Todas as juntadas em uma única página: 6 registro(s)." });
 		$$("#lista tr[data-i]").forEach((tr) => tr.setAttribute("data-tipo", tipos[+tr.getAttribute("data-i")]));
 		const contagem = {};
 		tipos.forEach((t) => (contagem[t] = (contagem[t] || 0) + 1));
 		const ordem = Object.keys(contagem).sort((a, b) => contagem[b] - contagem[a] || a.localeCompare(b));
-		const card = (id, n, nome, ativo) => '<button type="button" id="' + id + '" class="pdp-jtipo-card' + (ativo ? " pdp-jtipo-ativo" : "") + '"><span class="pdp-jtipo-total">' + n + '</span><span class="pdp-jtipo-nome">' + nome + "</span></button>";
+		const pl = (n) => (n === 1 ? "juntada" : "juntadas");
+		const card = (k, t, ativo) => {
+			const n = contagem[t], pct = Math.round((n / tipos.length) * 100);
+			return '<button type="button" id="c-' + k + '" class="pdp-jtipo-card' + (ativo === t ? " pdp-jtipo-ativo" : ativo ? " pdp-jtipo-apagado" : "") + '" style="--pdp-jtipo-cor:' + CORES[k] + '">' +
+				'<span class="pdp-jtipo-cab"><span class="pdp-jtipo-nome">' + t.replace(/^JUNTADA DE /, "") + '</span><span class="pdp-jtipo-total"><strong>' + n + "</strong><small>" + pl(n) + "</small></span></span>" +
+				'<span class="pdp-jtipo-barra"><span class="pdp-jtipo-seg" style="width:' + pct + '%"></span></span>' +
+				'<span class="pdp-jtipo-rodape"><span>' + pct + '% da lista</span><span class="pdp-jtipo-acao">' + (ativo === t ? "✓ Filtrando" : "Ver só este tipo") + "</span></span></button>";
+		};
 		const painel = (ativo) => {
-			const titulo = ativo ? "Mostrando " + contagem[ativo] + " de " + tipos.length + " juntadas (" + ativo + '). Clique em "Todas" para ver a lista inteira.' : "Juntadas por tipo — clique num card para ver só aquele tipo";
-			$("#slot-legenda").innerHTML = '<div class="pdp-jtipo-painel" id="painel"><div class="pdp-jtipo-titulo">' + titulo + '</div><div class="pdp-jtipo-grade">' +
-				card("c-todas", tipos.length, "Todas", !ativo) + ordem.map((t, k) => card("c-" + k, contagem[t], t.replace(/^JUNTADA DE /, ""), ativo === t)).join("") + "</div></div>";
+			$("#slot-legenda").innerHTML = '<section id="pdp-juntadas-tipo" class="pdp-jtipo"><div class="pdp-jtipo-topo"><div class="pdp-jtipo-titulo"><span class="pdp-jtipo-titulo-texto">Juntadas por tipo</span><span class="pdp-jtipo-geral">' +
+				tipos.length + " juntadas · " + ordem.length + " tipos" + (ativo ? " · mostrando " + contagem[ativo] + " de " + tipos.length : "") + "</span></div>" +
+				'<span class="pdp-jtipo-dica">' + (ativo ? "Filtrando: " + ativo : "Clique num card para ver só aquele tipo na lista.") + "</span>" +
+				(ativo ? '<button type="button" id="limpar" class="pdp-jtipo-limpar">Mostrar todas</button>' : "") + "</div>" +
+				'<div class="pdp-jtipo-grade">' + ordem.map((t, k) => card(k, t, ativo)).join("") + "</div></section>";
 			$$("#lista tr[data-i]").forEach((tr) => (tr.style.display = !ativo || tr.getAttribute("data-tipo") === ativo ? "" : "none"));
 		};
 		await S.titleCard("VÍDEO V74", "Totais de juntadas por tipo", "Um card por tipo de documento; clique para ver só aquele tipo.");
 		painel(null);
-		S.hl("#painel", 3);
-		await S.cap("Acima da lista da <b>Análise de Juntadas</b>, a extensão mostra um card para cada <b>tipo de documento</b>, com o total.", { ms: 4600 });
+		S.hl("#pdp-juntadas-tipo", 3);
+		await S.cap("Acima da lista da <b>Análise de Juntadas</b>, a extensão mostra um card para cada <b>tipo de documento</b>, com o total e a porcentagem.", { ms: 4800 });
 		S.hlOff();
 		await S.click("#c-1");
 		painel(ordem[1]);
 		await S.cap("Clicando num card, a lista passa a mostrar <b>só as juntadas daquele tipo</b>. As caixas das escondidas são desmarcadas.", { ms: 4800 });
-		await S.click("#c-todas");
+		await S.click("#limpar");
 		painel(null);
-		await S.cap("Para ver todas de novo, clique em <b>Todas</b> (ou de novo no card destacado).", { ms: 4000 });
-		await S.endCard("Análise de Juntadas → card do tipo → só as juntadas daquele tipo → Todas para voltar.");
+		await S.cap("Para ver todas de novo, clique em <b>Mostrar todas</b> (ou de novo no card destacado).", { ms: 4000 });
+		await S.endCard("Análise de Juntadas → card do tipo → só as juntadas daquele tipo → Mostrar todas para voltar.");
 	},
 };

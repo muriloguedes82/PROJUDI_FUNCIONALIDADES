@@ -305,7 +305,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "totaisJuntadasPorTipo",
 					nome: "Totais de juntadas por tipo (cards que filtram a Análise de Juntadas)",
-					descricao: "Na lista Análise de Juntadas, mostra acima da tabela um card para cada tipo de documento (ex.: JUNTADA DE MANIFESTAÇÃO) com o total de juntadas daquele tipo, e um card \"Todas\". Clicar num card deixa na lista só as juntadas daquele tipo; clicar de novo, ou em \"Todas\", mostra a lista inteira.",
+					descricao: "Na lista Análise de Juntadas, mostra acima da tabela um card para cada tipo de documento (ex.: JUNTADA DE MANIFESTAÇÃO) com o total de juntadas daquele tipo (só tipos com total maior que zero). Clicar num card deixa na lista só as juntadas daquele tipo; clicar de novo, ou em \"Mostrar todas\", mostra a lista inteira.",
 					js: ["src/totaisJuntadasPorTipo.js"],
 					css: ["src/totaisJuntadasPorTipo.css"],
 					sistemas: ["projudi"]
