@@ -282,6 +282,13 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					sistemas: ["projudi"]
 				},
 				{
+					id: "audienciasPendentes",
+					nome: "Audiências pendentes e para hoje na Análise de Juntadas",
+					descricao: "Na aba Análise de Juntadas da Mesa, no quadro \"Para Realizar\", mostra o total de audiências pendentes (designadas, com a data já passada e ainda não movimentadas), com quantas são de réu preso (em vermelho), quantas estão pendentes há mais de 30 dias e a data da mais antiga, e o total de audiências para hoje (os mesmos da Listagem de Audiências com \"Pendentes\" e \"Para Hoje\"); cada linha só aparece quando o total é maior que zero. Ao pousar o mouse num número aparece a lista das audiências; clicar no número abre a Listagem já pesquisada. Os números são contados de novo a cada vez que a aba é aberta ou atualizada.",
+					js: ["src/audienciasPendentes.js"],
+					sistemas: ["projudi"]
+				},
+				{
 					id: "visualMesa",
 					nome: "Visual novo da Mesa do Analista",
 					descricao: "Organiza em cartões todas as abas da Mesa do Analista, com os mesmos números e links, e deixa a barra de menus e a linha do usuário do Projudi no mesmo tom. O tom é escolhido nas bolinhas ao lado do título da Mesa ou aqui no Menu.",
@@ -297,9 +304,24 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				},
 				{
 					id: "listasPaginaUnica",
-					nome: "Listas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN e Juiz das Garantias)",
-					descricao: "Nas listas Análise de Juntadas, Conclusões (Retorno de Conclusão), Mandados (mandados retornados e demais), Expedir Intimações, Intimação (decurso de prazo), Intimação de Auxiliares da Justiça, Listagem de Multas - Sistema FUPEN e Processos com suspeita de incompetência - Juiz das Garantias, reúne todas as páginas numa só tela: os registros das páginas seguintes são trazidos sozinhos e acrescentados à mesma tabela, sem precisar clicar em Próxima Página.",
+					nome: "Listas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN, Juiz das Garantias e Audiências)",
+					descricao: "Nas listas Análise de Juntadas, Conclusões (Retorno de Conclusão), Mandados (mandados retornados e demais), Expedir Intimações, Intimação (decurso de prazo), Intimação de Auxiliares da Justiça, Listagem de Multas - Sistema FUPEN, Processos com suspeita de incompetência - Juiz das Garantias e Listagem de Audiências, reúne todas as páginas numa só tela: os registros das páginas seguintes são trazidos sozinhos e acrescentados à mesma tabela, sem precisar clicar em Próxima Página.",
 					js: ["src/listasPaginaUnica.js"],
+					sistemas: ["projudi"]
+				},
+				{
+					id: "atrasoAudiencias",
+					nome: "Dias de atraso na Listagem de Audiências",
+					descricao: "Na Listagem de Audiências pesquisada com \"Pendentes\", acrescenta a coluna \"Atraso\", com os dias desde a data de cada audiência; as pendentes há mais de 30 dias ficam em destaque, em vermelho.",
+					js: ["src/atrasoAudiencias.js"],
+					sistemas: ["projudi"]
+				},
+				{
+					id: "totaisJuntadasPorTipo",
+					nome: "Totais de juntadas por tipo (cards que filtram a Análise de Juntadas)",
+					descricao: "Na lista Análise de Juntadas, mostra acima da tabela um card para cada tipo da lista \"Tipo Movimento\" (ex.: JUNTADA DE MANIFESTAÇÃO), com o total que o Projudi informa ali e a porcentagem no total (só tipos com total maior que zero). Por padrão, mostra os 10 tipos com mais juntadas, numa linha só; em \"⚙ Personalizar\", escolha quantos cards e quais tipos aparecem (fica salvo); os demais ficam em \"+ N tipos\". Clicar num card deixa na lista só as juntadas daquele tipo; clicar de novo, ou em \"Mostrar todas\", mostra a lista inteira.",
+					js: ["src/totaisJuntadasPorTipo.js"],
+					css: ["src/totaisJuntadasPorTipo.css"],
 					sistemas: ["projudi"]
 				},
 				{
@@ -343,6 +365,22 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					descricao: "Nas listas Análise de Juntadas e Retorno de Conclusão do Projudi, mostra o localizador que consta na aba Informações Gerais do processo, com ✏️ para trocar ou incluir um localizador (escolhido entre os ativos do Histórico de Localizadores) e clique no localizador para tirá-lo, sem sair da lista.",
 					js: ["src/localizadorNaListaProjudi.js"],
 					css: ["src/localizadorNaListaProjudi.css"],
+					sistemas: ["projudi"]
+				},
+				{
+					id: "dispensaPorTipoJuntada",
+					nome: "Dispensa rápida por tipo na Análise de Juntadas",
+					descricao: "Na lista Análise de Juntadas, quadro com preferências de tipos de juntada (ex.: JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO), cada uma com o total; clicar na preferência dispensa, com confirmação, todas as juntadas daquele tipo de uma vez. As preferências são criadas em \"+ Preferência\" e tiradas no \"×\".",
+					js: ["src/dispensaPorTipoJuntada.js"],
+					css: ["src/dispensaPorTipoJuntada.css"],
+					sistemas: ["projudi"]
+				},
+				{
+					id: "conclusoesPorJuiz",
+					nome: "Conclusões por juiz",
+					descricao: "Na lista de Conclusões, mostra acima da tabela um card para cada juiz com o total de conclusões dele e, dentro do card, o total por tipo de conclusão (Sentença, Decisão, Despacho...). Clicar no juiz ou num tipo mostra na lista só aquelas conclusões.",
+					js: ["src/conclusoesPorJuiz.js"],
+					css: ["src/conclusoesPorJuiz.css"],
 					sistemas: ["projudi"]
 				}
 			]

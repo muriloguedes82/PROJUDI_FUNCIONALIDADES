@@ -58,6 +58,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/mesaAnalistaContadores.js",
 			"src/paralisados90.js",
 			"src/totaisMesaEscrivao.js",
+			"src/audienciasPendentes.js",
 			"src/visualMesa.js",
 			"src/ordenarCumprimentos.js",
 			"src/movementHighlight.js",
@@ -65,6 +66,8 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/sequencialProcessoPrincipal.js",
 			"src/decursoPrazoSequencial.js",
 			"src/listasPaginaUnica.js",
+			"src/atrasoAudiencias.js",
+			"src/totaisJuntadasPorTipo.js",
 			"src/suspensaoAtiva.js",
 			"src/monitoracaoAtiva.js",
 			"src/oraculoDirect.js",
@@ -89,6 +92,8 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/decursoNaLinha.js",
 			"src/previewConclusao.js",
 			"src/localizadorNaListaProjudi.js",
+			"src/conclusoesPorJuiz.js",
+			"src/dispensaPorTipoJuntada.js",
 			"src/funcionalidades.js",
 			"src/menuExtensao.js"
 		],
@@ -113,7 +118,10 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/decursoNaLinha.css",
 			"src/previewConclusao.css",
 			"src/localizadorNaListaProjudi.css",
-			"src/visualMesa.css"
+			"src/conclusoesPorJuiz.css",
+			"src/dispensaPorTipoJuntada.css",
+			"src/visualMesa.css",
+			"src/totaisJuntadasPorTipo.css"
 		],
 		runAt: "document_idle",
 		allFrames: true,

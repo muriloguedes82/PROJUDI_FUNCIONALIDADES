@@ -296,7 +296,7 @@
 		"pdpAlterarClassePrefs", "pdpPrioridadesPrefs", "pdpPrioridadesCatalogo", "pdpAgendarAudienciaPrefs", "pdpPreferenceCombos", "pdpPreferencesOrder",
 		"pdpTarefasListas", "pdpTarefasPreferencias", "pdpTarefasProcessos",
 		"pdpWhatsappContacts", "pdpEmailRecipients", "pdpFromAccounts", "pdpDefaultFromId",
-		"pdpSistemasCnjOrdem", "pdpSistemasCnjOutros", "pdpAcoesRapidasOrdem",
+		"pdpSistemasCnjOrdem", "pdpSistemasCnjOutros", "pdpAcoesRapidasOrdem", "pdpDispensaTipoJuntadaCards",
 		CHAVE, CAT.chaveAntiga, CAT.chaveExtensao, CAT.chavePartes
 	]);
 
@@ -328,7 +328,8 @@
 			["processo(s) marcado(s) nas listas de tarefas", Object.keys(objeto(local.pdpTarefasProcessos)).length],
 			["contato(s) de WhatsApp", tamanho(local.pdpWhatsappContacts)],
 			["destinatário(s) de e-mail", tamanho(local.pdpEmailRecipients)],
-			["remetente(s) de e-mail", tamanho(local.pdpFromAccounts)]
+			["remetente(s) de e-mail", tamanho(local.pdpFromAccounts)],
+			["preferência(s) da Dispensa rápida por tipo (Análise de Juntadas)", tamanho(local.pdpDispensaTipoJuntadaCards)]
 		].filter(function (l) { return l[1] > 0; }).map(function (l) { return l[1] + " " + l[0]; });
 		if (tamanho(local.pdpPreferencesOrder)) linhas.push("ordem dos cards em \"Minhas Preferências\"");
 		if (tamanho(local.pdpSistemasCnjOrdem) || tamanho(local.pdpSistemasCnjOutros)) linhas.push("ordem dos cards dos sistemas e o que fica no \"Outros\"");
