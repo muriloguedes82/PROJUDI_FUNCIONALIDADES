@@ -420,11 +420,23 @@
 		else location.reload();
 	}
 
-	function mostrarAviso(quadro, texto, ok) {
+	// Mensagem final (sucesso, nada a dispensar ou falha) some sozinha
+	// depois de 2 segundos (decisão do usuário); as de andamento ficam até a
+	// próxima.
+	const TEMPO_AVISO_MS = 2000;
+	let relogioAviso = null;
+	function mostrarAviso(quadro, texto, ok, final) {
 		const aviso = quadro.querySelector(".pdp-dpt-aviso");
+		clearTimeout(relogioAviso);
 		aviso.textContent = texto;
 		aviso.hidden = !texto;
 		aviso.classList.toggle("pdp-dpt-aviso-erro", !ok);
+		if (final && texto) {
+			relogioAviso = setTimeout(() => {
+				aviso.hidden = true;
+				aviso.textContent = "";
+			}, TEMPO_AVISO_MS);
+		}
 	}
 
 	// O quadro aparece sempre que a tela tem o filtro "Tipo Movimento",
@@ -536,7 +548,7 @@
 				recarregarLista();
 				return;
 			}
-			mostrarAviso(quadro, texto, r.ok);
+			mostrarAviso(quadro, texto, r.ok, true);
 			desenhar();
 		}
 
@@ -569,7 +581,7 @@
 			if (guardado) {
 				sessionStorage.removeItem(CHAVE_AVISO);
 				const a = JSON.parse(guardado);
-				mostrarAviso(quadro, a.texto, a.ok);
+				mostrarAviso(quadro, a.texto, a.ok, true);
 			}
 		} catch (e) {
 			/* ignora */
