@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 28 |
-| **Versão da extensão** | 28 |
+| **Versão do manual** | 29 |
+| **Versão da extensão** | 29 |
 | **Data desta versão** | 12/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -3186,6 +3186,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 29 | 12/11/2026 | Sem alteração de texto; Dispensa rápida por tipo (9.17): as preferências do quadro ficam mais compactas, com letra menor (nome do tipo, total, **×**, **+ Preferência** e avisos), para ocupar menos espaço na Análise de Juntadas. Vídeo V74 regravado (não citado no manual). |
 | 28 | 12/11/2026 | Dispensa rápida por tipo (9.17): a busca passa a percorrer **todas as páginas** da lista (Próxima Página), procurando o nome do tipo na coluna **Tipo de Documento**; em cada página onde o encontra, dispensa e recomeça da primeira, até uma volta inteira sem nenhuma. Se o Projudi não aplicar o filtro pelo tipo, a extensão procura na lista inteira, página por página. Corrigido também o total do aviso final, que podia mostrar menos juntadas do que as dispensadas. Ajustados o passo 3 e o Bom saber. Sem vídeo novo (a tela não mudou). |
 | 27 | 12/11/2026 | Dispensa rápida por tipo (9.17): as preferências já criadas passam a aparecer carregadas **sempre** que a Análise de Juntadas é aberta ou atualizada (Filtrar, F5, volta da lista depois da dispensa), inclusive com a lista sem juntadas (antes, sem juntadas na lista o quadro não aparecia), e quando o Projudi refaz a tela no lugar. Criar ou tirar uma preferência numa aba vale também nas outras abas abertas. Ajustado "Escolher as preferências". Sem vídeo novo (a tela não mudou). |
 | 26 | 12/11/2026 | Dispensa rápida por tipo (9.17): o botão **+ Card** passa a se chamar **+ Preferência**, e os cards do quadro passam a ser chamados de **preferências** (na tela, no Menu e no resumo do backup). Nada mudou no funcionamento; quem já tinha criado cards continua com eles. Texto da 9.17 e de **11. Solução de problemas** ajustado. Vídeo V74 regravado (não citado no manual). |
