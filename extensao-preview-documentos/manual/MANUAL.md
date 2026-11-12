@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 23 |
-| **Versão da extensão** | 23 |
-| **Data desta versão** | 11/11/2026 |
+| **Versão do manual** | 24 |
+| **Versão da extensão** | 24 |
+| **Data desta versão** | 12/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi, clique no ícone da balança
@@ -99,6 +99,7 @@
    - 9.14 [Processos Paralisados (+90 dias) na tela Início](#cap-9-14)
    - 9.15 [Totais da Mesa do Escrivão Criminal na Análise de Juntadas](#cap-9-15)
    - 9.16 [Visual novo da Mesa do Analista (Projudi)](#cap-9-16)
+   - 9.17 [Dispensa rápida por tipo na Análise de Juntadas](#cap-9-17)
 10. [Privacidade e perfis bloqueados](#cap-10)
     - 10.1 [O que fica guardado no seu navegador](#cap-10-1)
     - 10.2 [Bloqueio para perfis de advocacia](#cap-10-2)
@@ -464,7 +465,7 @@ ligar tudo.
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos · Novo Valor da Causa · Prioridades · Agendar Audiência (preferências) · Alvará Eletrônico · Juntar Documento · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Bloco de anotações | [4](#cap-4) |
-| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (Projudi) · Listas em uma única página · Processos Paralisados (+90 dias) na tela Início · Totais da Mesa do Escrivão Criminal na Análise de Juntadas · Visual novo da Mesa do Analista | [6](#cap-6), [9](#cap-9) |
+| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (Projudi) · Listas em uma única página · Processos Paralisados (+90 dias) na tela Início · Totais da Mesa do Escrivão Criminal na Análise de Juntadas · Visual novo da Mesa do Analista · Dispensa rápida por tipo na Análise de Juntadas | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
 Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
@@ -3018,6 +3019,66 @@ Atuação / Data**) acompanha o mesmo tom em todas as telas do Projudi.
   aparece no quadro **Outros atalhos**; item novo da Análise de Juntadas,
   no quadro **Outros**.
 
+<a id="cap-9-17"></a>
+### 9.17 Dispensa rápida por tipo na Análise de Juntadas
+
+*Vem ligado.*
+
+**Para que serve:** dispensar, com um clique, **todas** as juntadas de um
+mesmo tipo que estão na lista **Análise de Juntadas** — por exemplo, todas
+as **JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO** — sem precisar filtrar, marcar
+uma a uma e clicar em **Dispensar**, página por página.
+
+**Onde fica:** na tela **Análise de Juntadas** (a lista aberta pela Mesa do
+Analista), logo abaixo do título, num quadro chamado **Dispensa rápida por
+tipo**. Cada **card** do quadro mostra o nome de um tipo de juntada e, ao
+lado, o total daquele tipo (o mesmo número que aparece entre parênteses no
+filtro **Tipo Movimento** do Projudi). Vem com um card pronto: **JUNTADA DE
+ANOTAÇÃO DE DISTRIBUIÇÃO**.
+
+**Passo a passo:**
+
+1. Abra a **Análise de Juntadas**. O quadro **Dispensa rápida por tipo**
+   aparece abaixo do título.
+2. Clique no card do tipo que quer dispensar. A extensão pergunta se deve
+   dispensar as juntadas daquele tipo em todos os processos da lista;
+   clique em **OK** para seguir ou em **Cancelar** para desistir.
+3. Enquanto trabalha, o quadro mostra **Dispensando as juntadas do tipo
+   …** e quantas já foram dispensadas. A extensão faz, sem você ver, o
+   mesmo que você faria: escolhe o tipo em **Tipo Movimento**, clica em
+   **Filtrar**, marca só as juntadas daquele tipo, clica em **Dispensar** e
+   repete até não sobrar nenhuma.
+4. No fim, a lista é atualizada sozinha e o quadro mostra, em verde,
+   quantas juntadas foram dispensadas.
+
+**Escolher os cards:**
+
+- Para acrescentar um card, clique em **+ Card**, escolha o tipo de
+  juntada na lista (são os mesmos tipos do filtro **Tipo Movimento**, com o
+  total de cada um) e clique em **Acrescentar**.
+- Para tirar um card, clique no **×** ao lado dele e confirme.
+- Os cards escolhidos ficam guardados no seu navegador e aparecem sempre
+  que você abrir a Análise de Juntadas.
+
+**Bom saber:**
+
+- A dispensa **não pode ser desfeita**: confira o tipo antes de clicar no
+  card.
+- São dispensadas só as juntadas cujo **Tipo de Documento** é exatamente o
+  do card; as demais não são tocadas. Os outros filtros da tela (Status,
+  Grupo, Localizador etc.) não são considerados: valem todas as juntadas
+  daquele tipo.
+- Card com total **0** (nenhuma juntada daquele tipo na lista) fica
+  apagado, sem efeito ao clicar.
+- Se o Projudi não confirmar a dispensa (por exemplo, uma juntada continua
+  na lista depois do **Dispensar**), a extensão para, mostra em vermelho
+  **Dispensa interrompida** com o motivo e quantas já foram dispensadas, e
+  não insiste. Confira a lista e, se for o caso, clique no card de novo.
+- Enquanto uma dispensa está em andamento, os demais cards ficam
+  bloqueados.
+- Para ligar ou desligar, use **Dispensa rápida por tipo na Análise de
+  Juntadas** no Menu da extensão ([2.6](#cap-2-6)).
+
 ---
 
 <a id="cap-10"></a>
@@ -3088,6 +3149,7 @@ telas abertas a partir daí voltam a funcionar.
 | O campo "De" não muda para a conta escolhida | Falta a permissão "Enviar como" nessa caixa — peça ao TI ([5.3](#cap-5-3)) |
 | "Verifique a conclusão" | Confira a conclusão no Projudi antes de repetir ([6.2](#cap-6-2)) |
 | Os botões **Dispensar juntadas**, **Dispensar decursos** ou **Finalizar conclusão** aparecem no quadro Pendências, mas não respondem ao clique (acontecia com o zoom do navegador acima de 100%, ex.: 110%) | Corrigido na versão 4: atualize a extensão ([2.3](#cap-2-3)). Enquanto não atualiza, volte o zoom para 100% (**Ctrl+0**) |
+| Dispensa rápida por tipo: "Dispensa interrompida" | Confira na lista se as juntadas daquele tipo ainda estão lá e clique no card de novo; se continuar, dispense pelo botão **Dispensar** do Projudi ([9.17](#cap-9-17)) |
 | Dispensa de juntadas/decursos parou com erro | Clique em **Ver detalhes**, resolva no Projudi e tente de novo ([6.1](#cap-6-1), [6.3](#cap-6-3)) |
 | Card de suspensão/monitoração não aparece | Só são sinalizados status **ATIVA** e os motivos listados em [4.1](#cap-4-1)/[4.2](#cap-4-2); aguarde alguns segundos após abrir o processo |
 | Mandado não virou Regionalizado | Só muda se a cidade da parte for de outra comarca **e** constar em Comarca de Destino; veja a nota amarela do diálogo ([9.7](#cap-9-7)) |
@@ -3110,6 +3172,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 24 | 12/11/2026 | Nova seção 9.17 **Dispensa rápida por tipo na Análise de Juntadas**: quadro com cards de tipos de juntada (padrão: **JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO**), cada um com o total; clicar no card dispensa, com confirmação, todas as juntadas daquele tipo de uma vez, e **+ Card**/**×** escolhem os tipos. Sumário, tabela da 2.6 e **11. Solução de problemas** atualizados. Novo vídeo V74 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 23 | 11/11/2026 | Visual novo da Mesa do Analista (9.16): novo tom **Projudi original**, com as cores do tema do próprio Projudi (creme esverdeado, verde-oliva, quadros num creme bem claro, laranja nos dados do usuário e vermelho puro nos urgentes), que passa a ser o **padrão** (antes, Oliva fosco). Quem já tinha escolhido um tom continua com ele. Ajustados 2.6 (Cor do visual da Mesa do Analista) e 9.16 (Escolher a cor). Vídeo V73 regravado (não citado no manual). |
 | 22 | 11/11/2026 | Corrigido (seção 9.15): a linha **Prescrições vencidas** da Análise de Juntadas continuava em **não disponível**: o link **Vencidas** do quadro Prescrições não vem na página da aba Mesa do Escrivão Criminal quando ela é aberta sem ser mostrada, e o endereço desse link muda a cada vez que se entra no Projudi. Agora, se não achar o link, a extensão abre a aba Mesa do Escrivão Criminal sem mostrá-la e clica em **Vencidas**, como a pessoa faria. Novo item no Bom saber. Sem vídeo novo (a tela não mudou). |
 | 21 | 10/11/2026 | Corrigido (seção 9.14): ao trocar de atuação, a linha **Processos Paralisados (+90 dias)** continuava mostrando os números da atuação anterior (os totais ficavam guardados por 5 minutos). Agora a contagem é refeita toda vez que a tela Início é aberta ou recarregada, inclusive na troca de atuação. Bom saber da 9.14 atualizado. Sem vídeo novo (a tela não mudou). |

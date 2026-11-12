@@ -2106,3 +2106,62 @@ CENAS.V73 = {
 		await S.endCard("Mesa do Analista → quadros por assunto → mesma lista de sempre ao clicar. Cor: bolinhas ao lado do título ou Menu.");
 	},
 };
+
+// ------------------------------------------------------------------ V74
+// Usa o CSS de verdade da extensão (src/dispensaPorTipoJuntada.css); o HTML
+// do quadro é o mesmo que src/dispensaPorTipoJuntada.js monta.
+CENAS.V74 = {
+	arquivo: "V74-dispensa-rapida-por-tipo-na-analise-de-juntadas.mp4",
+	titulo: "Dispensa rápida por tipo na Análise de Juntadas",
+	secao: "9.17",
+	async run() {
+		const css = document.createElement("link");
+		css.rel = "stylesheet";
+		css.href = "../../extensao-preview-documentos/src/dispensaPorTipoJuntada.css";
+		document.head.appendChild(css);
+		const card = (nome, total, id) => '<div class="pdp-dpt-card" id="' + id + '"><button class="pdp-dpt-acao" type="button"' + (total ? "" : " disabled") + '><span class="pdp-dpt-nome">' + nome + '</span><span class="pdp-dpt-total">' + total + '</span></button><button class="pdp-dpt-tirar" type="button">×</button></div>';
+		const juntadas = [
+			["0012443-52.2026.8.16.0033", "JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO", "10/11/2026 12:56"],
+			["0004118-20.2025.8.16.0033", "JUNTADA DE MANIFESTAÇÃO", "10/11/2026 14:02"],
+			["0012580-34.2026.8.16.0033", "JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO", "11/11/2026 17:27"],
+			["0009921-07.2024.8.16.0033", "JUNTADA DE CERTIDÃO", "11/11/2026 09:40"],
+			["0012525-83.2026.8.16.0033", "JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO", "11/11/2026 15:25"],
+		];
+		const tabela = (lista) => '<table class="pj-table" id="tab"><tr><th>☐</th><th>Processo</th><th>Tipo de Documento</th><th>Data de Envio</th></tr>' +
+			lista.map((j, k) => '<tr class="' + (k % 2 ? "alt" : "") + '"><td>☐</td><td><a class="link">' + j[0] + "</a></td><td><b>" + j[1] + "</b></td><td>" + j[2] + "</td></tr>").join("") + "</table>";
+		const tela = (lista, quadro) => {
+			browser(["*Projudi - Análise de Juntadas"], "https://projudi.tjpr.jus.br/projudi/processo/analisarJuntada.do?actionType=listar");
+			screen(pjHeader() + '<div class="pj-body"><div class="pj-h2">Análise de Juntadas</div>' + (quadro || "") +
+				'<fieldset class="pj-fieldset"><table class="pj-form"><tr><td class="l">Tipo Movimento:</td><td><span class="pj-input">Todos</span></td></tr></table></fieldset>' +
+				tabela(lista) + '<div style="margin-top:8px"><span class="x-btn small">Análise Múltipla</span> <span class="x-btn small">Analisar</span> <span class="x-btn small">Dispensar</span></div></div>');
+		};
+		const quadro = (cards, aviso) => '<div class="pdp-dpt" id="pdp-dispensa-tipo"><div class="pdp-dpt-topo"><span class="pdp-dpt-titulo">Dispensa rápida por tipo</span><button class="pdp-dpt-mais" id="mais" type="button">+ Card</button></div><div class="pdp-dpt-cards">' + cards + "</div>" +
+			(aviso ? '<div class="pdp-dpt-aviso" id="aviso">' + aviso + "</div>" : "") + "</div>";
+
+		tela(juntadas);
+		await S.titleCard("VÍDEO V74", "Dispensa rápida por tipo", "Dispense de uma vez todas as juntadas de um mesmo tipo, como as anotações de distribuição.");
+		await S.cap("Na <b>Análise de Juntadas</b>, dispensar um tipo de juntada exigia filtrar, marcar uma a uma e clicar em <b>Dispensar</b>.", { ms: 4600 });
+		tela(juntadas, quadro(card("JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO", 3, "c1")));
+		S.hl("#pdp-dispensa-tipo", 3);
+		await S.cap("Agora, abaixo do título, aparece o quadro <b>Dispensa rápida por tipo</b>, com um card por tipo e o total de cada um.", { ms: 4800 });
+		S.hlOff();
+		await S.click("#mais");
+		document.querySelector(".pdp-dpt-topo").insertAdjacentHTML("beforeend", '<span class="pdp-dpt-escolha" id="esc"><select><option>JUNTADA DE CERTIDÃO (23)</option></select><button type="button" id="acr">Acrescentar</button><button type="button">Cancelar</button></span>');
+		await S.cap("Em <b>+ Card</b>, escolha outro tipo de juntada e clique em <b>Acrescentar</b>. O <b>×</b> tira um card.", { ms: 4400 });
+		await S.click("#acr");
+		document.getElementById("esc").remove();
+		document.querySelector(".pdp-dpt-cards").insertAdjacentHTML("beforeend", card("JUNTADA DE CERTIDÃO", 23, "c2"));
+		await sleep(800);
+		await S.click("#c1 .pdp-dpt-acao");
+		await S.cap("Clique no card: a extensão pergunta se deve dispensar as <b>3</b> juntadas do tipo. Confirme com <b>OK</b>.", { ms: 4400 });
+		document.getElementById("c1").classList.add("pdp-dpt-card-andamento");
+		document.querySelectorAll(".pdp-dpt button").forEach((b) => (b.disabled = true));
+		document.getElementById("pdp-dispensa-tipo").insertAdjacentHTML("beforeend", '<div class="pdp-dpt-aviso" id="aviso">Dispensando as juntadas do tipo JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO… 3 dispensada(s).</div>');
+		await S.cap("Sem você ver, ela filtra pelo tipo, marca só as juntadas dele e clica em <b>Dispensar</b>, até não sobrar nenhuma.", { ms: 4800 });
+		tela(juntadas.filter((j) => !/DISTRIBUI/.test(j[1])), quadro(card("JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO", 0, "c1") + card("JUNTADA DE CERTIDÃO", 23, "c2"), "3 juntada(s) do tipo JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO dispensada(s)."));
+		S.hl("#aviso", 3);
+		await S.cap("No fim, a lista é atualizada e o quadro mostra quantas foram dispensadas. As juntadas de outros tipos ficam como estavam.", { ms: 5000 });
+		S.hlOff();
+		await S.endCard("Análise de Juntadas → Dispensa rápida por tipo → clique no card → OK.");
+	},
+};

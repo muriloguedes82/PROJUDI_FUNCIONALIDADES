@@ -1,0 +1,22 @@
+/* Dispensa rápida por tipo na Análise de Juntadas (dispensaPorTipoJuntada.js).
+   Mesmo tom dos botões do quadro Pendências (juntadaDrag.css). */
+.pdp-dpt { margin:6px 0 10px;padding:6px 8px;border:1px solid #c8cdbd;border-radius:4px;background:#fafbf6;font:12px/16px Arial,sans-serif;color:#35412b; }
+.pdp-dpt-topo { display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px; }
+.pdp-dpt-titulo { font-weight:bold; }
+.pdp-dpt button { font:11px/16px Arial,sans-serif;color:#35412b;background:#f5f7ef;border:1px solid #a5ac9a;border-radius:3px;padding:1px 8px;cursor:pointer; }
+.pdp-dpt button:hover:not(:disabled) { background:#e7edda; }
+.pdp-dpt button:focus-visible { outline:2px solid #526b32;outline-offset:2px; }
+.pdp-dpt button:disabled { opacity:.55;cursor:default; }
+.pdp-dpt-escolha { display:inline-flex;align-items:center;gap:5px; }
+.pdp-dpt-escolha select { max-width:420px;font:11px Arial,sans-serif; }
+.pdp-dpt-cards { display:flex;flex-wrap:wrap;gap:8px; }
+.pdp-dpt-card { display:inline-flex;align-items:stretch;border:1px solid #a5ac9a;border-radius:4px;background:#fff;overflow:hidden; }
+.pdp-dpt-card.pdp-dpt-card-andamento { border-color:#526b32;box-shadow:0 0 0 2px #dfe8cf; }
+.pdp-dpt .pdp-dpt-acao { display:inline-flex;align-items:center;gap:8px;border:0;border-radius:0;padding:5px 10px;background:#fff;text-align:left; }
+.pdp-dpt .pdp-dpt-acao:hover:not(:disabled) { background:#eef3e3; }
+.pdp-dpt-nome { font-weight:bold;max-width:360px; }
+.pdp-dpt-total { min-width:18px;padding:0 6px;border-radius:9px;background:#526b32;color:#fff;text-align:center;font-weight:bold; }
+.pdp-dpt .pdp-dpt-tirar { border:0;border-left:1px solid #d6dacb;border-radius:0;background:#fafbf6;padding:0 7px; }
+.pdp-dpt-vazio { color:#6b7360;font-style:italic; }
+.pdp-dpt-aviso { margin-top:6px;padding:3px 8px;border:1px solid #8fae72;border-radius:3px;background:#eaf3df;color:#2f4a1d;font-weight:bold; }
+.pdp-dpt-aviso.pdp-dpt-aviso-erro { border-color:#c98a7a;background:#fbece8;color:#7a2a1a; }
