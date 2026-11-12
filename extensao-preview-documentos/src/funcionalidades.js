@@ -317,6 +317,14 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					sistemas: ["projudi"]
 				},
 				{
+					id: "totaisJuntadasPorTipo",
+					nome: "Totais de juntadas por tipo (cards que filtram a Análise de Juntadas)",
+					descricao: "Na lista Análise de Juntadas, mostra acima da tabela um card para cada tipo da lista \"Tipo Movimento\" (ex.: JUNTADA DE MANIFESTAÇÃO), com o total que o Projudi informa ali e a porcentagem no total (só tipos com total maior que zero). Por padrão, mostra os 10 tipos com mais juntadas, numa linha só; em \"⚙ Personalizar\", escolha quantos cards e quais tipos aparecem (fica salvo); os demais ficam em \"+ N tipos\". Clicar num card deixa na lista só as juntadas daquele tipo; clicar de novo, ou em \"Mostrar todas\", mostra a lista inteira.",
+					js: ["src/totaisJuntadasPorTipo.js"],
+					css: ["src/totaisJuntadasPorTipo.css"],
+					sistemas: ["projudi"]
+				},
+				{
 					id: "previewProcesso",
 					nome: "Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões e nos Cumprimentos, no Expedir e nos Paralisados",
 					descricao: "Nas listas de decurso de prazo (Intimação, Auxiliares da Justiça e Citações/Notificações) na lista da Análise de Juntadas, na lista de Conclusões e nas listas de cumprimentos (Demais Cumprimentos e Mandados) no Expedir Intimações/Citação e na lista de Processos Paralisados, mostra a tela do processo, na aba Movimentações, ao pousar o mouse sobre o número.",
@@ -357,6 +365,22 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					descricao: "Nas listas Análise de Juntadas e Retorno de Conclusão do Projudi, mostra o localizador que consta na aba Informações Gerais do processo, com ✏️ para trocar ou incluir um localizador (escolhido entre os ativos do Histórico de Localizadores) e clique no localizador para tirá-lo, sem sair da lista.",
 					js: ["src/localizadorNaListaProjudi.js"],
 					css: ["src/localizadorNaListaProjudi.css"],
+					sistemas: ["projudi"]
+				},
+				{
+					id: "dispensaPorTipoJuntada",
+					nome: "Dispensa rápida por tipo na Análise de Juntadas",
+					descricao: "Na lista Análise de Juntadas, quadro com preferências de tipos de juntada (ex.: JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO), cada uma com o total; clicar na preferência dispensa, com confirmação, todas as juntadas daquele tipo de uma vez. As preferências são criadas em \"+ Preferência\" e tiradas no \"×\".",
+					js: ["src/dispensaPorTipoJuntada.js"],
+					css: ["src/dispensaPorTipoJuntada.css"],
+					sistemas: ["projudi"]
+				},
+				{
+					id: "conclusoesPorJuiz",
+					nome: "Conclusões por juiz",
+					descricao: "Na lista de Conclusões, mostra acima da tabela um card para cada juiz com o total de conclusões dele e, dentro do card, o total por tipo de conclusão (Sentença, Decisão, Despacho...). Clicar no juiz ou num tipo mostra na lista só aquelas conclusões.",
+					js: ["src/conclusoesPorJuiz.js"],
+					css: ["src/conclusoesPorJuiz.css"],
 					sistemas: ["projudi"]
 				}
 			]
