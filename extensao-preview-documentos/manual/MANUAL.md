@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 27 |
-| **Versão da extensão** | 27 |
+| **Versão do manual** | 28 |
+| **Versão da extensão** | 28 |
 | **Data desta versão** | 12/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -95,13 +95,15 @@
    - 9.10 [Analisar e Dispensar decurso na lista](#cap-9-10)
    - 9.11 [Analisar (Pré-Análise) dos cumprimentos com preferências](#cap-9-11)
    - 9.12 [Localizador na lista de juntadas e de conclusões (Projudi)](#cap-9-12)
-   - 9.13 [Listas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN e Juiz das Garantias)](#cap-9-13)
+   - 9.13 [Listas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN, Juiz das Garantias e Audiências)](#cap-9-13)
    - 9.14 [Processos Paralisados (+90 dias) na tela Início](#cap-9-14)
    - 9.15 [Totais da Mesa do Escrivão Criminal na Análise de Juntadas](#cap-9-15)
    - 9.16 [Visual novo da Mesa do Analista (Projudi)](#cap-9-16)
    - 9.17 [Conclusões por juiz](#cap-9-17)
    - 9.18 [Totais de juntadas por tipo na Análise de Juntadas](#cap-9-18)
    - 9.19 [Dispensa rápida por tipo na Análise de Juntadas](#cap-9-19)
+   - 9.20 [Audiências pendentes e para hoje na Análise de Juntadas](#cap-9-20)
+   - 9.21 [Dias de atraso na Listagem de Audiências](#cap-9-21)
 10. [Privacidade e perfis bloqueados](#cap-10)
     - 10.1 [O que fica guardado no seu navegador](#cap-10-1)
     - 10.2 [Bloqueio para perfis de advocacia](#cap-10-2)
@@ -467,7 +469,7 @@ ligar tudo.
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos · Novo Valor da Causa · Prioridades · Agendar Audiência (preferências) · Alvará Eletrônico · Juntar Documento · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Bloco de anotações | [4](#cap-4) |
-| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (Projudi) · Listas em uma única página · Processos Paralisados (+90 dias) na tela Início · Totais da Mesa do Escrivão Criminal na Análise de Juntadas · Visual novo da Mesa do Analista · Conclusões por juiz · Totais de juntadas por tipo (cards que filtram a Análise de Juntadas) · Dispensa rápida por tipo na Análise de Juntadas | [6](#cap-6), [9](#cap-9) |
+| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (Projudi) · Listas em uma única página · Processos Paralisados (+90 dias) na tela Início · Totais da Mesa do Escrivão Criminal na Análise de Juntadas · Audiências pendentes e para hoje na Análise de Juntadas · Dias de atraso na Listagem de Audiências · Visual novo da Mesa do Analista · Conclusões por juiz · Totais de juntadas por tipo (cards que filtram a Análise de Juntadas) · Dispensa rápida por tipo na Análise de Juntadas | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
 Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
@@ -2738,7 +2740,7 @@ linha mostra o resultado (**✅** ou **⚠**).
   continua quando você o fecha.
 
 <a id="cap-9-13"></a>
-### 9.13 Listas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN e Juiz das Garantias)
+### 9.13 Listas em uma única página (Juntadas, Conclusões, Mandados, Intimações, Multas FUPEN, Juiz das Garantias e Audiências)
 
 **Para que serve:** ver **todos** os registros de uma lista do Projudi numa
 só tela, sem precisar clicar em **Próxima Página** e voltar a cada vez.
@@ -2759,6 +2761,7 @@ página. Não há botão: a extensão faz isso sozinha.
 | **Intimação de Auxiliares da Justiça** | Todas as intimações em uma única página… |
 | **Listagem de Multas - Sistema FUPEN** | Todas as multas em uma única página… |
 | **Processos com suspeita de incompetência - Juiz das Garantias** | Todos os processos em uma única página… |
+| **Listagem de Audiências** (menu Audiências → Listagem) | Todas as audiências em uma única página… |
 
 **Passo a passo:**
 
@@ -2789,7 +2792,11 @@ página. Não há botão: a extensão faz isso sozinha.
      **Dispensar** da linha ([9.10](#cap-9-10)) também aparecem nas
      intimações trazidas das outras páginas;
    - nas **Multas FUPEN**, o **Código FUPEN** de cada linha abre a multa;
-     no **Juiz das Garantias**, o número abre o processo.
+     no **Juiz das Garantias**, o número abre o processo;
+   - na **Listagem de Audiências**, a situação (por exemplo **DESIGNADA**)
+     de cada linha abre a audiência para lançar o resultado, e, nas
+     pendentes, a coluna **Atraso** ([9.21](#cap-9-21)) aparece também nas
+     audiências trazidas das outras páginas.
 
 **Bom saber:**
 
@@ -3017,7 +3024,10 @@ Atuação / Data**) acompanha o mesmo tom em todas as telas do Projudi.
   Analista** no Menu ([2.6](#cap-2-6)) e recarregue a página (F5).
 - Na aba **Análise de Juntadas**, os totais trazidos da Mesa do Escrivão
   Criminal ([9.15](#cap-9-15)) aparecem no quadro **Da Mesa do Escrivão
-  Criminal**, logo depois dos demais quadros de Para Realizar.
+  Criminal**, logo depois dos demais quadros de Para Realizar. As
+  **Audiências pendentes** e as **Audiências para hoje**
+  ([9.20](#cap-9-20)) ficam no quadro **Para Realizar**, logo abaixo de
+  Juntadas e Retorno de Conclusão.
 - Atalho novo que o Projudi acrescentar na Mesa do Escrivão Criminal
   aparece no quadro **Outros atalhos**; item novo da Análise de Juntadas,
   no quadro **Outros**.
@@ -3311,6 +3321,111 @@ abaixo).
 
 ---
 
+<a id="cap-9-20"></a>
+### 9.20 Audiências pendentes e para hoje na Análise de Juntadas
+
+**Para que serve:** ver, junto com as juntadas e os demais itens do dia:
+
+- quantas audiências estão **pendentes**: audiências **designadas** cuja
+  data já passou e que ainda não foram movimentadas (ainda sem o resultado
+  lançado) — e, entre elas, quantas são de **réu preso**, quantas estão
+  pendentes **há mais de 30 dias** e qual é a **mais antiga**;
+- quantas audiências estão marcadas **para hoje**.
+
+No Projudi, esses números só aparecem abrindo **Audiências → Listagem**,
+marcando **Pendentes** (ou **Para Hoje**) e clicando em **Pesquisar** — e
+o réu preso e o atraso só se veem olhando linha por linha.
+
+**Onde fica:** na **Mesa do Analista Judiciário**, aba **Análise de
+Juntadas**, em duas linhas novas no fim do quadro **Para Realizar**:
+**Audiências pendentes:** e **Audiências para hoje:**.
+
+**Passo a passo:**
+
+1. Abra a aba **Análise de Juntadas**. A extensão faz a contagem sozinha.
+2. Em instantes, no fim do quadro **Para Realizar**, aparecem as linhas
+   que têm **pelo menos uma** audiência (com zero, a linha não aparece):
+   - **Audiências pendentes**: o total e, ao lado (no visual novo da Mesa, logo abaixo), por exemplo
+     **2 com réu preso · 5 há mais de 30 dias · mais antiga: 27/07/2026
+     (108 dias)**. Só o **com réu preso** aparece em vermelho;
+   - **Audiências para hoje**: o total da pauta do dia.
+
+   São os mesmos números que você veria em **Audiências → Listagem**, com
+   **Situação da Audiência: Pendentes** ou **Para Hoje** e **Local da
+   Audiência** na sua vara (o "N registro(s) encontrado(s)" da lista).
+3. **Pouse o mouse** sobre um número: abre uma janelinha com a lista das
+   audiências — processo, data (ou hora, nas de hoje), dias de atraso
+   (nas pendentes, em vermelho as de mais de 30 dias), tipo e a marca
+   **Réu preso**. Clique no número de um processo para abri-lo. Tire o
+   mouse para fechar a janelinha.
+4. **Clique** no total para abrir a **Listagem de Audiências** já pesquisada
+   em **Pendentes** (ou **Para Hoje**). Com **Ctrl** apertado, ela abre em
+   outra aba. Para cada audiência pendente, clique em **DESIGNADA** (coluna
+   Situação da Audiência) para lançar o resultado, como de costume.
+
+**Bom saber:**
+
+- Audiências marcadas para hoje ou para datas futuras não entram nas
+  **pendentes**: só as que já deveriam ter acontecido e continuam como
+  **designadas**.
+- Os números são **sempre atualizados**: a extensão conta de novo **toda
+  vez** que a aba **Análise de Juntadas** é aberta ou atualizada — ao
+  clicar na aba, ao recarregar a página (F5), ao voltar para ela pelo botão
+  **Voltar** do navegador (por exemplo, depois de abrir a Listagem de
+  Audiências) e ao **trocar de atuação**. Nada é guardado de uma vez para
+  outra: os números são sempre os de agora, na atuação em que você está.
+- Para contar o réu preso e achar a mais antiga, a extensão lê **todas as
+  páginas** da Listagem. Se o Projudi não deixar passar de página, ela usa
+  as audiências da primeira página e avisa ao lado do total (por exemplo,
+  **nas 20 primeiras**); a janelinha também avisa quantas está mostrando.
+- Cada linha só aparece quando o total é **maior que zero**: sem
+  audiências pendentes (ou sem audiências para hoje), a linha
+  correspondente não aparece, com ou sem **Ocultar contadores zerados**.
+  Se depois surgir alguma, a linha volta na próxima vez que a aba for
+  aberta ou atualizada.
+- No **Visual novo da Mesa do Analista** ([9.16](#cap-9-16)), as duas
+  linhas ficam no quadro **Para Realizar**, junto de Juntadas e Retorno de
+  Conclusão.
+- Se o Projudi não responder, aparece **não disponível** no lugar do
+  número; basta voltar à aba mais tarde.
+- Para ligar ou desligar, use **Audiências pendentes e para hoje na
+  Análise de Juntadas** no Menu da extensão ([2.6](#cap-2-6)).
+
+---
+
+<a id="cap-9-21"></a>
+### 9.21 Dias de atraso na Listagem de Audiências
+
+**Para que serve:** na lista de audiências **pendentes**, ver de uma vez
+há quantos dias cada audiência deveria ter tido o resultado lançado e
+achar logo as mais atrasadas.
+
+**Onde fica:** em **Audiências → Listagem**, quando a pesquisa é feita com
+**Situação da Audiência: Pendentes** — numa coluna nova, **Atraso**, logo
+depois da coluna **Data**.
+
+**Passo a passo:**
+
+1. Abra **Audiências → Listagem**, marque **Pendentes** e clique em
+   **Pesquisar** (ou clique no total de **Audiências pendentes** da Mesa,
+   [9.20](#cap-9-20)).
+2. Na coluna **Atraso** aparecem os dias desde a data de cada audiência
+   (por exemplo, **108 dias**).
+3. As audiências pendentes **há mais de 30 dias** ficam em **destaque**: o
+   número em vermelho, sobre fundo rosado.
+
+**Bom saber:**
+
+- Nas outras situações (**Para Hoje**, **Movimentadas Hoje**, **Para a
+  data**) a lista não muda.
+- Com **Listas em uma única página** ([9.13](#cap-9-13)) ligada, a
+  Listagem de Audiências vem toda numa tela, e a coluna **Atraso** aparece
+  também nas audiências trazidas das outras páginas.
+- Para ligar ou desligar, use **Dias de atraso na Listagem de Audiências**
+  no Menu da extensão ([2.6](#cap-2-6)).
+
+---
+
 <a id="cap-10"></a>
 ## 10. Privacidade e perfis bloqueados
 
@@ -3403,6 +3518,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 28 | 12/11/2026 | Nova seção 9.20 **Audiências pendentes e para hoje na Análise de Juntadas** (só no Projudi): no fim do quadro "Para Realizar" da aba Análise de Juntadas aparecem o total de **audiências pendentes** (designadas, com a data já passada e ainda não movimentadas), com quantas são de **réu preso** (em vermelho), quantas estão pendentes **há mais de 30 dias** e a **mais antiga**, e o total de **audiências para hoje** (cada linha só aparece quando o total é maior que zero); ao pousar o mouse num número abre a lista das audiências, e clicar nele abre a Listagem já pesquisada. Os números são contados de novo toda vez que a aba é aberta ou atualizada (inclusive ao voltar pelo botão Voltar do navegador). Nova seção 9.21 **Dias de atraso na Listagem de Audiências** (coluna **Atraso**, com destaque para mais de 30 dias). Seção 9.13: a **Listagem de Audiências** passa a vir em uma única página. No visual novo da Mesa (9.16), as linhas de audiências ficam no quadro Para Realizar. Sumário e tabela da 2.6 atualizados. Novos vídeos V77 e V78 gravados e guardados em `videos-do-manual/` (não citados no manual). |
 | 27 | 12/11/2026 | Nova seção 9.19 **Dispensa rápida por tipo na Análise de Juntadas**: quadro abaixo do título da Análise de Juntadas com **preferências** de tipos de juntada, cada uma com o total do tipo; cada preferência é um cartão pequeno, com uma cor própria na faixa lateral, o total e o nome do tipo em letras normais (nome comprido termina em "…"), e só aparece quando o total é maior que zero (a nota **+N sem juntadas agora** lembra as demais); clicar na preferência dispensa, com confirmação, todas as juntadas daquele tipo de uma vez, procurando o nome do tipo em **todas as páginas** da lista (e na lista inteira, se o Projudi não aplicar o filtro pelo tipo), considerando só o nome do tipo da lista **Tipo Movimento** e ignorando o responsável que aparece junto na coluna **Tipo de Documento**. O quadro vem sem nenhuma preferência: cada pessoa cria as suas em **+ Preferência** e tira no **×**; elas ficam guardadas como as demais preferências (entram no **⬇ Exportar** / **Importar** do Menu e no resumo do backup) e aparecem carregadas sempre que a tela é aberta ou atualizada, com o total atualizado. O quadro usa as cores do Projudi original e acompanha o tom do Visual novo da Mesa (9.16); a mensagem do fim (verde se deu certo, vermelha se falhou) some sozinha depois de 2 segundos. Sumário, tabela da 2.6 e **11. Solução de problemas** atualizados. Novo vídeo V76 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 26 | 12/11/2026 | Nova seção **9.18 Totais de juntadas por tipo na Análise de Juntadas**: cards pequenos e coloridos com o total e a porcentagem de cada tipo da lista **Tipo Movimento** acima da lista (só tipos com total maior que zero; por padrão, os 10 maiores, numa linha só); em **⚙ Personalizar**, escolha quantos cards e quais tipos aparecem por padrão (fica salvo), e os demais ficam em **+ N tipos**; clicar num card deixa na lista só as juntadas daquele tipo, e **Mostrar todas** volta à lista inteira. As cores seguem o tom do Visual novo da Mesa (padrão: Projudi original). Incluída também na tabela de 2.6. |
 | 25 | 12/11/2026 | Nova seção **9.17 Conclusões por juiz**: na lista Conclusões, acima da tabela, um card para cada juiz (coluna Responsável), em ordem crescente do total (do que tem menos conclusões para o que tem mais), só para juízes com total maior que zero (com a lista vazia, os cards não aparecem), com o total de conclusões dele e, dentro do card, o total e a porcentagem de cada tipo de conclusão; cards compactos, sempre numa linha só (com muitos juízes, a linha rola para o lado), com uma cor fixa para cada juiz; no pé do card, etiquetas no formato do card (como as etiquetas de tipo do alto e os botões Mostrar todas e Copiar resumo), em dois tons de vermelho, com as conclusões há mais de 120 dias e as de réu preso (com o símbolo do Projudi), explicadas ao pousar o mouse; clicar no juiz, num tipo ou numa etiqueta mostra na tabela só aquelas conclusões, e esse filtro fica guardado até clicar em Mostrar todas; botão Copiar resumo, que copia os totais em texto; as cores do quadro acompanham a cor do Visual novo da Mesa do Analista (9.16), com cores vivas quando ele está desligado. Nova linha em 10.1 (filtro guardado). Incluída também na tabela de 2.6. |

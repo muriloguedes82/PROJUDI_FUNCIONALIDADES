@@ -105,4 +105,6 @@ para dentro da extensão, retire essa regra.
 | [V74](V74-conclusoes-por-juiz.mp4) | [Conclusões por juiz](V74-conclusoes-por-juiz.mp4) | [9.17](../extensao-preview-documentos/manual/MANUAL.md#cap-9-17) | 0:43 |
 | [V75](V75-totais-de-juntadas-por-tipo.mp4) | [Totais de juntadas por tipo na Análise de Juntadas](V75-totais-de-juntadas-por-tipo.mp4) | [9.18](../extensao-preview-documentos/manual/MANUAL.md#cap-9-18) | 0:34 |
 | [V76](V76-dispensa-rapida-por-tipo-na-analise-de-juntadas.mp4) | [Dispensa rápida por tipo na Análise de Juntadas](V76-dispensa-rapida-por-tipo-na-analise-de-juntadas.mp4) | [9.19](../extensao-preview-documentos/manual/MANUAL.md#cap-9-19) | 0:46 |
+| [V77](V77-audiencias-pendentes-na-analise-de-juntadas.mp4) | [Audiências pendentes e para hoje na Análise de Juntadas](V77-audiencias-pendentes-na-analise-de-juntadas.mp4) | [9.17](../extensao-preview-documentos/manual/MANUAL.md#cap-9-17) | 0:36 |
+| [V78](V78-dias-de-atraso-na-listagem-de-audiencias.mp4) | [Dias de atraso na Listagem de Audiências](V78-dias-de-atraso-na-listagem-de-audiencias.mp4) | [9.18](../extensao-preview-documentos/manual/MANUAL.md#cap-9-18) | 0:25 |
 <!-- tabela-videos:fim -->

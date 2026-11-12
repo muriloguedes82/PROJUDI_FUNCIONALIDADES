@@ -7,8 +7,10 @@
 // de incompetência - Juiz das Garantias" (judiciario/juizo_garantia.do,
 // actionType=listaProcessosNaoAtendidos), "Expedir Intimações"
 // (processo/expedirIntimacao.do), "Intimação" - decurso de prazo
-// (processo/intimacaoBusca.do) e "Intimação de Auxiliares da Justiça"
-// (processo/intimacaoNomeados.do) são paginadas no servidor
+// (processo/intimacaoBusca.do), "Intimação de Auxiliares da Justiça"
+// (processo/intimacaoNomeados.do) e "Listagem de Audiências"
+// (audiencia/busca.do, formulário audienciaForm; versão 24) são paginadas
+// no servidor
 // (20 ou 30 registros por página, navegação "Próxima Página" no
 // #navigator; nos Mandados, também o seletor "30/50/100/500 por pág."). Esta
 // funcionalidade reúne todas as páginas na própria tabela da primeira: ao
@@ -52,6 +54,7 @@
 		{ caminho: /^\/projudi\/processo\/expedirIntimacao\.do$/, form: "expedirIntimacaoForm", itens: "intimações", todos: "Todas as" },
 		{ caminho: /^\/projudi\/processo\/intimacaoBusca\.do$/, form: "intimacaoBuscaForm", itens: "intimações", todos: "Todas as", decursoSequencial: true },
 		{ caminho: /^\/projudi\/processo\/intimacaoNomeados\.do$/, form: "intimacaoAuxiliarNomeadoForm", itens: "intimações", todos: "Todas as" },
+		{ caminho: /^\/projudi\/audiencia\/busca\.do$/, form: "audienciaForm", itens: "audiências", todos: "Todas as" },
 	];
 	const TELA = TELAS.find(function (t) {
 		return t.caminho.test(location.pathname);
