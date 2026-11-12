@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 23 |
-| **Versão da extensão** | 23 |
-| **Data desta versão** | 11/11/2026 |
+| **Versão do manual** | 24 |
+| **Versão da extensão** | 24 |
+| **Data desta versão** | 12/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi, clique no ícone da balança
@@ -99,6 +99,7 @@
    - 9.14 [Processos Paralisados (+90 dias) na tela Início](#cap-9-14)
    - 9.15 [Totais da Mesa do Escrivão Criminal na Análise de Juntadas](#cap-9-15)
    - 9.16 [Visual novo da Mesa do Analista (Projudi)](#cap-9-16)
+   - 9.17 [Conclusões por juiz](#cap-9-17)
 10. [Privacidade e perfis bloqueados](#cap-10)
     - 10.1 [O que fica guardado no seu navegador](#cap-10-1)
     - 10.2 [Bloqueio para perfis de advocacia](#cap-10-2)
@@ -464,7 +465,7 @@ ligar tudo.
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos · Novo Valor da Causa · Prioridades · Agendar Audiência (preferências) · Alvará Eletrônico · Juntar Documento · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Bloco de anotações | [4](#cap-4) |
-| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (Projudi) · Listas em uma única página · Processos Paralisados (+90 dias) na tela Início · Totais da Mesa do Escrivão Criminal na Análise de Juntadas · Visual novo da Mesa do Analista | [6](#cap-6), [9](#cap-9) |
+| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (Projudi) · Listas em uma única página · Processos Paralisados (+90 dias) na tela Início · Totais da Mesa do Escrivão Criminal na Análise de Juntadas · Visual novo da Mesa do Analista · Conclusões por juiz | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
 Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
@@ -3020,6 +3021,60 @@ Atuação / Data**) acompanha o mesmo tom em todas as telas do Projudi.
 
 ---
 
+<a id="cap-9-17"></a>
+### 9.17 Conclusões por juiz
+
+*Vem ligado.*
+
+**Para que serve:** ver de relance quantas conclusões há com cada juiz e de
+que tipo elas são (Sentença, Decisão, Despacho…), sem precisar contar linha
+por linha na lista.
+
+**Onde fica:** na lista **Conclusões** do Projudi (a mesma que abre pelo
+**Retorno de Conclusão** da Mesa), logo acima da tabela.
+
+**Como é:**
+
+- No alto, o título **Conclusões por juiz**, o total geral da lista e uma
+  etiqueta para cada tipo de conclusão com o total daquele tipo.
+- Abaixo, um **card para cada juiz** (o nome que aparece na coluna
+  **Responsável**), do que tem mais conclusões para o que tem menos. Cada
+  card mostra as iniciais e o nome do juiz, o **total** de conclusões dele
+  em número grande e uma barra colorida com a proporção de cada tipo.
+- Dentro do card, uma linha para cada **tipo de conclusão**, com a
+  porcentagem e o total daquele tipo para aquele juiz. Cada tipo tem
+  sempre a mesma cor em todos os cards.
+
+**Passo a passo:**
+
+1. Abra a lista **Conclusões** como sempre. Os cards aparecem acima da
+   tabela.
+2. Para ver na tabela só as conclusões de um juiz, clique no nome ou no
+   total do card dele. Os outros cards ficam mais apagados.
+3. Para ver só um tipo de um juiz (ex.: as **SENTENÇAS** de um juiz),
+   clique na linha daquele tipo dentro do card.
+4. Para voltar a ver a lista inteira, clique de novo no mesmo lugar ou em
+   **Mostrar todas**, no alto.
+
+**Bom saber:**
+
+- Os totais contam as conclusões que estão na tabela. Com **Listas em uma
+  única página** ([9.13](#cap-9-13)) ligada, entram as conclusões de todas
+  as páginas, e os cards se atualizam sozinhos enquanto as outras páginas
+  chegam.
+- Os filtros do próprio Projudi (Tipo de Conclusão, Agrupador,
+  Prioridade…) continuam valendo: os cards contam só o que a pesquisa
+  trouxe.
+- Clicar num card só esconde linhas na tela: nada muda no Projudi. Com a
+  lista filtrada por um card, o **marcar todos** do **⭐ Em lote**
+  ([9.3](#cap-9-3)) marca só os processos que estão à vista.
+- Conclusão sem nome na coluna **Responsável** entra no card **Sem
+  responsável**.
+- Para ligar ou desligar, use **Conclusões por juiz** no Menu da extensão
+  ([2.6](#cap-2-6)).
+
+---
+
 <a id="cap-10"></a>
 ## 10. Privacidade e perfis bloqueados
 
@@ -3110,6 +3165,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 24 | 12/11/2026 | Nova seção **9.17 Conclusões por juiz**: na lista Conclusões, acima da tabela, um card para cada juiz (coluna Responsável) com o total de conclusões dele e, dentro do card, o total e a porcentagem de cada tipo de conclusão; clicar no juiz ou num tipo mostra na tabela só aquelas conclusões. Incluída também na tabela de 2.6. |
 | 23 | 11/11/2026 | Visual novo da Mesa do Analista (9.16): novo tom **Projudi original**, com as cores do tema do próprio Projudi (creme esverdeado, verde-oliva, quadros num creme bem claro, laranja nos dados do usuário e vermelho puro nos urgentes), que passa a ser o **padrão** (antes, Oliva fosco). Quem já tinha escolhido um tom continua com ele. Ajustados 2.6 (Cor do visual da Mesa do Analista) e 9.16 (Escolher a cor). Vídeo V73 regravado (não citado no manual). |
 | 22 | 11/11/2026 | Corrigido (seção 9.15): a linha **Prescrições vencidas** da Análise de Juntadas continuava em **não disponível**: o link **Vencidas** do quadro Prescrições não vem na página da aba Mesa do Escrivão Criminal quando ela é aberta sem ser mostrada, e o endereço desse link muda a cada vez que se entra no Projudi. Agora, se não achar o link, a extensão abre a aba Mesa do Escrivão Criminal sem mostrá-la e clica em **Vencidas**, como a pessoa faria. Novo item no Bom saber. Sem vídeo novo (a tela não mudou). |
 | 21 | 10/11/2026 | Corrigido (seção 9.14): ao trocar de atuação, a linha **Processos Paralisados (+90 dias)** continuava mostrando os números da atuação anterior (os totais ficavam guardados por 5 minutos). Agora a contagem é refeita toda vez que a tela Início é aberta ou recarregada, inclusive na troca de atuação. Bom saber da 9.14 atualizado. Sem vídeo novo (a tela não mudou). |
