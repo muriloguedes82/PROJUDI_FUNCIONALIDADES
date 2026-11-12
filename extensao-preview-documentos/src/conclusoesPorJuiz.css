@@ -36,10 +36,6 @@
 #pdp-conclusoes-juiz .pdp-cpj-card.pdp-cpj-apagado:hover { opacity: .85; }
 
 #pdp-conclusoes-juiz .pdp-cpj-cab { display: flex; align-items: center; gap: 6px; width: 100%; padding: 0; border: 0; background: none; text-align: left; }
-#pdp-conclusoes-juiz .pdp-cpj-avatar {
-	flex: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%;
-	background: var(--pdp-cpj-cor); color: #fff; font-weight: 700; font-size: 10px;
-}
 #pdp-conclusoes-juiz .pdp-cpj-nome {
 	flex: 1; min-width: 0; font-weight: 600; font-size: 11px; line-height: 1.25; color: #0f172a;
 	display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;

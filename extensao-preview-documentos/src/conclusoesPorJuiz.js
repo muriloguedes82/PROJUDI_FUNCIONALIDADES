@@ -30,7 +30,7 @@
 	window.__pdpConclusoesPorJuiz = true;
 
 	const SEM_RESPONSAVEL = "Sem responsável";
-	const CORES = ["#2563eb", "#7c3aed", "#0d9488", "#d97706", "#db2777", "#4f46e5", "#059669", "#dc2626", "#0891b2", "#65a30d"];
+	const CORES = ["#2563eb", "#7c3aed", "#0d9488", "#d97706", "#db2777", "#4f46e5", "#dc2626", "#0891b2", "#65a30d"];
 	const CORES_TIPO = ["#3b82f6", "#f59e0b", "#10b981", "#8b5cf6", "#ef4444", "#14b8a6", "#ec4899", "#6366f1"];
 
 	let filtro = null; // { juiz, tipo|null }
@@ -89,11 +89,25 @@
 		return Array.from(mapa.values()).sort((a, b) => a.total - b.total || a.juiz.localeCompare(b.juiz, "pt"));
 	}
 
-	function iniciais(nome) {
-		if (nome === SEM_RESPONSAVEL) return "?";
-		const partes = nome.split(" ").filter((p) => p.length > 2 || /^[A-ZÁ-Ú]/.test(p));
-		const p = partes.length ? partes : nome.split(" ");
-		return ((p[0] || "")[0] + ((p.length > 1 ? p[p.length - 1] : "")[0] || "")).toUpperCase();
+	// Cor fixa de cada juiz: sai do nome (não da posição do card), então o
+	// juiz mantém a mesma cor quando a ordem muda ou entre uma visita e
+	// outra. Se dois juízes da lista caírem na mesma cor, o segundo (em
+	// ordem alfabética) pega a próxima livre.
+	function hashNome(nome) {
+		let h = 0;
+		for (const c of semAcento(nome)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+		return h;
+	}
+	function coresDosJuizes(grupos) {
+		const cores = new Map();
+		const usadas = new Set();
+		for (const juiz of grupos.map((g) => g.juiz).sort((a, b) => a.localeCompare(b, "pt"))) {
+			let i = hashNome(juiz) % CORES.length;
+			for (let k = 0; k < CORES.length && usadas.has(i); k++) i = (i + 1) % CORES.length;
+			usadas.add(i);
+			cores.set(juiz, juiz === SEM_RESPONSAVEL ? "#64748b" : CORES[i]);
+		}
+		return cores;
 	}
 
 	function el(tag, cls, texto) {
@@ -185,9 +199,10 @@
 		q.append(topo);
 
 		const grade = el("div", "pdp-cpj-grade");
-		grupos.forEach((g, i) => {
+		const corJuiz = coresDosJuizes(grupos);
+		grupos.forEach((g) => {
 			const card = el("article", "pdp-cpj-card");
-			const cor = CORES[i % CORES.length];
+			const cor = corJuiz.get(g.juiz);
 			card.style.setProperty("--pdp-cpj-cor", cor);
 			if (filtro && filtro.juiz === g.juiz) card.classList.add("pdp-cpj-ativo");
 			else if (filtro) card.classList.add("pdp-cpj-apagado");
@@ -197,11 +212,10 @@
 			cab.title = filtro && filtro.juiz === g.juiz && !filtro.tipo
 				? "Mostrar todas as conclusões"
 				: g.juiz + " — " + g.total + (g.total === 1 ? " conclusão" : " conclusões") + ". Clique para ver na lista só as conclusões deste juiz.";
-			const av = el("span", "pdp-cpj-avatar", iniciais(g.juiz));
 			const nome = el("span", "pdp-cpj-nome", g.juiz);
 			const tot = el("span", "pdp-cpj-total");
 			tot.append(el("strong", null, String(g.total)), el("small", null, g.total === 1 ? "conclusão" : "conclusões"));
-			cab.append(av, nome, tot);
+			cab.append(nome, tot);
 			cab.addEventListener("click", () => {
 				filtro = filtro && filtro.juiz === g.juiz && !filtro.tipo ? null : { juiz: g.juiz, tipo: null };
 				agendar();

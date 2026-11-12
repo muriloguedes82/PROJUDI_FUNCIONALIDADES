@@ -2137,9 +2137,9 @@ CENAS.V74 = {
 		await S.cap("Na lista <b>Conclusões</b>, era preciso contar linha por linha para saber quantas conclusões há com cada juiz.", { ms: 4200 });
 
 		const ponto = (t) => '<i class="pdp-cpj-ponto" style="background:' + COR_TIPO[t] + '"></i>';
-		const card = ([nome, ini, cor, tipos]) => {
+		const card = ([nome, , cor, tipos]) => {
 			const tot = tipos.reduce((a, b) => a + b[1], 0);
-			return '<article class="pdp-cpj-card" data-j="' + nome + '" style="--pdp-cpj-cor:' + cor + '"><button type="button" class="pdp-cpj-cab"><span class="pdp-cpj-avatar">' + ini + '</span><span class="pdp-cpj-nome">' + nome + '</span><span class="pdp-cpj-total"><strong>' + tot + "</strong><small>conclusões</small></span></button>" +
+			return '<article class="pdp-cpj-card" data-j="' + nome + '" style="--pdp-cpj-cor:' + cor + '"><button type="button" class="pdp-cpj-cab"><span class="pdp-cpj-nome">' + nome + '</span><span class="pdp-cpj-total"><strong>' + tot + "</strong><small>conclusões</small></span></button>" +
 				'<div class="pdp-cpj-barra">' + tipos.map(([t, n]) => '<span class="pdp-cpj-seg" style="width:' + (n / tot) * 100 + "%;background:" + COR_TIPO[t] + '"></span>').join("") + "</div>" +
 				'<ul class="pdp-cpj-tipos">' + tipos.map(([t, n]) => '<li><button type="button" class="pdp-cpj-tipo" data-t="' + t + '">' + ponto(t) + '<span class="pdp-cpj-tipo-nome">' + t + '</span><span class="pdp-cpj-tipo-pct">' + Math.round((n / tot) * 100) + '%</span><span class="pdp-cpj-tipo-n">' + n + "</span></button></li>").join("") + "</ul></article>";
 		};
