@@ -30,8 +30,8 @@
 // Os cards são escolhidos pela pessoa (+ Card / ×) e guardados em
 // chrome.storage.local ("pdpDispensaTipoJuntadaCards"), como as demais
 // preferências (entram no Exportar/Importar do Menu). Por padrão (decisão do
-// usuário, versão 25) não há card nenhum: cada pessoa cria os seus.
-// Desde a versão 27, as preferências gravadas aparecem sempre que a tela é
+// usuário) não há card nenhum: cada pessoa cria os seus.
+// As preferências gravadas aparecem sempre que a tela é
 // aberta ou atualizada (Filtrar, F5, volta após a dispensa), inclusive com a
 // lista vazia, e o quadro é montado de novo se a tela for refeita no lugar.
 (function () {

@@ -21,7 +21,7 @@
 .pdp-dpt-aviso { margin-top:6px;padding:3px 8px;border:1px solid #8fae72;border-radius:3px;background:#eaf3df;color:#2f4a1d;font-weight:bold; }
 .pdp-dpt-aviso.pdp-dpt-aviso-erro { border-color:#c98a7a;background:#fbece8;color:#7a2a1a; }
 
-/* Versão 29: preferências compactas (letra menor), com seletores mais fortes
+/* Preferências compactas (letra menor), com seletores mais fortes
    para o estilo do próprio Projudi não aumentar a letra dos botões. */
 #pdp-dispensa-tipo.pdp-dpt { padding:5px 7px;font-size:11px; }
 #pdp-dispensa-tipo .pdp-dpt-cards { gap:5px; }

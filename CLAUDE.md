@@ -15,12 +15,26 @@ correção de erro. Não use mais números com pontos (como 2.61.0 ou
 2.60.1.1). A 3 sucede a 2.61.0; o aviso de versão nova compara número a
 número, então 3 > 2.61.0 e as próximas continuam sendo maiores.
 
+**Uma versão por mesclagem (decisão do usuário, versão 24):** o número só
+sobe quando há uma mesclagem nova na `principal`. Enquanto uma branch está
+sendo criada, sem mesclar, ela usa **a versão da `principal` + 1** (ex.:
+`principal` na 23 → a branch usa a 24) e **mantém esse número**, por mais
+correções e ajustes que se façam nela. Antes de mudar `version`, confira a
+versão da `principal` (`git show origin/principal:extensao-preview-documentos/manifest.json`):
+se a branch já estiver nela + 1, não mude. Se a `principal` avançar antes
+da mesclagem (outra branch mesclada), a branch passa a usar a nova versão
+da `principal` + 1.
+
 ## Manual da extensão (obrigatório a cada versão)
 
 Toda mudança que altera `version` em `extensao-preview-documentos/manifest.json`
 (função nova, mudança de comportamento ou correção de erro) deve atualizar,
 **no mesmo commit/PR**, o manual em `extensao-preview-documentos/manual/MANUAL.md`, seguindo
 `extensao-preview-documentos/manual/COMO-ATUALIZAR.md`:
+
+Na mesma branch (sem mesclar), cada correção nova continua na mesma versão
+(veja "Uma versão por mesclagem"): atualize a capa (data), o texto e a
+**mesma linha** do Anexo A daquela versão, em vez de criar outra.
 
 1. capa (versão do manual = versão da extensão, e data);
 2. seção da função (e o Sumário, se a seção for nova);
