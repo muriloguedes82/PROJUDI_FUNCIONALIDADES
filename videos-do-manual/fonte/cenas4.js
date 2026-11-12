@@ -2121,10 +2121,10 @@ CENAS.V74 = {
 		document.head.appendChild(css);
 		const COR_TIPO = { "SENTENÇA": "#3b82f6", "DECISÃO": "#f59e0b", "DESPACHO": "#10b981" };
 		const JUIZES = [
-			["Rafael Tavares Neto", "RN", "#d97706", [["DESPACHO", 4], ["DECISÃO", 1]]],
-			["Fernanda Souza Prado", "FP", "#0d9488", [["SENTENÇA", 9]]],
-			["Carlos Eduardo Lima", "CL", "#7c3aed", [["DECISÃO", 14], ["SENTENÇA", 3]]],
-			["Ana Beatriz Moreira", "AM", "#2563eb", [["SENTENÇA", 18], ["DECISÃO", 6], ["DESPACHO", 2]]],
+			["Rafael Tavares Neto", "RN", "#d97706", [["DESPACHO", 4], ["DECISÃO", 1]], [0, 0, 3]],
+			["Fernanda Souza Prado", "FP", "#0d9488", [["SENTENÇA", 9]], [1, 2, 6]],
+			["Carlos Eduardo Lima", "CL", "#7c3aed", [["DECISÃO", 14], ["SENTENÇA", 3]], [4, 5, 10]],
+			["Ana Beatriz Moreira", "AM", "#2563eb", [["SENTENÇA", 18], ["DECISÃO", 6], ["DESPACHO", 2]], [2, 0, 20]],
 		];
 		const linhas = [];
 		JUIZES.forEach(([nome, , , tipos]) => tipos.forEach(([t, n]) => { for (let k = 0; k < Math.min(n, 2); k++) linhas.push([nome, t]); }));
@@ -2137,19 +2137,26 @@ CENAS.V74 = {
 		await S.cap("Na lista <b>Conclusões</b>, era preciso contar linha por linha para saber quantas conclusões há com cada juiz.", { ms: 4200 });
 
 		const ponto = (t) => '<i class="pdp-cpj-ponto" style="background:' + COR_TIPO[t] + '"></i>';
-		const card = ([nome, , cor, tipos]) => {
+		const PRESO = '<svg width="11" height="11" viewBox="0 0 12 12" style="vertical-align:-1px"><rect x="1" y="1" width="10" height="10" fill="#555"/><path d="M3 1v10M6 1v10M9 1v10" stroke="#ddd" stroke-width="1"/></svg>';
+		const marcas = (m, tot) => '<div class="pdp-cpj-marcas">' + (m[0] ? '<button type="button" class="pdp-cpj-marca pdp-cpj-marca-atraso">⏱ ' + m[0] + "</button>" : "") +
+			(m[1] ? '<button type="button" class="pdp-cpj-marca pdp-cpj-marca-preso">' + PRESO + m[1] + "</button>" : "") +
+			'<button type="button" class="pdp-cpj-marca pdp-cpj-marca-pre">📝 ' + m[2] + "/" + tot + "</button></div>";
+		const card = ([nome, , cor, tipos, m]) => {
 			const tot = tipos.reduce((a, b) => a + b[1], 0);
 			return '<article class="pdp-cpj-card" data-j="' + nome + '" style="--pdp-cpj-cor:' + cor + '"><button type="button" class="pdp-cpj-cab"><span class="pdp-cpj-nome">' + nome + '</span><span class="pdp-cpj-total"><strong>' + tot + "</strong><small>conclusões</small></span></button>" +
 				'<div class="pdp-cpj-barra">' + tipos.map(([t, n]) => '<span class="pdp-cpj-seg" style="width:' + (n / tot) * 100 + "%;background:" + COR_TIPO[t] + '"></span>').join("") + "</div>" +
-				'<ul class="pdp-cpj-tipos">' + tipos.map(([t, n]) => '<li><button type="button" class="pdp-cpj-tipo" data-t="' + t + '">' + ponto(t) + '<span class="pdp-cpj-tipo-nome">' + t + '</span><span class="pdp-cpj-tipo-pct">' + Math.round((n / tot) * 100) + '%</span><span class="pdp-cpj-tipo-n">' + n + "</span></button></li>").join("") + "</ul></article>";
+				'<ul class="pdp-cpj-tipos">' + tipos.map(([t, n]) => '<li><button type="button" class="pdp-cpj-tipo" data-t="' + t + '">' + ponto(t) + '<span class="pdp-cpj-tipo-nome">' + t + '</span><span class="pdp-cpj-tipo-pct">' + Math.round((n / tot) * 100) + '%</span><span class="pdp-cpj-tipo-n">' + n + "</span></button></li>").join("") + "</ul>" + marcas(m, tot) + "</article>";
 		};
 		$("#slot").innerHTML = '<section class="pdp-cpj" id="pdp-conclusoes-juiz"><div class="pdp-cpj-topo"><div class="pdp-cpj-titulo"><span class="pdp-cpj-titulo-texto">Conclusões por juiz</span><span class="pdp-cpj-geral">57 conclusões</span></div>' +
-			'<div class="pdp-cpj-resumo">' + [["SENTENÇA", 30], ["DECISÃO", 21], ["DESPACHO", 6]].map(([t, n]) => '<span class="pdp-cpj-chip">' + ponto(t) + t + " · " + n + "</span>").join("") + '</div><span id="slot-limpar"></span></div>' +
+			'<div class="pdp-cpj-resumo">' + [["SENTENÇA", 30], ["DECISÃO", 21], ["DESPACHO", 6]].map(([t, n]) => '<span class="pdp-cpj-chip">' + ponto(t) + t + " · " + n + "</span>").join("") + '</div><span id="slot-limpar"></span><button type="button" class="pdp-cpj-copiar" id="copiar">📋 Copiar resumo</button></div>' +
 			'<div class="pdp-cpj-grade">' + JUIZES.map(card).join("") + "</div></section>";
 		S.hl("#pdp-conclusoes-juiz", 4);
 		await S.cap("A extensão mostra, acima da tabela, um <b>card para cada juiz</b> com o total de conclusões dele.", { ms: 4600 });
 		S.hl(".pdp-cpj-card .pdp-cpj-tipos", 4);
 		await S.cap("Dentro do card, o total e a porcentagem de cada <b>tipo de conclusão</b>: Sentença, Decisão, Despacho…", { ms: 4600 });
+		S.hlOff();
+		S.hl(".pdp-cpj-card:nth-child(3) .pdp-cpj-marcas", 4);
+		await S.cap("No pé do card: <b>⏱</b> conclusões há mais de <b>120 dias</b>, o símbolo de <b>réu preso</b> do Projudi e <b>📝</b> quantas já têm pré-análise.", { ms: 5200 });
 		S.hlOff();
 		const alvo = '.pdp-cpj-card[data-j="Carlos Eduardo Lima"] .pdp-cpj-tipo[data-t="DECISÃO"]';
 		await S.click(alvo);
@@ -2163,7 +2170,10 @@ CENAS.V74 = {
 		$$(".pdp-cpj-card").forEach((c) => c.classList.remove("pdp-cpj-ativo", "pdp-cpj-apagado"));
 		$$(".pdp-cpj-tipo-ativo").forEach((b) => b.classList.remove("pdp-cpj-tipo-ativo"));
 		$("#limpar").style.display = "none";
-		await S.cap("Em <b>Mostrar todas</b>, a lista volta inteira. Nada muda no Projudi: os cards só ajudam a ler a lista.", { ms: 4200 });
+		await S.cap("Em <b>Mostrar todas</b>, a lista volta inteira. Até lá, o filtro fica guardado, mesmo recarregando a lista.", { ms: 4200 });
+		await S.click("#copiar");
+		$("#copiar").textContent = "✓ Copiado";
+		await S.cap("<b>📋 Copiar resumo</b> copia os totais de cada juiz em texto, para colar num e-mail.", { ms: 4200 });
 		await S.endCard("Conclusões → cards por juiz → total por tipo → clique para ver só aquelas conclusões.");
 	},
 };

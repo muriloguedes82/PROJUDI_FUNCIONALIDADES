@@ -5,10 +5,19 @@
 // e, dentro do card, o total por tipo de conclusão (coluna "Tipo de
 // conclusão": SENTENÇA, DECISÃO, DESPACHO...), com uma barra proporcional.
 //
+// No pé do card, etiquetas pequenas (só aparecem quando há o que contar):
+// - ⏱ conclusões há mais de 120 dias (coluna "Dt. Remessa");
+// - o mesmo símbolo de réu preso que o Projudi põe ao lado do número do
+//   processo, com quantas conclusões são de processo com réu preso;
+// - 📝 quantas já têm pré-análise (coluna "Pré-análise") / total do juiz.
+//
 // Clicar no total do card mostra na tabela só as conclusões daquele juiz;
-// clicar num tipo, só as daquele juiz e tipo. Clicar de novo (ou em
-// "Mostrar todas") volta a lista inteira. O filtro só esconde linhas na
-// tela: nada é alterado no Projudi.
+// clicar num tipo ou numa etiqueta, só aquelas do juiz. Clicar de novo (ou
+// em "Mostrar todas") volta a lista inteira. O filtro só esconde linhas na
+// tela: nada é alterado no Projudi. O último filtro fica guardado no
+// navegador e volta ao abrir a lista de novo, até clicar em "Mostrar todas".
+//
+// "📋 Copiar resumo" copia os totais em texto, para colar num e-mail.
 //
 // Os totais são refeitos sozinhos quando a lista muda — por exemplo,
 // quando "Listas em uma única página" (listasPaginaUnica.js) acrescenta as
@@ -33,7 +42,16 @@
 	const CORES = ["#2563eb", "#7c3aed", "#0d9488", "#d97706", "#db2777", "#4f46e5", "#dc2626", "#0891b2", "#65a30d"];
 	const CORES_TIPO = ["#3b82f6", "#f59e0b", "#10b981", "#8b5cf6", "#ef4444", "#14b8a6", "#ec4899", "#6366f1"];
 
-	let filtro = null; // { juiz, tipo|null }
+	const DIAS_ATRASO = 120;
+	const CHAVE_FILTRO = "pdpConclusoesPorJuizFiltro";
+	const MARCAS = {
+		atraso: { nome: "há mais de " + DIAS_ATRASO + " dias" },
+		preso: { nome: "de processo com réu preso" },
+		pre: { nome: "com pré-análise" },
+	};
+
+	// { juiz, tipo|null, marca|null } — guardado até "Mostrar todas".
+	let filtro = lerFiltro();
 	let assinatura = "";
 	let agendado = 0;
 
@@ -44,6 +62,37 @@
 		return normal(t).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 	}
 
+	function lerFiltro() {
+		try {
+			const f = JSON.parse(localStorage.getItem(CHAVE_FILTRO) || "null");
+			return f && typeof f.juiz === "string" ? { juiz: f.juiz, tipo: f.tipo || null, marca: f.marca || null } : null;
+		} catch (e) { return null; }
+	}
+	function definirFiltro(f) {
+		filtro = f;
+		try {
+			if (f) localStorage.setItem(CHAVE_FILTRO, JSON.stringify(f));
+			else localStorage.removeItem(CHAVE_FILTRO);
+		} catch (e) { /* sem armazenamento: o filtro vale só nesta tela */ }
+		agendar();
+	}
+	function mesmoFiltro(a, b) {
+		return !!a && !!b && a.juiz === b.juiz && (a.tipo || null) === (b.tipo || null) && (a.marca || null) === (b.marca || null);
+	}
+	function alternar(f) {
+		definirFiltro(mesmoFiltro(filtro, f) ? null : f);
+	}
+
+	// Dias desde a remessa (dd/mm/aaaa da coluna Dt. Remessa), contados por data.
+	function diasDesde(texto) {
+		const m = /(\d{2})\/(\d{2})\/(\d{4})/.exec(texto || "");
+		if (!m) return null;
+		const d = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+		const h = new Date();
+		const hoje = new Date(h.getFullYear(), h.getMonth(), h.getDate());
+		return Math.round((hoje - d) / 86400000);
+	}
+
 	function tabela() {
 		const form = document.getElementById("processoConclusaoForm");
 		return (form || document).querySelector("table.resultTable");
@@ -52,13 +101,15 @@
 	function colunas(tab) {
 		const cab = tab.tHead && tab.tHead.rows[0];
 		if (!cab) return null;
-		let tipo = -1, juiz = -1;
+		let tipo = -1, juiz = -1, data = -1, pre = -1;
 		Array.from(cab.cells).forEach((c, i) => {
 			const t = semAcento(c.textContent);
 			if (tipo < 0 && t.startsWith("tipo de conclusao")) tipo = i;
 			if (juiz < 0 && t === "responsavel") juiz = i;
+			if (data < 0 && t.includes("remessa")) data = i;
+			if (pre < 0 && t.replace(/[^a-z]/g, "") === "preanalise") pre = i;
 		});
-		return tipo < 0 || juiz < 0 ? null : { tipo, juiz, total: cab.cells.length };
+		return tipo < 0 || juiz < 0 ? null : { tipo, juiz, data, pre };
 	}
 
 	// Linhas de registro: as do <tbody> com as células das colunas achadas
@@ -71,7 +122,15 @@
 				const tipo = normal(tr.cells[col.tipo].textContent);
 				if (!tipo) continue;
 				const juiz = normal(tr.cells[col.juiz].textContent) || SEM_RESPONSAVEL;
-				lista.push({ tr, tipo, juiz });
+				const dias = col.data >= 0 && tr.cells[col.data] ? diasDesde(tr.cells[col.data].textContent) : null;
+				const imgPreso = tr.querySelector('[class*="REU_PRESO"] img, img[src*="preso.png"]');
+				lista.push({
+					tr, tipo, juiz, dias,
+					atraso: dias != null && dias > DIAS_ATRASO,
+					preso: !!(imgPreso || tr.querySelector('[class*="REU_PRESO"]')),
+					imgPreso: imgPreso ? imgPreso.src : null,
+					pre: col.pre >= 0 && !!tr.cells[col.pre] && normal(tr.cells[col.pre].textContent) !== "",
+				});
 			}
 		}
 		return lista;
@@ -80,9 +139,13 @@
 	function agrupar(regs) {
 		const mapa = new Map();
 		for (const r of regs) {
-			if (!mapa.has(r.juiz)) mapa.set(r.juiz, { juiz: r.juiz, total: 0, tipos: new Map() });
+			if (!mapa.has(r.juiz)) mapa.set(r.juiz, { juiz: r.juiz, total: 0, tipos: new Map(), atraso: 0, preso: 0, pre: 0, maisAntiga: null });
 			const g = mapa.get(r.juiz);
 			g.total++;
+			if (r.atraso) g.atraso++;
+			if (r.preso) g.preso++;
+			if (r.pre) g.pre++;
+			if (r.dias != null && (g.maisAntiga == null || r.dias > g.maisAntiga)) g.maisAntiga = r.dias;
 			g.tipos.set(r.tipo, (g.tipos.get(r.tipo) || 0) + 1);
 		}
 		// Ordem crescente: do juiz com menos conclusões para o com mais.
@@ -117,9 +180,13 @@
 		return e;
 	}
 
-	function aplicarFiltro(regs) {
+	function passa(r, f) {
+		return r.juiz === f.juiz && (!f.tipo || r.tipo === f.tipo) && (!f.marca || !!r[f.marca]);
+	}
+
+	function aplicarFiltro(regs, f) {
 		for (const r of regs) {
-			const mostra = !filtro || (r.juiz === filtro.juiz && (!filtro.tipo || r.tipo === filtro.tipo));
+			const mostra = !f || passa(r, f);
 			if (mostra) {
 				if (r.tr.hasAttribute("data-pdp-cpj-oculta")) {
 					r.tr.style.display = "";
@@ -155,17 +222,19 @@
 		// conclusão na lista, o quadro inteiro não aparece.
 		const grupos = agrupar(regs).filter((g) => g.total > 0);
 		if (!grupos.length) {
-			filtro = null;
-			aplicarFiltro(regs);
+			aplicarFiltro(regs, null);
 			const velho = document.getElementById("pdp-conclusoes-juiz");
 			if (velho) velho.remove();
 			assinatura = "";
 			return;
 		}
-		if (filtro && !grupos.some((g) => g.juiz === filtro.juiz && (!filtro.tipo || g.tipos.has(filtro.tipo)))) filtro = null;
-		aplicarFiltro(regs);
+		// O filtro guardado só vale se houver linhas para ele (enquanto as
+		// outras páginas chegam, ele espera, sem esconder a lista toda).
+		const ativo = filtro && regs.some((r) => passa(r, filtro)) ? filtro : null;
+		aplicarFiltro(regs, ativo);
 
-		const nova = JSON.stringify([grupos.map((g) => [g.juiz, Array.from(g.tipos)]), filtro]);
+		const imgPreso = (regs.find((r) => r.imgPreso) || {}).imgPreso || null;
+		const nova = JSON.stringify([grupos.map((g) => [g.juiz, Array.from(g.tipos), g.atraso, g.preso, g.pre, g.maisAntiga]), ativo, col.pre >= 0, imgPreso]);
 		const q = quadro(tab);
 		if (nova === assinatura && q.childElementCount) return;
 		assinatura = nova;
@@ -190,12 +259,17 @@
 			resumo.append(chip);
 		}
 		topo.append(resumo);
-		if (filtro) {
+		if (ativo) {
 			const limpar = el("button", "pdp-cpj-limpar", "Mostrar todas");
 			limpar.type = "button";
-			limpar.addEventListener("click", () => { filtro = null; agendar(); });
+			limpar.addEventListener("click", () => definirFiltro(null));
 			topo.append(limpar);
 		}
+		const copiar = el("button", "pdp-cpj-copiar", "📋 Copiar resumo");
+		copiar.type = "button";
+		copiar.title = "Copiar os totais por juiz em texto, para colar num e-mail ou relatório";
+		copiar.addEventListener("click", () => copiarResumo(grupos, regs.length, col.pre >= 0, copiar));
+		topo.append(copiar);
 		q.append(topo);
 
 		const grade = el("div", "pdp-cpj-grade");
@@ -204,22 +278,20 @@
 			const card = el("article", "pdp-cpj-card");
 			const cor = corJuiz.get(g.juiz);
 			card.style.setProperty("--pdp-cpj-cor", cor);
-			if (filtro && filtro.juiz === g.juiz) card.classList.add("pdp-cpj-ativo");
-			else if (filtro) card.classList.add("pdp-cpj-apagado");
+			if (ativo && ativo.juiz === g.juiz) card.classList.add("pdp-cpj-ativo");
+			else if (ativo) card.classList.add("pdp-cpj-apagado");
 
 			const cab = el("button", "pdp-cpj-cab");
 			cab.type = "button";
-			cab.title = filtro && filtro.juiz === g.juiz && !filtro.tipo
+			const soJuiz = { juiz: g.juiz, tipo: null, marca: null };
+			cab.title = mesmoFiltro(ativo, soJuiz)
 				? "Mostrar todas as conclusões"
 				: g.juiz + " — " + g.total + (g.total === 1 ? " conclusão" : " conclusões") + ". Clique para ver na lista só as conclusões deste juiz.";
 			const nome = el("span", "pdp-cpj-nome", g.juiz);
 			const tot = el("span", "pdp-cpj-total");
 			tot.append(el("strong", null, String(g.total)), el("small", null, g.total === 1 ? "conclusão" : "conclusões"));
 			cab.append(nome, tot);
-			cab.addEventListener("click", () => {
-				filtro = filtro && filtro.juiz === g.juiz && !filtro.tipo ? null : { juiz: g.juiz, tipo: null };
-				agendar();
-			});
+			cab.addEventListener("click", () => alternar(soJuiz));
 			card.append(cab);
 
 			const barra = el("div", "pdp-cpj-barra");
@@ -235,23 +307,84 @@
 				const li = el("li");
 				const bt = el("button", "pdp-cpj-tipo");
 				bt.type = "button";
-				const ativo = filtro && filtro.juiz === g.juiz && filtro.tipo === t;
-				if (ativo) bt.classList.add("pdp-cpj-tipo-ativo");
-				bt.title = ativo ? "Mostrar todas as conclusões" : "Mostrar na lista só " + t + " de " + g.juiz;
+				const fTipo = { juiz: g.juiz, tipo: t, marca: null };
+				const ligado = mesmoFiltro(ativo, fTipo);
+				if (ligado) bt.classList.add("pdp-cpj-tipo-ativo");
+				bt.title = ligado ? "Mostrar todas as conclusões" : "Mostrar na lista só " + t + " de " + g.juiz;
 				const ponto = el("i", "pdp-cpj-ponto");
 				ponto.style.background = corTipo.get(t);
 				bt.append(ponto, el("span", "pdp-cpj-tipo-nome", t), el("span", "pdp-cpj-tipo-pct", Math.round(pct) + "%"), el("span", "pdp-cpj-tipo-n", String(n)));
-				bt.addEventListener("click", () => {
-					filtro = ativo ? null : { juiz: g.juiz, tipo: t };
-					agendar();
-				});
+				bt.addEventListener("click", () => alternar(fTipo));
 				li.append(bt);
 				lista.append(li);
 			}
 			card.append(barra, lista);
+
+			// Etiquetas do pé do card (só as que têm o que contar).
+			const marcas = el("div", "pdp-cpj-marcas");
+			const marca = (chave, conteudo, titulo, extra) => {
+				const f = { juiz: g.juiz, tipo: null, marca: chave };
+				const ligado = mesmoFiltro(ativo, f);
+				const b = el("button", "pdp-cpj-marca pdp-cpj-marca-" + chave + (ligado ? " pdp-cpj-marca-ativa" : ""));
+				b.type = "button";
+				b.append(...conteudo);
+				b.title = (ligado ? "Mostrar todas as conclusões. " : "") + titulo + (ligado ? "" : " Clique para ver só essas na lista.");
+				if (extra) b.classList.add(extra);
+				b.addEventListener("click", () => alternar(f));
+				marcas.append(b);
+			};
+			if (g.atraso) {
+				marca("atraso", [document.createTextNode("⏱ " + g.atraso)],
+					g.atraso + (g.atraso === 1 ? " conclusão" : " conclusões") + " há mais de " + DIAS_ATRASO + " dias (a mais antiga, há " + g.maisAntiga + " dias).");
+			}
+			if (g.preso) {
+				const icone = imgPreso ? Object.assign(el("img", "pdp-cpj-preso"), { src: imgPreso, alt: "Réu preso" }) : document.createTextNode("🔒");
+				marca("preso", [icone, document.createTextNode(String(g.preso))],
+					g.preso + (g.preso === 1 ? " conclusão" : " conclusões") + " de processo com réu preso.");
+			}
+			if (col.pre >= 0) {
+				const sem = g.total - g.pre;
+				marca("pre", [document.createTextNode("📝 " + g.pre + "/" + g.total)],
+					g.pre + " com pré-análise e " + sem + " sem pré-análise.", g.pre ? null : "pdp-cpj-marca-zero");
+			}
+			if (marcas.childElementCount) card.append(marcas);
 			grade.append(card);
 		});
 		q.append(grade);
+	}
+
+	function textoResumo(grupos, total, temPre) {
+		const h = new Date();
+		const data = String(h.getDate()).padStart(2, "0") + "/" + String(h.getMonth() + 1).padStart(2, "0") + "/" + h.getFullYear();
+		const linhas = ["Conclusões por juiz — " + data + " — " + total + (total === 1 ? " conclusão" : " conclusões")];
+		for (const g of grupos) {
+			const tipos = Array.from(g.tipos).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "pt")).map(([t, n]) => t + " " + n).join(", ");
+			const extras = [];
+			if (g.atraso) extras.push(g.atraso + " há mais de " + DIAS_ATRASO + " dias");
+			if (g.preso) extras.push(g.preso + " réu preso");
+			if (temPre) extras.push(g.pre + " com pré-análise");
+			linhas.push("• " + g.juiz + ": " + g.total + " (" + tipos + ")" + (extras.length ? " — " + extras.join("; ") : ""));
+		}
+		return linhas.join("\n");
+	}
+
+	async function copiarResumo(grupos, total, temPre, botao) {
+		const texto = textoResumo(grupos, total, temPre);
+		let ok = false;
+		try {
+			await navigator.clipboard.writeText(texto);
+			ok = true;
+		} catch (e) {
+			const area = document.createElement("textarea");
+			area.value = texto;
+			area.style.cssText = "position:fixed;left:-9999px;top:0";
+			document.body.append(area);
+			area.select();
+			try { ok = document.execCommand("copy"); } catch (e2) { ok = false; }
+			area.remove();
+		}
+		botao.textContent = ok ? "✓ Copiado" : "Não foi possível copiar";
+		setTimeout(() => { botao.textContent = "📋 Copiar resumo"; }, 2000);
 	}
 
 	function agendar() {
