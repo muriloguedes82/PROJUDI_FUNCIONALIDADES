@@ -3032,16 +3032,20 @@ Movimento** e o botão **Filtrar**.
 **Onde fica:** na tela **Análise de Juntadas**, num quadro **Juntadas por
 tipo** logo acima da lista. No alto do quadro aparecem o total de juntadas
 e quantos tipos há; abaixo, um card para cada tipo de documento que aparece
-na coluna **Tipo de Documento**. Cada card tem uma cor e mostra:
+na coluna **Tipo de Documento**. Os cards são pequenos, para caberem
+muitos tipos sem poluir a tela. Cada um tem uma cor e mostra:
 
-- o nome do tipo (sem o "JUNTADA DE" do começo; o nome completo aparece ao
-  pousar o mouse sobre o card);
-- o total de juntadas daquele tipo, em número grande;
-- uma barrinha e a porcentagem que esse tipo representa na lista.
+- o total de juntadas daquele tipo, em número destacado;
+- o nome do tipo (sem o "JUNTADA DE" do começo; o nome completo e a
+  porcentagem do tipo na lista aparecem ao pousar o mouse sobre o card);
+- uma barrinha com a parte da lista que esse tipo representa.
 
 Só aparecem cards de tipos com **pelo menos uma** juntada na lista: tipo
 com total zero não ganha card. Os cards ficam em ordem, do tipo com mais
-juntadas para o com menos.
+juntadas para o com menos. Quando há mais de 12 tipos, aparecem só os 11
+maiores e um botão **+ N tipos** (ex.: **+ 19 tipos**) para ver os demais;
+**− Mostrar menos** recolhe de novo. O tipo que você escolheu continua à
+vista mesmo com os cards recolhidos.
 
 **Passo a passo:**
 
@@ -3049,7 +3053,7 @@ juntadas para o com menos.
    acima da lista.
 2. Clique no card do tipo desejado (ex.: **RESPOSTA DE OFÍCIO**). A lista
    passa a mostrar só as juntadas desse tipo. O card fica com contorno
-   colorido e a marca **✓ Filtrando**, os demais ficam mais claros, e no
+   colorido, os demais ficam mais claros, e no
    alto do quadro aparece, por exemplo, "mostrando 22 de 480".
 3. Para voltar a ver todas, clique em **Mostrar todas** (no alto do
    quadro, à direita) ou clique de novo no card destacado. Para trocar de
@@ -3168,7 +3172,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 24 | 12/11/2026 | Nova seção **9.17 Totais de juntadas por tipo na Análise de Juntadas**: cards coloridos com o total e a porcentagem de cada tipo acima da lista (só tipos com total maior que zero); clicar num card deixa na lista só as juntadas daquele tipo, e **Mostrar todas** volta à lista inteira. Incluída também na tabela de 2.6. |
+| 24 | 12/11/2026 | Nova seção **9.17 Totais de juntadas por tipo na Análise de Juntadas**: cards pequenos e coloridos com o total de cada tipo acima da lista (só tipos com total maior que zero; com mais de 12 tipos, os demais ficam em **+ N tipos**); clicar num card deixa na lista só as juntadas daquele tipo, e **Mostrar todas** volta à lista inteira. Incluída também na tabela de 2.6. |
 | 23 | 11/11/2026 | Visual novo da Mesa do Analista (9.16): novo tom **Projudi original**, com as cores do tema do próprio Projudi (creme esverdeado, verde-oliva, quadros num creme bem claro, laranja nos dados do usuário e vermelho puro nos urgentes), que passa a ser o **padrão** (antes, Oliva fosco). Quem já tinha escolhido um tom continua com ele. Ajustados 2.6 (Cor do visual da Mesa do Analista) e 9.16 (Escolher a cor). Vídeo V73 regravado (não citado no manual). |
 | 22 | 11/11/2026 | Corrigido (seção 9.15): a linha **Prescrições vencidas** da Análise de Juntadas continuava em **não disponível**: o link **Vencidas** do quadro Prescrições não vem na página da aba Mesa do Escrivão Criminal quando ela é aberta sem ser mostrada, e o endereço desse link muda a cada vez que se entra no Projudi. Agora, se não achar o link, a extensão abre a aba Mesa do Escrivão Criminal sem mostrá-la e clica em **Vencidas**, como a pessoa faria. Novo item no Bom saber. Sem vídeo novo (a tela não mudou). |
 | 21 | 10/11/2026 | Corrigido (seção 9.14): ao trocar de atuação, a linha **Processos Paralisados (+90 dias)** continuava mostrando os números da atuação anterior (os totais ficavam guardados por 5 minutos). Agora a contagem é refeita toda vez que a tela Início é aberta ou recarregada, inclusive na troca de atuação. Bom saber da 9.14 atualizado. Sem vídeo novo (a tela não mudou). |

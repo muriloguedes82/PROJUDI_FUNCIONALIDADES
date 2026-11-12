@@ -51,6 +51,9 @@
 	let tabela = null;
 	let observador = null;
 	let agendado = false;
+	let expandido = false; // mostrar todos os tipos (quando passam do limite)
+	// Com muitos tipos, mostra só os maiores e um botão "+ N tipos".
+	const LIMITE_CARDS = 12;
 
 	function formulario() {
 		return document.querySelector('form#analisarJuntadaForm, form[name="analisarJuntadaForm"]');
@@ -132,23 +135,19 @@
 		card.type = "button";
 		card.style.setProperty("--pdp-jtipo-cor", cor);
 		card.setAttribute("aria-pressed", ativo ? "true" : "false");
-		card.title = tipo + " — " + total + " " + plural(total) + ". " + (ativo ? "Clique para mostrar todas." : "Clique para ver só este tipo.");
-
-		const cab = el("span", "pdp-jtipo-cab");
-		cab.append(el("span", "pdp-jtipo-nome", rotulo(tipo)));
-		const tot = el("span", "pdp-jtipo-total");
-		tot.append(el("strong", null, String(total)), el("small", null, plural(total)));
-		cab.append(tot);
-
 		const pct = geral ? Math.round((total / geral) * 100) : 0;
+		card.title = tipo + " — " + total + " " + plural(total) + " (" + pct + "% da lista). " + (ativo ? "Clique para mostrar todas." : "Clique para ver só este tipo.");
+
+		// Card compacto (pode haver dezenas de tipos): total e nome numa
+		// linha só e, embaixo, uma barrinha com a parte da lista.
+		const cab = el("span", "pdp-jtipo-cab");
+		cab.append(el("strong", "pdp-jtipo-total", String(total)), el("span", "pdp-jtipo-nome", rotulo(tipo)));
 		const barra = el("span", "pdp-jtipo-barra");
 		const preenchido = el("span", "pdp-jtipo-seg");
-		preenchido.style.width = Math.max(pct, 2) + "%";
+		preenchido.style.width = Math.max(pct, 3) + "%";
 		barra.append(preenchido);
-		const rodape = el("span", "pdp-jtipo-rodape");
-		rodape.append(el("span", null, pct + "% da lista"), el("span", "pdp-jtipo-acao", ativo ? "✓ Filtrando" : "Ver só este tipo"));
 
-		card.append(cab, barra, rodape);
+		card.append(cab, barra);
 		card.addEventListener("click", function (ev) {
 			ev.preventDefault();
 			escolher(tipo);
@@ -227,9 +226,25 @@
 		fragmento.append(topo);
 
 		const grade = el("div", "pdp-jtipo-grade");
+		const recolher = !expandido && tipos.length > LIMITE_CARDS;
+		const visiveis = recolher ? LIMITE_CARDS - 1 : tipos.length;
 		tipos.forEach(function (par, i) {
+			// O tipo escolhido continua à vista mesmo com a lista recolhida.
+			if (i >= visiveis && par[0] !== tipoAtivo) return;
 			grade.append(criarCard(par[0], par[1], lista.length, CORES[i % CORES.length]));
 		});
+		if (tipos.length > LIMITE_CARDS) {
+			const escondidos = tipos.length - visiveis - (recolher && tipos.slice(visiveis).some(function (par) { return par[0] === tipoAtivo; }) ? 1 : 0);
+			const mais = el("button", "pdp-jtipo-mais", recolher ? "+ " + escondidos + (escondidos === 1 ? " tipo" : " tipos") : "− Mostrar menos");
+			mais.type = "button";
+			mais.title = recolher ? "Mostrar os cards de todos os tipos" : "Mostrar só os tipos com mais juntadas";
+			mais.addEventListener("click", function (ev) {
+				ev.preventDefault();
+				expandido = !expandido;
+				atualizar();
+			});
+			grade.append(mais);
+		}
 		fragmento.append(grade);
 
 		const filtroProjudi = document.getElementById("codTipoMovimento");

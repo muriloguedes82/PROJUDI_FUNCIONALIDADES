@@ -2126,13 +2126,11 @@ CENAS.V74 = {
 		const contagem = {};
 		tipos.forEach((t) => (contagem[t] = (contagem[t] || 0) + 1));
 		const ordem = Object.keys(contagem).sort((a, b) => contagem[b] - contagem[a] || a.localeCompare(b));
-		const pl = (n) => (n === 1 ? "juntada" : "juntadas");
 		const card = (k, t, ativo) => {
 			const n = contagem[t], pct = Math.round((n / tipos.length) * 100);
 			return '<button type="button" id="c-' + k + '" class="pdp-jtipo-card' + (ativo === t ? " pdp-jtipo-ativo" : ativo ? " pdp-jtipo-apagado" : "") + '" style="--pdp-jtipo-cor:' + CORES[k] + '">' +
-				'<span class="pdp-jtipo-cab"><span class="pdp-jtipo-nome">' + t.replace(/^JUNTADA DE /, "") + '</span><span class="pdp-jtipo-total"><strong>' + n + "</strong><small>" + pl(n) + "</small></span></span>" +
-				'<span class="pdp-jtipo-barra"><span class="pdp-jtipo-seg" style="width:' + pct + '%"></span></span>' +
-				'<span class="pdp-jtipo-rodape"><span>' + pct + '% da lista</span><span class="pdp-jtipo-acao">' + (ativo === t ? "✓ Filtrando" : "Ver só este tipo") + "</span></span></button>";
+				'<span class="pdp-jtipo-cab"><strong class="pdp-jtipo-total">' + n + '</strong><span class="pdp-jtipo-nome">' + t.replace(/^JUNTADA DE /, "") + "</span></span>" +
+				'<span class="pdp-jtipo-barra"><span class="pdp-jtipo-seg" style="width:' + pct + '%"></span></span></button>";
 		};
 		const painel = (ativo) => {
 			$("#slot-legenda").innerHTML = '<section id="pdp-juntadas-tipo" class="pdp-jtipo"><div class="pdp-jtipo-topo"><div class="pdp-jtipo-titulo"><span class="pdp-jtipo-titulo-texto">Juntadas por tipo</span><span class="pdp-jtipo-geral">' +
@@ -2145,7 +2143,7 @@ CENAS.V74 = {
 		await S.titleCard("VÍDEO V74", "Totais de juntadas por tipo", "Um card por tipo de documento; clique para ver só aquele tipo.");
 		painel(null);
 		S.hl("#pdp-juntadas-tipo", 3);
-		await S.cap("Acima da lista da <b>Análise de Juntadas</b>, a extensão mostra um card para cada <b>tipo de documento</b>, com o total e a porcentagem.", { ms: 4800 });
+		await S.cap("Acima da lista da <b>Análise de Juntadas</b>, a extensão mostra um card para cada <b>tipo de documento</b>, com o total.", { ms: 4800 });
 		S.hlOff();
 		await S.click("#c-1");
 		painel(ordem[1]);
