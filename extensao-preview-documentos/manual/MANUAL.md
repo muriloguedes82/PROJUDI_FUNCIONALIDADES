@@ -3030,9 +3030,12 @@ deixar na lista só as de um tipo, com um clique, sem usar o campo **Tipo
 Movimento** e o botão **Filtrar**.
 
 **Onde fica:** na tela **Análise de Juntadas**, num quadro **Juntadas por
-tipo** logo acima da lista. No alto do quadro aparecem o total de juntadas
-e quantos tipos há; abaixo, um card para cada tipo de documento que aparece
-na coluna **Tipo de Documento**. Os cards são pequenos, para caberem
+tipo** logo acima da lista. Os cards seguem a lista do campo **Tipo
+Movimento** do próprio Projudi (no formulário de busca, acima da lista):
+um card para cada tipo que aparece ali, com o total que o Projudi informa
+entre parênteses (ex.: **JUNTADA DE MANIFESTAÇÃO(92)** vira o card **92
+Manifestação**). No alto do quadro aparecem a soma desses totais e quantos
+tipos há. Os cards são pequenos, para caberem
 muitos tipos sem poluir a tela. Cada um tem uma cor e mostra:
 
 - o total de juntadas daquele tipo, em número destacado;
@@ -3054,6 +3057,12 @@ juntadas para o com menos. Por padrão, aparecem **todos** os tipos.
    passa a mostrar só as juntadas desse tipo. O card fica com contorno
    colorido, os demais ficam mais claros, e no alto do quadro aparece, por
    exemplo, "mostrando 22 de 480".
+   - Se a lista inteira já está na tela (com **Listas em uma única página**
+     ([9.13](#cap-9-13)), ou quando tudo cabe numa página) e o campo
+     **Tipo Movimento** está em **Todos**, o filtro é feito na hora, na
+     própria tela.
+   - Senão, a extensão escolhe o tipo no campo **Tipo Movimento** e clica
+     em **Filtrar** por você; a tela recarrega já só com aquele tipo.
 3. Para voltar a ver todas, clique em **Mostrar todas** (no alto do
    quadro, à direita) ou clique de novo no card destacado. Para trocar de
    tipo, basta clicar em outro card.
@@ -3079,22 +3088,19 @@ juntadas para o com menos. Por padrão, aparecem **todos** os tipos.
 
 **Bom saber:**
 
-- O filtro é feito na própria tela, na hora: nada é pesquisado de novo no
-  Projudi.
+- Os totais dos cards são os do campo **Tipo Movimento**. A coluna
+  **Juntado por** (quem juntou) não entra na contagem.
 - ⚠️ Ao escolher um tipo, as caixas de marcar das juntadas que ficaram
   escondidas são desmarcadas, e a caixa de marcar todas (no cabeçalho da
   lista) passa a marcar só as que estão à vista. Assim **Análise
   Múltipla**, **Analisar** e **Dispensar** só alcançam as juntadas que você
   está vendo.
-- Com **Listas em uma única página** ligada ([9.13](#cap-9-13)), os totais
-  valem para a lista inteira e vão aumentando enquanto as páginas
-  seguintes chegam. Com ela desligada, os totais são só da página que está
-  na tela.
-- Se o campo **Tipo Movimento** do Projudi estiver escolhendo um tipo, a
-  lista já vem só com esse tipo, e o quadro avisa disso numa faixa
-  amarela. Para ver os totais de todos os tipos, escolha **Todos** nesse
-  campo e clique em **Filtrar**.
-- Se a lista estiver vazia, o quadro não aparece.
+- Se o campo **Tipo Movimento** já estiver escolhendo um tipo, o card
+  desse tipo aparece destacado. **Mostrar todas** (ou um clique no card
+  destacado) volta o campo para **Todos** e clica em **Filtrar**; um clique
+  em outro card troca o tipo no campo.
+- Se o campo **Tipo Movimento** não tiver nenhum tipo com total, o quadro
+  não aparece.
 - Um tipo escolhido em **⚙ Personalizar** que não tenha nenhuma juntada no
   momento não ganha card; ele continua na sua escolha para as próximas
   vezes.
@@ -3195,7 +3201,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 24 | 12/11/2026 | Nova seção **9.17 Totais de juntadas por tipo na Análise de Juntadas**: cards pequenos e coloridos com o total e a porcentagem de cada tipo acima da lista (só tipos com total maior que zero; por padrão, todos os tipos); em **⚙ Personalizar**, escolha quantos cards e quais tipos aparecem por padrão (fica salvo), e os demais ficam em **+ N tipos**; clicar num card deixa na lista só as juntadas daquele tipo, e **Mostrar todas** volta à lista inteira. Incluída também na tabela de 2.6. |
+| 24 | 12/11/2026 | Nova seção **9.17 Totais de juntadas por tipo na Análise de Juntadas**: cards pequenos e coloridos com o total e a porcentagem de cada tipo da lista **Tipo Movimento** acima da lista (só tipos com total maior que zero; por padrão, todos os tipos); em **⚙ Personalizar**, escolha quantos cards e quais tipos aparecem por padrão (fica salvo), e os demais ficam em **+ N tipos**; clicar num card deixa na lista só as juntadas daquele tipo, e **Mostrar todas** volta à lista inteira. Incluída também na tabela de 2.6. |
 | 23 | 11/11/2026 | Visual novo da Mesa do Analista (9.16): novo tom **Projudi original**, com as cores do tema do próprio Projudi (creme esverdeado, verde-oliva, quadros num creme bem claro, laranja nos dados do usuário e vermelho puro nos urgentes), que passa a ser o **padrão** (antes, Oliva fosco). Quem já tinha escolhido um tom continua com ele. Ajustados 2.6 (Cor do visual da Mesa do Analista) e 9.16 (Escolher a cor). Vídeo V73 regravado (não citado no manual). |
 | 22 | 11/11/2026 | Corrigido (seção 9.15): a linha **Prescrições vencidas** da Análise de Juntadas continuava em **não disponível**: o link **Vencidas** do quadro Prescrições não vem na página da aba Mesa do Escrivão Criminal quando ela é aberta sem ser mostrada, e o endereço desse link muda a cada vez que se entra no Projudi. Agora, se não achar o link, a extensão abre a aba Mesa do Escrivão Criminal sem mostrá-la e clica em **Vencidas**, como a pessoa faria. Novo item no Bom saber. Sem vídeo novo (a tela não mudou). |
 | 21 | 10/11/2026 | Corrigido (seção 9.14): ao trocar de atuação, a linha **Processos Paralisados (+90 dias)** continuava mostrando os números da atuação anterior (os totais ficavam guardados por 5 minutos). Agora a contagem é refeita toda vez que a tela Início é aberta ou recarregada, inclusive na troca de atuação. Bom saber da 9.14 atualizado. Sem vídeo novo (a tela não mudou). |

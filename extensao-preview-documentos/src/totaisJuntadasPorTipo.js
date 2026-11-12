@@ -1,24 +1,23 @@
 // Projudi - Totais de juntadas por tipo (Análise de Juntadas)
 //
 // Na lista "Análise de Juntadas" (processo/analisarJuntada.do), mostra
-// acima da tabela um card para cada tipo de documento presente na lista
-// (coluna "Tipo de Documento", ex.: JUNTADA DE MANIFESTAÇÃO), com o total
-// de juntadas daquele tipo e a porcentagem que ele representa no total
-// (visual igual ao dos cards de "Conclusões por juiz"). Por padrão aparecem
-// todos os tipos; em "⚙ Personalizar" o usuário escolhe quantos cards e
+// acima da tabela um card para cada tipo da lista "Tipo Movimento" do
+// formulário de busca (ex.: JUNTADA DE MANIFESTAÇÃO(92)), com o total
+// que o próprio Projudi informa ali e a porcentagem que ele representa
+// no total (visual igual ao dos cards de "Conclusões por juiz"). Por
+// padrão aparecem todos os tipos; em "⚙ Personalizar" o usuário escolhe quantos cards e
 // quais tipos aparecem por padrão (preferência salva), e os demais ficam
 // no botão "+ N tipos".
 //
-// O card funciona como filtro automático: clicar nele deixa na tabela só
-// as juntadas daquele tipo (as demais linhas, e a linha de arquivos do
-// "+" delas, ficam escondidas); clicar de novo no mesmo card, ou em
-// "Mostrar todas", mostra tudo outra vez. Nada é pedido ao servidor: o filtro é
-// feito na própria tabela, por isso é instantâneo.
-//
-// Junto com "Listas em uma única página" (listasPaginaUnica.js), que
-// acrescenta à tabela as linhas das páginas seguintes, os totais abrangem
-// a lista inteira: a tabela é observada e os cards são refeitos (e o
-// filtro escolhido é aplicado às linhas novas) a cada linha acrescentada.
+// O card funciona como filtro automático. Se a tabela já tem a lista
+// inteira (uma página só, ou as páginas reunidas por "Listas em uma única
+// página" - listasPaginaUnica.js) e o campo Tipo Movimento está em
+// "Todos", o filtro é feito na própria tabela, na hora: as demais linhas (e
+// a linha de arquivos do "+" delas) ficam escondidas. Senão (lista ainda
+// paginada, ou o campo já filtrando outro tipo), o card escolhe o tipo no
+// campo Tipo Movimento e clica em Filtrar, como o usuário faria. Clicar de
+// novo no mesmo card, ou em "Mostrar todas", volta a mostrar tudo.
+// A tabela é observada para aplicar o filtro às linhas que chegarem depois.
 //
 // Segurança dos atos em lote: ao filtrar, as caixas de marcar das linhas
 // escondidas são desmarcadas, e a caixa "marcar todos" do cabeçalho passa a
@@ -56,7 +55,8 @@
 	const CHAVE_PREF = "pdpJuntadasPorTipoPreferencias";
 	let pref = { limite: 0, tipos: [] };
 
-	let tipoAtivo = null; // texto do tipo filtrado, ou null (todas)
+	let tipoAtivo = null; // tipo filtrado na própria tela, ou null (todas)
+	let tipoDestaque = null; // card destacado (filtro da tela ou do Projudi)
 	let painel = null;
 	let conteudo = null;
 	let config = null;
@@ -159,7 +159,7 @@
 
 	function aplicarFiltro(lista) {
 		lista.forEach(function (j) {
-			const esconder = tipoAtivo !== null && j.tipo !== tipoAtivo;
+			const esconder = tipoAtivo !== null && chave(j.tipo) !== chave(tipoAtivo);
 			j.linhas.forEach(function (tr) {
 				if (esconder) tr.setAttribute(ATTR_OCULTA, "");
 				else tr.removeAttribute(ATTR_OCULTA);
@@ -200,9 +200,9 @@
 	}
 
 	function criarCard(tipo, total, geral, cor) {
-		const ativo = tipoAtivo === tipo;
+		const ativo = tipoDestaque !== null && chave(tipoDestaque) === chave(tipo);
 		const card = botao(
-			"pdp-jtipo-card" + (ativo ? " pdp-jtipo-ativo" : tipoAtivo !== null ? " pdp-jtipo-apagado" : ""),
+			"pdp-jtipo-card" + (ativo ? " pdp-jtipo-ativo" : tipoDestaque !== null ? " pdp-jtipo-apagado" : ""),
 			null,
 			tipo + " — " + total + " " + plural(total) + ". " + (ativo ? "Clique para mostrar todas." : "Clique para ver só este tipo."),
 			function () {
@@ -234,8 +234,90 @@
 		return painel;
 	}
 
+	// --- Tipos e totais: os da lista "Tipo Movimento" do Projudi -------------
+	//
+	// Os cards seguem a lista "Tipo Movimento" do formulário de busca: cada
+	// opção traz o nome do tipo e, entre parênteses, quantas juntadas há dele
+	// (ex.: "JUNTADA DE MANIFESTAÇÃO(92)"). Assim os totais são os do
+	// próprio Projudi, mesmo que a tabela mostre só uma página.
+
+	function campoTipo() {
+		return document.getElementById("codTipoMovimento");
+	}
+
+	function chave(tipo) {
+		return normalizar(tipo).toLocaleUpperCase("pt-BR");
+	}
+
+	// [[tipo, total], ...] das opções com total maior que zero, em ordem.
+	function tiposDoCampo() {
+		const campo = campoTipo();
+		if (!campo) return [];
+		const lista = [];
+		Array.from(campo.options).forEach(function (op) {
+			const valor = normalizar(op.value);
+			if (!valor || valor === "-1") return;
+			const m = normalizar(op.textContent).match(/\((\d+)\)\s*$/);
+			const total = m ? Number(m[1]) : 0;
+			if (total > 0) lista.push([valor, total]);
+		});
+		return lista.sort(function (a, b) {
+			return b[1] - a[1] || a[0].localeCompare(b[0], "pt-BR");
+		});
+	}
+
+	// Tipo que o próprio campo do Projudi está filtrando (ou null = Todos).
+	function filtroServidor() {
+		const campo = campoTipo();
+		const valor = campo ? normalizar(campo.value) : "";
+		return valor && valor !== "-1" ? valor : null;
+	}
+
+	// A tabela tem a lista inteira? (uma página só, ou páginas já reunidas
+	// por "Listas em uma única página": aí não há mais "Próxima Página").
+	function listaCompleta() {
+		const nav = document.getElementById("navigator");
+		return !nav || !nav.querySelector("a.arrowNextOn");
+	}
+
+	// Pede ao Projudi a lista de um tipo (ou de todos, com null), pelo campo
+	// Tipo Movimento e o botão Filtrar, como o usuário faria.
+	function filtrarNoProjudi(tipo) {
+		const campo = campoTipo();
+		const form = formulario();
+		if (!campo || !form) return;
+		const alvo = tipo === null ? "-1" : Array.from(campo.options).map(function (op) { return op.value; }).find(function (v) { return chave(v) === chave(tipo); });
+		if (alvo === undefined) return;
+		campo.value = alvo;
+		tipoAtivo = null;
+		if (conteudo) conteudo.classList.add("pdp-jtipo-carregando");
+		const filtrar = document.getElementById("searchButton");
+		if (filtrar) filtrar.click();
+		else form.submit();
+	}
+
+	// Clique num card: na lista completa e sem filtro do Projudi, filtra na
+	// própria tela (na hora); senão, filtra pelo campo Tipo Movimento.
 	function escolher(tipo) {
-		tipoAtivo = tipoAtivo === tipo ? null : tipo;
+		const servidor = filtroServidor();
+		if (servidor !== null) {
+			filtrarNoProjudi(chave(servidor) === chave(tipo) ? null : tipo);
+			return;
+		}
+		if (!listaCompleta()) {
+			filtrarNoProjudi(tipo);
+			return;
+		}
+		tipoAtivo = tipoAtivo !== null && chave(tipoAtivo) === chave(tipo) ? null : tipo;
+		atualizar();
+	}
+
+	function mostrarTodas() {
+		if (filtroServidor() !== null) {
+			filtrarNoProjudi(null);
+			return;
+		}
+		tipoAtivo = null;
 		atualizar();
 	}
 
@@ -243,40 +325,36 @@
 	function tiposPadrao(tipos) {
 		let lista = tipos;
 		if (pref.tipos.length) {
-			const escolhidos = new Set(pref.tipos);
-			lista = lista.filter(function (par) { return escolhidos.has(par[0]); });
+			const escolhidos = new Set(pref.tipos.map(chave));
+			lista = lista.filter(function (par) { return escolhidos.has(chave(par[0])); });
 		}
 		if (pref.limite > 0) lista = lista.slice(0, pref.limite);
-		return new Set(lista.map(function (par) { return par[0]; }));
+		return new Set(lista.map(function (par) { return chave(par[0]); }));
 	}
 
 	function atualizar() {
 		if (!tabela || !tabela.isConnected) tabela = acharTabela();
-		if (!tabela) return;
-		const lista = juntadas(tabela);
-		if (!lista.length) {
+		const tipos = tiposDoCampo();
+		if (!tabela || !tipos.length) {
 			if (painel) painel.remove();
 			painel = null;
 			return;
 		}
-
-		const totais = new Map();
-		lista.forEach(function (j) {
-			totais.set(j.tipo, (totais.get(j.tipo) || 0) + 1);
-		});
-		if (tipoAtivo !== null && !totais.has(tipoAtivo)) tipoAtivo = null;
-
-		aplicarFiltro(lista);
-
-		// Só tipos com total maior que zero ganham card.
-		const tipos = Array.from(totais.entries()).filter(function (par) {
-			return par[1] > 0;
-		}).sort(function (a, b) {
-			return b[1] - a[1] || a[0].localeCompare(b[0], "pt-BR");
-		});
 		ultimosTipos = tipos;
+		const geral = tipos.reduce(function (s, par) { return s + par[1]; }, 0);
+		const totalDe = function (tipo) {
+			const par = tipos.find(function (p) { return chave(p[0]) === chave(tipo); });
+			return par ? par[1] : 0;
+		};
+
+		const servidor = filtroServidor();
+		if (servidor !== null || !listaCompleta()) tipoAtivo = null;
+		if (tipoAtivo !== null && !totalDe(tipoAtivo)) tipoAtivo = null;
+		tipoDestaque = servidor !== null ? servidor : tipoAtivo;
+		aplicarFiltro(juntadas(tabela));
 
 		garantirPainel();
+		conteudo.classList.remove("pdp-jtipo-carregando");
 		const fragmento = document.createDocumentFragment();
 
 		const topo = el("div", "pdp-jtipo-topo");
@@ -286,17 +364,14 @@
 			el(
 				"span",
 				"pdp-jtipo-geral",
-				lista.length + " " + plural(lista.length) + " · " + tipos.length + (tipos.length === 1 ? " tipo" : " tipos") +
-					(tipoAtivo !== null ? " · mostrando " + totais.get(tipoAtivo) + " de " + lista.length : "")
+				geral + " " + plural(geral) + " · " + tipos.length + (tipos.length === 1 ? " tipo" : " tipos") +
+					(tipoDestaque !== null ? " · mostrando " + totalDe(tipoDestaque) + " de " + geral : "")
 			)
 		);
 		topo.append(titulo);
-		topo.append(el("span", "pdp-jtipo-dica", tipoAtivo === null ? "Clique num card para ver só aquele tipo na lista." : "Filtrando: " + tipoAtivo));
-		if (tipoAtivo !== null) {
-			topo.append(botao("pdp-jtipo-limpar", "Mostrar todas", "Mostrar todas as juntadas da lista", function () {
-				tipoAtivo = null;
-				atualizar();
-			}));
+		topo.append(el("span", "pdp-jtipo-dica", tipoDestaque === null ? "Clique num card para ver só aquele tipo na lista." : "Filtrando: " + tipoDestaque));
+		if (tipoDestaque !== null) {
+			topo.append(botao("pdp-jtipo-limpar", "Mostrar todas", "Mostrar todas as juntadas", mostrarTodas));
 		}
 		topo.append(botao("pdp-jtipo-engrenagem", "⚙ Personalizar", "Escolher quantos cards e quais tipos aparecem por padrão", alternarConfig));
 		fragmento.append(topo);
@@ -306,9 +381,10 @@
 		let mostrados = 0;
 		tipos.forEach(function (par, i) {
 			// O tipo escolhido continua à vista mesmo fora do padrão.
-			if (!expandido && !padrao.has(par[0]) && par[0] !== tipoAtivo) return;
+			const destacado = tipoDestaque !== null && chave(par[0]) === chave(tipoDestaque);
+			if (!expandido && !padrao.has(chave(par[0])) && !destacado) return;
 			mostrados++;
-			grade.append(criarCard(par[0], par[1], lista.length, CORES[i % CORES.length]));
+			grade.append(criarCard(par[0], par[1], geral, CORES[i % CORES.length]));
 		});
 		const fora = tipos.length - mostrados;
 		if (fora > 0) {
@@ -323,19 +399,6 @@
 			}));
 		}
 		fragmento.append(grade);
-
-		const filtroProjudi = document.getElementById("codTipoMovimento");
-		if (filtroProjudi && filtroProjudi.value && filtroProjudi.value !== "-1") {
-			fragmento.append(
-				el(
-					"div",
-					"pdp-jtipo-nota",
-					"O campo Tipo Movimento do Projudi está filtrando a lista (" +
-						normalizar(filtroProjudi.options[filtroProjudi.selectedIndex].text) +
-						"). Para ver os totais de todos os tipos, escolha \"Todos\" nele e clique em Filtrar."
-				)
-			);
-		}
 
 		conteudo.replaceChildren(fragmento);
 	}
@@ -357,10 +420,10 @@
 	}
 
 	function montarConfig() {
-		const contagem = new Map(ultimosTipos);
+		const contagem = new Map(ultimosTipos.map(function (par) { return [chave(par[0]), par[1]]; }));
 		const nomes = ultimosTipos.map(function (par) { return par[0]; });
-		pref.tipos.forEach(function (t) { if (!contagem.has(t)) nomes.push(t); });
-		const escolhidos = new Set(pref.tipos);
+		pref.tipos.forEach(function (t) { if (!contagem.has(chave(t))) nomes.push(t); });
+		const escolhidos = new Set(pref.tipos.map(chave));
 
 		const caixa = document.createDocumentFragment();
 		caixa.append(el("div", "pdp-jtipo-config-titulo", "Personalizar os cards (fica salvo para as próximas vezes)"));
@@ -401,8 +464,8 @@
 			const c = el("input");
 			c.type = "checkbox";
 			c.value = t;
-			c.checked = escolhidos.size ? escolhidos.has(t) : true;
-			l.append(c, el("span", null, rotulo(t)), el("small", null, contagem.has(t) ? String(contagem.get(t)) : "0"));
+			c.checked = escolhidos.size ? escolhidos.has(chave(t)) : true;
+			l.append(c, el("span", null, rotulo(t)), el("small", null, String(contagem.get(chave(t)) || 0)));
 			listaTipos.append(l);
 			return c;
 		});
