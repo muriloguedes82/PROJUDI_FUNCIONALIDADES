@@ -60,11 +60,15 @@
 #pdp-conclusoes-juiz .pdp-cpj-copiar { margin-left: auto; padding: 2px 10px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; font-size: 11px; font-weight: 600; color: #334155; }
 #pdp-conclusoes-juiz .pdp-cpj-copiar:hover { background: #f1f5f9; }
 
-/* Etiquetas do pé do card: +120 dias e réu preso, ambas em vermelho. */
+/* Etiquetas do pé do card: +120 dias e réu preso. */
 #pdp-conclusoes-juiz .pdp-cpj-marcas { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; padding-top: 4px; border-top: 1px dashed #e2e8f0; }
 #pdp-conclusoes-juiz .pdp-cpj-marca { display: inline-flex; align-items: center; gap: 3px; padding: 0 6px; border: 1px solid #e2e8f0; border-radius: 999px; background: #f8fafc; font-size: 10px; line-height: 16px; font-weight: 700; color: #334155; }
 #pdp-conclusoes-juiz .pdp-cpj-marca:hover { background: #f1f5f9; }
-#pdp-conclusoes-juiz .pdp-cpj-marca-atraso, #pdp-conclusoes-juiz .pdp-cpj-marca-preso { border-color: #fecaca; background: #fef2f2; color: #b91c1c; }
-#pdp-conclusoes-juiz .pdp-cpj-marca-atraso:hover, #pdp-conclusoes-juiz .pdp-cpj-marca-preso:hover { background: #fee2e2; }
+/* Dois tons de vermelho para não confundir: +120 dias em vermelho-alaranjado
+   claro; réu preso em vermelho escuro, com fundo cheio. */
+#pdp-conclusoes-juiz .pdp-cpj-marca-atraso { border-color: #fdba74; background: #fff7ed; color: #c2410c; }
+#pdp-conclusoes-juiz .pdp-cpj-marca-atraso:hover { background: #ffedd5; }
+#pdp-conclusoes-juiz .pdp-cpj-marca-preso { border-color: #9f1239; background: #ffe4e6; color: #881337; }
+#pdp-conclusoes-juiz .pdp-cpj-marca-preso:hover { background: #fecdd3; }
 #pdp-conclusoes-juiz .pdp-cpj-marca-ativa { box-shadow: 0 0 0 2px var(--pdp-cpj-cor); }
 #pdp-conclusoes-juiz .pdp-cpj-preso { width: 12px; height: 12px; vertical-align: middle; }
