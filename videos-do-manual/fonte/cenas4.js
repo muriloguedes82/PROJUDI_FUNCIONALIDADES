@@ -2135,26 +2135,26 @@ CENAS.V74 = {
 				'<fieldset class="pj-fieldset"><table class="pj-form"><tr><td class="l">Tipo Movimento:</td><td><span class="pj-input">Todos</span></td></tr></table></fieldset>' +
 				tabela(lista) + '<div style="margin-top:8px"><span class="x-btn small">Análise Múltipla</span> <span class="x-btn small">Analisar</span> <span class="x-btn small">Dispensar</span></div></div>');
 		};
-		const quadro = (cards, aviso) => '<div class="pdp-dpt" id="pdp-dispensa-tipo"><div class="pdp-dpt-topo"><span class="pdp-dpt-titulo">Dispensa rápida por tipo</span><button class="pdp-dpt-mais" id="mais" type="button">+ Card</button></div><div class="pdp-dpt-cards">' + cards + "</div>" +
+		const quadro = (cards, aviso) => '<div class="pdp-dpt" id="pdp-dispensa-tipo"><div class="pdp-dpt-topo"><span class="pdp-dpt-titulo">Dispensa rápida por tipo</span><button class="pdp-dpt-mais" id="mais" type="button">+ Preferência</button></div><div class="pdp-dpt-cards">' + cards + "</div>" +
 			(aviso ? '<div class="pdp-dpt-aviso" id="aviso">' + aviso + "</div>" : "") + "</div>";
 
 		tela(juntadas);
 		await S.titleCard("VÍDEO V74", "Dispensa rápida por tipo", "Dispense de uma vez todas as juntadas de um mesmo tipo, como as anotações de distribuição.");
 		await S.cap("Na <b>Análise de Juntadas</b>, dispensar um tipo de juntada exigia filtrar, marcar uma a uma e clicar em <b>Dispensar</b>.", { ms: 4600 });
-		tela(juntadas, quadro('<span class="pdp-dpt-vazio">Nenhum card ainda. Clique em + Card e escolha o tipo de juntada que quer dispensar com um clique.</span>'));
+		tela(juntadas, quadro('<span class="pdp-dpt-vazio">Nenhuma preferência ainda. Clique em + Preferência e escolha o tipo de juntada que quer dispensar com um clique.</span>'));
 		S.hl("#pdp-dispensa-tipo", 3);
-		await S.cap("Agora, abaixo do título, aparece o quadro <b>Dispensa rápida por tipo</b>. Ele vem vazio: você cria os cards que quiser.", { ms: 4800 });
+		await S.cap("Agora, abaixo do título, aparece o quadro <b>Dispensa rápida por tipo</b>. Ele vem vazio: você cria as preferências que quiser.", { ms: 4800 });
 		S.hlOff();
 		await S.click("#mais");
 		document.querySelector(".pdp-dpt-topo").insertAdjacentHTML("beforeend", '<span class="pdp-dpt-escolha" id="esc"><select><option>JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO (3)</option></select><button type="button" id="acr">Acrescentar</button><button type="button">Cancelar</button></span>');
-		await S.cap("Em <b>+ Card</b>, escolha o tipo de juntada e clique em <b>Acrescentar</b>. O <b>×</b> tira um card.", { ms: 4400 });
+		await S.cap("Em <b>+ Preferência</b>, escolha o tipo de juntada e clique em <b>Acrescentar</b>. O <b>×</b> tira uma preferência.", { ms: 4400 });
 		await S.click("#acr");
 		document.getElementById("esc").remove();
 		document.querySelector(".pdp-dpt-cards").innerHTML = card("JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO", 3, "c1");
-		await S.cap("O card mostra o total do tipo e fica guardado como preferência, junto com as demais.", { ms: 4200 });
+		await S.cap("A preferência mostra o total do tipo e fica guardada junto com as suas demais preferências.", { ms: 4200 });
 		await sleep(800);
 		await S.click("#c1 .pdp-dpt-acao");
-		await S.cap("Clique no card: a extensão pergunta se deve dispensar as <b>3</b> juntadas do tipo. Confirme com <b>OK</b>.", { ms: 4400 });
+		await S.cap("Clique na preferência: a extensão pergunta se deve dispensar as <b>3</b> juntadas do tipo. Confirme com <b>OK</b>.", { ms: 4400 });
 		document.getElementById("c1").classList.add("pdp-dpt-card-andamento");
 		document.querySelectorAll(".pdp-dpt button").forEach((b) => (b.disabled = true));
 		document.getElementById("pdp-dispensa-tipo").insertAdjacentHTML("beforeend", '<div class="pdp-dpt-aviso" id="aviso">Dispensando as juntadas do tipo JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO… 3 dispensada(s).</div>');
@@ -2163,6 +2163,6 @@ CENAS.V74 = {
 		S.hl("#aviso", 3);
 		await S.cap("No fim, a lista é atualizada e o quadro mostra quantas foram dispensadas. As juntadas de outros tipos ficam como estavam.", { ms: 5000 });
 		S.hlOff();
-		await S.endCard("Análise de Juntadas → Dispensa rápida por tipo → clique no card → OK.");
+		await S.endCard("Análise de Juntadas → Dispensa rápida por tipo → + Preferência → clique na preferência → OK.");
 	},
 };

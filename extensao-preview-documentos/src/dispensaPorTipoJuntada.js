@@ -315,9 +315,9 @@
 		quadro.id = "pdp-dispensa-tipo";
 		const topo = el("div", "pdp-dpt-topo");
 		topo.append(el("span", "pdp-dpt-titulo", "Dispensa rápida por tipo"));
-		const mais = el("button", "pdp-dpt-mais", "+ Card");
+		const mais = el("button", "pdp-dpt-mais", "+ Preferência");
 		mais.type = "button";
-		mais.title = "Acrescentar um card com um tipo de juntada";
+		mais.title = "Criar uma preferência com um tipo de juntada";
 		topo.append(mais);
 		const cards = el("div", "pdp-dpt-cards");
 		const aviso = el("div", "pdp-dpt-aviso");
@@ -333,7 +333,7 @@
 
 		function desenhar() {
 			cards.textContent = "";
-			if (!lista.length) cards.append(el("span", "pdp-dpt-vazio", "Nenhum card ainda. Clique em + Card e escolha o tipo de juntada que quer dispensar com um clique."));
+			if (!lista.length) cards.append(el("span", "pdp-dpt-vazio", "Nenhuma preferência ainda. Clique em + Preferência e escolha o tipo de juntada que quer dispensar com um clique."));
 			for (const nome of lista) {
 				const tipo = acharTipo(document, nome);
 				const total = tipo ? tipo.total : 0;
@@ -348,10 +348,10 @@
 				botao.addEventListener("click", () => executar(nome, tipo, card));
 				const tirar = el("button", "pdp-dpt-tirar", "×");
 				tirar.type = "button";
-				tirar.title = "Tirar este card";
+				tirar.title = "Tirar esta preferência";
 				tirar.disabled = ocupado;
 				tirar.addEventListener("click", () => {
-					if (!confirm('Tirar o card "' + nome + '"?')) return;
+					if (!confirm('Tirar a preferência "' + nome + '"?')) return;
 					lista = lista.filter((t) => t !== nome);
 					gravarCards(lista);
 					desenhar();

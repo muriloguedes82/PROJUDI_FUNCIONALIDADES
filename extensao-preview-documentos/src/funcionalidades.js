@@ -348,7 +348,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "dispensaPorTipoJuntada",
 					nome: "Dispensa rápida por tipo na Análise de Juntadas",
-					descricao: "Na lista Análise de Juntadas, quadro com cards de tipos de juntada (ex.: JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO), cada um com o total; clicar no card dispensa, com confirmação, todas as juntadas daquele tipo de uma vez. Os cards são escolhidos em \"+ Card\" e tirados no \"×\".",
+					descricao: "Na lista Análise de Juntadas, quadro com preferências de tipos de juntada (ex.: JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO), cada uma com o total; clicar na preferência dispensa, com confirmação, todas as juntadas daquele tipo de uma vez. As preferências são criadas em \"+ Preferência\" e tiradas no \"×\".",
 					js: ["src/dispensaPorTipoJuntada.js"],
 					css: ["src/dispensaPorTipoJuntada.css"],
 					sistemas: ["projudi"]

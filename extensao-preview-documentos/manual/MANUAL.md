@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 25 |
-| **Versão da extensão** | 25 |
+| **Versão do manual** | 26 |
+| **Versão da extensão** | 26 |
 | **Data desta versão** | 12/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -3031,18 +3031,18 @@ uma a uma e clicar em **Dispensar**, página por página.
 
 **Onde fica:** na tela **Análise de Juntadas** (a lista aberta pela Mesa do
 Analista), logo abaixo do título, num quadro chamado **Dispensa rápida por
-tipo**. Cada **card** do quadro mostra o nome de um tipo de juntada e, ao
+tipo**. Cada **preferência** do quadro mostra o nome de um tipo de juntada e, ao
 lado, o total daquele tipo (o mesmo número que aparece entre parênteses no
-filtro **Tipo Movimento** do Projudi). O quadro vem **sem nenhum card**:
-você cria os cards dos tipos que quiser (veja **Escolher os cards**,
+filtro **Tipo Movimento** do Projudi). O quadro vem **sem nenhuma preferência**:
+você cria as preferências dos tipos que quiser (veja **Escolher as preferências**,
 abaixo).
 
 **Passo a passo:**
 
 1. Abra a **Análise de Juntadas**. O quadro **Dispensa rápida por tipo**
-   aparece abaixo do título. Na primeira vez, ele está vazio: crie um card
-   em **+ Card** (veja **Escolher os cards**, abaixo).
-2. Clique no card do tipo que quer dispensar. A extensão pergunta se deve
+   aparece abaixo do título. Na primeira vez, ele está vazio: crie uma
+   preferência em **+ Preferência** (veja **Escolher as preferências**, abaixo).
+2. Clique na preferência do tipo que quer dispensar. A extensão pergunta se deve
    dispensar as juntadas daquele tipo em todos os processos da lista;
    clique em **OK** para seguir ou em **Cancelar** para desistir.
 3. Enquanto trabalha, o quadro mostra **Dispensando as juntadas do tipo
@@ -3053,32 +3053,32 @@ abaixo).
 4. No fim, a lista é atualizada sozinha e o quadro mostra, em verde,
    quantas juntadas foram dispensadas.
 
-**Escolher os cards:**
+**Escolher as preferências:**
 
-- Para acrescentar um card, clique em **+ Card**, escolha o tipo de
+- Para criar uma preferência, clique em **+ Preferência**, escolha o tipo de
   juntada na lista (são os mesmos tipos do filtro **Tipo Movimento**, com o
   total de cada um) e clique em **Acrescentar**.
-- Para tirar um card, clique no **×** ao lado dele e confirme.
-- Os cards escolhidos ficam guardados como as suas demais preferências
+- Para tirar uma preferência, clique no **×** ao lado dela e confirme.
+- As preferências criadas ficam guardadas como as suas demais preferências
   (entram no **⬇ Exportar** / **Importar** do Menu, [2.6](#cap-2-6)) e aparecem sempre
   que você abrir a Análise de Juntadas.
 
 **Bom saber:**
 
-- A dispensa **não pode ser desfeita**: confira o tipo antes de clicar no
-  card.
+- A dispensa **não pode ser desfeita**: confira o tipo antes de clicar na
+  preferência.
 - São dispensadas só as juntadas cujo **Tipo de Documento** é exatamente o
-  do card; as demais não são tocadas. Os outros filtros da tela (Status,
+  da preferência; as demais não são tocadas. Os outros filtros da tela (Status,
   Grupo, Localizador etc.) não são considerados: valem todas as juntadas
   daquele tipo.
-- Card com total **0** (nenhuma juntada daquele tipo na lista) fica
-  apagado, sem efeito ao clicar.
+- Preferência com total **0** (nenhuma juntada daquele tipo na lista) fica
+  apagada, sem efeito ao clicar.
 - Se o Projudi não confirmar a dispensa (por exemplo, uma juntada continua
   na lista depois do **Dispensar**), a extensão para, mostra em vermelho
   **Dispensa interrompida** com o motivo e quantas já foram dispensadas, e
-  não insiste. Confira a lista e, se for o caso, clique no card de novo.
-- Enquanto uma dispensa está em andamento, os demais cards ficam
-  bloqueados.
+  não insiste. Confira a lista e, se for o caso, clique na preferência de novo.
+- Enquanto uma dispensa está em andamento, as demais preferências ficam
+  bloqueadas.
 - Para ligar ou desligar, use **Dispensa rápida por tipo na Análise de
   Juntadas** no Menu da extensão ([2.6](#cap-2-6)).
 
@@ -3152,7 +3152,7 @@ telas abertas a partir daí voltam a funcionar.
 | O campo "De" não muda para a conta escolhida | Falta a permissão "Enviar como" nessa caixa — peça ao TI ([5.3](#cap-5-3)) |
 | "Verifique a conclusão" | Confira a conclusão no Projudi antes de repetir ([6.2](#cap-6-2)) |
 | Os botões **Dispensar juntadas**, **Dispensar decursos** ou **Finalizar conclusão** aparecem no quadro Pendências, mas não respondem ao clique (acontecia com o zoom do navegador acima de 100%, ex.: 110%) | Corrigido na versão 4: atualize a extensão ([2.3](#cap-2-3)). Enquanto não atualiza, volte o zoom para 100% (**Ctrl+0**) |
-| Dispensa rápida por tipo: "Dispensa interrompida" | Confira na lista se as juntadas daquele tipo ainda estão lá e clique no card de novo; se continuar, dispense pelo botão **Dispensar** do Projudi ([9.17](#cap-9-17)) |
+| Dispensa rápida por tipo: "Dispensa interrompida" | Confira na lista se as juntadas daquele tipo ainda estão lá e clique na preferência de novo; se continuar, dispense pelo botão **Dispensar** do Projudi ([9.17](#cap-9-17)) |
 | Dispensa de juntadas/decursos parou com erro | Clique em **Ver detalhes**, resolva no Projudi e tente de novo ([6.1](#cap-6-1), [6.3](#cap-6-3)) |
 | Card de suspensão/monitoração não aparece | Só são sinalizados status **ATIVA** e os motivos listados em [4.1](#cap-4-1)/[4.2](#cap-4-2); aguarde alguns segundos após abrir o processo |
 | Mandado não virou Regionalizado | Só muda se a cidade da parte for de outra comarca **e** constar em Comarca de Destino; veja a nota amarela do diálogo ([9.7](#cap-9-7)) |
@@ -3175,6 +3175,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 26 | 12/11/2026 | Dispensa rápida por tipo (9.17): o botão **+ Card** passa a se chamar **+ Preferência**, e os cards do quadro passam a ser chamados de **preferências** (na tela, no Menu e no resumo do backup). Nada mudou no funcionamento; quem já tinha criado cards continua com eles. Texto da 9.17 e de **11. Solução de problemas** ajustado. Vídeo V74 regravado (não citado no manual). |
 | 25 | 12/11/2026 | Dispensa rápida por tipo (9.17): o quadro passa a vir **sem nenhum card** (antes vinha com **JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO**); cada pessoa cria os seus em **+ Card**. Os cards ficam guardados como preferência e entram no **⬇ Exportar** / **Importar** do Menu (2.6), que passa a contá-los no resumo do backup. Ajustados "Onde fica", o passo 1 e "Escolher os cards". Vídeo V74 regravado (não citado no manual). |
 | 24 | 12/11/2026 | Nova seção 9.17 **Dispensa rápida por tipo na Análise de Juntadas**: quadro com cards de tipos de juntada (padrão: **JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO**), cada um com o total; clicar no card dispensa, com confirmação, todas as juntadas daquele tipo de uma vez, e **+ Card**/**×** escolhem os tipos. Sumário, tabela da 2.6 e **11. Solução de problemas** atualizados. Novo vídeo V74 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 23 | 11/11/2026 | Visual novo da Mesa do Analista (9.16): novo tom **Projudi original**, com as cores do tema do próprio Projudi (creme esverdeado, verde-oliva, quadros num creme bem claro, laranja nos dados do usuário e vermelho puro nos urgentes), que passa a ser o **padrão** (antes, Oliva fosco). Quem já tinha escolhido um tom continua com ele. Ajustados 2.6 (Cor do visual da Mesa do Analista) e 9.16 (Escolher a cor). Vídeo V73 regravado (não citado no manual). |
