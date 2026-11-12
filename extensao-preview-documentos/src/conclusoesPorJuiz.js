@@ -196,7 +196,7 @@
 			cab.type = "button";
 			cab.title = filtro && filtro.juiz === g.juiz && !filtro.tipo
 				? "Mostrar todas as conclusões"
-				: "Mostrar na lista só as conclusões de " + g.juiz;
+				: g.juiz + " — " + g.total + (g.total === 1 ? " conclusão" : " conclusões") + ". Clique para ver na lista só as conclusões deste juiz.";
 			const av = el("span", "pdp-cpj-avatar", iniciais(g.juiz));
 			const nome = el("span", "pdp-cpj-nome", g.juiz);
 			const tot = el("span", "pdp-cpj-total");
