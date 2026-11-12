@@ -160,7 +160,9 @@
 			let i = hashNome(juiz) % CORES.length;
 			for (let k = 0; k < CORES.length && usadas.has(i); k++) i = (i + 1) % CORES.length;
 			usadas.add(i);
-			cores.set(juiz, juiz === SEM_RESPONSAVEL ? "#64748b" : CORES[i]);
+			// Com o Visual novo da Mesa ligado, a cor vem da paleta do tom
+			// escolhido (variáveis --pdp-cpj-jN no CSS); senão, a de CORES.
+			cores.set(juiz, juiz === SEM_RESPONSAVEL ? "var(--pdp-cpj-sem, #64748b)" : "var(--pdp-cpj-j" + i + ", " + CORES[i] + ")");
 		}
 		return cores;
 	}
@@ -234,7 +236,7 @@
 		const todosTipos = new Map();
 		for (const g of grupos) for (const [t, n] of g.tipos) todosTipos.set(t, (todosTipos.get(t) || 0) + n);
 		const corTipo = new Map();
-		Array.from(todosTipos.keys()).sort((a, b) => todosTipos.get(b) - todosTipos.get(a)).forEach((t, i) => corTipo.set(t, CORES_TIPO[i % CORES_TIPO.length]));
+		Array.from(todosTipos.keys()).sort((a, b) => todosTipos.get(b) - todosTipos.get(a)).forEach((t, i) => corTipo.set(t, "var(--pdp-cpj-t" + (i % CORES_TIPO.length) + ", " + CORES_TIPO[i % CORES_TIPO.length] + ")"));
 
 		q.textContent = "";
 		const topo = el("div", "pdp-cpj-topo");
