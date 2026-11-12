@@ -143,6 +143,17 @@
 		return -1;
 	}
 
+	// Tipo da juntada na célula "Tipo de Documento": o texto em negrito
+	// (<b>). Abaixo dele o Projudi pode trazer uma descrição (ex.: "Recebida
+	// Comunicação de Ação Vinculada - Tipo: Informação - Origem: ..."), que
+	// não faz parte do tipo. Sem negrito, vale a primeira linha da célula.
+	function tipoDaCelula(td) {
+		const negrito = td.querySelector("b, strong");
+		if (negrito && normalizar(negrito.textContent)) return normalizar(negrito.textContent);
+		const linha = String(td.textContent || "").split(/\n/).map(normalizar).find(Boolean);
+		return linha || "";
+	}
+
 	// Agrupa as linhas do corpo da tabela por juntada: a linha principal e
 	// as linhas que vêm logo depois dela (ex.: a linha escondida dos arquivos
 	// do "+", que tem uma célula só).
@@ -154,7 +165,7 @@
 		const linhas = Array.from(tab.tBodies).flatMap(function (tb) { return Array.from(tb.rows); });
 		linhas.forEach(function (tr) {
 			if (tr.cells.length > indice) {
-				const tipo = normalizar(tr.cells[indice].textContent);
+				const tipo = tipoDaCelula(tr.cells[indice]);
 				atual = { tipo: tipo || "(sem tipo)", linhas: [tr], caixa: tr.querySelector('input[name="idJuntadas"]') };
 				lista.push(atual);
 			} else if (atual) {
@@ -327,6 +338,11 @@
 		const alvo = tipo === null ? "-1" : Array.from(campo.options).map(function (op) { return op.value; }).find(function (v) { return chave(v) === chave(tipo); });
 		if (alvo === undefined) return;
 		campo.value = alvo;
+		// O card vale sobre a Situação: sempre "Todos". O Projudi guarda na
+		// sessão o último filtro (ex.: "Urgente", ao abrir as juntadas urgentes
+		// pela Mesa) e só o troca no Filtrar; por isso a Situação vai junto.
+		const todos = form.querySelector('input[type="radio"][name="situacao"][value="todos"]');
+		if (todos) todos.checked = true;
 		tipoAtivo = null;
 		if (conteudo) conteudo.classList.add("pdp-jtipo-carregando");
 		const filtrar = document.getElementById("searchButton");
@@ -334,20 +350,51 @@
 		else form.submit();
 	}
 
-	// Clique num card: na lista completa e sem filtro do Projudi, filtra na
-	// própria tela (na hora); senão, filtra pelo campo Tipo Movimento.
+	// Situação com que a lista foi carregada (o rádio marcado pelo Projudi
+	// ao montar a página; mudar o rádio à mão não muda a lista até o
+	// Filtrar). Sem o campo, considera "todos".
+	function situacaoCarregada() {
+		const form = formulario();
+		const radios = form ? Array.from(form.querySelectorAll('input[type="radio"][name="situacao"]')) : [];
+		const marcado = radios.find(function (r) { return r.defaultChecked; });
+		return marcado ? marcado.value : "todos";
+	}
+
+	// Quantas juntadas do tipo estão na tabela agora.
+	function linhasDoTipo(tipo) {
+		if (!tabela) return 0;
+		return juntadas(tabela).filter(function (j) { return chave(j.tipo) === chave(tipo); }).length;
+	}
+
+	// Clique num card: deve listar exatamente o total do card. Filtra na
+	// própria tela (na hora) só quando a tabela já tem todas as juntadas do
+	// tipo (lista completa, sem filtro de tipo do Projudi e com tantas linhas
+	// do tipo quanto o card mostra). Senão (lista paginada, ou carregada com
+	// outro filtro - ex.: Situação "Urgente" ou "Conclusos", que o Projudi
+	// mantém até o próximo Filtrar), pede ao Projudi: Situação "Todos" e o
+	// tipo no campo Tipo Movimento.
 	function escolher(tipo) {
 		const servidor = filtroServidor();
 		if (servidor !== null) {
 			filtrarNoProjudi(chave(servidor) === chave(tipo) ? null : tipo);
 			return;
 		}
-		if (!listaCompleta()) {
+		if (tipoAtivo !== null && chave(tipoAtivo) === chave(tipo)) {
+			tipoAtivo = null;
+			atualizar();
+			return;
+		}
+		if (!listaCompleta() || situacaoCarregada() !== "todos" || linhasDoTipo(tipo) !== totalDoCampo(tipo)) {
 			filtrarNoProjudi(tipo);
 			return;
 		}
-		tipoAtivo = tipoAtivo !== null && chave(tipoAtivo) === chave(tipo) ? null : tipo;
+		tipoAtivo = tipo;
 		atualizar();
+	}
+
+	function totalDoCampo(tipo) {
+		const par = tiposDoCampo().find(function (p) { return chave(p[0]) === chave(tipo); });
+		return par ? par[1] : 0;
 	}
 
 	function mostrarTodas() {

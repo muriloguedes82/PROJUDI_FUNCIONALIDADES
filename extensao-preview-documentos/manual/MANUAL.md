@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 28 |
-| **Versão da extensão** | 28 |
+| **Versão do manual** | 29 |
+| **Versão da extensão** | 29 |
 | **Data desta versão** | 12/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -3165,12 +3165,20 @@ juntadas**, todos numa linha só; os demais ficam no botão **+ N tipos**
    passa a mostrar só as juntadas desse tipo. O card fica com contorno
    colorido, os demais ficam mais claros, e no alto do quadro aparece, por
    exemplo, "mostrando 22 de 480".
-   - Se a lista inteira já está na tela (com **Listas em uma única página**
-     ([9.13](#cap-9-13)), ou quando tudo cabe numa página) e o campo
-     **Tipo Movimento** está em **Todos**, o filtro é feito na hora, na
-     própria tela.
-   - Senão, a extensão escolhe o tipo no campo **Tipo Movimento** e clica
-     em **Filtrar** por você; a tela recarrega já só com aquele tipo.
+   - A lista mostra sempre **todas** as juntadas daquele tipo, o mesmo
+     número do card. O card vale sobre a linha **Situação**: mesmo que
+     **Urgente** ou **Conclusos** esteja marcado, a Situação volta para
+     **Todos**.
+   - Se a lista inteira daquele tipo já está na tela (com **Listas em uma
+     única página** ([9.13](#cap-9-13)), ou quando tudo cabe numa página),
+     com a Situação em **Todos** e o campo **Tipo Movimento** em **Todos**,
+     o filtro é feito na hora, na própria tela.
+   - Senão, a extensão marca **Situação: Todos**, escolhe o tipo no campo
+     **Tipo Movimento** e clica em **Filtrar** por você; a tela recarrega
+     já só com aquele tipo. É o caso, por exemplo, de quem abriu a Análise
+     de Juntadas pelo número de **Com urgência → Juntadas** da Mesa: o
+     Projudi guarda o filtro **Urgente** até o próximo **Filtrar**, mesmo
+     que você mude a Situação à mão.
 3. Para voltar a ver todas, clique em **Mostrar todas** (no alto do
    quadro, à direita) ou clique de novo no card destacado. Para trocar de
    tipo, basta clicar em outro card.
@@ -3207,8 +3215,8 @@ juntadas**, todos numa linha só; os demais ficam no botão **+ N tipos**
   está vendo.
 - Se o campo **Tipo Movimento** já estiver escolhendo um tipo, o card
   desse tipo aparece destacado. **Mostrar todas** (ou um clique no card
-  destacado) volta o campo para **Todos** e clica em **Filtrar**; um clique
-  em outro card troca o tipo no campo.
+  destacado) volta o campo e a **Situação** para **Todos** e clica em
+  **Filtrar**; um clique em outro card troca o tipo no campo.
 - Se o campo **Tipo Movimento** não tiver nenhum tipo com total, o quadro
   não aparece.
 - As cores do quadro seguem o tom escolhido no **Visual novo da Mesa do
@@ -3518,6 +3526,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 29 | 12/11/2026 | Corrigido (seção 9.18, Totais de juntadas por tipo): o clique no card passa a valer sobre a linha **Situação** — marca **Todos** e lista sempre todas as juntadas do tipo, o mesmo número do card, mesmo com **Urgente** ou **Conclusos** marcado ou depois de abrir as juntadas urgentes pela Mesa. Corrigida também a leitura do tipo quando o Projudi mostra uma descrição abaixo dele na coluna **Tipo de Documento**. |
 | 28 | 12/11/2026 | Nova seção 9.20 **Audiências pendentes e para hoje na Análise de Juntadas** (só no Projudi): no fim do quadro "Para Realizar" da aba Análise de Juntadas aparecem o total de **audiências pendentes** (designadas, com a data já passada e ainda não movimentadas), com quantas são de **réu preso** (em vermelho), quantas estão pendentes **há mais de 30 dias** e a **mais antiga**, e o total de **audiências para hoje** (cada linha só aparece quando o total é maior que zero); ao pousar o mouse num número abre a lista das audiências, e clicar nele abre a Listagem já pesquisada. Os números são contados de novo toda vez que a aba é aberta ou atualizada (inclusive ao voltar pelo botão Voltar do navegador). Nova seção 9.21 **Dias de atraso na Listagem de Audiências** (coluna **Atraso**, com destaque para mais de 30 dias). Seção 9.13: a **Listagem de Audiências** passa a vir em uma única página. No visual novo da Mesa (9.16), as linhas de audiências ficam no quadro Para Realizar. Sumário e tabela da 2.6 atualizados. Novos vídeos V77 e V78 gravados e guardados em `videos-do-manual/` (não citados no manual). |
 | 27 | 12/11/2026 | Nova seção 9.19 **Dispensa rápida por tipo na Análise de Juntadas**: quadro abaixo do título da Análise de Juntadas com **preferências** de tipos de juntada, cada uma com o total do tipo; cada preferência é um cartão pequeno, com uma cor própria na faixa lateral, o total e o nome do tipo em letras normais (nome comprido termina em "…"), e só aparece quando o total é maior que zero (a nota **+N sem juntadas agora** lembra as demais); clicar na preferência dispensa, com confirmação, todas as juntadas daquele tipo de uma vez, procurando o nome do tipo em **todas as páginas** da lista (e na lista inteira, se o Projudi não aplicar o filtro pelo tipo), considerando só o nome do tipo da lista **Tipo Movimento** e ignorando o responsável que aparece junto na coluna **Tipo de Documento**. O quadro vem sem nenhuma preferência: cada pessoa cria as suas em **+ Preferência** e tira no **×**; elas ficam guardadas como as demais preferências (entram no **⬇ Exportar** / **Importar** do Menu e no resumo do backup) e aparecem carregadas sempre que a tela é aberta ou atualizada, com o total atualizado. O quadro usa as cores do Projudi original e acompanha o tom do Visual novo da Mesa (9.16); a mensagem do fim (verde se deu certo, vermelha se falhou) some sozinha depois de 2 segundos. Sumário, tabela da 2.6 e **11. Solução de problemas** atualizados. Novo vídeo V76 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 26 | 12/11/2026 | Nova seção **9.18 Totais de juntadas por tipo na Análise de Juntadas**: cards pequenos e coloridos com o total e a porcentagem de cada tipo da lista **Tipo Movimento** acima da lista (só tipos com total maior que zero; por padrão, os 10 maiores, numa linha só); em **⚙ Personalizar**, escolha quantos cards e quais tipos aparecem por padrão (fica salvo), e os demais ficam em **+ N tipos**; clicar num card deixa na lista só as juntadas daquele tipo, e **Mostrar todas** volta à lista inteira. As cores seguem o tom do Visual novo da Mesa (padrão: Projudi original). Incluída também na tabela de 2.6. |
