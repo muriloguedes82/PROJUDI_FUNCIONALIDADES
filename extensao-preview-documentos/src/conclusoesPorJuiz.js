@@ -244,10 +244,8 @@
 		topo.append(titulo);
 		const resumo = el("div", "pdp-cpj-resumo");
 		for (const [t, n] of Array.from(todosTipos).sort((a, b) => b[1] - a[1])) {
-			const chip = el("span", "pdp-cpj-chip");
-			const ponto = el("i", "pdp-cpj-ponto");
-			ponto.style.background = corTipo.get(t);
-			chip.append(ponto, document.createTextNode(t + " · " + n));
+			const chip = el("span", "pdp-cpj-chip", t + " · " + n);
+			chip.style.setProperty("--pdp-cpj-chip-cor", corTipo.get(t));
 			resumo.append(chip);
 		}
 		topo.append(resumo);

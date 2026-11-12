@@ -14,10 +14,17 @@
 #pdp-conclusoes-juiz .pdp-cpj-titulo-texto { font-size: 13px; font-weight: 700; }
 #pdp-conclusoes-juiz .pdp-cpj-geral { font-size: 11px; color: #64748b; }
 #pdp-conclusoes-juiz .pdp-cpj-resumo { display: flex; flex-wrap: wrap; gap: 5px; flex: 1; }
-#pdp-conclusoes-juiz .pdp-cpj-chip { display: inline-flex; align-items: center; gap: 5px; padding: 1px 8px; border-radius: 999px; background: #fff; border: 1px solid #e2e8f0; font-size: 10px; font-weight: 600; color: #334155; }
+/* Etiquetas de tipo, "Mostrar todas" e "Copiar resumo" no mesmo formato
+   do card: fundo branco, cantos pouco arredondados e faixa colorida no alto. */
+#pdp-conclusoes-juiz .pdp-cpj-chip, #pdp-conclusoes-juiz .pdp-cpj-limpar, #pdp-conclusoes-juiz .pdp-cpj-copiar {
+	display: inline-flex; align-items: center; gap: 5px; padding: 1px 8px 2px;
+	border: 1px solid #e2e8f0; border-top: 3px solid var(--pdp-cpj-chip-cor, #94a3b8); border-radius: 5px;
+	background: #fff; box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
+	font-size: 10px; line-height: 15px; font-weight: 700; color: #334155;
+}
 #pdp-conclusoes-juiz .pdp-cpj-ponto { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex: none; }
-#pdp-conclusoes-juiz .pdp-cpj-limpar { padding: 2px 10px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; font-size: 11px; font-weight: 600; color: #1e40af; }
-#pdp-conclusoes-juiz .pdp-cpj-limpar:hover { background: #eff6ff; border-color: #93c5fd; }
+#pdp-conclusoes-juiz .pdp-cpj-limpar { --pdp-cpj-chip-cor: #2563eb; font-size: 11px; color: #1e40af; }
+#pdp-conclusoes-juiz .pdp-cpj-limpar:hover, #pdp-conclusoes-juiz .pdp-cpj-copiar:hover { box-shadow: 0 2px 6px rgba(15, 23, 42, .1); }
 
 /* Uma linha só: cada card divide a largura; abaixo de 150px, rola. */
 #pdp-conclusoes-juiz .pdp-cpj-grade {
@@ -57,8 +64,7 @@
 #pdp-conclusoes-juiz button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
 
 /* Botão "📋 Copiar resumo" (à direita do topo). */
-#pdp-conclusoes-juiz .pdp-cpj-copiar { margin-left: auto; padding: 2px 10px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; font-size: 11px; font-weight: 600; color: #334155; }
-#pdp-conclusoes-juiz .pdp-cpj-copiar:hover { background: #f1f5f9; }
+#pdp-conclusoes-juiz .pdp-cpj-copiar { --pdp-cpj-chip-cor: #64748b; margin-left: auto; font-size: 11px; }
 
 /* Etiquetas do pé do card: +120 dias e réu preso. */
 #pdp-conclusoes-juiz .pdp-cpj-marcas { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; padding-top: 4px; border-top: 1px dashed #e2e8f0; }

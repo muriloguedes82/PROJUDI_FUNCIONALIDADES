@@ -3036,7 +3036,10 @@ por linha na lista.
 **Como é:**
 
 - No alto, o título **Conclusões por juiz**, o total geral da lista e uma
-  etiqueta para cada tipo de conclusão com o total daquele tipo.
+  etiqueta para cada tipo de conclusão com o total daquele tipo (a faixa
+  no alto da etiqueta tem a cor do tipo). À direita, os botões **📋 Copiar
+  resumo** e, com um filtro ligado, **Mostrar todas**. Etiquetas e botões
+  têm o mesmo formato dos cards.
 - Abaixo, um **card para cada juiz** (o nome que aparece na coluna
   **Responsável**), sempre do que tem **menos** conclusões para o que tem
   **mais** (ordem crescente do total). Cada
@@ -3197,7 +3200,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 24 | 12/11/2026 | Nova seção **9.17 Conclusões por juiz**: na lista Conclusões, acima da tabela, um card para cada juiz (coluna Responsável), em ordem crescente do total (do que tem menos conclusões para o que tem mais), só para juízes com total maior que zero (com a lista vazia, os cards não aparecem), com o total de conclusões dele e, dentro do card, o total e a porcentagem de cada tipo de conclusão; cards compactos, sempre numa linha só (com muitos juízes, a linha rola para o lado), com uma cor fixa para cada juiz; no pé do card, etiquetas no formato do card, em dois tons de vermelho, com as conclusões há mais de 120 dias e as de réu preso (com o símbolo do Projudi), explicadas ao pousar o mouse; clicar no juiz, num tipo ou numa etiqueta mostra na tabela só aquelas conclusões, e esse filtro fica guardado até clicar em Mostrar todas; botão Copiar resumo, que copia os totais em texto. Nova linha em 10.1 (filtro guardado). Incluída também na tabela de 2.6. |
+| 24 | 12/11/2026 | Nova seção **9.17 Conclusões por juiz**: na lista Conclusões, acima da tabela, um card para cada juiz (coluna Responsável), em ordem crescente do total (do que tem menos conclusões para o que tem mais), só para juízes com total maior que zero (com a lista vazia, os cards não aparecem), com o total de conclusões dele e, dentro do card, o total e a porcentagem de cada tipo de conclusão; cards compactos, sempre numa linha só (com muitos juízes, a linha rola para o lado), com uma cor fixa para cada juiz; no pé do card, etiquetas no formato do card (como as etiquetas de tipo do alto e os botões Mostrar todas e Copiar resumo), em dois tons de vermelho, com as conclusões há mais de 120 dias e as de réu preso (com o símbolo do Projudi), explicadas ao pousar o mouse; clicar no juiz, num tipo ou numa etiqueta mostra na tabela só aquelas conclusões, e esse filtro fica guardado até clicar em Mostrar todas; botão Copiar resumo, que copia os totais em texto. Nova linha em 10.1 (filtro guardado). Incluída também na tabela de 2.6. |
 | 23 | 11/11/2026 | Visual novo da Mesa do Analista (9.16): novo tom **Projudi original**, com as cores do tema do próprio Projudi (creme esverdeado, verde-oliva, quadros num creme bem claro, laranja nos dados do usuário e vermelho puro nos urgentes), que passa a ser o **padrão** (antes, Oliva fosco). Quem já tinha escolhido um tom continua com ele. Ajustados 2.6 (Cor do visual da Mesa do Analista) e 9.16 (Escolher a cor). Vídeo V73 regravado (não citado no manual). |
 | 22 | 11/11/2026 | Corrigido (seção 9.15): a linha **Prescrições vencidas** da Análise de Juntadas continuava em **não disponível**: o link **Vencidas** do quadro Prescrições não vem na página da aba Mesa do Escrivão Criminal quando ela é aberta sem ser mostrada, e o endereço desse link muda a cada vez que se entra no Projudi. Agora, se não achar o link, a extensão abre a aba Mesa do Escrivão Criminal sem mostrá-la e clica em **Vencidas**, como a pessoa faria. Novo item no Bom saber. Sem vídeo novo (a tela não mudou). |
 | 21 | 10/11/2026 | Corrigido (seção 9.14): ao trocar de atuação, a linha **Processos Paralisados (+90 dias)** continuava mostrando os números da atuação anterior (os totais ficavam guardados por 5 minutos). Agora a contagem é refeita toda vez que a tela Início é aberta ou recarregada, inclusive na troca de atuação. Bom saber da 9.14 atualizado. Sem vídeo novo (a tela não mudou). |

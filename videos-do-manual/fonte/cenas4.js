@@ -2147,7 +2147,7 @@ CENAS.V74 = {
 				'<ul class="pdp-cpj-tipos">' + tipos.map(([t, n]) => '<li><button type="button" class="pdp-cpj-tipo" data-t="' + t + '">' + ponto(t) + '<span class="pdp-cpj-tipo-nome">' + t + '</span><span class="pdp-cpj-tipo-pct">' + Math.round((n / tot) * 100) + '%</span><span class="pdp-cpj-tipo-n">' + n + "</span></button></li>").join("") + "</ul>" + (m[0] || m[1] ? marcas(m) : "") + "</article>";
 		};
 		$("#slot").innerHTML = '<section class="pdp-cpj" id="pdp-conclusoes-juiz"><div class="pdp-cpj-topo"><div class="pdp-cpj-titulo"><span class="pdp-cpj-titulo-texto">Conclusões por juiz</span><span class="pdp-cpj-geral">57 conclusões</span></div>' +
-			'<div class="pdp-cpj-resumo">' + [["SENTENÇA", 30], ["DECISÃO", 21], ["DESPACHO", 6]].map(([t, n]) => '<span class="pdp-cpj-chip">' + ponto(t) + t + " · " + n + "</span>").join("") + '</div><span id="slot-limpar"></span><button type="button" class="pdp-cpj-copiar" id="copiar">📋 Copiar resumo</button></div>' +
+			'<div class="pdp-cpj-resumo">' + [["SENTENÇA", 30], ["DECISÃO", 21], ["DESPACHO", 6]].map(([t, n]) => '<span class="pdp-cpj-chip" style="--pdp-cpj-chip-cor:' + COR_TIPO[t] + '">' + t + " · " + n + "</span>").join("") + '</div><span id="slot-limpar"></span><button type="button" class="pdp-cpj-copiar" id="copiar">📋 Copiar resumo</button></div>' +
 			'<div class="pdp-cpj-grade">' + JUIZES.map(card).join("") + "</div></section>";
 		S.hl("#pdp-conclusoes-juiz", 4);
 		await S.cap("A extensão mostra, acima da tabela, um <b>card para cada juiz</b> com o total de conclusões dele.", { ms: 4600 });
