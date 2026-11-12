@@ -17,6 +17,9 @@
 // tela: nada é alterado no Projudi. O último filtro fica guardado no
 // navegador e volta ao abrir a lista de novo, até clicar em "Mostrar todas".
 //
+// As etiquetas de tipo do alto (ex.: "SENTENÇA · 60") também filtram:
+// clicar numa mostra todas as conclusões daquele tipo, de todos os juízes.
+//
 // "📋 Copiar resumo" copia os totais em texto, para colar num e-mail.
 //
 // Os totais são refeitos sozinhos quando a lista muda — por exemplo,
@@ -45,7 +48,8 @@
 	const DIAS_ATRASO = 120;
 	const CHAVE_FILTRO = "pdpConclusoesPorJuizFiltro";
 
-	// { juiz, tipo|null, marca|null } — guardado até "Mostrar todas".
+	// { juiz|null, tipo|null, marca|null } — juiz null = todos os juízes
+	// (etiquetas de tipo do alto). Guardado até "Mostrar todas".
 	let filtro = lerFiltro();
 	let assinatura = "";
 	let agendado = 0;
@@ -60,7 +64,8 @@
 	function lerFiltro() {
 		try {
 			const f = JSON.parse(localStorage.getItem(CHAVE_FILTRO) || "null");
-			return f && typeof f.juiz === "string" ? { juiz: f.juiz, tipo: f.tipo || null, marca: f.marca || null } : null;
+			if (!f || (typeof f.juiz !== "string" && !(f.juiz == null && f.tipo))) return null;
+			return { juiz: f.juiz || null, tipo: f.tipo || null, marca: f.marca || null };
 		} catch (e) { return null; }
 	}
 	function definirFiltro(f) {
@@ -72,7 +77,7 @@
 		agendar();
 	}
 	function mesmoFiltro(a, b) {
-		return !!a && !!b && a.juiz === b.juiz && (a.tipo || null) === (b.tipo || null) && (a.marca || null) === (b.marca || null);
+		return !!a && !!b && (a.juiz || null) === (b.juiz || null) && (a.tipo || null) === (b.tipo || null) && (a.marca || null) === (b.marca || null);
 	}
 	function alternar(f) {
 		definirFiltro(mesmoFiltro(filtro, f) ? null : f);
@@ -175,7 +180,7 @@
 	}
 
 	function passa(r, f) {
-		return r.juiz === f.juiz && (!f.tipo || r.tipo === f.tipo) && (!f.marca || !!r[f.marca]);
+		return (!f.juiz || r.juiz === f.juiz) && (!f.tipo || r.tipo === f.tipo) && (!f.marca || !!r[f.marca]);
 	}
 
 	function aplicarFiltro(regs, f) {
@@ -246,8 +251,14 @@
 		topo.append(titulo);
 		const resumo = el("div", "pdp-cpj-resumo");
 		for (const [t, n] of Array.from(todosTipos).sort((a, b) => b[1] - a[1])) {
-			const chip = el("span", "pdp-cpj-chip", t + " · " + n);
+			// Etiqueta de tipo = filtro de todas as conclusões desse tipo.
+			const fTodos = { juiz: null, tipo: t, marca: null };
+			const ligado = mesmoFiltro(ativo, fTodos);
+			const chip = el("button", "pdp-cpj-chip" + (ligado ? " pdp-cpj-chip-ativo" : ""), t + " · " + n);
+			chip.type = "button";
 			chip.style.setProperty("--pdp-cpj-chip-cor", corTipo.get(t));
+			chip.title = ligado ? "Mostrar todas as conclusões" : "Mostrar na lista todas as conclusões do tipo " + t + " (" + n + "), de todos os juízes";
+			chip.addEventListener("click", () => alternar(fTodos));
 			resumo.append(chip);
 		}
 		topo.append(resumo);
@@ -270,8 +281,11 @@
 			const card = el("article", "pdp-cpj-card");
 			const cor = corJuiz.get(g.juiz);
 			card.style.setProperty("--pdp-cpj-cor", cor);
-			if (ativo && ativo.juiz === g.juiz) card.classList.add("pdp-cpj-ativo");
-			else if (ativo) card.classList.add("pdp-cpj-apagado");
+			// Filtro de um juiz: destaca o card dele e apaga os outros. Filtro
+			// de um tipo para todos: apaga só os cards sem aquele tipo.
+			if (ativo && ativo.juiz) {
+				card.classList.add(ativo.juiz === g.juiz ? "pdp-cpj-ativo" : "pdp-cpj-apagado");
+			} else if (ativo && !g.tipos.has(ativo.tipo)) card.classList.add("pdp-cpj-apagado");
 
 			const cab = el("button", "pdp-cpj-cab");
 			cab.type = "button";
@@ -301,7 +315,7 @@
 				bt.type = "button";
 				const fTipo = { juiz: g.juiz, tipo: t, marca: null };
 				const ligado = mesmoFiltro(ativo, fTipo);
-				if (ligado) bt.classList.add("pdp-cpj-tipo-ativo");
+				if (ligado || (ativo && !ativo.juiz && ativo.tipo === t)) bt.classList.add("pdp-cpj-tipo-ativo");
 				bt.title = ligado ? "Mostrar todas as conclusões" : "Mostrar na lista só " + t + " de " + g.juiz;
 				const ponto = el("i", "pdp-cpj-ponto");
 				ponto.style.background = corTipo.get(t);
