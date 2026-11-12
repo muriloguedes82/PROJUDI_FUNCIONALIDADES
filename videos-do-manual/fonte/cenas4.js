@@ -2110,7 +2110,7 @@ CENAS.V73 = {
 // ------------------------------------------------------------------ V74
 CENAS.V74 = {
 	arquivo: "V74-audiencias-pendentes-na-analise-de-juntadas.mp4",
-	titulo: "Audiências pendentes na Análise de Juntadas",
+	titulo: "Audiências pendentes e para hoje na Análise de Juntadas",
 	secao: "9.17",
 	async run() {
 		browser(["*Projudi - Mesa do Analista"], "https://projudi.tjpr.jus.br/projudi/usuario/mesaAnalista.do?actionType=listaAnaliseJuntadas");
@@ -2118,21 +2118,32 @@ CENAS.V74 = {
 		const num = (n, id) => '<a class="link" ' + (id ? 'id="' + id + '" ' : "") + 'style="font-weight:bold"><u>' + n + "</u></a>";
 		const abas = ["Início", "Citações e Intimações", "Análise de Juntadas", "Outros Cumprimentos", "Lembretes", "Cumprimentos de Medidas"]
 			.map((a) => '<span style="display:inline-block;padding:3px 8px;margin-right:2px;border:1px solid #9a9;border-bottom:0;border-radius:4px 4px 0 0;font-size:12px;' + (a === "Análise de Juntadas" ? "background:#fff;font-weight:bold" : "background:#e4ead8") + '">' + a + "</span>").join("");
-		screen(pjHeader() + '<div class="pj-body"><div class="pj-h2">Mesa do Analista Judiciário</div><div>' + abas + "</div>" +
+		screen(pjHeader() + '<div class="pj-body" style="position:relative"><div class="pj-h2">Mesa do Analista Judiciário</div><div>' + abas + "</div>" +
 			'<fieldset class="pj-fieldset"><legend>Para Realizar</legend><table class="pj-form" id="realizar">' +
 			linha("Juntadas:", num(804)) +
 			linha("Retorno de Conclusão:", num(71)) +
 			linha("Mandados aguardando análise de retorno:", num(49)) +
 			linha("Prestações Pecuniárias em atraso:", num(8)) +
 			"</table></fieldset></div>");
-		await S.titleCard("VÍDEO V74", "Audiências pendentes", "O total de audiências designadas que já passaram e não foram movimentadas aparece na Análise de Juntadas.");
-		await S.cap("No Projudi, as <b>audiências pendentes</b> só aparecem em <b>Audiências → Listagem</b>, marcando <b>Pendentes</b> e pesquisando.", { ms: 4800 });
-		$("#realizar").insertAdjacentHTML("beforeend", linha("Audiências pendentes:", '<span id="vap">…</span>', "lap"));
+		await S.titleCard("VÍDEO V74", "Audiências pendentes e para hoje", "Os totais, o réu preso e a mais antiga aparecem na Análise de Juntadas.");
+		await S.cap("No Projudi, as <b>audiências pendentes</b> e as <b>de hoje</b> só aparecem em <b>Audiências → Listagem</b>, pesquisando.", { ms: 4800 });
+		$("#realizar").insertAdjacentHTML("beforeend", linha("Audiências pendentes:", '<span id="vap">…</span>', "lap") + linha("Audiências para hoje:", '<span id="vah">…</span>', "lah"));
 		S.hl("#lap", 3);
-		await S.cap("Na aba <b>Análise de Juntadas</b>, a extensão acrescenta a linha <b>Audiências pendentes</b> no fim do quadro <b>Para Realizar</b>.", { ms: 4600 });
-		$("#vap").outerHTML = num(24, "vap").replace("font-weight:bold", "font-weight:bold;color:#d00000");
-		await S.cap("Em instantes aparece o total: audiências <b>designadas</b> cuja data já passou e que ainda não foram movimentadas.", { ms: 4600 });
+		await S.cap("Na aba <b>Análise de Juntadas</b>, a extensão acrescenta duas linhas no fim do quadro <b>Para Realizar</b>.", { ms: 4400 });
+		$("#vap").outerHTML = num(24, "vap") + '<span id="dap" style="margin-left:10px;font-size:11px;color:#555"><b style="color:#d00000">2 com réu preso</b> · 5 há mais de 30 dias · mais antiga: 27/07/2026 (108 dias)</span>';
+		$("#vah").outerHTML = num(3, "vah");
+		await S.cap("Em instantes aparecem os totais. Nas pendentes, também quantas são de <b>réu preso</b> (em vermelho), quantas passam de <b>30 dias</b> e a <b>mais antiga</b>.", { ms: 5400 });
 		S.hlOff();
+		await S.move("#vap");
+		const r = $("#vap").getBoundingClientRect();
+		const linhasJ = [["0006201-77.2026.8.16.0033", "27/07/2026 09:20", "108 dias", "Exame de Insanidade Mental", true], ["0002236-91.2026.8.16.0033", "18/08/2026 08:00", "86 dias", "Exame de Insanidade Mental", false], ["0001219-54.2025.8.16.0033", "06/10/2026 13:00", "37 dias", "Audiência Preliminar", false], ["0012415-55.2024.8.16.0033", "06/11/2026 13:00", "6 dias", "Audiência Preliminar", true]];
+		document.body.insertAdjacentHTML("beforeend", '<div id="jan" style="position:fixed;left:' + r.left + "px;top:" + (r.bottom + 6) + 'px;background:#fff;border:1px solid #b9bfa8;border-radius:6px;box-shadow:0 6px 22px rgba(0,0,0,.22);font:12px Arial;z-index:50">' +
+			'<div style="padding:6px 10px;font-weight:bold;background:#eef0e4">Audiências pendentes (24)</div><table style="border-collapse:collapse">' +
+			'<tr style="color:#555;font-size:11px"><th style="padding:3px 8px;text-align:left">Processo</th><th style="padding:3px 8px;text-align:left">Data</th><th style="padding:3px 8px;text-align:left">Atraso</th><th style="padding:3px 8px;text-align:left">Tipo</th><th style="padding:3px 8px;text-align:left">Réu</th></tr>' +
+			linhasJ.map((l) => '<tr><td style="padding:3px 8px"><u>' + l[0] + '</u></td><td style="padding:3px 8px">' + l[1] + '</td><td style="padding:3px 8px;' + (parseInt(l[2]) > 30 ? "color:#d00000;font-weight:bold" : "") + '">' + l[2] + '</td><td style="padding:3px 8px">' + l[3] + '</td><td style="padding:3px 8px">' + (l[4] ? '<span style="background:#fde2e2;color:#b00000;border-radius:9px;padding:0 6px;font-weight:bold;font-size:11px">Réu preso</span>' : "") + "</td></tr>").join("") +
+			"</table></div>");
+		await S.cap("Pousando o mouse no número, abre a <b>lista das audiências</b>: processo, data, dias de atraso, tipo e <b>réu preso</b>.", { ms: 5200 });
+		$("#jan").remove();
 		await S.click("#vap");
 		browser(["*Projudi - Listagem de Audiências"], "https://projudi.tjpr.jus.br/projudi/audiencia/busca.do?actionType=listar");
 		screen(pjHeader() + '<div class="pj-body"><div class="pj-h2">Listagem de Audiências</div>' +
@@ -2145,6 +2156,39 @@ CENAS.V74 = {
 		S.hl("#navap", 3);
 		await S.cap("Clicando no número, abre a <b>Listagem de Audiências</b> já pesquisada em <b>Pendentes</b>.", { ms: 4600 });
 		S.hlOff();
-		await S.endCard("Análise de Juntadas → Para Realizar → Audiências pendentes → clique no total → Listagem de Audiências.");
+		await S.endCard("Análise de Juntadas → Para Realizar → Audiências pendentes e para hoje → mouse no número (lista) ou clique (Listagem).");
+	},
+};
+
+// ------------------------------------------------------------------ V75
+CENAS.V75 = {
+	arquivo: "V75-dias-de-atraso-na-listagem-de-audiencias.mp4",
+	titulo: "Dias de atraso na Listagem de Audiências",
+	secao: "9.18",
+	async run() {
+		browser(["*Projudi - Listagem de Audiências"], "https://projudi.tjpr.jus.br/projudi/audiencia/busca.do?actionType=listar");
+		const dados = [["0006201-77.2026.8.16.0033", "27/07/2026 09:20", 108, "Exame de Insanidade Mental"], ["0002236-91.2026.8.16.0033", "18/08/2026 08:00", 86, "Exame de Insanidade Mental"], ["0001219-54.2025.8.16.0033", "06/10/2026 13:00", 37, "Audiência Preliminar"], ["0010645-90.2025.8.16.0033", "23/10/2026 14:45", 20, "Audiência Preliminar"], ["0012415-55.2024.8.16.0033", "06/11/2026 13:00", 6, "Audiência Preliminar"]];
+		screen(pjHeader() + '<div class="pj-body"><div class="pj-h2">Listagem de Audiências</div>' +
+			'<fieldset class="pj-fieldset"><table class="pj-form"><tr><td class="l">Situação da Audiência:</td><td>○ Para Hoje &nbsp; ◉ Pendentes &nbsp; ○ Movimentadas Hoje &nbsp; ○ Para a data</td></tr></table></fieldset>' +
+			'<div id="nav" style="margin:6px 0;font-size:12px">24 registro(s) encontrado(s), exibindo de 1 até 20</div>' +
+			'<table class="pj-table" id="tab"><tr id="cab"><th>Processo/Recurso</th><th id="thData">Data</th><th>Tipo da Audiência</th><th>Situação da Audiência</th></tr>' +
+			dados.map((l, k) => '<tr class="' + (k % 2 ? "alt" : "") + '"><td><a class="link">' + l[0] + '</a></td><td class="d">' + l[1] + "</td><td>" + l[3] + '</td><td><a class="link">DESIGNADA</a></td></tr>').join("") +
+			"</table></div>");
+		await S.titleCard("VÍDEO V75", "Dias de atraso nas audiências pendentes", "Coluna Atraso e Listagem de Audiências numa página só.");
+		await S.cap("Na <b>Listagem de Audiências</b> pesquisada em <b>Pendentes</b>, o Projudi mostra só a data de cada audiência.", { ms: 4400 });
+		$("#nav").textContent = "Todas as audiências em uma única página: 24 registro(s) (2 páginas do Projudi reunidas).";
+		S.hl("#nav", 3);
+		await S.cap("Com <b>Listas em uma única página</b>, as audiências de todas as páginas vêm na mesma tela.", { ms: 4400 });
+		S.hlOff();
+		$("#thData").insertAdjacentHTML("afterend", '<th id="thAtraso">Atraso</th>');
+		document.querySelectorAll("#tab td.d").forEach((td, k) => {
+			const n = dados[k][2];
+			td.insertAdjacentHTML("afterend", '<td style="text-align:center;' + (n > 30 ? "color:#c00000;font-weight:bold;background:#fdeaea" : "color:#444") + '">' + n + " dias</td>");
+		});
+		S.hl("#thAtraso", 3);
+		await S.cap("A extensão acrescenta a coluna <b>Atraso</b>: os dias desde a data da audiência.", { ms: 4400 });
+		await S.cap("As pendentes há <b>mais de 30 dias</b> ficam em destaque, em vermelho.", { ms: 4200 });
+		S.hlOff();
+		await S.endCard("Audiências → Listagem → Pendentes → coluna Atraso (mais de 30 dias em destaque).");
 	},
 };

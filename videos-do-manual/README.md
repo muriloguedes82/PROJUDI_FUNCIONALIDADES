@@ -102,5 +102,6 @@ para dentro da extensão, retire essa regra.
 | [V71](V71-paralisados-90-dias-no-inicio.mp4) | [Processos Paralisados (+90 dias) na tela Início](V71-paralisados-90-dias-no-inicio.mp4) | [9.14](../extensao-preview-documentos/manual/MANUAL.md#cap-9-14) | 0:28 |
 | [V72](V72-totais-da-mesa-do-escrivao-na-analise-de-juntadas.mp4) | [Totais da Mesa do Escrivão Criminal na Análise de Juntadas](V72-totais-da-mesa-do-escrivao-na-analise-de-juntadas.mp4) | [9.15](../extensao-preview-documentos/manual/MANUAL.md#cap-9-15) | 0:29 |
 | [V73](V73-visual-novo-da-mesa-do-analista.mp4) | [Visual novo da Mesa do Analista](V73-visual-novo-da-mesa-do-analista.mp4) | [9.16](../extensao-preview-documentos/manual/MANUAL.md#cap-9-16) | 0:41 |
-| [V74](V74-audiencias-pendentes-na-analise-de-juntadas.mp4) | [Audiências pendentes na Análise de Juntadas](V74-audiencias-pendentes-na-analise-de-juntadas.mp4) | [9.17](../extensao-preview-documentos/manual/MANUAL.md#cap-9-17) | 0:29 |
+| [V74](V74-audiencias-pendentes-na-analise-de-juntadas.mp4) | [Audiências pendentes e para hoje na Análise de Juntadas](V74-audiencias-pendentes-na-analise-de-juntadas.mp4) | [9.17](../extensao-preview-documentos/manual/MANUAL.md#cap-9-17) | 0:36 |
+| [V75](V75-dias-de-atraso-na-listagem-de-audiencias.mp4) | [Dias de atraso na Listagem de Audiências](V75-dias-de-atraso-na-listagem-de-audiencias.mp4) | [9.18](../extensao-preview-documentos/manual/MANUAL.md#cap-9-18) | 0:25 |
 <!-- tabela-videos:fim -->

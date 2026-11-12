@@ -66,6 +66,7 @@ const PDP_SCRIPTS_TRIBUNAL = [
 			"src/sequencialProcessoPrincipal.js",
 			"src/decursoPrazoSequencial.js",
 			"src/listasPaginaUnica.js",
+			"src/atrasoAudiencias.js",
 			"src/suspensaoAtiva.js",
 			"src/monitoracaoAtiva.js",
 			"src/oraculoDirect.js",
