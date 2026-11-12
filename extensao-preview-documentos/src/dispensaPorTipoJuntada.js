@@ -111,6 +111,22 @@
 	// --- dispensa em segundo plano ----------------------------------------------
 
 	// Linhas da tabela de resultados: [{ caixa, tipo, id }].
+	// O tipo da juntada é o texto em negrito da coluna "Tipo de Documento"
+	// (ou, sem negrito, o que vem antes da primeira quebra de linha): o que a
+	// célula traz depois (responsável, complemento) é ignorado (decisão do
+	// usuário).
+	function tipoDaCelula(celula) {
+		if (!celula) return "";
+		const negrito = celula.querySelector("b, strong");
+		if (negrito && normalizar(negrito.textContent)) return normalizar(negrito.textContent);
+		let texto = "";
+		for (const no of celula.childNodes) {
+			if (no.nodeName === "BR") break;
+			texto += no.textContent || "";
+		}
+		return normalizar(texto) || normalizar(celula.textContent);
+	}
+
 	function linhas(doc) {
 		const form = formulario(doc);
 		const tabela = form && form.querySelector("table.resultTable");
@@ -123,7 +139,7 @@
 		for (const caixa of tabela.querySelectorAll('tbody input[type="checkbox"][name="idJuntadas"]')) {
 			const tr = caixa.closest("tr");
 			const celula = tr && tr.cells[indice];
-			resultado.push({ caixa, id: caixa.value, tipo: celula ? normalizar(celula.textContent) : "" });
+			resultado.push({ caixa, id: caixa.value, tipo: tipoDaCelula(celula), completo: celula ? normalizar(celula.textContent) : "" });
 		}
 		return resultado;
 	}
@@ -310,7 +326,11 @@
 							return;
 						}
 						todas.forEach((l) => vistas.add(l.id));
-						const doTipo = todas.filter((l) => l.tipo === alvo);
+						// Com o filtro "Tipo Movimento" aplicado, a lista já é só do
+						// tipo: basta a célula começar pelo nome (o resto é o
+						// responsável). Sem o filtro, o tipo tem de ser o mesmo.
+						const ehDoTipo = (l) => l.tipo === alvo || (porTipo && l.completo.startsWith(alvo));
+						const doTipo = todas.filter(ehDoTipo);
 						doTipo.forEach((l) => presentes.add(l.id));
 						if (!doTipo.length) {
 							// Nada do tipo nesta página: segue para a próxima; na
@@ -329,11 +349,11 @@
 						}
 						// Só as do tipo ficam marcadas.
 						for (const l of todas) {
-							const querida = l.tipo === alvo && !l.caixa.disabled;
+							const querida = ehDoTipo(l) && !l.caixa.disabled;
 							if (l.caixa.checked !== querida) l.caixa.click();
 						}
 						const marcadas = todas.filter((l) => l.caixa.checked);
-						if (!marcadas.length || marcadas.some((l) => l.tipo !== alvo)) {
+						if (!marcadas.length || marcadas.some((l) => !ehDoTipo(l))) {
 							fim(false, "Não foi possível marcar só as juntadas do tipo.");
 							return;
 						}
