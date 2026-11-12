@@ -2130,7 +2130,7 @@ CENAS.V74 = {
 		$("#realizar").insertAdjacentHTML("beforeend", linha("Audiências pendentes:", '<span id="vap">…</span>', "lap"));
 		S.hl("#lap", 3);
 		await S.cap("Na aba <b>Análise de Juntadas</b>, a extensão acrescenta a linha <b>Audiências pendentes</b> no fim do quadro <b>Para Realizar</b>.", { ms: 4600 });
-		$("#vap").outerHTML = num(24, "vap");
+		$("#vap").outerHTML = num(24, "vap").replace("font-weight:bold", "font-weight:bold;color:#d00000");
 		await S.cap("Em instantes aparece o total: audiências <b>designadas</b> cuja data já passou e que ainda não foram movimentadas.", { ms: 4600 });
 		S.hlOff();
 		await S.click("#vap");

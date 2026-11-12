@@ -217,6 +217,14 @@
 		return espera;
 	}
 
+	function pintarVermelho() {
+		if (document.getElementById("pdp-aud-vermelho-estilo")) return;
+		const estilo = document.createElement("style");
+		estilo.id = "pdp-aud-vermelho-estilo";
+		estilo.textContent = "span.contador.pdp-aud-vermelho { color: #d00000; font-weight: bold; }";
+		(document.head || document.documentElement).appendChild(estilo);
+	}
+
 	function mostrarTotal(espera, total, envio) {
 		const link = document.createElement("a");
 		link.href = LISTAGEM;
@@ -225,6 +233,13 @@
 		span.className = "contador";
 		span.id = "pdpAudienciasPendentes";
 		span.textContent = String(total);
+		// Em vermelho quando há audiências pendentes: "urgente" é a classe que
+		// o visual novo da Mesa (visualMesa.css) já pinta com o vermelho do
+		// tom escolhido; no visual original vale a regra de pintarVermelho().
+		if (total > 0) {
+			span.classList.add("urgente", "pdp-aud-vermelho");
+			pintarVermelho();
+		}
 		link.appendChild(span);
 		link.addEventListener("click", (ev) => {
 			ev.preventDefault();
