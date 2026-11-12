@@ -303,6 +303,14 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 					sistemas: ["projudi"]
 				},
 				{
+					id: "totaisJuntadasPorTipo",
+					nome: "Totais de juntadas por tipo (cards que filtram a Análise de Juntadas)",
+					descricao: "Na lista Análise de Juntadas, mostra acima da tabela um card para cada tipo de documento (ex.: JUNTADA DE MANIFESTAÇÃO) com o total de juntadas daquele tipo, e um card \"Todas\". Clicar num card deixa na lista só as juntadas daquele tipo; clicar de novo, ou em \"Todas\", mostra a lista inteira.",
+					js: ["src/totaisJuntadasPorTipo.js"],
+					css: ["src/totaisJuntadasPorTipo.css"],
+					sistemas: ["projudi"]
+				},
+				{
 					id: "previewProcesso",
 					nome: "Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões e nos Cumprimentos, no Expedir e nos Paralisados",
 					descricao: "Nas listas de decurso de prazo (Intimação, Auxiliares da Justiça e Citações/Notificações) na lista da Análise de Juntadas, na lista de Conclusões e nas listas de cumprimentos (Demais Cumprimentos e Mandados) no Expedir Intimações/Citação e na lista de Processos Paralisados, mostra a tela do processo, na aba Movimentações, ao pousar o mouse sobre o número.",

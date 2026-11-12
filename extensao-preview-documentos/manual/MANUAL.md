@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 23 |
-| **Versão da extensão** | 23 |
-| **Data desta versão** | 11/11/2026 |
+| **Versão do manual** | 24 |
+| **Versão da extensão** | 24 |
+| **Data desta versão** | 12/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi, clique no ícone da balança
@@ -99,6 +99,7 @@
    - 9.14 [Processos Paralisados (+90 dias) na tela Início](#cap-9-14)
    - 9.15 [Totais da Mesa do Escrivão Criminal na Análise de Juntadas](#cap-9-15)
    - 9.16 [Visual novo da Mesa do Analista (Projudi)](#cap-9-16)
+   - 9.17 [Totais de juntadas por tipo na Análise de Juntadas](#cap-9-17)
 10. [Privacidade e perfis bloqueados](#cap-10)
     - 10.1 [O que fica guardado no seu navegador](#cap-10-1)
     - 10.2 [Bloqueio para perfis de advocacia](#cap-10-2)
@@ -464,7 +465,7 @@ ligar tudo.
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos · Novo Valor da Causa · Prioridades · Agendar Audiência (preferências) · Alvará Eletrônico · Juntar Documento · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
 | **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Bloco de anotações | [4](#cap-4) |
-| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (Projudi) · Listas em uma única página · Processos Paralisados (+90 dias) na tela Início · Totais da Mesa do Escrivão Criminal na Análise de Juntadas · Visual novo da Mesa do Analista | [6](#cap-6), [9](#cap-9) |
+| **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (Projudi) · Listas em uma única página · Processos Paralisados (+90 dias) na tela Início · Totais da Mesa do Escrivão Criminal na Análise de Juntadas · Visual novo da Mesa do Analista · Totais de juntadas por tipo (cards que filtram a Análise de Juntadas) | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
 Botões como **📋 Colar processo**, **🔗 Combos** e **🖍️ Destacar
@@ -3018,6 +3019,53 @@ Atuação / Data**) acompanha o mesmo tom em todas as telas do Projudi.
   aparece no quadro **Outros atalhos**; item novo da Análise de Juntadas,
   no quadro **Outros**.
 
+<a id="cap-9-17"></a>
+### 9.17 Totais de juntadas por tipo na Análise de Juntadas
+
+*Vem ligado.*
+
+**Para que serve:** ver de relance quantas juntadas de cada tipo estão
+aguardando análise (manifestações, certidões, respostas de ofício etc.) e
+deixar na lista só as de um tipo, com um clique, sem usar o campo **Tipo
+Movimento** e o botão **Filtrar**.
+
+**Onde fica:** na tela **Análise de Juntadas**, num quadro logo acima da
+lista, com um card para cada tipo de documento que aparece na coluna
+**Tipo de Documento** e um card **Todas**. Cada card mostra o total e o
+nome do tipo (sem o "JUNTADA DE" do começo; o nome completo aparece ao
+pousar o mouse sobre o card). Os cards ficam em ordem, do tipo com mais
+juntadas para o com menos.
+
+**Passo a passo:**
+
+1. Abra a **Análise de Juntadas**. O quadro **Juntadas por tipo** aparece
+   acima da lista.
+2. Clique no card do tipo desejado (ex.: **22 RESPOSTA DE OFÍCIO**). A
+   lista passa a mostrar só as juntadas desse tipo, e o card fica
+   destacado. No alto do quadro aparece, por exemplo, "Mostrando 22 de 480
+   juntadas".
+3. Para voltar a ver todas, clique em **Todas** ou clique de novo no card
+   destacado.
+
+**Bom saber:**
+
+- O filtro é feito na própria tela, na hora: nada é pesquisado de novo no
+  Projudi.
+- ⚠️ Ao escolher um tipo, as caixas de marcar das juntadas que ficaram
+  escondidas são desmarcadas, e a caixa de marcar todas (no cabeçalho da
+  lista) passa a marcar só as que estão à vista. Assim **Análise
+  Múltipla**, **Analisar** e **Dispensar** só alcançam as juntadas que você
+  está vendo.
+- Com **Listas em uma única página** ligada ([9.13](#cap-9-13)), os totais
+  valem para a lista inteira e vão aumentando enquanto as páginas
+  seguintes chegam. Com ela desligada, os totais são só da página que está
+  na tela.
+- Se o campo **Tipo Movimento** do Projudi estiver escolhendo um tipo, a
+  lista já vem só com esse tipo, e o quadro avisa disso. Para ver os totais
+  de todos os tipos, escolha **Todos** nesse campo e clique em **Filtrar**.
+- Para ligar ou desligar, use **Totais de juntadas por tipo (cards que
+  filtram a Análise de Juntadas)** no Menu da extensão ([2.6](#cap-2-6)).
+
 ---
 
 <a id="cap-10"></a>
@@ -3110,6 +3158,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 24 | 12/11/2026 | Nova seção **9.17 Totais de juntadas por tipo na Análise de Juntadas**: cards com o total de juntadas de cada tipo acima da lista; clicar num card deixa na lista só as juntadas daquele tipo. Incluída também na tabela de 2.6. |
 | 23 | 11/11/2026 | Visual novo da Mesa do Analista (9.16): novo tom **Projudi original**, com as cores do tema do próprio Projudi (creme esverdeado, verde-oliva, quadros num creme bem claro, laranja nos dados do usuário e vermelho puro nos urgentes), que passa a ser o **padrão** (antes, Oliva fosco). Quem já tinha escolhido um tom continua com ele. Ajustados 2.6 (Cor do visual da Mesa do Analista) e 9.16 (Escolher a cor). Vídeo V73 regravado (não citado no manual). |
 | 22 | 11/11/2026 | Corrigido (seção 9.15): a linha **Prescrições vencidas** da Análise de Juntadas continuava em **não disponível**: o link **Vencidas** do quadro Prescrições não vem na página da aba Mesa do Escrivão Criminal quando ela é aberta sem ser mostrada, e o endereço desse link muda a cada vez que se entra no Projudi. Agora, se não achar o link, a extensão abre a aba Mesa do Escrivão Criminal sem mostrá-la e clica em **Vencidas**, como a pessoa faria. Novo item no Bom saber. Sem vídeo novo (a tela não mudou). |
 | 21 | 10/11/2026 | Corrigido (seção 9.14): ao trocar de atuação, a linha **Processos Paralisados (+90 dias)** continuava mostrando os números da atuação anterior (os totais ficavam guardados por 5 minutos). Agora a contagem é refeita toda vez que a tela Início é aberta ou recarregada, inclusive na troca de atuação. Bom saber da 9.14 atualizado. Sem vídeo novo (a tela não mudou). |

@@ -1,0 +1,61 @@
+/* Projudi - Totais de juntadas por tipo (ver src/totaisJuntadasPorTipo.js).
+   Cores do tema "olive" do Projudi: #3E4034 texto, #63735F títulos,
+   #C6C1A6 bordas, #E6E1C6 linhas alternadas, #F9F9EF fundo dos quadros. */
+.pdp-jtipo-painel {
+	margin: 6px 0 10px;
+	padding: 8px 10px 10px;
+	border: 1px solid #c6c1a6;
+	border-radius: 6px;
+	background: #f9f9ef;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	color: #3e4034;
+}
+.pdp-jtipo-titulo {
+	font-size: 11px;
+	font-weight: bold;
+	color: #63735f;
+	margin-bottom: 6px;
+}
+.pdp-jtipo-grade {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+button.pdp-jtipo-card {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	max-width: 320px;
+	padding: 4px 9px;
+	border: 1px solid #c6c1a6;
+	border-radius: 14px;
+	background: #fff;
+	color: #3e4034;
+	font: 11px Verdana, Arial, Helvetica, sans-serif;
+	text-align: left;
+	cursor: pointer;
+}
+button.pdp-jtipo-card:hover { background: #e6e1c6; }
+button.pdp-jtipo-card:focus-visible { outline: 2px solid #63735f; outline-offset: 1px; }
+button.pdp-jtipo-card.pdp-jtipo-ativo {
+	background: #63735f;
+	border-color: #63735f;
+	color: #fff;
+}
+.pdp-jtipo-total {
+	font-weight: bold;
+	font-size: 12px;
+	min-width: 14px;
+	text-align: center;
+}
+.pdp-jtipo-nome {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.pdp-jtipo-nota {
+	margin-top: 6px;
+	font-size: 11px;
+	color: #7a5a1e;
+}
+tr[data-pdp-jtipo-oculta] { display: none !important; }

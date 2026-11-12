@@ -2106,3 +2106,43 @@ CENAS.V73 = {
 		await S.endCard("Mesa do Analista → quadros por assunto → mesma lista de sempre ao clicar. Cor: bolinhas ao lado do título ou Menu.");
 	},
 };
+
+// ------------------------------------------------------------------ V74
+// Usa o CSS de verdade da extensão (src/totaisJuntadasPorTipo.css); o HTML
+// dos cards é o mesmo que src/totaisJuntadasPorTipo.js monta.
+CENAS.V74 = {
+	arquivo: "V74-totais-de-juntadas-por-tipo.mp4",
+	titulo: "Totais de juntadas por tipo na Análise de Juntadas",
+	secao: "9.17",
+	async run() {
+		const css = document.createElement("link");
+		css.rel = "stylesheet";
+		css.href = "../../extensao-preview-documentos/src/totaisJuntadasPorTipo.css";
+		document.head.appendChild(css);
+		const tipos = ["JUNTADA DE MANIFESTAÇÃO", "JUNTADA DE RESPOSTA DE OFÍCIO", "JUNTADA DE MANIFESTAÇÃO", "JUNTADA DE CERTIDÃO", "JUNTADA DE RESPOSTA DE OFÍCIO", "JUNTADA DE MANIFESTAÇÃO"];
+		telaLista("Análise de Juntadas", { col: "Tipo de Documento", rows: LISTA.map((r, i) => Object.assign({}, r, { d: "<b>" + tipos[i] + "</b>" })), pag: "Todas as juntadas em uma única página: 6 registro(s)." });
+		$$("#lista tr[data-i]").forEach((tr) => tr.setAttribute("data-tipo", tipos[+tr.getAttribute("data-i")]));
+		const contagem = {};
+		tipos.forEach((t) => (contagem[t] = (contagem[t] || 0) + 1));
+		const ordem = Object.keys(contagem).sort((a, b) => contagem[b] - contagem[a] || a.localeCompare(b));
+		const card = (id, n, nome, ativo) => '<button type="button" id="' + id + '" class="pdp-jtipo-card' + (ativo ? " pdp-jtipo-ativo" : "") + '"><span class="pdp-jtipo-total">' + n + '</span><span class="pdp-jtipo-nome">' + nome + "</span></button>";
+		const painel = (ativo) => {
+			const titulo = ativo ? "Mostrando " + contagem[ativo] + " de " + tipos.length + " juntadas (" + ativo + '). Clique em "Todas" para ver a lista inteira.' : "Juntadas por tipo — clique num card para ver só aquele tipo";
+			$("#slot-legenda").innerHTML = '<div class="pdp-jtipo-painel" id="painel"><div class="pdp-jtipo-titulo">' + titulo + '</div><div class="pdp-jtipo-grade">' +
+				card("c-todas", tipos.length, "Todas", !ativo) + ordem.map((t, k) => card("c-" + k, contagem[t], t.replace(/^JUNTADA DE /, ""), ativo === t)).join("") + "</div></div>";
+			$$("#lista tr[data-i]").forEach((tr) => (tr.style.display = !ativo || tr.getAttribute("data-tipo") === ativo ? "" : "none"));
+		};
+		await S.titleCard("VÍDEO V74", "Totais de juntadas por tipo", "Um card por tipo de documento; clique para ver só aquele tipo.");
+		painel(null);
+		S.hl("#painel", 3);
+		await S.cap("Acima da lista da <b>Análise de Juntadas</b>, a extensão mostra um card para cada <b>tipo de documento</b>, com o total.", { ms: 4600 });
+		S.hlOff();
+		await S.click("#c-1");
+		painel(ordem[1]);
+		await S.cap("Clicando num card, a lista passa a mostrar <b>só as juntadas daquele tipo</b>. As caixas das escondidas são desmarcadas.", { ms: 4800 });
+		await S.click("#c-todas");
+		painel(null);
+		await S.cap("Para ver todas de novo, clique em <b>Todas</b> (ou de novo no card destacado).", { ms: 4000 });
+		await S.endCard("Análise de Juntadas → card do tipo → só as juntadas daquele tipo → Todas para voltar.");
+	},
+};
