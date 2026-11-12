@@ -1,34 +1,29 @@
 /* Dispensa rápida por tipo na Análise de Juntadas (dispensaPorTipoJuntada.js).
-   Mesmo tom dos botões do quadro Pendências (juntadaDrag.css). */
-.pdp-dpt { margin:6px 0 10px;padding:6px 8px;border:1px solid #c8cdbd;border-radius:4px;background:#fafbf6;font:12px/16px Arial,sans-serif;color:#35412b; }
-.pdp-dpt-topo { display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px; }
-.pdp-dpt-titulo { font-weight:bold; }
-.pdp-dpt button { font:11px/16px Arial,sans-serif;color:#35412b;background:#f5f7ef;border:1px solid #a5ac9a;border-radius:3px;padding:1px 8px;cursor:pointer; }
-.pdp-dpt button:hover:not(:disabled) { background:#e7edda; }
-.pdp-dpt button:focus-visible { outline:2px solid #526b32;outline-offset:2px; }
-.pdp-dpt button:disabled { opacity:.55;cursor:default; }
-.pdp-dpt-escolha { display:inline-flex;align-items:center;gap:5px; }
-.pdp-dpt-escolha select { max-width:420px;font:11px Arial,sans-serif; }
-.pdp-dpt-cards { display:flex;flex-wrap:wrap;gap:8px; }
-.pdp-dpt-card { display:inline-flex;align-items:stretch;border:1px solid #a5ac9a;border-radius:4px;background:#fff;overflow:hidden; }
-.pdp-dpt-card.pdp-dpt-card-andamento { border-color:#526b32;box-shadow:0 0 0 2px #dfe8cf; }
-.pdp-dpt .pdp-dpt-acao { display:inline-flex;align-items:center;gap:8px;border:0;border-radius:0;padding:5px 10px;background:#fff;text-align:left; }
-.pdp-dpt .pdp-dpt-acao:hover:not(:disabled) { background:#eef3e3; }
-.pdp-dpt-nome { font-weight:bold;max-width:360px; }
-.pdp-dpt-total { min-width:18px;padding:0 6px;border-radius:9px;background:#526b32;color:#fff;text-align:center;font-weight:bold; }
-.pdp-dpt .pdp-dpt-tirar { border:0;border-left:1px solid #d6dacb;border-radius:0;background:#fafbf6;padding:0 7px; }
-.pdp-dpt-vazio { color:#6b7360;font-style:italic; }
-.pdp-dpt-aviso { margin-top:6px;padding:3px 8px;border:1px solid #8fae72;border-radius:3px;background:#eaf3df;color:#2f4a1d;font-weight:bold; }
-.pdp-dpt-aviso.pdp-dpt-aviso-erro { border-color:#c98a7a;background:#fbece8;color:#7a2a1a; }
-
-/* Preferências compactas (letra menor), com seletores mais fortes
-   para o estilo do próprio Projudi não aumentar a letra dos botões. */
-#pdp-dispensa-tipo.pdp-dpt { padding:5px 7px;font-size:11px; }
-#pdp-dispensa-tipo .pdp-dpt-cards { gap:5px; }
-#pdp-dispensa-tipo .pdp-dpt-card { border-radius:3px; }
-#pdp-dispensa-tipo .pdp-dpt-acao { gap:5px !important;padding:2px 6px !important;font-size:10px !important;line-height:13px !important; }
-#pdp-dispensa-tipo .pdp-dpt-nome { font-size:10px !important;line-height:13px !important;font-weight:bold;max-width:300px; }
-#pdp-dispensa-tipo .pdp-dpt-total { min-width:14px;padding:0 5px;border-radius:7px;font-size:10px !important;line-height:14px !important; }
-#pdp-dispensa-tipo .pdp-dpt-tirar { padding:0 5px !important;font-size:10px !important;line-height:13px !important; }
-#pdp-dispensa-tipo .pdp-dpt-aviso { padding:2px 7px;font-size:10px; }
-#pdp-dispensa-tipo .pdp-dpt-mais, #pdp-dispensa-tipo .pdp-dpt-escolha button, #pdp-dispensa-tipo .pdp-dpt-escolha select { font-size:10px !important;line-height:14px !important; }
+   Visual "B2": cards pequenos, borda clara, faixa lateral com uma cor por
+   preferência (--cor, posta pelo script), nome em letra normal numa linha só
+   (o nome inteiro aparece ao passar o mouse). Seletores com #pdp-dispensa-tipo
+   e !important na letra para o estilo do Projudi não aumentar os botões. */
+#pdp-dispensa-tipo.pdp-dpt { margin:6px 0 10px;padding:6px 8px;border:1px solid #dfe3d4;border-radius:5px;background:#fbfcf8;font:11px/14px Arial,sans-serif;color:#35412b; }
+#pdp-dispensa-tipo .pdp-dpt-topo { display:flex;align-items:center;gap:8px;margin-bottom:6px; }
+#pdp-dispensa-tipo .pdp-dpt-titulo { font-weight:bold;font-size:11px; }
+#pdp-dispensa-tipo .pdp-dpt-mais { font:10px/14px Arial !important;padding:1px 7px !important;border:1px solid #c8cdbd;border-radius:3px;background:#fff;color:#35412b;cursor:pointer; }
+#pdp-dispensa-tipo .pdp-dpt-cards { display:flex;flex-wrap:wrap;gap:5px; }
+#pdp-dispensa-tipo .pdp-dpt-card { --cor:#526b32;position:relative;display:inline-flex;align-items:stretch;border:1px solid #e3e6da;border-left:3px solid var(--cor);border-radius:4px;background:#fff;overflow:hidden; }
+#pdp-dispensa-tipo .pdp-dpt-acao { display:inline-flex !important;align-items:center;gap:6px !important;padding:3px 4px 3px 7px !important;border:0 !important;background:transparent !important;cursor:pointer;text-align:left;font:11px/13px Arial !important;color:#35412b !important; }
+#pdp-dispensa-tipo .pdp-dpt-total { font:bold 12px/13px Arial !important;color:var(--cor);min-width:14px;text-align:right; }
+#pdp-dispensa-tipo .pdp-dpt-nome { max-width:240px;font:11px/13px Arial !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+#pdp-dispensa-tipo .pdp-dpt-tirar { border:0 !important;background:transparent !important;color:#b5baa9 !important;padding:0 5px !important;font:11px Arial !important;cursor:pointer; }
+#pdp-dispensa-tipo .pdp-dpt-card:hover { background:#f7f9f2;border-color:#cfd5c2;border-left-color:var(--cor); }
+#pdp-dispensa-tipo .pdp-dpt-tirar:hover { color:#7a2a1a !important; }
+#pdp-dispensa-tipo .pdp-dpt-barra { position:absolute;left:0;bottom:0;height:2px;background:var(--cor); }
+#pdp-dispensa-tipo .pdp-dpt-card-andamento { background:#fffdf5; }
+#pdp-dispensa-tipo .pdp-dpt-aviso { margin-top:6px;padding:2px 7px;border:1px solid #c9d8b4;border-radius:3px;background:#f1f7e8;color:#2f4a1d;font-size:10px; }
+#pdp-dispensa-tipo button:focus-visible { outline:2px solid #526b32;outline-offset:1px; }
+#pdp-dispensa-tipo button:disabled { cursor:default;opacity:.6; }
+#pdp-dispensa-tipo .pdp-dpt-card-andamento button:disabled { opacity:1; }
+#pdp-dispensa-tipo .pdp-dpt-vazio, #pdp-dispensa-tipo .pdp-dpt-zeradas { align-self:center;color:#8a917e;font-size:10px;font-style:italic; }
+#pdp-dispensa-tipo .pdp-dpt-zeradas { cursor:help; }
+#pdp-dispensa-tipo .pdp-dpt-aviso.pdp-dpt-aviso-erro { border-color:#e0b4a8;background:#fbece8;color:#7a2a1a; }
+#pdp-dispensa-tipo .pdp-dpt-escolha { display:inline-flex;align-items:center;gap:5px; }
+#pdp-dispensa-tipo .pdp-dpt-escolha select { max-width:420px;font:10px/14px Arial !important; }
+#pdp-dispensa-tipo .pdp-dpt-escolha button { font:10px/14px Arial !important;padding:1px 7px !important;border:1px solid #c8cdbd;border-radius:3px;background:#fff;color:#35412b;cursor:pointer; }

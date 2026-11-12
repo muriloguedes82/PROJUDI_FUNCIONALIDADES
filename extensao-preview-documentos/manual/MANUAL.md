@@ -3031,9 +3031,13 @@ uma a uma e clicar em **Dispensar**, página por página.
 
 **Onde fica:** na tela **Análise de Juntadas** (a lista aberta pela Mesa do
 Analista), logo abaixo do título, num quadro chamado **Dispensa rápida por
-tipo**. Cada **preferência** do quadro mostra o nome de um tipo de juntada e, ao
-lado, o total daquele tipo (o mesmo número que aparece entre parênteses no
-filtro **Tipo Movimento** do Projudi). O quadro vem **sem nenhuma preferência**:
+tipo**. Cada **preferência** aparece como um cartão pequeno, com uma
+faixa colorida à esquerda (uma cor para cada preferência), o total daquele
+tipo (o mesmo número que aparece entre parênteses no filtro **Tipo
+Movimento** do Projudi) e o nome do tipo, em letras normais (ex.:
+"Juntada de certidão"). Nome comprido termina em "…"; o nome inteiro
+aparece ao passar o mouse. Só aparecem as preferências com **juntadas na
+lista** (total maior que zero). O quadro vem **sem nenhuma preferência**:
 você cria as preferências dos tipos que quiser (veja **Escolher as preferências**,
 abaixo).
 
@@ -3045,8 +3049,9 @@ abaixo).
 2. Clique na preferência do tipo que quer dispensar. A extensão pergunta se deve
    dispensar as juntadas daquele tipo em todos os processos da lista;
    clique em **OK** para seguir ou em **Cancelar** para desistir.
-3. Enquanto trabalha, o quadro mostra **Dispensando as juntadas do tipo
-   …** e quantas já foram dispensadas. A extensão faz, sem você ver, o
+3. Enquanto trabalha, uma linha fina na cor da preferência cresce na base
+   do cartão, e o quadro mostra **Dispensando as juntadas do tipo …** e
+   quantas já foram dispensadas. A extensão faz, sem você ver, o
    mesmo que você faria: escolhe o tipo em **Tipo Movimento**, clica em
    **Filtrar** e passa por **todas as páginas** da lista (**Próxima
    Página**), procurando o nome do tipo na coluna **Tipo de Documento**. Em
@@ -3066,7 +3071,7 @@ abaixo).
   (entram no **⬇ Exportar** / **Importar** do Menu, [2.6](#cap-2-6)) e já
   aparecem carregadas sempre que a Análise de Juntadas é aberta ou
   atualizada (**Filtrar**, **F5**, a volta da lista depois de uma dispensa),
-  mesmo quando a lista está sem juntadas — nesse caso, com total **0**.
+  sempre com o total atualizado.
   Preferência criada ou tirada em outra aba do Projudi também vale na hora
   nas demais abas abertas.
 
@@ -3082,8 +3087,12 @@ abaixo).
   Projudi não aceitar o filtro pelo tipo, a extensão procura na lista
   inteira (**Todos**), página por página — pode levar mais tempo, mas o
   resultado é o mesmo.
-- Preferência com total **0** (nenhuma juntada daquele tipo na lista) fica
-  apagada, sem efeito ao clicar.
+- Preferência sem juntadas na lista (total **0**) **não aparece**, para não
+  poluir a tela: ela continua guardada e volta sozinha quando houver
+  juntadas daquele tipo. No fim do quadro, a nota **+N sem juntadas agora**
+  avisa quantas estão fora de vista; passe o mouse sobre ela para ver os
+  nomes.
+- A partir da 11ª preferência, as cores das faixas se repetem.
 - Se o Projudi não confirmar a dispensa (por exemplo, uma juntada continua
   na lista depois do **Dispensar**), a extensão para, mostra em vermelho
   **Dispensa interrompida** com o motivo e quantas já foram dispensadas, e
@@ -3186,7 +3195,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 24 | 12/11/2026 | Nova seção 9.17 **Dispensa rápida por tipo na Análise de Juntadas**: quadro abaixo do título da Análise de Juntadas com **preferências** de tipos de juntada, cada uma com o total do tipo; clicar na preferência dispensa, com confirmação, todas as juntadas daquele tipo de uma vez, procurando o nome do tipo em **todas as páginas** da lista (e na lista inteira, se o Projudi não aplicar o filtro pelo tipo). O quadro vem sem nenhuma preferência: cada pessoa cria as suas em **+ Preferência** e tira no **×**; elas ficam guardadas como as demais preferências (entram no **⬇ Exportar** / **Importar** do Menu e no resumo do backup) e aparecem carregadas sempre que a tela é aberta ou atualizada, inclusive com a lista sem juntadas. Sumário, tabela da 2.6 e **11. Solução de problemas** atualizados. Novo vídeo V74 gravado e guardado em `videos-do-manual/` (não citado no manual). |
+| 24 | 12/11/2026 | Nova seção 9.17 **Dispensa rápida por tipo na Análise de Juntadas**: quadro abaixo do título da Análise de Juntadas com **preferências** de tipos de juntada, cada uma com o total do tipo; cada preferência é um cartão pequeno, com uma cor própria na faixa lateral, o total e o nome do tipo em letras normais (nome comprido termina em "…"), e só aparece quando o total é maior que zero (a nota **+N sem juntadas agora** lembra as demais); clicar na preferência dispensa, com confirmação, todas as juntadas daquele tipo de uma vez, procurando o nome do tipo em **todas as páginas** da lista (e na lista inteira, se o Projudi não aplicar o filtro pelo tipo). O quadro vem sem nenhuma preferência: cada pessoa cria as suas em **+ Preferência** e tira no **×**; elas ficam guardadas como as demais preferências (entram no **⬇ Exportar** / **Importar** do Menu e no resumo do backup) e aparecem carregadas sempre que a tela é aberta ou atualizada, com o total atualizado. Sumário, tabela da 2.6 e **11. Solução de problemas** atualizados. Novo vídeo V74 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 23 | 11/11/2026 | Visual novo da Mesa do Analista (9.16): novo tom **Projudi original**, com as cores do tema do próprio Projudi (creme esverdeado, verde-oliva, quadros num creme bem claro, laranja nos dados do usuário e vermelho puro nos urgentes), que passa a ser o **padrão** (antes, Oliva fosco). Quem já tinha escolhido um tom continua com ele. Ajustados 2.6 (Cor do visual da Mesa do Analista) e 9.16 (Escolher a cor). Vídeo V73 regravado (não citado no manual). |
 | 22 | 11/11/2026 | Corrigido (seção 9.15): a linha **Prescrições vencidas** da Análise de Juntadas continuava em **não disponível**: o link **Vencidas** do quadro Prescrições não vem na página da aba Mesa do Escrivão Criminal quando ela é aberta sem ser mostrada, e o endereço desse link muda a cada vez que se entra no Projudi. Agora, se não achar o link, a extensão abre a aba Mesa do Escrivão Criminal sem mostrá-la e clica em **Vencidas**, como a pessoa faria. Novo item no Bom saber. Sem vídeo novo (a tela não mudou). |
 | 21 | 10/11/2026 | Corrigido (seção 9.14): ao trocar de atuação, a linha **Processos Paralisados (+90 dias)** continuava mostrando os números da atuação anterior (os totais ficavam guardados por 5 minutos). Agora a contagem é refeita toda vez que a tela Início é aberta ou recarregada, inclusive na troca de atuação. Bom saber da 9.14 atualizado. Sem vídeo novo (a tela não mudou). |

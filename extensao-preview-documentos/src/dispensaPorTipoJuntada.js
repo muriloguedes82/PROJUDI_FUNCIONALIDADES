@@ -34,6 +34,8 @@
 // As preferências gravadas aparecem sempre que a tela é
 // aberta ou atualizada (Filtrar, F5, volta após a dispensa), inclusive com a
 // lista vazia, e o quadro é montado de novo se a tela for refeita no lugar.
+// Só aparecem os cards com total maior que zero (decisão do usuário); os
+// zerados continuam gravados e são lembrados numa nota discreta.
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
@@ -368,6 +370,17 @@
 	// --- quadro de cards -----------------------------------------------------------
 
 	let ocupado = false;
+
+	// Uma cor de faixa lateral por preferência (pela posição na lista
+	// gravada, então cada uma mantém a sua mesmo quando outras somem por
+	// estarem zeradas); da 11ª em diante, as cores se repetem.
+	const CORES = ["#526b32", "#2f6f8f", "#a0522d", "#7b5ea7", "#3f8f6b", "#b5485d", "#5c6f8a", "#b08a2e", "#2d7d7a", "#8a5a7a"];
+
+	// "JUNTADA DE CERTIDÃO" -> "Juntada de certidão" (deixa o card menor).
+	function emFrase(texto) {
+		const s = String(texto || "").toLocaleLowerCase("pt-BR");
+		return s.charAt(0).toLocaleUpperCase("pt-BR") + s.slice(1);
+	}
 	// Preferências gravadas (tipos de juntada). Lidas de novo a cada vez que
 	// a tela é aberta ou atualizada, e acompanhadas se mudarem em outra aba.
 	let lista = [];
@@ -431,17 +444,24 @@
 				return;
 			}
 			if (!lista.length) cards.append(el("span", "pdp-dpt-vazio", "Nenhuma preferência ainda. Clique em + Preferência e escolha o tipo de juntada que quer dispensar com um clique."));
-			for (const nome of lista) {
+			// Só aparecem as preferências com juntadas na lista (total > 0);
+			// as zeradas continuam gravadas e voltam quando houver juntadas.
+			const zeradas = [];
+			lista.forEach((nome, indice) => {
 				const tipo = acharTipo(document, nome);
 				const total = tipo ? tipo.total : 0;
+				if (!tipo || total === 0) {
+					zeradas.push(nome);
+					return;
+				}
 				const card = el("div", "pdp-dpt-card");
+				card.style.setProperty("--cor", CORES[indice % CORES.length]);
+				card.dataset.nome = nome;
 				const botao = el("button", "pdp-dpt-acao");
 				botao.type = "button";
-				botao.append(el("span", "pdp-dpt-nome", nome), el("span", "pdp-dpt-total", String(total == null ? "?" : total)));
-				botao.title = total
-					? "Dispensar todas as juntadas do tipo " + nome
-					: "Nenhuma juntada deste tipo na lista";
-				botao.disabled = ocupado || !tipo || total === 0;
+				botao.append(el("span", "pdp-dpt-total", String(total == null ? "?" : total)), el("span", "pdp-dpt-nome", emFrase(nome)));
+				botao.title = "Dispensar todas as juntadas do tipo " + nome;
+				botao.disabled = ocupado;
 				botao.addEventListener("click", () => executar(nome, tipo, card));
 				const tirar = el("button", "pdp-dpt-tirar", "×");
 				tirar.type = "button";
@@ -455,6 +475,11 @@
 				});
 				card.append(botao, tirar);
 				cards.append(card);
+			});
+			if (zeradas.length) {
+				const nota = el("span", "pdp-dpt-zeradas", (zeradas.length === lista.length ? "Nenhuma juntada dos tipos das suas preferências agora" : "+" + zeradas.length + " sem juntadas agora"));
+				nota.title = "Preferências guardadas, sem juntadas na lista agora (aparecem quando houver):\n" + zeradas.map(emFrase).join("\n");
+				cards.append(nota);
 			}
 			mais.disabled = ocupado;
 		}
@@ -465,13 +490,21 @@
 			if (!confirm("Dispensar " + qtd + " juntada(s) do tipo\n\n" + nome + "\n\nem todos os processos da lista? A dispensa não pode ser desfeita.")) return;
 			ocupado = true;
 			desenhar();
-			const vivo = cards.children[lista.indexOf(nome)] || card;
+			const vivo = Array.from(cards.children).find((c) => c.dataset && c.dataset.nome === nome) || card;
 			vivo.classList.add("pdp-dpt-card-andamento");
-			mostrarAviso(quadro, "Dispensando as juntadas do tipo " + nome + "…", true);
-			const r = await dispensarTipo(tipo.valor, (n) => mostrarAviso(quadro, "Dispensando as juntadas do tipo " + nome + "… " + n + " dispensada(s).", true));
+			// Linha fina na cor da preferência, na base do card, que cresce
+			// conforme as juntadas são dispensadas.
+			const barra = el("span", "pdp-dpt-barra");
+			barra.style.width = "4%";
+			vivo.append(barra);
+			mostrarAviso(quadro, "Dispensando as juntadas do tipo " + emFrase(nome) + "…", true);
+			const r = await dispensarTipo(tipo.valor, (n) => {
+				if (tipo.total) barra.style.width = Math.min(100, Math.round((n / tipo.total) * 100)) + "%";
+				mostrarAviso(quadro, "Dispensando as juntadas do tipo " + emFrase(nome) + "… " + n + " dispensada(s).", true);
+			});
 			ocupado = false;
 			const texto = r.ok
-				? (r.total ? r.total + " juntada(s) do tipo " + nome + " dispensada(s)." : "Nenhuma juntada do tipo " + nome + " para dispensar.")
+				? (r.total ? r.total + " juntada(s) do tipo " + emFrase(nome) + " dispensada(s)." : "Nenhuma juntada do tipo " + emFrase(nome) + " para dispensar.")
 				: "Dispensa interrompida (" + r.total + " dispensada(s)): " + r.mensagem;
 			if (r.total) {
 				try {
