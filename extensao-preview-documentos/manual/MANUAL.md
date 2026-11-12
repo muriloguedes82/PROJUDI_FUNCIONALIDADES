@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 24 |
-| **Versão da extensão** | 24 |
+| **Versão do manual** | 25 |
+| **Versão da extensão** | 25 |
 | **Data desta versão** | 12/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -3033,13 +3033,15 @@ uma a uma e clicar em **Dispensar**, página por página.
 Analista), logo abaixo do título, num quadro chamado **Dispensa rápida por
 tipo**. Cada **card** do quadro mostra o nome de um tipo de juntada e, ao
 lado, o total daquele tipo (o mesmo número que aparece entre parênteses no
-filtro **Tipo Movimento** do Projudi). Vem com um card pronto: **JUNTADA DE
-ANOTAÇÃO DE DISTRIBUIÇÃO**.
+filtro **Tipo Movimento** do Projudi). O quadro vem **sem nenhum card**:
+você cria os cards dos tipos que quiser (veja **Escolher os cards**,
+abaixo).
 
 **Passo a passo:**
 
 1. Abra a **Análise de Juntadas**. O quadro **Dispensa rápida por tipo**
-   aparece abaixo do título.
+   aparece abaixo do título. Na primeira vez, ele está vazio: crie um card
+   em **+ Card** (veja **Escolher os cards**, abaixo).
 2. Clique no card do tipo que quer dispensar. A extensão pergunta se deve
    dispensar as juntadas daquele tipo em todos os processos da lista;
    clique em **OK** para seguir ou em **Cancelar** para desistir.
@@ -3057,7 +3059,8 @@ ANOTAÇÃO DE DISTRIBUIÇÃO**.
   juntada na lista (são os mesmos tipos do filtro **Tipo Movimento**, com o
   total de cada um) e clique em **Acrescentar**.
 - Para tirar um card, clique no **×** ao lado dele e confirme.
-- Os cards escolhidos ficam guardados no seu navegador e aparecem sempre
+- Os cards escolhidos ficam guardados como as suas demais preferências
+  (entram no **⬇ Exportar** / **Importar** do Menu, [2.6](#cap-2-6)) e aparecem sempre
   que você abrir a Análise de Juntadas.
 
 **Bom saber:**
@@ -3172,6 +3175,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 25 | 12/11/2026 | Dispensa rápida por tipo (9.17): o quadro passa a vir **sem nenhum card** (antes vinha com **JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO**); cada pessoa cria os seus em **+ Card**. Os cards ficam guardados como preferência e entram no **⬇ Exportar** / **Importar** do Menu (2.6), que passa a contá-los no resumo do backup. Ajustados "Onde fica", o passo 1 e "Escolher os cards". Vídeo V74 regravado (não citado no manual). |
 | 24 | 12/11/2026 | Nova seção 9.17 **Dispensa rápida por tipo na Análise de Juntadas**: quadro com cards de tipos de juntada (padrão: **JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO**), cada um com o total; clicar no card dispensa, com confirmação, todas as juntadas daquele tipo de uma vez, e **+ Card**/**×** escolhem os tipos. Sumário, tabela da 2.6 e **11. Solução de problemas** atualizados. Novo vídeo V74 gravado e guardado em `videos-do-manual/` (não citado no manual). |
 | 23 | 11/11/2026 | Visual novo da Mesa do Analista (9.16): novo tom **Projudi original**, com as cores do tema do próprio Projudi (creme esverdeado, verde-oliva, quadros num creme bem claro, laranja nos dados do usuário e vermelho puro nos urgentes), que passa a ser o **padrão** (antes, Oliva fosco). Quem já tinha escolhido um tom continua com ele. Ajustados 2.6 (Cor do visual da Mesa do Analista) e 9.16 (Escolher a cor). Vídeo V73 regravado (não citado no manual). |
 | 22 | 11/11/2026 | Corrigido (seção 9.15): a linha **Prescrições vencidas** da Análise de Juntadas continuava em **não disponível**: o link **Vencidas** do quadro Prescrições não vem na página da aba Mesa do Escrivão Criminal quando ela é aberta sem ser mostrada, e o endereço desse link muda a cada vez que se entra no Projudi. Agora, se não achar o link, a extensão abre a aba Mesa do Escrivão Criminal sem mostrá-la e clica em **Vencidas**, como a pessoa faria. Novo item no Bom saber. Sem vídeo novo (a tela não mudou). |

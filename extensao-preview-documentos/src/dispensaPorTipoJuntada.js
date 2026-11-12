@@ -23,8 +23,9 @@
 // resultado aparece no quadro.
 //
 // Os cards são escolhidos pela pessoa (+ Card / ×) e guardados em
-// chrome.storage.local ("pdpDispensaTipoJuntadaCards"). Padrão: JUNTADA DE
-// ANOTAÇÃO DE DISTRIBUIÇÃO.
+// chrome.storage.local ("pdpDispensaTipoJuntadaCards"), como as demais
+// preferências (entram no Exportar/Importar do Menu). Por padrão (decisão do
+// usuário, versão 25) não há card nenhum: cada pessoa cria os seus.
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
@@ -47,7 +48,6 @@
 
 	const CHAVE = "pdpDispensaTipoJuntadaCards";
 	const CHAVE_AVISO = "pdpDispensaTipoJuntadaAviso";
-	const PADRAO = ["JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO"];
 	const MAX_RODADAS = 60;
 	const TEMPO_ETAPA_MS = 60000;
 
@@ -81,10 +81,10 @@
 			try {
 				chrome.storage.local.get(CHAVE, (data) => {
 					const lista = data && Array.isArray(data[CHAVE]) ? data[CHAVE].filter((t) => typeof t === "string" && t.trim()) : null;
-					resolve(lista || PADRAO.slice());
+					resolve(lista || []);
 				});
 			} catch (e) {
-				resolve(PADRAO.slice());
+				resolve([]);
 			}
 		});
 	}
@@ -333,7 +333,7 @@
 
 		function desenhar() {
 			cards.textContent = "";
-			if (!lista.length) cards.append(el("span", "pdp-dpt-vazio", "Nenhum card. Use + Card para escolher um tipo de juntada."));
+			if (!lista.length) cards.append(el("span", "pdp-dpt-vazio", "Nenhum card ainda. Clique em + Card e escolha o tipo de juntada que quer dispensar com um clique."));
 			for (const nome of lista) {
 				const tipo = acharTipo(document, nome);
 				const total = tipo ? tipo.total : 0;
