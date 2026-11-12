@@ -26,6 +26,9 @@
 // chrome.storage.local ("pdpDispensaTipoJuntadaCards"), como as demais
 // preferências (entram no Exportar/Importar do Menu). Por padrão (decisão do
 // usuário, versão 25) não há card nenhum: cada pessoa cria os seus.
+// Desde a versão 27, as preferências gravadas aparecem sempre que a tela é
+// aberta ou atualizada (Filtrar, F5, volta após a dispensa), inclusive com a
+// lista vazia, e o quadro é montado de novo se a tela for refeita no lugar.
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
@@ -285,6 +288,11 @@
 	// --- quadro de cards -----------------------------------------------------------
 
 	let ocupado = false;
+	// Preferências gravadas (tipos de juntada). Lidas de novo a cada vez que
+	// a tela é aberta ou atualizada, e acompanhadas se mudarem em outra aba.
+	let lista = [];
+	let redesenhar = null; // desenho do quadro montado agora
+	let quadroAtual = null; // o quadro vivo (com os cliques) desta página
 
 	function el(tag, classe, texto) {
 		const e = document.createElement(tag);
@@ -306,10 +314,14 @@
 		aviso.classList.toggle("pdp-dpt-aviso-erro", !ok);
 	}
 
-	async function montar() {
+	// O quadro aparece sempre que a tela tem o filtro "Tipo Movimento",
+	// mesmo com a lista vazia (sem juntadas, as preferências ficam com 0).
+	function montar() {
 		const form = formulario(document);
-		if (!form || !document.getElementById("codTipoMovimento") || !document.getElementById("dispensarButton")) return;
-		if (document.getElementById("pdp-dispensa-tipo")) return;
+		if (!form || !document.getElementById("codTipoMovimento")) return;
+		if (quadroAtual && quadroAtual.isConnected) return;
+		// Cópia sem vida deixada por uma tela refeita no lugar: sai.
+		document.querySelectorAll("#pdp-dispensa-tipo").forEach((velho) => velho.remove());
 
 		const quadro = el("div", "pdp-dpt");
 		quadro.id = "pdp-dispensa-tipo";
@@ -329,10 +341,15 @@
 		if (titulo) titulo.insertAdjacentElement("afterend", quadro);
 		else form.prepend(quadro);
 
-		let lista = await lerCards();
+		let carregado = false;
 
 		function desenhar() {
 			cards.textContent = "";
+			if (!carregado) {
+				cards.append(el("span", "pdp-dpt-vazio", "Carregando as preferências…"));
+				mais.disabled = true; // não grava por cima das ainda não lidas
+				return;
+			}
 			if (!lista.length) cards.append(el("span", "pdp-dpt-vazio", "Nenhuma preferência ainda. Clique em + Preferência e escolha o tipo de juntada que quer dispensar com um clique."));
 			for (const nome of lista) {
 				const tipo = acharTipo(document, nome);
@@ -425,8 +442,56 @@
 			/* ignora */
 		}
 
+		redesenhar = desenhar;
+		quadroAtual = quadro;
 		desenhar();
+		lerCards().then((gravadas) => {
+			lista = gravadas;
+			carregado = true;
+			if (quadro.isConnected) desenhar();
+		});
+	}
+
+	// Tipos do filtro (com os totais), para notar quando o Projudi atualiza a
+	// lista sem recarregar a página.
+	function assinaturaTipos() {
+		return tiposDoFiltro(document).map((t) => t.valor + "=" + t.total).join("|");
+	}
+
+	let assinatura = "";
+	let agendado = false;
+	function conferir() {
+		agendado = false;
+		if (!quadroAtual || !quadroAtual.isConnected) {
+			montar();
+			assinatura = assinaturaTipos();
+			return;
+		}
+		const agora = assinaturaTipos();
+		if (agora !== assinatura) {
+			assinatura = agora;
+			if (redesenhar && !ocupado) redesenhar();
+		}
 	}
 
 	montar();
+	assinatura = assinaturaTipos();
+	// Tela atualizada no lugar (quadro retirado ou filtro refeito): monta de
+	// novo, já com as preferências gravadas, e refaz os totais.
+	new MutationObserver(() => {
+		if (agendado) return;
+		agendado = true;
+		setTimeout(conferir, 150);
+	}).observe(document.documentElement, { childList: true, subtree: true });
+	// Preferência criada ou tirada em outra aba: vale aqui também.
+	try {
+		chrome.storage.onChanged.addListener((mudancas, area) => {
+			if (area !== "local" || !mudancas[CHAVE]) return;
+			const nova = mudancas[CHAVE].newValue;
+			lista = Array.isArray(nova) ? nova.filter((t) => typeof t === "string" && t.trim()) : [];
+			if (redesenhar && !ocupado) redesenhar();
+		});
+	} catch (e) {
+		/* contexto da extensão invalidado - ignora */
+	}
 })();

@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 26 |
-| **Versão da extensão** | 26 |
+| **Versão do manual** | 27 |
+| **Versão da extensão** | 27 |
 | **Data desta versão** | 12/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -3060,8 +3060,12 @@ abaixo).
   total de cada um) e clique em **Acrescentar**.
 - Para tirar uma preferência, clique no **×** ao lado dela e confirme.
 - As preferências criadas ficam guardadas como as suas demais preferências
-  (entram no **⬇ Exportar** / **Importar** do Menu, [2.6](#cap-2-6)) e aparecem sempre
-  que você abrir a Análise de Juntadas.
+  (entram no **⬇ Exportar** / **Importar** do Menu, [2.6](#cap-2-6)) e já
+  aparecem carregadas sempre que a Análise de Juntadas é aberta ou
+  atualizada (**Filtrar**, **F5**, a volta da lista depois de uma dispensa),
+  mesmo quando a lista está sem juntadas — nesse caso, com total **0**.
+  Preferência criada ou tirada em outra aba do Projudi também vale na hora
+  nas demais abas abertas.
 
 **Bom saber:**
 
@@ -3175,6 +3179,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 27 | 12/11/2026 | Dispensa rápida por tipo (9.17): as preferências já criadas passam a aparecer carregadas **sempre** que a Análise de Juntadas é aberta ou atualizada (Filtrar, F5, volta da lista depois da dispensa), inclusive com a lista sem juntadas (antes, sem juntadas na lista o quadro não aparecia), e quando o Projudi refaz a tela no lugar. Criar ou tirar uma preferência numa aba vale também nas outras abas abertas. Ajustado "Escolher as preferências". Sem vídeo novo (a tela não mudou). |
 | 26 | 12/11/2026 | Dispensa rápida por tipo (9.17): o botão **+ Card** passa a se chamar **+ Preferência**, e os cards do quadro passam a ser chamados de **preferências** (na tela, no Menu e no resumo do backup). Nada mudou no funcionamento; quem já tinha criado cards continua com eles. Texto da 9.17 e de **11. Solução de problemas** ajustado. Vídeo V74 regravado (não citado no manual). |
 | 25 | 12/11/2026 | Dispensa rápida por tipo (9.17): o quadro passa a vir **sem nenhum card** (antes vinha com **JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO**); cada pessoa cria os seus em **+ Card**. Os cards ficam guardados como preferência e entram no **⬇ Exportar** / **Importar** do Menu (2.6), que passa a contá-los no resumo do backup. Ajustados "Onde fica", o passo 1 e "Escolher os cards". Vídeo V74 regravado (não citado no manual). |
 | 24 | 12/11/2026 | Nova seção 9.17 **Dispensa rápida por tipo na Análise de Juntadas**: quadro com cards de tipos de juntada (padrão: **JUNTADA DE ANOTAÇÃO DE DISTRIBUIÇÃO**), cada um com o total; clicar no card dispensa, com confirmação, todas as juntadas daquele tipo de uma vez, e **+ Card**/**×** escolhem os tipos. Sumário, tabela da 2.6 e **11. Solução de problemas** atualizados. Novo vídeo V74 gravado e guardado em `videos-do-manual/` (não citado no manual). |
