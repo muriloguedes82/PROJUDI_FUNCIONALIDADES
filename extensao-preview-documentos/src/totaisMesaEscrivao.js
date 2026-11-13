@@ -46,9 +46,9 @@
 //      os scripts) da aba "Mesa do Escrivão Criminal".
 // Clicar no número abre a mesma lista (Ctrl+clique abre em outra aba).
 //
-// Só aparece quando a Mesa tem a aba "Mesa do Escrivão Criminal". Com total
-// zero a linha fica como as demais: some se "Ocultar contadores zerados"
-// estiver ligado (mesaAnalistaContadores.js). Os totais NÃO são guardados:
+// Só aparece quando a Mesa tem a aba "Mesa do Escrivão Criminal". Cada linha
+// só aparece quando o total é maior que zero (versão 32, pedido do usuário),
+// mesmo com "Ocultar contadores zerados" desligado. Os totais NÃO são guardados:
 // são contados de novo toda vez que a aba é carregada ou atualizada (versão
 // 32, ver atualizar()).
 (function () {
@@ -619,11 +619,22 @@
 		return tdValor;
 	}
 
+	// Cada linha só aparece com total maior que zero (versão 32, pedido do
+	// usuário); também fica escondida enquanto conta, para não aparecer e
+	// sumir em seguida. "não disponível" aparece, para avisar do erro.
+	function mostrarLinha(celula, visivel) {
+		const tr = celula && celula.closest("tr");
+		if (!tr) return;
+		if (visivel) tr.style.removeProperty("display");
+		else tr.style.setProperty("display", "none", "important");
+	}
+
 	function mostrarEspera(celula) {
 		const espera = document.createElement("span");
 		espera.textContent = "…";
 		espera.title = "Contando…";
 		celula.replaceChildren(espera);
+		mostrarLinha(celula, false);
 	}
 
 	function naoDisponivel(celula) {
@@ -631,6 +642,7 @@
 		aviso.textContent = "não disponível";
 		aviso.title = "Não foi possível abrir a lista agora.";
 		celula.replaceChildren(aviso);
+		mostrarLinha(celula, true);
 	}
 
 	function mostrarTotal(celula, item, dados) {
@@ -657,6 +669,7 @@
 			});
 		}
 		celula.replaceChildren(link);
+		mostrarLinha(celula, dados.total > 0);
 	}
 
 	function temAbaEscrivao(abas) {

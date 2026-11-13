@@ -2916,10 +2916,11 @@ quadro **Da Mesa do Escrivão Criminal**.
 
 **Passo a passo:**
 
-1. Abra a aba **Análise de Juntadas**. No fim do quadro **Para Realizar**
-   aparecem as quatro linhas, com **…** enquanto a extensão faz a contagem.
-2. Em instantes, no lugar das reticências, aparece cada total, como os
-   demais números do quadro. É o mesmo número que você veria clicando no
+1. Abra a aba **Análise de Juntadas**. A extensão faz a contagem sem
+   mostrar nada.
+2. Em instantes, no fim do quadro **Para Realizar**, aparecem as linhas
+   com total maior que zero, cada uma com o seu número, como os demais
+   números do quadro. É o mesmo número que você veria clicando no
    quadro correspondente da aba **Mesa do Escrivão Criminal** (o "N
    registro(s) encontrado(s)" da lista que abre). Nas **Prescrições
    vencidas**, é o número que aparece depois de clicar em **Vencidas**,
@@ -2936,8 +2937,11 @@ quadro **Da Mesa do Escrivão Criminal**.
 
 **Bom saber:**
 
-- Se um total for **zero** e **Ocultar contadores zerados** estiver
-  ligado, a linha some, como as demais linhas zeradas da Mesa.
+- Cada linha só aparece quando o total é **maior que zero**: com zero
+  ela fica escondida (mesmo com **Ocultar contadores zerados**
+  desligado). Enquanto a contagem não termina, a linha também fica
+  escondida. Se nenhuma das quatro tiver número, o quadro **Da Mesa do
+  Escrivão Criminal** fica sem linhas.
 - Os totais são contados de novo **toda vez** que a aba **Análise de
   Juntadas** é aberta ou atualizada (inclusive ao voltar a ela pelo botão
   Voltar do navegador), para mostrar sempre o número do momento.
@@ -3546,7 +3550,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 32 | 13/11/2026 | Seção 9.15 **Totais da Mesa do Escrivão Criminal na Análise de Juntadas**: nova linha **Bens sem registro no SNGB**, com o total de bens do relatório **Processos com apreensões sem registro no SNGB** (Relatórios/Estatísticas → Relatórios Dinâmicos), gerado pela extensão como Arquivo CSV; clicar no número abre o relatório em Html em outra aba. Os quatro totais passam a ser contados de novo toda vez que a aba Análise de Juntadas é aberta ou atualizada (antes ficavam guardados por 5 minutos). Vídeo V72 regravado (não citado no manual). |
+| 32 | 13/11/2026 | Seção 9.15 **Totais da Mesa do Escrivão Criminal na Análise de Juntadas**: nova linha **Bens sem registro no SNGB**, com o total de bens do relatório **Processos com apreensões sem registro no SNGB** (Relatórios/Estatísticas → Relatórios Dinâmicos), gerado pela extensão como Arquivo CSV; clicar no número abre o relatório em Html em outra aba. Cada linha só aparece quando o total é maior que zero. Os quatro totais passam a ser contados de novo toda vez que a aba Análise de Juntadas é aberta ou atualizada (antes ficavam guardados por 5 minutos). Vídeo V72 regravado (não citado no manual). |
 | 31 | 12/11/2026 | Corrigido (9.17): o clique no **total** do card (ou no nome do juiz, num tipo ou numa etiqueta) às vezes não filtrava a lista, quando o quadro era atualizado no meio do clique (por exemplo, enquanto as outras páginas da lista ainda chegavam). Agora o filtro age já ao apertar o botão do mouse. Ao passar o mouse, o total fica sublinhado, para mostrar que é clicável. Passo 2 ajustado. Sem vídeo novo (o que aparece na tela não mudou). |
 | 30 | 12/11/2026 | Corrigido (seção 9.18, Totais de juntadas por tipo): o clique no card passa a valer sobre a linha **Situação** — marca **Todos** e lista sempre todas as juntadas do tipo, o mesmo número do card, mesmo com **Urgente** ou **Conclusos** marcado ou depois de abrir as juntadas urgentes pela Mesa. Corrigida também a leitura do tipo quando o Projudi mostra uma descrição abaixo dele na coluna **Tipo de Documento**. |
 | 29 | 12/11/2026 | Conclusões por juiz (9.17): as etiquetas de tipo do alto do quadro (ex.: **SENTENÇA · 60**, **DECISÃO · 50**) também filtram: clicar numa mostra na tabela todas as conclusões daquele tipo, de todos os juízes; clicar de novo ou em Mostrar todas volta a lista inteira. Novo passo 4 (os seguintes foram renumerados). Vídeo V74 regravado (não citado no manual). |
