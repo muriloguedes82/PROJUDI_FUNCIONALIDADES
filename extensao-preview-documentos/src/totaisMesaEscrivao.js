@@ -48,9 +48,9 @@
 //
 // Só aparece quando a Mesa tem a aba "Mesa do Escrivão Criminal". Com total
 // zero a linha fica como as demais: some se "Ocultar contadores zerados"
-// estiver ligado (mesaAnalistaContadores.js). Para não refazer as pesquisas a
-// cada volta à aba, os totais ficam guardados por alguns minutos
-// (sessionStorage da aba).
+// estiver ligado (mesaAnalistaContadores.js). Os totais NÃO são guardados:
+// são contados de novo toda vez que a aba é carregada ou atualizada (versão
+// 32, ver atualizar()).
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
@@ -60,8 +60,6 @@
 	if (!/^\/projudi\/usuario\/mesaAnalista\.do$/.test(location.pathname)) return;
 
 	const TAG = "[Projudi Totais Mesa do Escrivão]";
-	const CACHE = "pdpTotaisMesaEscrivao";
-	const VALIDADE_MS = 5 * 60 * 1000;
 	const LINHA_ATTR = "data-pdp-total-escrivao";
 	const RAIZ = location.origin + "/projudi/";
 
@@ -135,7 +133,7 @@
 	}
 
 	async function baixarDocumento(url) {
-		const resposta = await fetch(url, { credentials: "same-origin" });
+		const resposta = await fetch(url, { credentials: "same-origin", cache: "no-store" });
 		if (!resposta.ok) throw new Error("HTTP " + resposta.status);
 		const bytes = new Uint8Array(await resposta.arrayBuffer());
 		const tipo = resposta.headers.get("content-type") || "";
@@ -416,6 +414,7 @@
 		const resposta = await fetch(envio.acao, {
 			method: "POST",
 			credentials: "same-origin",
+			cache: "no-store",
 			headers: { "Content-Type": "application/x-www-form-urlencoded" },
 			body: corpo.toString(),
 		});
@@ -550,6 +549,7 @@
 		const resposta = await fetch(envio.acao, {
 			method: "POST",
 			credentials: "same-origin",
+			cache: "no-store",
 			headers: { "Content-Type": "application/x-www-form-urlencoded" },
 			body: corpo.toString(),
 		});
@@ -596,29 +596,12 @@
 
 	// -----------------------------------------------------------------------
 
-	function lerTodoCache() {
-		try {
-			const c = JSON.parse(sessionStorage.getItem(CACHE) || "null");
-			return c && typeof c === "object" ? c : {};
-		} catch (e) {
-			return {};
-		}
-	}
-
-	function lerCache(id) {
-		const c = lerTodoCache()[id];
-		return c && Date.now() - c.quando < VALIDADE_MS && Number.isFinite(c.total) ? c : null;
-	}
-
-	function gravarCache(id, dados) {
-		try {
-			const todos = lerTodoCache();
-			todos[id] = Object.assign({ quando: Date.now() }, dados);
-			sessionStorage.setItem(CACHE, JSON.stringify(todos));
-		} catch (e) {}
-	}
-
-	function criarLinha(tabela, item) {
+	// Célula do total na linha do item (criada no fim do quadro "Para
+	// Realizar" na primeira vez; depois reaproveitada, mesmo se o visual novo
+	// da Mesa a levou para o quadro "Da Mesa do Escrivão Criminal").
+	function celulaDoTotal(tabela, item) {
+		const existente = document.querySelector("tr[" + LINHA_ATTR + "='" + item.id + "']");
+		if (existente && existente.cells.length) return existente.cells[existente.cells.length - 1];
 		const corpo = tabela.tBodies[0] || tabela;
 		const tr = document.createElement("tr");
 		tr.setAttribute(LINHA_ATTR, item.id);
@@ -631,16 +614,26 @@
 		label.title = item.dica;
 		tdRotulo.appendChild(label);
 		const tdValor = document.createElement("td");
+		tr.append(tdRotulo, tdValor);
+		corpo.appendChild(tr);
+		return tdValor;
+	}
+
+	function mostrarEspera(celula) {
 		const espera = document.createElement("span");
 		espera.textContent = "…";
 		espera.title = "Contando…";
-		tdValor.appendChild(espera);
-		tr.append(tdRotulo, tdValor);
-		corpo.appendChild(tr);
-		return espera;
+		celula.replaceChildren(espera);
 	}
 
-	function mostrarTotal(espera, item, dados) {
+	function naoDisponivel(celula) {
+		const aviso = document.createElement("span");
+		aviso.textContent = "não disponível";
+		aviso.title = "Não foi possível abrir a lista agora.";
+		celula.replaceChildren(aviso);
+	}
+
+	function mostrarTotal(celula, item, dados) {
 		const link = document.createElement("a");
 		link.href = dados.href;
 		link.title = "Abrir a lista (" + item.dica + ")";
@@ -654,7 +647,7 @@
 				ev.preventDefault();
 				const alvo = item.sempreNovaAba || ev.ctrlKey || ev.metaKey || ev.shiftKey ? "_blank" : "";
 				// Janela aberta já no clique (senão o navegador a bloqueia).
-				const nome = alvo ? "pdpPrescricoes" + Date.now() : "";
+				const nome = alvo ? "pdpTotalEscrivao" + Date.now() : "";
 				if (nome) window.open("about:blank", nome);
 				item.abrir(nome).catch((erro) => {
 					console.warn(TAG, item.id + ": não foi possível abrir a lista:", erro);
@@ -663,38 +656,72 @@
 				});
 			});
 		}
-		espera.replaceWith(link);
+		celula.replaceChildren(link);
 	}
 
-	async function iniciar() {
+	function temAbaEscrivao(abas) {
+		return abas.some((a) => /^Mesa do Escriv[aã]o Criminal$/i.test(a.nome));
+	}
+
+	// Os totais são contados de novo toda vez que a aba é carregada ou
+	// atualizada (versão 32, pedido do usuário; antes ficavam guardados por
+	// 5 minutos):
+	//   - ao abrir ou recarregar a aba (o script roda de novo);
+	//   - ao voltar a ela pelo botão Voltar do navegador (pageshow com
+	//     persisted);
+	//   - se o conteúdo da aba for trocado sem recarregar a página (as linhas
+	//     somem e são recriadas pelo observador abaixo).
+	// Só vale a contagem mais recente (rodada).
+	let rodada = 0;
+	async function atualizar() {
 		const abas = nomesDasAbas();
-		if (!abas.some((a) => /^Mesa do Escriv[aã]o Criminal$/i.test(a.nome))) return;
-		if (!naAnaliseDeJuntadas(abas)) return;
-		if (document.querySelector("[" + LINHA_ATTR + "]")) return;
+		if (!temAbaEscrivao(abas) || !naAnaliseDeJuntadas(abas)) return;
 		const tabela = acharTabelaParaRealizar();
-		if (!tabela) {
+		if (!tabela && !ITENS.every((item) => document.querySelector("tr[" + LINHA_ATTR + "='" + item.id + "']"))) {
 			console.log(TAG, "quadro \"Para Realizar\" não encontrado na Análise de Juntadas");
 			return;
 		}
-		const esperas = ITENS.map((item) => criarLinha(tabela, item));
+		const minha = ++rodada;
+		mesaEscrivao = null; // baixa a aba Mesa do Escrivão Criminal de novo
+		const celulas = ITENS.map((item) => celulaDoTotal(tabela, item));
+		celulas.forEach(mostrarEspera);
 		// Uma pesquisa depois da outra, para não embaralhar a sessão do Projudi.
 		for (let i = 0; i < ITENS.length; i++) {
 			const item = ITENS[i];
-			let dados = lerCache(item.id);
-			if (!dados) {
-				try {
-					dados = await (item.contar || contar)(item);
-					gravarCache(item.id, dados);
-				} catch (erro) {
-					console.warn(TAG, item.id + ": não foi possível contar:", erro);
-					esperas[i].textContent = "não disponível";
-					esperas[i].title = "Não foi possível abrir a lista agora.";
-					continue;
-				}
+			try {
+				const dados = await (item.contar || contar)(item);
+				if (minha !== rodada) return;
+				console.log(TAG, item.id + ": total", dados.total);
+				mostrarTotal(celulas[i], item, dados);
+			} catch (erro) {
+				if (minha !== rodada) return;
+				console.warn(TAG, item.id + ": não foi possível contar:", erro);
+				naoDisponivel(celulas[i]);
 			}
-			console.log(TAG, item.id + ": total", dados.total);
-			mostrarTotal(esperas[i], item, dados);
 		}
+	}
+
+	function vigiarConteudo() {
+		let agendado = false;
+		const faltaLinha = () => ITENS.some((item) => !document.querySelector("tr[" + LINHA_ATTR + "='" + item.id + "']"));
+		new MutationObserver(() => {
+			if (agendado || !faltaLinha()) return;
+			const abas = nomesDasAbas();
+			if (!temAbaEscrivao(abas) || !naAnaliseDeJuntadas(abas) || !acharTabelaParaRealizar()) return;
+			agendado = true;
+			setTimeout(() => {
+				agendado = false;
+				if (faltaLinha()) atualizar();
+			}, 300);
+		}).observe(document.body, { childList: true, subtree: true });
+	}
+
+	function iniciar() {
+		atualizar();
+		if (document.body) vigiarConteudo();
+		window.addEventListener("pageshow", (ev) => {
+			if (ev.persisted) atualizar();
+		});
 	}
 
 	if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar, { once: true });

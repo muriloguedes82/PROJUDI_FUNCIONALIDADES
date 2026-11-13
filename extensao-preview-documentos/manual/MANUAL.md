@@ -2938,9 +2938,9 @@ quadro **Da Mesa do Escrivão Criminal**.
 
 - Se um total for **zero** e **Ocultar contadores zerados** estiver
   ligado, a linha some, como as demais linhas zeradas da Mesa.
-- Para não repetir a contagem a cada volta à aba, os totais ficam
-  guardados por **5 minutos** naquela aba. Depois disso (ou numa aba
-  nova), a extensão conta de novo.
+- Os totais são contados de novo **toda vez** que a aba **Análise de
+  Juntadas** é aberta ou atualizada (inclusive ao voltar a ela pelo botão
+  Voltar do navegador), para mostrar sempre o número do momento.
 - As **Prescrições vencidas** podem levar alguns segundos a mais para
   aparecer: a extensão abre a aba **Mesa do Escrivão Criminal** sem
   mostrá-la, clica em **Vencidas** e faz a pesquisa, como você faria.
@@ -3546,7 +3546,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 32 | 13/11/2026 | Seção 9.15 **Totais da Mesa do Escrivão Criminal na Análise de Juntadas**: nova linha **Bens sem registro no SNGB**, com o total de bens do relatório **Processos com apreensões sem registro no SNGB** (Relatórios/Estatísticas → Relatórios Dinâmicos), gerado pela extensão como Arquivo CSV; clicar no número abre o relatório em Html em outra aba. Vídeo V72 regravado (não citado no manual). |
+| 32 | 13/11/2026 | Seção 9.15 **Totais da Mesa do Escrivão Criminal na Análise de Juntadas**: nova linha **Bens sem registro no SNGB**, com o total de bens do relatório **Processos com apreensões sem registro no SNGB** (Relatórios/Estatísticas → Relatórios Dinâmicos), gerado pela extensão como Arquivo CSV; clicar no número abre o relatório em Html em outra aba. Os quatro totais passam a ser contados de novo toda vez que a aba Análise de Juntadas é aberta ou atualizada (antes ficavam guardados por 5 minutos). Vídeo V72 regravado (não citado no manual). |
 | 31 | 12/11/2026 | Corrigido (9.17): o clique no **total** do card (ou no nome do juiz, num tipo ou numa etiqueta) às vezes não filtrava a lista, quando o quadro era atualizado no meio do clique (por exemplo, enquanto as outras páginas da lista ainda chegavam). Agora o filtro age já ao apertar o botão do mouse. Ao passar o mouse, o total fica sublinhado, para mostrar que é clicável. Passo 2 ajustado. Sem vídeo novo (o que aparece na tela não mudou). |
 | 30 | 12/11/2026 | Corrigido (seção 9.18, Totais de juntadas por tipo): o clique no card passa a valer sobre a linha **Situação** — marca **Todos** e lista sempre todas as juntadas do tipo, o mesmo número do card, mesmo com **Urgente** ou **Conclusos** marcado ou depois de abrir as juntadas urgentes pela Mesa. Corrigida também a leitura do tipo quando o Projudi mostra uma descrição abaixo dele na coluna **Tipo de Documento**. |
 | 29 | 12/11/2026 | Conclusões por juiz (9.17): as etiquetas de tipo do alto do quadro (ex.: **SENTENÇA · 60**, **DECISÃO · 50**) também filtram: clicar numa mostra na tabela todas as conclusões daquele tipo, de todos os juízes; clicar de novo ou em Mostrar todas volta a lista inteira. Novo passo 4 (os seguintes foram renumerados). Vídeo V74 regravado (não citado no manual). |
