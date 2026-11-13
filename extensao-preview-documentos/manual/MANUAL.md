@@ -4,8 +4,8 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 33 |
-| **Versão da extensão** | 33 |
+| **Versão do manual** | 34 |
+| **Versão da extensão** | 34 |
 | **Data desta versão** | 13/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -50,6 +50,7 @@
    - 4.2 [Monitoração eletrônica ativa no cabeçalho](#cap-4-2)
    - 4.3 [Réus, indiciados e noticiados no cabeçalho](#cap-4-3)
    - 4.4 [Sequencial do processo principal (apensos)](#cap-4-4)
+   - 4.6 [Resumo do processo (painel lateral)](#cap-4-6)
 5. [Envio de documentos](#cap-5)
    - 5.1 [Envio por WhatsApp Web](#cap-5-1)
    - 5.2 [Envio por e-mail (Outlook)](#cap-5-2)
@@ -468,7 +469,7 @@ ligar tudo.
 |---|---|---|
 | **Documentos e movimentações** | Pré-visualização e WhatsApp · Envio por e-mail (Outlook) · Destaque de movimentações · Expandir anexos / ocultar sem arquivo | [3.1](#cap-3-1), [5](#cap-5), [3.4](#cap-3-4), [3.3](#cap-3-3) |
 | **Ações rápidas e atalhos** | Ações rápidas e Minhas Preferências · Escolher a movimentação das Ações rápidas · (Des)Habilitar Advogado · Editar Partes/Outros · Alterar Classe/Assuntos · Novo Valor da Causa · Prioridades · Agendar Audiência (preferências) · Alvará Eletrônico · Juntar Documento · Oráculo · Sistemas do CNJ · Nova Remessa · Nova Ordenação | [7](#cap-7), [8](#cap-8) |
-| **Informações do processo** | Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Bloco de anotações | [4](#cap-4) |
+| **Informações do processo** | Resumo do processo (painel lateral) · Réus no cabeçalho · Sequencial do processo principal · Indicador de suspensão ativa · Indicador de monitoração eletrônica · Bloco de anotações | [4](#cap-4) |
 | **Pendências, mesa e listas** | Dispensar juntadas, decursos e cumprimentos · Finalizar conclusão pendente · Ocultar contadores zerados · Filtro por Sequencial no Decurso de Prazo · Processo ao passar o mouse no Decurso de Prazo, nas Juntadas, nas Conclusões, nos Cumprimentos, no Expedir e nos Paralisados · Documento do Juiz ao passar o mouse no Retorno de Conclusão · Analisar e Dispensar decurso na lista · Listas de tarefas · Minhas Preferências na linha (⭐) · Localizador na lista (Projudi) · Listas em uma única página · Processos Paralisados (+90 dias) na tela Início · Totais da Mesa do Escrivão Criminal na Análise de Juntadas · Audiências pendentes e para hoje na Análise de Juntadas · Dias de atraso na Listagem de Audiências · Visual novo da Mesa do Analista · Conclusões por juiz · Totais de juntadas por tipo (cards que filtram a Análise de Juntadas) · Dispensa rápida por tipo na Análise de Juntadas | [6](#cap-6), [9](#cap-9) |
 | **Cumprimentos** | RG e CPF nos cumprimentos · Informações nas ordenações BNMP · Endereço da parte e Mandado Regionalizado | [9.5](#cap-9-5), [9.6](#cap-9-6), [9.7](#cap-9-7) |
 
@@ -762,6 +763,52 @@ encontrado" em vez de um número errado.
 **Passo a passo:** escreva no post-it; o texto fica salvo neste navegador enquanto você edita. Na opção **Deste processo**, clique em **Salvar no Projudi** para atualizar o lembrete ativo mostrado na ficha do processo. Se ainda não houver lembrete ativo, a extensão cria um com o assunto **Anotação compartilhada - Abra ou instale a extensão Assistente Projudi**. O envio só acontece ao clicar nesse botão. A extensão consulta **Informações Gerais** em segundo plano para localizar o lembrete, sem trocar a aba que você está usando. Arraste pelo título **Anotações** para mudar a posição. Use **−** para recolher e **▾** para reabrir. Os quadrinhos ao lado do aviso de salvamento escolhem amarelo, azul, verde ou vermelho. Clique em **+** no título para criar uma nota pessoal adicional para o processo; cada nota tem sua própria cor e posição. Use **×** para excluir uma nota adicional (pede confirmação se houver texto). Escolha **Permanente (todos os processos)** para editar uma nota pessoal que não é enviada ao Projudi.
 
 **Bom saber:** acompanha a rolagem da página e guarda a posição neste navegador. O texto de **Deste processo**, depois de salvo no Projudi, fica no lembrete ativo e é compartilhado com quem tem acesso ao processo. A extensão não altera lembretes desativados. Cores, posição, notas adicionais e a opção permanente ficam apenas neste perfil do navegador. Nas listagens e telas de análise, mostra apenas a anotação permanente, nunca a anotação de um processo da lista. Não aparece nas janelas de diálogo bloqueadas para os botões.
+
+---
+
+<a id="cap-4-6"></a>
+### 4.6 Resumo do processo (painel lateral)
+
+**Para que serve:** ver num só lugar, sem trocar de aba, as principais
+informações do processo: partes, dados das **Informações Adicionais** e os
+eventos mais importantes das **Movimentações**.
+
+**Onde fica:** na tela do processo, no botão **📋 Resumo**, preso na borda
+direita da tela. *Só no Projudi.*
+
+**Passo a passo:**
+
+1. Clique em **📋 Resumo**. O painel abre do lado direito.
+2. Veja os quadros (clique no título de um quadro para recolher ou abrir;
+   a escolha fica guardada):
+   - **Processo**: número, dias em tramitação, classe, assunto e
+     prioridade (em vermelho, ex.: Réu Preso);
+   - **Partes**: cada polo (Autor, Réu, Vítimas, Testemunhas…), com RG,
+     CPF/CNPJ, a situação da parte (ex.: "Réu Preso", "Parte citada nos
+     Autos", "Denúncia Recebida em…") e o advogado — ou "Sem advogado";
+   - **Informações Adicionais**: data da infração, delegacia, número do
+     inquérito, tempo de tramitação e **só o que está cadastrado** no
+     processo (ex.: prisões, denunciados, infrações/penas com a próxima
+     prescrição, comunicações ao IIPR). O que aparece como "Sem…",
+     "Não há…" ou "Nenhum…" fica de fora;
+   - **Movimentações**: o último evento, as decisões e despachos do juiz e
+     os marcos do processo (denúncia, prisão, audiências, sentença,
+     trânsito em julgado, suspensão, arquivamento…). Use **+ N mais** para
+     ver a lista inteira.
+3. Clique no nome de uma parte ou num registro para abri-lo num popup.
+   Clique num evento para abri-lo num popup — ou, se você estiver na aba
+   **Movimentações**, para ir até ele na lista (a linha pisca em amarelo).
+4. Use **↻** para ler as abas de novo e **✕** para fechar o painel.
+
+**Bom saber:**
+
+- O painel só abre quando você clica em **📋 Resumo**. Aberto, ele continua
+  aberto ao trocar de aba ou de processo, até você fechá-lo no **✕**.
+- A leitura das abas leva alguns segundos e não troca a aba que você está
+  vendo. O número no título de cada quadro é a quantidade de partes, de
+  registros cadastrados e de movimentações.
+- A barra de botões da extensão (**Ocultar** / **↕ Mover**) pode ficar por
+  cima do painel; use **↕ Mover** se ela cobrir algo.
 
 ---
 
@@ -3556,6 +3603,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 34 | 13/11/2026 | Nova seção 4.6 **Resumo do processo (painel lateral)**: botão **📋 Resumo** na borda direita da tela do processo abre um painel com os quadros Processo, Partes, Informações Adicionais (só o que está cadastrado) e Movimentações (último evento, decisões do juiz e marcos do processo). Incluída na tabela da seção 2.6 (grupo Informações do processo). Sem vídeo novo. |
 | 33 | 13/11/2026 | Corrigido (seção 9.15): clicar no número das **Prescrições vencidas** abrindo em outra aba (Ctrl+clique ou botão do meio do mouse) mostrava a tela **Prescrições de processos ativos** sem as caixas marcadas, com um total diferente do quadro. Agora essa tela já vem com **Somente sem sentença anotada** e **Agrupar por processo** marcados e pesquisada, com o mesmo total do quadro. Passo 3 ajustado. Sem vídeo novo. |
 | 32 | 13/11/2026 | Seção 9.15 **Totais da Mesa do Escrivão Criminal na Análise de Juntadas**: nova linha **Processos com apreensões sem registro no SNGB**, com o total de bens do relatório de mesmo nome (Relatórios/Estatísticas → Relatórios Dinâmicos), gerado pela extensão como Arquivo CSV; clicar no número abre a tela do relatório, para escolher o formato e gerá-lo. Cada linha só aparece quando o total é maior que zero. Os quatro totais passam a ser contados de novo toda vez que a aba Análise de Juntadas é aberta ou atualizada (antes ficavam guardados por 5 minutos). Vídeo V72 regravado (não citado no manual). |
 | 31 | 12/11/2026 | Corrigido (9.17): o clique no **total** do card (ou no nome do juiz, num tipo ou numa etiqueta) às vezes não filtrava a lista, quando o quadro era atualizado no meio do clique (por exemplo, enquanto as outras páginas da lista ainda chegavam). Agora o filtro age já ao apertar o botão do mouse. Ao passar o mouse, o total fica sublinhado, para mostrar que é clicável. Passo 2 ajustado. Sem vídeo novo (o que aparece na tela não mudou). |

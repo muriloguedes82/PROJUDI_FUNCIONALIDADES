@@ -1,0 +1,158 @@
+/* Projudi - Resumo do processo (painel lateral). Ver src/resumoProcesso.js. */
+
+.pdp-rs-aba {
+	position: fixed;
+	right: 0;
+	top: 42%;
+	z-index: 2147482000;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+	padding: 10px 5px;
+	border: 0;
+	border-radius: 8px 0 0 8px;
+	background: #1e2a3e;
+	color: #fff;
+	font: 600 12px Arial, sans-serif;
+	cursor: pointer;
+	box-shadow: -2px 2px 8px rgba(0, 0, 0, .25);
+}
+.pdp-rs-aba:hover { background: #2c3d59; padding-right: 8px; }
+.pdp-rs-aba[hidden] { display: none; }
+.pdp-rs-aba-texto { writing-mode: vertical-rl; transform: rotate(180deg); letter-spacing: .5px; }
+
+.pdp-rs-painel {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	width: 370px;
+	max-width: 100vw;
+	/* Abaixo da barra de botões da extensão e dos popups (2147483647). */
+	z-index: 2147482000;
+	display: flex;
+	flex-direction: column;
+	background: #f3f5f9;
+	color: #1d2433;
+	border-left: 1px solid #c9d0dc;
+	box-shadow: -6px 0 18px rgba(0, 0, 0, .18);
+	font: 12px/1.4 Arial, sans-serif;
+	box-sizing: border-box;
+}
+.pdp-rs-painel[hidden] { display: none; }
+.pdp-rs-painel *, .pdp-rs-painel *::before, .pdp-rs-painel *::after { box-sizing: border-box; }
+
+.pdp-rs-cab {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 12px 14px 10px;
+	background: #fff;
+	border-bottom: 1px solid #dde2ea;
+}
+.pdp-rs-titulo { margin: 0; font: 700 17px Arial, sans-serif; color: #1e2a3e; }
+.pdp-rs-titulo::before { content: "📋 "; }
+.pdp-rs-botoes { display: flex; gap: 6px; }
+.pdp-rs-botao {
+	width: 30px;
+	height: 30px;
+	border: 1px solid #c3cad6;
+	border-radius: 6px;
+	background: #eef1f6;
+	color: #1e2a3e;
+	font: 15px Arial, sans-serif;
+	cursor: pointer;
+}
+.pdp-rs-botao:hover:not(:disabled) { background: #dfe5ee; }
+.pdp-rs-botao:disabled { opacity: .5; cursor: wait; }
+
+.pdp-rs-conteudo { flex: 1; overflow-y: auto; padding: 10px 10px 16px; }
+
+.pdp-rs-card { margin-bottom: 9px; border-radius: 7px; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .12); overflow: hidden; }
+.pdp-rs-card-cab {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	padding: 9px 12px;
+	border: 0;
+	background: #1e2a3e;
+	color: #fff;
+	font: 700 13px Arial, sans-serif;
+	text-align: left;
+	cursor: pointer;
+}
+.pdp-rs-card-cab:hover { background: #2a3a55; }
+.pdp-rs-card-titulo { flex: 1; }
+.pdp-rs-badge {
+	min-width: 20px;
+	padding: 1px 6px;
+	border-radius: 10px;
+	background: #3b82f6;
+	color: #fff;
+	font-size: 11px;
+	text-align: center;
+}
+.pdp-rs-seta { font-size: 12px; transition: transform .15s; }
+.pdp-rs-recolhido .pdp-rs-seta { transform: rotate(-90deg); }
+.pdp-rs-card-corpo { padding: 8px 12px 10px; }
+.pdp-rs-recolhido .pdp-rs-card-corpo { display: none; }
+
+.pdp-rs-numero { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+.pdp-rs-dias { display: block; font-weight: 400; font-size: 11px; color: #5b6476; }
+
+.pdp-rs-dado { display: flex; gap: 8px; padding: 3px 0; border-bottom: 1px dotted #e1e5ec; }
+.pdp-rs-dado:last-child { border-bottom: 0; }
+.pdp-rs-rotulo { flex: 0 0 38%; color: #5b6476; }
+.pdp-rs-valor { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.pdp-rs-destaque .pdp-rs-valor { color: #b42318; font-weight: 700; }
+
+.pdp-rs-subtitulo {
+	margin: 9px 0 3px;
+	font-size: 11px;
+	font-weight: 700;
+	color: #1e2a3e;
+	text-transform: uppercase;
+	letter-spacing: .3px;
+}
+.pdp-rs-card-corpo > .pdp-rs-subtitulo:first-child,
+.pdp-rs-polo:first-child .pdp-rs-subtitulo { margin-top: 0; }
+
+.pdp-rs-lista { margin: 0; padding: 0; list-style: none; }
+.pdp-rs-lista > li { padding: 5px 0; border-bottom: 1px solid #edf0f4; }
+.pdp-rs-lista > li:last-child { border-bottom: 0; }
+.pdp-rs-lista > li[hidden] { display: none; }
+.pdp-rs-polo-testemunhas .pdp-rs-lista > li { padding: 2px 0; border-bottom: 0; }
+
+.pdp-rs-link { color: #1d4ed8; text-decoration: none; cursor: pointer; }
+.pdp-rs-link:hover { text-decoration: underline; }
+.pdp-rs-nome { font-weight: 700; }
+.pdp-rs-docs { color: #5b6476; font-size: 11px; }
+.pdp-rs-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.pdp-rs-chip { padding: 1px 7px; border-radius: 9px; background: #e8edf5; color: #2c3a52; font-size: 11px; }
+.pdp-rs-chip-alerta { background: #fde2e1; color: #b42318; font-weight: 700; }
+.pdp-rs-adv { margin-top: 2px; font-size: 11px; color: #2c3a52; }
+.pdp-rs-adv-sem { color: #b42318; }
+
+.pdp-rs-mov-topo { display: flex; gap: 8px; font-size: 11px; color: #5b6476; }
+.pdp-rs-seq { font-weight: 700; color: #1e2a3e; }
+.pdp-rs-seq::before { content: "#"; }
+.pdp-rs-mov-titulo { display: block; font-weight: 600; }
+
+.pdp-rs-mais {
+	margin-top: 4px;
+	padding: 2px 8px;
+	border: 1px solid #c3cad6;
+	border-radius: 10px;
+	background: #fff;
+	color: #1d4ed8;
+	font: 11px Arial, sans-serif;
+	cursor: pointer;
+}
+.pdp-rs-status { margin: 4px 0; color: #5b6476; font-style: italic; }
+.pdp-rs-erro { color: #b42318; }
+.pdp-rs-rodape { margin-top: 4px; text-align: center; color: #7a8396; font-size: 11px; }
+
+@keyframes pdp-rs-piscar { 0%, 60% { background: #fff3a8; } 100% { background: transparent; } }
+tr.pdp-rs-piscar > td { animation: pdp-rs-piscar 2s ease-out; }
