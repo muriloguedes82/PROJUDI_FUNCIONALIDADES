@@ -60,9 +60,74 @@
 	if (window.__pdpTotaisMesaEscrivao) return;
 	window.__pdpTotaisMesaEscrivao = true;
 
-	if (!/^\/projudi\/usuario\/mesaAnalista\.do$/.test(location.pathname)) return;
-
 	const TAG = "[Projudi Totais Mesa do Escrivão]";
+
+	// ---- Aba aberta pelo número das Prescrições vencidas (versão 33) -------
+	//
+	// O link do número leva ao endereço do "Vencidas" com a marca
+	// #pdpPrescricoesVencidas (o "#..." não vai ao Projudi). Quando a página
+	// abre por esse endereço — clique com o botão do meio, Ctrl+clique, "Abrir
+	// link em nova aba" ou se o envio da pesquisa pela extensão falhar —, a
+	// tela "Prescrições de processos ativos" vem sem nenhuma caixa marcada
+	// (todas as prescrições vencidas). Aqui a extensão marca "Somente sem
+	// sentença anotada" e "Agrupar por processo" e clica em "Pesquisar", para
+	// a lista bater com o total do quadro. Se o endereço for o da aba "Mesa do
+	// Escrivão Criminal" (quando o "Vencidas" não tem endereço próprio), clica
+	// antes em "Vencidas" e guarda a marca na aba até a tela de Prescrições.
+	const MARCA_PRESCRICOES = "pdpPrescricoesVencidas";
+
+	function marcaNaAba(ler) {
+		try {
+			if (!ler) return sessionStorage.setItem(MARCA_PRESCRICOES, String(Date.now()));
+			const t = Number(sessionStorage.getItem(MARCA_PRESCRICOES));
+			sessionStorage.removeItem(MARCA_PRESCRICOES);
+			return t && Date.now() - t < 60000;
+		} catch (e) {
+			return false;
+		}
+	}
+
+	function tirarMarcaDoEndereco() {
+		try {
+			history.replaceState(history.state, "", location.pathname + location.search);
+		} catch (e) {}
+	}
+
+	function pesquisarPrescricoesMarcadas() {
+		const veioPeloNumero = location.hash === "#" + MARCA_PRESCRICOES;
+		if (!veioPeloNumero && !(window === window.top && /\/usuario\/mesaAnalistaEscrivao\.do$/.test(location.pathname) && marcaNaAba(true))) return;
+		if (veioPeloNumero) tirarMarcaDoEndereco();
+		const form = document.querySelector("form[action*='pesquisarPrescricoes']");
+		if (!form) {
+			// Ainda na aba "Mesa do Escrivão Criminal": clica em "Vencidas".
+			if (!veioPeloNumero) return;
+			const esperar = Date.now() + 10000;
+			const tentar = () => {
+				const a = acharLinkVencidas(document);
+				if (a) {
+					marcaNaAba(false);
+					a.click();
+				} else if (Date.now() < esperar) setTimeout(tentar, 300);
+				else console.log(TAG, "prescricoesVencidas: link \"Vencidas\" não encontrado nesta aba");
+			};
+			tentar();
+			return;
+		}
+		for (const nome of ["semSentencaAnotada", "agruparPorProcesso"]) {
+			const caixa = form.querySelector("input[type='checkbox'][name='" + nome + "']");
+			if (caixa) caixa.checked = true;
+		}
+		const botao = form.querySelector("#searchButton, input[type='submit'][value='Pesquisar']");
+		if (botao) botao.click();
+		else form.submit();
+	}
+
+	if (/^\/projudi\/usuario\/mesaAnalista(Escrivao)?\.do$/.test(location.pathname)) {
+		if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", pesquisarPrescricoesMarcadas, { once: true });
+		else pesquisarPrescricoesMarcadas();
+	}
+
+	if (!/^\/projudi\/usuario\/mesaAnalista\.do$/.test(location.pathname)) return;
 	const LINHA_ATTR = "data-pdp-total-escrivao";
 	const RAIZ = location.origin + "/projudi/";
 
@@ -626,9 +691,17 @@
 		mostrarLinha(celula, true);
 	}
 
+	// Endereço do número das Prescrições vencidas, com a marca que faz a
+	// página aberta marcar as duas caixas e pesquisar (versão 33).
+	function comMarcaPrescricoes(href) {
+		const url = new URL(href, location.href);
+		url.hash = MARCA_PRESCRICOES;
+		return url.href;
+	}
+
 	function mostrarTotal(celula, item, dados) {
 		const link = document.createElement("a");
-		link.href = dados.href;
+		link.href = item.id === "prescricoesVencidas" ? comMarcaPrescricoes(dados.href) : dados.href;
 		link.title = "Abrir a lista (" + item.dica + ")";
 		const span = document.createElement("span");
 		span.className = "contador";
@@ -644,8 +717,8 @@
 				if (nome) window.open("about:blank", nome);
 				item.abrir(nome).catch((erro) => {
 					console.warn(TAG, item.id + ": não foi possível abrir a lista:", erro);
-					if (nome) window.open(dados.href, nome);
-					else location.href = dados.href;
+					if (nome) window.open(link.href, nome);
+					else location.href = link.href;
 				});
 			});
 		}
