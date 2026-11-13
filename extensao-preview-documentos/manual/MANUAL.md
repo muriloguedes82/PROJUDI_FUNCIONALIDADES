@@ -2902,7 +2902,7 @@ e o total):
 - **Prescrições** → **Vencidas** — processos ativos com prescrição
   vencida, contados como na tela **Prescrições de processos ativos** com
   **Somente sem sentença anotada** e **Agrupar por processo** marcados;
-- **Bens sem registro no SNGB** — bens apreendidos ainda não registrados
+- **Processos com apreensões sem registro no SNGB** — bens apreendidos ainda não registrados
   no SNGB, contados no relatório **Processos com apreensões sem registro
   no SNGB** (menu **Relatórios/Estatísticas** → **Relatórios
   Dinâmicos**), que também não mostra número sem ser gerado.
@@ -2910,8 +2910,8 @@ e o total):
 **Onde fica:** na **Mesa do Analista Judiciário**, aba **Análise de
 Juntadas**, em quatro linhas novas no fim do quadro **Para Realizar**:
 **Feitos sem infração penal:**, **Reavaliação da prisão provisória a cada
-90 dias (Art. 316, CPP):**, **Prescrições vencidas:** e **Bens sem
-registro no SNGB:**. Com o **Visual novo da Mesa** ligado, elas ficam no
+90 dias (Art. 316, CPP):**, **Prescrições vencidas:** e **Processos
+com apreensões sem registro no SNGB:**. Com o **Visual novo da Mesa** ligado, elas ficam no
 quadro **Da Mesa do Escrivão Criminal**.
 
 **Passo a passo:**
@@ -2925,15 +2925,18 @@ quadro **Da Mesa do Escrivão Criminal**.
    registro(s) encontrado(s)" da lista que abre). Nas **Prescrições
    vencidas**, é o número que aparece depois de clicar em **Vencidas**,
    marcar **Somente sem sentença anotada** e **Agrupar por processo** e
-   clicar em **Pesquisar**. Nos **Bens sem registro no SNGB**, é o
-   número de bens listados no relatório **Processos com apreensões sem
+   clicar em **Pesquisar**. Em **Processos com apreensões sem
+   registro no SNGB**, é o número de bens listados no relatório **Processos com apreensões sem
    registro no SNGB** (a extensão o gera como **Arquivo CSV**, sem
    mostrá-lo, e conta as linhas).
 3. Clique num número para abrir a lista correspondente. Com **Ctrl**
    apertado, ela abre em outra aba. Nas **Prescrições vencidas**, a tela
    **Prescrições de processos ativos** já abre pesquisada, com as duas
-   caixas marcadas. Nos **Bens sem registro no SNGB**, o relatório abre
-   sempre em outra aba, no formato **Html**.
+   caixas marcadas. Em **Processos com apreensões sem registro no SNGB**,
+   abre a tela do relatório (a mesma de **Relatórios/Estatísticas** →
+   **Relatórios Dinâmicos** → **Processos com apreensões sem registro no
+   SNGB**): escolha o **Formato de exportação** e clique em **Gerar
+   Relatório**.
 
 **Bom saber:**
 
@@ -2948,7 +2951,7 @@ quadro **Da Mesa do Escrivão Criminal**.
 - As **Prescrições vencidas** podem levar alguns segundos a mais para
   aparecer: a extensão abre a aba **Mesa do Escrivão Criminal** sem
   mostrá-la, clica em **Vencidas** e faz a pesquisa, como você faria.
-- Os **Bens sem registro no SNGB** também levam alguns segundos: a
+- **Processos com apreensões sem registro no SNGB** também leva alguns segundos: a
   extensão abre a **Lista de Relatórios**, escolhe o relatório e o gera,
   como você faria em **Relatórios/Estatísticas** → **Relatórios
   Dinâmicos**. Se o relatório não estiver na sua Lista de Relatórios,
@@ -3550,7 +3553,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 32 | 13/11/2026 | Seção 9.15 **Totais da Mesa do Escrivão Criminal na Análise de Juntadas**: nova linha **Bens sem registro no SNGB**, com o total de bens do relatório **Processos com apreensões sem registro no SNGB** (Relatórios/Estatísticas → Relatórios Dinâmicos), gerado pela extensão como Arquivo CSV; clicar no número abre o relatório em Html em outra aba. Cada linha só aparece quando o total é maior que zero. Os quatro totais passam a ser contados de novo toda vez que a aba Análise de Juntadas é aberta ou atualizada (antes ficavam guardados por 5 minutos). Vídeo V72 regravado (não citado no manual). |
+| 32 | 13/11/2026 | Seção 9.15 **Totais da Mesa do Escrivão Criminal na Análise de Juntadas**: nova linha **Processos com apreensões sem registro no SNGB**, com o total de bens do relatório de mesmo nome (Relatórios/Estatísticas → Relatórios Dinâmicos), gerado pela extensão como Arquivo CSV; clicar no número abre a tela do relatório, para escolher o formato e gerá-lo. Cada linha só aparece quando o total é maior que zero. Os quatro totais passam a ser contados de novo toda vez que a aba Análise de Juntadas é aberta ou atualizada (antes ficavam guardados por 5 minutos). Vídeo V72 regravado (não citado no manual). |
 | 31 | 12/11/2026 | Corrigido (9.17): o clique no **total** do card (ou no nome do juiz, num tipo ou numa etiqueta) às vezes não filtrava a lista, quando o quadro era atualizado no meio do clique (por exemplo, enquanto as outras páginas da lista ainda chegavam). Agora o filtro age já ao apertar o botão do mouse. Ao passar o mouse, o total fica sublinhado, para mostrar que é clicável. Passo 2 ajustado. Sem vídeo novo (o que aparece na tela não mudou). |
 | 30 | 12/11/2026 | Corrigido (seção 9.18, Totais de juntadas por tipo): o clique no card passa a valer sobre a linha **Situação** — marca **Todos** e lista sempre todas as juntadas do tipo, o mesmo número do card, mesmo com **Urgente** ou **Conclusos** marcado ou depois de abrir as juntadas urgentes pela Mesa. Corrigida também a leitura do tipo quando o Projudi mostra uma descrição abaixo dele na coluna **Tipo de Documento**. |
 | 29 | 12/11/2026 | Conclusões por juiz (9.17): as etiquetas de tipo do alto do quadro (ex.: **SENTENÇA · 60**, **DECISÃO · 50**) também filtram: clicar numa mostra na tabela todas as conclusões daquele tipo, de todos os juízes; clicar de novo ou em Mostrar todas volta a lista inteira. Novo passo 4 (os seguintes foram renumerados). Vídeo V74 regravado (não citado no manual). |

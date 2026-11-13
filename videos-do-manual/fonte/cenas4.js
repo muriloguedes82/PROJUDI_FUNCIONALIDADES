@@ -2010,9 +2010,9 @@ CENAS.V72 = {
 			linha("Autuação da Guia de Execução pendente (Exportação Criminal):", num(33)) +
 			linha("Prestações Pecuniárias em atraso:", num(8)) +
 			"</table></fieldset></div>");
-		await S.titleCard("VÍDEO V72", "Totais da Mesa do Escrivão Criminal", "Feitos sem infração penal, Reavaliação da prisão provisória, Prescrições vencidas e Bens sem registro no SNGB aparecem na Análise de Juntadas.");
+		await S.titleCard("VÍDEO V72", "Totais da Mesa do Escrivão Criminal", "Feitos sem infração penal, Reavaliação da prisão provisória, Prescrições vencidas e Processos com apreensões sem registro no SNGB aparecem na Análise de Juntadas.");
 		await S.cap("Na <b>Mesa do Escrivão Criminal</b>, os quadros <b>Feitos sem infração penal</b>, <b>Reavaliação da prisão provisória</b> e <b>Prescrições</b> não mostram o total: é preciso clicar neles.", { ms: 5000 });
-		$("#realizar").insertAdjacentHTML("beforeend", linha("Feitos sem infração penal:", '<span id="vsi">…</span>', "lsi") + linha("Reavaliação da prisão provisória a cada 90 dias (Art. 316, CPP):", '<span id="vrp">…</span>', "lrp") + linha("Prescrições vencidas:", '<span id="vpv">…</span>', "lpv") + linha("Bens sem registro no SNGB:", '<span id="vsn">…</span>', "lsn"));
+		$("#realizar").insertAdjacentHTML("beforeend", linha("Feitos sem infração penal:", '<span id="vsi">…</span>', "lsi") + linha("Reavaliação da prisão provisória a cada 90 dias (Art. 316, CPP):", '<span id="vrp">…</span>', "lrp") + linha("Prescrições vencidas:", '<span id="vpv">…</span>', "lpv") + linha("Processos com apreensões sem registro no SNGB:", '<span id="vsn">…</span>', "lsn"));
 		S.hl("#lsi", 3);
 		await S.cap("Na aba <b>Análise de Juntadas</b>, a extensão acrescenta as quatro linhas no fim do quadro <b>Para Realizar</b>.", { ms: 4600 });
 		$("#vsi").outerHTML = num(32, "vsi");
@@ -2022,7 +2022,7 @@ CENAS.V72 = {
 		S.hl("#lpv", 3);
 		await S.cap("Em instantes aparecem os totais. Nas <b>Prescrições vencidas</b>, conta só as <b>sem sentença anotada</b>, <b>agrupadas por processo</b>.", { ms: 4800 });
 		S.hl("#lsn", 3);
-		await S.cap("Os <b>Bens sem registro no SNGB</b> vêm do relatório <b>Processos com apreensões sem registro no SNGB</b> (Relatórios Dinâmicos).", { ms: 4800 });
+		await S.cap("<b>Processos com apreensões sem registro no SNGB</b> conta os bens do relatório de mesmo nome (Relatórios Dinâmicos).", { ms: 4800 });
 		S.hlOff();
 		await S.click("#vsi");
 		browser(["*Projudi - Feitos sem infração penal"], "https://projudi.tjpr.jus.br/projudi/usuario/mesaAnalistaEscrivao.do?actionType=pesquisarProcessosSemInfracaoPenal");

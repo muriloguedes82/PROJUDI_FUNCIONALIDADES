@@ -26,7 +26,7 @@
 //     clica em "Vencidas" — versão 22), e depois envia o formulário
 //     com as duas caixas marcadas. Clicar no número refaz os dois passos, na
 //     própria página.
-//   - "Bens sem registro no SNGB" (versão 32) → relatório "Processos com
+//   - "Processos com apreensões sem registro no SNGB" (versão 32) → relatório "Processos com
 //     apreensões sem registro no SNGB" de Relatórios/Estatísticas >
 //     Relatórios Dinâmicos (administracao/relatorio.do). A extensão abre a
 //     Lista de Relatórios, abre o link do relatório (o _tj codificado do
@@ -35,7 +35,10 @@
 //     texto simples, uma linha por bem, sem paginação nem layout de
 //     impressão, o formato mais fácil de contar. O total é o número de
 //     linhas de dados (sem a linha de títulos das colunas). Clicar no número
-//     abre o relatório em Html numa aba nova.
+//     leva à tela "Processos com apreensões sem registro no SNGB" (o link do
+//     relatório na Lista de Relatórios), onde a pessoa escolhe o formato e
+//     clica em "Gerar Relatório". (Gerar o relatório direto em Html, por um
+//     formulário montado pela extensão, dava "Erro geral" no Projudi.)
 //
 // Os dois primeiros totais são obtidos em segundo plano, tentando, nesta ordem, até um
 // trazer a lista certa (conferida pelo formulário ou pelo título):
@@ -95,11 +98,9 @@
 		},
 		{
 			id: "bensSemSngb",
-			rotulo: "Bens sem registro no SNGB:",
-			dica: "Bens apreendidos sem registro no SNGB (relatório \"Processos com apreensões sem registro no SNGB\" dos Relatórios Dinâmicos)",
+			rotulo: "Processos com apreensões sem registro no SNGB:",
+			dica: "Bens apreendidos sem registro no SNGB (relatório \"Processos com apreensões sem registro no SNGB\" dos Relatórios Dinâmicos); clique para abrir a tela do relatório e gerá-lo",
 			contar: contarSngb,
-			abrir: abrirSngb,
-			sempreNovaAba: true,
 		},
 	];
 
@@ -446,7 +447,7 @@
 		form.remove();
 	}
 
-	// ---- Bens sem registro no SNGB (versão 32) -------------------------------
+	// ---- Processos com apreensões sem registro no SNGB (versão 32)---------------------------
 	//
 	// Relatórios/Estatísticas > Relatórios Dinâmicos > "Processos com
 	// apreensões sem registro no SNGB" > Formato de exportação "Arquivo CSV"
@@ -574,26 +575,6 @@
 		return { total, href: envio.link };
 	}
 
-	// Clique no número: gera o relatório em Html numa aba nova.
-	async function abrirSngb(alvo) {
-		const envio = await prepararSngb();
-		const form = document.createElement("form");
-		form.method = "post";
-		form.action = envio.acao;
-		form.target = alvo || "_blank";
-		form.style.display = "none";
-		camposComFormato(envio, "HTML").forEach(([nome, valor]) => {
-			const input = document.createElement("input");
-			input.type = "hidden";
-			input.name = nome;
-			input.value = valor;
-			form.appendChild(input);
-		});
-		document.body.appendChild(form);
-		form.submit();
-		form.remove();
-	}
-
 	// -----------------------------------------------------------------------
 
 	// Célula do total na linha do item (criada no fim do quadro "Para
@@ -657,7 +638,7 @@
 		if (item.abrir) {
 			link.addEventListener("click", (ev) => {
 				ev.preventDefault();
-				const alvo = item.sempreNovaAba || ev.ctrlKey || ev.metaKey || ev.shiftKey ? "_blank" : "";
+				const alvo = ev.ctrlKey || ev.metaKey || ev.shiftKey ? "_blank" : "";
 				// Janela aberta já no clique (senão o navegador a bloqueia).
 				const nome = alvo ? "pdpTotalEscrivao" + Date.now() : "";
 				if (nome) window.open("about:blank", nome);
