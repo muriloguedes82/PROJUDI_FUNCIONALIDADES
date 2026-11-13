@@ -277,7 +277,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "totaisMesaEscrivao",
 					nome: "Totais da Mesa do Escrivão Criminal na Análise de Juntadas",
-					descricao: "Na aba Análise de Juntadas da Mesa, no quadro \"Para Realizar\", mostra o total de \"Feitos sem infração penal\", de \"Reavaliação da prisão provisória a cada 90 dias (Art. 316, CPP)\" e de \"Prescrições vencidas\" (somente sem sentença anotada, agrupadas por processo) (quadros da aba Mesa do Escrivão Criminal, que não mostram número); clicar num número abre a lista. Só nas varas que têm a aba Mesa do Escrivão Criminal.",
+					descricao: "Na aba Análise de Juntadas da Mesa, no quadro \"Para Realizar\", mostra o total de \"Feitos sem infração penal\", de \"Reavaliação da prisão provisória a cada 90 dias (Art. 316, CPP)\" e de \"Prescrições vencidas\" (somente sem sentença anotada, agrupadas por processo) (quadros da aba Mesa do Escrivão Criminal, que não mostram número) e de \"Processos com apreensões sem registro no SNGB\" (bens do relatório de mesmo nome dos Relatórios Dinâmicos); clicar num número abre a lista (no SNGB, a tela do relatório, para gerá-lo). Cada linha só aparece com total maior que zero; os totais são contados de novo toda vez que a aba é aberta ou atualizada. Só nas varas que têm a aba Mesa do Escrivão Criminal.",
 					js: ["src/totaisMesaEscrivao.js"],
 					sistemas: ["projudi"]
 				},

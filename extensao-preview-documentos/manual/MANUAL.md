@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 31 |
-| **Versão da extensão** | 31 |
-| **Data desta versão** | 12/11/2026 |
+| **Versão do manual** | 33 |
+| **Versão da extensão** | 33 |
+| **Data desta versão** | 13/11/2026 |
 | **Edição** | Chrome Web Store (instalada e atualizada pela loja) |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -2865,39 +2865,64 @@ e o total):
   prisões provisórias que precisam ser reavaliadas;
 - **Prescrições** → **Vencidas** — processos ativos com prescrição
   vencida, contados como na tela **Prescrições de processos ativos** com
-  **Somente sem sentença anotada** e **Agrupar por processo** marcados.
+  **Somente sem sentença anotada** e **Agrupar por processo** marcados;
+- **Processos com apreensões sem registro no SNGB** — bens apreendidos ainda não registrados
+  no SNGB, contados no relatório **Processos com apreensões sem registro
+  no SNGB** (menu **Relatórios/Estatísticas** → **Relatórios
+  Dinâmicos**), que também não mostra número sem ser gerado.
 
 **Onde fica:** na **Mesa do Analista Judiciário**, aba **Análise de
-Juntadas**, em três linhas novas no fim do quadro **Para Realizar**:
+Juntadas**, em quatro linhas novas no fim do quadro **Para Realizar**:
 **Feitos sem infração penal:**, **Reavaliação da prisão provisória a cada
-90 dias (Art. 316, CPP):** e **Prescrições vencidas:**.
+90 dias (Art. 316, CPP):**, **Prescrições vencidas:** e **Processos
+com apreensões sem registro no SNGB:**. Com o **Visual novo da Mesa** ligado, elas ficam no
+quadro **Da Mesa do Escrivão Criminal**.
 
 **Passo a passo:**
 
-1. Abra a aba **Análise de Juntadas**. No fim do quadro **Para Realizar**
-   aparecem as três linhas, com **…** enquanto a extensão faz a contagem.
-2. Em instantes, no lugar das reticências, aparece cada total, como os
-   demais números do quadro. É o mesmo número que você veria clicando no
+1. Abra a aba **Análise de Juntadas**. A extensão faz a contagem sem
+   mostrar nada.
+2. Em instantes, no fim do quadro **Para Realizar**, aparecem as linhas
+   com total maior que zero, cada uma com o seu número, como os demais
+   números do quadro. É o mesmo número que você veria clicando no
    quadro correspondente da aba **Mesa do Escrivão Criminal** (o "N
    registro(s) encontrado(s)" da lista que abre). Nas **Prescrições
    vencidas**, é o número que aparece depois de clicar em **Vencidas**,
    marcar **Somente sem sentença anotada** e **Agrupar por processo** e
-   clicar em **Pesquisar**.
+   clicar em **Pesquisar**. Em **Processos com apreensões sem
+   registro no SNGB**, é o número de bens listados no relatório **Processos com apreensões sem
+   registro no SNGB** (a extensão o gera como **Arquivo CSV**, sem
+   mostrá-lo, e conta as linhas).
 3. Clique num número para abrir a lista correspondente. Com **Ctrl**
-   apertado, ela abre em outra aba. Nas **Prescrições vencidas**, a tela
-   **Prescrições de processos ativos** já abre pesquisada, com as duas
-   caixas marcadas.
+   apertado (ou com o botão do meio do mouse), ela abre em outra aba. Nas
+   **Prescrições vencidas**, a tela **Prescrições de processos ativos**
+   já abre pesquisada, com **Somente sem sentença anotada** e **Agrupar
+   por processo** marcados, mostrando o mesmo total do quadro — também
+   quando abre em outra aba (nesse caso a tela aparece por um instante
+   sem as caixas marcadas e logo é pesquisada de novo). Em **Processos com apreensões sem registro no SNGB**,
+   abre a tela do relatório (a mesma de **Relatórios/Estatísticas** →
+   **Relatórios Dinâmicos** → **Processos com apreensões sem registro no
+   SNGB**): escolha o **Formato de exportação** e clique em **Gerar
+   Relatório**.
 
 **Bom saber:**
 
-- Se um total for **zero** e **Ocultar contadores zerados** estiver
-  ligado, a linha some, como as demais linhas zeradas da Mesa.
-- Para não repetir a contagem a cada volta à aba, os totais ficam
-  guardados por **5 minutos** naquela aba. Depois disso (ou numa aba
-  nova), a extensão conta de novo.
+- Cada linha só aparece quando o total é **maior que zero**: com zero
+  ela fica escondida (mesmo com **Ocultar contadores zerados**
+  desligado). Enquanto a contagem não termina, a linha também fica
+  escondida. Se nenhuma das quatro tiver número, o quadro **Da Mesa do
+  Escrivão Criminal** fica sem linhas.
+- Os totais são contados de novo **toda vez** que a aba **Análise de
+  Juntadas** é aberta ou atualizada (inclusive ao voltar a ela pelo botão
+  Voltar do navegador), para mostrar sempre o número do momento.
 - As **Prescrições vencidas** podem levar alguns segundos a mais para
   aparecer: a extensão abre a aba **Mesa do Escrivão Criminal** sem
   mostrá-la, clica em **Vencidas** e faz a pesquisa, como você faria.
+- **Processos com apreensões sem registro no SNGB** também leva alguns segundos: a
+  extensão abre a **Lista de Relatórios**, escolhe o relatório e o gera,
+  como você faria em **Relatórios/Estatísticas** → **Relatórios
+  Dinâmicos**. Se o relatório não estiver na sua Lista de Relatórios,
+  aparece **não disponível**.
 - Se o Projudi não responder, aparece **não disponível** no lugar do
   número; basta voltar à aba mais tarde.
 - Para ligar ou desligar, use **Totais da Mesa do Escrivão Criminal na
@@ -3495,6 +3520,9 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 33 (edição Chrome Web Store) | 13/11/2026 | Edição para a Chrome Web Store, igual à versão 33, com as mesmas diferenças da edição 20: instalação pela loja (2.1) e atualização automática pela loja, sem o aviso de versão nova nem o download do GitHub (2.3), capa com a linha **Edição** e nada do SEEU (sem o card **SEEU** ao lado da balança). Sem vídeo novo. |
+| 33 | 13/11/2026 | Corrigido (seção 9.15): clicar no número das **Prescrições vencidas** abrindo em outra aba (Ctrl+clique ou botão do meio do mouse) mostrava a tela **Prescrições de processos ativos** sem as caixas marcadas, com um total diferente do quadro. Agora essa tela já vem com **Somente sem sentença anotada** e **Agrupar por processo** marcados e pesquisada, com o mesmo total do quadro. Passo 3 ajustado. Sem vídeo novo. |
+| 32 | 13/11/2026 | Seção 9.15 **Totais da Mesa do Escrivão Criminal na Análise de Juntadas**: nova linha **Processos com apreensões sem registro no SNGB**, com o total de bens do relatório de mesmo nome (Relatórios/Estatísticas → Relatórios Dinâmicos), gerado pela extensão como Arquivo CSV; clicar no número abre a tela do relatório, para escolher o formato e gerá-lo. Cada linha só aparece quando o total é maior que zero. Os quatro totais passam a ser contados de novo toda vez que a aba Análise de Juntadas é aberta ou atualizada (antes ficavam guardados por 5 minutos). Vídeo V72 regravado (não citado no manual). |
 | 31 (edição Chrome Web Store) | 12/11/2026 | Edição para a Chrome Web Store, igual à versão 31, com as mesmas diferenças da edição 20: instalação pela loja (2.1) e atualização automática pela loja, sem o aviso de versão nova nem o download do GitHub (2.3), capa com a linha **Edição** e nada do SEEU (sem o card **SEEU** ao lado da balança). Sem vídeo novo. |
 | 31 | 12/11/2026 | Corrigido (9.17): o clique no **total** do card (ou no nome do juiz, num tipo ou numa etiqueta) às vezes não filtrava a lista, quando o quadro era atualizado no meio do clique (por exemplo, enquanto as outras páginas da lista ainda chegavam). Agora o filtro age já ao apertar o botão do mouse. Ao passar o mouse, o total fica sublinhado, para mostrar que é clicável. Passo 2 ajustado. Sem vídeo novo (o que aparece na tela não mudou). |
 | 30 | 12/11/2026 | Corrigido (seção 9.18, Totais de juntadas por tipo): o clique no card passa a valer sobre a linha **Situação** — marca **Todos** e lista sempre todas as juntadas do tipo, o mesmo número do card, mesmo com **Urgente** ou **Conclusos** marcado ou depois de abrir as juntadas urgentes pela Mesa. Corrigida também a leitura do tipo quando o Projudi mostra uma descrição abaixo dele na coluna **Tipo de Documento**. |

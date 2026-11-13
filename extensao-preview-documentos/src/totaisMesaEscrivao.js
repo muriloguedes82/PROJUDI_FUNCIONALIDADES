@@ -26,6 +26,19 @@
 //     clica em "Vencidas" — versão 22), e depois envia o formulário
 //     com as duas caixas marcadas. Clicar no número refaz os dois passos, na
 //     própria página.
+//   - "Processos com apreensões sem registro no SNGB" (versão 32) → relatório "Processos com
+//     apreensões sem registro no SNGB" de Relatórios/Estatísticas >
+//     Relatórios Dinâmicos (administracao/relatorio.do). A extensão abre a
+//     Lista de Relatórios, abre o link do relatório (o _tj codificado do
+//     link escolhe o relatório na sessão do Projudi) e envia o formulário
+//     (actionType=gerarRelatorio) com "Formato de exportação" = Arquivo CSV:
+//     texto simples, uma linha por bem, sem paginação nem layout de
+//     impressão, o formato mais fácil de contar. O total é o número de
+//     linhas de dados (sem a linha de títulos das colunas). Clicar no número
+//     leva à tela "Processos com apreensões sem registro no SNGB" (o link do
+//     relatório na Lista de Relatórios), onde a pessoa escolhe o formato e
+//     clica em "Gerar Relatório". (Gerar o relatório direto em Html, por um
+//     formulário montado pela extensão, dava "Erro geral" no Projudi.)
 //
 // Os dois primeiros totais são obtidos em segundo plano, tentando, nesta ordem, até um
 // trazer a lista certa (conferida pelo formulário ou pelo título):
@@ -36,22 +49,85 @@
 //      os scripts) da aba "Mesa do Escrivão Criminal".
 // Clicar no número abre a mesma lista (Ctrl+clique abre em outra aba).
 //
-// Só aparece quando a Mesa tem a aba "Mesa do Escrivão Criminal". Com total
-// zero a linha fica como as demais: some se "Ocultar contadores zerados"
-// estiver ligado (mesaAnalistaContadores.js). Para não refazer as pesquisas a
-// cada volta à aba, os totais ficam guardados por alguns minutos
-// (sessionStorage da aba).
+// Só aparece quando a Mesa tem a aba "Mesa do Escrivão Criminal". Cada linha
+// só aparece quando o total é maior que zero (versão 32, pedido do usuário),
+// mesmo com "Ocultar contadores zerados" desligado. Os totais NÃO são guardados:
+// são contados de novo toda vez que a aba é carregada ou atualizada (versão
+// 32, ver atualizar()).
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
 	if (window.__pdpTotaisMesaEscrivao) return;
 	window.__pdpTotaisMesaEscrivao = true;
 
-	if (!/^\/projudi\/usuario\/mesaAnalista\.do$/.test(location.pathname)) return;
-
 	const TAG = "[Projudi Totais Mesa do Escrivão]";
-	const CACHE = "pdpTotaisMesaEscrivao";
-	const VALIDADE_MS = 5 * 60 * 1000;
+
+	// ---- Aba aberta pelo número das Prescrições vencidas (versão 33) -------
+	//
+	// O link do número leva ao endereço do "Vencidas" com a marca
+	// #pdpPrescricoesVencidas (o "#..." não vai ao Projudi). Quando a página
+	// abre por esse endereço — clique com o botão do meio, Ctrl+clique, "Abrir
+	// link em nova aba" ou se o envio da pesquisa pela extensão falhar —, a
+	// tela "Prescrições de processos ativos" vem sem nenhuma caixa marcada
+	// (todas as prescrições vencidas). Aqui a extensão marca "Somente sem
+	// sentença anotada" e "Agrupar por processo" e clica em "Pesquisar", para
+	// a lista bater com o total do quadro. Se o endereço for o da aba "Mesa do
+	// Escrivão Criminal" (quando o "Vencidas" não tem endereço próprio), clica
+	// antes em "Vencidas" e guarda a marca na aba até a tela de Prescrições.
+	const MARCA_PRESCRICOES = "pdpPrescricoesVencidas";
+
+	function marcaNaAba(ler) {
+		try {
+			if (!ler) return sessionStorage.setItem(MARCA_PRESCRICOES, String(Date.now()));
+			const t = Number(sessionStorage.getItem(MARCA_PRESCRICOES));
+			sessionStorage.removeItem(MARCA_PRESCRICOES);
+			return t && Date.now() - t < 60000;
+		} catch (e) {
+			return false;
+		}
+	}
+
+	function tirarMarcaDoEndereco() {
+		try {
+			history.replaceState(history.state, "", location.pathname + location.search);
+		} catch (e) {}
+	}
+
+	function pesquisarPrescricoesMarcadas() {
+		const veioPeloNumero = location.hash === "#" + MARCA_PRESCRICOES;
+		if (!veioPeloNumero && !(window === window.top && /\/usuario\/mesaAnalistaEscrivao\.do$/.test(location.pathname) && marcaNaAba(true))) return;
+		if (veioPeloNumero) tirarMarcaDoEndereco();
+		const form = document.querySelector("form[action*='pesquisarPrescricoes']");
+		if (!form) {
+			// Ainda na aba "Mesa do Escrivão Criminal": clica em "Vencidas".
+			if (!veioPeloNumero) return;
+			const esperar = Date.now() + 10000;
+			const tentar = () => {
+				const a = acharLinkVencidas(document);
+				if (a) {
+					marcaNaAba(false);
+					a.click();
+				} else if (Date.now() < esperar) setTimeout(tentar, 300);
+				else console.log(TAG, "prescricoesVencidas: link \"Vencidas\" não encontrado nesta aba");
+			};
+			tentar();
+			return;
+		}
+		for (const nome of ["semSentencaAnotada", "agruparPorProcesso"]) {
+			const caixa = form.querySelector("input[type='checkbox'][name='" + nome + "']");
+			if (caixa) caixa.checked = true;
+		}
+		const botao = form.querySelector("#searchButton, input[type='submit'][value='Pesquisar']");
+		if (botao) botao.click();
+		else form.submit();
+	}
+
+	if (/^\/projudi\/usuario\/mesaAnalista(Escrivao)?\.do$/.test(location.pathname)) {
+		if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", pesquisarPrescricoesMarcadas, { once: true });
+		else pesquisarPrescricoesMarcadas();
+	}
+
+	if (!/^\/projudi\/usuario\/mesaAnalista\.do$/.test(location.pathname)) return;
 	const LINHA_ATTR = "data-pdp-total-escrivao";
 	const RAIZ = location.origin + "/projudi/";
 
@@ -85,6 +161,12 @@
 			contar: contarPrescricoes,
 			abrir: abrirPrescricoes,
 		},
+		{
+			id: "bensSemSngb",
+			rotulo: "Processos com apreensões sem registro no SNGB:",
+			dica: "Bens apreendidos sem registro no SNGB (relatório \"Processos com apreensões sem registro no SNGB\" dos Relatórios Dinâmicos); clique para abrir a tela do relatório e gerá-lo",
+			contar: contarSngb,
+		},
 	];
 
 	function normalizar(texto) {
@@ -117,7 +199,7 @@
 	}
 
 	async function baixarDocumento(url) {
-		const resposta = await fetch(url, { credentials: "same-origin" });
+		const resposta = await fetch(url, { credentials: "same-origin", cache: "no-store" });
 		if (!resposta.ok) throw new Error("HTTP " + resposta.status);
 		const bytes = new Uint8Array(await resposta.arrayBuffer());
 		const tipo = resposta.headers.get("content-type") || "";
@@ -398,6 +480,7 @@
 		const resposta = await fetch(envio.acao, {
 			method: "POST",
 			credentials: "same-origin",
+			cache: "no-store",
 			headers: { "Content-Type": "application/x-www-form-urlencoded" },
 			body: corpo.toString(),
 		});
@@ -429,31 +512,142 @@
 		form.remove();
 	}
 
+	// ---- Processos com apreensões sem registro no SNGB (versão 32)---------------------------
+	//
+	// Relatórios/Estatísticas > Relatórios Dinâmicos > "Processos com
+	// apreensões sem registro no SNGB" > Formato de exportação "Arquivo CSV"
+	// > Gerar Relatório. O link do menu "Relatórios Dinâmicos" usa o mesmo
+	// _tj genérico de "Último Acesso".
+
+	const RELATORIO_SNGB = /apreens\S*es\s+sem\s+registro\s+no\s+SNGB/i;
+
+	// Endereço da Lista de Relatórios: o link do menu (na moldura de cima,
+	// quando acessível) ou relatorio.do com o _tj genérico.
+	function enderecosListaRelatorios() {
+		const achados = [];
+		const docs = [document];
+		try {
+			if (window.top && window.top !== window && window.top.document) docs.push(window.top.document);
+		} catch (e) {}
+		for (const d of docs) {
+			for (const a of d.querySelectorAll("a[href*='administracao/relatorio.do']")) {
+				if (/Relat[oó]rios Din[aâ]micos/i.test(normalizar(a.textContent))) achados.push(new URL(a.getAttribute("href"), d.URL).href);
+			}
+		}
+		const tj = tjGenerico();
+		if (tj) achados.push(RAIZ + "administracao/relatorio.do?_tj=" + tj);
+		achados.push(RAIZ + "administracao/relatorio.do");
+		return Array.from(new Set(achados));
+	}
+
+	// Abre a Lista de Relatórios e depois o relatório do SNGB (o que deixa a
+	// sessão do Projudi nele). Devolve o formulário "Gerar Relatório".
+	async function prepararSngb() {
+		let linkRelatorio = null;
+		for (const href of enderecosListaRelatorios()) {
+			try {
+				const { doc } = await baixarDocumento(href);
+				const a = Array.from(doc.querySelectorAll("a[href]")).find((x) => RELATORIO_SNGB.test(normalizar(x.textContent)));
+				if (a) {
+					linkRelatorio = new URL(a.getAttribute("href").replace(/&amp;/g, "&"), href).href;
+					break;
+				}
+				console.log(TAG, "bensSemSngb: " + href + " não trouxe o relatório na Lista de Relatórios");
+			} catch (erro) {
+				console.log(TAG, "bensSemSngb: " + href + " falhou (" + erro.message + ")");
+			}
+		}
+		if (!linkRelatorio) throw new Error("relatório \"Processos com apreensões sem registro no SNGB\" não encontrado na Lista de Relatórios");
+		const { doc } = await baixarDocumento(linkRelatorio);
+		const form = doc.querySelector("form[action*='gerarRelatorio']") || doc.getElementById("relatorioForm");
+		if (!form) throw new Error("o link do relatório não abriu a tela \"Gerar Relatório\"");
+		return { link: linkRelatorio, acao: new URL(form.getAttribute("action"), linkRelatorio).href, campos: camposDoFormulario(form) };
+	}
+
+	function camposComFormato(envio, formato) {
+		return envio.campos.filter(([nome]) => nome !== "tipoExportacao").concat([["tipoExportacao", formato]]);
+	}
+
+	// Linhas do CSV (respeitando aspas e quebras de linha dentro delas).
+	function lerCsv(texto) {
+		texto = texto.replace(/^\uFEFF/, "");
+		const primeira = texto.split(/\r?\n/).find((l) => l.trim()) || "";
+		const contar = (c) => primeira.split(c).length;
+		const sep = [";", ",", "\t"].sort((a, b) => contar(b) - contar(a))[0];
+		const linhas = [];
+		let linha = [], campo = "", aspas = false;
+		for (let i = 0; i < texto.length; i++) {
+			const c = texto[i];
+			if (aspas) {
+				if (c === '"' && texto[i + 1] === '"') { campo += '"'; i++; }
+				else if (c === '"') aspas = false;
+				else campo += c;
+			} else if (c === '"') aspas = true;
+			else if (c === sep) { linha.push(campo); campo = ""; }
+			else if (c === "\n" || c === "\r") {
+				if (c === "\r" && texto[i + 1] === "\n") i++;
+				linha.push(campo); linhas.push(linha); linha = []; campo = "";
+			} else campo += c;
+		}
+		linha.push(campo);
+		linhas.push(linha);
+		return linhas.map((l) => l.map((x) => normalizar(x))).filter((l) => l.some((x) => x));
+	}
+
+	// Número de bens: linhas de dados do CSV, sem a linha de títulos das
+	// colunas (e suas repetições) e sem linhas de título ou de total.
+	function contarLinhasCsv(texto) {
+		const linhas = lerCsv(texto);
+		const preenchidas = (l) => l.filter((x) => x).length;
+		let i = linhas.findIndex((l) => preenchidas(l) >= 2 && l.some((x) => /processo|apreens|bem|bens/i.test(x) && x.length < 60 && !/\d{7}-\d{2}/.test(x)));
+		if (i < 0) i = linhas.findIndex((l) => preenchidas(l) >= 2);
+		if (i < 0) return { total: 0, cabecalho: [] };
+		const cabecalho = linhas[i];
+		const igual = (l) => l.join("|") === cabecalho.join("|");
+		const dados = linhas.slice(i + 1).filter((l) => !igual(l) && preenchidas(l) >= 1 && !/^total/i.test(l.find((x) => x) || ""));
+		return { total: dados.length, cabecalho };
+	}
+
+	async function contarSngb() {
+		const envio = await prepararSngb();
+		const corpo = new URLSearchParams();
+		camposComFormato(envio, "CSV").forEach(([nome, valor]) => corpo.append(nome, valor));
+		const resposta = await fetch(envio.acao, {
+			method: "POST",
+			credentials: "same-origin",
+			cache: "no-store",
+			headers: { "Content-Type": "application/x-www-form-urlencoded" },
+			body: corpo.toString(),
+		});
+		if (!resposta.ok) throw new Error("HTTP " + resposta.status);
+		const bytes = new Uint8Array(await resposta.arrayBuffer());
+		let texto;
+		try {
+			texto = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+		} catch (e) {
+			texto = new TextDecoder("windows-1252").decode(bytes);
+		}
+		const tipo = resposta.headers.get("content-type") || "";
+		if (/html/i.test(tipo) || /^\s*(<!DOCTYPE|<html)/i.test(texto)) {
+			// O Projudi devolveu uma página (sem arquivo): "nenhum registro" ou erro.
+			const doc = new DOMParser().parseFromString(texto, "text/html");
+			const msg = normalizar(doc.body ? doc.body.textContent : "");
+			if (/nenhum\s+(registro|resultado|dado)|n[aã]o\s+(h[aá]|foram\s+encontrad)/i.test(msg)) return { total: 0, href: envio.link };
+			throw new Error("o relatório não veio em CSV (" + msg.slice(0, 150) + ")");
+		}
+		const { total, cabecalho } = contarLinhasCsv(texto);
+		console.log(TAG, "bensSemSngb: colunas do CSV:", cabecalho.join(" | "));
+		return { total, href: envio.link };
+	}
+
 	// -----------------------------------------------------------------------
 
-	function lerTodoCache() {
-		try {
-			const c = JSON.parse(sessionStorage.getItem(CACHE) || "null");
-			return c && typeof c === "object" ? c : {};
-		} catch (e) {
-			return {};
-		}
-	}
-
-	function lerCache(id) {
-		const c = lerTodoCache()[id];
-		return c && Date.now() - c.quando < VALIDADE_MS && Number.isFinite(c.total) ? c : null;
-	}
-
-	function gravarCache(id, dados) {
-		try {
-			const todos = lerTodoCache();
-			todos[id] = Object.assign({ quando: Date.now() }, dados);
-			sessionStorage.setItem(CACHE, JSON.stringify(todos));
-		} catch (e) {}
-	}
-
-	function criarLinha(tabela, item) {
+	// Célula do total na linha do item (criada no fim do quadro "Para
+	// Realizar" na primeira vez; depois reaproveitada, mesmo se o visual novo
+	// da Mesa a levou para o quadro "Da Mesa do Escrivão Criminal").
+	function celulaDoTotal(tabela, item) {
+		const existente = document.querySelector("tr[" + LINHA_ATTR + "='" + item.id + "']");
+		if (existente && existente.cells.length) return existente.cells[existente.cells.length - 1];
 		const corpo = tabela.tBodies[0] || tabela;
 		const tr = document.createElement("tr");
 		tr.setAttribute(LINHA_ATTR, item.id);
@@ -466,18 +660,48 @@
 		label.title = item.dica;
 		tdRotulo.appendChild(label);
 		const tdValor = document.createElement("td");
+		tr.append(tdRotulo, tdValor);
+		corpo.appendChild(tr);
+		return tdValor;
+	}
+
+	// Cada linha só aparece com total maior que zero (versão 32, pedido do
+	// usuário); também fica escondida enquanto conta, para não aparecer e
+	// sumir em seguida. "não disponível" aparece, para avisar do erro.
+	function mostrarLinha(celula, visivel) {
+		const tr = celula && celula.closest("tr");
+		if (!tr) return;
+		if (visivel) tr.style.removeProperty("display");
+		else tr.style.setProperty("display", "none", "important");
+	}
+
+	function mostrarEspera(celula) {
 		const espera = document.createElement("span");
 		espera.textContent = "…";
 		espera.title = "Contando…";
-		tdValor.appendChild(espera);
-		tr.append(tdRotulo, tdValor);
-		corpo.appendChild(tr);
-		return espera;
+		celula.replaceChildren(espera);
+		mostrarLinha(celula, false);
 	}
 
-	function mostrarTotal(espera, item, dados) {
+	function naoDisponivel(celula) {
+		const aviso = document.createElement("span");
+		aviso.textContent = "não disponível";
+		aviso.title = "Não foi possível abrir a lista agora.";
+		celula.replaceChildren(aviso);
+		mostrarLinha(celula, true);
+	}
+
+	// Endereço do número das Prescrições vencidas, com a marca que faz a
+	// página aberta marcar as duas caixas e pesquisar (versão 33).
+	function comMarcaPrescricoes(href) {
+		const url = new URL(href, location.href);
+		url.hash = MARCA_PRESCRICOES;
+		return url.href;
+	}
+
+	function mostrarTotal(celula, item, dados) {
 		const link = document.createElement("a");
-		link.href = dados.href;
+		link.href = item.id === "prescricoesVencidas" ? comMarcaPrescricoes(dados.href) : dados.href;
 		link.title = "Abrir a lista (" + item.dica + ")";
 		const span = document.createElement("span");
 		span.className = "contador";
@@ -489,46 +713,82 @@
 				ev.preventDefault();
 				const alvo = ev.ctrlKey || ev.metaKey || ev.shiftKey ? "_blank" : "";
 				// Janela aberta já no clique (senão o navegador a bloqueia).
-				const nome = alvo ? "pdpPrescricoes" + Date.now() : "";
+				const nome = alvo ? "pdpTotalEscrivao" + Date.now() : "";
 				if (nome) window.open("about:blank", nome);
 				item.abrir(nome).catch((erro) => {
 					console.warn(TAG, item.id + ": não foi possível abrir a lista:", erro);
-					location.href = dados.href;
+					if (nome) window.open(link.href, nome);
+					else location.href = link.href;
 				});
 			});
 		}
-		espera.replaceWith(link);
+		celula.replaceChildren(link);
+		mostrarLinha(celula, dados.total > 0);
 	}
 
-	async function iniciar() {
+	function temAbaEscrivao(abas) {
+		return abas.some((a) => /^Mesa do Escriv[aã]o Criminal$/i.test(a.nome));
+	}
+
+	// Os totais são contados de novo toda vez que a aba é carregada ou
+	// atualizada (versão 32, pedido do usuário; antes ficavam guardados por
+	// 5 minutos):
+	//   - ao abrir ou recarregar a aba (o script roda de novo);
+	//   - ao voltar a ela pelo botão Voltar do navegador (pageshow com
+	//     persisted);
+	//   - se o conteúdo da aba for trocado sem recarregar a página (as linhas
+	//     somem e são recriadas pelo observador abaixo).
+	// Só vale a contagem mais recente (rodada).
+	let rodada = 0;
+	async function atualizar() {
 		const abas = nomesDasAbas();
-		if (!abas.some((a) => /^Mesa do Escriv[aã]o Criminal$/i.test(a.nome))) return;
-		if (!naAnaliseDeJuntadas(abas)) return;
-		if (document.querySelector("[" + LINHA_ATTR + "]")) return;
+		if (!temAbaEscrivao(abas) || !naAnaliseDeJuntadas(abas)) return;
 		const tabela = acharTabelaParaRealizar();
-		if (!tabela) {
+		if (!tabela && !ITENS.every((item) => document.querySelector("tr[" + LINHA_ATTR + "='" + item.id + "']"))) {
 			console.log(TAG, "quadro \"Para Realizar\" não encontrado na Análise de Juntadas");
 			return;
 		}
-		const esperas = ITENS.map((item) => criarLinha(tabela, item));
+		const minha = ++rodada;
+		mesaEscrivao = null; // baixa a aba Mesa do Escrivão Criminal de novo
+		const celulas = ITENS.map((item) => celulaDoTotal(tabela, item));
+		celulas.forEach(mostrarEspera);
 		// Uma pesquisa depois da outra, para não embaralhar a sessão do Projudi.
 		for (let i = 0; i < ITENS.length; i++) {
 			const item = ITENS[i];
-			let dados = lerCache(item.id);
-			if (!dados) {
-				try {
-					dados = await (item.contar || contar)(item);
-					gravarCache(item.id, dados);
-				} catch (erro) {
-					console.warn(TAG, item.id + ": não foi possível contar:", erro);
-					esperas[i].textContent = "não disponível";
-					esperas[i].title = "Não foi possível abrir a lista agora.";
-					continue;
-				}
+			try {
+				const dados = await (item.contar || contar)(item);
+				if (minha !== rodada) return;
+				console.log(TAG, item.id + ": total", dados.total);
+				mostrarTotal(celulas[i], item, dados);
+			} catch (erro) {
+				if (minha !== rodada) return;
+				console.warn(TAG, item.id + ": não foi possível contar:", erro);
+				naoDisponivel(celulas[i]);
 			}
-			console.log(TAG, item.id + ": total", dados.total);
-			mostrarTotal(esperas[i], item, dados);
 		}
+	}
+
+	function vigiarConteudo() {
+		let agendado = false;
+		const faltaLinha = () => ITENS.some((item) => !document.querySelector("tr[" + LINHA_ATTR + "='" + item.id + "']"));
+		new MutationObserver(() => {
+			if (agendado || !faltaLinha()) return;
+			const abas = nomesDasAbas();
+			if (!temAbaEscrivao(abas) || !naAnaliseDeJuntadas(abas) || !acharTabelaParaRealizar()) return;
+			agendado = true;
+			setTimeout(() => {
+				agendado = false;
+				if (faltaLinha()) atualizar();
+			}, 300);
+		}).observe(document.body, { childList: true, subtree: true });
+	}
+
+	function iniciar() {
+		atualizar();
+		if (document.body) vigiarConteudo();
+		window.addEventListener("pageshow", (ev) => {
+			if (ev.persisted) atualizar();
+		});
 	}
 
 	if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", iniciar, { once: true });
