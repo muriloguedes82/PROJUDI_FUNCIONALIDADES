@@ -769,9 +769,10 @@ encontrado" em vez de um número errado.
 <a id="cap-4-6"></a>
 ### 4.6 Resumo do processo (painel lateral)
 
-**Para que serve:** ver num só lugar, sem trocar de aba, as principais
-informações do processo: partes, dados das **Informações Adicionais** e os
-eventos mais importantes das **Movimentações**.
+**Para que serve:** ver de forma rápida, sem trocar de aba, o essencial do
+processo: os réus e a situação deles, a data da infração, se há apreensões
+e depósitos, as audiências marcadas e o que juiz, Ministério Público e
+advogados fizeram no processo.
 
 **Onde fica:** na tela do processo, no botão **📋 Resumo**, preso na borda
 direita da tela. *Só no Projudi.*
@@ -781,23 +782,22 @@ direita da tela. *Só no Projudi.*
 1. Clique em **📋 Resumo**. O painel abre do lado direito.
 2. Veja os quadros (clique no título de um quadro para recolher ou abrir;
    a escolha fica guardada):
-   - **Processo**: número, dias em tramitação, classe, assunto e
-     prioridade (em vermelho, ex.: Réu Preso);
-   - **Partes**: cada polo (Autor, Réu, Vítimas, Testemunhas…), com RG,
-     CPF/CNPJ, a situação da parte (ex.: "Réu Preso", "Parte citada nos
-     Autos", "Denúncia Recebida em…") e o advogado — ou "Sem advogado";
-   - **Informações Adicionais**: data da infração, delegacia, número do
-     inquérito, tempo de tramitação e **só o que está cadastrado** no
-     processo (ex.: prisões, denunciados, infrações/penas com a próxima
-     prescrição, comunicações ao IIPR). O que aparece como "Sem…",
-     "Não há…" ou "Nenhum…" fica de fora;
-   - **Movimentações**: o último evento, as decisões e despachos do juiz e
-     os marcos do processo (denúncia, prisão, audiências, sentença,
-     trânsito em julgado, suspensão, arquivamento…). Use **+ N mais** para
-     ver a lista inteira.
-3. Clique no nome de uma parte ou num registro para abri-lo num popup.
-   Clique num evento para abri-lo num popup — ou, se você estiver na aba
-   **Movimentações**, para ir até ele na lista (a linha pisca em amarelo).
+   - **Réus e dados principais**: os réus (ou indiciados, noticiados…) da
+     aba **Partes e Outros**, cada um com as informações que aparecem **em
+     vermelho** na coluna **Observação** (ex.: "Réu Preso (2 meses e 20
+     dias)"); a **Data da infração**; **Apreensões** e **Depósitos**, com
+     **Sim** ou **Não** (dados da aba **Informações Adicionais**);
+   - **Movimentações relevantes**: não repete todas as movimentações. Mostra
+     as **Audiências futuras** (data e hora, em vermelho) e, em separado, os
+     eventos do **Juiz**, do **Ministério Público** e dos **Advogados,
+     defensores e procuradores** (com o nome de quem fez). Ficam de fora
+     os eventos de rotina, como confirmações de leitura, recebimento dos
+     autos e expedições. Use **+ N mais** para ver a lista inteira.
+3. Clique no nome do réu para abrir a ficha dele num popup. Clique em
+   **Sim** ao lado de Apreensões ou Depósitos para abrir a tela
+   correspondente. Clique num evento para abri-lo num popup — ou, se você
+   estiver na aba **Movimentações**, para ir até ele na lista (a linha
+   pisca em amarelo).
 4. Use **↻** para ler as abas de novo e **✕** para fechar o painel.
 
 **Bom saber:**
@@ -805,8 +805,14 @@ direita da tela. *Só no Projudi.*
 - O painel só abre quando você clica em **📋 Resumo**. Aberto, ele continua
   aberto ao trocar de aba ou de processo, até você fechá-lo no **✕**.
 - A leitura das abas leva alguns segundos e não troca a aba que você está
-  vendo. O número no título de cada quadro é a quantidade de partes, de
-  registros cadastrados e de movimentações.
+  vendo.
+- **Apreensões:** a extensão confere a tela **Apreensão/SNGB** e também as
+  movimentações de cadastro de bens apreendidos. Quando a resposta vem só
+  das movimentações, aparece o número do evento, ex.: "Sim (mov. 128)". Se
+  não for possível saber, aparece **Conferir**, que abre a tela.
+- **Audiências futuras:** vale a última movimentação de cada tipo de
+  audiência. Uma audiência designada e depois cancelada ou redesignada não
+  aparece com a data antiga.
 - A barra de botões da extensão (**Ocultar** / **↕ Mover**) pode ficar por
   cima do painel; use **↕ Mover** se ela cobrir algo.
 
@@ -3603,7 +3609,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 34 | 13/11/2026 | Nova seção 4.6 **Resumo do processo (painel lateral)**: botão **📋 Resumo** na borda direita da tela do processo abre um painel com os quadros Processo, Partes, Informações Adicionais (só o que está cadastrado) e Movimentações (último evento, decisões do juiz e marcos do processo). Incluída na tabela da seção 2.6 (grupo Informações do processo). Sem vídeo novo. |
+| 34 | 13/11/2026 | Nova seção 4.6 **Resumo do processo (painel lateral)**: botão **📋 Resumo** na borda direita da tela do processo abre um painel com os quadros **Réus e dados principais** (réus com as informações em vermelho da coluna Observação, data da infração, apreensões e depósitos) e **Movimentações relevantes** (audiências futuras e eventos de juiz, Ministério Público e advogados, defensores e procuradores). Incluída na tabela da seção 2.6 (grupo Informações do processo). Sem vídeo novo. |
 | 33 | 13/11/2026 | Corrigido (seção 9.15): clicar no número das **Prescrições vencidas** abrindo em outra aba (Ctrl+clique ou botão do meio do mouse) mostrava a tela **Prescrições de processos ativos** sem as caixas marcadas, com um total diferente do quadro. Agora essa tela já vem com **Somente sem sentença anotada** e **Agrupar por processo** marcados e pesquisada, com o mesmo total do quadro. Passo 3 ajustado. Sem vídeo novo. |
 | 32 | 13/11/2026 | Seção 9.15 **Totais da Mesa do Escrivão Criminal na Análise de Juntadas**: nova linha **Processos com apreensões sem registro no SNGB**, com o total de bens do relatório de mesmo nome (Relatórios/Estatísticas → Relatórios Dinâmicos), gerado pela extensão como Arquivo CSV; clicar no número abre a tela do relatório, para escolher o formato e gerá-lo. Cada linha só aparece quando o total é maior que zero. Os quatro totais passam a ser contados de novo toda vez que a aba Análise de Juntadas é aberta ou atualizada (antes ficavam guardados por 5 minutos). Vídeo V72 regravado (não citado no manual). |
 | 31 | 12/11/2026 | Corrigido (9.17): o clique no **total** do card (ou no nome do juiz, num tipo ou numa etiqueta) às vezes não filtrava a lista, quando o quadro era atualizado no meio do clique (por exemplo, enquanto as outras páginas da lista ainda chegavam). Agora o filtro age já ao apertar o botão do mouse. Ao passar o mouse, o total fica sublinhado, para mostrar que é clicável. Passo 2 ajustado. Sem vídeo novo (o que aparece na tela não mudou). |

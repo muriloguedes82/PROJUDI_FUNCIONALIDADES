@@ -214,7 +214,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "resumoProcesso",
 					nome: "Resumo do processo (painel lateral)",
-					descricao: "Botão \"📋 Resumo\" na borda direita da tela do processo: painel com partes, informações adicionais e movimentações principais.",
+					descricao: "Botão \"📋 Resumo\" na borda direita da tela do processo: painel com réus, data da infração, apreensões, depósitos e movimentações relevantes.",
 					js: ["src/resumoProcesso.js"],
 					css: ["src/resumoProcesso.css"]
 				},

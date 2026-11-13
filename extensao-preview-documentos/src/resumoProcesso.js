@@ -1,51 +1,51 @@
 // Projudi - Resumo do processo (painel lateral)
 //
 // Um botão fixo na borda direita da tela do processo ("📋 Resumo") abre um
-// painel lateral com as principais informações do processo, em cards que
-// podem ser recolhidos (como os dashboards de outras extensões do SEEU).
-// O painel fecha no "✕" e só abre quando o usuário clica no botão; enquanto
-// estiver aberto, continua aberto ao trocar de aba ou de processo (até ser
-// fechado) — a escolha fica em sessionStorage, só nesta aba do navegador.
+// painel lateral, em cards que podem ser recolhidos, com um resumo
+// objetivo do processo. O painel fecha no "✕" e só abre quando o usuário
+// clica no botão; enquanto estiver aberto, continua aberto ao trocar de aba
+// ou de processo (até ser fechado) — a escolha fica em sessionStorage, só
+// nesta aba do navegador.
 //
-// Cards (nesta primeira versão, a partir de três abas do processo):
-// - Processo: número, dias em tramitação, classe, assunto e prioridade — do
-//   próprio cabeçalho (table#informacoesProcessuais), presente em todas as
-//   abas;
-// - Partes ("Partes e Outros", selectedIcon=tabPartes): cada polo (<h4> +
-//   table.resultTable dentro de div#includeContent) com nome, RG/CPF, as
-//   observações da parte (preso, citado, denúncia recebida…) e advogados;
-// - Informações Adicionais (tabDadosAdicionais): os dados do fato (data da
-//   infração, delegacia, inquérito, tempo de tramitação) e só os registros
-//   que EXISTEM (ex.: "Existem prisões cadastradas", "Recebida em…"): os
-//   campos vazios ("Sem…", "Não há…", "Nenhum…", "Processo sem…") ficam de
-//   fora, para o resumo ser direto;
-// - Movimentações (tabMovimentacoesProcesso): total, último evento, atos do
-//   juiz (tipo JUIZ no id da linha "mov1Grau,JUIZ,…", sem as expedições) e
-//   marcos do processo (denúncia, prisão/soltura, audiências, sentença,
-//   trânsito, suspensão, arquivamento…).
+// Cards (decisão do usuário, versão 34 — "objetivo e direto"):
+// - Resumo: só os réus (polo passivo da aba "Partes e Outros") com as
+//   informações EM VERMELHO da coluna "Observação" da linha de cada um
+//   (<ul style="color:red"><li>Réu Preso (…)</li>), a data da infração e se
+//   existem apreensões e depósitos (aba "Informações Adicionais");
+// - Movimentações relevantes (aba "Movimentações"): não transcreve todos os
+//   eventos. Mostra as audiências futuras e os eventos de juiz, Ministério
+//   Público e advogados/defensores/procuradores, sem os eventos automáticos
+//   (confirmações de leitura, recebimento dos autos, expedições…).
 //
 // De onde vêm os dados (mesma técnica de reusCabecalho.js e
 // habilitarAdvogado.js): a aba que já está aberta é lida do próprio DOM; as
 // outras são buscadas em segundo plano com fetch() (POST do #processoForm
 // com selectedIcon=<aba>), sem iframe e sem trocar a aba visível. A busca só
 // acontece com o painel aberto (nunca ao simplesmente carregar a página) e o
-// resultado fica em sessionStorage por processo, para o painel reaparecer
-// na hora ao trocar de aba; "↻" busca tudo de novo.
+// resultado fica em sessionStorage por processo; "↻" busca tudo de novo.
 //
 // Estruturas confirmadas em .mhtml salvos do Projudi (TJPR):
 // - Partes: <div id="includeContent"><h4>Réu</h4><table class="resultTable">;
-//   linha de dados = <tr> com <a href=".../parteProcesso.do">; colunas
-//   achadas pelo <th>: "RG", "CPF/CNPJ", "Observação" (<li><b>Parte citada
-//   nos Autos</b></li>, <em>Denúncia Recebida em …</em>, <ul style="color:
-//   red"><li>Réu Preso (…)</li>) e "Advogados" (<li>OAB 12345N-PR - NOME</li>
-//   ou "Parte sem advogado");
-// - Informações Adicionais: <div id="includeContent"> com tabelas
-//   table.form; cada dado é <td class="label|labelRadio"><label>Rótulo:
-//   </label></td> seguido da <td> do valor (às vezes dois pares na mesma
-//   linha); valores com lista usam <li> (ex.: Denunciados);
+//   o polo passivo tem <tr id="rowpromovidas0"> / <img id="iconpromovidas0">;
+//   linha de dados = <tr> com <a href=".../parteProcesso.do">; a coluna
+//   "Observação" (achada pelo <th>) traz <ul style="color:red;"><li>Réu Preso
+//   (2 meses e 20 dias)</li></ul> — só esses itens vermelhos entram;
+// - Informações Adicionais: <td class="label|labelRadio">Rótulo:</td>
+//   seguido da <td> do valor. "Data da Infração:" traz a data; "Depósito
+//   Judicial/Fiança" e "Depósitos/Alvarás Eletrônicos - Integração CEF"
+//   dizem "Não há depósitos…" quando não há nada; "Apreensão/SNGB" mostra
+//   sempre "Visualizar" (link para apreensao.do), por isso a existência de
+//   apreensões é conferida abrindo essa tela em segundo plano (GET, o mesmo
+//   do clique no link) e, como reforço, pelos eventos "CADASTRAMENTO DE BENS
+//   APREENDIDOS" / "JUNTADA DE DOCUMENTOS APREENSÃO" das movimentações;
 // - Movimentações: table.resultTable com <th> "Seq.", "Data", "Evento",
-//   "Movimentado Por"; linha de evento <tr id="mov1Grau,TIPO,…"> com 5 <td>,
-//   título em <b><a class="link" href=".../movimentacao.do">.
+//   "Movimentado Por"; linha de evento <tr id="mov1Grau,TIPO,…"> (TIPO =
+//   JUIZ, PROMOTOR, ADVOGADO, SERVIDOR, OUTROS…) com 5 <td>; título em
+//   <b><a class="link" href=".../movimentacao.do">; complemento no <div>;
+//   "Movimentado Por" = nome + <font><b>Papel</b></font> ("Magistrada",
+//   "Ministério Público", "Advogada"…). Audiência designada: título
+//   "AUDIÊNCIA DE … DESIGNADA" e complemento "(Agendada para: 13 de
+//   novembro de 2026 às 13:15, em …)".
 (function () {
 	"use strict";
 	if (!window.__pdpHostPermitido) return; // só Projudi (ver hostGuard.js)
@@ -64,15 +64,14 @@
 	const TAG = "[Projudi Resumo do processo]";
 	const BASE = "/projudi";
 	const CHAVE_ABERTO = "pdp-resumo-aberto";
-	const CHAVE_DADOS = "pdp-resumo:";
+	const CHAVE_DADOS = "pdp-resumo-v2:";
 	const CHAVE_RECOLHIDOS = "pdp-resumo-recolhidos";
 	const ABAS = {
 		partes: { id: "tabPartes", nome: "Partes e Outros" },
 		info: { id: "tabDadosAdicionais", nome: "Informações Adicionais" },
 		movs: { id: "tabMovimentacoesProcesso", nome: "Movimentações" },
 	};
-	const LIMITE_LISTA = 6;
-
+	const LIMITE_LISTA = 5;
 	// ---------------------------------------------------------------------
 	// Utilitários
 	// ---------------------------------------------------------------------
@@ -217,45 +216,9 @@
 		return doc;
 	}
 
-	// ---------------------------------------------------------------------
-	// Leitura: cabeçalho (card "Processo")
-	// ---------------------------------------------------------------------
-
-	function lerCabecalho(doc) {
-		const dados = { numero: "", dias: "", campos: [] };
-		const titulo = doc.getElementById("barraTituloStatusProcessual");
-		if (titulo) {
-			const em = titulo.querySelector("em");
-			dados.numero = collapse(em ? em.textContent : "");
-			const dias = /\(\s*(\d+)\s*dia\(s\)\s*em\s*tramita/i.exec(titulo.textContent || "");
-			if (dias) dados.dias = dias[1];
-		}
-		const table = doc.getElementById("informacoesProcessuais");
-		if (!table) return dados;
-		const QUERO = [
-			{ re: /^classe processual/, nome: "Classe" },
-			{ re: /^assunto principal/, nome: "Assunto" },
-			{ re: /^prioridade/, nome: "Prioridade", destaque: true },
-			{ re: /^nivel de sigilo/, nome: "Sigilo", ignorar: /^publico$/ },
-		];
-		for (const tr of table.rows) {
-			if (tr.hasAttribute("data-pdp-reus-row")) continue;
-			const label = tr.querySelector("td.label");
-			if (!label || !label.nextElementSibling) continue;
-			const rotulo = normalize(label.textContent);
-			const q = QUERO.find(function (item) { return item.re.test(rotulo); });
-			if (!q) continue;
-			const valor = textoLimpo(label.nextElementSibling)
-				.replace(/\s*(Alterar|Incluir|Secundários)\s*$/g, "")
-				.trim();
-			if (!valor || (q.ignorar && q.ignorar.test(normalize(valor)))) continue;
-			dados.campos.push({ rotulo: q.nome, valor: valor, destaque: !!q.destaque });
-		}
-		return dados;
-	}
 
 	// ---------------------------------------------------------------------
-	// Leitura: aba "Partes e Outros"
+	// Leitura: réus (aba "Partes e Outros")
 	// ---------------------------------------------------------------------
 
 	function tituloDaTabela(table) {
@@ -266,163 +229,163 @@
 		return "";
 	}
 
-	function valorDocumento(text) {
-		const value = collapse(text);
-		if (!value) return "";
-		if (/^(nao cadastrad[oa]|nao informad[oa]|-+)$/.test(normalize(value))) return "";
-		return value;
+	// Mesmo critério de reusCabecalho.js.
+	const POLO_PASSIVO_TITULOS = /^(reu|reus|re|indiciad|noticiad|investigad|denunciad|querelad|acusad|autor(es)? do fato|flagrantead|sentenciad|apenad|executad|requerid|promovid)/;
+
+	function ehPoloPassivo(table, titulo) {
+		if (table.querySelector('[id^="rowpromovidas"], [id^="iconpromovidas"]')) return true;
+		return POLO_PASSIVO_TITULOS.test(normalize(titulo));
 	}
 
-	function tipoDoPolo(table, titulo) {
-		if (table.querySelector('[id^="rowpromovidas"], [id^="iconpromovidas"]')) return "passivo";
-		if (table.querySelector('[id^="rowpromoventes"], [id^="iconpromoventes"]')) return "ativo";
-		if (table.querySelector('[id^="rowvitimas"], [id^="iconvitimas"]')) return "vitimas";
-		if (table.querySelector('[id^="rowtestemunhas"], [id^="icontestemunhas"]')) return "testemunhas";
-		const t = normalize(titulo);
-		if (/^testemunh/.test(t)) return "testemunhas";
-		if (/^vitim/.test(t)) return "vitimas";
-		return "outros";
+	function ehVermelho(el) {
+		const estilo = (el.getAttribute("style") || "") + ";color:" + (el.getAttribute("color") || "");
+		return /color\s*:\s*(red|#f00\b|#ff0000|rgb\(\s*255\s*,\s*0\s*,\s*0\s*\))/i.test(estilo);
 	}
 
-	// Observações da parte: cada <li> e cada <em>/<a> vira um item curto.
-	function lerObservacoes(td) {
+	// Itens em vermelho da coluna "Observação" (ex.: "Réu Preso (…)").
+	function observacoesVermelhas(td) {
 		if (!td) return [];
 		const itens = [];
-		const vistos = new Set();
-		function add(texto, alerta) {
-			const t = collapse(texto);
-			if (!t || vistos.has(normalize(t))) return;
-			if (/^\(?citacao e intimacao online/.test(normalize(t))) return;
-			vistos.add(normalize(t));
-			itens.push({ texto: t, alerta: !!alerta });
-		}
-		td.querySelectorAll("li").forEach(function (li) {
-			const ul = li.closest("ul");
-			const vermelho = !!(ul && /red/i.test(ul.getAttribute("style") || ""));
-			add(li.textContent, vermelho || /pres[oa]\b/i.test(li.textContent));
+		td.querySelectorAll("li, span, font, em, b").forEach(function (n) {
+			let vermelho = false;
+			for (let a = n; a && a !== td.parentNode; a = a.parentElement) {
+				if (ehVermelho(a)) { vermelho = true; break; }
+			}
+			if (!vermelho) return;
+			if (n.tagName !== "LI" && n.closest("li")) return;
+			if (n.tagName !== "LI" && n.querySelector("li")) return;
+			const t = collapse(n.textContent);
+			if (t && itens.indexOf(t) === -1) itens.push(t);
 		});
-		td.querySelectorAll("em, a").forEach(function (el) {
-			if (el.closest("li")) return;
-			if (el.tagName === "A" && el.querySelector("em")) return;
-			add(el.textContent, false);
-		});
-		if (!itens.length) add(td.textContent, false);
 		return itens;
 	}
 
-	function lerAdvogados(td) {
-		if (!td) return [];
-		const lis = Array.prototype.map.call(td.querySelectorAll("li"), function (li) { return collapse(li.textContent); }).filter(Boolean);
-		if (lis.length) return lis;
-		const texto = collapse(td.textContent);
-		return texto && !/sem advogado/i.test(texto) ? [texto] : [];
-	}
-
-	function lerPartes(doc) {
+	function lerReus(doc) {
 		const raiz = doc.getElementById("includeContent") || doc;
 		const tables = Array.prototype.filter.call(raiz.querySelectorAll("table.resultTable"), function (table) {
 			return !!table.querySelector('a[href*="parteProcesso.do"]');
 		});
 		if (!tables.length) return null;
-		const polos = [];
+		const titulos = [];
+		const reus = [];
 		const vistos = new Set();
 		for (const table of tables) {
-			const titulo = tituloDaTabela(table) || "Partes";
-			const tipo = tipoDoPolo(table, titulo);
-			const ths = Array.prototype.slice.call(table.querySelectorAll("thead th")).map(function (th) { return normalize(th.textContent); });
-			const col = function (re) { return ths.findIndex(function (t) { return re.test(t); }); };
-			const colRG = col(/^rg\b/), colCPF = col(/^cpf/), colObs = col(/^observacao/), colAdv = col(/^advogad/);
-			const partes = [];
+			const titulo = tituloDaTabela(table);
+			if (!ehPoloPassivo(table, titulo)) continue;
+			if (titulo && titulos.indexOf(titulo) === -1) titulos.push(titulo);
+			const ths = Array.prototype.map.call(table.querySelectorAll("thead th"), function (th) { return normalize(th.textContent); });
+			const colObs = ths.findIndex(function (t) { return /^observacao/.test(t); });
 			const rows = table.tBodies.length ? table.tBodies[0].rows : [];
 			for (const tr of rows) {
 				const link = tr.querySelector('a[href*="parteProcesso.do"]');
 				if (!link || link.closest("tr") !== tr) continue;
 				const href = linkProjudi(link);
-				const nome = collapse(link.textContent).replace(/\s*\(cita[çc][ãa]o e intima[çc][ãa]o online[^)]*\)\s*$/i, "");
+				const nome = collapse(link.textContent);
 				if (!nome || (href && vistos.has(href))) continue;
 				if (href) vistos.add(href);
-				const cells = tr.cells;
-				const cel = function (i) { return i >= 0 && cells[i] ? cells[i] : null; };
-				const advTd = cel(colAdv);
-				partes.push({
+				reus.push({
 					nome: nome,
 					href: href,
-					rg: cel(colRG) ? valorDocumento(cel(colRG).textContent) : "",
-					cpf: cel(colCPF) ? valorDocumento(cel(colCPF).textContent) : "",
-					obs: lerObservacoes(cel(colObs)),
-					advogados: lerAdvogados(advTd),
-					semAdvogado: !!(advTd && /sem advogado/i.test(advTd.textContent || "")),
+					alertas: observacoesVermelhas(colObs >= 0 ? tr.cells[colObs] : null),
 				});
 			}
-			if (partes.length) polos.push({ titulo: titulo, tipo: tipo, partes: partes });
 		}
-		return { polos: polos };
+		return { titulo: titulos.join(" / "), reus: reus };
 	}
 
 	// ---------------------------------------------------------------------
 	// Leitura: aba "Informações Adicionais"
 	// ---------------------------------------------------------------------
 
-	// Dados "do fato": aparecem sempre, mesmo sem link.
-	const INFO_DADOS = /^(tempo de tramitacao|data da infracao|delegacia|data de conhecimento|numero do inquerito|data do fato)/;
-	// Valores que dizem que NÃO há nada cadastrado (ficam fora do resumo).
-	const INFO_VAZIO = /^(sem |nao ha |nao existe|nenhum|nenhuma|processo sem |novo |nao possui|nao informad|visualizar$|clique aqui)/;
-	// Campos que não interessam ao resumo.
-	const INFO_IGNORAR = /^(apreensao\/sngb|formulario nacional|relatorios de antecedentes)/;
+	const VAZIO = /^(sem |nao ha |nao existe|nenhum|nenhuma|processo sem |nao possui)/;
 
+	// { dataInfracao, depositos: [{ rotulo, texto, href, existe }], apreensaoHref }
 	function lerInfo(doc) {
 		const raiz = doc.getElementById("includeContent");
 		if (!raiz || !raiz.querySelector("td.label, td.labelRadio")) return null;
-		const dados = [];
-		const registros = [];
+		const info = { dataInfracao: "", depositos: [], apreensaoHref: "" };
 		raiz.querySelectorAll("td.label, td.labelRadio").forEach(function (labelTd) {
-			if (labelTd.closest("#informacoesProcessuais")) return;
-			const rotulo = semDoisPontos(labelTd.textContent);
-			if (!rotulo) return;
 			const valorTd = labelTd.nextElementSibling;
-			if (!valorTd) return;
+			const rotulo = semDoisPontos(labelTd.textContent);
+			if (!rotulo || !valorTd) return;
 			const nr = normalize(rotulo);
-			if (INFO_IGNORAR.test(nr)) return;
-
-			if (INFO_DADOS.test(nr)) {
-				const v = textoLimpo(valorTd);
-				if (v && !INFO_VAZIO.test(normalize(v))) dados.push({ rotulo: rotulo, valor: v });
-				return;
+			if (/^data da infracao/.test(nr)) {
+				info.dataInfracao = textoLimpo(valorTd);
+			} else if (/^apreensao/.test(nr)) {
+				info.apreensaoHref = linkProjudi(valorTd.querySelector("a"));
+			} else if (/^deposito/.test(nr)) {
+				const texto = textoLimpo(valorTd).replace(/\s*\(clique para (visualizar|cadastrar)\)\s*/i, "").trim();
+				info.depositos.push({
+					rotulo: rotulo,
+					texto: texto,
+					href: linkProjudi(valorTd.querySelector("a")),
+					existe: !!texto && !VAZIO.test(normalize(texto)),
+				});
 			}
-
-			let itens = Array.prototype.map.call(valorTd.querySelectorAll("li"), function (li) {
-				return { texto: textoLimpo(li), href: linkProjudi(li.querySelector("a")) };
-			});
-			if (!itens.length) itens = [{ texto: textoLimpo(valorTd), href: linkProjudi(valorTd.querySelector("a")) }];
-			itens = itens.filter(function (item) {
-				return item.texto && !INFO_VAZIO.test(normalize(item.texto)) && !/^sem sentenca/.test(normalize(item.texto));
-			});
-			itens.forEach(function (item) {
-				item.texto = item.texto.replace(/\s*\(clique para (visualizar|cadastrar)\)\s*/i, " ").trim();
-			});
-			if (itens.length) registros.push({ rotulo: rotulo, itens: itens });
 		});
-		return { dados: dados, registros: registros };
+		return info;
+	}
+
+	// Tela "Apreensão/SNGB" (apreensao.do): há apreensão se alguma tabela de
+	// resultado tem linha de dados; não há se a tela diz que não há nada.
+	// Resultado: true, false ou null (não deu para saber).
+	function lerApreensoes(doc) {
+		const corpo = doc.body;
+		if (!corpo) return null;
+		const linhas = Array.prototype.filter.call(corpo.querySelectorAll("table.resultTable tbody tr"), function (tr) {
+			const tds = Array.prototype.filter.call(tr.cells, function (td) { return collapse(td.textContent); });
+			return tds.length >= 2;
+		});
+		if (linhas.length) return true;
+		const texto = normalize(corpo.textContent);
+		if (/(nenhum|nenhuma|nao ha|nao existe|nao foram encontrad|sem )[^.]{0,40}(apreens|bem|bens|registro|resultado)/.test(texto)) return false;
+		return null;
+	}
+
+	async function buscarApreensoes(href) {
+		const url = new URL(href, location.href);
+		if (url.origin !== location.origin || !/\/apreensao\.do$/.test(url.pathname)) return null;
+		const doc = await readPage(url.href, { method: "GET" });
+		return lerApreensoes(doc);
 	}
 
 	// ---------------------------------------------------------------------
 	// Leitura: aba "Movimentações"
 	// ---------------------------------------------------------------------
 
-	const MARCOS = [
-		/denuncia|queixa-crime/,
-		/pris[aã]o|preso|soltura|liberdade|flagrante|preventiva|relaxad|revogad/,
-		/audiencia .*(designada|realizada|redesignada|cancelada|nao realizada)/,
-		/sentenca|julgad|condenad|absolvi|absolvid|extint|pronuncia|impronuncia|desclassific/,
-		/transito|transitad/,
-		/suspens|suspenso/,
-		/arquivad|arquivamento|baixa definitiva/,
-		/citad|citacao/,
-		/mandado de prisao|alvara/,
-		/recurso|apelacao|remetidos os autos para area recursal/,
-		/acordo de nao persecucao|transacao penal|anpp/,
-		/redistribuid|evoluida a classe/,
-	];
+	const MESES = ["janeiro", "fevereiro", "marco", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+
+	// "(Agendada para: 13 de novembro de 2026 às 13:15, …)" → Date
+	function dataAgendada(texto) {
+		const m = /agendada para:?\s*(\d{1,2}) de ([a-z]+) de (\d{4})(?: as (\d{1,2})[:h](\d{2}))?/.exec(normalize(texto));
+		if (!m) return null;
+		const mes = MESES.indexOf(m[2]);
+		if (mes < 0) return null;
+		return new Date(Number(m[3]), mes, Number(m[1]), Number(m[4] || 0), Number(m[5] || 0));
+	}
+
+	function papel(tr) {
+		const font = tr.cells[4].querySelector("font");
+		return collapse(font ? font.textContent : "");
+	}
+
+	function nomeDeQuemMovimentou(tr) {
+		const clone = tr.cells[4].cloneNode(true);
+		clone.querySelectorAll("font, img").forEach(function (n) { n.remove(); });
+		return collapse(clone.textContent);
+	}
+
+	// Eventos automáticos ou de mero trâmite: ficam fora do resumo.
+	const TRAMITE = /^(expedicao|confirmada a|leitura de|recebidos os autos|autos entregues|ato ordinatorio|cancelada a movimentacao|decorrido prazo|certificado|juntada de analise de decurso)/;
+
+	function grupoDoEvento(m) {
+		const tipo = m.tipo;
+		const p = normalize(m.papel);
+		if (tipo === "JUIZ" || tipo === "MAGISTRADO" || /^(juiz|juiza|magistrad|desembargador)/.test(p)) return "juiz";
+		if (tipo === "PROMOTOR" || /ministerio publico|promotor|procurador de justica/.test(p)) return "mp";
+		if (/^(ADVOGADO|DEFENSOR|PROCURADOR)/.test(tipo) || /advogad|defensor|defensoria|procurador/.test(p)) return "defesa";
+		return "";
+	}
 
 	function lerMovimentacoes(doc) {
 		const raiz = doc.getElementById("includeContent") || doc;
@@ -438,38 +401,68 @@
 			if (!titulo) return;
 			const seq = collapse(tr.cells[1].textContent);
 			if (!/^\d+$/.test(seq)) return;
+			if (tr.querySelector("strike, s, del")) return; // movimentação cancelada
 			const idLinha = tr.getAttribute("id") || "";
-			let tipo = idLinha.indexOf(",") !== -1 ? idLinha.split(",")[1] || "" : "";
-			const por = collapse(tr.cells[4].textContent);
-			if (!tipo && /\b(juiz|juiza|magistrad)/i.test(por)) tipo = "JUIZ";
 			const compl = tr.cells[3].querySelector("div");
-			const tituloTexto = collapse(titulo.textContent);
 			movs.push({
 				seq: seq,
 				data: collapse(tr.cells[2].textContent).slice(0, 10),
-				titulo: tituloTexto,
-				compl: textoLimpo(compl).slice(0, 220),
-				tipo: tipo.toUpperCase(),
-				por: por,
+				titulo: collapse(titulo.textContent),
+				compl: textoLimpo(compl).slice(0, 300),
+				tipo: (idLinha.indexOf(",") !== -1 ? idLinha.split(",")[1] || "" : "").toUpperCase(),
+				papel: papel(tr),
+				por: nomeDeQuemMovimentou(tr),
 				href: linkProjudi(titulo),
-				cancelada: !!tr.querySelector("strike, s, del") || /line-through/.test(tr.getAttribute("style") || ""),
 			});
 		});
 		movs.sort(function (a, b) { return Number(b.seq) - Number(a.seq); });
-		const validas = movs.filter(function (m) { return !m.cancelada && !/^cancelada a movimentacao/.test(normalize(m.titulo)); });
-		const juiz = validas.filter(function (m) {
-			return /^(JUIZ|MAGISTRADO)$/.test(m.tipo) && !/^expedicao/.test(normalize(m.titulo));
-		});
-		const marcos = validas.filter(function (m) {
+
+		// Audiências futuras: para cada tipo de audiência, vale o evento mais
+		// recente (designada, redesignada, cancelada, realizada…); se for uma
+		// designação com data de hoje em diante, a audiência está marcada.
+		const hoje = new Date();
+		hoje.setHours(0, 0, 0, 0);
+		const ultimoPorTipo = {};
+		movs.forEach(function (m) {
 			const t = normalize(m.titulo);
-			if (/^(expedicao de|juntada de|confirmada a|autos entregues|recebidos os autos|leitura de)/.test(t) && !/mandado de prisao|alvara/.test(t)) return false;
-			return MARCOS.some(function (re) { return re.test(t); });
+			const a = /^audiencia (.+?) (designada|redesignada|cancelada|realizada|nao realizada|nao-realizada|adiada|suspensa)\b/.exec(t);
+			if (!a || ultimoPorTipo[a[1]]) return;
+			ultimoPorTipo[a[1]] = { mov: m, situacao: a[2] };
 		});
+		const audiencias = [];
+		Object.keys(ultimoPorTipo).forEach(function (k) {
+			const u = ultimoPorTipo[k];
+			if (!/designada/.test(u.situacao)) return;
+			const quando = dataAgendada(u.mov.titulo + " " + u.mov.compl);
+			if (!quando || quando < hoje) return;
+			audiencias.push({
+				seq: u.mov.seq,
+				data: u.mov.data,
+				href: u.mov.href,
+				titulo: u.mov.titulo.replace(/\s+(re)?designada$/i, ""),
+				quando: quando.getTime(),
+				compl: u.mov.compl,
+			});
+		});
+		audiencias.sort(function (a, b) { return a.quando - b.quando; });
+
+		const grupos = { juiz: [], mp: [], defesa: [] };
+		movs.forEach(function (m) {
+			const g = grupoDoEvento(m);
+			if (!g || TRAMITE.test(normalize(m.titulo))) return;
+			grupos[g].push(m);
+		});
+
+		const apreensao = movs.find(function (m) {
+			return /bens apreendidos|documentos apreensao|auto de apreensao|apreensao de bens/.test(normalize(m.titulo));
+		});
+
 		return {
-			total: validas.length,
-			ultima: validas[0] || null,
-			juiz: juiz,
-			marcos: marcos,
+			audiencias: audiencias,
+			juiz: grupos.juiz,
+			mp: grupos.mp,
+			defesa: grupos.defesa,
+			apreensaoMov: apreensao ? { seq: apreensao.seq, titulo: apreensao.titulo } : null,
 		};
 	}
 
@@ -478,8 +471,9 @@
 	// ---------------------------------------------------------------------
 
 	let processoId = null;
-	let estado = { cabecalho: null, partes: null, info: null, movs: null, quando: 0 };
-	const carregando = { partes: false, info: false, movs: false };
+	// apreensao: true | false | null (não deu para saber) | undefined (ainda não lido)
+	let estado = { partes: null, info: null, movs: null, apreensao: undefined, quando: 0 };
+	const carregando = { partes: false, info: false, movs: false, apreensao: false };
 	const erros = { partes: "", info: "", movs: "" };
 	let geracao = 0;
 
@@ -518,13 +512,37 @@
 		}
 	}
 
-	const LEITORES = { partes: lerPartes, info: lerInfo, movs: lerMovimentacoes };
+	const LEITORES = { partes: lerReus, info: lerInfo, movs: lerMovimentacoes };
+
+	function atualizarApreensao(minha, id) {
+		const href = estado.info && estado.info.apreensaoHref;
+		if (!href) {
+			estado.apreensao = null;
+			return;
+		}
+		carregando.apreensao = true;
+		buscarApreensoes(href)
+			.then(function (r) {
+				if (minha !== geracao || processoId !== id) return;
+				estado.apreensao = r;
+				salvar();
+			})
+			.catch(function (err) {
+				if (minha !== geracao) return;
+				console.warn(TAG, "falha ao abrir a tela de apreensões:", err);
+				estado.apreensao = null;
+			})
+			.finally(function () {
+				if (minha !== geracao) return;
+				carregando.apreensao = false;
+				render();
+			});
+	}
 
 	function atualizarTudo() {
 		if (!processoId) return;
 		const id = processoId;
 		const minha = ++geracao;
-		estado.cabecalho = lerCabecalho(document);
 		Object.keys(ABAS).forEach(function (chave) {
 			carregando[chave] = true;
 			erros[chave] = "";
@@ -536,6 +554,7 @@
 					estado[chave] = dados;
 					estado.quando = Date.now();
 					salvar();
+					if (chave === "info") atualizarApreensao(minha, id);
 				})
 				.catch(function (err) {
 					if (minha !== geracao) return;
@@ -680,11 +699,12 @@
 		}
 	}
 
-	function itemMov(mov) {
+	function itemMov(mov, mostrarPor) {
 		const li = el("li", "pdp-rs-mov");
 		const topo = el("div", "pdp-rs-mov-topo");
 		topo.appendChild(el("span", "pdp-rs-seq", mov.seq));
 		topo.appendChild(el("span", "pdp-rs-data", mov.data));
+		if (mostrarPor && mov.por) topo.appendChild(el("span", "pdp-rs-por", mov.por));
 		li.appendChild(topo);
 		const a = el("a", "pdp-rs-link pdp-rs-mov-titulo", mov.titulo);
 		a.href = mov.href || "#";
@@ -697,101 +717,114 @@
 		return li;
 	}
 
-	function montarProcesso(corpo) {
-		const c = estado.cabecalho || lerCabecalho(document);
-		if (c.numero) {
-			const linha = el("div", "pdp-rs-numero", c.numero);
-			if (c.dias) linha.appendChild(el("span", "pdp-rs-dias", c.dias + " dia(s) em tramitação"));
-			corpo.appendChild(linha);
-		}
-		c.campos.forEach(function (campo) { corpo.appendChild(linhaDado(campo.rotulo, campo.valor, campo.destaque)); });
+	function aguardando(chave) {
+		if (carregando[chave]) return el("span", "pdp-rs-status", "Carregando…");
+		if (erros[chave]) return el("span", "pdp-rs-status pdp-rs-erro", "Não foi possível ler a aba " + ABAS[chave].nome + ".");
+		return el("span", "pdp-rs-status", "—");
 	}
 
-	function montarPartes(corpo) {
-		if (status(corpo, "partes", "Nenhuma parte cadastrada.")) return;
-		estado.partes.polos.forEach(function (polo) {
-			const grupo = el("div", "pdp-rs-polo pdp-rs-polo-" + polo.tipo);
-			grupo.appendChild(el("div", "pdp-rs-subtitulo", polo.titulo + (polo.partes.length > 1 ? " (" + polo.partes.length + ")" : "")));
-			const compacto = polo.tipo === "testemunhas";
-			const ul = el("ul", "pdp-rs-lista");
-			polo.partes.forEach(function (p, i) {
-				const li = el("li", "pdp-rs-parte");
-				if (compacto && i >= LIMITE_LISTA) li.hidden = true;
-				li.appendChild(linkOuTexto(p.nome, p.href, "Parte do Processo - " + p.nome, "pdp-rs-nome"));
-				const docs = [];
-				if (p.rg) docs.push("RG " + p.rg);
-				if (p.cpf) docs.push((p.cpf.indexOf("/") !== -1 ? "CNPJ " : "CPF ") + p.cpf);
-				if (docs.length && !compacto) li.appendChild(el("div", "pdp-rs-docs", docs.join(" · ")));
-				if (!compacto && p.obs.length) {
-					const chips = el("div", "pdp-rs-chips");
-					p.obs.forEach(function (o) { chips.appendChild(el("span", "pdp-rs-chip" + (o.alerta ? " pdp-rs-chip-alerta" : ""), o.texto)); });
-					li.appendChild(chips);
-				}
-				if (polo.tipo === "passivo" || polo.tipo === "ativo") {
-					if (p.advogados.length) {
-						p.advogados.forEach(function (adv) { li.appendChild(el("div", "pdp-rs-adv", "⚖ " + adv)); });
-					} else if (polo.tipo === "passivo" || !p.semAdvogado) {
-						li.appendChild(el("div", "pdp-rs-adv pdp-rs-adv-sem", "Sem advogado"));
-					}
-				}
-				ul.appendChild(li);
+	function simNao(existe, texto, href, titulo) {
+		const span = el("span", "pdp-rs-valor");
+		const marca = el("span", "pdp-rs-simnao " + (existe ? "pdp-rs-sim" : "pdp-rs-nao"), existe ? "Sim" : "Não");
+		span.appendChild(href ? linkOuTexto("", href, titulo) : el("span"));
+		const alvo = span.firstChild;
+		alvo.appendChild(marca);
+		if (texto) alvo.appendChild(document.createTextNode(" " + texto));
+		return span;
+	}
+
+	function montarResumo(corpo) {
+		// Réus e informações em vermelho da coluna Observação.
+		const partes = estado.partes;
+		if (!partes) {
+			corpo.appendChild(linhaDado("Réu(s)", aguardando("partes")));
+		} else if (!partes.reus.length) {
+			corpo.appendChild(linhaDado(partes.titulo || "Réu(s)", "Nenhum cadastrado"));
+		} else {
+			const lista = el("div", "pdp-rs-valor");
+			partes.reus.forEach(function (r) {
+				const item = el("div", "pdp-rs-reu");
+				item.appendChild(linkOuTexto(r.nome, r.href, "Parte do Processo - " + r.nome, "pdp-rs-nome"));
+				r.alertas.forEach(function (t) { item.appendChild(el("div", "pdp-rs-alerta", t)); });
+				lista.appendChild(item);
 			});
-			grupo.appendChild(ul);
-			if (compacto && polo.partes.length > LIMITE_LISTA) {
-				const mais = el("button", "pdp-rs-mais", "+ " + (polo.partes.length - LIMITE_LISTA) + " mais");
-				mais.type = "button";
-				mais.addEventListener("click", function () {
-					ul.querySelectorAll("li[hidden]").forEach(function (li) { li.hidden = false; });
-					mais.remove();
-				});
-				grupo.appendChild(mais);
-			}
-			corpo.appendChild(grupo);
-		});
-	}
+			corpo.appendChild(linhaDado(partes.titulo || "Réu(s)", lista));
+		}
 
-	function montarInfo(corpo) {
-		if (status(corpo, "info", "Nada cadastrado.")) return;
 		const info = estado.info;
-		info.dados.forEach(function (d) { corpo.appendChild(linhaDado(d.rotulo, d.valor)); });
-		if (info.registros.length) {
-			if (info.dados.length) corpo.appendChild(el("div", "pdp-rs-subtitulo", "Cadastrado no processo"));
-			info.registros.forEach(function (r) {
-				const box = el("div", "pdp-rs-dado");
-				box.appendChild(el("span", "pdp-rs-rotulo", r.rotulo));
-				const valores = el("span", "pdp-rs-valor");
-				r.itens.forEach(function (item, i) {
-					if (i) valores.appendChild(document.createElement("br"));
-					valores.appendChild(linkOuTexto(item.texto, item.href, r.rotulo));
-				});
-				box.appendChild(valores);
-				corpo.appendChild(box);
-			});
-		} else if (!info.dados.length) {
-			corpo.appendChild(el("p", "pdp-rs-status", "Nada cadastrado."));
+		corpo.appendChild(linhaDado("Data da infração", info ? info.dataInfracao || "Não informada" : aguardando("info")));
+
+		// Apreensões: tela Apreensão/SNGB; reforço pelas movimentações.
+		let apreensao;
+		const mov = estado.movs && estado.movs.apreensaoMov;
+		if (!info || estado.apreensao === undefined && carregando.apreensao) {
+			apreensao = info ? el("span", "pdp-rs-status", "Carregando…") : aguardando("info");
+		} else if (estado.apreensao === true) {
+			apreensao = simNao(true, "", info.apreensaoHref, "Apreensão/SNGB");
+		} else if (mov) {
+			apreensao = simNao(true, "(mov. " + mov.seq + ")", info.apreensaoHref, "Apreensão/SNGB");
+		} else if (estado.apreensao === false) {
+			apreensao = simNao(false, "", info.apreensaoHref, "Apreensão/SNGB");
+		} else if (carregando.apreensao || carregando.movs) {
+			apreensao = el("span", "pdp-rs-status", "Carregando…");
+		} else {
+			apreensao = info.apreensaoHref ? linkOuTexto("Conferir", info.apreensaoHref, "Apreensão/SNGB") : el("span", "pdp-rs-status", "—");
 		}
+		corpo.appendChild(linhaDado("Apreensões", apreensao));
+
+		// Depósitos: Depósito Judicial/Fiança e Depósitos/Alvarás Eletrônicos.
+		if (!info) {
+			corpo.appendChild(linhaDado("Depósitos", aguardando("info")));
+		} else {
+			const existentes = info.depositos.filter(function (d) { return d.existe; });
+			if (!existentes.length) {
+				corpo.appendChild(linhaDado("Depósitos", simNao(false, "", "", "")));
+			} else {
+				const v = el("div", "pdp-rs-valor");
+				existentes.forEach(function (d) {
+					const linha = simNao(true, d.texto, d.href, d.rotulo);
+					linha.className = "pdp-rs-deposito";
+					v.appendChild(linha);
+				});
+				corpo.appendChild(linhaDado("Depósitos", v));
+			}
+		}
+	}
+
+	function grupoMovs(corpo, titulo, itens, mostrarPor) {
+		corpo.appendChild(el("div", "pdp-rs-subtitulo", titulo + (itens.length ? " (" + itens.length + ")" : "")));
+		if (itens.length) listaLimitada(corpo, itens, function (m) { return itemMov(m, mostrarPor); });
+		else corpo.appendChild(el("p", "pdp-rs-status", "Nenhum."));
 	}
 
 	function montarMovs(corpo) {
 		if (status(corpo, "movs", "Nenhuma movimentação.")) return;
 		const m = estado.movs;
-		if (m.ultima) {
-			corpo.appendChild(el("div", "pdp-rs-subtitulo", "Último evento"));
+		corpo.appendChild(el("div", "pdp-rs-subtitulo", "Audiências futuras"));
+		if (m.audiencias.length) {
 			const ul = el("ul", "pdp-rs-lista");
-			ul.appendChild(itemMov(m.ultima));
+			m.audiencias.forEach(function (a) {
+				const li = el("li", "pdp-rs-audiencia");
+				const d = new Date(a.quando);
+				li.appendChild(el("div", "pdp-rs-quando",
+					d.toLocaleDateString("pt-BR") + (d.getHours() || d.getMinutes() ? " às " + d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "")));
+				const link = el("a", "pdp-rs-link pdp-rs-mov-titulo", a.titulo);
+				link.href = a.href || "#";
+				link.title = a.compl || "";
+				link.addEventListener("click", function (event) {
+					event.preventDefault();
+					irParaMovimentacao({ seq: a.seq, titulo: a.titulo, href: a.href });
+				});
+				li.appendChild(link);
+				ul.appendChild(li);
+			});
 			corpo.appendChild(ul);
+		} else {
+			corpo.appendChild(el("p", "pdp-rs-status", "Nenhuma designada."));
 		}
-		corpo.appendChild(el("div", "pdp-rs-subtitulo", "Decisões e despachos do juiz" + (m.juiz.length ? " (" + m.juiz.length + ")" : "")));
-		if (m.juiz.length) listaLimitada(corpo, m.juiz, itemMov);
-		else corpo.appendChild(el("p", "pdp-rs-status", "Nenhum."));
-		corpo.appendChild(el("div", "pdp-rs-subtitulo", "Marcos do processo" + (m.marcos.length ? " (" + m.marcos.length + ")" : "")));
-		if (m.marcos.length) listaLimitada(corpo, m.marcos, itemMov);
-		else corpo.appendChild(el("p", "pdp-rs-status", "Nenhum."));
-	}
-
-	function contarPartes() {
-		if (!estado.partes) return "";
-		return estado.partes.polos.reduce(function (n, p) { return n + p.partes.length; }, 0);
+		grupoMovs(corpo, "Juiz", m.juiz, false);
+		grupoMovs(corpo, "Ministério Público", m.mp, false);
+		grupoMovs(corpo, "Advogados, defensores e procuradores", m.defesa, true);
 	}
 
 	function render() {
@@ -799,12 +832,11 @@
 		const scroll = painel.querySelector(".pdp-rs-conteudo");
 		const topo = scroll ? scroll.scrollTop : 0;
 		const conteudo = el("div", "pdp-rs-conteudo");
-		conteudo.appendChild(card("processo", "Processo", null, montarProcesso));
-		conteudo.appendChild(card("partes", "Partes", contarPartes(), montarPartes));
-		conteudo.appendChild(card("info", "Informações Adicionais", estado.info ? estado.info.registros.length : "", montarInfo));
-		conteudo.appendChild(card("movs", "Movimentações", estado.movs ? estado.movs.total : "", montarMovs));
+		conteudo.appendChild(card("resumo", "Réus e dados principais", null, montarResumo));
+		const m = estado.movs;
+		conteudo.appendChild(card("movs", "Movimentações relevantes", m ? m.juiz.length + m.mp.length + m.defesa.length + m.audiencias.length : "", montarMovs));
 		const rodape = el("div", "pdp-rs-rodape");
-		const ocupado = carregando.partes || carregando.info || carregando.movs;
+		const ocupado = carregando.partes || carregando.info || carregando.movs || carregando.apreensao;
 		rodape.textContent = ocupado
 			? "Lendo as abas do processo…"
 			: estado.quando
@@ -863,7 +895,7 @@
 		botaoAba = el("button", "pdp-rs-aba");
 		botaoAba.id = "pdp-resumo-aba";
 		botaoAba.type = "button";
-		botaoAba.title = "Abrir o resumo do processo (partes, informações adicionais e movimentações)";
+		botaoAba.title = "Abrir o resumo do processo (réus, apreensões, depósitos e movimentações relevantes)";
 		botaoAba.appendChild(el("span", "pdp-rs-aba-icone", "📋"));
 		botaoAba.appendChild(el("span", "pdp-rs-aba-texto", "Resumo"));
 		botaoAba.addEventListener("click", function () { definirAberto(true); });
@@ -879,7 +911,6 @@
 		processoId = idDoProcesso(document);
 		const salvo = carregarSalvo(processoId);
 		if (salvo) estado = Object.assign(estado, salvo);
-		estado.cabecalho = lerCabecalho(document);
 		// A aba aberta já está no DOM: usa direto.
 		Object.keys(ABAS).forEach(function (chave) {
 			if (abaAtual() === ABAS[chave].id) {
@@ -902,10 +933,10 @@
 
 	// Para testes e para outras funções da extensão.
 	window.__pdpResumoProcessoApi = {
-		lerPartes: lerPartes,
+		lerReus: lerReus,
 		lerInfo: lerInfo,
+		lerApreensoes: lerApreensoes,
 		lerMovimentacoes: lerMovimentacoes,
-		lerCabecalho: lerCabecalho,
 		abrir: function () { definirAberto(true); },
 		fechar: function () { definirAberto(false); },
 	};
