@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 31 |
-| **Versão da extensão** | 31 |
-| **Data desta versão** | 12/11/2026 |
+| **Versão do manual** | 32 |
+| **Versão da extensão** | 32 |
+| **Data desta versão** | 13/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi, clique no ícone da balança
@@ -2901,28 +2901,38 @@ e o total):
   prisões provisórias que precisam ser reavaliadas;
 - **Prescrições** → **Vencidas** — processos ativos com prescrição
   vencida, contados como na tela **Prescrições de processos ativos** com
-  **Somente sem sentença anotada** e **Agrupar por processo** marcados.
+  **Somente sem sentença anotada** e **Agrupar por processo** marcados;
+- **Bens sem registro no SNGB** — bens apreendidos ainda não registrados
+  no SNGB, contados no relatório **Processos com apreensões sem registro
+  no SNGB** (menu **Relatórios/Estatísticas** → **Relatórios
+  Dinâmicos**), que também não mostra número sem ser gerado.
 
 **Onde fica:** na **Mesa do Analista Judiciário**, aba **Análise de
-Juntadas**, em três linhas novas no fim do quadro **Para Realizar**:
+Juntadas**, em quatro linhas novas no fim do quadro **Para Realizar**:
 **Feitos sem infração penal:**, **Reavaliação da prisão provisória a cada
-90 dias (Art. 316, CPP):** e **Prescrições vencidas:**.
+90 dias (Art. 316, CPP):**, **Prescrições vencidas:** e **Bens sem
+registro no SNGB:**. Com o **Visual novo da Mesa** ligado, elas ficam no
+quadro **Da Mesa do Escrivão Criminal**.
 
 **Passo a passo:**
 
 1. Abra a aba **Análise de Juntadas**. No fim do quadro **Para Realizar**
-   aparecem as três linhas, com **…** enquanto a extensão faz a contagem.
+   aparecem as quatro linhas, com **…** enquanto a extensão faz a contagem.
 2. Em instantes, no lugar das reticências, aparece cada total, como os
    demais números do quadro. É o mesmo número que você veria clicando no
    quadro correspondente da aba **Mesa do Escrivão Criminal** (o "N
    registro(s) encontrado(s)" da lista que abre). Nas **Prescrições
    vencidas**, é o número que aparece depois de clicar em **Vencidas**,
    marcar **Somente sem sentença anotada** e **Agrupar por processo** e
-   clicar em **Pesquisar**.
+   clicar em **Pesquisar**. Nos **Bens sem registro no SNGB**, é o
+   número de bens listados no relatório **Processos com apreensões sem
+   registro no SNGB** (a extensão o gera como **Arquivo CSV**, sem
+   mostrá-lo, e conta as linhas).
 3. Clique num número para abrir a lista correspondente. Com **Ctrl**
    apertado, ela abre em outra aba. Nas **Prescrições vencidas**, a tela
    **Prescrições de processos ativos** já abre pesquisada, com as duas
-   caixas marcadas.
+   caixas marcadas. Nos **Bens sem registro no SNGB**, o relatório abre
+   sempre em outra aba, no formato **Html**.
 
 **Bom saber:**
 
@@ -2934,6 +2944,11 @@ Juntadas**, em três linhas novas no fim do quadro **Para Realizar**:
 - As **Prescrições vencidas** podem levar alguns segundos a mais para
   aparecer: a extensão abre a aba **Mesa do Escrivão Criminal** sem
   mostrá-la, clica em **Vencidas** e faz a pesquisa, como você faria.
+- Os **Bens sem registro no SNGB** também levam alguns segundos: a
+  extensão abre a **Lista de Relatórios**, escolhe o relatório e o gera,
+  como você faria em **Relatórios/Estatísticas** → **Relatórios
+  Dinâmicos**. Se o relatório não estiver na sua Lista de Relatórios,
+  aparece **não disponível**.
 - Se o Projudi não responder, aparece **não disponível** no lugar do
   número; basta voltar à aba mais tarde.
 - Para ligar ou desligar, use **Totais da Mesa do Escrivão Criminal na
@@ -3531,6 +3546,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 32 | 13/11/2026 | Seção 9.15 **Totais da Mesa do Escrivão Criminal na Análise de Juntadas**: nova linha **Bens sem registro no SNGB**, com o total de bens do relatório **Processos com apreensões sem registro no SNGB** (Relatórios/Estatísticas → Relatórios Dinâmicos), gerado pela extensão como Arquivo CSV; clicar no número abre o relatório em Html em outra aba. Vídeo V72 regravado (não citado no manual). |
 | 31 | 12/11/2026 | Corrigido (9.17): o clique no **total** do card (ou no nome do juiz, num tipo ou numa etiqueta) às vezes não filtrava a lista, quando o quadro era atualizado no meio do clique (por exemplo, enquanto as outras páginas da lista ainda chegavam). Agora o filtro age já ao apertar o botão do mouse. Ao passar o mouse, o total fica sublinhado, para mostrar que é clicável. Passo 2 ajustado. Sem vídeo novo (o que aparece na tela não mudou). |
 | 30 | 12/11/2026 | Corrigido (seção 9.18, Totais de juntadas por tipo): o clique no card passa a valer sobre a linha **Situação** — marca **Todos** e lista sempre todas as juntadas do tipo, o mesmo número do card, mesmo com **Urgente** ou **Conclusos** marcado ou depois de abrir as juntadas urgentes pela Mesa. Corrigida também a leitura do tipo quando o Projudi mostra uma descrição abaixo dele na coluna **Tipo de Documento**. |
 | 29 | 12/11/2026 | Conclusões por juiz (9.17): as etiquetas de tipo do alto do quadro (ex.: **SENTENÇA · 60**, **DECISÃO · 50**) também filtram: clicar numa mostra na tabela todas as conclusões daquele tipo, de todos os juízes; clicar de novo ou em Mostrar todas volta a lista inteira. Novo passo 4 (os seguintes foram renumerados). Vídeo V74 regravado (não citado no manual). |
