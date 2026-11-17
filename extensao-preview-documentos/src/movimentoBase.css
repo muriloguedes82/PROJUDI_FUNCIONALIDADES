@@ -20,7 +20,7 @@ input.pdp-movbase-chk.pdp-movbase-esmaecida {
 }
 
 /* Atalho inline: opções em fluxo para não cobrir os eventos seguintes. */
-.pdp-movbase-atalho { display: inline; margin-left: 8px; font-weight: normal; }
+.pdp-movbase-atalho { display: inline; margin-right: 8px; font-weight: normal; }
 .pdp-movbase-trigger, .pdp-movbase-opcoes button {
  font: 12px Arial, sans-serif; cursor: pointer; padding: 4px 8px;
  border: 1px solid #d8b79c; border-radius: 4px; background: #fff6ee; color: #a34210;

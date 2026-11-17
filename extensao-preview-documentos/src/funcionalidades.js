@@ -113,7 +113,7 @@ self.PDP_FUNCIONALIDADES = Object.freeze({
 				{
 					id: "movimentoBase",
 					nome: "Escolher a movimentação das Ações rápidas",
-					descricao: "Caixinha e atalho Movimentar… ao final de cada evento, para abrir ações, preferências e combos a partir dele.",
+					descricao: "Caixinha e atalho Movimentar… antes da primeira linha de cada evento, para abrir ações, preferências e combos a partir dele.",
 					js: ["src/movimentoBase.js"],
 					css: ["src/movimentoBase.css"],
 					requer: ["acoesRapidas"]

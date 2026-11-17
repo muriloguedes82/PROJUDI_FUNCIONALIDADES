@@ -218,12 +218,14 @@
 			fixado = !fixado;
 			if (fixado) abrir(); else fechar();
 		});
-		wrap.addEventListener("mouseleave", function () { if (!fixado && !wrap.contains(document.activeElement)) fechar(); });
-		wrap.addEventListener("focusout", function (ev) { if (!fixado && !wrap.contains(ev.relatedTarget)) fechar(); });
-		wrap.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { fixado = false; fechar(); trigger.focus(); fechar(); } });
+		celula.addEventListener("mouseleave", function () { if (!fixado && !celula.contains(document.activeElement)) fechar(); });
+		celula.addEventListener("focusout", function (ev) { if (!fixado && !celula.contains(ev.relatedTarget)) fechar(); });
+		celula.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { fixado = false; fechar(); trigger.focus(); fechar(); } });
 		wrap.appendChild(trigger);
-		wrap.appendChild(menu);
-		celula.appendChild(wrap);
+		// O atalho precede o título; as opções ficam depois de todo o texto,
+		// para a abertura do menu não separar o botão da primeira linha.
+		celula.insertBefore(wrap, celula.firstChild);
+		celula.appendChild(menu);
 	}
 
 	let ultimoLog = "";

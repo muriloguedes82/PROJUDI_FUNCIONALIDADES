@@ -8,7 +8,7 @@ COMO TESTAR
 3. Desative a outra cópia da extensão para evitar duplicidade.
 4. Clique em Carregar sem compactação e escolha a pasta que contém manifest.json.
 5. Recarregue a página do Projudi e abra a aba Movimentações.
-6. Passe o mouse sobre Movimentar… ao final do texto de um evento.
+6. Passe o mouse sobre Movimentar… antes do texto de um evento.
 7. Clique em um grupo: Concluso, Remessa, Ordenações, Int. Partes, Outras, Preferências ou Combos.
 8. O evento é marcado como referência e o painel normal da extensão abre junto dele.
 9. Escolha a ação ou preferência no painel e confira a referência antes de confirmar.
