@@ -226,14 +226,7 @@
 			}
 			console.log(TAG, "item de suspensão ativa reconhecido:", { texto: text, motivo: motivo });
 			const link = item.querySelector ? item.querySelector("a.link, a[href]") : null;
-			let href = null;
-			if (link && link.getAttribute("href")) {
-				try {
-					href = new URL(link.getAttribute("href"), window.location.href).href;
-				} catch (err) {
-					href = link.getAttribute("href");
-				}
-			}
+			const href = hrefDoLink(link);
 			encontrados.push({ texto: displayText(text), href: href });
 		}
 
@@ -247,6 +240,28 @@
 	// (transacaoPenal.do). Mesma técnica já usada em
 	// sequencialProcessoPrincipal.js.
 	// ---------------------------------------------------------------------
+
+	// Endereço de um link lido da tela, para buscar em segundo plano. Links
+	// "#", vazios ou "javascript:" (o Projudi abre muitos pelo onclick) não
+	// servem: completados com o endereço da página viram o próprio endereço
+	// dela - e, na tela do processo mostrada depois de uma ação (ex.:
+	// comunicação enviada pela aba "Vínculos", endereço
+	// acaoVinculadaComunicacao.do?actionType=salvar), carregá-lo REPETE a
+	// ação (versão 34). Também recusa o endereço da própria página.
+	function hrefDoLink(link, base) {
+		const bruto = link && link.getAttribute("href");
+		if (!bruto || /^\s*(#|javascript:)/i.test(bruto)) return null;
+		try {
+			const url = new URL(bruto, base || window.location.href);
+			const atual = new URL(window.location.href);
+			if (url.origin !== atual.origin) return null;
+			if (url.pathname === atual.pathname && url.search === atual.search) return null;
+			return url.href;
+		} catch (err) {
+			return null;
+		}
+	}
+
 
 	function fetchDoc(url) {
 		return new Promise(function (resolve, reject) {

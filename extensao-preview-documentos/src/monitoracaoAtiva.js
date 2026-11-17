@@ -258,14 +258,7 @@
 		}
 		console.log(TAG, "item de monitoração eletrônica ativa reconhecido:", { texto: text, motivo: motivo });
 		const link = item.querySelector ? item.querySelector("a.link, a[href]") : null;
-		let href = null;
-		if (link && link.getAttribute("href")) {
-			try {
-				href = new URL(link.getAttribute("href"), window.location.href).href;
-			} catch (err) {
-				href = link.getAttribute("href");
-			}
-		}
+		const href = hrefDoLink(link);
 		return { texto: displayText(text), href: href };
 	}
 
@@ -358,6 +351,28 @@
 	// da "Data Início" de cada medida, na tela de detalhe
 	// (medidaAlternativa.do). Mesma técnica já usada em suspensaoAtiva.js.
 	// ---------------------------------------------------------------------
+
+	// Endereço de um link lido da tela, para buscar em segundo plano. Links
+	// "#", vazios ou "javascript:" (o Projudi abre muitos pelo onclick) não
+	// servem: completados com o endereço da página viram o próprio endereço
+	// dela - e, na tela do processo mostrada depois de uma ação (ex.:
+	// comunicação enviada pela aba "Vínculos", endereço
+	// acaoVinculadaComunicacao.do?actionType=salvar), carregá-lo REPETE a
+	// ação (versão 34). Também recusa o endereço da própria página.
+	function hrefDoLink(link, base) {
+		const bruto = link && link.getAttribute("href");
+		if (!bruto || /^\s*(#|javascript:)/i.test(bruto)) return null;
+		try {
+			const url = new URL(bruto, base || window.location.href);
+			const atual = new URL(window.location.href);
+			if (url.origin !== atual.origin) return null;
+			if (url.pathname === atual.pathname && url.search === atual.search) return null;
+			return url.href;
+		} catch (err) {
+			return null;
+		}
+	}
+
 
 	function fetchDoc(url) {
 		return new Promise(function (resolve, reject) {
@@ -566,12 +581,8 @@
 			if (!link) return null;
 			const linkText = normalize(link.textContent);
 			if (/^sem\b/.test(linkText) || /nenhum/.test(linkText)) return null;
-			let href = null;
-			try {
-				href = new URL(link.getAttribute("href"), window.location.href).href;
-			} catch (err) {
-				href = link.getAttribute("href");
-			}
+			const href = hrefDoLink(link);
+			if (!href) return null;
 			console.log(TAG, "campo 'Medidas Cautelares' indica processo com medida(s) cadastrada(s):", { texto: collapseWhitespace(link.textContent), href: href });
 			return href;
 		}
@@ -698,14 +709,7 @@
 					return;
 				}
 				const link = colunas[0].querySelector("a.link, a[href]");
-				let subHref = url;
-				if (link && link.getAttribute("href")) {
-					try {
-						subHref = new URL(link.getAttribute("href"), url).href;
-					} catch (err) {
-						subHref = url;
-					}
-				}
+				const subHref = hrefDoLink(link, url) || url;
 				// O nome da parte é o texto principal do card (ver
 				// `criarCardElemento`/`textoItem` mais abaixo) — cai para o
 				// próprio nome do tipo de medida só se a parte não puder ser
