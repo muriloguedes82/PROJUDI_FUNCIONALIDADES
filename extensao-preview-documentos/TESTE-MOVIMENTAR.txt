@@ -1,0 +1,28 @@
+PROTÓTIPO LOCAL — ATALHO MOVIMENTAR
+Base: principal, commit 306bd6645d50fa2a7303e1d7ea652af24b7513ed (versão 33).
+Branch de testes: atalhos-ocultos-movimentar. Versão de teste: 34.
+
+COMO TESTAR
+1. Extraia o ZIP numa pasta própria.
+2. Em chrome://extensions, ative o Modo do desenvolvedor.
+3. Desative a outra cópia da extensão para evitar duplicidade.
+4. Clique em Carregar sem compactação e escolha a pasta que contém manifest.json.
+5. Recarregue a página do Projudi e abra a aba Movimentações.
+6. Passe o mouse sobre Movimentar… ao final do texto de um evento.
+7. Clique em um grupo: Concluso, Remessa, Ordenações, Int. Partes, Outras, Preferências ou Combos.
+8. O evento é marcado como referência e o painel normal da extensão abre junto dele.
+9. Escolha a ação ou preferência no painel e confira a referência antes de confirmar.
+
+O hover não altera a referência; a seleção acontece ao clicar numa opção.
+Também é possível abrir pelo clique, pelo foco do teclado e fechar a faixa com Escape.
+Os painéis, preenchimentos e confirmações existentes são reaproveitados.
+Juntar Documento, Alvará e Advogados continuam seguindo seus fluxos próprios.
+É necessário deixar ativas Ações rápidas e Escolher a movimentação das Ações rápidas.
+A referência permanece marcada até desmarcar, escolher outro evento pelo atalho ou recarregar a página.
+
+Arquivos de código alterados:
+src/movimentoBase.js
+src/movimentoBase.css
+src/quickActions.js
+
+Protótipo para validação: atos reais dependem de teste no Projudi autenticado.

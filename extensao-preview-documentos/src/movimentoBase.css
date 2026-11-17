@@ -18,3 +18,16 @@ input.pdp-movbase-chk.pdp-movbase-esmaecida {
 	opacity: 0.35;
 	cursor: not-allowed;
 }
+
+/* Atalho inline: opções em fluxo para não cobrir os eventos seguintes. */
+.pdp-movbase-atalho { display: inline; margin-left: 8px; font-weight: normal; }
+.pdp-movbase-trigger, .pdp-movbase-opcoes button {
+ font: 12px Arial, sans-serif; cursor: pointer; padding: 4px 8px;
+ border: 1px solid #d8b79c; border-radius: 4px; background: #fff6ee; color: #a34210;
+ vertical-align: middle;
+}
+.pdp-movbase-opcoes { display: flex; flex-wrap: wrap; gap: 5px; padding: 7px 0; }
+.pdp-movbase-opcoes[hidden] { display: none; }
+.pdp-movbase-opcoes button { background: #fff; color: #505b26; border-color: #c9ceb7; }
+.pdp-movbase-opcoes button:hover { background: #f0f3e5; }
+.pdp-movbase-trigger:focus-visible, .pdp-movbase-opcoes button:focus-visible { outline: 2px solid #d9480f; outline-offset: 2px; }

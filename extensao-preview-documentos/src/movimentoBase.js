@@ -164,12 +164,75 @@
 		return Array.from(linhas);
 	}
 
+
+	// Atalho de teste: abrir os painéis existentes junto ao evento escolhido.
+	function criarAtalho(row, link) {
+		if (!link || row.querySelector(".pdp-movbase-atalho")) return;
+		const celula = link.closest("td");
+		if (!celula) return;
+		const wrap = document.createElement("span");
+		wrap.className = "pdp-movbase-atalho";
+		const trigger = document.createElement("button");
+		trigger.type = "button";
+		trigger.className = "pdp-movbase-trigger";
+		trigger.textContent = "Movimentar…";
+		trigger.setAttribute("aria-expanded", "false");
+		trigger.setAttribute("aria-label", "Movimentar a partir do evento " + seqDaLinha(row));
+		const menu = document.createElement("span");
+		menu.className = "pdp-movbase-opcoes";
+		menu.hidden = true;
+		let fixado = false;
+		function abrir() {
+			const api = window.__pdpQuickActions;
+			if (!api || !api.gruposMovimento) return;
+			if (!menu.childElementCount) api.gruposMovimento().forEach(function (grupo) {
+				const btn = document.createElement("button");
+				btn.type = "button";
+				btn.textContent = grupo.nome;
+				btn.addEventListener("click", function (ev) {
+					ev.stopPropagation();
+					// A escolha só muda ao clicar em uma opção, nunca no hover.
+					todasAsCaixas().forEach(function (chk) {
+						chk.checked = chk.closest("tr") === row;
+						marcarLinha(chk);
+					});
+					atualizarBloqueio();
+					menu.hidden = true;
+					trigger.setAttribute("aria-expanded", "false");
+					fixado = false;
+					api.abrirGrupoMovimento(grupo.id, trigger);
+				});
+				menu.appendChild(btn);
+			});
+			menu.hidden = false;
+			trigger.setAttribute("aria-expanded", "true");
+		}
+		function fechar() {
+			menu.hidden = true;
+			trigger.setAttribute("aria-expanded", "false");
+		}
+		trigger.addEventListener("mouseenter", abrir);
+		trigger.addEventListener("focus", abrir);
+		trigger.addEventListener("click", function (ev) {
+			ev.stopPropagation();
+			fixado = !fixado;
+			if (fixado) abrir(); else fechar();
+		});
+		wrap.addEventListener("mouseleave", function () { if (!fixado && !wrap.contains(document.activeElement)) fechar(); });
+		wrap.addEventListener("focusout", function (ev) { if (!fixado && !wrap.contains(ev.relatedTarget)) fechar(); });
+		wrap.addEventListener("keydown", function (ev) { if (ev.key === "Escape") { fixado = false; fechar(); trigger.focus(); fechar(); } });
+		wrap.appendChild(trigger);
+		wrap.appendChild(menu);
+		celula.appendChild(wrap);
+	}
+
 	let ultimoLog = "";
 	function aplicar() {
 		const linhas = linhasDeMovimentacao();
 		let novas = 0;
 		let semLink = 0;
 		linhas.forEach(function (row) {
+			criarAtalho(row, linkDaLinha(row));
 			if (row.querySelector(":scope > td > input." + CHECKBOX_CLASS)) return;
 			const celula = row.querySelector(":scope > td");
 			if (!celula) return;
