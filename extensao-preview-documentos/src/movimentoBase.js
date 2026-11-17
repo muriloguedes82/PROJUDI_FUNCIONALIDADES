@@ -175,7 +175,7 @@
 		const trigger = document.createElement("button");
 		trigger.type = "button";
 		trigger.className = "pdp-movbase-trigger";
-		trigger.textContent = "Movimentar…";
+		trigger.textContent = "…";
 		trigger.setAttribute("aria-expanded", "false");
 		trigger.setAttribute("aria-label", "Movimentar a partir do evento " + seqDaLinha(row));
 		const menu = document.createElement("span");

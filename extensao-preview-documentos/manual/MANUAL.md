@@ -1300,9 +1300,9 @@ Nas movimentações tachadas (inválidas) a caixinha aparece bloqueada. As
 caixinhas **dos arquivos**, usadas para enviar por WhatsApp e e-mail, não
 mudam: continuam permitindo marcar vários arquivos ([5.1](#cap-5-1)).
 
-**Atalho “Movimentar…” antes da primeira linha do evento:**
+**Atalho “…” antes da primeira linha do evento:**
 
-1. Passe o mouse sobre **Movimentar…** para abrir uma linha de opções.
+1. Passe o mouse sobre **…** para abrir uma linha de opções.
    Você também pode clicar no atalho ou chegar a ele pelo teclado.
 2. Escolha **Concluso**, **Remessa**, **Ordenações**, **Int. Partes**, **Outras**,
    **⭐ Preferências** ou **🔗 Combos**.
@@ -3573,7 +3573,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
-| 34 | 17/11/2026 | Atalho **Movimentar…** antes da primeira linha de cada evento válido (7.7): ao passar o mouse, clicar ou usar o teclado, mostra grupos de ações, preferências e combos. Clicar em uma opção seleciona o evento como referência e abre o painel junto dele. |
+| 34 | 17/11/2026 | Atalho **…** antes da primeira linha de cada evento válido (7.7): ao passar o mouse, clicar ou usar o teclado, mostra grupos de ações, preferências e combos. Clicar em uma opção seleciona o evento como referência e abre o painel junto dele. |
 | 33 | 13/11/2026 | Corrigido (seção 9.15): clicar no número das **Prescrições vencidas** abrindo em outra aba (Ctrl+clique ou botão do meio do mouse) mostrava a tela **Prescrições de processos ativos** sem as caixas marcadas, com um total diferente do quadro. Agora essa tela já vem com **Somente sem sentença anotada** e **Agrupar por processo** marcados e pesquisada, com o mesmo total do quadro. Passo 3 ajustado. Sem vídeo novo. |
 | 32 | 13/11/2026 | Seção 9.15 **Totais da Mesa do Escrivão Criminal na Análise de Juntadas**: nova linha **Processos com apreensões sem registro no SNGB**, com o total de bens do relatório de mesmo nome (Relatórios/Estatísticas → Relatórios Dinâmicos), gerado pela extensão como Arquivo CSV; clicar no número abre a tela do relatório, para escolher o formato e gerá-lo. Cada linha só aparece quando o total é maior que zero. Os quatro totais passam a ser contados de novo toda vez que a aba Análise de Juntadas é aberta ou atualizada (antes ficavam guardados por 5 minutos). Vídeo V72 regravado (não citado no manual). |
 | 31 | 12/11/2026 | Corrigido (9.17): o clique no **total** do card (ou no nome do juiz, num tipo ou numa etiqueta) às vezes não filtrava a lista, quando o quadro era atualizado no meio do clique (por exemplo, enquanto as outras páginas da lista ainda chegavam). Agora o filtro age já ao apertar o botão do mouse. Ao passar o mouse, o total fica sublinhado, para mostrar que é clicável. Passo 2 ajustado. Sem vídeo novo (o que aparece na tela não mudou). |
