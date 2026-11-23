@@ -358,7 +358,7 @@
 	// dela - e, na tela do processo mostrada depois de uma ação (ex.:
 	// comunicação enviada pela aba "Vínculos", endereço
 	// acaoVinculadaComunicacao.do?actionType=salvar), carregá-lo REPETE a
-	// ação (versão 34). Também recusa o endereço da própria página.
+	// ação (versão 35). Também recusa o endereço da própria página.
 	function hrefDoLink(link, base) {
 		const bruto = link && link.getAttribute("href");
 		if (!bruto || /^\s*(#|javascript:)/i.test(bruto)) return null;

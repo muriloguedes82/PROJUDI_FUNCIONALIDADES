@@ -392,7 +392,7 @@
 	window.MutationObserver = MutationObserver;
 })();
 
-// Vigia contra repetir uma ação do Projudi em segundo plano (versão 34).
+// Vigia contra repetir uma ação do Projudi em segundo plano (versão 35).
 //
 // Depois de certas ações, o Projudi devolve a tela do processo sem mudar o
 // endereço da página: ao enviar uma comunicação pela aba "Vínculos", por
