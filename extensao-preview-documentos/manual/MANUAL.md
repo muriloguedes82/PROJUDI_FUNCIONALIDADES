@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 33 |
-| **Versão da extensão** | 33 |
-| **Data desta versão** | 13/11/2026 |
+| **Versão do manual** | 35 |
+| **Versão da extensão** | 35 |
+| **Data desta versão** | 23/11/2026 |
 | **Edição** | Chrome Web Store (instalada e atualizada pela loja) |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
@@ -1267,7 +1267,24 @@ Nas movimentações tachadas (inválidas) a caixinha aparece bloqueada. As
 caixinhas **dos arquivos**, usadas para enviar por WhatsApp e e-mail, não
 mudam: continuam permitindo marcar vários arquivos ([5.1](#cap-5-1)).
 
-**Passo a passo:**
+**Atalho “…” antes da primeira linha do evento:**
+
+1. Passe o mouse sobre **…** para abrir uma linha de opções.
+   Você também pode clicar no atalho ou chegar a ele pelo teclado.
+2. Escolha **Concluso**, **Remessa**, **Ordenações**, **Int. Partes**, **Outras**,
+   **⭐ Preferências** ou **🔗 Combos**.
+3. Só ao clicar numa opção a extensão marca aquela movimentação como referência.
+   Se outra estava marcada, a escolha é trocada automaticamente.
+4. O painel habitual abre junto ao evento. Escolha a ação, preferência ou combo
+   e confira os dados antes de confirmar, como de costume.
+
+Passar o mouse não muda a referência. **Escape** fecha a linha de opções.
+A referência escolhida permanece marcada até você desmarcar, escolher outra
+pelo atalho ou recarregar a página. Movimentações inválidas não recebem o atalho.
+**Juntar Documento**, **Alvará Eletrônico** e **Advogados** continuam com seus
+fluxos próprios. O atalho acompanha a opção **Escolher a movimentação das Ações rápidas** do Menu.
+
+**Passo a passo pela caixinha:**
 
 1. Na aba **Movimentações**, marque a caixinha da movimentação desejada. A linha
    fica contornada em azul e as demais caixinhas ficam **esmaecidas** e não
@@ -3520,6 +3537,9 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 35 (edição Chrome Web Store) | 23/11/2026 | Edição para a Chrome Web Store, igual à versão 35, com as mesmas diferenças da edição 20: instalação pela loja (2.1) e atualização automática pela loja, sem o aviso de versão nova nem o download do GitHub (2.3), capa com a linha **Edição** e nada do SEEU (sem o card **SEEU** ao lado da balança). Sem vídeo novo. |
+| 35 | 23/11/2026 | Sem alteração de texto; corrigido um erro em que a extensão podia repetir, sem o usuário perceber, o envio de uma comunicação feita pela aba **Vínculos** (botão **Enviar Comunicacao**), gerando a mesma comunicação várias vezes no processo de destino, como já tinha acontecido com o arquivamento. Depois do envio, o Projudi mostra a tela do processo no endereço da própria ação; os quadros de **Monitoração eletrônica** e de **Suspensão** do cabeçalho podiam, ao procurar seus dados, abrir em segundo plano esse mesmo endereço, o que enviava a comunicação de novo. Agora eles ignoram esses links, e a extensão inteira passou a recusar abrir em segundo plano o endereço de uma ação que acabou de ser feita. |
+| 34 | 17/11/2026 | Atalho **…** antes da primeira linha de cada evento válido (7.7): ao passar o mouse, clicar ou usar o teclado, mostra grupos de ações, preferências e combos. Clicar em uma opção seleciona o evento como referência e abre o painel junto dele. |
 | 33 (edição Chrome Web Store) | 13/11/2026 | Edição para a Chrome Web Store, igual à versão 33, com as mesmas diferenças da edição 20: instalação pela loja (2.1) e atualização automática pela loja, sem o aviso de versão nova nem o download do GitHub (2.3), capa com a linha **Edição** e nada do SEEU (sem o card **SEEU** ao lado da balança). Sem vídeo novo. |
 | 33 | 13/11/2026 | Corrigido (seção 9.15): clicar no número das **Prescrições vencidas** abrindo em outra aba (Ctrl+clique ou botão do meio do mouse) mostrava a tela **Prescrições de processos ativos** sem as caixas marcadas, com um total diferente do quadro. Agora essa tela já vem com **Somente sem sentença anotada** e **Agrupar por processo** marcados e pesquisada, com o mesmo total do quadro. Passo 3 ajustado. Sem vídeo novo. |
 | 32 | 13/11/2026 | Seção 9.15 **Totais da Mesa do Escrivão Criminal na Análise de Juntadas**: nova linha **Processos com apreensões sem registro no SNGB**, com o total de bens do relatório de mesmo nome (Relatórios/Estatísticas → Relatórios Dinâmicos), gerado pela extensão como Arquivo CSV; clicar no número abre a tela do relatório, para escolher o formato e gerá-lo. Cada linha só aparece quando o total é maior que zero. Os quatro totais passam a ser contados de novo toda vez que a aba Análise de Juntadas é aberta ou atualizada (antes ficavam guardados por 5 minutos). Vídeo V72 regravado (não citado no manual). |
