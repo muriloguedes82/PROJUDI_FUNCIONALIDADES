@@ -2396,3 +2396,23 @@ CENAS.V78 = {
 		await S.endCard("Audiências → Listagem → Pendentes → coluna Atraso (mais de 30 dias em destaque).");
 	},
 };
+
+
+CENAS.V79 = {
+ arquivo: "V79-atalho-movimentar-no-evento.mp4",
+ titulo: "Atalho Movimentar no evento",
+ secao: "7.7",
+ async run() {
+  browser(["Projudi - Movimentações"], "https://projudi.tjpr.jus.br/projudi/");
+  screen(pjHeader() + '<div class="pj-body"><div class="pj-h2">Movimentações</div><table class="pj-table"><tr><th>Seq.</th><th>Evento</th></tr><tr><td>9</td><td><button id="atalho">…</button> PROFERIDO DESPACHO DE MERO EXPEDIENTE<div id="opcoes" style="display:none;padding:10px 0"><button>Concluso</button> <button>Remessa</button> <button id="ordenar">Ordenações</button> <button>Int. Partes</button> <button>Outras</button> <button>⭐ Preferências</button> <button>🔗 Combos</button></div></td></tr></table><div id="painel" style="display:none;padding:16px;background:#fff8e8;border:1px solid #c9ceb7">Movimentação de referência: 9 — PROFERIDO DESPACHO DE MERO EXPEDIENTE<br><br><b>Ordenar Cumprimentos</b> &nbsp; <button>Ir e abrir</button> &nbsp; <button>+ Nova preferência</button></div></div>');
+  S.hl("#atalho", 3);
+  await S.cap("Passe o mouse em <b>…</b>, antes da primeira linha do evento.", { ms: 2200 });
+  $("#opcoes").style.display = "block";
+  S.hlOff(); S.hl("#opcoes", 3);
+  await S.cap("Escolha um grupo de ações, preferências ou combos. O hover ainda não muda a referência.", { ms: 2400 });
+  $("#opcoes").style.display = "none"; $("#painel").style.display = "block";
+  S.hlOff(); S.hl("#painel", 3);
+  await S.cap("Ao escolher <b>Ordenações</b>, o painel abre junto ao evento 9. Confira os dados antes de confirmar.", { ms: 2800 });
+  S.hlOff();
+ }
+};

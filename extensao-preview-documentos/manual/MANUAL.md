@@ -4,9 +4,9 @@
 
 | Item | Informação |
 |---|---|
-| **Versão do manual** | 33 |
-| **Versão da extensão** | 33 |
-| **Data desta versão** | 13/11/2026 |
+| **Versão do manual** | 34 |
+| **Versão da extensão** | 34 |
+| **Data desta versão** | 17/11/2026 |
 | **Público** | Servidores(as) e magistrados(as) que já sabem abrir um processo no Projudi e navegar pelas abas dele e do sistema |
 
 > **Como abrir este manual.** No Projudi, clique no ícone da balança
@@ -1300,7 +1300,24 @@ Nas movimentações tachadas (inválidas) a caixinha aparece bloqueada. As
 caixinhas **dos arquivos**, usadas para enviar por WhatsApp e e-mail, não
 mudam: continuam permitindo marcar vários arquivos ([5.1](#cap-5-1)).
 
-**Passo a passo:**
+**Atalho “…” antes da primeira linha do evento:**
+
+1. Passe o mouse sobre **…** para abrir uma linha de opções.
+   Você também pode clicar no atalho ou chegar a ele pelo teclado.
+2. Escolha **Concluso**, **Remessa**, **Ordenações**, **Int. Partes**, **Outras**,
+   **⭐ Preferências** ou **🔗 Combos**.
+3. Só ao clicar numa opção a extensão marca aquela movimentação como referência.
+   Se outra estava marcada, a escolha é trocada automaticamente.
+4. O painel habitual abre junto ao evento. Escolha a ação, preferência ou combo
+   e confira os dados antes de confirmar, como de costume.
+
+Passar o mouse não muda a referência. **Escape** fecha a linha de opções.
+A referência escolhida permanece marcada até você desmarcar, escolher outra
+pelo atalho ou recarregar a página. Movimentações inválidas não recebem o atalho.
+**Juntar Documento**, **Alvará Eletrônico** e **Advogados** continuam com seus
+fluxos próprios. O atalho acompanha a opção **Escolher a movimentação das Ações rápidas** do Menu.
+
+**Passo a passo pela caixinha:**
 
 1. Na aba **Movimentações**, marque a caixinha da movimentação desejada. A linha
    fica contornada em azul e as demais caixinhas ficam **esmaecidas** e não
@@ -3556,6 +3573,7 @@ está em [COMO-ATUALIZAR.md](COMO-ATUALIZAR.md)).
 
 | Versão | Data | Alterações no manual |
 |---|---|---|
+| 34 | 17/11/2026 | Atalho **…** antes da primeira linha de cada evento válido (7.7): ao passar o mouse, clicar ou usar o teclado, mostra grupos de ações, preferências e combos. Clicar em uma opção seleciona o evento como referência e abre o painel junto dele. |
 | 33 | 13/11/2026 | Corrigido (seção 9.15): clicar no número das **Prescrições vencidas** abrindo em outra aba (Ctrl+clique ou botão do meio do mouse) mostrava a tela **Prescrições de processos ativos** sem as caixas marcadas, com um total diferente do quadro. Agora essa tela já vem com **Somente sem sentença anotada** e **Agrupar por processo** marcados e pesquisada, com o mesmo total do quadro. Passo 3 ajustado. Sem vídeo novo. |
 | 32 | 13/11/2026 | Seção 9.15 **Totais da Mesa do Escrivão Criminal na Análise de Juntadas**: nova linha **Processos com apreensões sem registro no SNGB**, com o total de bens do relatório de mesmo nome (Relatórios/Estatísticas → Relatórios Dinâmicos), gerado pela extensão como Arquivo CSV; clicar no número abre a tela do relatório, para escolher o formato e gerá-lo. Cada linha só aparece quando o total é maior que zero. Os quatro totais passam a ser contados de novo toda vez que a aba Análise de Juntadas é aberta ou atualizada (antes ficavam guardados por 5 minutos). Vídeo V72 regravado (não citado no manual). |
 | 31 | 12/11/2026 | Corrigido (9.17): o clique no **total** do card (ou no nome do juiz, num tipo ou numa etiqueta) às vezes não filtrava a lista, quando o quadro era atualizado no meio do clique (por exemplo, enquanto as outras páginas da lista ainda chegavam). Agora o filtro age já ao apertar o botão do mouse. Ao passar o mouse, o total fica sublinhado, para mostrar que é clicável. Passo 2 ajustado. Sem vídeo novo (o que aparece na tela não mudou). |

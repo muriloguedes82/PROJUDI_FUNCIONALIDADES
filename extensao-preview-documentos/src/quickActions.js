@@ -4773,7 +4773,9 @@
 		return row ? row.querySelector('[data-group-id="' + id + '"], [data-panel-id="' + id + '"]') : null;
 	}
 
+	let movimentoPanelAnchor = null;
 	function closePanel() {
+		movimentoPanelAnchor = null;
 		if (activePanel) {
 			activePanel.remove();
 			activePanel = null;
@@ -5969,7 +5971,25 @@
 	}
 
 	// Abre para baixo do botão; só vai para cima quando não cabe embaixo.
+	function positionMovimentoPanel() {
+		if (!movimentoPanelAnchor || !movimentoPanelAnchor.isConnected || !activePanel) return false;
+		const rect = movimentoPanelAnchor.getBoundingClientRect();
+		const area = areaUtil();
+		activePanel.style.boxSizing = "border-box";
+		activePanel.style.maxWidth = Math.max(0, area.largura - 24) + "px";
+		const below = area.altura - rect.bottom - 12;
+		const above = rect.top - 12;
+		const down = below >= Math.min(280, activePanel.scrollHeight) || below >= above;
+		activePanel.style.maxHeight = Math.max(0, down ? below : above) + "px";
+		activePanel.style.top = down ? (rect.bottom + 6) + "px" : "auto";
+		activePanel.style.bottom = down ? "auto" : (area.altura - rect.top + 6) + "px";
+		activePanel.style.left = Math.max(12, Math.min(rect.left, area.largura - activePanel.offsetWidth - 12)) + "px";
+		activePanel.style.right = "auto";
+		return true;
+	}
+
 	function positionFavPanel() {
+		if (positionMovimentoPanel()) return;
 		if (!activePanel || !row || activeGroupId !== FAV_PANEL_ID) return;
 		const btn = row.querySelector("#pdp-fav-prefs-button");
 		if (!btn) return;
@@ -6005,6 +6025,7 @@
 	}
 
 	function positionPanel(groupId) {
+		if (positionMovimentoPanel()) return;
 		if (groupId === FAV_PANEL_ID) {
 			positionFavPanel();
 			return;
@@ -6236,6 +6257,23 @@
 	}
 
 	window.__pdpQuickActions = {
+		gruposMovimento: function () {
+			return ACTION_GROUPS.filter(function (g) { return !g.custom; }).map(function (g) {
+				return { id: g.id, nome: g.botao || g.title };
+			}).concat([{ id: "preferencias", nome: "⭐ Preferências" }, { id: "combos", nome: "🔗 Combos" }]);
+		},
+		abrirGrupoMovimento: function (id, anchor) {
+			closePanel();
+			if (id === "preferencias") buildFavPanel();
+			else if (id === "combos") buildCombosPanel();
+			else {
+				const group = ACTION_GROUPS.find(function (g) { return g.id === id && !g.custom; });
+				if (!group) return;
+				buildPanel(group);
+			}
+			movimentoPanelAnchor = anchor;
+			positionMovimentoPanel();
+		},
 		// Pergunta sobre juntadas/conclusão pendentes antes de uma preferência.
 		executarComPendencias: executarComPendencias,
 		resolveDialogUrl: resolveDialogUrl,
