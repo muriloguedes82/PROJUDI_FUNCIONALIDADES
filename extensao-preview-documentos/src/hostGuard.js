@@ -391,3 +391,107 @@
 	MutationObserver.prototype = Original.prototype;
 	window.MutationObserver = MutationObserver;
 })();
+
+// Vigia contra repetir uma ação do Projudi em segundo plano (versão 35).
+//
+// Depois de certas ações, o Projudi devolve a tela do processo sem mudar o
+// endereço da página: ao enviar uma comunicação pela aba "Vínculos", por
+// exemplo, a tela do processo fica no endereço
+// processo/acaoVinculadaComunicacao.do?actionType=salvar. Um link "#" (ou
+// vazio) dessa tela, lido por um script da extensão e completado com o
+// endereço da página, vira esse mesmo endereço - e carregá-lo em segundo
+// plano (fetch ou iframe oculto) faz o Projudi EXECUTAR a ação de novo,
+// sem o usuário ver (comunicações enviadas várias vezes para o processo de
+// destino, como já tinha acontecido com o arquivamento - ver
+// monitoracaoAtiva.js). Este script roda antes dos demais no mesmo mundo
+// isolado (só os scripts da extensão são afetados, não a página) e recusa
+// qualquer carga em segundo plano do próprio endereço da página quando
+// ele é o de uma ação (e não o da tela do processo ou de uma lista).
+// `window.__pdpRepeteAcao(url)` fica disponível para os scripts conferirem
+// um endereço antes de usá-lo.
+(function () {
+	"use strict";
+	if (!window.__pdpHostPermitido || window.__pdpVigiaAcoes) return;
+	window.__pdpVigiaAcoes = true;
+	const TAG = "[Projudi] Vigia de ações:";
+	// actionType que grava algo no Projudi (carregar de novo repete a ação).
+	const GRAVA = /^(salvar|gravar|arquivar|desarquivar|enviar|confirmar|finalizar|excluir|remover|incluir|inserir|executar|cadastrar|movimentar|assinar|juntar|dispensar|concluir|realizar|expedir|cancelar|suspender|reativar|apensar|desapensar|vincular|desvincular|baixar|remeter|devolver|redistribuir|cumprir|habilitar|desabilitar)/i;
+
+	function semHash(url) {
+		return url.origin + url.pathname + url.search;
+	}
+
+	// A página atual é o resultado de uma ação? (endereço com actionType de
+	// gravação, ou tela do processo mostrada num endereço diferente do do
+	// próprio formulário do processo, que é visualizacaoProcesso.do).
+	function paginaDeAcao() {
+		const atual = new URL(window.location.href);
+		const tipo = atual.searchParams.get("actionType") || "";
+		if (GRAVA.test(tipo)) return true;
+		const form = document.getElementById("processoForm");
+		if (form && document.querySelector('[id^="tabItemprefix"]')) {
+			try {
+				const acao = new URL(form.getAttribute("action") || "", atual.href);
+				if (acao.pathname !== atual.pathname) return true;
+			} catch (e) { /* action inválida: segue */ }
+		}
+		return false;
+	}
+
+	function repeteAcao(endereco) {
+		try {
+			if (endereco && typeof endereco === "object" && "url" in endereco) endereco = endereco.url; // Request
+			const alvo = new URL(String(endereco), window.location.href);
+			if (alvo.origin !== window.location.origin) return false;
+			if (semHash(alvo) !== semHash(new URL(window.location.href))) return false;
+			return paginaDeAcao();
+		} catch (e) {
+			return false;
+		}
+	}
+	window.__pdpRepeteAcao = repeteAcao;
+
+	function avisar(endereco) {
+		console.error(TAG, "carga em segundo plano recusada - repetiria a ação desta página:", String(endereco && endereco.url || endereco));
+	}
+
+	const fetchOriginal = window.fetch;
+	if (typeof fetchOriginal === "function") {
+		window.fetch = function (recurso) {
+			if (repeteAcao(recurso)) {
+				avisar(recurso);
+				return Promise.reject(new Error("endereço recusado: repetiria a ação desta página do Projudi"));
+			}
+			return fetchOriginal.apply(this, arguments);
+		};
+	}
+
+	try {
+		const proto = window.HTMLIFrameElement && window.HTMLIFrameElement.prototype;
+		const desc = proto && Object.getOwnPropertyDescriptor(proto, "src");
+		if (desc && desc.set) {
+			Object.defineProperty(proto, "src", {
+				configurable: true,
+				enumerable: desc.enumerable,
+				get: desc.get,
+				set: function (valor) {
+					if (repeteAcao(valor)) {
+						avisar(valor);
+						throw new Error("endereço recusado: repetiria a ação desta página do Projudi");
+					}
+					return desc.set.call(this, valor);
+				},
+			});
+		}
+		const setAttributeOriginal = Element.prototype.setAttribute;
+		Element.prototype.setAttribute = function (nome, valor) {
+			if (this instanceof HTMLIFrameElement && String(nome).toLowerCase() === "src" && repeteAcao(valor)) {
+				avisar(valor);
+				throw new Error("endereço recusado: repetiria a ação desta página do Projudi");
+			}
+			return setAttributeOriginal.apply(this, arguments);
+		};
+	} catch (e) {
+		console.warn(TAG, "não foi possível vigiar os iframes:", e);
+	}
+})();
